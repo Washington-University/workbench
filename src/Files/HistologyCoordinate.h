@@ -82,6 +82,8 @@ namespace caret {
         
         Vector3D getStereotaxicXYZ() const;
         
+        Vector3D getStereotaxicNoNonLinearXYZ() const;
+        
         AString getHistologySlicesFileName() const;
         
         AString getHistologySlicesFileNameNoPath() const;
@@ -93,6 +95,8 @@ namespace caret {
         Vector3D getPlaneXYZ() const;
         
         bool isStereotaxicXYZValid() const;
+        
+        bool isStereotaxicNoNonLinearXYZValid() const;
         
         bool isPlaneXYValid() const;
         
@@ -140,6 +144,8 @@ namespace caret {
         
         void setStereotaxicXYZ(const Vector3D& xyz);
         
+        void setStereotaxicNoNonLinearXYZ(const Vector3D& xyz);
+        
         void copyHelperHistologyCoordinate(const HistologyCoordinate& obj);
         
         void setHistologySlicesFileName(const AString& histologySlicesFileNameFullPath);
@@ -157,6 +163,9 @@ namespace caret {
         /** stereotaxic coordinate*/
         Vector3D m_stereotaxicXYZ;
         
+        /** stereotaxic coordinate without non-linear correction */
+        Vector3D m_stereotaxicNoNonLinearXYZ;
+        
         /** full path name of histology slices file*/
         AString m_histologySlicesFileName;
         
@@ -171,6 +180,9 @@ namespace caret {
         
         /** validity of stereotaxic XYZ*/
         bool m_stereotaxicXYZValid = false;
+        
+        /** validity of stereotaxic XYZ*/
+        bool m_stereotaxicNoNonLinearXYZValid = false;
         
         /** validity of plane XY*/
         bool m_planeXYValid = false;

@@ -40,6 +40,8 @@ namespace caret {
     public:
         virtual ~EventCaretDataFilesGet();
 
+        static CaretDataFile* getCaretDataFileWithName(const AString& filename);
+        
         static std::vector<CaretDataFile*> getAllCaretDataFiles();
         
         static std::vector<DataFileTypeEnum::Enum> getAllCaretDataFileTyes();

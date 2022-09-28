@@ -88,24 +88,18 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
     hc.setPlaneXYZ(planeXYZ);
     hc.m_planeXY = planeXYZ;
     
-//    if (mediaFile != NULL) {
-//        Vector3D stereotaxicXYZ;
-//        if (mediaFile->planeXyzToStereotaxicXyz(hc.m_planeXY,
-//                                                stereotaxicXYZ)) {
-//            hc.setStereotaxicXYZ(stereotaxicXYZ);
-//        }
-//    }
-//    else {
-        const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
-        if (slice != NULL) {
-            Vector3D stereotaxicXYZ;
-            if (slice->planeXyzToStereotaxicXyz(planeXYZ,
-                                                stereotaxicXYZ)) {
-                hc.setStereotaxicXYZ(stereotaxicXYZ);
-            }
+    const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+    if (slice != NULL) {
+        Vector3D stereotaxicXYZ;
+        Vector3D stereotaxicNoNonLinearXYZ;
+        if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                            stereotaxicNoNonLinearXYZ,
+                                            stereotaxicXYZ)) {
+            hc.setStereotaxicXYZ(stereotaxicXYZ);
+            hc.setStereotaxicNoNonLinearXYZ(stereotaxicNoNonLinearXYZ);
         }
-//    }
-    
+    }
+
     return hc;
 }
 
@@ -145,9 +139,12 @@ HistologyCoordinate::newInstanceDefaultSlices(HistologySlicesFile* histologySlic
             hc.setPlaneXYZ(planeXYZ);
             
             Vector3D stereotaxicXYZ;
+            Vector3D stereotaxicNoNonLinearXYZ;
             if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                                stereotaxicNoNonLinearXYZ,
                                                 stereotaxicXYZ)) {
                 hc.setStereotaxicXYZ(stereotaxicXYZ);
+                hc.setStereotaxicNoNonLinearXYZ(stereotaxicNoNonLinearXYZ);
             }
 
             return hc;
@@ -187,9 +184,12 @@ HistologyCoordinate::newInstancePlaneXYZChanged(HistologySlicesFile* histologySl
     const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
     if (slice != NULL) {
         Vector3D stereotaxicXYZ;
+        Vector3D stereotaxicNoNonLinearXYZ;
         if (slice->planeXyzToStereotaxicXyz(planeXYZ,
+                                            stereotaxicNoNonLinearXYZ,
                                             stereotaxicXYZ)) {
             hc.setStereotaxicXYZ(stereotaxicXYZ);
+            hc.setStereotaxicNoNonLinearXYZ(stereotaxicNoNonLinearXYZ);
         }
     }
     
@@ -273,7 +273,9 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
                                   newPlaneXYZ);
 
         Vector3D newStereotaxicXYZ;
+        Vector3D stereotaxicNoNonLinearXYZ;
         histologySlice->planeXyzToStereotaxicXyz(newPlaneXYZ,
+                                                 stereotaxicNoNonLinearXYZ,
                                                  newStereotaxicXYZ);
 
         HistologyCoordinate hc;
@@ -282,6 +284,7 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
         hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
         hc.setPlaneXYZ(newPlaneXYZ);
         hc.setStereotaxicXYZ(newStereotaxicXYZ);
+        hc.setStereotaxicNoNonLinearXYZ(stereotaxicNoNonLinearXYZ);
         return hc;
     }
  
@@ -327,11 +330,13 @@ void
 HistologyCoordinate::copyHelperHistologyCoordinate(const HistologyCoordinate& obj)
 {
     m_stereotaxicXYZ                  = obj.m_stereotaxicXYZ;
+    m_stereotaxicNoNonLinearXYZ       = obj.m_stereotaxicNoNonLinearXYZ;
     m_histologySlicesFileName         = obj.m_histologySlicesFileName;
     m_histologyMediaFileName          = obj.m_histologyMediaFileName;
     m_sliceIndex                      = obj.m_sliceIndex;
     m_planeXY                         = obj.m_planeXY;
     m_stereotaxicXYZValid             = obj.m_stereotaxicXYZValid;
+    m_stereotaxicNoNonLinearXYZValid  = obj.m_stereotaxicNoNonLinearXYZValid;
     m_planeXYValid                    = obj.m_planeXYValid;
     m_sliceIndexValid                 = obj.m_sliceIndexValid;
     m_sliceNumber                     = obj.m_sliceNumber;
@@ -349,8 +354,14 @@ HistologyCoordinate::initializeMembers()
                                m_stereotaxicXYZ,
                                3,
                                0.0);
+    m_sceneAssistant->addArray("m_stereotaxicNoNonLinearXYZ",
+                               m_stereotaxicNoNonLinearXYZ,
+                               3,
+                               0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValid",
                           &m_stereotaxicXYZValid);
+    m_sceneAssistant->add("m_stereotaxicNoNonLinearXYZValid",
+                          &m_stereotaxicNoNonLinearXYZValid);
     m_sceneAssistant->addArray("m_planeXY",
                                m_planeXY,
                                3,
@@ -494,6 +505,15 @@ HistologyCoordinate::getStereotaxicXYZ() const
 }
 
 /**
+ * @return stereotaxic coordinate without non-linear correction
+ */
+Vector3D
+HistologyCoordinate::getStereotaxicNoNonLinearXYZ() const
+{
+    return m_stereotaxicNoNonLinearXYZ;
+}
+
+/**
  * Set the media file.
  * @param mediaFile
  *    Pointer to media file.
@@ -516,6 +536,18 @@ HistologyCoordinate::setStereotaxicXYZ(const Vector3D& xyz)
 {
     m_stereotaxicXYZ = xyz;
     m_stereotaxicXYZValid = true;
+}
+
+/**
+ * Set the stereotaxic coordinate  without non-linear correction and validity of it
+ * @param xyz
+ *    New stereotaxic coordinate without non-linear correction
+ */
+void
+HistologyCoordinate::setStereotaxicNoNonLinearXYZ(const Vector3D& xyz)
+{
+    m_stereotaxicNoNonLinearXYZ = xyz;
+    m_stereotaxicNoNonLinearXYZValid = true;
 }
 
 /**
@@ -610,6 +642,15 @@ bool
 HistologyCoordinate::isStereotaxicXYZValid() const
 {
     return m_stereotaxicXYZValid;
+}
+
+/**
+ * @return validity of stereotaxic XYZ without non-linear correction
+ */
+bool
+HistologyCoordinate::isStereotaxicNoNonLinearXYZValid() const
+{
+    return m_stereotaxicNoNonLinearXYZValid;
 }
 
 /**

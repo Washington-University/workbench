@@ -27,7 +27,9 @@
 #include "EventManager.h"
 #include "HistologySliceImage.h"
 #include "CziNonLinearTransform.h"
+#include "DataFileContentInformation.h"
 #include "MediaFile.h"
+#include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -43,6 +45,8 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param sliceIndex
+ *    Index of the slice
  * @param sliceNumber
  *    Number of the slice
  * @param MRIToHistWarpFileName,
@@ -54,12 +58,14 @@ using namespace caret;
  * @param planeToMillimetersMatrixValidFlag
  *    Validity of plane to millimeters matrix
  */
-HistologySlice::HistologySlice(const int32_t sliceNumber,
+HistologySlice::HistologySlice(const int32_t sliceIndex,
+                               const int32_t sliceNumber,
                                const AString& MRIToHistWarpFileName,
                                const AString& histToMRIWarpFileName,
                                const Matrix4x4& planeToMillimetersMatrix,
                                const bool planeToMillimetersMatrixValidFlag)
 : CaretObject(),
+m_sliceIndex(sliceIndex),
 m_sliceNumber(sliceNumber),
 m_MRIToHistWarpFileName(MRIToHistWarpFileName),
 m_histToMRIWarpFileName(histToMRIWarpFileName),
@@ -128,6 +134,15 @@ HistologySlice::copyHelperHistologySlice(const HistologySlice& /*obj*/)
     CaretAssertMessage(0, "Copying not supported");
     m_stereotaxicXyzBoundingBoxValidFlag = false;
     m_planeXyzBoundingBoxValidFlag       = false;
+}
+
+/**
+ * @return Index of the slice
+ */
+int32_t
+HistologySlice::getSliceIndex() const
+{
+    return m_sliceIndex;
 }
 
 /**
@@ -262,14 +277,36 @@ HistologySlice::getPlaneXyzBoundingBox() const
  */
 bool
 HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-                                              Vector3D& stereotaxicXyzOut) const
+                                         Vector3D& stereotaxicXyzOut) const
+{
+    Vector3D unusedXyz;
+    return planeXyzToStereotaxicXyz(planeXyz,
+                                    unusedXyz,
+                                    stereotaxicXyzOut);
+}
+
+/**
+ * Convert a plane XYZ to stereotaxic XYZ
+ * @param planeXyz
+ *     XYZ in plane
+ * @param stereotaxicNoNonLinearXyzOut
+ *    Output with stereotaxic XYZ but non-linear offset
+ * @param stereotaxicWithNonLinearXyzOut
+ *    Output with stereotaxic XYZ but with non-linear offset
+ * @return True if successful, else false.
+ */
+bool
+HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                         Vector3D& stereotaxicNoNonLinearXyzOut,
+                                         Vector3D& stereotaxicWithNonLinearXyzOut) const
 {
     if (m_planeToMillimetersMatrixValidFlag) {
-        Vector3D xyz(planeXyz);
-        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
-        stereotaxicXyzOut = xyz;
+        Vector3D stereotaxicNoNonLinearOffset(planeXyz);
+        m_planeToMillimetersMatrix.multiplyPoint3(stereotaxicNoNonLinearOffset);
+        stereotaxicNoNonLinearXyzOut   = stereotaxicNoNonLinearOffset;
+        stereotaxicWithNonLinearXyzOut = stereotaxicNoNonLinearOffset;
         
-        const bool nonLinearFlag(false);
+        const bool nonLinearFlag(true);
         if (nonLinearFlag) {
             if (m_planeXyzBoundingBoxValidFlag) {
                 /*
@@ -287,12 +324,25 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                 if (m_toStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
                     Vector3D offsetXYZ;
                     m_toStereotaxicNonLinearTransform->getNonLinearOffset(planeXyz,
-                                                                 offsetXYZ);
-                    std::cout << "Non-Linear Offset for plane: "
-                    << AString::fromNumbers(planeXyz)
-                    << " is "
-                    << AString::fromNumbers(offsetXYZ)
-                    << std::endl;
+                                                                          offsetXYZ);
+                    Vector3D stereotaxicWithOffsetXYZ(planeXyz[0] + offsetXYZ[0],
+                                                      planeXyz[1] + offsetXYZ[1],
+                                                      planeXyz[2] + offsetXYZ[2]);
+                    m_planeToMillimetersMatrix.multiplyPoint3(stereotaxicWithOffsetXYZ);
+                    
+                    if (m_debugFlag) {
+                        std::cout << "Plane: "
+                        << AString::fromNumbers(planeXyz)
+                        << std::endl
+                        << "   Stereotaxic (no non-linear offset): "
+                        << AString::fromNumbers(stereotaxicNoNonLinearXyzOut)
+                        << std::endl
+                        << "   Stereotaxic (with non-linear offset): "
+                        << AString::fromNumbers(stereotaxicWithOffsetXYZ)
+                        << std::endl;
+                    }
+
+                    stereotaxicWithNonLinearXyzOut = stereotaxicWithOffsetXYZ;
                 }
             }
         }
@@ -300,7 +350,8 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
         return true;
     }
     
-    stereotaxicXyzOut = Vector3D();
+    stereotaxicNoNonLinearXyzOut   = Vector3D();
+    stereotaxicWithNonLinearXyzOut = Vector3D();
     return false;
 }
 
@@ -314,12 +365,34 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
  */
 bool
 HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
-                                              Vector3D& planeXyzOut) const
+                                         Vector3D& planeXyzOut) const
+{
+    Vector3D unsusedXyz;
+    return stereotaxicXyzToPlaneXyz(stereotaxicXyz,
+                                    unsusedXyz,
+                                    planeXyzOut);
+}
+
+/**
+ * Converrt a stereotaxic coordinate to a plane coordinate
+ * @param stereotaxicXyz
+ *    Input stereotaxic coordinate
+ * @param planeXyzOut
+ *    Output plane coordinate
+ * @return True if successful, else false
+ */
+bool
+HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                         Vector3D& planeNoNonLinearXyzOut,
+                                         Vector3D& planeWithNonLinearXyzOut) const
 {
     if (m_millimetersToPlaneMatrixValidFlag) {
-        Vector3D xyz(stereotaxicXyz);
         
-        const bool nonLinearFlag(false);
+        planeNoNonLinearXyzOut = stereotaxicXyz;
+        m_millimetersToPlaneMatrix.multiplyPoint3(planeNoNonLinearXyzOut);
+        planeWithNonLinearXyzOut = planeNoNonLinearXyzOut;
+        
+        const bool nonLinearFlag(true);
         if (nonLinearFlag) {
             if (m_stereotaxicXyzBoundingBoxValidFlag) {
                 /*
@@ -336,24 +409,32 @@ HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                 
                 if (m_fromStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
                     Vector3D offsetXYZ;
-                    m_fromStereotaxicNonLinearTransform->getNonLinearOffset(stereotaxicXyz,
+                    m_fromStereotaxicNonLinearTransform->getNonLinearOffset(planeNoNonLinearXyzOut,
                                                                             offsetXYZ);
-                    std::cout << "Non-Linear Offset for stereotaxic: "
-                    << AString::fromNumbers(stereotaxicXyz)
-                    << " is "
-                    << AString::fromNumbers(offsetXYZ)
-                    << std::endl;
+                    
+                    planeWithNonLinearXyzOut = Vector3D(planeNoNonLinearXyzOut[0] + offsetXYZ[0],
+                                                        planeNoNonLinearXyzOut[1] + offsetXYZ[1],
+                                                        planeNoNonLinearXyzOut[2] + offsetXYZ[2]);
+                    if (m_debugFlag) {
+                        std::cout << "Stereotaxic XYZ: "
+                        << AString::fromNumbers(stereotaxicXyz)
+                        << std::endl
+                        << "   Plane XYZ (no non-linear offset): "
+                        << AString::fromNumbers(planeNoNonLinearXyzOut)
+                        << std::endl
+                        << "   Plane XYZ (with non-linear offset): "
+                        << AString::fromNumbers(planeWithNonLinearXyzOut)
+                        << std::endl;
+                    }
                 }
             }
         }
-        
-        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
-        planeXyzOut = xyz;
-        
+         
         return true;
     }
     
-    planeXyzOut = Vector3D();
+    planeNoNonLinearXyzOut   = Vector3D();
+    planeWithNonLinearXyzOut = Vector3D();
     return false;
 }
 
@@ -547,3 +628,25 @@ HistologySlice::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Add information about the slice to the data file information.
+ *
+ * @param dataFileInformation
+ *    Consolidates information about a data file.
+ */
+void
+HistologySlice::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
+{
+    dataFileInformation.addNameAndValue("Slice Index", getSliceIndex());
+    dataFileInformation.addNameAndValue("Slice Number", getSliceNumber());
+    
+    const int32_t numImages(getNumberOfHistologySliceImages());
+    for (int32_t jImage = 0; jImage < numImages; jImage++) {
+        const HistologySliceImage* image(getHistologySliceImage(jImage));
+        const MediaFile* mediaFile(image->getMediaFile());
+        dataFileInformation.addNameAndValue("Image",
+                                            mediaFile->getFileNameNoPath());
+        dataFileInformation.addNameAndValue("Stereotaxic Plane",
+                                            mediaFile->getStereotaxicImagePlane()->toString());
+    }
+}

@@ -34,7 +34,6 @@
 
 using namespace caret;
 
-    
 /**
  * \class caret::CziNonLinearTransform
  * \brief Loads and uses a NIFTI file containing non-linear transform information.
@@ -116,14 +115,6 @@ CziNonLinearTransform::load(const AString& filename,
             throw DataFileException("4th dimension should be 2 to 3 but is "
                                     + AString::number(dims[3]));
         }
-//        if (dims[3] != 3) {
-//            throw DataFileException("4th dimension should be 3 but is "
-//                                    + AString::number(dims[3]));
-//        }
-//        if (m_niftiFile->getNumberOfMaps() != 3) {
-//            throw DataFileException("Number of maps should be 3 but is "
-//                                    + AString::number(m_niftiFile->getNumberOfMaps()));
-//        }
         m_dimensionX   = dims[0];
         m_dimensionY   = dims[1];
         m_numberOfMaps = dims[3];
@@ -195,7 +186,15 @@ CziNonLinearTransform::load(const AString& filename,
         std::vector<std::vector<float>> sform(m_niftiFile->getSform());
         m_sformMatrix.reset(new Matrix4x4(sform));
         
-        
+        /*
+         * Generate inverse of sform matrix
+         */
+        m_inverseSformMatrix.reset(new Matrix4x4(*m_sformMatrix));
+        if ( ! m_inverseSformMatrix->invert()) {
+            throw DataFileException("Failed to invert sform matrix: "
+                                    + m_sformMatrix->toFormattedString("  "));
+        }
+
         AString pixelStepText;
         if (CaretLogger::getLogger()->isFine()) {
             Vector3D p1 { 0.0, 0.0, 0.0 };
@@ -210,45 +209,7 @@ CziNonLinearTransform::load(const AString& filename,
             pixelStepText = ("Pixel Step (0, 0, 0) to (1, 1, 1): "
                              + AString::fromNumbers(stepXYZ));
         }
-    
-        
-        switch (m_mode) {
-            case Mode::FROM_MILLIMETERS:
-            {
-                CaretAssert(m_histologySlice);
-                const BoundingBox stereoBB(m_histologySlice->getStereotaxicXyzBoundingBox());
-                if ( ! stereoBB.isValid2D()) {
-                    throw DataFileException("Plane Bounding Box is invalid.");
-                }
-                m_fromMillimetersParams.m_stereotaxicMinX = stereoBB.getMinX();
-                m_fromMillimetersParams.m_stereotaxicMinY = stereoBB.getMinY();
-                m_fromMillimetersParams.m_stereotaxicRangeX = stereoBB.getDifferenceX();
-                m_fromMillimetersParams.m_stereotaxicRangeY = stereoBB.getDifferenceY();
-                if ((m_fromMillimetersParams.m_stereotaxicRangeX <= 0.0)
-                    || (m_fromMillimetersParams.m_stereotaxicRangeY <= 0.0)) {
-                    throw DataFileException("Stereotaxic bounding box X/Y range is invalid (0)");
-                }
-            }
-                break;
-            case Mode::TO_MILLIMETERS:
-            {
-                CaretAssert(m_histologySlice);
-                const BoundingBox planeBB(m_histologySlice->getPlaneXyzBoundingBox());
-                if ( ! planeBB.isValid2D()) {
-                    throw DataFileException("Plane Bounding Box is invalid.");
-                }
-                m_toMillimetersParams.m_planeMinX = planeBB.getMinX();
-                m_toMillimetersParams.m_planeMinY = planeBB.getMinY();
-                m_toMillimetersParams.m_planeRangeX = planeBB.getDifferenceX();
-                m_toMillimetersParams.m_planeRangeY = planeBB.getDifferenceY();
-                if ((m_toMillimetersParams.m_planeRangeX <= 0.0)
-                    || (m_toMillimetersParams.m_planeRangeY <= 0.0)) {
-                    throw DataFileException("Plane bounding box X/Y range is invalid (0)");
-                }
-            }
-                break;
-        }
-        
+            
         m_status = Status::VALID;
 
         
@@ -262,23 +223,22 @@ CziNonLinearTransform::load(const AString& filename,
                     modeName = "TO_MILLIMETERS";
                     break;
             }
-            std::cout << "NIFTI XFORM: " << filename << std::endl;
-            std::cout << "Mode: " << modeName << std::endl;
-            std::cout << "   Dimensions:";
-            for (int32_t i = 0; i < 3; i++) {
-                std::cout << dims[i] << " ";
+            
+            if (m_debugFlag) {
+                std::cout << "Mode: " << modeName << std::endl;
+                std::cout << "   NIFTI File: " << filename << std::endl;
+                std::cout << "   Dimensions:";
+                for (int32_t i = 0; i < 3; i++) {
+                    std::cout << dims[i] << " ";
+                }
+                std::cout << std::endl;
+                std::cout << "   Orientations:";
+                for (int32_t i = 0; i < 3; i++) {
+                    std::cout << orientationNames[i] << " ";
+                }
+                std::cout << "   " << pixelStepText << std::endl;
+                std::cout << std::endl;
             }
-            std::cout << std::endl;
-            std::cout << "   Orientations:";
-            for (int32_t i = 0; i < 3; i++) {
-                std::cout << orientationNames[i] << " ";
-            }
-            std::cout << "   " << pixelStepText << std::endl;
-            std::cout << "   Plane Min X/Y: " << m_toMillimetersParams.m_planeMinX << ", " <<  m_toMillimetersParams.m_planeMinY << std::endl;
-            std::cout << "   Plane width/height: " << m_toMillimetersParams.m_planeRangeX << ", " << m_toMillimetersParams.m_planeRangeY << std::endl;
-            std::cout << "   Stereotaxic Min X/Y: " << m_fromMillimetersParams.m_stereotaxicMinX << ", " <<  m_fromMillimetersParams.m_stereotaxicMinY << std::endl;
-            std::cout << "   Stereotaxic width/height: " << m_fromMillimetersParams.m_stereotaxicRangeX << ", " << m_fromMillimetersParams.m_stereotaxicRangeY << std::endl;
-            std::cout << std::endl;
         }
     }
     catch (const DataFileException& dfe) {
@@ -294,13 +254,13 @@ CziNonLinearTransform::load(const AString& filename,
 /**
  * Get the non-linear offsets for the given coordinate
  * @param xyz
- *    Input coordinate
+ *    Input coordinate, plane for "to millimeters"
  * @param offsetXyzOut
  *    Output with offsets
  */
 void
 CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
-                                                     Vector3D& offsetXyzOut)
+                                          Vector3D& offsetXyzOut)
 {
     offsetXyzOut[0] = 0.0;
     offsetXyzOut[1] = 0.0;
@@ -322,39 +282,35 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
 
 /**
  * Get the non-linear offsets for the given coordinate for a "from millimeters" transform
- * @param xyz
+ * @param stereotaxicXYZ   Is it PlaneXYZ?
  *    Input coordinate
  * @param offsetXyzOut
  *    Output with offsets
  */
 void
-CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& xyz,
+CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& stereotaxicXYZ,
                                                          Vector3D& offsetXyzOut)
 {
-    const float normX((xyz[0] - m_fromMillimetersParams.m_stereotaxicMinX)
-                      / m_fromMillimetersParams.m_stereotaxicRangeX);
-    const float normY((xyz[1] - m_fromMillimetersParams.m_stereotaxicMinY)
-                      / m_fromMillimetersParams.m_stereotaxicRangeY);
-    int64_t i(static_cast<int64_t>(normX * m_dimensionX));
-    int64_t j(static_cast<int64_t>(normY * m_dimensionY));
-    
-    if ((i >= 0)
-        && (i < m_dimensionX)
-        && (j >= 0)
-        && (j < m_dimensionY)) {
-        if ( ! m_xLeftToRightFlag) {
-            i = (m_dimensionX - i - 1);
-        }
-        if ( ! m_yTopToBottomFlag) {
-            j = (m_dimensionY - j - 1);
-        }
-        CaretAssert((i >= 0)
-                    && (i < m_dimensionX)
-                    && (j >= 0)
-                    && (j < m_dimensionY));
+    Vector3D indexIJK(stereotaxicXYZ);
+    m_inverseSformMatrix->multiplyPoint3(indexIJK);
+    int64_t indexI(static_cast<int64_t>(indexIJK[0]));
+    const int64_t indexJ(static_cast<int64_t>(indexIJK[1]));
+    const int64_t indexK(static_cast<int64_t>(indexIJK[2]));
+    if (m_debugFlag) {
+        std::cout << "FROM millimeters Index: " << indexI << ", " << indexJ << ", " << indexK << std::endl;
+    }
+
+    if ((indexI >= 0)
+        && (indexI < m_dimensionX)
+        && (indexJ >= 0)
+        && (indexJ < m_dimensionY)) {
+        CaretAssert((indexI >= 0)
+                    && (indexI < m_dimensionX)
+                    && (indexJ >= 0)
+                    && (indexJ < m_dimensionY));
         
-        const int64_t niftiI(i);
-        const int64_t niftiJ(j);
+        const int64_t niftiI(indexI);
+        const int64_t niftiJ(indexJ);
         const int64_t niftiK(0);
         if (m_niftiFile->indexValid(niftiI, niftiJ, niftiK)) {
             /*
@@ -374,48 +330,37 @@ CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& xyz,
                          + ", "
                          + AString::number(niftiK)
                          + ") is not a valid pixel index for ");
-            //                                     + niftiFileName
-            //                                     + " associated with "
-            //                                     + getFileNameNoPath());
         }
     }
 }
 
 /**
  * Get the non-linear offsets for the given coordinate for a "to millimeters" transform
- * @param xyz
+ * @param planeXYZ
  *    Input coordinate
  * @param offsetXyzOut
  *    Output with offsets
  */
 void
-CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& xyz,
+CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
                                                                   Vector3D& offsetXyzOut)
 {
-    const float normX((xyz[0] - m_toMillimetersParams.m_planeMinX)
-                      / m_toMillimetersParams.m_planeRangeX);
-    const float normY((xyz[1] - m_toMillimetersParams.m_planeMinY)
-                      / m_toMillimetersParams.m_planeRangeY);
-    int64_t i(static_cast<int64_t>(normX * m_dimensionX));
-    int64_t j(static_cast<int64_t>(normY * m_dimensionY));
-    
-    if ((i >= 0)
-        && (i < m_dimensionX)
-        && (j >= 0)
-        && (j < m_dimensionY)) {
-        if ( ! m_xLeftToRightFlag) {
-            i = (m_dimensionX - i - 1);
-        }
-        if ( ! m_yTopToBottomFlag) {
-            j = (m_dimensionY - j - 1);
-        }
-        CaretAssert((i >= 0)
-                    && (i < m_dimensionX)
-                    && (j >= 0)
-                    && (j < m_dimensionY));
+    Vector3D indexIJK(planeXYZ);
+    m_inverseSformMatrix->multiplyPoint3(indexIJK);
+    const int64_t indexI(static_cast<int64_t>(indexIJK[0]));
+    const int64_t indexJ(static_cast<int64_t>(indexIJK[1]));
+    const int64_t indexK(static_cast<int64_t>(indexIJK[2]));
+    if (m_debugFlag) {
+        std::cout << "TO millimeters Index: " << indexI << ", " << indexJ << ", " << indexK << std::endl;
+    }
+
+    if ((indexI >= 0)
+        && (indexI < m_dimensionX)
+        && (indexJ >= 0)
+        && (indexJ < m_dimensionY)) {
         
-        const int64_t niftiI(i);
-        const int64_t niftiJ(j);
+        const int64_t niftiI(indexI);
+        const int64_t niftiJ(indexJ);
         const int64_t niftiK(0);
         if (m_niftiFile->indexValid(niftiI, niftiJ, niftiK)) {
             /*
@@ -434,10 +379,7 @@ CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& xyz,
                          + AString::number(niftiJ)
                          + ", "
                          + AString::number(niftiK)
-                         + ") is not a valid pixel index for ");
-            //                                     + niftiFileName
-            //                                     + " associated with "
-            //                                     + getFileNameNoPath());
+                         + ") is not a valid pixel index");
         }
     }
 }

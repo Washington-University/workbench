@@ -295,9 +295,11 @@ HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histol
         return NULL;
     }
     
+    const int32_t sliceIndex(histologySlicesFile->getNumberOfHistologySlices());
     mriToHistWarpFileName = makeAbsoluteFilePath(mriToHistWarpFileName);
     histToMriWarpFileName = makeAbsoluteFilePath(histToMriWarpFileName);
-    HistologySlice* slice(new HistologySlice(sliceNumber,
+    HistologySlice* slice(new HistologySlice(sliceIndex,
+                                             sliceNumber,
                                              mriToHistWarpFileName,
                                              histToMriWarpFileName,
                                              planeToMmMatrix,

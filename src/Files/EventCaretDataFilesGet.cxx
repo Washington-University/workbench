@@ -27,9 +27,11 @@
 
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
+#include "CaretLogger.h"
 #include "EventManager.h"
 #include "EventTypeEnum.h"
 #include "FileIdentificationAttributes.h"
+#include "FileInformation.h"
 
 using namespace caret;
 
@@ -64,6 +66,51 @@ m_dataFileTypes(dataFileTypes)
 EventCaretDataFilesGet::~EventCaretDataFilesGet()
 {
 }
+
+/**
+ * @return CaretDataFile with the given name or NULL if no match.
+ * @param filename
+ *    Name of file.
+ */
+CaretDataFile*
+EventCaretDataFilesGet::getCaretDataFileWithName(const AString& filename)
+{
+    const std::vector<CaretDataFile*> allFiles(EventCaretDataFilesGet::getAllCaretDataFiles());
+    const bool absPathFlag(FileInformation(filename).isAbsolute());
+    
+    CaretDataFile* caretDataFileOut(NULL);
+    if (absPathFlag) {
+        for (auto& dataFile : allFiles) {
+            CaretAssert(dataFile);
+            if (dataFile->getFileName() == filename) {
+                if (caretDataFileOut != NULL) {
+                    CaretLogWarning("More than one file has same absolute path name: "
+                                    + filename);
+                }
+                else {
+                   caretDataFileOut = dataFile;
+                }
+            }
+        }
+    }
+    else {
+        for (auto& dataFile : allFiles) {
+            CaretAssert(dataFile);
+            if (dataFile->getFileName().endsWith(filename)) {
+                if (caretDataFileOut != NULL) {
+                    CaretLogWarning("More than one file matches relative path name: "
+                                    + filename);
+                }
+                else {
+                    caretDataFileOut = dataFile;
+                }
+            }
+        }
+    }
+
+    return caretDataFileOut;
+}
+
 
 /**
  * @return Data file types of all loaded data files

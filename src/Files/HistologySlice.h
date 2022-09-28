@@ -36,6 +36,7 @@
 
 namespace caret {
     class CziNonLinearTransform;
+    class DataFileContentInformation;
     class HistologySliceImage;
     class MediaFile;
     class SceneClassAssistant;
@@ -43,7 +44,8 @@ namespace caret {
     class HistologySlice : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
-        HistologySlice(const int32_t sliceNumber,
+        HistologySlice(const int32_t sliceIndex,
+                       const int32_t sliceNumber,
                        const AString& MRIToHistWarpFileName,
                        const AString& histToMRIWarpFileName,
                        const Matrix4x4& planeToMillimetersMatrix,
@@ -54,6 +56,8 @@ namespace caret {
         HistologySlice(const HistologySlice& obj);
 
         HistologySlice& operator=(const HistologySlice& obj);
+        
+        int32_t getSliceIndex() const;
         
         int32_t getSliceNumber() const;
         
@@ -81,6 +85,14 @@ namespace caret {
         bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                       Vector3D& planeXyzOut) const;
         
+        bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                      Vector3D& stereotaxicNoNonLinearXyzOut,
+                                      Vector3D& stereotaxicWithNonLinearXyzOut) const;
+        
+        bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                      Vector3D& planeNoNonLinearXyzOut,
+                                      Vector3D& planeWithNonLinearXyzOut) const;
+        
         const Plane& getStereotaxicPlane() const;
         
         const Plane& getPlaneXyzPlane() const;
@@ -93,6 +105,8 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
 
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
 
@@ -122,6 +136,8 @@ namespace caret {
         std::unique_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
         
         std::unique_ptr<CziNonLinearTransform> m_fromStereotaxicNonLinearTransform;
+        
+        int32_t m_sliceIndex  = -1;
         
         int32_t m_sliceNumber = -1;
         
@@ -154,6 +170,8 @@ namespace caret {
         mutable Plane m_planeXyzPlane;
         
         mutable bool m_planeXyzPlaneValidFlag = false;
+        
+        static constexpr bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

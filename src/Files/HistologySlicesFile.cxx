@@ -29,10 +29,12 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
+#include "EventCaretDataFilesGet.h"
 #include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
+#include "HistologySlicesFile.h"
 #include "HistologySliceImage.h"
 #include "HistologySlicesFileXmlStreamReader.h"
 #include "MediaFile.h"
@@ -429,7 +431,7 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     AString mmText;
     AString planeText;
     if (histologyCoordinate.isStereotaxicXYZValid()) {
-        mmText = ("Stereotaxicz XYZ ("
+        mmText = ("Stereotaxic XYZ ("
                   + AString::fromNumbers(histologyCoordinate.getStereotaxicXYZ())
                   + ")");
     }
@@ -442,6 +444,38 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
         || ( ! mmText.isEmpty())) {
         columnOneText.push_back(mmText);
         columnTwoText.push_back(planeText);
+    }
+    
+    if (histologyCoordinate.isStereotaxicNoNonLinearXYZValid()) {
+        columnOneText.push_back("Stereotaxic (linear only) XYZ ("
+                                + AString::fromNumbers(histologyCoordinate.getStereotaxicNoNonLinearXYZ())
+                                + ")");
+        columnTwoText.push_back("");
+        
+        if (histologyCoordinate.isStereotaxicXYZValid()) {
+            const AString histologyFileName(histologyCoordinate.getHistologySlicesFileName());
+            if ( ! histologyFileName.isEmpty()) {
+                CaretDataFile* caretDataFile(EventCaretDataFilesGet::getCaretDataFileWithName(histologyFileName));
+                if (caretDataFile != NULL) {
+                    HistologySlicesFile* histologySlicesFile(caretDataFile->castToHistologySlicesFile());
+                    if (histologySlicesFile != NULL) {
+                        const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(histologyCoordinate.getSliceIndex()));
+                        if (slice != NULL) {
+                            Vector3D planeXYZ;
+                            Vector3D planeNoNonLinearXYZ;
+                            if (slice->stereotaxicXyzToPlaneXyz(histologyCoordinate.getStereotaxicXYZ(),
+                                                                planeNoNonLinearXYZ,
+                                                                planeXYZ)) {
+                                columnOneText.push_back("Debug Back to Plane XYZ: "
+                                                        + AString::fromNumbers(planeXYZ));
+                                columnTwoText.push_back("Debug Back to Plane (no non-linear) XYZ: "
+                                                        + AString::fromNumbers(planeNoNonLinearXYZ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     std::vector<int32_t> frameIndicesVector { 0 };
@@ -668,15 +702,9 @@ HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation&
     
     const int32_t numSlices(getNumberOfHistologySlices());
     for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
-        const HistologySlice* slice(getHistologySliceByIndex(iSlice));
-        dataFileInformation.addNameAndValue("Slice Index ", iSlice);
-        dataFileInformation.addNameAndValue("Slice Number ", slice->getSliceNumber());
-        
-        const int32_t numImages(slice->getNumberOfHistologySliceImages());
-        for (int32_t jImage = 0; jImage < numImages; jImage++) {
-            const HistologySliceImage* image(slice->getHistologySliceImage(jImage));
-            dataFileInformation.addNameAndValue("Image ", image->getMediaFile()->getFileNameNoPath());
-        }
+        dataFileInformation.addNameAndValue("-------------", AString("   "));
+        HistologySlice* slice(getHistologySliceByIndex(iSlice));
+        slice->addToDataFileContentInformation(dataFileInformation);
     }
 }
 

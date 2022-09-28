@@ -70,28 +70,12 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        class FromMillimetersParams {
-        public:
-            float m_stereotaxicMinX   = 0.0;
-            float m_stereotaxicRangeX = 0.0;
-            float m_stereotaxicMinY   = 0.0;
-            float m_stereotaxicRangeY = 0.0;
-        };
-        
-        class ToMillimetersParams {
-        public:
-            float m_planeMinX   = 0.0;
-            float m_planeRangeX = 0.0;
-            float m_planeMinY   = 0.0;
-            float m_planeRangeY = 0.0;
-        };
-        
         void copyHelperCziNonLinearTransform(const CziNonLinearTransform& obj);
 
-        void getNonLinearOffsetToMillimeters(const Vector3D& xyz,
+        void getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
                                              Vector3D& offsetXyzOut);
 
-        void getNonLinearOffsetFromMillimeters(const Vector3D& xyz,
+        void getNonLinearOffsetFromMillimeters(const Vector3D& stereotaxicXYZ,
                                                Vector3D& offsetXyzOut);
         
 
@@ -103,12 +87,10 @@ namespace caret {
         
         mutable std::unique_ptr<Matrix4x4> m_sformMatrix;
         
+        mutable std::unique_ptr<Matrix4x4> m_inverseSformMatrix;
+        
         Status m_status = Status::UNREAD;
                 
-        FromMillimetersParams m_fromMillimetersParams;
-        
-        ToMillimetersParams m_toMillimetersParams;
-        
         /** Scales pixel index from full resolution to layer used by NIFTI transform */
         mutable float m_pixelScaleI = -1.0f;
         
@@ -126,6 +108,8 @@ namespace caret {
         int64_t m_dimensionY = 0.0;
         
         int64_t m_numberOfMaps = 0;
+        
+        static constexpr bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
