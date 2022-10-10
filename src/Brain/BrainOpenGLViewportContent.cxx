@@ -1480,6 +1480,8 @@ BrainOpenGLViewportContent::getTranslationFactors(float& customViewStepValueOut,
                 break;
             case MediaDisplayCoordinateModeEnum::PLANE:
                 break;
+            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                break;
         }
     }
 }

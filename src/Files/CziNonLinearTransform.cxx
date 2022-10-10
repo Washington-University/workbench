@@ -28,7 +28,6 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
-#include "HistologySlice.h"
 #include "Matrix4x4.h"
 #include "VolumeFile.h"
 
@@ -44,12 +43,14 @@ using namespace caret;
  * Constructor.
  * @param mode
  *    Mode from/to millimeters
+ * @param filename
+ *    Name of file
  */
 CziNonLinearTransform::CziNonLinearTransform(const Mode mode,
-                                                                   const HistologySlice* histologySlice)
+                                             const AString& filename)
 : CaretObject(),
 m_mode(mode),
-m_histologySlice(histologySlice)
+m_filename(filename)
 {
     
 }
@@ -70,21 +71,22 @@ CziNonLinearTransform::getStatus() const
     return m_status;
 }
 
+/**
+ * @return Name of file used by this non-linear transform
+ */
+AString
+CziNonLinearTransform::getFilename() const
+{
+    return m_filename;
+}
 
 /**
  * Load the NIFTI file with the given name
  * @param filename
  *    Name of NIFTI file
- * @param planeWidth
- *    With of slice in plane coordinates
- * @param planeHeight
- *    Height of slice in plane coordinates
- * @return True if successful, else false.
  */
 void
-CziNonLinearTransform::load(const AString& filename,
-                                       const float planeWidth,
-                                       const float planeHeight)
+CziNonLinearTransform::load(const AString& filename)
 {
     switch (m_status) {
         case Status::INVALID:
@@ -177,12 +179,6 @@ CziNonLinearTransform::load(const AString& filename,
             throw DataFileException(orientationErrorMessage);
         }
         
-        /*
-         * Map full-res pixel index to a NIFTI transform voxel index
-         */
-        m_pixelScaleI = (static_cast<float>(dims[0]) / planeWidth);
-        m_pixelScaleJ = (static_cast<float>(dims[1])  / planeHeight);
-        
         std::vector<std::vector<float>> sform(m_niftiFile->getSform());
         m_sformMatrix.reset(new Matrix4x4(sform));
         
@@ -265,6 +261,10 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
     offsetXyzOut[0] = 0.0;
     offsetXyzOut[1] = 0.0;
     offsetXyzOut[2] = 0.0;
+    
+    if (m_status == Status::UNREAD) {
+        load(m_filename);
+    }
     
     if (m_status == Status::VALID) {
         switch (m_mode) {

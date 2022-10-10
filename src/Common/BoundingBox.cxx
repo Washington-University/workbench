@@ -750,17 +750,9 @@ BoundingBox::toString() const
 {
     std::stringstream str;
     str << "BoundingBox=["
-    << this->boundingBox[0]
-    << ","
-    << this->boundingBox[1]
-    << ","
-    << this->boundingBox[2]
-    << ","
-    << this->boundingBox[3]
-    << ","
-    << this->boundingBox[4]
-    << ","
-    << this->boundingBox[5]
+    << "x=(" << this->boundingBox[0] << "," << this->boundingBox[1] << ")"
+    << ", y=(" << this->boundingBox[2] << "," << this->boundingBox[3] << ")"
+    << ", z=(" << this->boundingBox[4] << "," << this->boundingBox[5] << ")"
     << "]";
     AString s = AString::fromStdString(str.str());
     return s;

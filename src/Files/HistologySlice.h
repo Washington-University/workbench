@@ -93,6 +93,9 @@ namespace caret {
                                       Vector3D& planeNoNonLinearXyzOut,
                                       Vector3D& planeWithNonLinearXyzOut) const;
         
+        bool projectStereotaxicXyzToSlice(const Vector3D stereotaxicXYZ,
+                                          Vector3D& stereotaxicOnSliceXYZ) const;
+        
         const Plane& getStereotaxicPlane() const;
         
         const Plane& getPlaneXyzPlane() const;
@@ -133,9 +136,9 @@ namespace caret {
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::unique_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
+        std::shared_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
         
-        std::unique_ptr<CziNonLinearTransform> m_fromStereotaxicNonLinearTransform;
+        std::shared_ptr<CziNonLinearTransform> m_fromStereotaxicNonLinearTransform;
         
         int32_t m_sliceIndex  = -1;
         
@@ -157,9 +160,9 @@ namespace caret {
         
         mutable bool m_planeXyzBoundingBoxValidFlag = false;
         
-        Matrix4x4 m_millimetersToPlaneMatrix;
-
-        bool m_millimetersToPlaneMatrixValidFlag = false;
+//        Matrix4x4 m_millimetersToPlaneMatrix;
+//
+//        bool m_millimetersToPlaneMatrixValidFlag = false;
         
         std::vector<std::unique_ptr<HistologySliceImage>> m_histologySliceImages;
 

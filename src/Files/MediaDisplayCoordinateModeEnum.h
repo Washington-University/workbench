@@ -35,10 +35,12 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Pixel Coordinates */
         PIXEL,
-        /** */
-        PLANE
+        /** Plane Coordinates */
+        PLANE,
+        /** Stereotaxic Coordinates */
+        STEREOTAXIC,
     };
 
 

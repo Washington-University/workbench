@@ -133,6 +133,7 @@ LinearEquationTransform.h
 MapYokingGroupEnum.h
 MediaDisplayCoordinateModeEnum.h
 MediaFile.h
+MediaFileTransforms.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
@@ -296,6 +297,7 @@ LinearEquationTransform.cxx
 MapYokingGroupEnum.cxx
 MediaDisplayCoordinateModeEnum.cxx
 MediaFile.cxx
+MediaFileTransforms.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx

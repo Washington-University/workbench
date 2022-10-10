@@ -152,6 +152,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_histologyModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
+    m_histologyDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PLANE;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     m_identificationUpdatesHistologySlices = prefs->isHistologyIdentificationDefaultedOn();
     
@@ -289,7 +290,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_mediaDisplayCoordinateMode",
                                                                                                      &m_mediaDisplayCoordinateMode);
-    
+    m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_histologyDisplayCoordinateMode",
+                                                                                                     &m_histologyDisplayCoordinateMode);
+
     m_sceneClassAssistant->add("m_scaleBar",
                                "AnnotationScaleBar",
                                m_scaleBar.get());
@@ -446,6 +449,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
     m_mediaDisplayCoordinateMode = tabToClone->m_mediaDisplayCoordinateMode;
+    m_histologyDisplayCoordinateMode = tabToClone->m_histologyDisplayCoordinateMode;
     
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
@@ -1367,6 +1371,34 @@ BrowserTabContent::setMediaDisplayCoordinateMode(const MediaDisplayCoordinateMod
         resetView();
     }
     m_mediaDisplayCoordinateMode = mediaDisplayCoordinateMode;
+}
+
+/**
+ * @return Histology display coordinate mode
+ */
+MediaDisplayCoordinateModeEnum::Enum
+BrowserTabContent::getHistologyDisplayCoordinateMode() const
+{
+    return m_histologyDisplayCoordinateMode;
+}
+
+/**
+ * Set the histology display coordinate mode
+ * @param histologyDisplayCoordinateMode
+ *    New histology display coordinate mode
+ */
+void
+BrowserTabContent::setHistologyDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum histologyDisplayCoordinateMode)
+{
+    if (histologyDisplayCoordinateMode != m_histologyDisplayCoordinateMode) {
+        /*
+         * Reset the view.  The pixel/plane coordinates may be substantially
+         * different and if this is not done, the images may not be seen
+         * until the Reset button is clicked.
+         */
+        resetView();
+    }
+    m_histologyDisplayCoordinateMode = histologyDisplayCoordinateMode;
 }
 
 /**
@@ -4645,6 +4677,33 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 const float scaleX((coordWidth / modelViewport[2]) * zoom);
                 const float scaleY((coordHeight / modelViewport[3]) * zoom);
 
+                const float accelerate(1.0);
+                txyz[0] += ((mouseDX * scaleX) * accelerate);
+                txyz[1] += ((mouseDY * scaleY) * accelerate);
+            }
+                break;
+            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+            {
+                /*
+                 * Mouse movement is in viewport (window) coordinates.
+                 * Need to convert to plane coordinates.
+                 */
+                const GraphicsObjectToWindowTransform* transform(viewportContent->getMediaGraphicsObjectToWindowTransform());
+                CaretAssert(transform);
+                int32_t modelViewport[4];
+                viewportContent->getModelViewport(modelViewport);
+                const Vector3D topLeftViewport(modelViewport[0], modelViewport[1] + modelViewport[3], 0.0);
+                const Vector3D bottomRightViewport(modelViewport[0] + modelViewport[2], modelViewport[1], 0.0);
+                Vector3D topLeftCoord;
+                Vector3D bottomRightCoord;
+                transform->inverseTransformPoint(topLeftViewport, topLeftCoord);
+                transform->inverseTransformPoint(bottomRightViewport, bottomRightCoord);
+                const float coordWidth(std::fabs(topLeftCoord[0] - bottomRightCoord[0]));
+                const float coordHeight(std::fabs(topLeftCoord[1] - bottomRightCoord[1]));
+                const float zoom(getScaling());
+                const float scaleX((coordWidth / modelViewport[2]) * zoom);
+                const float scaleY((coordHeight / modelViewport[3]) * zoom);
+                
                 const float accelerate(1.0);
                 txyz[0] += ((mouseDX * scaleX) * accelerate);
                 txyz[1] += ((mouseDY * scaleY) * accelerate);

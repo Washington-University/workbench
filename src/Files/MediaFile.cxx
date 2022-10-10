@@ -43,15 +43,11 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param parentType
- *   Type of the parent
  * @param dataFileType
  *    Type of data file
  */
-MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType,
-                     const ParentType parentType)
-: CaretDataFile(dataFileType),
-m_parentType(parentType)
+MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
+: CaretDataFile(dataFileType)
 {
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
@@ -77,8 +73,7 @@ m_parentType(parentType)
  *    Media file that is copied.
  */
 MediaFile::MediaFile(const MediaFile& mediaFile)
-: CaretDataFile(mediaFile),
-m_parentType(mediaFile.m_parentType)
+: CaretDataFile(mediaFile)
 {
     initializeMembersMediaFile();
 }
@@ -234,11 +229,7 @@ MediaFile::castToMediaFile() const
 PixelIndex
 MediaFile::pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const
 {
-    PixelIndex pixelIndex(pixelLogicalIndex.getI(),
-                          pixelLogicalIndex.getJ(),
-                          pixelLogicalIndex.getK());
-    
-    return pixelIndex;
+    return m_mediaFileTransforms.logicalPixelIndexToPixelIndex(pixelLogicalIndex);
 }
 
 /**
@@ -249,11 +240,7 @@ MediaFile::pixelLogicalIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIn
 PixelLogicalIndex
 MediaFile::pixelIndexToPixelLogicalIndex(const PixelIndex& pixelIndex) const
 {
-    PixelLogicalIndex pixelLogicalIndex(pixelIndex.getI(),
-                                        pixelIndex.getJ(),
-                                        pixelIndex.getK());
-    
-    return pixelLogicalIndex;
+    return m_mediaFileTransforms.pixelIndexToLogicalPixelIndex(pixelIndex);
 }
 
 /**
@@ -268,6 +255,55 @@ MediaFile::getPlaneXyzRect() const
 }
 
 /**
+ * convert a pixel index to a stereotaxic coordinate
+ * @param pixelIndex
+ *    Pixel index
+ * @param xyzOut
+ *    Output with the XYZ coordinate
+ *    @param
+ * @return
+ *    True if conversion successful, else false.
+ */
+bool
+MediaFile::pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
+                                        Vector3D& xyzOut) const
+{
+    return m_mediaFileTransforms.pixelIndexToStereotaxicXYZ(pixelIndex, xyzOut);
+}
+
+/**
+ * Convert a stereotaxic xyz coordinate to a pixel index
+ * @param xyz
+ *    The coordinate
+ * @param pixelIndexOut
+ *    Output pixel index
+ * @return
+ *    True if successful, else false.
+ */
+bool
+MediaFile::stereotaxicXyzToPixelIndex(const Vector3D& xyz,
+                                        PixelIndex& pixelIndexOut) const
+{
+    return m_mediaFileTransforms.stereotaxicXyzToPixelIndex(xyz, pixelIndexOut);
+}
+
+/**
+ * Convert a stereotaxic xyz coordinate to a pixel index
+ * @param xyz
+ *    The coordinate
+ * @param pixelLogicalIndexOut
+ *    Output logical pixel index
+ * @return
+ *    True if successful, else false.
+ */
+bool
+MediaFile::stereotaxicXyzToLogicalPixelIndex(const Vector3D& xyz,
+                                               PixelLogicalIndex& pixelLogicalIndexOut) const
+{
+    return m_mediaFileTransforms.stereotaxicXyzToLogicalPixelIndex(xyz, pixelLogicalIndexOut);
+}
+
+/**
  * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
  * @param pixelIndex
  *    Index of pixel
@@ -279,20 +315,7 @@ bool
 MediaFile::pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
                                   Vector3D& planeXyzOut) const
 {
-    if (m_pixelIndexToPlaneMatrixValidFlag) {
-        Vector3D xyz(pixelIndex.getI(),
-                     pixelIndex.getJ(),
-                     0.0);
-        m_pixelIndexToPlaneMatrix.multiplyPoint3(xyz);
-        planeXyzOut = xyz;
-        
-        return true;
-    }
-    
-    planeXyzOut[0] = pixelIndex.getI();
-    planeXyzOut[1] = pixelIndex.getJ();
-    planeXyzOut[2] = pixelIndex.getK();
-    return false;
+    return m_mediaFileTransforms.pixelIndexToPlaneXYZ(pixelIndex, planeXyzOut);
 }
 
 /**
@@ -307,9 +330,7 @@ bool
 MediaFile::logicalPixelIndexToPlaneXYZ(const PixelLogicalIndex& pixelLogicalIndex,
                                          Vector3D& planeXyzOut) const
 {
-    PixelIndex pixelIndex(pixelLogicalIndexToPixelIndex(pixelLogicalIndex));
-    return pixelIndexToPlaneXYZ(pixelIndex,
-                                planeXyzOut);
+    return m_mediaFileTransforms.logicalPixelIndexToPlaneXYZ(pixelLogicalIndex, planeXyzOut);
 }
 
 /**
@@ -327,11 +348,40 @@ MediaFile::logicalPixelIndexToPlaneXYZ(const float logicalX,
                                        const float logicalY,
                                        Vector3D& planeXyzOut) const
 {
-    const PixelLogicalIndex logicalIndex(logicalX,
-                                         logicalY,
-                                         0.0);
-    return logicalPixelIndexToPlaneXYZ(logicalIndex,
-                                       planeXyzOut);
+    return m_mediaFileTransforms.logicalPixelIndexToPlaneXYZ(logicalX, logicalY, planeXyzOut);
+}
+
+/**
+ * Convert a pixel index to a plane XYZ.  If not supported, output is same as input.
+ * @param pixelIndex
+ *    Index of pixel
+ * @param stereotaxicXyzOut
+ *    Output with XYZ in stereotaxic
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::logicalPixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
+                                             Vector3D& stereotaxicXyzOut) const
+{
+    return m_mediaFileTransforms.logicalPixelIndexToStereotaxicXYZ(pixelLogicalIndex, stereotaxicXyzOut);
+}
+
+/**
+ * Convert a pixel index to a stereotaxic  XYZ.  If not supported, output is same as input.
+ * @param logicalX
+ *    logtical X Index of pixel
+ * @param logicalY
+ *    logtical Y Index of pixel
+ * @param stereotaxicXyzOut
+ *    Output with XYZ in stereotaxic
+ * @return True if successful, else false.
+ */
+bool
+MediaFile::logicalPixelIndexToStereotaxicXYZ(const float logicalX,
+                                             const float logicalY,
+                                             Vector3D& stereotaxicXyzOut) const
+{
+    return m_mediaFileTransforms.logicalPixelIndexToStereotaxicXYZ(logicalX, logicalY, stereotaxicXyzOut);
 }
 
 /**
@@ -346,17 +396,7 @@ bool
 MediaFile::planeXyzToPixelIndex(const Vector3D& planeXyz,
                                   PixelIndex& pixelIndexOut) const
 {
-    if (m_planeToPixelIndexMatrixValidFlag) {
-        Vector3D xyz(planeXyz);
-        m_planeToPixelIndexMatrix.multiplyPoint3(xyz);
-        pixelIndexOut.setIJK(xyz[0],
-                             xyz[1],
-                             0.0);
-        return true;
-    }
-    
-    pixelIndexOut.setIJK(planeXyz);
-    return false;
+    return m_mediaFileTransforms.planeXyzToPixelIndex(planeXyz, pixelIndexOut);
 }
 
 /**
@@ -371,11 +411,7 @@ bool
 MediaFile::planeXyzToLogicalPixelIndex(const Vector3D& planeXyz,
                                          PixelLogicalIndex& pixelLogicalIndexOut) const
 {
-    PixelIndex pixelIndex;
-    const bool validFlag(planeXyzToPixelIndex(planeXyz,
-                                              pixelIndex));
-    pixelLogicalIndexOut = pixelIndexToPixelLogicalIndex(pixelIndex);
-    return validFlag;
+    return m_mediaFileTransforms.planeXyzToLogicalPixelIndex(planeXyz, pixelLogicalIndexOut);
 }
 
 /**
@@ -390,37 +426,27 @@ bool
 MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                                     Vector3D& stereotaxicXyzOut) const
 {
-    switch (m_parentType) {
-        case ParentType::HISTOLOGY_SLICE_IMAGE:
-            CaretLogSevere("Should never be called when parent is histology slice file");
-            break;
-        case ParentType::OTHER:
-            break;
-    }
-    return planeXyzToStereotaxicXyzProtected(planeXyz, stereotaxicXyzOut);
+    return m_mediaFileTransforms.planeXyzToStereotaxicXyz(planeXyz, stereotaxicXyzOut);
 }
 
 /**
  * Convert a plane XYZ to stereotaxic XYZ
  * @param planeXyz
  *     XYZ in plane
+ * @param stereotaxicNoNonLinearXyzOut
+ *    Output with stereotaxic XYZ but without non-linear offset
  * @param stereotaxicXyzOut
  *    Output with stereotaxic XYZ
  * @return True if successful, else false.
  */
 bool
-MediaFile::planeXyzToStereotaxicXyzProtected(const Vector3D& planeXyz,
-                                             Vector3D& stereotaxicXyzOut) const
+MediaFile::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                    Vector3D& stereotaxicNoNonLinearXyzOut,
+                                    Vector3D& stereotaxicXyzOut) const
 {
-    if (m_planeToMillimetersMatrixValidFlag) {
-        Vector3D xyz(planeXyz);
-        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
-        stereotaxicXyzOut = xyz;
-        return true;
-    }
-    
-    stereotaxicXyzOut = Vector3D();
-    return false;
+    return m_mediaFileTransforms.planeXyzToStereotaxicXyz(planeXyz,
+                                                          stereotaxicNoNonLinearXyzOut,
+                                                          stereotaxicXyzOut);
 }
 
 /**
@@ -435,38 +461,27 @@ bool
 MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                     Vector3D& planeXyzOut) const
 {
-    switch (m_parentType) {
-        case ParentType::HISTOLOGY_SLICE_IMAGE:
-            CaretLogSevere("Should never be called when parent is histology slice file");
-            break;
-        case ParentType::OTHER:
-            break;
-    }
-    return stereotaxicXyzToPlaneXyzProtected(stereotaxicXyz,
-                                             planeXyzOut);
+    return m_mediaFileTransforms.stereotaxicXyzToPlaneXyz(stereotaxicXyz, planeXyzOut);
 }
+
 /**
  * Converrt a stereotaxic coordinate to a plane coordinate
  * @param stereotaxicXyz
  *    Input stereotaxic coordinate
+ * @param planeNoNonLinearXyzOut
+ *    Output plane coordinate without non-linear warping
  * @param planeXyzOut
  *    Output plane coordinate
  * @return True if successful, else false
  */
 bool
-MediaFile::stereotaxicXyzToPlaneXyzProtected(const Vector3D& stereotaxicXyz,
-                                             Vector3D& planeXyzOut) const
+MediaFile::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                    Vector3D& planeNoNonLinearXyzOut,
+                                    Vector3D& planeXyzOut) const
 {
-    if (m_millimetersToPlaneMatrixValidFlag) {
-        Vector3D xyz(stereotaxicXyz);
-        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
-        planeXyzOut = xyz;
-
-        return true;
-    }
-    
-    planeXyzOut = Vector3D();
-    return false;
+    return m_mediaFileTransforms.stereotaxicXyzToPlaneXyz(stereotaxicXyz,
+                                                          planeNoNonLinearXyzOut,
+                                                          planeXyzOut);
 }
 
 /**
@@ -479,21 +494,19 @@ MediaFile::resetMatricesPrivate()
     m_planeBoundingBox.resetZeros();
     m_stereotaxicXyzBoundingBox.resetZeros();
     m_scaledToPlaneMatrix.identity();
-    m_pixelIndexToPlaneMatrix.identity();
-    m_planeToPixelIndexMatrix.identity();
-    m_planeToMillimetersMatrix.identity();
-    m_millimetersToPlaneMatrix.identity();
     
     m_planeXyzTopLeft     = Vector3D();
     m_planeXyzTopRight    = Vector3D();
     m_planeXyzBottomLeft  = Vector3D();
     m_planeXyzBottomRight = Vector3D();
+    m_planeXyzValidFlag   = false;
     
+    m_stereotaxicXyzTopLeft = Vector3D();
+    m_stereotaxicXyzTopRight = Vector3D();
+    m_stereotaxicXyzBottomLeft = Vector3D();
+    m_stereotaxicXyzBottomRight = Vector3D();
+
     m_scaledToPlaneMatrixValidFlag      = false;
-    m_pixelIndexToPlaneMatrixValidFlag  = false;
-    m_planeToPixelIndexMatrixValidFlag  = false;
-    m_planeToMillimetersMatrixValidFlag = false;
-    m_millimetersToPlaneMatrixValidFlag = false;
     
     m_stereotaxicPlane.reset();
     m_stereotaxicPlaneInvalidFlag = false;
@@ -537,61 +550,12 @@ MediaFile::getScaledToPlaneMatrix(bool* validFlagOut) const
 }
 
 /**
- * @return True if pixel index to plane matrix is valid
- */
-bool
-MediaFile::isPixelIndexToPlaneMatrixValid() const
-{
-    return m_pixelIndexToPlaneMatrixValidFlag;
-}
-
-
-/**
- * @return The pixel to plane matrix
- * Converts a pixel specified by [0 to 1] for X/Y to "plane coordinates"
- * @param validFlagOut
- *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
- */
-Matrix4x4
-MediaFile::getPixelIndexToPlaneMatrix(bool* validFlagOut) const
-{
-    if (validFlagOut != NULL) {
-        *validFlagOut = m_pixelIndexToPlaneMatrixValidFlag;
-    }
-    return m_pixelIndexToPlaneMatrix;
-}
-
-/**
- * @return True if plane to pixel index matrix is valid
- */
-bool
-MediaFile::isPlaneToPixelIndexMatrixValid() const
-{
-    return m_planeToPixelIndexMatrixValidFlag;
-}
-
-/**
- * @return The plane to pixel matrix
- * Converts plane coordinate to a pixel specified by [0 to 1]
- * @param validFlagOut
- *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
- */
-Matrix4x4
-MediaFile::getPlaneToPixelIndexMatrix(bool* validFlagOut) const
-{
-    if (validFlagOut != NULL) {
-        *validFlagOut = m_planeToPixelIndexMatrixValidFlag;
-    }
-   return m_planeToPixelIndexMatrix;
-}
-
-/**
  * @return True if plane to millimeters matrix is valid
  */
 bool
 MediaFile::isPlaneToMillimetersMatrixValid() const
 {
-    return m_planeToMillimetersMatrixValidFlag;
+    return m_mediaFileTransforms.isPlaneToMillimetersMatrixValid();
 }
 
 /**
@@ -602,40 +566,10 @@ MediaFile::isPlaneToMillimetersMatrixValid() const
 Matrix4x4
 MediaFile::getPlaneToMillimetersMatrix(bool* validFlagOut) const
 {
-    switch (m_parentType) {
-        case ParentType::HISTOLOGY_SLICE_IMAGE:
-            CaretLogSevere("Should never be called when parent is histology slice file");
-            break;
-        case ParentType::OTHER:
-            break;
-    }
     if (validFlagOut != NULL) {
-        *validFlagOut = m_planeToMillimetersMatrixValidFlag;;
+        *validFlagOut = isPlaneToMillimetersMatrixValid();
     }
-    return m_planeToMillimetersMatrix;
-}
-
-/**
- * @return True if millimeters to plane matrix is valid
- */
-bool
-MediaFile::isMillimetersToPlaneMatrixValid() const
-{
-    return m_millimetersToPlaneMatrixValidFlag;
-}
-
-/**
- * @return Matrix that converts from millimeters coordiantes to plane coordinates
- * @param validFlagOut
- *    Pointer to boolean.  If not NULL, will be true if matrix is valid, else false.
- */
-Matrix4x4
-MediaFile::getMillimetersToPlaneMatrix(bool* validFlagOut) const
-{
-    if (validFlagOut != NULL) {
-        *validFlagOut = m_millimetersToPlaneMatrixValidFlag;;
-    }
-    return m_millimetersToPlaneMatrix;
+    return m_mediaFileTransforms.getPlaneToMillimetersMatrix();
 }
 
 /**
@@ -650,10 +584,12 @@ MediaFile::getMillimetersToPlaneMatrix(bool* validFlagOut) const
  *    Validity of the plane to millimeters matrix
  */
 void
-MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
-                                  const bool scaledToPlaneMatrixValidFlag,
-                                  const Matrix4x4& planeToMillimetersMatrix,
-                                  const bool planeToMillimetersMatrixValidFlag)
+MediaFile::setTransformMatrices(const Matrix4x4& scaledToPlaneMatrix,
+                                const bool scaledToPlaneMatrixValidFlag,
+                                const Matrix4x4& planeToMillimetersMatrix,
+                                const bool planeToMillimetersMatrixValidFlag,
+                                std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
+                                std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform)
 {
     resetMatrices();
     
@@ -662,14 +598,6 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
      */
     if ( ! scaledToPlaneMatrixValidFlag) {
         return;
-    }
-    
-    m_planeToMillimetersMatrix = planeToMillimetersMatrix;
-    m_planeToMillimetersMatrixValidFlag = planeToMillimetersMatrixValidFlag;
-    
-    m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
-    if (m_millimetersToPlaneMatrix.invert()) {
-        m_millimetersToPlaneMatrixValidFlag = true;
     }
     
     /*
@@ -707,38 +635,40 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         std::cout << "Shift Mat: " << shiftMat.toString() << std::endl;
         std::cout << "Scale Mat: " << scaleMat.toString() << std::endl;
         std::cout << "ScaledToPlane: " << scaledToPlaneMatrix.toString() << std::endl;
-        std::cout << "PlaneToMM" << m_planeToMillimetersMatrix.toString() << std::endl;
+        std::cout << "PlaneToMM" << planeToMillimetersMatrix.toString() << std::endl;
         std::cout << "Index to Plane: " << indexToPlane.toString() << std::endl;
         std::cout << "Start Index to Plane ----------" << std::endl;
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, 0, "top left");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
-        indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
-        
+        indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, 0, 0, "top left");
+        indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
+        indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
+        indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
+
         const float w(getWidth() - 1);
         const float h(getHeight() - 1);
         lengthsTest(indexToPlane, 0, 0, w, 0, "top");
         lengthsTest(indexToPlane, 0, h, w, h, "bottom");
         lengthsTest(indexToPlane, 0, 0, 0, h, "left");
         lengthsTest(indexToPlane, 0, w, w, h, "right");
-        
+
         std::cout << "   -- Separate ----------" << std::endl;
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, 0, "top left");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
-        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, planeToMillimetersMatrix, 0, 0, "top left");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
+        indexToPlaneTest(scaledToPlaneMatrix, shiftMat, scaleMat, planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
         std::cout << "   -------------------------------" << std::endl;
     }
     
-    m_pixelIndexToPlaneMatrix = indexToPlane;
-    m_pixelIndexToPlaneMatrixValidFlag = true;
+    Matrix4x4 pixelIndexToPlaneMatrix = indexToPlane;
     
-    m_planeToPixelIndexMatrix = m_pixelIndexToPlaneMatrix;
-    if (m_planeToPixelIndexMatrix.invert()) {
-        m_planeToPixelIndexMatrixValidFlag = true;
-    }
+    MediaFileTransforms::Inputs inputs(getLogicalBoundsRect(),
+                                       pixelIndexToPlaneMatrix,
+                                       true, /* above matrix valid */
+                                       planeToMillimetersMatrix,
+                                       planeToMillimetersMatrixValidFlag,
+                                       toStereotaxicNonLinearTransform,
+                                       fromStereotaxicNonLinearTransform);
+    setMediaFileTransforms(inputs);
     
-    if (m_pixelIndexToPlaneMatrixValidFlag) {
         const QRectF logicalRect(getLogicalBoundsRect());
         const PixelLogicalIndex topLeft(logicalRect.left(),
                                         logicalRect.top(),
@@ -757,6 +687,7 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         logicalPixelIndexToPlaneXYZ(topRight,    m_planeXyzTopRight);
         logicalPixelIndexToPlaneXYZ(bottomLeft,  m_planeXyzBottomLeft);
         logicalPixelIndexToPlaneXYZ(bottomRight, m_planeXyzBottomRight);
+        m_planeXyzValidFlag = true;
         
         m_planeBoundingBox.resetForUpdate();
         m_planeBoundingBox.update(m_planeXyzTopLeft);
@@ -769,31 +700,51 @@ MediaFile::setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
         m_planeXyzRect.setTop(m_planeBoundingBox.getMinY());
         m_planeXyzRect.setBottom(m_planeBoundingBox.getMaxY());
         
+        planeXyzToStereotaxicXyz(m_planeXyzTopLeft, m_stereotaxicXyzTopLeft);
+        planeXyzToStereotaxicXyz(m_planeXyzTopRight, m_stereotaxicXyzTopRight);
+        planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, m_stereotaxicXyzBottomLeft);
+        planeXyzToStereotaxicXyz(m_planeXyzBottomRight, m_stereotaxicXyzBottomRight);
+        
         m_stereotaxicXyzBoundingBox.resetForUpdate();
-        {
-            Vector3D mmXYZ;
-            planeXyzToStereotaxicXyzProtected(m_planeXyzTopLeft, mmXYZ);
-            m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyzProtected(m_planeXyzTopRight, mmXYZ);
-            m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyzProtected(m_planeXyzBottomLeft, mmXYZ);
-            m_stereotaxicXyzBoundingBox.update(mmXYZ);
-            planeXyzToStereotaxicXyzProtected(m_planeXyzBottomRight, mmXYZ);
-            m_stereotaxicXyzBoundingBox.update(mmXYZ);
+        m_stereotaxicXyzBoundingBox.update(m_stereotaxicXyzTopLeft);
+        m_stereotaxicXyzBoundingBox.update(m_stereotaxicXyzTopRight);
+        m_stereotaxicXyzBoundingBox.update(m_stereotaxicXyzBottomLeft);
+        m_stereotaxicXyzBoundingBox.update(m_stereotaxicXyzBottomRight);
+        
+        if (m_mediaFileTransforms.isPlaneToMillimetersMatrixValid()) {
+            /*
+             * Create the plane from XYZ coordinates
+             */
+            m_stereotaxicPlane.reset(new Plane(m_stereotaxicXyzTopLeft,
+                                               m_stereotaxicXyzBottomLeft,
+                                               m_stereotaxicXyzBottomRight));
+            if ( ! m_stereotaxicPlane->isValidPlane()) {
+                /*
+                 * Plane invalid
+                 */
+                m_stereotaxicPlane.reset();
+                m_stereotaxicPlaneInvalidFlag = true;
+                CaretLogSevere(getFileNameNoPath()
+                               + "Failed to create stereotaxic coordinates plane, computation of plane failed.");
+            }
+        }
+        else {
+            CaretLogSevere(getFileNameNoPath()
+                           + "Failed to create stereotaxic coordinates plane, pixel to coordinate transform failed.");
+            m_stereotaxicPlaneInvalidFlag = true;
         }
         
         const bool testFlag2(false);
         if (testFlag2) {
             std::cout << "---- File: " << getFileName() << std::endl;
-            indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, 0, "top left");
-            indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
-            indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
-            indexToPlaneTest(indexToPlane, m_planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
+            indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, 0, 0, "top left");
+            indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, getWidth() - 1, 0, "top right");
+            indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, 0, getHeight() - 1, "bottom left");
+            indexToPlaneTest(indexToPlane, planeToMillimetersMatrix, getWidth() - 1, getHeight() - 1, "bottom right");
             std::cout << "Plane bounding box: " << m_planeBoundingBox.toString() << std::endl;
             std::cout << "Plane XYZ Rect: " << CziUtilities::qRectToString(m_planeXyzRect) << std::endl;
         }
-    }
-    
+
     if (testFlag) {
         std::cout << "-------------------------------" << std::endl;
     }
@@ -876,28 +827,19 @@ MediaFile::indexToPlaneTest(const Matrix4x4& scaledToPlane,
 void
 MediaFile::addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
-    if (m_pixelIndexToPlaneMatrixValidFlag) {
+    if (m_planeXyzValidFlag) {
         dataFileInformation.addNameAndValue("Plane Top Left",     m_planeXyzTopLeft);
         dataFileInformation.addNameAndValue("Plane Bottom Left",  m_planeXyzBottomLeft);
         dataFileInformation.addNameAndValue("Plane Bottom Right", m_planeXyzBottomRight);
         dataFileInformation.addNameAndValue("Plane Top Right",    m_planeXyzTopRight);
         
-        Vector3D mmTopLeft;
-        Vector3D mmTopRight;
-        Vector3D mmBottomLeft;
-        Vector3D mmBottomRight;
-        if (planeXyzToStereotaxicXyz(m_planeXyzTopLeft, mmTopLeft)
-            && planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, mmBottomLeft)
-            && planeXyzToStereotaxicXyz(m_planeXyzBottomRight, mmBottomRight)
-            && planeXyzToStereotaxicXyz(m_planeXyzTopRight, mmTopRight)) {
-            dataFileInformation.addNameAndValue("MM Top Left",     mmTopLeft);
-            dataFileInformation.addNameAndValue("MM Bottom Left",  mmBottomLeft);
-            dataFileInformation.addNameAndValue("MM Bottom Right", mmBottomRight);
-            dataFileInformation.addNameAndValue("MM Top Right",    mmTopRight);
-        }
+        dataFileInformation.addNameAndValue("Stereotaxic Top Left",     m_stereotaxicXyzTopLeft);
+        dataFileInformation.addNameAndValue("Stereotaxic Bottom Left",  m_stereotaxicXyzBottomLeft);
+        dataFileInformation.addNameAndValue("Stereotaxic Bottom Right", m_stereotaxicXyzBottomRight);
+        dataFileInformation.addNameAndValue("Stereotaxic Top Right",    m_stereotaxicXyzTopRight);
     }
     else {
-        dataFileInformation.addNameAndValue("Pixe to Plane Matrix", "Invalid");
+        dataFileInformation.addNameAndValue("Pixel to Plane Matrix", "Invalid");
     }
 }
 
@@ -927,44 +869,6 @@ MediaFile::getStereotaxicImagePlane() const
         return m_stereotaxicPlane.get();
     }
     
-    if (m_stereotaxicPlaneInvalidFlag) {
-        /*
-         * Tried to create plane previously but failed
-         */
-        return NULL;
-    }
-    
-    Vector3D mmTopLeft;
-    Vector3D mmBottomLeft;
-    Vector3D mmBottomRight;
-    if (planeXyzToStereotaxicXyzProtected(m_planeXyzTopLeft, mmTopLeft)
-        && planeXyzToStereotaxicXyzProtected(m_planeXyzBottomLeft, mmBottomLeft)
-        && planeXyzToStereotaxicXyzProtected(m_planeXyzBottomRight, mmBottomRight)) {
-        /*
-         * Create the plane from XYZ coordinates
-         */
-        m_stereotaxicPlane.reset(new Plane(mmTopLeft,
-                                           mmBottomLeft,
-                                           mmBottomRight));
-        if (m_stereotaxicPlane->isValidPlane()) {
-            return m_stereotaxicPlane.get();
-        }
-        else {
-            /*
-             * Plane invalid
-             */
-            m_stereotaxicPlane.reset();
-            m_stereotaxicPlaneInvalidFlag = true;
-            CaretLogSevere(getFileNameNoPath()
-                           + "Failed to create stereotaxic coordinates plane, computation of plane failed.");
-        }
-    }
-    else {
-        CaretLogSevere(getFileNameNoPath()
-                       + "Failed to create stereotaxic coordinates plane, pixel to coordinate transform failed.");
-        m_stereotaxicPlaneInvalidFlag = true;
-    }
-
     return NULL;
 }
 
@@ -1017,8 +921,6 @@ MediaFile::getPlaneCoordinatesPlane() const
  * Find the Pixel nearest the given XYZ coordinate
  * @param xyz
  *    The coordinate
- * @param includeNonlinearFlag
- *    If true, include the non-linear transform when converting
  * @param signedDistanceToPixelMillimetersOut
  *    Output with signed distance to the pixel in millimeters
  * @param pixelLogicalIndexOut
@@ -1028,13 +930,11 @@ MediaFile::getPlaneCoordinatesPlane() const
  */
 bool
 MediaFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
-                                          const bool includeNonLinearFlag,
                                           float& signedDistanceToPixelMillimetersOut,
                                           PixelLogicalIndex& pixelLogicalIndexOut) const
 {
     Vector3D planeXYZ;
     if (findPlaneCoordinateNearestStereotaxicXYZ(xyz,
-                                                 includeNonLinearFlag,
                                                  signedDistanceToPixelMillimetersOut,
                                                  planeXYZ)) {
         PixelIndex pixelIndex;
@@ -1051,8 +951,6 @@ MediaFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
  * Find the plane coordinate nearest the given XYZ coordinate
  * @param stereotaxicXYZ
  *    The stereotaxic coordinate
- * @param includeNonlinearFlag
- *    If true, include the non-linear transform when converting
  * @param signedDistanceToPixelMillimetersOut
  *    Output with signed distance in millimeters from stereotaxic coordinate to stereotaxic plane
  * @param planeXyzOut
@@ -1062,7 +960,6 @@ MediaFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
  */
 bool
 MediaFile::findPlaneCoordinateNearestStereotaxicXYZ(const Vector3D& stereotaxicXYZ,
-                                                      const bool includeNonLinearFlag,
                                                       float& signedDistanceToPlaneMillimetersOut,
                                                       Vector3D& planeXyzOut) const
 {
@@ -1108,7 +1005,7 @@ MediaFile::findPlaneCoordinateNearestStereotaxicXYZ(const Vector3D& stereotaxicX
 bool
 MediaFile::isPlaneXyzSupported() const
 {
-    return m_pixelIndexToPlaneMatrixValidFlag;
+    return m_planeXyzValidFlag;
 }
 
 /**
@@ -1163,6 +1060,42 @@ BoundingBox
 MediaFile::getStereotaxicXyzBoundingBox() const
 {
     return m_stereotaxicXyzBoundingBox;
+}
+
+/**
+ * @return Stereotaxic Coordinate at bottom left of media
+ */
+Vector3D
+MediaFile::getStereotaxicXyzBottomLeft() const
+{
+    return m_stereotaxicXyzBottomLeft;
+}
+
+/**
+ * @return Stereotaxic Coordinate at bottom left of media
+ */
+Vector3D
+MediaFile::getStereotaxicXyzBottomRight() const
+{
+    return m_stereotaxicXyzBottomRight;
+}
+
+/**
+ * @return Stereotaxic Coordinate at bottom left of media
+ */
+Vector3D
+MediaFile::getStereotaxicXyzTopRight() const
+{
+    return m_stereotaxicXyzTopRight;
+}
+
+/**
+ * @return Stereotaxic Coordinate at bottom left of media
+ */
+Vector3D
+MediaFile::getStereotaxicXyzTopLeft() const
+{
+    return m_stereotaxicXyzTopLeft;
 }
 
 /**
@@ -1268,13 +1201,8 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
     }
     
     Vector3D xyz;
-    if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, false, xyz)) {
+    if (logicalPixelIndexToStereotaxicXYZ(pixelLogicalIndex, xyz)) {
         columnOneTextOut.push_back("Stereotaxic XYZ");
-        columnTwoTextOut.push_back(AString::fromNumbers(xyz, 3, ", "));
-    }
-    
-    if (pixelIndexToStereotaxicXYZ(pixelLogicalIndex, true, xyz)) {
-        columnOneTextOut.push_back("Stereotaxic XYZ with NIFTI warping");
         columnTwoTextOut.push_back(AString::fromNumbers(xyz, 3, ", "));
     }
     
@@ -1450,3 +1378,73 @@ MediaFile::logicalRectToPlaneRect(const QRectF& logicalRect) const
     }
     return rect;
 }
+
+/**
+ * Converrt a stereotaxic rectangle to a logical rectangle
+ * @param stereotaxicRect
+ *    The stereotaxic rectangle
+ * @return
+ *    The logical rectangle
+ */
+QRectF
+MediaFile::stereotaxicRectToLogicalRect(const QRectF& stereotaxicRect) const
+{
+    QRectF rect;
+    
+    const Vector3D topLeftCoord(stereotaxicRect.left(),
+                                stereotaxicRect.top(),
+                                0.0);
+    const Vector3D bottomRightCoord(stereotaxicRect.right(),
+                                    stereotaxicRect.bottom(),
+                                    0.0);
+    
+    PixelLogicalIndex topLeftPixel;
+    PixelLogicalIndex bottomRightPixel;
+    if (stereotaxicXyzToLogicalPixelIndex(topLeftCoord, topLeftPixel)
+        && stereotaxicXyzToLogicalPixelIndex(bottomRightCoord, bottomRightPixel)) {
+        rect.setCoords(topLeftPixel.getI(), topLeftPixel.getJ(),
+                       bottomRightPixel.getI(), bottomRightPixel.getJ());
+    }
+    return rect;
+}
+
+/**
+ * Convert a logical rect to a stereotaxic rect
+ * @param logicalRect
+ *    The logical rectangle
+ * @return
+ *    The stereotaxic rectangle
+ */
+QRectF
+MediaFile::logicalRectToStereotaxicRect(const QRectF& logicalRect) const
+{
+    QRectF rect;
+    
+    const PixelLogicalIndex topLeftPixel(logicalRect.left(),
+                                         logicalRect.top(),
+                                         0.0f);
+    const PixelLogicalIndex bottomRightPixel(logicalRect.right(),
+                                             logicalRect.bottom(),
+                                             0.0f);
+    Vector3D topLeftCoord;
+    Vector3D bottomRightCoord;
+    if (logicalPixelIndexToStereotaxicXYZ(topLeftPixel, topLeftCoord)
+        && logicalPixelIndexToStereotaxicXYZ(bottomRightPixel, bottomRightCoord)) {
+        rect.setCoords(topLeftCoord[0], topLeftCoord[1],
+                       bottomRightCoord[0], bottomRightCoord[1]);
+    }
+    return rect;
+}
+
+/**
+ * Set the media file transforms
+ * @param mediaFileTransforms
+ *    New instance of media file transforms.
+ */
+void
+MediaFile::setMediaFileTransforms(const MediaFileTransforms& mediaFileTransforms)
+{
+    m_mediaFileTransforms = mediaFileTransforms;
+}
+
+

@@ -77,6 +77,8 @@ namespace caret {
         
         GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const;
         
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing() const;
+        
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
         bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;
@@ -176,6 +178,8 @@ namespace caret {
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForMediaDrawing;
         
         mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForPlaneXyzDrawing;
+        
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitiveForStereotaxicXyzDrawing;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -42,7 +42,8 @@ namespace caret {
     class CiftiParcelSelectionComboBox;
     class GiftiLabelTableSelectionComboBox;
     class StructureEnumComboBox;
-    
+    class WuQDoubleSpinBox;
+
     class IdentifyBrainordinateDialog : public WuQDialogNonModal, public EventListenerInterface {
         
         Q_OBJECT
@@ -101,6 +102,8 @@ namespace caret {
         
         QWidget* createImagePixelWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes);
         
+        QWidget* createStereotaxicWidget();
+        
         void processCiftiParcelWidget(AString& errorMessageOut);
         
         void processCiftiRowWidget(AString& errorMessageOut);
@@ -108,6 +111,8 @@ namespace caret {
         void processImagePixelSelection(AString& errorMessage);
         
         void processLabelFileWidget(AString& errorMessageOut);
+        
+        void processStereotaxicWidget(AString& errorMessageOut);
         
         void processSurfaceVertexWidget(AString& errorMessageOut);
         
@@ -120,6 +125,8 @@ namespace caret {
         StructureEnumComboBox* m_vertexStructureComboBox;
         
         QWidget* m_surfaceVertexWidget;
+        
+        QWidget* m_stereotaxicWidget;
         
         QLabel* m_vertexStructureLabel;
         
@@ -191,12 +198,19 @@ namespace caret {
         
         QSpinBox* m_imagePixelJSpinBox;
         
+        WuQDoubleSpinBox* m_stereotaxicXWidget;
+        
+        WuQDoubleSpinBox* m_stereotaxicYWidget;
+        
+        WuQDoubleSpinBox* m_stereotaxicZWidget;
+        
         QStackedWidget* m_stackedWidget;
         
         QRadioButton* m_ciftiFileRowRadioButton;
         QRadioButton* m_ciftiFileParcelRadioButton;
         QRadioButton* m_imagePixelRadioButton;
         QRadioButton* m_labelRadioButton;
+        QRadioButton* m_stereotaxicRadioButton;
         QRadioButton* m_surfaceVertexRadioButton;
         
         std::map<DataFileTypeEnum::Enum, ParcelSourceDimension> m_parcelSourceDimensionMap;

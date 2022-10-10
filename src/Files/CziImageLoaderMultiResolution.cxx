@@ -188,6 +188,10 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
     }
     m_previousZoomLayerIndex = zoomLayerIndex;
 
+    if (m_previousCoordinateMode != coordinateMode) {
+        m_reloadImageFlag = true;
+    }
+    
     if ( ! m_reloadImageFlag) {
         switch (resolutionChangeMode) {
             case CziImageResolutionChangeModeEnum::INVALID:
@@ -230,6 +234,7 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
     m_previousFrameIndex              = frameIndex;
     m_previousAllFramesFlag           = allFramesFlag;
     m_previousResolutionChangeMode    = resolutionChangeMode;
+    m_previousCoordinateMode          = coordinateMode;
     m_previousManualPyramidLayerIndex = manualPyramidLayerIndex;
     m_reloadImageFlag                 = false;
     m_frameChangedFlag                = false;
@@ -292,6 +297,19 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
             transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
         }
             break;
+        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+        {
+            /*
+             * The transform will convert plane coordinates to window coordinates
+             */
+            const Vector3D bottomLeftXYZ(m_cziImageFile->getStereotaxicXyzBottomLeft());
+            const Vector3D topLeftXYZ(m_cziImageFile->getStereotaxicXyzTopLeft());
+            const float imageBottomLeftPixel[3] { bottomLeftXYZ[0], bottomLeftXYZ[1], bottomLeftXYZ[2] };
+            const float imageTopLeftPixel[3] { topLeftXYZ[0], topLeftXYZ[1], topLeftXYZ[2] };
+            transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
+            transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
+        }
+            break;
     }
     const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
     if (cziDebugFlag) std::cout << "Drawn pixel height: " << drawnPixelHeight << std::endl;
@@ -330,6 +348,9 @@ CziImageLoaderMultiResolution::getViewportLogicalCoordinates(const GraphicsObjec
             break;
         case MediaDisplayCoordinateModeEnum::PLANE:
             rect = getViewportLogicalCoordinatesForPlaneCoords(transform);
+            break;
+        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+            rect = getViewportLogicalCoordinatesForStereotaxicCoords(transform);
             break;
     }
     return rect;
@@ -463,6 +484,59 @@ CziImageLoaderMultiResolution::getViewportLogicalCoordinatesForPlaneCoords(const
 }
 
 /**
+ * @return Logical rectangle of viewport for plane coordinates.
+ *
+ * @param transform
+ *    Transforms from/to viewport and model coordinates
+ */
+QRectF
+CziImageLoaderMultiResolution::getViewportLogicalCoordinatesForStereotaxicCoords(const GraphicsObjectToWindowTransform* transform) const
+{
+    /*
+     * Plane coordinates of viewport in a rectangle
+     */
+    const QRectF viewportPlaneRect(getViewportPlaneCoordinates(transform));
+    const float pl(viewportPlaneRect.left());
+    const float pr(viewportPlaneRect.right());
+    const float pt(viewportPlaneRect.top());
+    const float pb(viewportPlaneRect.bottom());
+    const Vector3D planeLeftTop(pl, pt, 0.0);
+    const Vector3D planeRightTop(pr, pt, 0.0);
+    const Vector3D planeLeftBottom(pl, pb, 0.0);
+    const Vector3D planeRightBottom(pr, pb, 0.0);
+    
+    PixelLogicalIndex topLeftLogicalPixelIndex;
+    m_cziImageFile->stereotaxicXyzToLogicalPixelIndex(m_cziImageFile->getStereotaxicXyzTopLeft(),
+                                               topLeftLogicalPixelIndex);
+    
+    PixelLogicalIndex topRightLogicalPixelIndex;
+    m_cziImageFile->stereotaxicXyzToLogicalPixelIndex(m_cziImageFile->getStereotaxicXyzTopRight(),
+                                               topRightLogicalPixelIndex);
+    
+    PixelLogicalIndex bottomLeftLogicalPixelIndex;
+    m_cziImageFile->stereotaxicXyzToLogicalPixelIndex(m_cziImageFile->getStereotaxicXyzBottomLeft(),
+                                               bottomLeftLogicalPixelIndex);
+    
+    PixelLogicalIndex bottomRightLogicalPixelIndex;
+    m_cziImageFile->stereotaxicXyzToLogicalPixelIndex(m_cziImageFile->getStereotaxicXyzBottomRight(),
+                                               bottomRightLogicalPixelIndex);
+    
+    BoundingBox boundingBox;
+    boundingBox.resetForUpdate();
+    boundingBox.update(topLeftLogicalPixelIndex.getI(), topLeftLogicalPixelIndex.getJ(), 0);
+    boundingBox.update(topRightLogicalPixelIndex.getI(), topRightLogicalPixelIndex.getJ(), 0);
+    boundingBox.update(bottomLeftLogicalPixelIndex.getI(), bottomLeftLogicalPixelIndex.getJ(), 0);
+    boundingBox.update(bottomRightLogicalPixelIndex.getI(), bottomRightLogicalPixelIndex.getJ(), 0);
+    
+    const QRectF viewportFullResLogicalRect(boundingBox.getMinX(),
+                                            boundingBox.getMinY(),
+                                            boundingBox.getDifferenceX(),
+                                            boundingBox.getDifferenceY());
+    
+    return viewportFullResLogicalRect;
+}
+
+/**
  * @return A rectangle containing the plane coordinates of the viewport
  * @param transform
  *    Transform from the tab where image is drawn
@@ -519,6 +593,69 @@ CziImageLoaderMultiResolution::getViewportPlaneCoordinates(const GraphicsObjectT
                       planeCoordAtTopLeft[1],
                       (planeCoordAtBottomRight[0] - planeCoordAtTopLeft[0]),
                       (planeCoordAtBottomRight[1] - planeCoordAtTopLeft[1]));
+    return rect;
+}
+
+/**
+ * @return A rectangle containing the stereotaxic coordinates of the viewport
+ * @param transform
+ *    Transform from the tab where image is drawn
+ */
+QRectF
+CziImageLoaderMultiResolution::getViewportStereotaxicCoordinates(const GraphicsObjectToWindowTransform* transform) const
+{
+    /*
+     * After getting the viewport enlarge it a little bit.
+     * When the user pans the image, this will cause new image data
+     * to be loaded as the edge of the current image is about to
+     * be panned into the viewport.
+     *
+     * If we do not enlarge the viewport, new image data is not loaded
+     * until the edge of the image is moved into the viewport and this
+     * results in a small amount of the background becoming visible
+     * (until the new image is loaded).
+     */
+    const std::array<float, 4> viewportArray(transform->getViewport());
+    QRectF viewport(viewportArray[0],
+                    viewportArray[1],
+                    viewportArray[2],
+                    viewportArray[3]);
+    const float mv(10);
+    const QMarginsF margins(mv, mv, mv, mv);
+    viewport = viewport.marginsAdded(margins);
+    
+    /*
+     * Window coordinate at Top Left Corner of Viewport
+     * 'inverseTransformPoint()' transforms from window coordinates to
+     * sterotaxic coordinate
+     */
+    Vector3D stereotaxicCoordAtTopLeft;
+    transform->inverseTransformPoint(viewport.x(),
+                                     viewport.y() + viewport.height(),
+                                     0.0,
+                                     stereotaxicCoordAtTopLeft);
+    
+    /*
+     * Window coordinate at Bottom Right of Viewport
+     * 'inverseTransformPoint()' transforms from window coordinates to
+     * stereotaxic coordinate (PLANE)
+     */
+    Vector3D stereotaxicCoordAtBottomRight;
+    transform->inverseTransformPoint(viewport.x() + viewport.width(),
+                                     viewport.y(),
+                                     0.0,
+                                     stereotaxicCoordAtBottomRight);
+    
+    /*
+     * X, Y, Width, Height
+     * Will need to change if viewing axis (coronal) changes
+     *
+     * CaretAssertToDoWarning();
+     */
+    const QRectF rect(stereotaxicCoordAtBottomRight[0],
+                      stereotaxicCoordAtBottomRight[1],
+                      (stereotaxicCoordAtBottomRight[0] - stereotaxicCoordAtTopLeft[0]),
+                      (stereotaxicCoordAtTopLeft[2] - stereotaxicCoordAtBottomRight[2]));
     return rect;
 }
 
@@ -639,6 +776,13 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                                  transform,
                                                                  resolutionChangeMode,
                                                                  pyramidLayerIndexIn);
+            break;
+        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+            cziImageOut = loadImageForPyrmaidLayerForStereotaxicCoords(oldCziImage,
+                                                                       cziSceneInfo,
+                                                                       transform,
+                                                                       resolutionChangeMode,
+                                                                       pyramidLayerIndexIn);
             break;
     }
     return cziImageOut;
@@ -976,3 +1120,170 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
     return cziImageOut;
 }
 
+/**
+ * Load a image from the given pyramid layer for the center of the tab region defined by the transform
+ * @param oldCziImage
+ *    Current CZI image
+ * @param cziSceneInfo
+ *    CZI scene info (pyramid layers) for image selection
+ * @param transform
+ *    Transform from the tab where image is drawn
+ * @param resolutionChangeMode
+ *       The resolution change mode
+ * @param pyramidLayerIndexIn
+ *    Index of the pyramid layer
+ */
+CziImage*
+CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForStereotaxicCoords(const CziImage* oldCziImage,
+                                                                            const CziImageFile::CziSceneInfo& cziSceneInfo,
+                                                                            const GraphicsObjectToWindowTransform* transform,
+                                                                            const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                                            const int32_t pyramidLayerIndexIn)
+{
+    const auto& allPyramidLayers(cziSceneInfo.m_pyramidLayers);
+    if (allPyramidLayers.empty()) {
+        CaretLogSevere("Attempting to load pyramid layer="
+                       + AString::number(pyramidLayerIndexIn)
+                       + " but no pyramid layers available.");
+    }
+    
+    int32_t pyramidLayerIndex(pyramidLayerIndexIn);
+    if (pyramidLayerIndex < 0) {
+        pyramidLayerIndex = 0;
+        CaretLogSevere("Attempt to load invalid pyramid layer="
+                       + AString::number(pyramidLayerIndexIn));
+    }
+    else if (pyramidLayerIndex >= static_cast<int32_t>(allPyramidLayers.size())) {
+        pyramidLayerIndex = allPyramidLayers.size() - 1;
+        CaretLogSevere("Attempt to load invalid pyramid layer="
+                       + AString::number(pyramidLayerIndexIn));
+    }
+    
+    
+    /*
+     * Get bounds of viewport in stereotaxic coordinates
+     */
+    const QRectF viewportStereotaxicCoordsRect(getViewportStereotaxicCoordinates(transform));
+    CaretAssert(viewportStereotaxicCoordsRect.isValid());
+    CaretAssert(cziSceneInfo.m_stereotaxicRectangle.isValid());
+    CaretAssert(viewportStereotaxicCoordsRect.intersects(cziSceneInfo.m_stereotaxicRectangle)
+                == cziSceneInfo.m_stereotaxicRectangle.intersects(viewportStereotaxicCoordsRect));
+    
+    QRectF stereotaxicRectToLoad;
+    if (viewportStereotaxicCoordsRect.intersects(cziSceneInfo.m_stereotaxicRectangle)) {
+        stereotaxicRectToLoad = viewportStereotaxicCoordsRect.intersected(cziSceneInfo.m_stereotaxicRectangle);
+    }
+    else if (viewportStereotaxicCoordsRect.contains(cziSceneInfo.m_stereotaxicRectangle)) {
+        stereotaxicRectToLoad = cziSceneInfo.m_stereotaxicRectangle;
+    }
+    else if (cziSceneInfo.m_stereotaxicRectangle.contains(viewportStereotaxicCoordsRect)) {
+        stereotaxicRectToLoad = viewportStereotaxicCoordsRect;
+    }
+    else {
+        stereotaxicRectToLoad = cziSceneInfo.m_stereotaxicRectangle;
+    }
+    
+    CaretAssert(stereotaxicRectToLoad.isValid());
+    
+    /*
+     * Convert rectangle from stereotaxic to logical
+     */
+    QRectF logicalRectToLoad = m_cziImageFile->stereotaxicRectToLogicalRect(stereotaxicRectToLoad);
+    
+    CaretAssertVectorIndex(allPyramidLayers, pyramidLayerIndex);
+    const auto& selectedPyramidLayer(allPyramidLayers[pyramidLayerIndex]);
+    if ((selectedPyramidLayer.m_logicalWidthForImageReading == cziSceneInfo.m_logicalRectangle.width())
+        && (selectedPyramidLayer.m_logicalHeightForImageReading == cziSceneInfo.m_logicalRectangle.height())) {
+        logicalRectToLoad = cziSceneInfo.m_logicalRectangle;
+        if (cziDebugFlag) std::cout << "Load full resolution" << std::endl;
+    }
+    else {
+        const float widthToLoad(selectedPyramidLayer.m_logicalWidthForImageReading);
+        const float heightToLoad(selectedPyramidLayer.m_logicalHeightForImageReading);
+        
+        const QPointF centerXY(logicalRectToLoad.center());
+        const float rectX(centerXY.x() - (widthToLoad / 2.0));
+        const float rectY(centerXY.y() - (heightToLoad / 2.0));
+        if (cziDebugFlag) std::cout << "Rect to load before pyramid size: " << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
+        logicalRectToLoad.setRect(rectX, rectY, widthToLoad, heightToLoad);
+        if (cziDebugFlag) std::cout << "             after pyramid size: " << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
+        logicalRectToLoad = logicalRectToLoad.intersected(cziSceneInfo.m_logicalRectangle);
+        if (cziDebugFlag) std::cout << "             after clip: " << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
+    }
+    
+    const bool expandFlag(false);
+    if (expandFlag) {
+        /*
+         * Expand the region for loading so that it is bigger than the viewport
+         * and it will prevent reloading when the image is panned by a small amount.
+         */
+        const float percentageToExpend(20.0);
+        logicalRectToLoad = CziUtilities::expandByPercentage(logicalRectToLoad,
+                                                             percentageToExpend);
+        logicalRectToLoad = logicalRectToLoad.intersected(cziSceneInfo.m_logicalRectangle);
+    }
+    
+    bool forceReloadFlag(m_forceImageReloadFlag);
+    switch (resolutionChangeMode) {
+        case CziImageResolutionChangeModeEnum::INVALID:
+            break;
+        case CziImageResolutionChangeModeEnum::MANUAL2:
+            if (pyramidLayerIndex != m_previousManualPyramidLayerIndex) {
+                forceReloadFlag = true;
+            }
+            break;
+        case CziImageResolutionChangeModeEnum::AUTO2:
+            break;
+    }
+    
+    if (forceReloadFlag) {
+        /* nothing */
+    }
+    else if (oldCziImage != NULL) {
+        /*
+         * If the region has not changed, do not need to load data
+         */
+        if (oldCziImage->getImageDataLogicalRect() == logicalRectToLoad) {
+            /*
+             * Continue using image
+             */
+            return const_cast<CziImage*>(oldCziImage);
+        }
+    }
+    
+    ElapsedTimer timer;
+    timer.start();
+    
+    
+    const AString cziName(cziSceneInfo.getName()
+                          + " PyramidLayer="
+                          + AString::number(pyramidLayerIndex));
+    if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
+    AString errorMessage;
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+                                                                 cziName,
+                                                                 logicalRectToLoad,
+                                                                 cziSceneInfo.m_logicalRectangle,
+                                                                 m_cziImageFile->getPreferencesImageDimension(),
+                                                                 errorMessage);
+    
+    if (cziDebugFlag) std::cout << "Time to load CZI Image: (ms): " << timer.getElapsedTimeMilliseconds() << std::endl;
+    
+    if (cziImageOut == NULL) {
+        CaretLogSevere("Loading Pyramid level="
+                       + AString::number(pyramidLayerIndex)
+                       + " for frame(scene) index="
+                       + AString::number(cziSceneInfo.m_sceneIndex)
+                       + " for rectangle="
+                       + CziUtilities::qRectToString(logicalRectToLoad)
+                       + " for file "
+                       + m_cziImageFile->getFileNameNoPath()
+                       + " error: "
+                       + errorMessage);
+    }
+    else {
+        if (cziDebugFlag) std::cout << "Image Pixels width=" << cziImageOut->getWidth() << ", " << cziImageOut->getHeight() << std::endl;
+    }
+    
+    return cziImageOut;
+}

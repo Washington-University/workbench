@@ -140,6 +140,10 @@ namespace caret {
         
         void setMediaDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordinateMode);
         
+        MediaDisplayCoordinateModeEnum::Enum getHistologyDisplayCoordinateMode() const;
+        
+        void setHistologyDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum histologyDisplayCoordinateMode);
+        
         int32_t getTabNumber() const;
         
         ModelTypeEnum::Enum getSelectedModelType() const;
@@ -733,6 +737,8 @@ namespace caret {
         ModelMedia* m_mediaModel;
 
         MediaDisplayCoordinateModeEnum::Enum m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
+        
+        MediaDisplayCoordinateModeEnum::Enum m_histologyDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PLANE;
         
         /**
          * Name requested by user interface - reflects contents 

@@ -217,3 +217,35 @@ Vector3D& Vector3D::operator=(const float* right)
     m_vec[2] = right[2];
     return *this;
 }
+
+void Vector3D::fill(const float value)
+{
+    m_vec[0] = value;
+    m_vec[1] = value;
+    m_vec[2] = value;
+}
+
+void Vector3D::set(const float x, const float y, const float z)
+{
+    m_vec[0] = x;
+    m_vec[1] = y;
+    m_vec[2] = z;
+}
+
+/**
+ * @return vector as a string separated by commas and enclosed in parenthesis
+ * @param precision
+ *    Digits right of decimal
+ */
+AString
+Vector3D::toString(const int32_t precision) const
+{
+    return AString("("
+                   + AString::fromNumbers(m_vec,
+                                          3,    /* number of elements */
+                                          ", ", /* separator */
+                                          'g',  /* format */
+                                          precision)
+                   + ")");
+
+}

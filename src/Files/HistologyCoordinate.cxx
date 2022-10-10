@@ -61,7 +61,7 @@ HistologyCoordinate::~HistologyCoordinate()
 }
 
 /**
- * New instance for identification.  slice number and stereotaxic coordinate will bet set.
+ * New instance for plane xyz  identification.  slice number and stereotaxic coordinate will bet set.
  * @param histologySlicesFile
  *    The histology slices file (MUST be valid)
  * @param mediaFile
@@ -72,10 +72,10 @@ HistologyCoordinate::~HistologyCoordinate()
  *    The plane coordinate
  */
 HistologyCoordinate
-HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySlicesFile,
-                                               MediaFile* mediaFile,
-                                               const int32_t sliceIndex,
-                                               const Vector3D& planeXYZ)
+HistologyCoordinate::newInstancePlaneXYZIdentification(HistologySlicesFile* histologySlicesFile,
+                                                       MediaFile* mediaFile,
+                                                       const int32_t sliceIndex,
+                                                       const Vector3D& planeXYZ)
 {
     CaretAssert(histologySlicesFile);
     CaretAssert(mediaFile);
@@ -86,7 +86,6 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
     hc.setSliceIndex(sliceIndex);
     hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
     hc.setPlaneXYZ(planeXYZ);
-    hc.m_planeXY = planeXYZ;
     
     const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
     if (slice != NULL) {
@@ -100,6 +99,47 @@ HistologyCoordinate::newInstanceIdentification(HistologySlicesFile* histologySli
         }
     }
 
+    return hc;
+}
+
+/**
+ * New instance for stereotaxic xyz  identification.  slice number and stereotaxic coordinate will bet set.
+ * @param histologySlicesFile
+ *    The histology slices file (MUST be valid)
+ * @param mediaFile
+ *    The media file (may be NULL)
+ * @param sliceIndex
+ *    The slice index
+ * @param stereotaxicXYZ
+ *    The plane coordinate
+ */
+HistologyCoordinate
+HistologyCoordinate::newInstanceStereotaxicXYZIdentification(HistologySlicesFile* histologySlicesFile,
+                                                             MediaFile* mediaFile,
+                                                             const int32_t sliceIndex,
+                                                             const Vector3D& stereotaxicXYZ)
+{
+    CaretAssert(histologySlicesFile);
+    CaretAssert(mediaFile);
+    
+    HistologyCoordinate hc;
+    hc.setHistologySlicesFile(histologySlicesFile);
+    hc.setMediaFile(mediaFile);
+    hc.setSliceIndex(sliceIndex);
+    hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
+    hc.setStereotaxicXYZ(stereotaxicXYZ);
+    
+    const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+    if (slice != NULL) {
+        Vector3D planeWithNonLinearXYZ;
+        Vector3D planeNoNonLinearXYZ;
+        if (slice->stereotaxicXyzToPlaneXyz(stereotaxicXYZ,
+                                            planeNoNonLinearXYZ,
+                                            planeWithNonLinearXYZ)) {
+            hc.setPlaneXYZ(stereotaxicXYZ);
+        }
+    }
+    
     return hc;
 }
 

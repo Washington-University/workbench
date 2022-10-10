@@ -61,7 +61,7 @@ namespace caret {
     class CziImageFile : public MediaFile, public EventListenerInterface {
         
     public:        
-        CziImageFile(const ParentType parentType = ParentType::OTHER);
+        CziImageFile();
         
         virtual ~CziImageFile();
         
@@ -131,7 +131,9 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                                 const int32_t overlayIndex) const override;
         
-
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
+                                                                                      const int32_t overlayIndex) const override;
+        
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,
@@ -147,16 +149,7 @@ namespace caret {
         
         virtual void receiveEvent(Event* event) override;
         
-        virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
-                                                const bool includeNonlinearFlag,
-                                                Vector3D& xyzOut) const override;
-        
-        virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
-                                                const bool includeNonlinearFlag,
-                                                PixelLogicalIndex& pixelLogicalIndexOut) const override;
-        
         virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
-                                                    const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const override;
         
@@ -178,10 +171,12 @@ namespace caret {
                                const bool includeAlphaFlag,
                                AString& errorMessageOut);
         
-        virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
-                                            const bool scaledToPlaneMatrixValidFlag,
-                                            const Matrix4x4& planeToMillimetersMatrix,
-                                            const bool planeToMillimetersMatrixValidFlag) override;
+        virtual void setTransformMatrices(const Matrix4x4& scaledToPlaneMatrix,
+                                          const bool scaledToPlaneMatrixValidFlag,
+                                          const Matrix4x4& planeToMillimetersMatrix,
+                                          const bool planeToMillimetersMatrixValidFlag,
+                                          std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
+                                          std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform) override;
         
 
         // ADD_NEW_METHODS_HERE
@@ -283,6 +278,8 @@ namespace caret {
              */
             QRectF m_planeRectangle;
             
+            QRectF m_stereotaxicRectangle;
+            
             AString m_name;
             
             float m_logicalCenter[3];
@@ -296,27 +293,6 @@ namespace caret {
             std::shared_ptr<CziImage> m_defaultImage;
 
             bool m_defaultImageErrorFlag = false;
-        };
-        
-        class NiftiTransform {
-        public:
-            mutable std::unique_ptr<VolumeFile> m_niftiFile;
-            
-            mutable std::unique_ptr<Matrix4x4> m_sformMatrix;
-            
-            mutable bool m_triedToLoadFileFlag = false;
-            
-            /** Scales pixel index from full resolution to layer used by NIFTI transform */
-            mutable float m_pixelScaleI = -1.0f;
-            
-            /** Scales pixel index from full resolution to layer used by NIFTI transform */
-            mutable float m_pixelScaleJ = -1.0f;
-            
-            /** Volume is oriented left-to-right for first axis (same as CZI image) */
-            bool m_xLeftToRightFlag = false;
-            
-            /** Volume is oriented top-to-bottom for second axis (same as CZI image) */
-            bool m_yTopToBottomFlag = false;
         };
         
         class TestTransformResult {
@@ -375,16 +351,6 @@ namespace caret {
             Q_IMAGE
         };
         
-        bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
-                                        const bool includeNonlinearFlag,
-                                        Vector3D& xyzOut,
-                                        Vector3D& debugPixelIndexOut) const;
-
-        bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
-                                        const bool includeNonlinearFlag,
-                                        PixelLogicalIndex& pixelLogicalIndex,
-                                        const Vector3D& debugPixelIndex) const;
-        
         PixelCoordinate getPixelSizeInMillimeters() const;
         
         CziImage* getImageForTabOverlay(const int32_t tabIndex,
@@ -430,9 +396,6 @@ namespace caret {
         void createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
         
         void readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
-        
-        void loadNiftiTransformFile(const AString& filename,
-                                    NiftiTransform& transform) const;
         
         void setLayersZoomFactors(CziSceneInfo& cziSceneInfo);
         
@@ -492,10 +455,6 @@ namespace caret {
          * Logical rectangle of full-resolution image
          */
         QRectF m_fullResolutionLogicalRect;
-        
-        mutable NiftiTransform m_pixelToStereotaxicTransform;
-        
-        mutable NiftiTransform m_stereotaxicToPixelTransform;
         
         mutable std::unique_ptr<Plane> m_imagePlane;
         

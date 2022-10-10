@@ -29,6 +29,7 @@
 #include "CaretDataFile.h"
 #include "Matrix4x4.h"
 #include "MediaDisplayCoordinateModeEnum.h"
+#include "MediaFileTransforms.h"
 #include "NiftiEnums.h"
 #include "PixelCoordinate.h"
 #include "PixelIndex.h"
@@ -42,6 +43,7 @@ class QImage;
 namespace caret {
 
     class BoundingBox;
+    class CziNonLinearTransform;
     class GraphicsPrimitiveV3fT2f;
     class Plane;
     class VolumeSpace;
@@ -49,14 +51,6 @@ namespace caret {
     class MediaFile : public CaretDataFile {
         
     public:
-        /*
-         * Type of parent for media file
-         */
-        enum class ParentType {
-            HISTOLOGY_SLICE_IMAGE,
-            OTHER,
-        };
-
         /**
          * Location of origin in image data.
          */
@@ -167,21 +161,20 @@ namespace caret {
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const = 0;
 
-        virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
-                                                const bool includeNonlinearFlag,
-                                                Vector3D& xyzOut) const = 0;
+        virtual bool pixelIndexToStereotaxicXYZ(const PixelIndex& pixelIndex,
+                                                Vector3D& xyzOut) const;
         
         virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
-                                                const bool includeNonlinearFlag,
-                                                PixelLogicalIndex& pixelLogicalIndexOut) const = 0;
+                                                PixelIndex& pixelIndexOut) const;
+        
+        virtual bool stereotaxicXyzToLogicalPixelIndex(const Vector3D& xyz,
+                                                       PixelLogicalIndex& pixelLogicalIndexOut) const;
         
         virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
-                                                    const bool includeNonLinearFlag,
                                                     float& signedDistanceToPixelMillimetersOut,
                                                     PixelLogicalIndex& pixelLogicalIndexOut) const;
         
         virtual bool findPlaneCoordinateNearestStereotaxicXYZ(const Vector3D& xyz,
-                                                              const bool includeNonLinearFlag,
                                                               float& signedDistanceToPlaneMillimetersOut,
                                                               Vector3D& planeXyzOut) const;
 
@@ -206,13 +199,30 @@ namespace caret {
         virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                                               Vector3D& stereotaxicXyzOut) const;
         
+        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
+                                              Vector3D& stereotaxicNoNonLinearXyzOut,
+                                              Vector3D& stereotaxicXyzOut) const;
+        
         virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                               Vector3D& planeXyzOut) const;
         
-        virtual void setScaledToPlaneMatrix(const Matrix4x4& scaledToPlaneMatrix,
-                                            const bool scaledToPlaneMatrixValidFlag,
-                                            const Matrix4x4& planeToMillimetersMatrix,
-                                            const bool planeToMillimetersMatrixValidFlag);
+        virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
+                                              Vector3D& planeNoNonLinearXyzOut,
+                                              Vector3D& planeXyzOut) const;
+        
+        virtual bool logicalPixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogialIndex,
+                                                       Vector3D& stereotaxicXyzOut) const;
+        
+        virtual bool logicalPixelIndexToStereotaxicXYZ(const float logicalX,
+                                                       const float logicalY,
+                                                       Vector3D& stereotaxicXyzOut) const;
+
+        virtual void setTransformMatrices(const Matrix4x4& scaledToPlaneMatrix,
+                                          const bool scaledToPlaneMatrixValidFlag,
+                                          const Matrix4x4& planeToMillimetersMatrix,
+                                          const bool planeToMillimetersMatrixValidFlag,
+                                          std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
+                                          std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform);
 
         virtual const Plane* getStereotaxicImagePlane() const;
         
@@ -230,9 +240,16 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                                 const int32_t overlayIndex) const = 0;
         
+        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
+                                                                                      const int32_t overlayIndex) const = 0;
+        
         QRectF planeRectToLogicalRect(const QRectF& planeRect) const;
         
         QRectF logicalRectToPlaneRect(const QRectF& logicalRect) const;
+        
+        QRectF stereotaxicRectToLogicalRect(const QRectF& planeRect) const;
+        
+        QRectF logicalRectToStereotaxicRect(const QRectF& logicalRect) const;
         
         virtual bool isPlaneXyzSupported() const;
         
@@ -248,31 +265,28 @@ namespace caret {
         
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         
+        virtual Vector3D getStereotaxicXyzBottomLeft() const;
+        
+        virtual Vector3D getStereotaxicXyzBottomRight() const;
+        
+        virtual Vector3D getStereotaxicXyzTopRight() const;
+        
+        virtual Vector3D getStereotaxicXyzTopLeft() const;
+        
         bool isScaledToPlaneMatrixValid() const;
         
         Matrix4x4 getScaledToPlaneMatrix(bool* validFlagOut = NULL) const;
-        
-        bool isPixelIndexToPlaneMatrixValid() const;
-        
-        Matrix4x4 getPixelIndexToPlaneMatrix(bool* validFlagOut = NULL) const;
-        
-        bool isPlaneToPixelIndexMatrixValid() const;
-        
-        Matrix4x4 getPlaneToPixelIndexMatrix(bool* validFlagOut = NULL) const;
         
         bool isPlaneToMillimetersMatrixValid() const;
         
         Matrix4x4 getPlaneToMillimetersMatrix(bool* validFlagOut = NULL) const;
         
-        bool isMillimetersToPlaneMatrixValid() const;
-        
-        Matrix4x4 getMillimetersToPlaneMatrix(bool* validFlagOut = NULL) const;
+        void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
         // ADD_NEW_METHODS_HERE
           
     protected: 
-        MediaFile(const DataFileTypeEnum::Enum dataFileType,
-                  const ParentType parentType);
+        MediaFile(const DataFileTypeEnum::Enum dataFileType);
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
@@ -284,14 +298,9 @@ namespace caret {
         
         virtual void resetMatrices();
         
-        bool planeXyzToStereotaxicXyzProtected(const Vector3D& planeXyz,
-                                               Vector3D& stereotaxicXyzOut) const;
+        void setMediaFileTransforms(const MediaFileTransforms& mediaFileTransforms);
         
-        bool stereotaxicXyzToPlaneXyzProtected(const Vector3D& stereotaxicXyz,
-                                               Vector3D& planeXyzOut) const;
-
-        void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
-        
+        MediaFileTransforms m_mediaFileTransforms = MediaFileTransforms();
         /**
          * @return Metadata name for scaled to plane matrix
          */
@@ -341,17 +350,7 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
-        const ParentType m_parentType;
-        
         Matrix4x4 m_scaledToPlaneMatrix;
-        
-        Matrix4x4 m_pixelIndexToPlaneMatrix;
-        
-        Matrix4x4 m_planeToPixelIndexMatrix;
-        
-        Matrix4x4 m_planeToMillimetersMatrix;
-        
-        Matrix4x4 m_millimetersToPlaneMatrix;
         
         BoundingBox m_planeBoundingBox;
         
@@ -367,6 +366,16 @@ namespace caret {
         
         Vector3D m_planeXyzTopLeft;
 
+        bool m_planeXyzValidFlag = false;
+        
+        Vector3D m_stereotaxicXyzBottomLeft;
+        
+        Vector3D m_stereotaxicXyzBottomRight;
+        
+        Vector3D m_stereotaxicXyzTopRight;
+        
+        Vector3D m_stereotaxicXyzTopLeft;
+        
         mutable std::unique_ptr<Plane> m_stereotaxicPlane;
         
         mutable bool m_stereotaxicPlaneInvalidFlag = false;
@@ -376,16 +385,6 @@ namespace caret {
         mutable bool m_planeCoordinatesPlaneInvalidFlag = false;
         
         bool m_scaledToPlaneMatrixValidFlag     = false;
-        
-        bool m_pixelIndexToPlaneMatrixValidFlag = false;
-        
-        bool m_planeToPixelIndexMatrixValidFlag = false;
-        
-        bool m_planeToMillimetersMatrixValidFlag = false;
-        
-        bool m_millimetersToPlaneMatrixValidFlag = false;
-        
-        bool m_planeMillimetersSwapFlag = true;
         
         friend class CziImage;
     };

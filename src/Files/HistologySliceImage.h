@@ -33,6 +33,7 @@
 
 
 namespace caret {
+    class CziNonLinearTransform;
     class MediaFile;
     class SceneClassAssistant;
 
@@ -44,7 +45,7 @@ namespace caret {
                             const AString& distanceFileName,
                             const Matrix4x4& scaledToPlaneMatrix,
                             const bool scaledToPlaneMatrixValidFlag);
-        
+
         virtual ~HistologySliceImage();
         
         HistologySliceImage(const HistologySliceImage& obj);
@@ -62,7 +63,9 @@ namespace caret {
                                               Vector3D& planeXyzOut) const;
         
         void setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillimetersMatrix,
-                                         const bool planeToMillimetersMatrixValidFlag);
+                                         const bool planeToMillimetersMatrixValidFlag,
+                                         std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
+                                         std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform);
         
         std::vector<AString> getChildDataFilePathNames() const;
         
@@ -110,13 +113,13 @@ namespace caret {
         
         const bool m_scaledToPlaneMatrixValidFlag = false;
         
+        mutable std::shared_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
+        
+        mutable std::shared_ptr<CziNonLinearTransform> m_fromStereotaxicNonLinearTransform;
+
         Matrix4x4 m_planeToMillimetersMatrix;
         
         bool m_planeToMillimetersMatrixValidFlag = false;
-        
-        Matrix4x4 m_millimetersToPlaneMatrix;
-        
-        bool m_millimetersToPlaneMatrixValidFlag = false;
         
         mutable std::unique_ptr<MediaFile> m_mediaFile;
         

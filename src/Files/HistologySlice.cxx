@@ -75,15 +75,10 @@ m_planeToMillimetersMatrixValidFlag(planeToMillimetersMatrixValidFlag)
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    if (m_planeToMillimetersMatrixValidFlag) {
-        m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
-        m_millimetersToPlaneMatrixValidFlag = m_millimetersToPlaneMatrix.invert();
-    }
-    
     m_fromStereotaxicNonLinearTransform.reset(new CziNonLinearTransform(CziNonLinearTransform::Mode::FROM_MILLIMETERS,
-                                                                          this));
+                                                                        m_histToMRIWarpFileName));
     m_toStereotaxicNonLinearTransform.reset(new CziNonLinearTransform(CziNonLinearTransform::Mode::TO_MILLIMETERS,
-                                                                        this));
+                                                                      m_MRIToHistWarpFileName));
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
 
@@ -164,7 +159,9 @@ HistologySlice::addHistologySliceImage(HistologySliceImage* histologySliceImage)
 {
     CaretAssert(histologySliceImage);
     histologySliceImage->setPlaneToMillimetersMatrix(m_planeToMillimetersMatrix,
-                                                     m_planeToMillimetersMatrixValidFlag);
+                                                     m_planeToMillimetersMatrixValidFlag,
+                                                     m_toStereotaxicNonLinearTransform,
+                                                     m_fromStereotaxicNonLinearTransform);
     std::unique_ptr<HistologySliceImage> ptr(histologySliceImage);
     m_histologySliceImages.push_back(std::move(ptr));
     
@@ -204,24 +201,6 @@ HistologySlice::getHistologySliceImage(const int32_t index) const
     CaretAssertVectorIndex(m_histologySliceImages, index);
     return m_histologySliceImages[index].get();
 }
-
-///**
-// * @return The plane to millimeters matrix
-// */
-//Matrix4x4
-//HistologySlice::getPlaneToMillimetersMatrix() const
-//{
-//    return m_planeToMillimetersMatrix;
-//}
-
-///**
-// * @return Is the plane to millimeters matrix valid?
-// */
-//bool
-//HistologySlice::isPlaneToMillimetersMatrixValid() const
-//{
-//    return m_planeToMillimetersMatrixValidFlag;
-//}
 
 /**
  * @return stereotaxic BoundingBox for the slice (bounding box of all images in slice)
@@ -300,58 +279,17 @@ HistologySlice::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
                                          Vector3D& stereotaxicNoNonLinearXyzOut,
                                          Vector3D& stereotaxicWithNonLinearXyzOut) const
 {
-    if (m_planeToMillimetersMatrixValidFlag) {
-        Vector3D stereotaxicNoNonLinearOffset(planeXyz);
-        m_planeToMillimetersMatrix.multiplyPoint3(stereotaxicNoNonLinearOffset);
-        stereotaxicNoNonLinearXyzOut   = stereotaxicNoNonLinearOffset;
-        stereotaxicWithNonLinearXyzOut = stereotaxicNoNonLinearOffset;
-        
-        const bool nonLinearFlag(true);
-        if (nonLinearFlag) {
-            if (m_planeXyzBoundingBoxValidFlag) {
-                /*
-                 * Plane bounding box is not immedately initialized and is
-                 * needed by the non-linear transforms.  So wait until
-                 * plane bounding box is available (after image data read)
-                 */
-                if (m_toStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::UNREAD) {
-                    const BoundingBox bb(getPlaneXyzBoundingBox());
-                    m_toStereotaxicNonLinearTransform->load(m_MRIToHistWarpFileName,
-                                                   bb.getDifferenceX(),
-                                                   bb.getDifferenceY());
-                }
-                
-                if (m_toStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
-                    Vector3D offsetXYZ;
-                    m_toStereotaxicNonLinearTransform->getNonLinearOffset(planeXyz,
-                                                                          offsetXYZ);
-                    Vector3D stereotaxicWithOffsetXYZ(planeXyz[0] + offsetXYZ[0],
-                                                      planeXyz[1] + offsetXYZ[1],
-                                                      planeXyz[2] + offsetXYZ[2]);
-                    m_planeToMillimetersMatrix.multiplyPoint3(stereotaxicWithOffsetXYZ);
-                    
-                    if (m_debugFlag) {
-                        std::cout << "Plane: "
-                        << AString::fromNumbers(planeXyz)
-                        << std::endl
-                        << "   Stereotaxic (no non-linear offset): "
-                        << AString::fromNumbers(stereotaxicNoNonLinearXyzOut)
-                        << std::endl
-                        << "   Stereotaxic (with non-linear offset): "
-                        << AString::fromNumbers(stereotaxicWithOffsetXYZ)
-                        << std::endl;
-                    }
-
-                    stereotaxicWithNonLinearXyzOut = stereotaxicWithOffsetXYZ;
-                }
-            }
+    const HistologySliceImage* firstSliceImage(getHistologySliceImage(0));
+    if (firstSliceImage != NULL) {
+        const MediaFile* mediaFile(firstSliceImage->getMediaFile());
+        if (mediaFile->planeXyzToStereotaxicXyz(planeXyz,
+                                                stereotaxicNoNonLinearXyzOut,
+                                                stereotaxicWithNonLinearXyzOut)) {
+            return true;
         }
-            
-        return true;
     }
-    
-    stereotaxicNoNonLinearXyzOut   = Vector3D();
-    stereotaxicWithNonLinearXyzOut = Vector3D();
+    stereotaxicNoNonLinearXyzOut.fill(0);
+    stereotaxicWithNonLinearXyzOut.fill(0);
     return false;
 }
 
@@ -386,55 +324,20 @@ HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                          Vector3D& planeNoNonLinearXyzOut,
                                          Vector3D& planeWithNonLinearXyzOut) const
 {
-    if (m_millimetersToPlaneMatrixValidFlag) {
-        
-        planeNoNonLinearXyzOut = stereotaxicXyz;
-        m_millimetersToPlaneMatrix.multiplyPoint3(planeNoNonLinearXyzOut);
-        planeWithNonLinearXyzOut = planeNoNonLinearXyzOut;
-        
-        const bool nonLinearFlag(true);
-        if (nonLinearFlag) {
-            if (m_stereotaxicXyzBoundingBoxValidFlag) {
-                /*
-                 * Steretotaxic bounding box is not immedately initialized and is
-                 * needed by the non-linear transforms.  So wait until
-                 * stereotaxic bounding box is available (after image data read)
-                 */
-                if (m_fromStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::UNREAD) {
-                    const BoundingBox bb(getStereotaxicXyzBoundingBox());
-                    m_fromStereotaxicNonLinearTransform->load(m_histToMRIWarpFileName,
-                                                              bb.getDifferenceX(),
-                                                              bb.getDifferenceY());
-                }
-                
-                if (m_fromStereotaxicNonLinearTransform->getStatus() == CziNonLinearTransform::Status::VALID) {
-                    Vector3D offsetXYZ;
-                    m_fromStereotaxicNonLinearTransform->getNonLinearOffset(planeNoNonLinearXyzOut,
-                                                                            offsetXYZ);
-                    
-                    planeWithNonLinearXyzOut = Vector3D(planeNoNonLinearXyzOut[0] + offsetXYZ[0],
-                                                        planeNoNonLinearXyzOut[1] + offsetXYZ[1],
-                                                        planeNoNonLinearXyzOut[2] + offsetXYZ[2]);
-                    if (m_debugFlag) {
-                        std::cout << "Stereotaxic XYZ: "
-                        << AString::fromNumbers(stereotaxicXyz)
-                        << std::endl
-                        << "   Plane XYZ (no non-linear offset): "
-                        << AString::fromNumbers(planeNoNonLinearXyzOut)
-                        << std::endl
-                        << "   Plane XYZ (with non-linear offset): "
-                        << AString::fromNumbers(planeWithNonLinearXyzOut)
-                        << std::endl;
-                    }
-                }
-            }
+    /*
+     * Stereotaxic <-> Plane is same for all images
+     */
+    const HistologySliceImage* firstSliceImage(getHistologySliceImage(0));
+    if (firstSliceImage != NULL) {
+        const MediaFile* mediaFile(firstSliceImage->getMediaFile());
+        if (mediaFile->stereotaxicXyzToPlaneXyz(stereotaxicXyz,
+                                                planeNoNonLinearXyzOut,
+                                                planeWithNonLinearXyzOut)) {
+            return true;
         }
-         
-        return true;
     }
-    
-    planeNoNonLinearXyzOut   = Vector3D();
-    planeWithNonLinearXyzOut = Vector3D();
+    planeNoNonLinearXyzOut.fill(0);
+    planeWithNonLinearXyzOut.fill(0);
     return false;
 }
 
@@ -464,6 +367,28 @@ HistologySlice::getStereotaxicPlane() const
     }
     
     return m_stereotaxicPlane;
+}
+
+/**
+ * Project the givent stereotaxic coordinate onto the slice
+ * @param stereotaxicXYZ
+ *    Input stereotaxic coordinate
+ * @param stereotaxicOnSliceXYZ
+ *    Output stereotaxic coordinate projected to the slice
+ * @return
+ *    True if successful, else false
+ */
+bool
+HistologySlice::projectStereotaxicXyzToSlice(const Vector3D stereotaxicXYZ,
+                                            Vector3D& stereotaxicOnSliceXYZ) const
+{
+    const Plane plane(getStereotaxicPlane());
+    if (plane.isValidPlane()) {
+        plane.projectPointToPlane(stereotaxicXYZ,
+                                  stereotaxicOnSliceXYZ);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -648,5 +573,6 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
                                             mediaFile->getFileNameNoPath());
         dataFileInformation.addNameAndValue("Stereotaxic Plane",
                                             mediaFile->getStereotaxicImagePlane()->toString());
+        const_cast<MediaFile*>(mediaFile)->addPlaneCoordsToDataFileContentInformation(dataFileInformation);
     }
 }

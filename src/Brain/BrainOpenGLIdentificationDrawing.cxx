@@ -643,7 +643,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                              * Symbol is from a different image
                              */
                             xyz = item->getStereotaxicXYZ();
-                            const bool nonLinearFlag(true);
                             PixelLogicalIndex pixelLogicalIndex;
                             
                             /*
@@ -651,7 +650,6 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                              */
                             float distanceToPixelMM(1.0);
                             if (mediaFile->findPixelNearestStereotaxicXYZ(xyz,
-                                                                          nonLinearFlag,
                                                                           distanceToPixelMM,
                                                                           pixelLogicalIndex)) {
                                 if (mediaFile->isPixelIndexValid(pixelLogicalIndex)) {
@@ -916,10 +914,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                          * Need to see if xyz is close to media file within some tolerance
                          */
                         float distanceToPixelMM(1.0);
-                        const bool nonLinearFlag(true);
                         PixelLogicalIndex pixelLogicalIndex;
                         if (mediaFile->findPixelNearestStereotaxicXYZ(xyz,
-                                                                      nonLinearFlag,
                                                                       distanceToPixelMM,
                                                                       pixelLogicalIndex)) {
                             if (distanceToPixelMM < maxDistanceMM) {
@@ -973,10 +969,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                          */
                         Vector3D planeXYZ;
                         
-                        const bool nonLinearFlag(true);
                         float signedDistanceMillimeters(-1.0);
                         if (mediaFile->findPlaneCoordinateNearestStereotaxicXYZ(xyz,
-                                                                                nonLinearFlag,
                                                                                 signedDistanceMillimeters,
                                                                                 planeXYZ)) {
                             const float maxDistanceToPlane(2.0);

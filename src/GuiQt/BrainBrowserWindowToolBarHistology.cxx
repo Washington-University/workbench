@@ -45,6 +45,7 @@
 #include "EventManager.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GuiManager.h"
+#include "HistologySlice.h"
 #include "HistologySlicesFile.h"
 #include "HistologyOverlay.h"
 #include "HistologyOverlaySet.h"
@@ -181,6 +182,21 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
     
     /*
+     * Drawing mode
+     */
+//    QLabel* modeLabel(new QLabel("Coord"));
+    m_histologyDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_histologyDisplayCoordinateModeEnumComboBox->setup<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>();
+    QObject::connect(m_histologyDisplayCoordinateModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxItemActivated);
+    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setObjectName(parentObjectName
+                                                                         + ":histologyDisplayModeComboBox");
+    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setToolTip("Coordinate Display Mode");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
+                                                         "Set media coordinate mode for display");
+    
+
+    /*
      * Layout widgets
      */
     int columnIndex(0);
@@ -223,8 +239,10 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignLeft);
+    controlsLayout->addWidget(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
+                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
-                              row, columnPlaneSpinBoxes, 1, 2, Qt::AlignHCenter);
+                              row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
 
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -351,6 +369,9 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
                 m_stereotaxicXyzSpinBox[i]->getWidget()->setEnabled(true);
             }
         }
+        
+        const MediaDisplayCoordinateModeEnum::Enum histologyDisplayMode(browserTabContent->getHistologyDisplayCoordinateMode());
+        m_histologyDisplayCoordinateModeEnumComboBox->setSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(histologyDisplayMode);
     }
     
     if (m_browserTabContent != NULL) {
@@ -423,8 +444,110 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
             HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
                                                                                      previousHistCoord,
                                                                                      sliceIndex));
+            
+            Vector3D newPlaneCoordXYZ;
+            bool newPlaneCoordXYZValid(false);
+            
+            const int32_t diffSlices(std::fabs(hc.getSliceIndex() - previousHistCoord.getSliceIndex()));
+            if (diffSlices == 1) {
+                const HistologyCoordinate currentHC(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
+                if (currentHC.isPlaneXYValid()) {
+                    const Vector3D oldPlaneXYZ(currentHC.getPlaneXYZ());
+                    const HistologySlice* oldSlice(histologySlicesFile->getHistologySliceByIndex(previousHistCoord.getSliceIndex()));
+                    if (oldSlice != NULL) {
+                        Vector3D centerSteretotaxicXYZ;
+                        if (oldSlice->planeXyzToStereotaxicXyz(oldPlaneXYZ,
+                                                               centerSteretotaxicXYZ)) {
+                            const HistologySlice* newSlice(histologySlicesFile->getHistologySliceByIndex(hc.getSliceIndex()));
+                            if (newSlice != NULL) {
+                                Vector3D newStereotaxicXYZ;
+                                if (newSlice->projectStereotaxicXyzToSlice(centerSteretotaxicXYZ,
+                                                                           newStereotaxicXYZ)) {
+                                    Vector3D newPlaneXYZ;
+                                    if (newSlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ,
+                                                                           newPlaneXYZ)) {
+                                        /*
+                                         * Adjacent slices may not be aligned in plane coordinates
+                                         */
+                                        const Vector3D diffPlaneXYZ(newPlaneXYZ - oldPlaneXYZ);
+                                        std::cout << "Switch slices: " << std::endl;
+                                        std::cout << "   Old Stereotaxic: " << AString::fromNumbers(centerSteretotaxicXYZ) << std::endl;
+                                        std::cout << "   Old Plane: " << AString::fromNumbers(oldPlaneXYZ) << std::endl;
+                                        std::cout << "   New Stereotaxic: " << AString::fromNumbers(newStereotaxicXYZ) << std::endl;
+                                        std::cout << "   New Plane: " << AString::fromNumbers(newPlaneXYZ) << std::endl;
+                                        std::cout << "   Diff Plane: " << AString::fromNumbers(diffPlaneXYZ) << std::endl;
+                                        
+                                        
+                                        hc = HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
+                                                                                             sliceIndex,
+                                                                                             newPlaneXYZ);
+//                                        hc.setPlaneXYZ(newPlaneXYZ);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+//                const BrainOpenGLViewportContent* vpContent(getBrainOpenGLViewportContent());
+//                if (vpContent != NULL) {
+//                    const GraphicsObjectToWindowTransform* transform(vpContent->getHistologyGraphicsObjectToWindowTransform());
+//                    if (transform != NULL) {
+//                        int32_t viewport[4];
+//                        vpContent->getModelViewport(viewport);
+//                        const Vector3D vpCenter(viewport[0] + (viewport[2] / 2.0),
+//                                                viewport[1] + (viewport[3] / 2.0),
+//                                                0.0);
+//                        Vector3D centerPlaneXYZ;
+//                        transform->inverseTransformPoint(vpCenter, centerPlaneXYZ);
+//
+//                        const HistologySlice* oldSlice(histologySlicesFile->getHistologySliceByIndex(previousHistCoord.getSliceIndex()));
+//                        if (oldSlice != NULL) {
+//                            Vector3D centerSteretotaxicXYZ;
+//                            if (oldSlice->planeXyzToStereotaxicXyz(centerPlaneXYZ, centerSteretotaxicXYZ)) {
+//                                const HistologySlice* newSlice(histologySlicesFile->getHistologySliceByIndex(hc.getSliceIndex()));
+//                                if (newSlice != NULL) {
+//                                    Vector3D newStereotaxicXYZ;
+//                                    if (newSlice->projectStereotaxicXyzToSlice(centerSteretotaxicXYZ,
+//                                                                               newStereotaxicXYZ)) {
+//                                        Vector3D newPlaneXYZ;
+//                                        if (newSlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ,
+//                                                                               newPlaneXYZ)) {
+//                                            /*
+//                                             * Adjacent slices may not be aligned in plane coordinates
+//                                             */
+//                                            const Vector3D diffPlaneXYZ(newPlaneXYZ - centerPlaneXYZ);
+//                                            std::cout << "Old Stereotaxic: " << AString::fromNumbers(centerSteretotaxicXYZ) << std::endl;
+//                                            std::cout << "   Old Plane: " << AString::fromNumbers(centerPlaneXYZ) << std::endl;
+//                                            std::cout << "   New Stereotaxic: " << AString::fromNumbers(newStereotaxicXYZ) << std::endl;
+//                                            std::cout << "   New Plane: " << AString::fromNumbers(newPlaneXYZ) << std::endl;
+//                                            std::cout << "   Diff Plane: " << AString::fromNumbers(diffPlaneXYZ) << std::endl;
+//
+////                                            Vector3D translation;
+////                                            m_browserTabContent->getTranslation(translation);
+////                                            translation[0] += diffPlaneXYZ[0];
+////                                            translation[1] += diffPlaneXYZ[1];
+////                                            m_browserTabContent->setTranslation(translation);
+//
+//                                            newPlaneCoordXYZ = newPlaneXYZ;
+//                                            newPlaneCoordXYZValid = true;
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+            }
+            
             m_browserTabContent->setHistologySelectedCoordinate(hc);
             updateGraphicsWindowAndYokedWindows();
+            if (newPlaneCoordXYZValid) {
+                HistologyCoordinate hc2(HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
+                                                                                        sliceIndex,
+                                                                                        newPlaneCoordXYZ));
+                m_browserTabContent->setHistologySelectedCoordinate(hc2);
+            }
             updateUserInterface();
         }
     }
@@ -537,6 +660,19 @@ BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered()
                 updateUserInterface();
             }
         }
+    }
+}
+
+/**
+ * Called when media coordinate display mode is changed
+ */
+void
+BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxItemActivated()
+{
+    if (m_browserTabContent != NULL) {
+        const MediaDisplayCoordinateModeEnum::Enum mode(m_histologyDisplayCoordinateModeEnumComboBox->getSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>());
+        m_browserTabContent->setHistologyDisplayCoordinateMode(mode);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
 

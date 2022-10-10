@@ -57,18 +57,16 @@ public:
      */
     static int32_t getTextureCompressionSizeMegabytes() { return 256; }
     
-    ImageFile(const ParentType parentType = MediaFile::ParentType::OTHER);
+    ImageFile();
     
     ImageFile(const ImageFile& imageFile);
     
     ImageFile(const unsigned char* imageDataRGBA,
               const int imageWidth,
               const int imageHeight,
-              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-              const ParentType parentType = MediaFile::ParentType::OTHER);
+              const IMAGE_DATA_ORIGIN_LOCATION imageOrigin);
     
-    ImageFile(const QImage& qimage,
-              const ParentType parentType = MediaFile::ParentType::OTHER);
+    ImageFile(const QImage& qimage);
     
     ~ImageFile();
     
@@ -136,16 +134,7 @@ public:
     
     virtual int32_t getHeight() const override;
 
-    virtual bool pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& pixelLogicalIndex,
-                                            const bool includeNonlinearFlag,
-                                            Vector3D& xyzOut) const override;
-    
-    virtual bool stereotaxicXyzToPixelIndex(const Vector3D& xyz,
-                                            const bool includeNonlinearFlag,
-                                            PixelLogicalIndex& pixelLogicalIndexOut) const override;
-    
-    virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
-                                                const bool includeNonLinearFlag,
+    virtual bool findPixelNearestStereotaxicXYZ(const Vector3D& xyz, 
                                                 float& signedDistanceToPixelMillimetersOut,
                                                 PixelLogicalIndex& pixelLogicalIndexOut) const override;
     
@@ -206,6 +195,9 @@ public:
     virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                             const int32_t overlayIndex) const override;
 
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
+                                                                                  const int32_t overlayIndex) const override;
+    
     ControlPointFile* getControlPointFile();
     
     const ControlPointFile* getControlPointFile() const;

@@ -87,8 +87,10 @@ m_cziImageFile(cziImageFile)
     
     m_matricesCheckBox = new QCheckBox("Include Support for Plane Coordinate Viewing Mode");
     m_matricesCheckBox->setToolTip("Plane coordinates may rotate and/or scale image when viewed");
-    m_matricesCheckBox->setEnabled(m_cziImageFile->isPixelIndexToPlaneMatrixValid()
-                                   && m_cziImageFile->isPlaneToMillimetersMatrixValid());
+    
+    Vector3D dummyStereotaxicXYZ;
+    const bool enableMatricesCheckboxFlag(m_cziImageFile->pixelIndexToStereotaxicXYZ(PixelIndex(0, 0, 0), dummyStereotaxicXYZ));
+    m_matricesCheckBox->setEnabled(enableMatricesCheckboxFlag);
     m_matricesCheckBox->setChecked(s_lastMatricesSelectedFlag);
     
     const AString dimensionToolTip("Limit width or height to this value (aspect preserved)");

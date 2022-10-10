@@ -92,6 +92,12 @@ namespace caret {
                                                          const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                                          const int32_t pyramidLayerIndex);
         
+        CziImage* loadImageForPyrmaidLayerForStereotaxicCoords(const CziImage* oldCziImage,
+                                                               const CziImageFile::CziSceneInfo& cziSceneInfo,
+                                                               const GraphicsObjectToWindowTransform* transform,
+                                                               const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                               const int32_t pyramidLayerIndex);
+
         QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform,
                                              const MediaDisplayCoordinateModeEnum::Enum coordinateMode) const;
         
@@ -99,7 +105,11 @@ namespace caret {
         
         QRectF getViewportLogicalCoordinatesForPlaneCoords(const GraphicsObjectToWindowTransform* transform) const;
         
+        QRectF getViewportLogicalCoordinatesForStereotaxicCoords(const GraphicsObjectToWindowTransform* transform) const;
+        
         QRectF getViewportPlaneCoordinates(const GraphicsObjectToWindowTransform* transform) const;
+        
+        QRectF getViewportStereotaxicCoordinates(const GraphicsObjectToWindowTransform* transform) const;
         
         std::shared_ptr<CziImage> m_cziImage;
 
@@ -114,6 +124,8 @@ namespace caret {
         bool m_previousAllFramesFlag = false;
 
         CziImageResolutionChangeModeEnum::Enum m_previousResolutionChangeMode = CziImageResolutionChangeModeEnum::INVALID;
+        
+        MediaDisplayCoordinateModeEnum::Enum m_previousCoordinateMode = MediaDisplayCoordinateModeEnum::PLANE;
         
         int32_t m_previousManualPyramidLayerIndex = -1;
 

@@ -37,10 +37,15 @@ namespace caret {
     class HistologyCoordinate : public CaretObject, public SceneableInterface {
         
     public:
-        static HistologyCoordinate newInstanceIdentification(HistologySlicesFile* histologySlicesFile,
+        static HistologyCoordinate newInstancePlaneXYZIdentification(HistologySlicesFile* histologySlicesFile,
                                                              MediaFile* mediaFile,
                                                              const int32_t sliceIndex,
                                                              const Vector3D& planeXYZ);
+
+        static HistologyCoordinate newInstanceStereotaxicXYZIdentification(HistologySlicesFile* histologySlicesFile,
+                                                                           MediaFile* mediaFile,
+                                                                           const int32_t sliceIndex,
+                                                                           const Vector3D& planeXYZ);
 
         static HistologyCoordinate newInstanceDefaultSlices(HistologySlicesFile* histologySlicesFile);
         

@@ -443,17 +443,36 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         CaretAssert(histologyID);
         if (histologyID->isValid()) {
             const HistologyCoordinate coordinate(histologyID->getCoordinate());
-            const Vector3D planeXYZ(coordinate.getPlaneXYZ());
-            modelXYZ[0] = planeXYZ[0];
-            modelXYZ[1] = planeXYZ[1];
-            modelXYZ[2] = planeXYZ[2];
-            modelXyzValidFlag = true;
+            switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
+                case MediaDisplayCoordinateModeEnum::PIXEL:
+                    CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
+                    break;
+                case MediaDisplayCoordinateModeEnum::PLANE:
+                    if (coordinate.isPlaneXYValid()) {
+                        const Vector3D planeXYZ(coordinate.getPlaneXYZ());
+                        modelXYZ[0] = planeXYZ[0];
+                        modelXYZ[1] = planeXYZ[1];
+                        modelXYZ[2] = planeXYZ[2];
+                        modelXyzValidFlag = true;
+                    }
+                    break;
+                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                    if (coordinate.isStereotaxicXYZValid()) {
+                        const Vector3D stereotaxicXYZ(coordinate.getStereotaxicXYZ());
+                        modelXYZ[0] = stereotaxicXYZ[0];
+                        modelXYZ[1] = stereotaxicXYZ[1];
+                        modelXYZ[2] = stereotaxicXYZ[2];
+                        modelXyzValidFlag = true;
+                    }
+                    break;
+            }
         }
 
         if (modelXyzValidFlag) {
             GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
             CaretAssert(box);
             
+            std::cout << "Box: " << AString::fromNumbers(modelXYZ, 3) << std::endl;
             if (mouseEvent.isFirstDragging()) {
                 box->initialize(modelXYZ[0],
                                 modelXYZ[1]);
@@ -493,6 +512,9 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                     modelXyzValidFlag = true;
                 }
             }
+                break;
+            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                CaretAssertMessage(0, "Stereotaxic not supported for MEDIA drawing");
                 break;
         }
 
@@ -568,16 +590,46 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
             BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
             bool modelXyzValidFlag(false);
             double modelXYZ[3];
-            SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getPressedX(),
-                                                                                                                             mouseEvent.getPressedY());
-            CaretAssert(histologyID);
-            if (histologyID->isValid()) {
-                const HistologyCoordinate coordinate(histologyID->getCoordinate());
-                const Vector3D planeXYZ(coordinate.getPlaneXYZ());
-                modelXYZ[0] = planeXYZ[0];
-                modelXYZ[1] = planeXYZ[1];
-                modelXYZ[2] = planeXYZ[2];
-                modelXyzValidFlag = true;
+            
+            switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
+                case MediaDisplayCoordinateModeEnum::PIXEL:
+                    CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
+                    break;
+                case MediaDisplayCoordinateModeEnum::PLANE:
+                {
+                    SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getPressedX(),
+                                                                                                                                mouseEvent.getPressedY());
+                    CaretAssert(histologyID);
+                    if (histologyID->isValid()) {
+                        const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                        if (coordinate.isStereotaxicXYZValid()) {
+                            const Vector3D planeXYZ(coordinate.getPlaneXYZ());
+                            modelXYZ[0] = planeXYZ[0];
+                            modelXYZ[1] = planeXYZ[1];
+                            modelXYZ[2] = planeXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                    }
+                }
+                    break;
+                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                {
+                    CaretAssertToDoWarning(); /* does this work for stereotaxic? */
+                    SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getPressedX(),
+                                                                                                                                mouseEvent.getPressedY());
+                    CaretAssert(histologyID);
+                    if (histologyID->isValid()) {
+                        const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                        if (coordinate.isStereotaxicXYZValid()) {
+                            const Vector3D stereotaxicXYZ(coordinate.getStereotaxicXYZ());
+                            modelXYZ[0] = stereotaxicXYZ[0];
+                            modelXYZ[1] = stereotaxicXYZ[1];
+                            modelXYZ[2] = stereotaxicXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                    }
+                }
+                    break;
             }
             
             if (modelXyzValidFlag) {
@@ -627,6 +679,9 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
                         modelXyzValidFlag = true;
                     }
                 }
+                    break;
+                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                    CaretAssertMessage(0, "Stereotaxic not supported for MEDIA drawing");
                     break;
             }
 
@@ -727,6 +782,16 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isHistologyDisplayed()) {
+        switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
+            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                CaretAssertToDoWarning(); /* does this work for stereotaxic drawing */
+                break;
+            case MediaDisplayCoordinateModeEnum::PLANE:
+                break;
+            case MediaDisplayCoordinateModeEnum::PIXEL:
+                CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
+                break;
+        }
         GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
         CaretAssert(selectionBox);
         
@@ -870,7 +935,7 @@ UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
     
     if (browserTabContent->isVolumeMprDisplayed()) {
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(), // mouseEvent.getPressedX(),
+        SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(),
                                                                                                             mouseEvent.getY()));
         CaretAssert(crosshairID);
         if (crosshairID->isValid()) {
@@ -935,6 +1000,7 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                 if (scaleFactor != 0.0) {
                     if (browserTabContent->isHistologyDisplayed()) {
                         const bool enableHistologyesturesFlag(false);
+                        /* Needs separate modes for each histology drawing mode */
                         if (enableHistologyesturesFlag) {
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
                             bool modelXyzValidFlag(false);
@@ -994,6 +1060,9 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                                     }
                                     break;
                                 }
+                                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                                    CaretAssertMessage(0, "Stereotaxic not supported for MEDIA drawing");
+                                    break;
                             }
                             if (modelXyzValidFlag) {
                                 browserTabContent->applyMediaMouseScaling(viewportContent,

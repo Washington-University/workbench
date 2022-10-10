@@ -174,9 +174,8 @@ SelectionItemMediaLogicalCoordinate::getStereotaxicXYZ(Vector3D& stereotaxicXYZO
 {
     const CziImageFile* cziImageFile = m_mediaFile->castToCziImageFile();
     if (cziImageFile != NULL) {
-        return cziImageFile->pixelIndexToStereotaxicXYZ(m_pixelLogicalIndex,
-                                                        true,
-                                                        stereotaxicXYZOut);
+        return cziImageFile->logicalPixelIndexToStereotaxicXYZ(m_pixelLogicalIndex,
+                                                               stereotaxicXYZOut);
     }
     return false;
 }

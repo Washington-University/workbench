@@ -65,9 +65,8 @@ static bool imageDebugFlag = false;
 /**
  * Constructor.
  */
-ImageFile::ImageFile(const ParentType parentType)
-: MediaFile(DataFileTypeEnum::IMAGE,
-            parentType)
+ImageFile::ImageFile()
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     initializeMembersImageFile();
 
@@ -118,10 +117,8 @@ ImageFile::ImageFile(const ImageFile& imageFile)
  * @param qimage
  *    QImage that is copied to this image file.
  */
-ImageFile::ImageFile(const QImage& qimage,
-                     const ParentType parentType)
-: MediaFile(DataFileTypeEnum::IMAGE,
-            parentType)
+ImageFile::ImageFile(const QImage& qimage)
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     initializeMembersImageFile();
     if (m_image != NULL) {
@@ -148,10 +145,8 @@ ImageFile::ImageFile(const QImage& qimage,
 ImageFile::ImageFile(const unsigned char* imageDataRGBA,
                      const int imageWidth,
                      const int imageHeight,
-                     const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
-                     const ParentType parentType)
-: MediaFile(DataFileTypeEnum::IMAGE,
-            parentType)
+                     const IMAGE_DATA_ORIGIN_LOCATION imageOrigin)
+: MediaFile(DataFileTypeEnum::IMAGE)
 {
     initializeMembersImageFile();
 
@@ -2219,10 +2214,13 @@ ImageFile::readFileMetaDataFromQImage()
             
             if (scaledToPlaneMatrixValidFlag
                 && planeToMillimetersMatrixValidFlag) {
-                setScaledToPlaneMatrix(scaledToPlaneMatrix,
-                                       scaledToPlaneMatrixValidFlag,
-                                       planeToMillimetersMatrix,
-                                       planeToMillimetersMatrixValidFlag);
+                std::shared_ptr<CziNonLinearTransform> unusedOne, unusedTwo;
+                setTransformMatrices(scaledToPlaneMatrix,
+                                     scaledToPlaneMatrixValidFlag,
+                                     planeToMillimetersMatrix,
+                                     planeToMillimetersMatrixValidFlag,
+                                     unusedOne,
+                                     unusedTwo);
             }
         }
     }
@@ -2442,52 +2440,9 @@ ImageFile::getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
 }
 
 /**
- * convert a pixel index to a stereotaxic coordinate
- * @param pixelLogicalIndex
- *    Logical pixel index
- * @param includeNonlinearFlag
- *    If true, include the non-linear transform when converting
- * @param xyzOut
- *    Output with the XYZ coordinate
- *    @param
- * @return
- *    True if conversion successful, else false.
- */
-bool
-ImageFile::pixelIndexToStereotaxicXYZ(const PixelLogicalIndex& /*pixelLogicalIndex*/,
-                                      const bool /*includeNonlinearFlag*/,
-                                      Vector3D& /*xyzOut*/) const
-{
-    /* Not supported, no stereotaxic coordinates for images */
-    return false;
-}
-
-/**
- * Convert a stereotaxic xyz coordinate to a pixel index
- * @param xyz
- *    The coordinate
- * @param includeNonlinearFlag
- *    If true, include the non-linear transform when converting
- * @param pixelLogicalIndexOut
- *    Output logical pixel index
- * @return
- *    True if successful, else false.
- */
-bool
-ImageFile::stereotaxicXyzToPixelIndex(const Vector3D& /*xyz*/,
-                                      const bool /*includeNonlinearFlag*/,
-                                      PixelLogicalIndex& /*pixelLogicalIndexOut*/) const
-{
-    /* Not supported, no stereotaxic coordinates for images */
-    return false;
-}
-
-/**
  * Find the Pixel nearest the given XYZ coordinate
  * @param xyz
  *    The coordinate
- * @param includeNonlinearFlag
- *    If true, include the non-linear transform when converting
  * @param signedDistanceToPixelMillimetersOut
  *    Output with signed distance to the pixel in millimeters
  * @param pixelLogicalIndexOut
@@ -2497,12 +2452,10 @@ ImageFile::stereotaxicXyzToPixelIndex(const Vector3D& /*xyz*/,
  */
 bool
 ImageFile::findPixelNearestStereotaxicXYZ(const Vector3D& xyz,
-                                          const bool includeNonLinearFlag,
                                           float& signedDistanceToPixelMillimetersOut,
                                           PixelLogicalIndex& pixelLogicalIndexOut) const
 {
     return MediaFile::findPixelNearestStereotaxicXYZ(xyz,
-                                                     includeNonLinearFlag,
                                                      signedDistanceToPixelMillimetersOut,
                                                      pixelLogicalIndexOut);
 }
@@ -2535,6 +2488,23 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
     m_graphicsPrimitive->setDrawArrayIndicesSubset(m_planePrimitiveVertexStartIndex,
                                                    m_planePrimitiveVertexCount);
     return m_graphicsPrimitive.get();
+}
+
+/*
+ * @return Primitive for drawing media with stereotaxic coordinates
+ * @param tabIndex
+ *    Index of tab where image is drawn
+ * @param overlayIndex
+ *    Index of overlay
+ */
+GraphicsPrimitiveV3fT2f*
+ImageFile::getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t /*tabIndex*/,
+                                                        const int32_t /*overlayIndex*/) const
+{
+    /*
+     * Not supported
+     */
+    return NULL;
 }
 
 /**

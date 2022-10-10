@@ -29,7 +29,6 @@
 #include "Vector3D.h"
 
 namespace caret {
-    class HistologySlice;
     class Matrix4x4;
     class VolumeFile;
     
@@ -48,7 +47,7 @@ namespace caret {
         };
         
         CziNonLinearTransform(const Mode mode,
-                                         const HistologySlice* histologySlice);
+                              const AString& filename);
         
         virtual ~CziNonLinearTransform();
         
@@ -56,14 +55,12 @@ namespace caret {
 
         CziNonLinearTransform& operator=(const CziNonLinearTransform& obj) = delete;
 
-        void load(const AString& filename,
-                  const float planeWidth,
-                  const float planeHeight);
-
         void getNonLinearOffset(const Vector3D& xyz,
                                 Vector3D& offsetXyzOut);
         
         Status getStatus() const;
+        
+        AString getFilename() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -72,6 +69,8 @@ namespace caret {
     private:
         void copyHelperCziNonLinearTransform(const CziNonLinearTransform& obj);
 
+        void load(const AString& filename);
+        
         void getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
                                              Vector3D& offsetXyzOut);
 
@@ -81,7 +80,7 @@ namespace caret {
 
         const Mode m_mode;
         
-        const HistologySlice* m_histologySlice;
+        const AString m_filename;
         
         mutable std::unique_ptr<VolumeFile> m_niftiFile;
         
@@ -91,12 +90,6 @@ namespace caret {
         
         Status m_status = Status::UNREAD;
                 
-        /** Scales pixel index from full resolution to layer used by NIFTI transform */
-        mutable float m_pixelScaleI = -1.0f;
-        
-        /** Scales pixel index from full resolution to layer used by NIFTI transform */
-        mutable float m_pixelScaleJ = -1.0f;
-        
         /** Volume is oriented left-to-right for first axis (same as CZI image) */
         bool m_xLeftToRightFlag = false;
         

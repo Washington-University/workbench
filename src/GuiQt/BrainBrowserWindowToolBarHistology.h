@@ -27,6 +27,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class EnumComboBoxTemplate;
     class HistologySlicesFile;
     class WuQDoubleSpinBox;
     class WuQSpinBox;
@@ -66,6 +67,8 @@ namespace caret {
         
         void moveToCenterActionTriggered();
         
+        void histologyDisplayCoordinateModeEnumComboBoxItemActivated();
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -88,6 +91,8 @@ namespace caret {
         QAction* m_identificationMovesSlicesAction;
         
         QAction* m_moveToCenterAction;
+        
+        EnumComboBoxTemplate* m_histologyDisplayCoordinateModeEnumComboBox;
 };
     
     

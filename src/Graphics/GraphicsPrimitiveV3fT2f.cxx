@@ -105,6 +105,26 @@ GraphicsPrimitiveV3fT2f::addVertex(const float xyz[3],
 /**
  * Add a vertex.
  *
+ * @param xyz
+ *     Coordinate of vertex.
+ * @param s
+ *     S-coordinate of texture
+ * @param t
+ *     T-coordinate of texture
+ */
+void
+GraphicsPrimitiveV3fT2f::addVertex(const float xyz[3],
+                                   const float s,
+                                   const float t)
+{
+    const float str[] { s, t, 0.0f } ;
+    addVertex(xyz,
+              str);
+}
+
+/**
+ * Add a vertex.
+ *
  * @param x
  *     X-coordinate of vertex.
  * @param y

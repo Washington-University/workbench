@@ -75,6 +75,7 @@ using namespace caret;
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
 #include "SystemUtilities.h"
+#include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
 #include "WuQSpinBox.h"
@@ -168,7 +169,6 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::FOCI:
                 break;
             case DataFileTypeEnum::HISTOLOGY_SLICES:
-                CaretAssertToDoWarning();
                 break;
             case DataFileTypeEnum::LABEL:
                 labelFileFlag = true;
@@ -215,6 +215,11 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     }
     
     /*
+     * Stereotaxic widget
+     */
+    m_stereotaxicWidget = createStereotaxicWidget();
+    
+    /*
      * Surface Vertex widgets
      */
     m_surfaceVertexWidget = createSurfaceVertexWidget();
@@ -244,6 +249,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_stackedWidget->addWidget(m_ciftiParcelWidget);
     m_stackedWidget->addWidget(m_imagePixelWidget);
     m_stackedWidget->addWidget(m_labelFileWidgets.m_widget);
+    m_stackedWidget->addWidget(m_stereotaxicWidget);
     m_stackedWidget->addWidget(m_surfaceVertexWidget);
 
     /*
@@ -253,6 +259,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_ciftiFileParcelRadioButton = new QRadioButton("CIFTI File Parcel");
     m_imagePixelRadioButton = new QRadioButton("Image Pixel");
     m_labelRadioButton = new QRadioButton("Label");
+    m_stereotaxicRadioButton = new QRadioButton("Stereotaxic");
+    m_stereotaxicRadioButton->setEnabled(false);
     m_surfaceVertexRadioButton = new QRadioButton("Surface Vertex");
     
     int32_t buttonIndex(0);
@@ -261,6 +269,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     idTypeButtonGroup->addButton(m_ciftiFileParcelRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_imagePixelRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_labelRadioButton, buttonIndex++);
+    idTypeButtonGroup->addButton(m_stereotaxicRadioButton, buttonIndex++);
     idTypeButtonGroup->addButton(m_surfaceVertexRadioButton, buttonIndex++);
     QObject::connect(idTypeButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                      this, &IdentifyBrainordinateDialog::idTypeRadioButtonClicked);
@@ -271,6 +280,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     radioButtonLayout->addWidget(m_ciftiFileParcelRadioButton);
     radioButtonLayout->addWidget(m_imagePixelRadioButton);
     radioButtonLayout->addWidget(m_labelRadioButton);
+    radioButtonLayout->addWidget(m_stereotaxicRadioButton);
     radioButtonLayout->addWidget(m_surfaceVertexRadioButton);
     
     QWidget* widget = new QWidget();
@@ -485,6 +495,58 @@ IdentifyBrainordinateDialog::createLabelFilesWidget(const std::vector<DataFileTy
 }
 
 /**
+ * Create and return the stereotaxicWidget
+ *
+ * @return
+ *    The Stereotaxic Widget
+ */
+QWidget*
+IdentifyBrainordinateDialog::createStereotaxicWidget()
+{
+    int columnCount = 0;
+    const int COLUMN_X(columnCount++);
+    const int COLUMN_Y(columnCount++);
+    const int COLUMN_Z(columnCount++);
+
+    QLabel* xLabel(new QLabel("X"));
+    QLabel* yLabel(new QLabel("Y"));
+    QLabel* zLabel(new QLabel("Z"));
+    
+    m_stereotaxicXWidget = new WuQDoubleSpinBox(this);
+    m_stereotaxicXWidget->setRange(-100000.0,
+                                   100000.0);
+    m_stereotaxicXWidget->setSingleStep(1.0);
+    m_stereotaxicXWidget->setDecimals(4);
+    
+    m_stereotaxicYWidget = new WuQDoubleSpinBox(this);
+    m_stereotaxicYWidget->setRange(-100000.0,
+                                   100000.0);
+    m_stereotaxicYWidget->setSingleStep(1.0);
+    m_stereotaxicYWidget->setDecimals(4);
+
+    m_stereotaxicZWidget = new WuQDoubleSpinBox(this);
+    m_stereotaxicZWidget->setRange(-100000.0,
+                                   100000.0);
+    m_stereotaxicZWidget->setSingleStep(1.0);
+    m_stereotaxicZWidget->setDecimals(4);
+
+    QWidget* widget = new QWidget();
+    QGridLayout* layout = new QGridLayout(widget);
+    int row(layout->rowCount());
+    layout->addWidget(xLabel, row, COLUMN_X, Qt::AlignHCenter);
+    layout->addWidget(yLabel, row, COLUMN_Y, Qt::AlignHCenter);
+    layout->addWidget(zLabel, row, COLUMN_Z, Qt::AlignHCenter);
+    ++row;
+    layout->addWidget(m_stereotaxicXWidget->getWidget(), row, COLUMN_X, Qt::AlignHCenter);
+    layout->addWidget(m_stereotaxicYWidget->getWidget(), row, COLUMN_Y, Qt::AlignHCenter);
+    layout->addWidget(m_stereotaxicZWidget->getWidget(), row, COLUMN_Z, Qt::AlignHCenter);
+    layout->setRowStretch(1000, 1000);
+    layout->setColumnStretch(4, 1000);
+    
+    return widget;
+}
+
+/**
  * Called when the user changes the label file or map.
  */
 void
@@ -589,6 +651,9 @@ IdentifyBrainordinateDialog::idTypeRadioButtonClicked(QAbstractButton* button)
     }
     else if (button == m_labelRadioButton) {
         m_stackedWidget->setCurrentWidget(m_labelFileWidgets.m_widget);
+    }
+    else if (button == m_stereotaxicRadioButton) {
+        m_stackedWidget->setCurrentWidget(m_stereotaxicWidget);
     }
     else if (button == m_surfaceVertexRadioButton) {
         m_stackedWidget->setCurrentWidget(m_surfaceVertexWidget);
@@ -718,6 +783,9 @@ IdentifyBrainordinateDialog::applyButtonClicked()
     }
     else if (m_labelFileWidgets.m_widget == selectedWidget) {
         processLabelFileWidget(errorMessage);
+    }
+    else if (m_stereotaxicWidget == selectedWidget) {
+        processStereotaxicWidget(errorMessage);
     }
     else {
         const QString msg("Choose one of the methods for identifying a brainordinate.");
@@ -1118,4 +1186,26 @@ IdentifyBrainordinateDialog::processSurfaceVertexWidget(AString& errorMessageOut
     }
 }
 
+/**
+ * Process user's selectons in the stereotaxic widget
+ *
+ * @param errorMessageOut
+ *    Output containing error message.
+ */
+void
+IdentifyBrainordinateDialog::processStereotaxicWidget(AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    Brain* brain = GuiManager::get()->getBrain();
+    
+    SelectionManager* selectionManager = brain->getSelectionManager();
+    selectionManager->reset();
+    
+    const Vector3D xyz(m_stereotaxicXWidget->value(),
+                       m_stereotaxicYWidget->value(),
+                       m_stereotaxicZWidget->value());
+    
+    errorMessageOut = "Not implemented";
+}
 

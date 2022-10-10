@@ -106,14 +106,16 @@ MediaDisplayCoordinateModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(MediaDisplayCoordinateModeEnum(PIXEL, 
-                                    "PIXEL", 
-                                    "Pixel"));
+    enumData.push_back(MediaDisplayCoordinateModeEnum(PIXEL,
+                                                      "PIXEL",
+                                                      "Pixel"));
     
-    enumData.push_back(MediaDisplayCoordinateModeEnum(PLANE, 
-                                    "PLANE", 
-                                    "Plane"));
-    
+    enumData.push_back(MediaDisplayCoordinateModeEnum(PLANE,
+                                                      "PLANE",
+                                                      "Plane"));
+    enumData.push_back(MediaDisplayCoordinateModeEnum(STEREOTAXIC,
+                                                      "STEREOTAXIC",
+                                                      "Stereotaxic"));
 }
 
 /**

@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __BRAIN_OPEN_G_L_HISTOLOGY_SLICE_DRAWING_DECLARE__
-#include "BrainOpenGLHistologySliceDrawing.h"
-#undef __BRAIN_OPEN_G_L_HISTOLOGY_SLICE_DRAWING_DECLARE__
+#define __BRAIN_OPEN_G_L_HISTOLOGY_SLICE_COORDINATE_DRAWING_DECLARE__
+#include "BrainOpenGLHistologySliceCoordinateDrawing.h"
+#undef __BRAIN_OPEN_G_L_HISTOLOGY_SLICE_COORDINATE_DRAWING_DECLARE__
 
 #include <cmath>
 
@@ -45,6 +45,7 @@
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "HistologyCoordinate.h"
+#include "HistologySlice.h"
 #include "HistologySlicesFile.h"
 #include "ImageFile.h"
 #include "ModelHistology.h"
@@ -58,15 +59,15 @@ using namespace caret;
 const bool debugFlag(false);
     
 /**
- * \class caret::BrainOpenGLHistologySliceDrawing
- * \brief Draw histology slice data
+ * \class caret::BrainOpenGLHistologySliceCoordinateDrawing
+ * \brief Draw histology slice data using millimeter coordinates
  * \ingroup Brain
  */
 
 /**
  * Constructor.
  */
-BrainOpenGLHistologySliceDrawing::BrainOpenGLHistologySliceDrawing()
+BrainOpenGLHistologySliceCoordinateDrawing::BrainOpenGLHistologySliceCoordinateDrawing()
 : CaretObject()
 {
     
@@ -75,7 +76,7 @@ BrainOpenGLHistologySliceDrawing::BrainOpenGLHistologySliceDrawing()
 /**
  * Destructor.
  */
-BrainOpenGLHistologySliceDrawing::~BrainOpenGLHistologySliceDrawing()
+BrainOpenGLHistologySliceCoordinateDrawing::~BrainOpenGLHistologySliceCoordinateDrawing()
 {
 }
 
@@ -92,7 +93,7 @@ BrainOpenGLHistologySliceDrawing::~BrainOpenGLHistologySliceDrawing()
  * @return True if othographic bounds are valid, else false.
  */
 bool
-BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
+BrainOpenGLHistologySliceCoordinateDrawing::getOrthoBounds(double& orthoLeftOut,
                                                  double& orthoRightOut,
                                                  double& orthoBottomOut,
                                                  double& orthoTopOut)
@@ -102,35 +103,100 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
     orthoBottomOut = -1.0;
     orthoTopOut    =  1.0;
         
-    BoundingBox boundingBox;
+//    BoundingBox boundingBox;
+//
+//    const MediaFile* firstMediaFile(NULL);
+//    bool firstFlag(true);
+//    const int32_t numberOfFiles(m_mediaFilesAndDataToDraw.size());
+//    for (int32_t i = 0; i < numberOfFiles; i++) {
+//        CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, i);
+//        HistologySlicesFile* histologyFile(m_mediaFilesAndDataToDraw[i].m_selectedFile);
+//        CaretAssert(histologyFile);
+//        const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[i].m_mediaFile);
+//        CaretAssert(mediaFile);
+//        const BoundingBox bb(mediaFile->getStereotaxicXyzBoundingBox());
+//        if (firstFlag) {
+//            firstFlag   = false;
+//            boundingBox = bb;
+//            firstMediaFile = mediaFile;
+//        }
+//        else {
+//            boundingBox.unionOperation(bb);
+//        }
+//    }
     
-    bool firstFlag(true);
+    BoundingBox boundingBox;
+    BoundingBox boundingBoxTopLeft;
+    BoundingBox boundingBoxTopRight;
+    BoundingBox boundingBoxBottomLeft;
+    BoundingBox boundingBoxBottomRight;
+
+    const MediaFile* firstMediaFile(NULL);
+    std::set<HistologySlicesFile*> allHistologySliceFiles;
     const int32_t numberOfFiles(m_mediaFilesAndDataToDraw.size());
     for (int32_t i = 0; i < numberOfFiles; i++) {
         CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, i);
         HistologySlicesFile* histologyFile(m_mediaFilesAndDataToDraw[i].m_selectedFile);
-        CaretAssert(histologyFile);
         const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[i].m_mediaFile);
         CaretAssert(mediaFile);
-        if (mediaFile->isPlaneXyzSupported()) {
-            const BoundingBox bb(mediaFile->getPlaneXyzBoundingBox());
-            if (firstFlag) {
-                firstFlag   = false;
-                boundingBox = bb;
-            }
-            else {
-                boundingBox.unionOperation(bb);
-            }
+        if (allHistologySliceFiles.empty()) {
+            firstMediaFile = mediaFile;
+            CaretAssert(firstMediaFile);
+        }
+        CaretAssert(histologyFile);
+        allHistologySliceFiles.insert(histologyFile);
+        
+        std::cout << "TL " << i << ": " << AString::fromNumbers(mediaFile->getStereotaxicXyzTopLeft()) << std::endl;
+        boundingBoxTopLeft.update(mediaFile->getStereotaxicXyzTopLeft());
+        boundingBoxTopRight.update(mediaFile->getStereotaxicXyzTopRight());
+        boundingBoxBottomLeft.update(mediaFile->getStereotaxicXyzBottomLeft());
+        boundingBoxBottomRight.update(mediaFile->getStereotaxicXyzBottomRight());
+    }
+
+    bool firstFlag(true);
+    for (HistologySlicesFile* hsf : allHistologySliceFiles) {
+        const BoundingBox bb(hsf->getStereotaxicXyzBoundingBox());
+        if (firstFlag) {
+            firstFlag = false;
+            boundingBox = bb;
+        }
+        else {
+            boundingBox.unionOperation(bb);
         }
     }
     
+
+    std::cout << "TL BB: " << boundingBoxTopLeft.toString() << std::endl;
+    std::cout << "BL BB: " << boundingBoxBottomLeft.toString() << std::endl;
+    std::cout << "BR BB: " << boundingBoxBottomRight.toString() << std::endl;
+    std::cout << "TR BB: " << boundingBoxTopRight.toString() << std::endl;
+    Vector3D centerTL, centerTR, centerBL, centerBR;
+    boundingBoxTopLeft.getCenter(centerTL);
+    boundingBoxTopRight.getCenter(centerTR);
+    boundingBoxBottomLeft.getCenter(centerBL);
+    boundingBoxBottomRight.getCenter(centerBR);
+
+    Vector3D topCenter((centerTL + centerTR) / 2.0);
+    std::cout << "Top Center: " << AString::fromNumbers(topCenter) << std::endl;
+
+    Vector3D bbCenter;
+    boundingBox.getCenter(bbCenter);
+    std::cout << "Center: " << AString::fromNumbers(bbCenter) << std::endl;
+    
+    Vector3D upVector((topCenter - bbCenter).normal());
+    std::cout << "Up Vector: " << AString::fromNumbers(upVector) << std::endl;
+    
+    Plane bbPlane(centerTL, centerBL, centerBR);
+    std::cout << "BB Plane " << bbPlane.toString() << std::endl;
+
     const double viewportWidth(m_viewport[2]);
     const double viewportHeight(m_viewport[3]);
     const double viewportAspectRatio = (viewportHeight
                                         / viewportWidth);
 
     const double imageWidth(boundingBox.getDifferenceX());
-    const double imageHeight(boundingBox.getDifferenceY());
+//    const double imageHeight(boundingBox.getDifferenceY());
+    const double imageHeight(boundingBox.getDifferenceZ());
     if ((imageWidth < 1.0)
         || (imageHeight < 1.0)) {
         return false;
@@ -138,13 +204,15 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
     const double imageAspectRatio = (imageHeight
                                      / imageWidth);
     
-    const bool originTopLeftFlag(true);
+    const bool originTopLeftFlag(false);
     
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
     if (imageAspectRatio > viewportAspectRatio) {
-        orthoBottomOut = boundingBox.getMinY() - marginSizePixels;
-        orthoTopOut    = boundingBox.getMaxY() + marginSizePixels;
+//        orthoBottomOut = boundingBox.getMinY() - marginSizePixels;
+//        orthoTopOut    = boundingBox.getMaxY() + marginSizePixels;
+        orthoBottomOut = boundingBox.getMinZ() - marginSizePixels;
+        orthoTopOut    = boundingBox.getMaxZ() + marginSizePixels;
         if (originTopLeftFlag) {
             std::swap(orthoBottomOut, orthoTopOut);
         }
@@ -161,7 +229,8 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
         const double orthoWidth(orthoRightOut - orthoLeftOut);
         const double orthoHeight(orthoWidth * viewportAspectRatio);
         const double halfOrthoHeight(orthoHeight / 2.0);
-        const double centerY(boundingBox.getCenterY());
+//        const double centerY(boundingBox.getCenterY());
+        const double centerY(boundingBox.getCenterZ());
         orthoBottomOut = centerY - halfOrthoHeight;
         orthoTopOut    = centerY + halfOrthoHeight;
         if (originTopLeftFlag) {
@@ -176,6 +245,36 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
     else {
         CaretAssert(orthoTopOut > orthoBottomOut);
     }
+    
+    CaretAssert(firstMediaFile);
+    m_planeEquation = Plane(firstMediaFile->getStereotaxicXyzTopLeft(),
+                            firstMediaFile->getStereotaxicXyzBottomLeft(),
+                            firstMediaFile->getStereotaxicXyzBottomRight());
+    if ( ! m_planeEquation.isValidPlane()) {
+        CaretLogSevere("Plane equation failed.  Are stereotaxic coordinates valid for "
+                       + firstMediaFile->getFileName());
+        return false;
+    }
+    m_planeEquation.getNormalVector(m_lookAtNormalVector);
+    
+    boundingBox.getCenter(m_lookAtCenterXYZ);
+    
+    m_lookAtUpXYZ.set(0.0, 0.0, 1.0);
+
+//    /*
+//     * Use Bounding boxes
+//     */
+//    m_lookAtCenterXYZ = bbCenter;
+//    m_lookAtUpXYZ     = upVector;
+    
+    const float distance(1.0);
+    m_lookAtEyeXYZ.set(m_lookAtCenterXYZ[0] + (m_lookAtNormalVector[0] * distance),
+                       m_lookAtCenterXYZ[1] + (m_lookAtNormalVector[1] * distance),
+                       m_lookAtCenterXYZ[2] + (m_lookAtNormalVector[2] * distance));
+    
+    std::cout << "Center: " << AString::fromNumbers(m_lookAtCenterXYZ) << std::endl;
+    std::cout << "Ortho L/R/B/T: " << orthoLeftOut << ", " << orthoRightOut
+    << ", " << orthoBottomOut << ", " << orthoTopOut << std::endl << std::endl;
     
     return true;
 }
@@ -193,7 +292,7 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
  *    Size of the viewport
  */
 void
-BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+BrainOpenGLHistologySliceCoordinateDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const BrainOpenGLViewportContent* viewportContent,
                                        BrowserTabContent* browserTabContent,
                                        ModelHistology* histologyModel,
@@ -287,10 +386,15 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     glLoadIdentity();
     glOrtho(orthoLeft, orthoRight,
             orthoBottom, orthoTop,
-            -1.0, 1.0);
-    
+//            -1.0, 1.0);
+            -100.0, 100.0);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    
+    gluLookAt(m_lookAtEyeXYZ[0], m_lookAtEyeXYZ[1], m_lookAtEyeXYZ[2],
+              m_lookAtCenterXYZ[0], m_lookAtCenterXYZ[1], m_lookAtCenterXYZ[2],
+              m_lookAtUpXYZ[0], m_lookAtUpXYZ[1], m_lookAtUpXYZ[2]);
     
     /*
      * Note on translation: Origin is at top left so a positive-Y translation
@@ -341,12 +445,12 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
  *   Height of viewport
  */
 void
-BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& orthoLRBT,
+BrainOpenGLHistologySliceCoordinateDrawing::drawModelLayers(const std::array<float, 4>& orthoLRBT,
                                                   const BrainOpenGLViewportContent* viewportContent,
                                                   const GraphicsObjectToWindowTransform* transform,
                                                   const int32_t /*tabIndex*/,
-                                                  const float /*orthoHeight*/,
-                                                  const float /*viewportHeight*/)
+                                                  const float orthoHeight,
+                                                  const float viewportHeight)
 {
     SelectionItemHistologyCoordinate* idHistology = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getHistologyPlaneCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
@@ -379,6 +483,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
     int32_t underlayHistologySliceNumber(-1);
     
+    const MediaDisplayCoordinateModeEnum::Enum coordinateMode(viewportContent->getBrowserTabContent()->getHistologyDisplayCoordinateMode());
     const int32_t numMediaFiles(static_cast<int32_t>(m_mediaFilesAndDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
         CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, i);
@@ -397,7 +502,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                      frameIndex,
                                                      allFramesSelectedFlag,
                                                      CziImageResolutionChangeModeEnum::AUTO2,
-                                                     MediaDisplayCoordinateModeEnum::PLANE,
+                                                     coordinateMode, //MediaDisplayCoordinateModeEnum::PLANE,
                                                      manualPyramidLayerIndex,
                                                      transform);
         }
@@ -410,9 +515,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                    + " for media drawing."));
         }
 
-
-        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(drawingData.m_tabIndex,
-                                                                                             drawingData.m_overlayIndex));
+        GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForStereotaxicXyzDrawing(drawingData.m_tabIndex,
+                                                                                                   drawingData.m_overlayIndex));
         if (primitive == NULL) {
             /*
              * If a CZI image is completely offscreen there may be no data to load for it
@@ -505,7 +609,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
  * Draw the selection box
  */
 void
-BrainOpenGLHistologySliceDrawing::drawSelectionBox()
+BrainOpenGLHistologySliceCoordinateDrawing::drawSelectionBox()
 {
     const GraphicsRegionSelectionBox* selectionBox = m_browserTabContent->getMediaRegionSelectionBox();
 
@@ -546,7 +650,7 @@ BrainOpenGLHistologySliceDrawing::drawSelectionBox()
  *    Primitive that draws image file
  */
 void
-BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
+BrainOpenGLHistologySliceCoordinateDrawing::processSelection(const int32_t tabIndex,
                                                    const HistologyOverlay::DrawingData& drawingData,
                                                    GraphicsPrimitiveV3fT2f* primitive)
 {
@@ -565,18 +669,53 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
-            float windowXYZ[3] { mouseX, mouseY, 0.0 };
-            Vector3D planeXYZ;
-            xform.inverseTransformPoint(windowXYZ, planeXYZ);
+            float windowXYZ[3] { mouseX, mouseY, 0 };
+            Vector3D stereotaxicXYZ;
+            xform.inverseTransformPoint(windowXYZ, stereotaxicXYZ);
             
+            HistologySlice* slice(drawingData.m_selectedFile->getHistologySliceByIndex(drawingData.m_selectedSliceIndex));
+            if (slice != NULL) {
+                Vector3D origXYZ(stereotaxicXYZ);
+                Vector3D sliceXYZ;
+                slice->projectStereotaxicXyzToSlice(stereotaxicXYZ, sliceXYZ);
+                std::cout << "XYZ: " << stereotaxicXYZ.toString() << std::endl;
+                std::cout << "   Projected XYZ: " << sliceXYZ.toString() << std::endl;
+                stereotaxicXYZ = sliceXYZ;
+                
+                Plane plane(slice->getStereotaxicPlane());
+                if (plane.isValidPlane()) {
+                    float intersectionAndDistance[4];
+                    if (plane.rayIntersection(origXYZ,
+                                              m_lookAtNormalVector,
+                                              intersectionAndDistance)) {
+                        std::cout << "   Intersection and Dist: " << AString::fromNumbers(intersectionAndDistance, 4) << std::endl;
+                        stereotaxicXYZ.set(intersectionAndDistance[0],
+                                           intersectionAndDistance[1],
+                                           intersectionAndDistance[2]);
+                    }
+                }
+//
+//                {
+//                    float windowXYZ[3] { mouseX, mouseY, mouseY };
+//                    Vector3D stereotaxicXYZ;
+//                    xform.inverseTransformPoint(windowXYZ, stereotaxicXYZ);
+//                    slice->projectStereotaxicXyzToSlice(stereotaxicXYZ, sliceXYZ);
+//                    std::cout << "   XYZ: " << stereotaxicXYZ.toString() << std::endl;
+//                    std::cout << "      Projected XYZ: " << sliceXYZ.toString() << std::endl;
+//                }
+            }
             MediaFile* mediaFile(drawingData.m_mediaFile);
             CaretAssert(mediaFile);
 
             PixelLogicalIndex pixelLogicalIndex;
-            if ( ! mediaFile->planeXyzToLogicalPixelIndex(planeXYZ,
-                                                          pixelLogicalIndex)) {
+            if ( ! mediaFile->stereotaxicXyzToLogicalPixelIndex(stereotaxicXYZ,
+                                                                pixelLogicalIndex)) {
                 return;
             }
+//            if ( ! mediaFile->planeXyzToLogicalPixelIndex(planeXYZ,
+//                                                          pixelLogicalIndex)) {
+//                return;
+//            }
             
             /*
              * Frame indices to test
@@ -619,13 +758,13 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
                 replaceFlag = true;
             }
             if (replaceFlag) {
-                HistologyCoordinate hc(HistologyCoordinate::newInstancePlaneXYZIdentification(drawingData.m_selectedFile,
+                HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZIdentification(drawingData.m_selectedFile,
                                                                                       drawingData.m_mediaFile,
                                                                                       drawingData.m_selectedSliceIndex,
-                                                                                      planeXYZ));
+                                                                                      stereotaxicXYZ));
                 idHistology->setHistologySlicesFile(drawingData.m_selectedFile);
                 idHistology->setCoordinate(hc);
-                idHistology->setModelXYZ(hc.getPlaneXYZ());
+                idHistology->setModelXYZ(hc.getStereotaxicXYZ());
                 idHistology->setTabIndex(tabIndex);
                 idHistology->setOverlayIndex(drawingData.m_overlayIndex);
                 uint8_t pixelByteRGBA[4] = { 0, 0, 0, 0 };
@@ -652,9 +791,13 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
  *    The histology coordinate
  */
 void
-BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& orthoLRBT,
+BrainOpenGLHistologySliceCoordinateDrawing::drawCrosshairs(const std::array<float, 4>& orthoLRBT,
                                                  const HistologyCoordinate& histologyCoordinate)
 {
+    if ( ! histologyCoordinate.isStereotaxicXYZValid()) {
+        return;
+    }
+    
     glPushAttrib(GL_DEPTH_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     
@@ -662,24 +805,20 @@ BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& ort
     
     const float minX(orthoLRBT[0]);
     const float maxX(orthoLRBT[1]);
-    const float maxY(orthoLRBT[2]);
-    const float minY(orthoLRBT[3]);
+    const float minZ(orthoLRBT[2]);
+    const float maxZ(orthoLRBT[3]);
     
     const float* red(CaretColorEnum::toRGBA(CaretColorEnum::RED));
     const float* green(CaretColorEnum::toRGBA(CaretColorEnum::GREEN));
     
-    const Vector3D centerXYZ(histologyCoordinate.getPlaneXYZ());
-    const float z(0.0);
-    if (debugFlag) {
-        std::cout << "Selected histology plane: " << AString::fromNumbers(histologyCoordinate.getPlaneXYZ()) << std::endl;
-        std::cout << "             stereotaxic: " << AString::fromNumbers(histologyCoordinate.getStereotaxicXYZ()) << std::endl;
-    }
+    const Vector3D centerXYZ(histologyCoordinate.getStereotaxicXYZ());
+    const float y(0.0);
     
     std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
-    primitive->addVertex(minX, centerXYZ[1], z, green);
-    primitive->addVertex(maxX, centerXYZ[1], z, green);
-    primitive->addVertex(centerXYZ[0], minY, z, red);
-    primitive->addVertex(centerXYZ[0], maxY, z, red);
+    primitive->addVertex(minX, y, centerXYZ[2], green);
+    primitive->addVertex(maxX, y, centerXYZ[2], green);
+    primitive->addVertex(centerXYZ[0], y, minZ, red);
+    primitive->addVertex(centerXYZ[0], y, maxZ, red);
     
     const float lineWidthPercentage(0.5);
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
@@ -695,8 +834,8 @@ BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& ort
  * @return String describing this object's content.
  */
 AString 
-BrainOpenGLHistologySliceDrawing::toString() const
+BrainOpenGLHistologySliceCoordinateDrawing::toString() const
 {
-    return "BrainOpenGLHistologySliceDrawing";
+    return "BrainOpenGLHistologySliceCoordinateDrawing";
 }
 

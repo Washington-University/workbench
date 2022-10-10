@@ -55,6 +55,10 @@ using namespace caret;
  *    The scaled to plane matrix for this image
  * @param scaledToPlaneMatrixValidFlag
  *    Validity of scaled to plane matrix
+ * @param toStereotaxicNonLinearTransform
+ *    Non-linear transform for going to stereotaxic coordinates
+ * @param fromStereotaxicNonLinearTransform
+ *    Non-linear transform for going from stereotaxic coordinates
  */
 HistologySliceImage::HistologySliceImage(const AString& sceneName,
                                          const AString& mediaFileName,
@@ -164,7 +168,7 @@ HistologySliceImage::getMediaFilePrivate() const
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             try {
-                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile(CziImageFile::ParentType::HISTOLOGY_SLICE_IMAGE));
+                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile());
                 cziImageFile->readFile(m_mediaFileName);
                 m_mediaFile.reset(cziImageFile.release());
             }
@@ -195,10 +199,12 @@ HistologySliceImage::getMediaFilePrivate() const
     }
     
     if (m_mediaFile) {
-        m_mediaFile->setScaledToPlaneMatrix(m_scaledToPlaneMatrix,
+        m_mediaFile->setTransformMatrices(m_scaledToPlaneMatrix,
                                             m_scaledToPlaneMatrixValidFlag,
                                             m_planeToMillimetersMatrix,
-                                            m_planeToMillimetersMatrixValidFlag);
+                                            m_planeToMillimetersMatrixValidFlag,
+                                          m_toStereotaxicNonLinearTransform,
+                                          m_fromStereotaxicNonLinearTransform);
     }
     return m_mediaFile.get();
 }
@@ -216,29 +222,6 @@ HistologySliceImage::toString() const
     return s;
 }
 
-///**
-// * Convert a plane XYZ to stereotaxic XYZ
-// * @param planeXyz
-// *     XYZ in plane
-// * @param stereotaxicXyzOut
-// *    Output with stereotaxic XYZ
-// * @return True if successful, else false.
-// */
-//bool
-//HistologySliceImage::planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-//                                    Vector3D& stereotaxicXyzOut) const
-//{
-//    if (m_planeToMillimetersMatrixValidFlag) {
-//        Vector3D xyz(planeXyz);
-//        m_planeToMillimetersMatrix.multiplyPoint3(xyz);
-//        stereotaxicXyzOut = xyz;
-//        return true;
-//    }
-//    
-//    stereotaxicXyzOut = Vector3D();
-//    return false;
-//}
-
 /**
  * Converrt a stereotaxic coordinate to a plane coordinate
  * @param stereotaxicXyz
@@ -251,16 +234,15 @@ bool
 HistologySliceImage::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                               Vector3D& planeXyzOut) const
 {
-    if (m_millimetersToPlaneMatrixValidFlag) {
-        Vector3D xyz(stereotaxicXyz);
-        m_millimetersToPlaneMatrix.multiplyPoint3(xyz);
-        planeXyzOut = xyz;
-        
+    const MediaFile* mediaFile(getMediaFile());
+    if (mediaFile != NULL) {
+        mediaFile->stereotaxicXyzToPlaneXyz(stereotaxicXyz,
+                                            planeXyzOut);
         return true;
     }
-    
-    planeXyzOut = Vector3D();
+    planeXyzOut.fill(0);
     return false;
+
 }
 
 /**
@@ -272,15 +254,15 @@ HistologySliceImage::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
  */
 void
 HistologySliceImage::setPlaneToMillimetersMatrix(const Matrix4x4& planeToMillimetersMatrix,
-                                                 const bool planeToMillimetersMatrixValidFlag)
+                                                 const bool planeToMillimetersMatrixValidFlag,
+                                                 std::shared_ptr<CziNonLinearTransform>& toStereotaxicNonLinearTransform,
+                                                 std::shared_ptr<CziNonLinearTransform>& fromStereotaxicNonLinearTransform)
 {
     m_planeToMillimetersMatrix          = planeToMillimetersMatrix;
     m_planeToMillimetersMatrixValidFlag = planeToMillimetersMatrixValidFlag;
     
-    if (m_planeToMillimetersMatrixValidFlag) {
-        m_millimetersToPlaneMatrix = m_planeToMillimetersMatrix;
-        m_millimetersToPlaneMatrixValidFlag = m_millimetersToPlaneMatrix.invert();
-    }
+    m_toStereotaxicNonLinearTransform   = toStereotaxicNonLinearTransform;
+    m_fromStereotaxicNonLinearTransform = fromStereotaxicNonLinearTransform;
 }
 
 /**

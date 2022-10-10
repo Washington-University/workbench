@@ -38,6 +38,9 @@ namespace caret {
         //geometry functions
         float distToLine(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut = NULL) const;
         float distToLineSegment(const Vector3D& p1, const Vector3D& p2, Vector3D* closePointOut = NULL) const;
+        void fill(const float value);
+        void set(const float x, const float y, const float z);
+        AString toString(const int32_t precision = 3) const;
         //constructors
         Vector3D();
         Vector3D(const float& x, const float& y, const float& z);
