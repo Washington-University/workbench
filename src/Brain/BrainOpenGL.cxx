@@ -910,20 +910,25 @@ BrainOpenGL::getOpenGLInformation()
     lineInfo += ("\n\nMaximum number of clipping planes is "
                  + AString::number(maximumNumberOfClipPlanes));
     
-    GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth;
+    GLint maxNameStackDepth, maxModelStackDepth, maxProjStackDepth, maxAttributeStackDepth;
     glGetIntegerv(GL_MAX_PROJECTION_STACK_DEPTH,
                   &maxProjStackDepth);
     glGetIntegerv(GL_MAX_MODELVIEW_STACK_DEPTH,
                   &maxModelStackDepth);
     glGetIntegerv(GL_MAX_NAME_STACK_DEPTH,
                   &maxNameStackDepth);
+    glGetIntegerv(GL_MAX_ATTRIB_STACK_DEPTH,
+                  &maxAttributeStackDepth);
+    
     lineInfo += ("\n\nMaximum Modelview Matrix Stack Depth "
                  + QString::number(maxModelStackDepth));
     lineInfo += ("\nMaximum Name Matrix Stack Depth "
                  + QString::number(maxNameStackDepth));
     lineInfo += ("\nMaximum Projection Matrix Stack Depth "
                  + QString::number(maxProjStackDepth));
-    
+    lineInfo += ("\nMaximum Attribute Stack Depth "
+                 + QString::number(maxAttributeStackDepth));
+
     GLint redBits, greenBits, blueBits, alphaBits;
     glGetIntegerv(GL_RED_BITS,   &redBits);
     glGetIntegerv(GL_GREEN_BITS, &greenBits);
