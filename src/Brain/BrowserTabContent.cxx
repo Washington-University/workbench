@@ -1893,9 +1893,9 @@ BrowserTabContent::receiveEvent(Event* event)
                                 break;
                         }
                     }
-
-                    selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
                 }
+
+                selectVolumeSlicesAtCoordinate(volumeSliceXYZ);
             }
         }
         
