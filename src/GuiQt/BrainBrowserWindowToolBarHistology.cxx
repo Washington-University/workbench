@@ -185,8 +185,11 @@ m_parentToolBar(parentToolBar)
      * Drawing mode
      */
 //    QLabel* modeLabel(new QLabel("Coord"));
+    std::vector<MediaDisplayCoordinateModeEnum::Enum> supportedModes;
+    supportedModes.push_back(MediaDisplayCoordinateModeEnum::PLANE);
+    supportedModes.push_back(MediaDisplayCoordinateModeEnum::STEREOTAXIC);
     m_histologyDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_histologyDisplayCoordinateModeEnumComboBox->setup<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>();
+    m_histologyDisplayCoordinateModeEnumComboBox->setupWithItems<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(supportedModes);
     QObject::connect(m_histologyDisplayCoordinateModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxItemActivated);
     m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setObjectName(parentObjectName
@@ -194,7 +197,9 @@ m_parentToolBar(parentToolBar)
     m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setToolTip("Coordinate Display Mode");
     WuQMacroManager::instance()->addMacroSupportToObject(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
                                                          "Set media coordinate mode for display");
-    
+#ifdef NDEBUG
+    m_histologyDisplayCoordinateModeEnumComboBox->setEnabled(false);
+#endif
 
     /*
      * Layout widgets
@@ -444,111 +449,11 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
             HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
                                                                                      previousHistCoord,
                                                                                      sliceIndex));
-            
-            Vector3D newPlaneCoordXYZ;
-            bool newPlaneCoordXYZValid(false);
-            
-            const int32_t diffSlices(std::fabs(hc.getSliceIndex() - previousHistCoord.getSliceIndex()));
-            if (diffSlices == 1) {
-                const HistologyCoordinate currentHC(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
-                if (currentHC.isPlaneXYValid()) {
-                    const Vector3D oldPlaneXYZ(currentHC.getPlaneXYZ());
-                    const HistologySlice* oldSlice(histologySlicesFile->getHistologySliceByIndex(previousHistCoord.getSliceIndex()));
-                    if (oldSlice != NULL) {
-                        Vector3D centerSteretotaxicXYZ;
-                        if (oldSlice->planeXyzToStereotaxicXyz(oldPlaneXYZ,
-                                                               centerSteretotaxicXYZ)) {
-                            const HistologySlice* newSlice(histologySlicesFile->getHistologySliceByIndex(hc.getSliceIndex()));
-                            if (newSlice != NULL) {
-                                Vector3D newStereotaxicXYZ;
-                                if (newSlice->projectStereotaxicXyzToSlice(centerSteretotaxicXYZ,
-                                                                           newStereotaxicXYZ)) {
-                                    Vector3D newPlaneXYZ;
-                                    if (newSlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ,
-                                                                           newPlaneXYZ)) {
-                                        /*
-                                         * Adjacent slices may not be aligned in plane coordinates
-                                         */
-                                        const Vector3D diffPlaneXYZ(newPlaneXYZ - oldPlaneXYZ);
-                                        std::cout << "Switch slices: " << std::endl;
-                                        std::cout << "   Old Stereotaxic: " << AString::fromNumbers(centerSteretotaxicXYZ) << std::endl;
-                                        std::cout << "   Old Plane: " << AString::fromNumbers(oldPlaneXYZ) << std::endl;
-                                        std::cout << "   New Stereotaxic: " << AString::fromNumbers(newStereotaxicXYZ) << std::endl;
-                                        std::cout << "   New Plane: " << AString::fromNumbers(newPlaneXYZ) << std::endl;
-                                        std::cout << "   Diff Plane: " << AString::fromNumbers(diffPlaneXYZ) << std::endl;
-                                        
-                                        
-                                        hc = HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
-                                                                                             sliceIndex,
-                                                                                             newPlaneXYZ);
-//                                        hc.setPlaneXYZ(newPlaneXYZ);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                
-//                const BrainOpenGLViewportContent* vpContent(getBrainOpenGLViewportContent());
-//                if (vpContent != NULL) {
-//                    const GraphicsObjectToWindowTransform* transform(vpContent->getHistologyGraphicsObjectToWindowTransform());
-//                    if (transform != NULL) {
-//                        int32_t viewport[4];
-//                        vpContent->getModelViewport(viewport);
-//                        const Vector3D vpCenter(viewport[0] + (viewport[2] / 2.0),
-//                                                viewport[1] + (viewport[3] / 2.0),
-//                                                0.0);
-//                        Vector3D centerPlaneXYZ;
-//                        transform->inverseTransformPoint(vpCenter, centerPlaneXYZ);
-//
-//                        const HistologySlice* oldSlice(histologySlicesFile->getHistologySliceByIndex(previousHistCoord.getSliceIndex()));
-//                        if (oldSlice != NULL) {
-//                            Vector3D centerSteretotaxicXYZ;
-//                            if (oldSlice->planeXyzToStereotaxicXyz(centerPlaneXYZ, centerSteretotaxicXYZ)) {
-//                                const HistologySlice* newSlice(histologySlicesFile->getHistologySliceByIndex(hc.getSliceIndex()));
-//                                if (newSlice != NULL) {
-//                                    Vector3D newStereotaxicXYZ;
-//                                    if (newSlice->projectStereotaxicXyzToSlice(centerSteretotaxicXYZ,
-//                                                                               newStereotaxicXYZ)) {
-//                                        Vector3D newPlaneXYZ;
-//                                        if (newSlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ,
-//                                                                               newPlaneXYZ)) {
-//                                            /*
-//                                             * Adjacent slices may not be aligned in plane coordinates
-//                                             */
-//                                            const Vector3D diffPlaneXYZ(newPlaneXYZ - centerPlaneXYZ);
-//                                            std::cout << "Old Stereotaxic: " << AString::fromNumbers(centerSteretotaxicXYZ) << std::endl;
-//                                            std::cout << "   Old Plane: " << AString::fromNumbers(centerPlaneXYZ) << std::endl;
-//                                            std::cout << "   New Stereotaxic: " << AString::fromNumbers(newStereotaxicXYZ) << std::endl;
-//                                            std::cout << "   New Plane: " << AString::fromNumbers(newPlaneXYZ) << std::endl;
-//                                            std::cout << "   Diff Plane: " << AString::fromNumbers(diffPlaneXYZ) << std::endl;
-//
-////                                            Vector3D translation;
-////                                            m_browserTabContent->getTranslation(translation);
-////                                            translation[0] += diffPlaneXYZ[0];
-////                                            translation[1] += diffPlaneXYZ[1];
-////                                            m_browserTabContent->setTranslation(translation);
-//
-//                                            newPlaneCoordXYZ = newPlaneXYZ;
-//                                            newPlaneCoordXYZValid = true;
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
+            if (hc.isValid()) {
+                m_browserTabContent->setHistologySelectedCoordinate(hc);
+                updateGraphicsWindowAndYokedWindows();
+                updateUserInterface();
             }
-            
-            m_browserTabContent->setHistologySelectedCoordinate(hc);
-            updateGraphicsWindowAndYokedWindows();
-            if (newPlaneCoordXYZValid) {
-                HistologyCoordinate hc2(HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
-                                                                                        sliceIndex,
-                                                                                        newPlaneCoordXYZ));
-                m_browserTabContent->setHistologySelectedCoordinate(hc2);
-            }
-            updateUserInterface();
         }
     }
 }

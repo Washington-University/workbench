@@ -86,7 +86,10 @@ m_parentToolBar(parentToolBar)
 
     QLabel* modeLabel(new QLabel("Coord"));
     m_mediaDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_mediaDisplayCoordinateModeEnumComboBox->setup<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>();
+    std::vector<MediaDisplayCoordinateModeEnum::Enum> supportedModes;
+    supportedModes.push_back(MediaDisplayCoordinateModeEnum::PIXEL);
+    supportedModes.push_back(MediaDisplayCoordinateModeEnum::PLANE);
+    m_mediaDisplayCoordinateModeEnumComboBox->setupWithItems<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(supportedModes);
     QObject::connect(m_mediaDisplayCoordinateModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarImage::mediaDisplayCoordinateModeEnumComboBoxItemActivated);
     m_mediaDisplayCoordinateModeEnumComboBox->getWidget()->setObjectName(parentObjectName
