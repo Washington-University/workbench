@@ -53,6 +53,17 @@ MediaFileTransforms::MediaFileTransforms()
 }
 
 /**
+ * Copy constructor
+ * @param mft
+ *    Instance copied to this
+ */
+MediaFileTransforms::MediaFileTransforms(const MediaFileTransforms& mft)
+{
+    copyHelper(mft);
+}
+
+
+/**
  * Constructor.
  * @param parentMediaFile
  *    Media file that owns this instance
@@ -98,11 +109,23 @@ MediaFileTransforms&
 MediaFileTransforms::operator=(const MediaFileTransforms& mft)
 {
     if (this != &mft) {
-        m_inputs = mft.m_inputs;
+        copyHelper(mft);
     }
     
     return *this;
 }
+
+/**
+ * Copies other instance to this
+ * @param mft
+ *    Instance to copy
+ */
+void
+MediaFileTransforms::copyHelper(const MediaFileTransforms& mft)
+{
+    m_inputs = mft.m_inputs;
+}
+
 
 /**
  * @return A pixel index converted from a pixel logical index.

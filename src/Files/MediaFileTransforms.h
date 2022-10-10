@@ -93,7 +93,7 @@ namespace caret {
         
         virtual ~MediaFileTransforms();
         
-        MediaFileTransforms(const MediaFileTransforms&) = delete;
+        MediaFileTransforms(const MediaFileTransforms&);
 
         MediaFileTransforms& operator=(const MediaFileTransforms&);
         
@@ -159,6 +159,8 @@ namespace caret {
         Inputs m_inputs;
         
         void testTransforms();
+        
+        void copyHelper(const MediaFileTransforms& mft);
         
         // ADD_NEW_MEMBERS_HERE
 

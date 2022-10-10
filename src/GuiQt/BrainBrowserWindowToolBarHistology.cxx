@@ -198,7 +198,7 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
                                                          "Set media coordinate mode for display");
 #ifdef NDEBUG
-    m_histologyDisplayCoordinateModeEnumComboBox->setEnabled(false);
+    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setEnabled(false);
 #endif
 
     /*
