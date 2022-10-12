@@ -45,8 +45,6 @@
 using namespace caret;
 using namespace std;
 
-static const AString writeSceneFileOptionName("-write-scene-file");
-
 AString OperationZipSceneFile::getCommandSwitch()
 {
     return "-zip-scene-file";
@@ -71,7 +69,7 @@ OperationParameters* OperationZipSceneFile::getParameters()
     
     ret->createOptionalParameter(5, "-skip-missing", "any missing files will generate only warnings, and the zip file will be created anyway");
 
-    ret->createOptionalParameter(6, writeSceneFileOptionName, "allow writing of scene file if base path or extract directory change");
+    ret->createOptionalParameter(6, "-write-scene-file", "rewrite the scene file before zipping, to store a new base path or fix extra '..'s in paths that might break");
     
     ret->setHelpText("If zip-file already exists, it will be overwritten.  "
         "If -base-dir is not specified, the base directory will be automatically set to the lowest level directory containing all files.  "
@@ -110,7 +108,7 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
                                           const AString& baseDirectory,
                                           const ProgressMode progressMode,
                                           const bool skipMissing,
-                                          const bool allowSceneFileWriting)
+                                          const bool rewriteSceneFile)
 {
     LevelProgress myProgress(myProgObj);
     FileInformation sceneFileInfo(sceneFileName);
@@ -142,36 +140,45 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
     else {
         AString baseDirectoryName;
         std::vector<AString> missingFileNames;
-        AString errorMessage;
-        const bool validBasePathFlag = sceneFile.findBaseDirectoryForDataFiles(baseDirectoryName,
-                                                                               missingFileNames,
-                                                                               errorMessage);
-        if ( ! validBasePathFlag) {
-            throw OperationException("Automatic Base Directory Failed: "
-                                     + errorMessage);
-        }
+        switch (sceneFile.getBasePathType())
+        {
+            case SceneFileBasePathTypeEnum::AUTOMATIC:
+            {
+                AString errorMessage;
+                const bool validBasePathFlag = sceneFile.findBaseDirectoryForDataFiles(baseDirectoryName,
+                                                                                    missingFileNames,
+                                                                                    errorMessage);
+                if ( ! validBasePathFlag) {
+                    throw OperationException("Automatic Base Directory Failed: "
+                                            + errorMessage);
+                }
 
-        myBaseDir = QDir::cleanPath(baseDirectoryName);
+                myBaseDir = QDir::cleanPath(baseDirectoryName);
+                break;
+            }
+            case SceneFileBasePathTypeEnum::CUSTOM:
+            {
+                myBaseDir = QDir::cleanPath(sceneFile.getBalsaCustomBaseDirectory());
+                break;
+            }
+        }
         cout << "Base Directory: " << myBaseDir << endl;
-        sceneFile.setBasePathType(SceneFileBasePathTypeEnum::AUTOMATIC);
     }
     if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
         myBaseDir += "/";//so, add the trailing slash to the path
     }
     
+    AString warningMsg;
     sceneFile.setBalsaExtractToDirectoryName(outputSubDirectory);
     if (sceneFile.isModified()) {
         switch (ApplicationInformation::getApplicationType()) {
             case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
-                if (allowSceneFileWriting) {
-                    sceneFile.writeFile(sceneFile.getFileName());
+                if (rewriteSceneFile) {
                     cout << "Writing scene file: " << sceneFile.getFileName() << endl;
-                }
-                else {
-                    cout << ("WARNING: Files may not load correctly as base path may have changed.  Extract files from ZIP file "
-                             "and test loading of scenes.  If files are not correctly loaded, rerun this command with the \""
-                             + writeSceneFileOptionName + "\" option so that paths to files in the scene file are updated.");
+                    sceneFile.writeFile(sceneFile.getFileName());
+                } else {
+                    warningMsg = "new base directory or extraction directory was specified, but without -write-scene-file - if this zip is uploaded to balsa, it may extract to a different directory name than you want";
                 }
                 break;
             case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
@@ -380,5 +387,9 @@ void OperationZipSceneFile::createZipFile(ProgressObject* myProgObj,
             }
             EventManager::get()->sendEvent(progressEvent.getPointer());
             break;
+    }
+    if (warningMsg != "")
+    {
+        CaretLogWarning(warningMsg); //do the -write-scene-file warning last so people actually see it
     }
 }
