@@ -1079,7 +1079,7 @@ ImageFile::writeFile(const AString& filename)
         }
     }
     
-    if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
+    if (writer.supportsOption(QImageIOHandler::CompressionRatio) && writer.compression() == 0) {
         writer.setCompression(1);
     }
     
