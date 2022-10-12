@@ -171,7 +171,9 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
     {
         throw OperationException("template cifti file does not have brain models along column");
     }
-    CiftiXML outXML = templateXML;
+    CiftiXML outXML;//don't inherit any metadata from the template file, we want only the brainordinates
+    outXML.setNumberOfDimensions(2);
+    outXML.setMap(CiftiXML::ALONG_COLUMN, *(templateXML.getMap(CiftiXML::ALONG_COLUMN)));
     int labelMode = -1;//-1 not set, 0 set to false, 1 set to true
     int64_t numMaps = -1;
     const CaretMappableDataFile* nameFile = NULL;
