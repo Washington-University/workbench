@@ -1224,7 +1224,7 @@ void CommandOperationManager::printCiftiHelp()
     cout << "         timeseries of 0 sec, 0.7 sec, 1.4 sec, ...)" << endl;
     cout << "      Labels: each index is assigned a name (i.e., 'Visual Areas'), but also a" << endl;
     cout << "         list of labels that maps integer data values to names and colors (i.e." << endl;
-    cout << "         {(5, 'V1', #ff0000), (7, 'V2', #00ff00), ...}" << endl;
+    cout << "         {(5, 'V1', #ff0000), (7, 'V2', #00ff00), ...})" << endl;
     cout << endl;//guide for wrap, assuming 80 columns:                                     |
     cout << "   The commands that operate on cifti files often require you to specify which" << endl;
     cout << "   dimension they should operate on.  Because cifti files can contain 3" << endl;
