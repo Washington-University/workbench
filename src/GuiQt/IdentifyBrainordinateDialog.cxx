@@ -33,6 +33,7 @@ using namespace caret;
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include <QTextEdit>
 
 #include "Brain.h"
 #include "BrainordinateRegionOfInterest.h"
@@ -64,6 +65,7 @@ using namespace caret;
 #include "GiftiLabelTableSelectionComboBox.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
+#include "IdentifiedItemUniversal.h"
 #include "ImageFile.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
@@ -260,7 +262,6 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_imagePixelRadioButton = new QRadioButton("Image Pixel");
     m_labelRadioButton = new QRadioButton("Label");
     m_stereotaxicRadioButton = new QRadioButton("Stereotaxic");
-    m_stereotaxicRadioButton->setEnabled(false);
     m_surfaceVertexRadioButton = new QRadioButton("Surface Vertex");
     
     int32_t buttonIndex(0);
@@ -530,6 +531,8 @@ IdentifyBrainordinateDialog::createStereotaxicWidget()
     m_stereotaxicZWidget->setSingleStep(1.0);
     m_stereotaxicZWidget->setDecimals(4);
 
+    m_stereotaxicTextEdit = new QTextEdit();
+    
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
     int row(layout->rowCount());
@@ -540,6 +543,8 @@ IdentifyBrainordinateDialog::createStereotaxicWidget()
     layout->addWidget(m_stereotaxicXWidget->getWidget(), row, COLUMN_X, Qt::AlignHCenter);
     layout->addWidget(m_stereotaxicYWidget->getWidget(), row, COLUMN_Y, Qt::AlignHCenter);
     layout->addWidget(m_stereotaxicZWidget->getWidget(), row, COLUMN_Z, Qt::AlignHCenter);
+    ++row;
+    layout->addWidget(m_stereotaxicTextEdit, row, COLUMN_X, 1, 3);
     layout->setRowStretch(1000, 1000);
     layout->setColumnStretch(4, 1000);
     
@@ -1206,6 +1211,17 @@ IdentifyBrainordinateDialog::processStereotaxicWidget(AString& errorMessageOut)
                        m_stereotaxicYWidget->value(),
                        m_stereotaxicZWidget->value());
     
-    errorMessageOut = "Not implemented";
+
+    const AString text(m_stereotaxicTextEdit->toPlainText());
+    IdentifiedItemUniversal* item(IdentifiedItemUniversal::newInstanceStereotaxicIdentification(text,
+                                                                                                text,
+                                                                                                xyz));
+    IdentificationManager* idManager(brain->getIdentificationManager());
+    CaretAssert(idManager);
+    idManager->addIdentifiedItem(item);
+    
+    EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
 }
 

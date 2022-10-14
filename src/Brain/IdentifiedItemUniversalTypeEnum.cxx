@@ -114,6 +114,10 @@ IdentifiedItemUniversalTypeEnum::initialize()
                                                        "HISTOLOGY_PLANE_COORDINATE",
                                                        "Histology Plane Coordinate"));
     
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(HISTOLOGY_STEREOTAXIC_COORDINATE,
+                                                       "HISTOLOGY_STEREOTAXIC_COORDINATE",
+                                                       "Histology Stereotaxic Coordinate"));
+    
     enumData.push_back(IdentifiedItemUniversalTypeEnum(MEDIA_LOGICAL_COORDINATE,
                                                        "MEDIA_LOGICAL_COORDINATE",
                                                        "Media Logical Coordinate"));
@@ -122,6 +126,10 @@ IdentifiedItemUniversalTypeEnum::initialize()
                                                        "MEDIA_PLANE_COORDINATE",
                                                        "Media Plane Coordinate"));
     
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(STEREOTAXIC_XYZ,
+                                                       "STEREOTAXIC_XYZ",
+                                                       "Stereotaxic XYZ"));
+    
     enumData.push_back(IdentifiedItemUniversalTypeEnum(SURFACE,
                                                        "SURFACE",
                                                        "Surface"));
@@ -129,6 +137,14 @@ IdentifiedItemUniversalTypeEnum::initialize()
     enumData.push_back(IdentifiedItemUniversalTypeEnum(TEXT_NO_SYMBOL,
                                                        "TEXT_NO_SYMBOL",
                                                        "Text No Symbol"));
+    
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(VOLUME_INTENSITY_2D,
+                                                       "VOLUME_INTENSITY_3D",
+                                                       "Volume Intensity 3D"));
+    
+    enumData.push_back(IdentifiedItemUniversalTypeEnum(VOLUME_INTENSITY_3D,
+                                                       "VOLUME_INTENSITY_3D",
+                                                       "Volume Intensity 3D"));
     
     enumData.push_back(IdentifiedItemUniversalTypeEnum(VOLUME_SLICES,
                                                        "VOLUME_SLICES",

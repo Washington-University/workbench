@@ -123,7 +123,7 @@ IdentifiedItemUniversal::newInstanceInvalidIdentification()
 }
 
 /**
- * @return New instance for a pixel identification.
+ * @return New instance for a text identification.
  *
  * @param simpleText
  *    Text describing the identified item.
@@ -146,6 +146,47 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
     HistologyCoordinate histologyCoordinate;
     voxelIJK.fill(0);
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::TEXT_NO_SYMBOL,
+                                                                simpleText,
+                                                                formattedText,
+                                                                dataFileName,
+                                                                structure,
+                                                                surfaceNumberOfVertices,
+                                                                surfaceVertexIndex,
+                                                                pixelLogicalIndex,
+                                                                Vector3D(),
+                                                                voxelIJK,
+                                                                histologyCoordinate,
+                                                                stereotaxicXYZ,
+                                                                stereotaxicXYZValidFlag);
+    return item;
+}
+
+/**
+ * @return New instance for a stereotaxic identification.
+ *
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
+ * @param stereotaxicXYZ
+ *    Stereotaxic coordinate
+ */
+IdentifiedItemUniversal*
+IdentifiedItemUniversal::newInstanceStereotaxicIdentification(const AString& simpleText,
+                                                              const AString& formattedText,
+                                                              const Vector3D& stereotaxicXYZ)
+{
+    AString dataFileName;
+    PixelLogicalIndex pixelLogicalIndex;
+    const Vector3D pixelPlaneCoordinate;
+    const bool stereotaxicXYZValidFlag(true);
+    const StructureEnum::Enum structure(StructureEnum::INVALID);
+    const int32_t surfaceNumberOfVertices(-1);
+    const int32_t surfaceVertexIndex(-1);
+    std::array<int64_t, 3> voxelIJK;
+    HistologyCoordinate histologyCoordinate;
+    voxelIJK.fill(0);
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ,
                                                                 simpleText,
                                                                 formattedText,
                                                                 dataFileName,
@@ -686,6 +727,14 @@ IdentifiedItemUniversal::getToolTip() const
                            + xyzText);
         }
             break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+            toolTipText = ("Stereotaxic "
+                           + xyzText);
+            if ( ! m_simpleText.isEmpty()) {
+                toolTipText += ("<br>"
+                                + m_simpleText);
+            }
+            break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             toolTipText = ("ID from Surface: "
                            + m_dataFileName + "<br>"
@@ -738,6 +787,11 @@ IdentifiedItemUniversal::isValid() const
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             return true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+            if (m_stereotaxicXYZValidFlag) {
+                return true;
+            }
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             if ((m_structure != StructureEnum::INVALID)

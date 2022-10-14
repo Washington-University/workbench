@@ -238,6 +238,8 @@ IdentificationManager::removeIdentificationText()
             case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
                 keepFlag = true;
                 break;
+            case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+                break;
             case IdentifiedItemUniversalTypeEnum::SURFACE:
                 keepFlag = true;
                 break;
@@ -319,6 +321,8 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             mediaPlaneCoordFlag = true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             break;
@@ -1105,6 +1109,9 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             text = "Show ID Symbols on Media Plane Coordinates";
             break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+            text = "Stereotaxic XYZ";
+            break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             text = "Show ID Symbols on Surface";
             break;
@@ -1150,6 +1157,8 @@ IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalT
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
             text.append("(Surface, Volume, or other Media)");
+            break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
             break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
             text.append("(Media, Volume)");

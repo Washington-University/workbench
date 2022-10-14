@@ -45,6 +45,8 @@ public:
         MEDIA_LOGICAL_COORDINATE,
         /** Media with plane coordinate */
         MEDIA_PLANE_COORDINATE,
+        /** Stereotaxic  XYZ */
+        STEREOTAXIC_XYZ,
         /** Surface */
         SURFACE,
         /** Text only, no symbol */

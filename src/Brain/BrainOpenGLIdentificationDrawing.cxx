@@ -608,6 +608,11 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             }
         }
             break;
+        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+            /*
+             * Never "draw on" this type, not a model for drawing
+             */
+            break;
         case IdentifiedItemUniversalTypeEnum::SURFACE:
         {
             CaretAssert(surface);
@@ -848,6 +853,12 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         xyz = item->getStereotaxicXYZ();
                         drawFlag = true;
                     }
+                }
+                break;
+            case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
+                if (item->isStereotaxicXYZValid()) {
+                    xyz = item->getStereotaxicXYZ();
+                    drawFlag = true;
                 }
                 break;
             case IdentifiedItemUniversalTypeEnum::SURFACE:
@@ -1180,6 +1191,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
                             break;
                         case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::STEREOTAXIC_XYZ:
                             break;
                         case IdentifiedItemUniversalTypeEnum::SURFACE:
                             break;

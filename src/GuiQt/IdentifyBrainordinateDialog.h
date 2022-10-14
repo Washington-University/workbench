@@ -31,6 +31,7 @@ class QLabel;
 class QRadioButton;
 class QSpinBox;
 class QStackedWidget;
+class QTextEdit;
 
 namespace caret {
 
@@ -197,6 +198,8 @@ namespace caret {
         QSpinBox* m_imagePixelISpinBox;
         
         QSpinBox* m_imagePixelJSpinBox;
+        
+        QTextEdit* m_stereotaxicTextEdit;
         
         WuQDoubleSpinBox* m_stereotaxicXWidget;
         
