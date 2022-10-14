@@ -168,14 +168,8 @@ IdentifiedItemUniversal::newInstanceTextNoSymbolIdentification(const AString& si
  *    Text describing the identified item.
  * @param formattedText
  *    Formatted text describing the identified item.
- * @param dataFileName
- *    Name of data file on which identification was performed
- * @param planeCoordinate
- *    The plane coordinate
- * @param stereotaxicXYZ
- *    Stereotaxic coordinate of vertex
- * @param stereotaxicXYZValidFlag
- *    True if the stereotaxic coordinate is valid
+ * @param histologyCoordinate
+ *    The histology coordinate
  *
  */
 IdentifiedItemUniversal*
@@ -191,6 +185,45 @@ IdentifiedItemUniversal::newInstanceHistologyCoordinateIdentification(const AStr
     voxelIJK.fill(0);
     PixelLogicalIndex pixelLogicalIndex;
     IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
+                                                                simpleText,
+                                                                formattedText,
+                                                                histologyCoordinate.getHistologySlicesFileName(),
+                                                                structure,
+                                                                surfaceNumberOfVertices,
+                                                                surfaceVertexIndex,
+                                                                pixelLogicalIndex,
+                                                                histologyCoordinate.getPlaneXYZ(),
+                                                                voxelIJK,
+                                                                histologyCoordinate,
+                                                                histologyCoordinate.getStereotaxicXYZ(),
+                                                                histologyCoordinate.isStereotaxicXYZValid());
+    return item;
+}
+
+/**
+ * @return New instance for a histology plane XYZ identification.
+ *
+ * @param simpleText
+ *    Text describing the identified item.
+ * @param formattedText
+ *    Formatted text describing the identified item.
+ * @param histologyCoordinate
+ *    The histology coordinate
+ *
+ */
+IdentifiedItemUniversal*
+IdentifiedItemUniversal::newInstanceHistologyStereotaxicCoordinateIdentification(const AString& simpleText,
+                                                                      const AString& formattedText,
+                                                                      const HistologyCoordinate& histologyCoordinate)
+{
+    CaretAssert(histologyCoordinate.isValid());
+    const StructureEnum::Enum structure(StructureEnum::INVALID);
+    const int32_t surfaceNumberOfVertices(-1);
+    const int32_t surfaceVertexIndex(-1);
+    std::array<int64_t, 3> voxelIJK;
+    voxelIJK.fill(0);
+    PixelLogicalIndex pixelLogicalIndex;
+    IdentifiedItemUniversal* item = new IdentifiedItemUniversal(IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE,
                                                                 simpleText,
                                                                 formattedText,
                                                                 histologyCoordinate.getHistologySlicesFileName(),
@@ -623,6 +656,16 @@ IdentifiedItemUniversal::getToolTip() const
                            + xyzText);
         }
             break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+        {
+            toolTipText = ("ID from Histology File: "
+                           + m_dataFileName + "<br>"
+                           "Stereotaxic ("
+                           + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
+                           + ")"
+                           + xyzText);
+        }
+            break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
         {
             toolTipText = ("ID from Media File: "
@@ -686,6 +729,9 @@ IdentifiedItemUniversal::isValid() const
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
             return m_histologyCoordinate.isValid();
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+            return m_stereotaxicXYZValidFlag;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             return true;

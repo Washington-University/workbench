@@ -4189,6 +4189,27 @@ BrowserTabContent::applyHistologyMouseScaling(BrainOpenGLViewportContent* viewpo
                                               const float dataY,
                                               const bool dataXYValidFlag)
 {
+    switch (getHistologyDisplayCoordinateMode()) {
+        case MediaDisplayCoordinateModeEnum::PIXEL:
+            break;
+        case MediaDisplayCoordinateModeEnum::PLANE:
+            break;
+        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+        {
+            float scaling = getViewingTransformation()->getScaling();
+            if (mouseDY != 0.0) {
+                scaling *= (1.0f + (mouseDY * 0.01));
+            }
+            if (scaling < 0.01) {
+                scaling = 0.01;
+            }
+            getViewingTransformation()->setScaling(scaling);
+            updateYokedModelBrowserTabs();
+        }
+            return;
+            break;
+    }
+
     if (isHistologyDisplayed()) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
         getViewingTransformation()->scaleAboutMouse(xform,

@@ -79,6 +79,8 @@ public:
         FOCUS_VOLUME,
         /** Histology plane coordinate */
         HISTOLOGY_PLANE_COORDINATE,
+        /** Histology stereotaxic coordinate */
+        HISTOLOGY_STEREOTAXIC_COORDINATE,
         /* Image */
         IMAGE,
         /* Image Control Point */

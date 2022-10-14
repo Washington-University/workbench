@@ -625,26 +625,26 @@ CziImageLoaderMultiResolution::getViewportStereotaxicCoordinates(const GraphicsO
     viewport = viewport.marginsAdded(margins);
     
     /*
-     * Window coordinate at Top Left Corner of Viewport
+     * Window coordinate at Bottom Left Corner of Viewport
      * 'inverseTransformPoint()' transforms from window coordinates to
      * sterotaxic coordinate
      */
-    Vector3D stereotaxicCoordAtTopLeft;
+    Vector3D stereotaxicCoordAtBottomLeft;
     transform->inverseTransformPoint(viewport.x(),
-                                     viewport.y() + viewport.height(),
+                                     viewport.y(),
                                      0.0,
-                                     stereotaxicCoordAtTopLeft);
+                                     stereotaxicCoordAtBottomLeft);
     
     /*
-     * Window coordinate at Bottom Right of Viewport
+     * Window coordinate at Top Right of Viewport
      * 'inverseTransformPoint()' transforms from window coordinates to
      * stereotaxic coordinate (PLANE)
      */
-    Vector3D stereotaxicCoordAtBottomRight;
+    Vector3D stereotaxicCoordAtTopRight;
     transform->inverseTransformPoint(viewport.x() + viewport.width(),
-                                     viewport.y(),
+                                     viewport.y() + viewport.height(),
                                      0.0,
-                                     stereotaxicCoordAtBottomRight);
+                                     stereotaxicCoordAtTopRight);
     
     /*
      * X, Y, Width, Height
@@ -652,10 +652,10 @@ CziImageLoaderMultiResolution::getViewportStereotaxicCoordinates(const GraphicsO
      *
      * CaretAssertToDoWarning();
      */
-    const QRectF rect(stereotaxicCoordAtBottomRight[0],
-                      stereotaxicCoordAtBottomRight[1],
-                      (stereotaxicCoordAtBottomRight[0] - stereotaxicCoordAtTopLeft[0]),
-                      (stereotaxicCoordAtTopLeft[2] - stereotaxicCoordAtBottomRight[2]));
+    const QRectF rect(stereotaxicCoordAtBottomLeft[0],
+                      stereotaxicCoordAtBottomLeft[1],
+                      (stereotaxicCoordAtTopRight[0] - stereotaxicCoordAtBottomLeft[0]),
+                      (stereotaxicCoordAtTopRight[2] - stereotaxicCoordAtBottomLeft[2]));
     return rect;
 }
 

@@ -64,6 +64,13 @@ namespace caret {
                                                                    const float viewingZoom,
                                                                    const float heightForPercentageSizedSymbols);
 
+        void drawHistologyFileStereotaxicCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
+                                                                         const int32_t histologySliceNumber,
+                                                                         const Plane& plane,
+                                                                         const float mediaThickness,
+                                                                         const float viewingZoom,
+                                                                         const float heightForPercentageSizedSymbols);
+
         void drawMediaFileLogicalCoordinateIdentificationSymbols(const MediaFile* mediaFile,
                                                                  const Plane& plane,
                                                                  const float mediaThickness,

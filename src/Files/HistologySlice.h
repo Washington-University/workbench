@@ -96,6 +96,11 @@ namespace caret {
         bool projectStereotaxicXyzToSlice(const Vector3D stereotaxicXYZ,
                                           Vector3D& stereotaxicOnSliceXYZ) const;
         
+        bool projectStereotaxicXyzToSlice(const Vector3D& stereotaxicXYZ,
+                                          Vector3D& stereotaxicOnSliceXYZ,
+                                          float& stereotaxicDistanceToSliceOut,
+                                          Vector3D& planeOnSliceXYZ) const;
+
         const Plane& getStereotaxicPlane() const;
         
         const Plane& getPlaneXyzPlane() const;

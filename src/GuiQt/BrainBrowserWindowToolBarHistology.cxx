@@ -33,6 +33,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowToolBarSliceSelection.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
@@ -42,7 +43,9 @@
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventBrowserTabValidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GuiManager.h"
 #include "HistologySlice.h"
@@ -432,6 +435,43 @@ BrainBrowserWindowToolBarHistology::receiveEvent(Event* event)
 }
 
 /**
+ * Get the plane and stereotaxic coordinates at the center of the viewport
+ * @param planeXyzOut
+ * @param stereotaxicXyzOut
+ * @return True if both coordinates are valid
+ */
+bool
+BrainBrowserWindowToolBarHistology::getPlaneAndStereotaxicAtViewportCenter(const HistologySlice* histologySlice,
+                                                                           Vector3D& planeXyzOut,
+                                                                           Vector3D& stereotaxicXyzOut)
+{
+    if (histologySlice != NULL) {
+        const BrainOpenGLViewportContent* vpContent(getBrainOpenGLViewportContent());
+        const GraphicsObjectToWindowTransform* xform(vpContent->getHistologyGraphicsObjectToWindowTransform());
+        CaretAssert(xform);
+        if (xform->isValid()) {
+            CaretAssert(vpContent);
+            int32_t viewport[4];
+            vpContent->getModelViewport(viewport);
+            const Vector3D vpCenter(viewport[0] + (viewport[2] / 2),
+                                    viewport[1] + (viewport[3] / 2),
+                                    1.0);
+            xform->inverseTransformPoint(vpCenter,
+                                         planeXyzOut);
+            if (histologySlice->planeXyzToStereotaxicXyz(planeXyzOut,
+                                                         stereotaxicXyzOut)) {
+                return true;
+            }
+        }
+    }
+
+    planeXyzOut.fill(0.0);
+    stereotaxicXyzOut.fill(0.0);
+    
+    return false;
+}
+
+/**
  * Called when slice index is changed
  * @param sliceIndex
  *    New slice index
@@ -446,12 +486,41 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
             cursor.showWaitCursor();
             
             HistologyCoordinate previousHistCoord(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
+            const int32_t previousSliceIndex(previousHistCoord.getSliceIndex());
+            Vector3D previousPlaneXYZ, previousStereotaxicXYZ;
+            const bool previousValidFlag(getPlaneAndStereotaxicAtViewportCenter(histologySlicesFile->getHistologySliceByIndex(previousSliceIndex),
+                                                                                previousPlaneXYZ, previousStereotaxicXYZ));
             HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
                                                                                      previousHistCoord,
                                                                                      sliceIndex));
             if (hc.isValid()) {
                 m_browserTabContent->setHistologySelectedCoordinate(hc);
+                
+                const int32_t sliceStep(std::abs(sliceIndex -  previousSliceIndex));
+                if (sliceStep == 1) {
+                    Vector3D planeXYZ, stereotaxicXYZ;
+                    
+                    if (previousValidFlag) {
+                        const HistologySlice* histologySlice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+                        if (histologySlice != NULL) {
+                            Vector3D newPlaneXYZ;
+                            Vector3D newStereotaxicXYZ;
+                            float distanceToSlice(0.0);
+                            if (histologySlice->projectStereotaxicXyzToSlice(previousStereotaxicXYZ,
+                                                                                             newStereotaxicXYZ,
+                                                                                             distanceToSlice,
+                                                                                             planeXYZ)) {
+                                std::cout << "New stereotaxic might be: " << newStereotaxicXYZ.toString(5) << std::endl;
+                                if (histologySlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ, newPlaneXYZ)) {
+                                    std::cout << "   New plane might be: " << newPlaneXYZ.toString(5) << std::endl;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 updateGraphicsWindowAndYokedWindows();
+                
                 updateUserInterface();
             }
         }

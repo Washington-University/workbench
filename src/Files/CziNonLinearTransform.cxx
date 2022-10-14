@@ -323,14 +323,24 @@ CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& stereot
             }
         }
         else {
-            CaretLogFine("("
+            CaretLogWarning("("
                          + AString::number(niftiI)
                          + ", "
                          + AString::number(niftiJ)
                          + ", "
                          + AString::number(niftiK)
-                         + ") is not a valid pixel index for ");
+                         + ") is not a valid pixel index");
         }
+    }
+    else {
+        CaretLogWarning("("
+                        + AString::number(indexI)
+                        + ", "
+                        + AString::number(indexJ)
+                        + ", "
+                        + AString::number(indexK)
+                        + ") is not a valid NIFTI index into " + m_niftiFile->getFileName());
+        
     }
 }
 
@@ -373,14 +383,24 @@ CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
             }
         }
         else {
-            CaretLogFine("("
+            CaretLogWarning("("
                          + AString::number(niftiI)
                          + ", "
                          + AString::number(niftiJ)
                          + ", "
                          + AString::number(niftiK)
-                         + ") is not a valid pixel index");
+                         + ") is not a valid NIFTI index");
         }
+    }
+    else {
+        CaretLogWarning("("
+                        + AString::number(indexI)
+                        + ", "
+                        + AString::number(indexJ)
+                        + ", "
+                        + AString::number(indexK)
+                        + ") is not a valid NIFTI index into " + m_niftiFile->getFileName());
+
     }
 }
 

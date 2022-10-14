@@ -35,6 +35,7 @@
 #include "CziImageFile.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
 #include "HistologySlicesFile.h"
 #include "IdentificationWithColor.h"
@@ -165,7 +166,7 @@ BrainOpenGLIdentificationDrawing::drawMediaFileLogicalCoordinateIdentificationSy
  *    Zooming (scaling) for current view
  * @param heightForPercentageSizedSymbols
  *    Height used when symbols are percentage sized
-
+ 
  */
 void
 BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
@@ -186,6 +187,53 @@ BrainOpenGLIdentificationDrawing::drawHistologyFilePlaneCoordinateIdentification
     float surfaceOrVolumeMaximumDimension(0.0);
     MediaFile* nullMediaFile(NULL);
     drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE,
+                              surface,
+                              histologySlicesFile,
+                              histologySliceNumber,
+                              nullMediaFile,
+                              volume,
+                              plane,
+                              mediaThickness,
+                              viewingZoom,
+                              heightForPercentageSizedSymbols,
+                              surfaceOrVolumeMaximumDimension);
+}
+
+/**
+ * Draw identification symbols on histology file for stereotaxic coordinates
+ * @param histologySlicesFile,
+ *    Histology slices file on which symbols are drawn
+ * @param histologySliceNumber
+ *    Number of the histology slice
+ * @param plane
+ *    Plane of the media
+ * @param mediaThickness
+ *    Thickness of the media for those that support stereotaxic coordinates
+ * @param viewingZoom
+ *    Zooming (scaling) for current view
+ * @param heightForPercentageSizedSymbols
+ *    Height used when symbols are percentage sized
+
+ */
+void
+BrainOpenGLIdentificationDrawing::drawHistologyFileStereotaxicCoordinateIdentificationSymbols(const HistologySlicesFile* histologySlicesFile,
+                                                                                        const int32_t histologySliceNumber,
+                                                                                        const Plane& plane,
+                                                                                        const float mediaThickness,
+                                                                                        const float viewingZoom,
+                                                                                        const float heightForPercentageSizedSymbols)
+{
+    CaretAssert(histologySlicesFile);
+    
+    if ( ! m_idManager->isShowHistologyIdentificationSymbols()) {
+        return;
+    }
+    
+    const Surface* surface(NULL);
+    const VolumeMappableInterface* volume(NULL);
+    float surfaceOrVolumeMaximumDimension(0.0);
+    MediaFile* nullMediaFile(NULL);
+    drawIdentificationSymbols(IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE,
                               surface,
                               histologySlicesFile,
                               histologySliceNumber,
@@ -498,6 +546,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
     
     bool drawingOnSurfaceFlag(false);
     bool drawingOnHistologyPlaneCoordFlag(false);
+    bool drawingOnHistologyStereotaxicCoordFlag(false);
     bool drawingOnMediaLogicalCoordFlag(false);
     bool drawingOnMediaPlaneCoordFlag(false);
     bool drawingOnVolumeIntensity2dFlag(false);
@@ -517,6 +566,20 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             }
             drawingOnHistologyPlaneCoordFlag = true;
             const BoundingBox boundingBox(histologySlicesFile->getPlaneXyzBoundingBox());
+            mediaHeight = boundingBox.getDifferenceY();
+            if (mediaHeight < 0.0) {
+                return;
+            }
+        }
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+        {
+            CaretAssert(histologySlicesFile);
+            if (histologySlicesFile == NULL) {
+                return;
+            }
+            drawingOnHistologyStereotaxicCoordFlag = true;
+            const BoundingBox boundingBox(histologySlicesFile->getStereotaxicXyzBoundingBox());
             mediaHeight = boundingBox.getDifferenceY();
             if (mediaHeight < 0.0) {
                 return;
@@ -612,7 +675,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             break;
     }
     
-    const float distanceToHistologySliceTolerance(0.5);
+    const float distanceToHistologySliceTolerance(10.0); //0.5);
 
     
     std::vector<const IdentifiedItemUniversal*> allItems(getIdentifiedItems());
@@ -700,18 +763,19 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         drawFlag = true;
                     }
                     else if (item->isStereotaxicXYZValid()) {
+                        drawFlag = false;
                         const HistologySlice* slice(histologySlicesFile->getHistologySliceByNumber(histologySliceNumber));
                         if (slice != NULL) {
-                            drawFlag = false;
-                            Vector3D planeXYZ;
-                            if (slice->stereotaxicXyzToPlaneXyz(item->getStereotaxicXYZ(),
-                                                                planeXYZ)) {
-                                const Plane plane(slice->getPlaneXyzPlane());
-                                if (plane.isValidPlane()) {
-                                    Vector3D pointOnPlaneXYZ;
-                                    const float distanceToSlice(plane.absoluteDistanceToPlane(planeXYZ));
+                            {
+                                Vector3D stereotaxicOnSliceXYZ;
+                                Vector3D planeOnSliceXYZ;
+                                float distanceToSlice;
+                                if (slice->projectStereotaxicXyzToSlice(item->getStereotaxicXYZ(),
+                                                                                        stereotaxicOnSliceXYZ,
+                                                                                        distanceToSlice,
+                                                                                        planeOnSliceXYZ)) {
                                     if (distanceToSlice < distanceToHistologySliceTolerance) {
-                                        xyz = planeXYZ;
+                                        xyz = planeOnSliceXYZ;
                                         drawFlag = true;
                                     }
                                 }
@@ -727,6 +791,15 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         xyz = item->getStereotaxicXYZ();
                         drawFlag = true;
                     }
+                }
+                break;
+            case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+                /*
+                 * Always use stereotaxic coordinate if available
+                 */
+                if (item->isStereotaxicXYZValid()) {
+                    xyz = item->getStereotaxicXYZ();
+                    drawFlag = true;
                 }
                 break;
             case IdentifiedItemUniversalTypeEnum::MEDIA_PLANE_COORDINATE:
@@ -939,18 +1012,16 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                         const HistologySlice* slice(histologySlicesFile->getHistologySliceByNumber(histologySliceNumber));
                         if (slice != NULL) {
                             drawFlag = false;
+                            float distanceToSlice(0.0);
                             Vector3D planeXYZ;
-                            if (slice->stereotaxicXyzToPlaneXyz(item->getStereotaxicXYZ(),
-                                                                planeXYZ)) {
-                                const Plane plane(slice->getPlaneXyzPlane());
-                                if (plane.isValidPlane()) {
-                                    Vector3D pointOnPlaneXYZ;
-                                    const float distanceToSlice(plane.absoluteDistanceToPlane(planeXYZ));
-                                    if (distanceToSlice < distanceToHistologySliceTolerance) {
-                                        planeXYZ[2] = 0.0;
-                                        xyz = planeXYZ;
-                                        drawFlag = true;
-                                    }
+                            Vector3D stereotaxicOnSliceXYZ;
+                            if (slice->projectStereotaxicXyzToSlice(item->getStereotaxicXYZ(),
+                                                                                    stereotaxicOnSliceXYZ,
+                                                                                    distanceToSlice,
+                                                                                    planeXYZ)) {
+                                if (distanceToSlice < distanceToHistologySliceTolerance) {
+                                    xyz = planeXYZ;
+                                    drawFlag = true;
                                 }
                             }
                         }
@@ -1010,6 +1081,14 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                 
                 height = heightForPercentageSizedSymbols;
             }
+            else if (drawingOnHistologyStereotaxicCoordFlag) {
+                CaretAssert(histologySlicesFile);
+                if (histologySlicesFile == NULL) {
+                    return;
+                }
+                
+                height = heightForPercentageSizedSymbols;
+            }
             else if(drawingOnMediaPlaneCoordFlag) {
                 CaretAssert(mediaFile);
                 if (mediaFile == NULL) {
@@ -1038,34 +1117,9 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                        symbolDiameter);
             
             if (selectFlag) {
-                if (drawingOnHistologyPlaneCoordFlag
-                    || drawingOnMediaLogicalCoordFlag
-                    || drawingOnMediaPlaneCoordFlag) {
-                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
-                                                                         selectionItemIndex);
-                }
-                else if (drawingOnSurfaceFlag) {
-                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
-                                                                         selectionItemIndex);
-                }
-                else if (drawingOnVolumeIntensity2dFlag
-                         || drawingOnVolumeIntensity3dFlag) {
-                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
-                                                                         selectionItemIndex);
-                }
-                else if (drawingOnVolumeSlicesFlag) {
-                    m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
-                                                                         SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
-                                                                         selectionItemIndex);
-                }
-                else {
-                    CaretAssertMessage(0, "Drawing on unrecognized model type");
-                    selectFlag = false;
-                }
-                
+                m_fixedPipelineDrawing->colorIdentification->addItem(symbolRGBA.data(),
+                                                                     SelectionItemDataTypeEnum::UNIVERSAL_IDENTIFICATION_SYMBOL,
+                                                                     selectionItemIndex);
                 /*
                  * Draw symbol a bit larger so that it is easier to select
                  */
@@ -1078,9 +1132,13 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
              */
             std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
             const bool pointSymbolFlag(drawingOnHistologyPlaneCoordFlag
+                                       || drawingOnHistologyStereotaxicCoordFlag
                                        || drawingOnMediaLogicalCoordFlag
                                        || drawingOnMediaPlaneCoordFlag);
             if (pointSymbolFlag) {
+                if (drawingOnHistologyStereotaxicCoordFlag) {
+                    symbolDiameter = GraphicsUtilitiesOpenGL::convertMillimetersToPixels(symbolDiameter);
+                }
                 idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
                 idPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS, symbolDiameter);
             }
@@ -1116,6 +1174,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                             CaretAssert(0);
                             break;
                         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+                            break;
+                        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
                             break;
                         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
                             break;

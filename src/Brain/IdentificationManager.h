@@ -201,9 +201,9 @@ namespace caret {
         
         float m_identifcationMostRecentSymbolPercentageSize;
         
-        float m_histologyIdentificationPercentageSymbolSize = 3.0;
+        float m_histologyIdentificationPercentageSymbolSize = 2.0;
         
-        float m_histologyIdentificationMostRecentPercentageSymbolSize = 5.0;
+        float m_histologyIdentificationMostRecentPercentageSymbolSize = 2.5;
         
         float m_mediaIdentificationPercentageSymbolSize = 3.0;
         

@@ -45,6 +45,7 @@
 #include "GraphicsRegionSelectionBox.h"
 #include "GuiManager.h"
 #include "SelectionItemHistologyCoordinate.h"
+#include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "KeyEvent.h"
 #include "MediaOverlaySet.h"
 #include "ModelMedia.h"
@@ -438,33 +439,66 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         bool modelXyzValidFlag(false);
         double modelXYZ[3];
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getX(),
-                                                                                                             mouseEvent.getY());
-        CaretAssert(histologyID);
-        if (histologyID->isValid()) {
-            const HistologyCoordinate coordinate(histologyID->getCoordinate());
-            switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
-                case MediaDisplayCoordinateModeEnum::PIXEL:
-                    CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
-                    break;
-                case MediaDisplayCoordinateModeEnum::PLANE:
-                    if (coordinate.isPlaneXYValid()) {
-                        const Vector3D planeXYZ(coordinate.getPlaneXYZ());
-                        modelXYZ[0] = planeXYZ[0];
-                        modelXYZ[1] = planeXYZ[1];
-                        modelXYZ[2] = planeXYZ[2];
-                        modelXyzValidFlag = true;
-                    }
-                    break;
-                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-                    if (coordinate.isStereotaxicXYZValid()) {
-                        const Vector3D stereotaxicXYZ(coordinate.getStereotaxicXYZ());
-                        modelXYZ[0] = stereotaxicXYZ[0];
-                        modelXYZ[1] = stereotaxicXYZ[1];
-                        modelXYZ[2] = stereotaxicXYZ[2];
-                        modelXyzValidFlag = true;
-                    }
-                    break;
+        {
+            SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getX(),
+                                                                                                                        mouseEvent.getY());
+            CaretAssert(histologyID);
+            if (histologyID->isValid()) {
+                const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
+                    case MediaDisplayCoordinateModeEnum::PIXEL:
+                        CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
+                        break;
+                    case MediaDisplayCoordinateModeEnum::PLANE:
+                        if (coordinate.isPlaneXYValid()) {
+                            const Vector3D planeXYZ(coordinate.getPlaneXYZ());
+                            modelXYZ[0] = planeXYZ[0];
+                            modelXYZ[1] = planeXYZ[1];
+                            modelXYZ[2] = planeXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                        break;
+                    case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                        if (coordinate.isStereotaxicXYZValid()) {
+                            const Vector3D stereotaxicXYZ(coordinate.getStereotaxicXYZ());
+                            modelXYZ[0] = stereotaxicXYZ[0];
+                            modelXYZ[1] = stereotaxicXYZ[1];
+                            modelXYZ[2] = stereotaxicXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                        break;
+                }
+            }
+        }
+        {
+            SelectionItemHistologyStereotaxicCoordinate* histologyID = openGLWidget->performIdentificationHistologyStereotaxicCoordinate(mouseEvent.getX(),
+                                                                                                                        mouseEvent.getY());
+            CaretAssert(histologyID);
+            if (histologyID->isValid()) {
+                const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
+                    case MediaDisplayCoordinateModeEnum::PIXEL:
+                        CaretAssertMessage(0, "Pixel drawing not supported for histology drawing");
+                        break;
+                    case MediaDisplayCoordinateModeEnum::PLANE:
+                        if (coordinate.isPlaneXYValid()) {
+                            const Vector3D planeXYZ(coordinate.getPlaneXYZ());
+                            modelXYZ[0] = planeXYZ[0];
+                            modelXYZ[1] = planeXYZ[1];
+                            modelXYZ[2] = planeXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                        break;
+                    case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                        if (coordinate.isStereotaxicXYZValid()) {
+                            const Vector3D stereotaxicXYZ(coordinate.getStereotaxicXYZ());
+                            modelXYZ[0] = stereotaxicXYZ[0];
+                            modelXYZ[1] = stereotaxicXYZ[1];
+                            modelXYZ[2] = stereotaxicXYZ[2];
+                            modelXyzValidFlag = true;
+                        }
+                        break;
+                }
             }
         }
 
@@ -615,7 +649,7 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
                 case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
                 {
                     CaretAssertToDoWarning(); /* does this work for stereotaxic? */
-                    SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getPressedX(),
+                    SelectionItemHistologyStereotaxicCoordinate* histologyID = openGLWidget->performIdentificationHistologyStereotaxicCoordinate(mouseEvent.getPressedX(),
                                                                                                                                 mouseEvent.getPressedY());
                     CaretAssert(histologyID);
                     if (histologyID->isValid()) {
@@ -1005,25 +1039,49 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
                             bool modelXyzValidFlag(false);
                             double modelXYZ[3];
-                            SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(gestureEvent.getStartCenterX(),
-                                                                                                                                             gestureEvent.getStartCenterY());
-                            CaretAssert(histologyID);
-                            if (histologyID->isValid()) {
-                                const HistologyCoordinate coordinate(histologyID->getCoordinate());
-                                const Vector3D planeXYZ(coordinate.getPlaneXYZ());
-                                modelXYZ[0] = planeXYZ[0];
-                                modelXYZ[1] = planeXYZ[1];
-                                modelXYZ[2] = planeXYZ[2];
-                                modelXyzValidFlag = true;
+                            {
+                                SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(gestureEvent.getStartCenterX(),
+                                                                                                                                            gestureEvent.getStartCenterY());
+                                CaretAssert(histologyID);
+                                if (histologyID->isValid()) {
+                                    const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                                    const Vector3D planeXYZ(coordinate.getPlaneXYZ());
+                                    modelXYZ[0] = planeXYZ[0];
+                                    modelXYZ[1] = planeXYZ[1];
+                                    modelXYZ[2] = planeXYZ[2];
+                                    modelXyzValidFlag = true;
+                                }
+                                if (modelXyzValidFlag) {
+                                    browserTabContent->applyHistologyMouseScaling(viewportContent,
+                                                                                  gestureEvent.getStartCenterX(),
+                                                                                  gestureEvent.getStartCenterX(),
+                                                                                  deltaY,
+                                                                                  modelXYZ[0],
+                                                                                  modelXYZ[1],
+                                                                                  true);
+                                }
                             }
-                            if (modelXyzValidFlag) {
-                                browserTabContent->applyHistologyMouseScaling(viewportContent,
-                                                                              gestureEvent.getStartCenterX(),
-                                                                              gestureEvent.getStartCenterX(),
-                                                                              deltaY,
-                                                                              modelXYZ[0],
-                                                                              modelXYZ[1],
-                                                                              true);
+                            {
+                                SelectionItemHistologyStereotaxicCoordinate* histologyID = openGLWidget->performIdentificationHistologyStereotaxicCoordinate(gestureEvent.getStartCenterX(),
+                                                                                                                                            gestureEvent.getStartCenterY());
+                                CaretAssert(histologyID);
+                                if (histologyID->isValid()) {
+                                    const HistologyCoordinate coordinate(histologyID->getCoordinate());
+                                    const Vector3D stereoXYZ(coordinate.getStereotaxicXYZ());
+                                    modelXYZ[0] = stereoXYZ[0];
+                                    modelXYZ[1] = stereoXYZ[1];
+                                    modelXYZ[2] = stereoXYZ[2];
+                                    modelXyzValidFlag = true;
+                                }
+                                if (modelXyzValidFlag) {
+                                    browserTabContent->applyHistologyMouseScaling(viewportContent,
+                                                                                  gestureEvent.getStartCenterX(),
+                                                                                  gestureEvent.getStartCenterX(),
+                                                                                  deltaY,
+                                                                                  modelXYZ[0],
+                                                                                  modelXYZ[1],
+                                                                                  true);
+                                }
                             }
                         }
                     }

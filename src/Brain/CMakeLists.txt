@@ -192,6 +192,7 @@ SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocusVolume.h
 SelectionItemHistologyCoordinate.h
+SelectionItemHistologyStereotaxicCoordinate.h
 SelectionItemImageControlPoint.h
 SelectionItemMediaLogicalCoordinate.h
 SelectionItemMediaPlaneCoordinate.h
@@ -397,6 +398,7 @@ SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocusVolume.cxx
 SelectionItemHistologyCoordinate.cxx
+SelectionItemHistologyStereotaxicCoordinate.cxx
 SelectionItemImageControlPoint.cxx
 SelectionItemMediaLogicalCoordinate.cxx
 SelectionItemMediaPlaneCoordinate.cxx

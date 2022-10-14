@@ -39,6 +39,7 @@
 #include "MediaFile.h"
 #include "MouseEvent.h"
 #include "SelectionItemHistologyCoordinate.h"
+#include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -696,6 +697,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();
     SelectionItemHistologyCoordinate* histologyPlaneID(idManager->getHistologyPlaneCoordinateIdentification());
+    SelectionItemHistologyStereotaxicCoordinate* histologyStereotaxicID(idManager->getHistologyStereotaxicCoordinateIdentification());
     SelectionItemMediaLogicalCoordinate* mediaPixelID = idManager->getMediaLogicalCoordinateIdentification();
     SelectionItemMediaPlaneCoordinate* mediaPlaneID(idManager->getMediaPlaneCoordinateIdentification());
     if (surfaceNodeIdentification->isValid()) {
@@ -722,6 +724,16 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         histologyPlaneID->getModelXYZ(coordInfoOut.m_histologySpaceInfo.m_xyz);
         
         const HistologyCoordinate histologyCoordinate(histologyPlaneID->getCoordinate());
+        coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setHistologySlicesFileName(histologyCoordinate.getHistologySlicesFileName());
+        coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceNumber(histologyCoordinate.getSliceNumber());
+        
+        coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
+    }
+    else if (histologyStereotaxicID->isValid()) {
+        histologyStereotaxicID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);
+        histologyStereotaxicID->getModelXYZ(coordInfoOut.m_histologySpaceInfo.m_xyz);
+        
+        const HistologyCoordinate histologyCoordinate(histologyStereotaxicID->getCoordinate());
         coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setHistologySlicesFileName(histologyCoordinate.getHistologySlicesFileName());
         coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceNumber(histologyCoordinate.getSliceNumber());
         

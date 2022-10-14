@@ -48,6 +48,10 @@ namespace caret {
                                                                                      const AString& formattedText,
                                                                                      const HistologyCoordinate& histologyCoordinate);
 
+        static IdentifiedItemUniversal* newInstanceHistologyStereotaxicCoordinateIdentification(const AString& simpleText,
+                                                                                                const AString& formattedText,
+                                                                                                const HistologyCoordinate& histologyCoordinate);
+
         static IdentifiedItemUniversal* newInstanceMediaLogicalCoordinateIdentification(const AString& simpleText,
                                                                                         const AString& formattedText,
                                                                                         const AString& dataFileName,

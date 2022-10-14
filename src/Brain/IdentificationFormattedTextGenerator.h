@@ -58,6 +58,7 @@ namespace caret {
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemHistologyCoordinate;
+    class SelectionItemHistologyStereotaxicCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
     class SelectionItemSurfaceNode;
@@ -169,6 +170,10 @@ namespace caret {
         void generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                             IdentificationStringBuilder& idText,
                                                             const SelectionItemHistologyCoordinate* idHistology) const;
+        
+        void generateHistologyStereotaxicCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                IdentificationStringBuilder& idText,
+                                                                const SelectionItemHistologyStereotaxicCoordinate* idHistology) const;
         
         void generateMediaLogicalCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                              IdentificationStringBuilder& idText,

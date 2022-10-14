@@ -424,7 +424,7 @@ Plane::projectPointToPlane(const float pointIn[3],
 bool
 Plane::rayIntersection(const float rayOrigin[3],
                        const float rayVector[3],
-                       float intersectionXYZandDistance[4])
+                       float intersectionXYZandDistance[4]) const
 {
     /* Convert the ray into a unit vector
      *

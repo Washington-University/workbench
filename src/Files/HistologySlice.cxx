@@ -392,6 +392,37 @@ HistologySlice::projectStereotaxicXyzToSlice(const Vector3D stereotaxicXYZ,
 }
 
 /**
+ * Project the givent stereotaxic coordinate onto the slice
+ * @param stereotaxicXYZ
+ *    Input stereotaxic coordinate
+ * @param stereotaxicOnSliceXYZ
+ *    Output stereotaxic coordinate projected to the slice
+ * @param stereotaxicDistanceToSliceOut
+ *    Distance to slice
+ * @param planeOnSliceXYZ
+ *    Plane coordinate of point on slice plane
+ * @return
+ *    True if successful, else false
+ */
+bool
+HistologySlice::projectStereotaxicXyzToSlice(const Vector3D& stereotaxicXYZ,
+                                             Vector3D& stereotaxicOnSliceXYZ,
+                                             float& stereotaxicDistanceToSliceOut,
+                                             Vector3D& planeOnSliceXYZ) const
+{
+    if (projectStereotaxicXyzToSlice(stereotaxicXYZ,
+                                     stereotaxicOnSliceXYZ)) {
+        if (stereotaxicXyzToPlaneXyz(stereotaxicOnSliceXYZ,
+                                     planeOnSliceXYZ)) {
+            stereotaxicDistanceToSliceOut = (stereotaxicXYZ - stereotaxicOnSliceXYZ).length();
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * @return Plane for plane  coordinates
  */
 const Plane&

@@ -73,8 +73,8 @@ IdentificationManager::IdentificationManager(const CaretPreferences* caretPrefer
     m_identifcationMostRecentSymbolSize = 5.0;
     m_identifcationSymbolPercentageSize = 3.0;
     m_identifcationMostRecentSymbolPercentageSize = 5.0;
-    m_histologyIdentificationPercentageSymbolSize = 3.0;
-    m_histologyIdentificationMostRecentPercentageSymbolSize = 5.0;
+    m_histologyIdentificationPercentageSymbolSize = 2.0;
+    m_histologyIdentificationMostRecentPercentageSymbolSize = 2.5;
     m_mediaIdentificationPercentageSymbolSize = 3.0;
     m_mediaIdentificationMostRecentPercentageSymbolSize = 5.0;
     m_showHistologyIdentificationSymbols = caretPreferences->isShowHistologyIdentificationSymbols();
@@ -229,6 +229,9 @@ IdentificationManager::removeIdentificationText()
             case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
                 keepFlag = true;
                 break;
+            case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+                keepFlag = true;
+                break;
             case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
                 keepFlag = true;
                 break;
@@ -306,6 +309,9 @@ IdentificationManager::getIdentifiedItemColorAndSize(const IdentifiedItemUnivers
             return;
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            histologyPlaneCoordFlag = true;
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
             histologyPlaneCoordFlag = true;
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
@@ -1090,6 +1096,9 @@ IdentificationManager::getShowSymbolOnTypeLabel(const IdentifiedItemUniversalTyp
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
             text = "Show ID Symbols on Histology Slices";
             break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
+            text = "Show ID Symbols on Histology Coordinate Slices";
+            break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:
             text = "Show ID Symbols on Media Logical Coordinates";
             break;
@@ -1131,6 +1140,9 @@ IdentificationManager::getShowSymbolOnTypeToolTip(const IdentifiedItemUniversalT
         case IdentifiedItemUniversalTypeEnum::INVALID:
             break;
         case IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE:
+            text.append("(Surface, Volume, or other Media)");
+            break;
+        case IdentifiedItemUniversalTypeEnum::HISTOLOGY_STEREOTAXIC_COORDINATE:
             text.append("(Surface, Volume, or other Media)");
             break;
         case IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE:

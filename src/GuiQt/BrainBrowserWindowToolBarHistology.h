@@ -28,7 +28,9 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class EnumComboBoxTemplate;
+    class HistologySlice;
     class HistologySlicesFile;
+    class Vector3D;
     class WuQDoubleSpinBox;
     class WuQSpinBox;
 
@@ -73,6 +75,10 @@ namespace caret {
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
         const BrainOpenGLViewportContent* getBrainOpenGLViewportContent();
+        
+        bool getPlaneAndStereotaxicAtViewportCenter(const HistologySlice* histologySlice,
+                                                    Vector3D& planeXyzOut,
+                                                    Vector3D& stereotaxicXyzOut);
         
         // ADD_NEW_MEMBERS_HERE
 

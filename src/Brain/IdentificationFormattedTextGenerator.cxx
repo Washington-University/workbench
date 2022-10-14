@@ -81,6 +81,7 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemHistologyCoordinate.h"
+#include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -253,6 +254,9 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
         generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
                                                            idText,
                                                            selectionManager->getHistologyPlaneCoordinateIdentification());
+        generateHistologyStereotaxicCoordinateIdentificationText(*histologyHtmlTableBuilder,
+                                                                 idText,
+                                                                 selectionManager->getHistologyStereotaxicCoordinateIdentification());
     }
     for (auto& mfi : mediaFilesAndIndices) {
         MediaFile* mediaFile(mfi.m_mapFile->castToMediaFile());
@@ -2172,7 +2176,7 @@ IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlT
 }
 
 /**
- * Generate identification text for media identification.
+ * Generate identification text for histology identification.
  * @param htmlTableBuilder
  *     HTML table builder for identification text.
  * @param idText
@@ -2184,6 +2188,60 @@ void
 IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
                                                                                          IdentificationStringBuilder& idText,
                                                                                          const SelectionItemHistologyCoordinate* idHistology) const
+{
+    if (idHistology->isValid()) {
+        std::vector<AString> columnOneText, columnTwoText, toolTipText;
+        
+        const HistologyCoordinate histologyCoordinate(idHistology->getCoordinate());
+        const HistologySlicesFile* histologySlicesFile(idHistology->getHistologySlicesFile());
+        CaretAssert(histologySlicesFile);
+        histologySlicesFile->getIdentificationText(idHistology->getTabIndex(),
+                                                   histologyCoordinate,
+                                                   columnOneText,
+                                                   columnTwoText,
+                                                   toolTipText);
+        
+        const int32_t numColOne(columnOneText.size());
+        const int32_t numColTwo(columnTwoText.size());
+        const int32_t maxNum(std::max(numColOne, numColTwo));
+        for (int32_t i = 0; i < maxNum; i++) {
+            AString colOne;
+            AString colTwo;
+            if (i < numColOne) {
+                CaretAssertVectorIndex(columnOneText, i);
+                colOne = columnOneText[i];
+            }
+            if (i < numColTwo) {
+                CaretAssertVectorIndex(columnTwoText, i);
+                colTwo = columnTwoText[i];
+            }
+            htmlTableBuilder.addRow(colOne, colTwo);
+        }
+        
+        /*
+         * For tooltip
+         */
+        for (const auto& text : toolTipText) {
+            bool indentFlag(false);
+            idText.addLine(indentFlag,
+                           text);
+        }
+    }
+}
+
+/**
+ * Generate identification text for histology identification.
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param idText
+ *     string builder for id text
+ * @param idHistology
+ *    Histology identification
+ */
+void
+IdentificationFormattedTextGenerator::generateHistologyStereotaxicCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                                         IdentificationStringBuilder& idText,
+                                                                                         const SelectionItemHistologyStereotaxicCoordinate* idHistology) const
 {
     if (idHistology->isValid()) {
         std::vector<AString> columnOneText, columnTwoText, toolTipText;

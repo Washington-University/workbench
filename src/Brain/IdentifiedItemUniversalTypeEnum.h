@@ -39,6 +39,8 @@ public:
         INVALID,
         /** Histology with plane coordinate */
         HISTOLOGY_PLANE_COORDINATE,
+        /** Histology with stereotaxic coordinate */
+        HISTOLOGY_STEREOTAXIC_COORDINATE,
         /** Media with logical coordinate */
         MEDIA_LOGICAL_COORDINATE,
         /** Media with plane coordinate */

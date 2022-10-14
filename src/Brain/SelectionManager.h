@@ -47,6 +47,7 @@ namespace caret {
     class SelectionItemFocusSurface;
     class SelectionItemFocusVolume;
     class SelectionItemHistologyCoordinate;
+    class SelectionItemHistologyStereotaxicCoordinate;
     class SelectionItemImageControlPoint;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
@@ -90,6 +91,10 @@ namespace caret {
         SelectionItemHistologyCoordinate* getHistologyPlaneCoordinateIdentification();
         
         const SelectionItemHistologyCoordinate* getHistologyPlaneCoordinateIdentification() const;
+        
+        SelectionItemHistologyStereotaxicCoordinate* getHistologyStereotaxicCoordinateIdentification();
+        
+        const SelectionItemHistologyStereotaxicCoordinate* getHistologyStereotaxicCoordinateIdentification() const;
         
         SelectionItemImageControlPoint* getImageControlPointIdentification();
         
@@ -244,6 +249,8 @@ namespace caret {
         SelectionItemImageControlPoint* m_imageControlPointIdentification;
         
         std::unique_ptr<SelectionItemHistologyCoordinate> m_histologyPlaneCoordinateIdentification;
+        
+        std::unique_ptr<SelectionItemHistologyStereotaxicCoordinate> m_histologyStereotaxicCoordinateIdentification;
         
         std::unique_ptr<SelectionItemMediaLogicalCoordinate> m_mediaLogicalCoordinateIdentification;
         

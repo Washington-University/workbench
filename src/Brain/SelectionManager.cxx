@@ -49,6 +49,7 @@
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
 #include "SelectionItemHistologyCoordinate.h"
+#include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
@@ -93,6 +94,7 @@ SelectionManager::SelectionManager()
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
     m_volumeFocusIdentification = new SelectionItemFocusVolume();
     m_histologyPlaneCoordinateIdentification.reset(new SelectionItemHistologyCoordinate());
+    m_histologyStereotaxicCoordinateIdentification.reset(new SelectionItemHistologyStereotaxicCoordinate());
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
     m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
     m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
@@ -122,6 +124,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
     m_allSelectionItems.push_back(m_histologyPlaneCoordinateIdentification.get());
+    m_allSelectionItems.push_back(m_histologyStereotaxicCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_imageControlPointIdentification);
     m_allSelectionItems.push_back(m_mediaLogicalCoordinateIdentification.get());
     m_allSelectionItems.push_back(m_mediaPlaneCoordinateIdentification.get());
@@ -310,6 +313,9 @@ SelectionManager::filterSelections(const bool applySelectionBackgroundFiltering)
         }
         if (m_histologyPlaneCoordinateIdentification->isValid()) {
             m_histologyPlaneCoordinateIdentification->reset();
+        }
+        if (m_histologyStereotaxicCoordinateIdentification->isValid()) {
+            m_histologyStereotaxicCoordinateIdentification->reset();
         }
         if (m_mediaLogicalCoordinateIdentification->isValid()) {
             /*
@@ -543,6 +549,24 @@ const SelectionItemHistologyCoordinate*
 SelectionManager::getHistologyPlaneCoordinateIdentification() const
 {
     return m_histologyPlaneCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for histology stereotaxic
+ */
+SelectionItemHistologyStereotaxicCoordinate*
+SelectionManager::getHistologyStereotaxicCoordinateIdentification()
+{
+    return m_histologyStereotaxicCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for histology stereotaxic
+ */
+const SelectionItemHistologyStereotaxicCoordinate*
+SelectionManager::getHistologyStereotaxicCoordinateIdentification() const
+{
+    return m_histologyStereotaxicCoordinateIdentification.get();
 }
 
 /**
