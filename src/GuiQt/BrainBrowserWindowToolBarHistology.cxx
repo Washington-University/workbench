@@ -455,7 +455,7 @@ BrainBrowserWindowToolBarHistology::getPlaneAndStereotaxicAtViewportCenter(const
             vpContent->getModelViewport(viewport);
             const Vector3D vpCenter(viewport[0] + (viewport[2] / 2),
                                     viewport[1] + (viewport[3] / 2),
-                                    1.0);
+                                    0.0);   /* 0.0 or 1.0 ??? */
             xform->inverseTransformPoint(vpCenter,
                                          planeXyzOut);
             if (histologySlice->planeXyzToStereotaxicXyz(planeXyzOut,
@@ -488,7 +488,7 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
             HistologyCoordinate previousHistCoord(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
             const int32_t previousSliceIndex(previousHistCoord.getSliceIndex());
             Vector3D previousPlaneXYZ, previousStereotaxicXYZ;
-            const bool previousValidFlag(getPlaneAndStereotaxicAtViewportCenter(histologySlicesFile->getHistologySliceByIndex(previousSliceIndex),
+            bool previousValidFlag(getPlaneAndStereotaxicAtViewportCenter(histologySlicesFile->getHistologySliceByIndex(previousSliceIndex),
                                                                                 previousPlaneXYZ, previousStereotaxicXYZ));
             HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
                                                                                      previousHistCoord,
@@ -500,6 +500,7 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                 if (sliceStep == 1) {
                     Vector3D planeXYZ, stereotaxicXYZ;
                     
+                    previousValidFlag = false; /* disable for now */
                     if (previousValidFlag) {
                         const HistologySlice* histologySlice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
                         if (histologySlice != NULL) {
@@ -510,9 +511,9 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                                                                                              newStereotaxicXYZ,
                                                                                              distanceToSlice,
                                                                                              planeXYZ)) {
-                                std::cout << "New stereotaxic might be: " << newStereotaxicXYZ.toString(5) << std::endl;
+                                std::cout << "New stereotaxic center might be: " << newStereotaxicXYZ.toString(5) << std::endl;
                                 if (histologySlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ, newPlaneXYZ)) {
-                                    std::cout << "   New plane might be: " << newPlaneXYZ.toString(5) << std::endl;
+                                    std::cout << "   New plane center might be: " << newPlaneXYZ.toString(5) << std::endl;
                                 }
                             }
                         }
