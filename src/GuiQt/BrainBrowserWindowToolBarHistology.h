@@ -74,12 +74,16 @@ namespace caret {
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
-        const BrainOpenGLViewportContent* getBrainOpenGLViewportContent();
+        const BrainOpenGLViewportContent* getBrainOpenGLViewportContent() const;
         
-        bool getPlaneAndStereotaxicAtViewportCenter(const HistologySlice* histologySlice,
-                                                    Vector3D& planeXyzOut,
-                                                    Vector3D& stereotaxicXyzOut);
+//        bool getPlaneAndStereotaxicAtViewportCenter(const HistologySlice* histologySlice,
+//                                                    Vector3D& planeXyzOut,
+//                                                    Vector3D& stereotaxicXyzOut);
         
+        bool getPlaneCoordinateAtViewportCenter(Vector3D& planeXyzOut) const;
+        
+        bool getStereotaxicCoordinateAtViewportCenter(const HistologySlice* histologySlice,
+                                                      Vector3D& stereotaxicXyzOut) const;
         // ADD_NEW_MEMBERS_HERE
 
         BrainBrowserWindowToolBar* m_parentToolBar;

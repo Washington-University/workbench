@@ -506,7 +506,6 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
             CaretAssert(box);
             
-            std::cout << "Box: " << AString::fromNumbers(modelXYZ, 3) << std::endl;
             if (mouseEvent.isFirstDragging()) {
                 box->initialize(modelXYZ[0],
                                 modelXYZ[1]);

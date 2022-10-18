@@ -67,6 +67,8 @@ namespace caret {
         
         BrainBrowserWindowToolBar* getParentToolBar();
         
+        BrainBrowserWindowToolBar* getParentToolBar() const;
+        
     public:
 
         // ADD_NEW_METHODS_HERE

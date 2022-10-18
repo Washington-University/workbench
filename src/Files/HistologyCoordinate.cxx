@@ -303,54 +303,24 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
         return hc;
     }
     
-    const Plane plane(histologySlice->getStereotaxicPlane());
-    if (plane.isValidPlane()) {
-        if (histologyCoordinate.isStereotaxicXYZValid()) {
-            const Vector3D oldStereotaxicXYZ(histologyCoordinate.getStereotaxicXYZ());
-            Vector3D newStereotaxicXYZ;
-            plane.projectPointToPlane(oldStereotaxicXYZ,
-                                      newStereotaxicXYZ);
-            
+    if (histologyCoordinate.isStereotaxicXYZValid()) {
+        Vector3D newStereotaxicXYZ;
+        Vector3D newPlaneXYZ;
+        float distanceToSlice;
+        if (histologySlice->projectStereotaxicXyzToSlice(histologyCoordinate.getStereotaxicXYZ(),
+                                                         newStereotaxicXYZ,
+                                                         distanceToSlice,
+                                                         newPlaneXYZ)) {
             HistologyCoordinate hc;
             hc.setHistologySlicesFile(histologySlicesFile);
             hc.setSliceIndex(sliceIndex);
             hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
-            Vector3D newPlaneXYZ;
-            if (histologySlice->stereotaxicXyzToPlaneXyz(newStereotaxicXYZ,
-                                                         newPlaneXYZ)) {
-                hc.setPlaneXYZ(newPlaneXYZ);
-            }
+            hc.setPlaneXYZ(newPlaneXYZ);
             hc.setStereotaxicXYZ(newStereotaxicXYZ);
             return hc;
         }
     }
-//    {
-//    const Plane plane(histologySlice->getPlaneXyzPlane());
-//    if (plane.isValidPlane()) {
-//        Vector3D newPlaneXYZ;
-//        /*
-//         * Move previous plane coord to the new slice's plane
-//         */
-//        plane.projectPointToPlane(histologyCoordinate.getPlaneXYZ(),
-//                                  newPlaneXYZ);
-//
-//        Vector3D newStereotaxicXYZ;
-//        Vector3D stereotaxicNoNonLinearXYZ;
-//        histologySlice->planeXyzToStereotaxicXyz(newPlaneXYZ,
-//                                                 stereotaxicNoNonLinearXYZ,
-//                                                 newStereotaxicXYZ);
-//
-//        HistologyCoordinate hc;
-//        hc.setHistologySlicesFile(histologySlicesFile);
-//        hc.setSliceIndex(sliceIndex);
-//        hc.setSliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
-//        hc.setPlaneXYZ(newPlaneXYZ);
-//        hc.setStereotaxicXYZ(newStereotaxicXYZ);
-//        hc.setStereotaxicNoNonLinearXYZ(stereotaxicNoNonLinearXYZ);
-//        return hc;
-//    }
-//    }
- 
+    
     HistologyCoordinate hc;
     return hc;
 }

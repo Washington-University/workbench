@@ -325,6 +325,29 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
                     viewport[3]);
     
     drawSelectionBox();
+    
+    {
+        glPushMatrix();
+        glLoadIdentity();
+        
+        /*
+         * Draw small yellow crosshairs across center of viewport
+         */
+        const float xCenter((orthoLeft + orthoRight) / 2.0);
+        const float yCenter((orthoBottom + orthoTop) / 2.0);
+        const float length(300);
+        glColor3f(1.0, 1.0, 0.0);
+        glLineWidth(1.0);
+        glBegin(GL_LINES);
+        glVertex2f(xCenter - length, yCenter);
+        glVertex2f(xCenter + length, yCenter);
+        glVertex2f(xCenter, yCenter - length);
+        glVertex2f(xCenter, yCenter + length);
+        glEnd();
+        
+        glPopMatrix();
+    }
+    
 }
 
 /**

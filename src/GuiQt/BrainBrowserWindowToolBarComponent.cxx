@@ -164,3 +164,12 @@ BrainBrowserWindowToolBarComponent::getParentToolBar()
     return m_parentToolBar;
 }
 
+/**
+ * @return Parent window toolbar
+ */
+BrainBrowserWindowToolBar*
+BrainBrowserWindowToolBarComponent::getParentToolBar() const
+{
+    return m_parentToolBar;
+}
+
