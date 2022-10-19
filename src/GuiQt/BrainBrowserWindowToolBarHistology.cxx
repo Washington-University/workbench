@@ -538,7 +538,7 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                                                                                      previousHistologyCoord,
                                                                                      sliceIndex));
             if (hc.isValid()) {
-                if (debugFlag) std::cout << "histology coord sterotaxic: " << hc.getStereotaxicXYZ().toString(5) << std::endl;
+                if (debugFlag) std::cout << "histology coord stereotaxic: " << hc.getStereotaxicXYZ().toString(5) << std::endl;
                 /*
                  * Update with new histology coordinate in browser tab
                  */
@@ -547,8 +547,10 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                 /*
                  * Changing to an adjacent slice
                  */
+                const bool anyStepFlag(true);
                 const int32_t sliceStep(std::abs(sliceIndex -  previousSliceIndex));
-                if (sliceStep == 1) {
+                if ((sliceStep == 1)
+                    || anyStepFlag) {
                     if (previousValidFlag) {
                         /*
                          * Get the new slice
