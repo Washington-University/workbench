@@ -1287,10 +1287,16 @@ BrainOpenGLFixedPipeline::drawChartCoordinateSpaceAnnotations(const BrainOpenGLV
  *    Viewport content
  * @param histologySpaceKey
  *    The histology space key
+ * @param histologySlice
+ *    Histology slice on which annotations are drawn
+ * @param sliceSpacing
+ *    Distance between slices
  */
 void
 BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
-                                                        const HistologySpaceKey& histologySpaceKey)
+                                                        const HistologySpaceKey& histologySpaceKey,
+                                                        const HistologySlice* histologySlice,
+                                                        const float sliceSpacing)
 {
     const BrowserTabContent* btc = viewportContent->getBrowserTabContent();
     if (btc == NULL) {
@@ -1327,6 +1333,10 @@ BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewpor
                                          emptyViewportAnnotations,
                                          NULL,
                                          1.0);
+    
+    m_annotationDrawing->drawModelSpaceAnnotationsOnHistologySlice(&inputs,
+                                                                   histologySlice,
+                                                                   sliceSpacing);
     
     glPopAttrib();
 }

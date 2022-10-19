@@ -106,6 +106,8 @@ namespace caret {
 
         virtual std::vector<AString> getChildDataFilePathNames() const override;
 
+        float getSliceSpacing() const;
+        
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                           SceneClass* sceneClass) override;
@@ -143,6 +145,8 @@ namespace caret {
         mutable BoundingBox m_planeXyzBoundingBox;
         
         mutable bool m_planeXyzBoundingBoxValidFlag = false;
+        
+        mutable float m_sliceSpacing = 2.0;
         
         // ADD_NEW_MEMBERS_HERE
 

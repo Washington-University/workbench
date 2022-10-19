@@ -132,6 +132,12 @@ namespace caret {
                                                     const Plane& plane,
                                                     const float sliceThickness);
         
+        void drawModelSpaceAnnotationsOnHistologySlice(Inputs* inputs,
+                                                       const HistologySlice* histologySlice,
+                                                       const float sliceThickness);
+        
+
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -501,10 +507,19 @@ namespace caret {
         Plane m_volumeSpacePlane;
         
         /** Validity of volume space plane */
-        bool m_volumeSpacePlaneValid;
+        bool m_volumeSpacePlaneValid = false;;
         
         /** Thickness of volume slice when drawing annotations on volume slices */
-        float m_volumeSliceThickness;
+        float m_volumeSliceThickness = 0.0;
+        
+        /** Histology slice used when stereotaxic annotations are drawn on histology slice*/
+        const HistologySlice* m_histologySlice = NULL;
+        
+        /** Validity of histology space plane */
+        bool m_histologySpacePlaneValid = false;;
+        
+        /** Thickness of histology slice when drawing annotations on histology slices */
+        float m_histologySliceThickness = 0.0;
         
         /** Color for selection box and sizing handles */
         uint8_t m_selectionBoxRGBA[4];

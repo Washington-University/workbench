@@ -728,6 +728,14 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceNumber(histologyCoordinate.getSliceNumber());
         
         coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
+        
+        if (histologyCoordinate.isStereotaxicXYZValid()) {
+            const Vector3D xyz(histologyCoordinate.getStereotaxicXYZ());
+            coordInfoOut.m_modelSpaceInfo.m_xyz[0] = xyz[0];
+            coordInfoOut.m_modelSpaceInfo.m_xyz[1] = xyz[1];
+            coordInfoOut.m_modelSpaceInfo.m_xyz[2] = xyz[2];
+            coordInfoOut.m_modelSpaceInfo.m_validFlag = true;
+        }
     }
     else if (histologyStereotaxicID->isValid()) {
         histologyStereotaxicID->getModelXYZ(coordInfoOut.m_modelSpaceInfo.m_xyz);

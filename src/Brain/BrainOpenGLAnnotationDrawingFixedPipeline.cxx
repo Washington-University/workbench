@@ -65,6 +65,7 @@
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "HistologySlice.h"
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -94,7 +95,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipe
 m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
 m_inputs(NULL),
 m_volumeSpacePlaneValid(false),
-m_volumeSliceThickness(0.0)
+m_volumeSliceThickness(0.0),
+m_histologySpacePlaneValid(false),
+m_histologySliceThickness(0.0)
 {
     CaretAssert(brainOpenGLFixedPipeline);
     
@@ -206,6 +209,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             modelXYZ[2] = annotationXYZ[2];
             modelXYZValid = true;
             
+            if (m_histologySpacePlaneValid) {
+                modelXYZValid = false;
+                
+                Vector3D planeXYZ;
+                Vector3D stereotaxicXYZ;
+                float distanceToSlice(0.0);
+                if (m_histologySlice->projectStereotaxicXyzToSlice(modelXYZ,
+                                                                   stereotaxicXYZ,
+                                                                   distanceToSlice,
+                                                                   planeXYZ)) {
+                    const float distToPlaneAbs = std::fabs(distanceToSlice);
+                    const float halfSliceThickness = ((m_histologySliceThickness > 0.0)
+                                                      ? (m_histologySliceThickness / 2.0)
+                                                      : 1.0);
+                    if (distToPlaneAbs < halfSliceThickness) {
+                        /*
+                         * Histology slices are drawn in 'Plane' coordinates
+                         */
+                        modelXYZ[0] = planeXYZ[0];
+                        modelXYZ[1] = planeXYZ[1];
+                        modelXYZ[2] = planeXYZ[2];
+                        modelXYZValid = true;
+                    }
+                }
+            }
+
             if (m_volumeSpacePlaneValid) {
                 float xyzFloat[3] = {
                     modelXYZ[0],
@@ -528,6 +557,48 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
 }
 
 /**
+ * Draw model space annotations on the volume slice with the given plane.
+ *
+ * @param inputs
+ *     Inputs for drawing annotations.
+ * @param plane
+ *     The volume slice's plane.
+ * @param sliceThickness
+ *     Thickness of volume slice
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnHistologySlice(Inputs* inputs,
+                                                                                     const HistologySlice* histologySlice,
+                                                                                     const float sliceThickness)
+{
+    CaretAssert(inputs);
+    m_inputs = inputs;
+    m_surfaceViewScaling = 1.0f;
+    m_histologySpacePlaneValid = false;
+    m_histologySlice = histologySlice;
+    if (m_histologySlice != NULL) {
+        if (m_histologySlice->getStereotaxicPlane().isValidPlane()) {
+            m_histologySpacePlaneValid = true;
+            
+            std::vector<AnnotationColorBar*> emptyColorBars;
+            std::vector<AnnotationScaleBar*> emptyScaleBars;
+            std::vector<Annotation*> emptyNotInFileAnnotations;
+            drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                    emptyColorBars,
+                                    emptyScaleBars,
+                                    emptyNotInFileAnnotations,
+                                    NULL,
+                                    sliceThickness);
+        }
+    }
+    
+    m_histologySpacePlaneValid = false;
+    m_histologySlice = NULL;
+    
+    m_inputs = NULL;
+}
+
+/**
  * Draw the annotations in the given coordinate space.
  *
  * @param inputs
@@ -558,6 +629,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     m_inputs = inputs;
     m_surfaceViewScaling = surfaceViewScaling;
     
+    m_histologySpacePlaneValid = false;
     m_volumeSpacePlaneValid = false;
     
     const float sliceThickness = 0.0;
@@ -610,7 +682,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     EventManager::get()->sendEvent(m_transformEvent.get()->getPointer());
     CaretAssert(m_transformEvent->isValid());
     
-    m_volumeSliceThickness  = sliceThickness;
+    m_histologySliceThickness = sliceThickness;
+    m_volumeSliceThickness    = sliceThickness;
     
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
@@ -948,6 +1021,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                 case AnnotationCoordinateSpaceEnum::CHART:
                     break;
                 case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                    if (annotation->getCoordinate(0)->getHistologySpaceKey() != m_inputs->m_histologySpaceKey) {
+                        continue;
+                    }
                     break;
                 case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 {

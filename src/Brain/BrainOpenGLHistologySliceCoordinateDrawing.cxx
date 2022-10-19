@@ -428,6 +428,7 @@ BrainOpenGLHistologySliceCoordinateDrawing::drawModelLayers(const std::array<flo
     
     glPushMatrix();
     
+    HistologySlice*      underlayHistologySlice(NULL);
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
     int32_t underlayHistologySliceNumber(-1);
     
@@ -504,6 +505,7 @@ BrainOpenGLHistologySliceCoordinateDrawing::drawModelLayers(const std::array<flo
         
         if (underlayHistologySlicesFile == NULL) {
             underlayHistologySlicesFile  = drawingData.m_selectedFile;
+            underlayHistologySlice       = drawingData.m_selectedFile->getHistologySliceByIndex(drawingData.m_selectedSliceIndex);
             underlayHistologySliceNumber = drawingData.m_selectedSliceNumber;
         }
     }
@@ -547,10 +549,16 @@ BrainOpenGLHistologySliceCoordinateDrawing::drawModelLayers(const std::array<flo
     /*
      * Draw annotation in histology space
      */
-    HistologySpaceKey histologySpaceKey(underlayHistologySlicesFile->getFileName(),
-                                        underlayHistologySliceNumber);
-    m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
-                                                          histologySpaceKey);
+    if (underlayHistologySlice != NULL) {
+        const float sliceSpacing(underlayHistologySlicesFile->getSliceSpacing());
+        
+        HistologySpaceKey histologySpaceKey(underlayHistologySlicesFile->getFileName(),
+                                            underlayHistologySliceNumber);
+        m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
+                                                              histologySpaceKey,
+                                                              underlayHistologySlice,
+                                                              sliceSpacing);
+    }
 }
 
 /**

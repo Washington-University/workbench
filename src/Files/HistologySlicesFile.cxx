@@ -725,3 +725,13 @@ HistologySlicesFile::getChildDataFilePathNames() const
     }
     return childDataFilePathNames;
 }
+
+/**
+ * @return Slice spacing (distance between slices)
+ */
+float
+HistologySlicesFile::getSliceSpacing() const
+{
+    return m_sliceSpacing;
+}
+

@@ -64,6 +64,7 @@ namespace caret {
     class FiberOrientation;
     class SelectionItem;
     class SelectionManager;
+    class HistologySlice;
     class IdentificationWithColor;
     class ImageFile;
     class Model;
@@ -501,7 +502,9 @@ namespace caret {
         void drawChartCoordinateSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
         void drawHistologySpaceAnnotations(const BrainOpenGLViewportContent* viewportContent,
-                                           const HistologySpaceKey& histologySpaceKey);
+                                           const HistologySpaceKey& histologySpaceKey,
+                                           const HistologySlice* histologySlice,
+                                           const float sliceSpacing);
         
         void drawMediaSpaceAnnotations(const BrainOpenGLViewportContent* viewportContent);
         
