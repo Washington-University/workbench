@@ -485,6 +485,11 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     glPopMatrix();
     
     /*
+     * Slice spacing (thickness) used for drawing features histology slices
+     */
+    const float sliceSpacing(underlayHistologySlicesFile->getSliceSpacing());
+    
+    /*
      * Height used for drawing ID symbols
      */
     float planeRangeY(1.0);
@@ -500,12 +505,11 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                m_fixedPipelineDrawing->m_brain,
                                                m_browserTabContent,
                                                m_fixedPipelineDrawing->mode);
-    const float mediaThickness(2.0f);
     Plane plane;
     idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(underlayHistologySlicesFile,
                                                                     underlayHistologySliceNumber,
                                                                     plane,
-                                                                    mediaThickness,
+                                                                    sliceSpacing,
                                                                     m_browserTabContent->getScaling(),
                                                                     planeRangeY);
 
@@ -522,8 +526,6 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      * Draw annotation in histology space
      */
     if (underlayHistologySlice != NULL) {
-        const float sliceSpacing(underlayHistologySlicesFile->getSliceSpacing());
-
         HistologySpaceKey histologySpaceKey(underlayHistologySlicesFile->getFileName(),
                                             underlayHistologySliceNumber);
         m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
@@ -531,29 +533,6 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                               underlayHistologySlice,
                                                               sliceSpacing);
     }
-    
-//    /*
-//     * Draw annotations in stereotaxic space
-//     */
-//    EventOpenGLObjectToWindowTransform xform(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
-//    EventManager::get()->sendEvent(xform.getPointer());
-//    if (xform.isValid()) {
-//        std::array<int32_t, 4> viewport(xform.getViewport());
-//
-//    glPushMatrix();
-//    glMatrixMode(GL_PROJECTION);
-//    glPushMatrix();
-//
-//    glMatrixMode(GL_MODELVIEW);
-//
-//    glPopMatrix();
-//
-//    glMatrixMode(GL_PROJECTION);
-//    glPopMatrix();
-//    glMatrixMode(GL_MODELVIEW);
-//
-//    glLoadIdentity();
-//    }
 }
 
 /**
