@@ -537,6 +537,18 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
             HistologyCoordinate hc(HistologyCoordinate::newInstanceSliceIndexChanged(histologySlicesFile,
                                                                                      previousHistologyCoord,
                                                                                      sliceIndex));
+            
+            switch (m_browserTabContent->getHistologyDisplayCoordinateMode()) {
+                case MediaDisplayCoordinateModeEnum::PIXEL:
+                    CaretAssert(0);
+                    break;
+                case MediaDisplayCoordinateModeEnum::PLANE:
+                    break;
+                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
+                    /* Do not need to recenter for stereotaxic */
+                    previousValidFlag = false;
+                    break;
+            }
             if (hc.isValid()) {
                 if (debugFlag) std::cout << "histology coord stereotaxic: " << hc.getStereotaxicXYZ().toString(5) << std::endl;
                 /*

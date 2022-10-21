@@ -924,7 +924,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
                           + AString::number(pyramidLayerIndex));
     if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(rectToLoad) << std::endl;
     AString errorMessage;
-    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
                                                                  rectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
@@ -1092,7 +1092,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
                           + AString::number(pyramidLayerIndex));
     if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
     AString errorMessage;
-    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
                                                                  logicalRectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
@@ -1260,7 +1260,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForStereotaxicCoords(cons
                           + AString::number(pyramidLayerIndex));
     if (cziDebugFlag) std::cout << "Loading pyramid index=" << pyramidLayerIndex << ", rect=" << CziUtilities::qRectToString(logicalRectToLoad) << std::endl;
     AString errorMessage;
-    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
+    CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
                                                                  logicalRectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,

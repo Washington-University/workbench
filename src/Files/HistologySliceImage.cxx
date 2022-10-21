@@ -168,7 +168,7 @@ HistologySliceImage::getMediaFilePrivate() const
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             try {
-                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile());
+                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile(m_distanceFileName));
                 cziImageFile->readFile(m_mediaFileName);
                 m_mediaFile.reset(cziImageFile.release());
             }

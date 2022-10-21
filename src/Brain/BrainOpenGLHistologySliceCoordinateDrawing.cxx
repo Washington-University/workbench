@@ -120,7 +120,7 @@ BrainOpenGLHistologySliceCoordinateDrawing::getOrthoBounds(double& orthoLeftOut,
         }
     }
     
-    std::cout << "NEW bounding box: " << boundingBox.toString() << std::endl;
+    if (debugFlag) std::cout << "NEW bounding box: " << boundingBox.toString() << std::endl;
     
     const double viewportWidth(m_viewport[2]);
     const double viewportHeight(m_viewport[3]);
@@ -193,7 +193,7 @@ BrainOpenGLHistologySliceCoordinateDrawing::getOrthoBounds(double& orthoLeftOut,
         CaretAssert(orthoTopOut > orthoBottomOut);
     }
     
-    std::cout << "NEW Ortho L/R/B/T: " << orthoLeftOut << ", " << orthoRightOut
+    if (debugFlag) std::cout << "NEW Ortho L/R/B/T: " << orthoLeftOut << ", " << orthoRightOut
     << ", " << orthoBottomOut << ", " << orthoTopOut << std::endl << std::endl;
 
     /*
@@ -221,13 +221,15 @@ BrainOpenGLHistologySliceCoordinateDrawing::getOrthoBounds(double& orthoLeftOut,
     
     m_lookAtUpXYZ.set(0.0, 0.0, 1.0);
     
-    std::cout << "NEW Look at Center: " << AString::fromNumbers(m_lookAtCenterXYZ) << std::endl;
-    std::cout << "NEW Look at Up:     " << m_lookAtUpXYZ.toString(5) << std::endl;
-    std::cout << "NEW Look at Normal: " << m_lookAtNormalVector.toString(5) << std::endl;
+    if (debugFlag) {
+        std::cout << "NEW Look at Center: " << AString::fromNumbers(m_lookAtCenterXYZ) << std::endl;
+        std::cout << "NEW Look at Up:     " << m_lookAtUpXYZ.toString(5) << std::endl;
+        std::cout << "NEW Look at Normal: " << m_lookAtNormalVector.toString(5) << std::endl;
+        
+        std::cout << "NEW Ortho L/R/B/T: " << orthoLeftOut << ", " << orthoRightOut
+        << ", " << orthoBottomOut << ", " << orthoTopOut << std::endl << std::endl;
+    }
     
-    std::cout << "NEW Ortho L/R/B/T: " << orthoLeftOut << ", " << orthoRightOut
-    << ", " << orthoBottomOut << ", " << orthoTopOut << std::endl << std::endl;
-
     return true;
 }
 
@@ -397,8 +399,8 @@ BrainOpenGLHistologySliceCoordinateDrawing::drawModelLayers(const std::array<flo
                                                   const BrainOpenGLViewportContent* viewportContent,
                                                   const GraphicsObjectToWindowTransform* transform,
                                                   const int32_t /*tabIndex*/,
-                                                  const float orthoHeight,
-                                                  const float viewportHeight)
+                                                  const float /*orthoHeight*/,
+                                                  const float /*viewportHeight*/)
 {
     SelectionItemHistologyStereotaxicCoordinate* idHistology = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getHistologyStereotaxicCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();

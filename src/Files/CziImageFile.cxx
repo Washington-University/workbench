@@ -37,6 +37,7 @@
 #include "CaretPreferences.h"
 #include "CziImage.h"
 #include "CziImageLoaderMultiResolution.h"
+#include "CziImageMaskingFile.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -72,9 +73,12 @@ static bool cziDebugFlag(false);
 
 /**
  * Constructor.
+ * @param maskingFileName
+ *    Name of masking file
  */
-CziImageFile::CziImageFile()
-: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE)
+CziImageFile::CziImageFile(const AString& maskingFileName)
+: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE),
+m_maskingFileName(maskingFileName)
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {
@@ -91,6 +95,10 @@ CziImageFile::CziImageFile()
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_RESET_VIEW);
+    
+    if ( ! m_maskingFileName.isEmpty()) {
+        m_maskingFile.reset(new CziImageMaskingFile(m_maskingFileName));
+    }
 }
 
 /**
@@ -1446,7 +1454,7 @@ CziImageFile::getPixelLogicalIdentificationTextForFrames(const int32_t tabIndex,
  */
 void
 CziImageFile::testPixelTransforms(const int32_t pixelIndexStep,
-                                  const bool nonLinearFlag,
+                                  const bool /*nonLinearFlag*/,
                                   const bool verboseFlag,
                                   AString& resultsMessageOut,
                                   QImage& imageOut) const
@@ -1925,7 +1933,7 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
         return NULL;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing());
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing(m_maskingFile.get()));
     return primitive;
 }
 
@@ -1946,7 +1954,7 @@ CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
         return NULL;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForPlaneXyzDrawing());
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForPlaneXyzDrawing(m_maskingFile.get()));
     return primitive;
 }
 
@@ -1967,7 +1975,7 @@ CziImageFile::getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabInde
         return NULL;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForStereotaxicXyzDrawing());
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForStereotaxicXyzDrawing(m_maskingFile.get()));
     return primitive;
 }
 

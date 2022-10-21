@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CziImageFile.h"
+#include "CziImageMaskingFile.h"
 #include "CziUtilities.h"
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsUtilitiesOpenGL.h"
@@ -383,12 +384,15 @@ CziImage::getQImagePointer() const
 
 /**
  * @return The graphics primitive for drawing the image as a texture in media drawing model.
+ * @param maskingFile
+ *    Masking file (invalid if NULL)
  */
 GraphicsPrimitiveV3fT2f*
-CziImage::getGraphicsPrimitiveForMediaDrawing() const
+CziImage::getGraphicsPrimitiveForMediaDrawing(const CziImageMaskingFile* maskingFile) const
 {
     if (m_graphicsPrimitiveForMediaDrawing == NULL) {
-        m_graphicsPrimitiveForMediaDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PIXEL));
+        m_graphicsPrimitiveForMediaDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PIXEL,
+                                                                         maskingFile));
     }
     
     return m_graphicsPrimitiveForMediaDrawing.get();
@@ -396,12 +400,15 @@ CziImage::getGraphicsPrimitiveForMediaDrawing() const
 
 /**
  * @return The graphics primitive for drawing the image as a texture in plane coordinates
+ * @param maskingFile
+ *    Masking file (invalid if NULL)
  */
 GraphicsPrimitiveV3fT2f*
-CziImage::getGraphicsPrimitiveForPlaneXyzDrawing() const
+CziImage::getGraphicsPrimitiveForPlaneXyzDrawing(const CziImageMaskingFile* maskingFile) const
 {
     if (m_graphicsPrimitiveForPlaneXyzDrawing == NULL) {
-        m_graphicsPrimitiveForPlaneXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PLANE));
+        m_graphicsPrimitiveForPlaneXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::PLANE,
+                                                                            maskingFile));
     }
 
     return m_graphicsPrimitiveForPlaneXyzDrawing.get();
@@ -409,12 +416,15 @@ CziImage::getGraphicsPrimitiveForPlaneXyzDrawing() const
 
 /**
  * @return The graphics primitive for drawing the image as a texture in stereotaxic coordinates
+ * @param maskingFile
+ *    Masking file (invalid if NULL)
  */
 GraphicsPrimitiveV3fT2f*
-CziImage::getGraphicsPrimitiveForStereotaxicXyzDrawing() const
+CziImage::getGraphicsPrimitiveForStereotaxicXyzDrawing(const CziImageMaskingFile* maskingFile) const
 {
     if (m_graphicsPrimitiveForStereotaxicXyzDrawing == NULL) {
-        m_graphicsPrimitiveForStereotaxicXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::STEREOTAXIC));
+        m_graphicsPrimitiveForStereotaxicXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::STEREOTAXIC,
+                                                                                  maskingFile));
     }
     
     return m_graphicsPrimitiveForStereotaxicXyzDrawing.get();
@@ -425,9 +435,12 @@ CziImage::getGraphicsPrimitiveForStereotaxicXyzDrawing() const
  * @return A new graphics primitive for loaded data
  * @param mediaDisplayCoordMode
  *    The media display coordinate mode
+ * @param maskingFile
+ *    The masking fiile (invalid if NULL)
  */
 GraphicsPrimitiveV3fT2f*
-CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const
+CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode,
+                                  const CziImageMaskingFile* maskingFile) const
 {
     switch (m_imageStorageFormat) {
         case ImageStorageFormat::INVALID:
@@ -507,6 +520,11 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                     height       = m_cziImageData->GetHeight();
                 }
             }
+            else {
+                const AString msg("CZI pixel type is not libCZI::PixelType::Bgr24");
+                CaretAssertMessage(0, msg);
+                CaretLogSevere(msg);
+            }
             break;
         case ImageStorageFormat::Q_IMAGE:
             if (m_qimageData->format() != QImage::Format_ARGB32) {
@@ -534,6 +552,7 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
         
         GraphicsTextureSettings textureSettings;
         
+        uint8_t* imageBytesPointer(NULL);
         switch (m_imageStorageFormat) {
             case ImageStorageFormat::INVALID:
                 CaretAssert(0);
@@ -553,6 +572,7 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                                                           GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                           GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                           textureBorderColorRGBA);
+                imageBytesPointer = ptrBytesRGBA;
                 break;
             case ImageStorageFormat::Q_IMAGE:
                 textureSettings = GraphicsTextureSettings(m_qimageData->constBits(),
@@ -568,8 +588,19 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                                                           GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                           GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                           textureBorderColorRGBA);
+                imageBytesPointer = m_qimageData->bits();
                 break;
                 
+        }
+        
+        if ((maskingFile != NULL)
+            && (imageBytesPointer != NULL)) {
+            setAlphaFromMaskingFile(maskingFile,
+                                    m_imageDataLogicalRect,
+                                    width,
+                                    height,
+                                    pixelFormatType,
+                                    imageBytesPointer);
         }
         
         primitiveOut = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
@@ -612,7 +643,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
         const float textureMaxT((m_fullResolutionLogicalRect.bottom() - m_imageDataLogicalRect.top())
                                 / imageLogicalHeight);
         
-         
         switch (mediaDisplayCoordMode) {
             case MediaDisplayCoordinateModeEnum::PIXEL:
                 /*
@@ -638,10 +668,12 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                 Vector3D topRightPlaneXYZ;
                 Vector3D bottomLeftPlaneXYZ;
                 Vector3D bottomRightPlaneXYZ;
+
                 if (m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(topLeftPixel, topLeftPlaneXYZ)
                     && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(topRightPixelIndex, topRightPlaneXYZ)
                     && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(bottomLeftPixelIndex, bottomLeftPlaneXYZ)
                     && m_parentCziImageFile->logicalPixelIndexToPlaneXYZ(bottomRightPixelIndex, bottomRightPlaneXYZ)) {
+                    
                     /*
                      * A Triangle Strip (consisting of two triangles) is used
                      * for drawing the image.
@@ -702,7 +734,105 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
     if (cziLockFlag) {
         m_cziImageData->Unlock();
     }
+    
     return primitiveOut;
+}
+
+
+/**
+ * Set the grahpics pimitive's al;pha channel using the masking file
+ * @param maskingFile
+ *    The masking fiile
+ * @param imageDataLogicalRect
+ *    Logical rectangle of image data
+ * @param imageWidth
+ *    Width of image
+ * @param imageHeight
+ *    Height ofv image
+ * @param pixelFormatType
+ *    Format of pixels
+ * @param imageBytesPointer
+ *    Pointer to image data
+ */
+void
+CziImage::setAlphaFromMaskingFile(const CziImageMaskingFile* maskingFile,
+                                  const QRectF          /*imageDataLogicalRect*/,
+                                  const int32_t         imageWidth,
+                                  const int32_t         imageHeight,
+                                  const GraphicsTextureSettings::PixelFormatType pixelFormatType,
+                                  uint8_t*              imageBytesPointer) const
+{
+    /*
+     * disable, not finished
+     */
+    return;
+    
+    CaretAssert(maskingFile);
+    CaretAssert(imageBytesPointer);
+    
+    bool supportsAlphaFlag(false);
+    AString pixelFormatTypeName;
+    switch (pixelFormatType) {
+        case GraphicsTextureSettings::PixelFormatType::NONE:
+            pixelFormatTypeName = "NONE";
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGR:
+            pixelFormatTypeName = "BGR";
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRA:
+            pixelFormatTypeName = "BGRA";
+            supportsAlphaFlag = true;
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRX:
+            pixelFormatTypeName = "BGRX";
+            break;
+        case GraphicsTextureSettings::PixelFormatType::RGB:
+            pixelFormatTypeName = "RGB";
+            break;
+        case GraphicsTextureSettings::PixelFormatType::RGBA:
+            pixelFormatTypeName = "RGBA";
+            supportsAlphaFlag = true;
+            break;
+    }
+    
+    if ( ! supportsAlphaFlag) {
+        const AString msg("Cannot use distance file for data read from "
+                          + m_parentCziImageFile->getFileName()
+                          + ".  Pixel Format Type "
+                          + pixelFormatTypeName
+                          + " does not contain alpha channel.");
+        CaretLogWarning(msg);
+    }
+    
+    PixelLogicalIndex topLeftLogicalPixelIndex(pixelIndexToPixelLogicalIndex(PixelIndex(0, 0, 0)));
+    PixelLogicalIndex bottomLeftLogicalPixelIndex(pixelIndexToPixelLogicalIndex(PixelIndex(0, imageHeight -1, 0)));
+    PixelLogicalIndex bottomRightLogicalPixelIndex(pixelIndexToPixelLogicalIndex(PixelIndex(imageWidth - 1, imageHeight - 1, 0)));
+    PixelLogicalIndex topRightLogicalPixelIndex(pixelIndexToPixelLogicalIndex(PixelIndex(imageWidth - 1, 0, 0)));
+
+    const int32_t bytesPerPixel(4);
+    const int32_t rowLength(imageWidth * bytesPerPixel);
+    for (int32_t j = 0; j < imageHeight; j++) {
+        const int32_t rowOffset(j * rowLength);
+        for (int32_t i = 0; i < imageWidth; i++) {
+            const PixelIndex pixelIndex(i, j, 0);
+            Vector3D planeXYZ;
+            if (m_parentCziImageFile->pixelIndexToPlaneXYZ(pixelIndex,
+                                                           planeXYZ)) {
+                const float defaultValue(0.0);
+                const float maskingValue(maskingFile->getMaskingValue(planeXYZ, defaultValue));
+                
+                const int32_t pixelAlphaOffset(rowOffset
+                                               + (i * bytesPerPixel)
+                                               + 3);
+                uint8_t alphaValue(0);
+                const float threshold(500);
+                if (maskingValue < threshold) {
+                    alphaValue = 255;
+                }
+                imageBytesPointer[pixelAlphaOffset] = alphaValue;
+            }
+        }
+    }
 }
 
 

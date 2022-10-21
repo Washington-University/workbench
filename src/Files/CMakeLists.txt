@@ -79,6 +79,7 @@ CziImage.h
 CziImageFile.h
 CziImageLoaderBase.h
 CziImageLoaderMultiResolution.h
+CziImageMaskingFile.h
 CziImageResolutionChangeModeEnum.h
 CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
@@ -243,6 +244,7 @@ CziImage.cxx
 CziImageFile.cxx
 CziImageLoaderBase.cxx
 CziImageLoaderMultiResolution.cxx
+CziImageMaskingFile.cxx
 CziImageResolutionChangeModeEnum.cxx
 CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx

@@ -137,6 +137,11 @@ namespace caret {
         
         bool m_frameChangedFlag = false;
         
+        /*
+         * Note CZI_BITMAP does not support alpha channel that is needed for distance/masking file alpha values.
+         */
+        static const CziImageFile::ImageDataFormat s_imageDataFormatForReading = CziImageFile::ImageDataFormat::Q_IMAGE;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
