@@ -36,6 +36,7 @@
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
+#include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -3248,7 +3249,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
             glPolygonOffset(0.0, 1.0);
             
             if (drawOutlineFlag) {
-                BrainOpenGLVolumeSliceDrawing::drawSurfaceOutline(underlayVolume,
+                BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
                                                                   ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                                                                   sliceProjectionType,
                                                                   sliceViewPlane,

@@ -41,7 +41,6 @@ namespace caret {
     class ModelWholeBrain;
     class Plane;
     class VolumeMappableInterface;
-    class VolumeSurfaceOutlineSetModel;
     
     class BrainOpenGLVolumeSliceDrawing : public CaretObject {
         
@@ -72,16 +71,6 @@ namespace caret {
                                               const float zoomFactor,
                                               const int viewport[4],
                                               double orthographicBoundsOut[6]);
-        
-        static void drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
-                                       const ModelTypeEnum::Enum modelType,
-                                       const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                       const float sliceXYZ[3],
-                                       const Plane& plane,
-                                       VolumeSurfaceOutlineSetModel* outlineSet,
-                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                       const bool useNegativePolygonOffsetFlag);
         
         static void drawIdentificationSymbols(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                               BrowserTabContent* browserTabContent,
@@ -270,22 +259,6 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        static void drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
-                                             const ModelTypeEnum::Enum modelType,
-                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                             const float sliceXYZ[3],
-                                             const Plane& plane,
-                                             VolumeSurfaceOutlineSetModel* outlineSet,
-                                             BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                             const bool useNegativePolygonOffsetFlag);
-
-        static void drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
-                                                const Plane& plane,
-                                                VolumeSurfaceOutlineSetModel* outlineSet,
-                                                BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                const bool useNegativePolygonOffsetFlag);
-
         void drawVolumeSliceFoci(const Plane& plane);
         
         void drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
