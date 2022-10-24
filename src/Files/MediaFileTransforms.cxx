@@ -58,6 +58,7 @@ MediaFileTransforms::MediaFileTransforms()
  *    Instance copied to this
  */
 MediaFileTransforms::MediaFileTransforms(const MediaFileTransforms& mft)
+: CaretObject(mft)
 {
     copyHelper(mft);
 }

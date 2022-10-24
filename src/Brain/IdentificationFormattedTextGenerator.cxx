@@ -249,8 +249,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     }
     
     for (auto& hfi : histologyFilesAndIndices) {
-        HistologySlicesFile* histologyFile(hfi.m_mapFile->castToHistologySlicesFile());
-        CaretAssert(histologyFile);
+        CaretAssert(hfi.m_mapFile->castToHistologySlicesFile());
         generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
                                                            idText,
                                                            selectionManager->getHistologyPlaneCoordinateIdentification());

@@ -96,7 +96,8 @@ HistologySlice::~HistologySlice()
  *    Object that is copied.
  */
 HistologySlice::HistologySlice(const HistologySlice& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+EventListenerInterface()
 {
     this->copyHelperHistologySlice(obj);
 }

@@ -114,11 +114,6 @@ m_parentToolBar(parentToolBar)
     QLabel* planeLabel(new QLabel("Plane"));
     QLabel* stereotaxicLabel(new QLabel("XYZ"));
     for (int32_t i = 0; i < 3; i++) {
-        float maxValue(1000000);
-        float minValue(-maxValue);
-        int decimals(1);
-        float step(1.0);
-        
         m_planeXyzSpinBox[i] = new WuQDoubleSpinBox(this);
         m_planeXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
         m_planeXyzSpinBox[i]->setDecimalsModeAuto();
@@ -126,10 +121,6 @@ m_parentToolBar(parentToolBar)
         QObject::connect(m_planeXyzSpinBox[i], &WuQDoubleSpinBox::valueChanged,
                          this, &BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged);
 
-        maxValue = 1000;
-        minValue = -maxValue;
-        decimals = 4;
-        step     = 0.01;
         m_stereotaxicXyzSpinBox[i] = new WuQDoubleSpinBox(this);
         m_stereotaxicXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
         m_stereotaxicXyzSpinBox[i]->setDecimalsModeAuto();

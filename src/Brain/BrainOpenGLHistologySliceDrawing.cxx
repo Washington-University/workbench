@@ -110,8 +110,7 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
     const int32_t numberOfFiles(m_mediaFilesAndDataToDraw.size());
     for (int32_t i = 0; i < numberOfFiles; i++) {
         CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, i);
-        HistologySlicesFile* histologyFile(m_mediaFilesAndDataToDraw[i].m_selectedFile);
-        CaretAssert(histologyFile);
+        CaretAssert(m_mediaFilesAndDataToDraw[i].m_selectedFile);
         const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[i].m_mediaFile);
         CaretAssert(mediaFile);
         if (mediaFile->isPlaneXyzSupported()) {
