@@ -149,7 +149,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-    m_histologyModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
     m_histologyDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PLANE;
@@ -283,8 +282,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                        &m_brainModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_chartModelYokingGroup",
                                                                        &m_chartModelYokingGroup);
-    m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_histologyModelYokingGroup",
-                                                                       &m_histologyModelYokingGroup);
     m_sceneClassAssistant->add<YokingGroupEnum, YokingGroupEnum::Enum>("m_mediaModelYokingGroup",
                                                                        &m_mediaModelYokingGroup);
 
@@ -419,7 +416,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     
     m_brainModelYokingGroup = tabToClone->m_brainModelYokingGroup;
     m_chartModelYokingGroup = tabToClone->m_chartModelYokingGroup;
-    m_histologyModelYokingGroup = tabToClone->m_histologyModelYokingGroup;
     m_mediaModelYokingGroup = tabToClone->m_mediaModelYokingGroup;
     m_aspectRatio = tabToClone->m_aspectRatio;
     m_aspectRatioLocked = tabToClone->m_aspectRatioLocked;
@@ -1821,22 +1817,19 @@ BrowserTabContent::receiveEvent(Event* event)
 
         if (idLocationEvent->isTabSelected(getTabNumber())) {
             if (isIdentificationUpdateHistologySlices()) {
-                ModelHistology* mh(getDisplayedHistologyModel());
-                if (mh != NULL) {
-                    const float* highlighXYZ = idLocationEvent->getXYZ();
-                    const Vector3D xyz(highlighXYZ[0],
-                                       highlighXYZ[1],
-                                       highlighXYZ[2]);
-                    CaretAssert(getHistologyOverlaySet());
-                    HistologyOverlay* histologyUnderlay(getHistologyOverlaySet()->getUnderlay());
-                    if (histologyUnderlay != NULL) {
-                        HistologySlicesFile* histologySlicesFile(histologyUnderlay->getSelectionData().m_selectedFile);
-                        if (histologySlicesFile != NULL ) {
-                            HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
-                                                                                                  xyz));
-                            if (hc.isValid()) {
-                                setHistologySelectedCoordinate(hc);
-                            }
+                const float* highlighXYZ = idLocationEvent->getXYZ();
+                const Vector3D xyz(highlighXYZ[0],
+                                   highlighXYZ[1],
+                                   highlighXYZ[2]);
+                CaretAssert(getHistologyOverlaySet());
+                HistologyOverlay* histologyUnderlay(getHistologyOverlaySet()->getUnderlay());
+                if (histologyUnderlay != NULL) {
+                    HistologySlicesFile* histologySlicesFile(histologyUnderlay->getSelectionData().m_selectedFile);
+                    if (histologySlicesFile != NULL ) {
+                        HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
+                                                                                              xyz));
+                        if (hc.isValid()) {
+                            setHistologySelectedCoordinate(hc);
                         }
                     }
                 }
@@ -4393,7 +4386,7 @@ BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* vi
     m_histologyViewingTransformation->setViewToBounds(xform,
                                                   windowBounds,
                                                   selectionBounds);
-    updateHistologyModelYokedBrowserTabs();
+    // not for now but might want to do this updateHistologyModelYokedBrowserTabs();
 }
 
 /**
@@ -5366,7 +5359,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_brainModelYokingGroup = YokingGroupEnum::YOKING_GROUP_A;
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
-    m_histologyModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
     initializeScaleBar();
@@ -6955,45 +6947,6 @@ BrowserTabContent::setChartModelYokingGroup(const YokingGroupEnum::Enum chartMod
 }
 
 /**
- * @return Selected yoking group for histology
- */
-YokingGroupEnum::Enum
-BrowserTabContent::getHistologyModelYokingGroup() const
-{
-    return m_histologyModelYokingGroup;
-}
-
-/**
- * Set the selected yoking group for histology.
- *
- * @param histologyModelYokingType
- *    New value for yoking group.
- */
-void
-BrowserTabContent::setHistologyModelYokingGroup(const YokingGroupEnum::Enum histologyModelYokingType)
-{
-    m_histologyModelYokingGroup = histologyModelYokingType;
-    
-    if (m_histologyModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
-        return;
-    }
-    
-    /*
-     * Find another browser tab using the same yoking as 'me' and copy
-     * yoked data from the other browser tab.
-     */
-    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
-    for (auto btc : activeTabs) {
-        if (btc != this) {
-            if (btc->getHistologyModelYokingGroup() == m_histologyModelYokingGroup) {
-                *m_histologyViewingTransformation = *btc->m_histologyViewingTransformation;
-                break;
-            }
-        }
-    }
-}
-
-/**
  * @return Selected yoking group for media
  */
 YokingGroupEnum::Enum
@@ -7091,6 +7044,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
                  */
+
                 break;
             }
         }
@@ -7135,7 +7089,6 @@ void
 BrowserTabContent::updateYokedModelBrowserTabs()
 {
     bool chartFlag = false;
-    bool histologyFlag(false);
     bool mediaFlag = false;
     
     switch (getSelectedModelType()) {
@@ -7148,7 +7101,6 @@ BrowserTabContent::updateYokedModelBrowserTabs()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            histologyFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             mediaFlag = true;
@@ -7165,9 +7117,6 @@ BrowserTabContent::updateYokedModelBrowserTabs()
  
     if (chartFlag) {
         updateChartModelYokedBrowserTabs();
-    }
-    else if (histologyFlag) {
-        updateHistologyModelYokedBrowserTabs();
     }
     else if (mediaFlag) {
         updateMediaModelYokedBrowserTabs();
@@ -7232,6 +7181,8 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
             }
         }
     }
+    
+    updateHistologyModelYokedBrowserTabs();
 }
 
 /**
@@ -7275,10 +7226,10 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
         return;
     }
     
-    if (m_histologyModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
         return;
     }
-    
+
     /*
      * Copy yoked data from 'me' to all other yoked browser tabs
      */

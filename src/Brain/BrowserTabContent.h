@@ -595,10 +595,6 @@ namespace caret {
         
         void setChartModelYokingGroup(const YokingGroupEnum::Enum chartModelYokingType);
         
-        YokingGroupEnum::Enum getHistologyModelYokingGroup() const;
-        
-        void setHistologyModelYokingGroup(const YokingGroupEnum::Enum mediaModelYokingType);
-        
         YokingGroupEnum::Enum getMediaModelYokingGroup() const;
         
         void setMediaModelYokingGroup(const YokingGroupEnum::Enum mediaModelYokingType);
@@ -766,8 +762,6 @@ namespace caret {
         
         /** Chart Model Yoking group */
         YokingGroupEnum::Enum m_chartModelYokingGroup;
-        
-        YokingGroupEnum::Enum m_histologyModelYokingGroup;
         
         /** Media Model Yoking Group */
         YokingGroupEnum::Enum m_mediaModelYokingGroup;
