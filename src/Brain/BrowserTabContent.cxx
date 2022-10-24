@@ -4386,7 +4386,7 @@ BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* vi
     m_histologyViewingTransformation->setViewToBounds(xform,
                                                   windowBounds,
                                                   selectionBounds);
-    // not for now but might want to do this updateHistologyModelYokedBrowserTabs();
+    updateBrainModelYokedBrowserTabs();
 }
 
 /**
@@ -7045,6 +7045,20 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                  * m_lightingEnabled = btc->m_lightingEnabled;
                  */
 
+                
+                HistologySlicesFile* histologySlicesFile(NULL);
+                HistologyOverlaySet* overlaySet(btc->getHistologyOverlaySet());
+                if (overlaySet != NULL) {
+                    const HistologyOverlay* underlay(overlaySet->getUnderlay());
+                    if (underlay != NULL) {
+                        histologySlicesFile = underlay->getSelectionData().m_selectedFile;
+                    }
+                }
+                m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
+                                                            *btc->m_histologySliceSettings);
+                m_histologyViewingTransformation->copyFromOther(*btc->m_histologyViewingTransformation);
+                m_histologyDisplayCoordinateMode = btc->m_histologyDisplayCoordinateMode;
+                
                 break;
             }
         }
@@ -7250,6 +7264,8 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
                 }
                 btc->m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
                                                                  *m_histologySliceSettings);
+                btc->m_histologyViewingTransformation->copyFromOther(*m_histologyViewingTransformation);
+                btc->m_histologyDisplayCoordinateMode = m_histologyDisplayCoordinateMode;
             }
         }
     }

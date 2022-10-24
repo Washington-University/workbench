@@ -92,7 +92,8 @@ HistologySliceImage::~HistologySliceImage()
  */
 HistologySliceImage::HistologySliceImage(const HistologySliceImage& obj)
 : CaretObject(obj),
-EventListenerInterface()
+EventListenerInterface(),
+SceneableInterface(obj)
 {
     this->copyHelperHistologySliceImage(obj);
 }

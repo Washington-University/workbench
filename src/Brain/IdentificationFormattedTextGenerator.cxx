@@ -248,15 +248,13 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                        false);
     }
     
-    for (auto& hfi : histologyFilesAndIndices) {
-        CaretAssert(hfi.m_mapFile->castToHistologySlicesFile());
-        generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
-                                                           idText,
-                                                           selectionManager->getHistologyPlaneCoordinateIdentification());
-        generateHistologyStereotaxicCoordinateIdentificationText(*histologyHtmlTableBuilder,
-                                                                 idText,
-                                                                 selectionManager->getHistologyStereotaxicCoordinateIdentification());
-    }
+    generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
+                                                       idText,
+                                                       selectionManager->getHistologyPlaneCoordinateIdentification());
+    generateHistologyStereotaxicCoordinateIdentificationText(*histologyHtmlTableBuilder,
+                                                             idText,
+                                                             selectionManager->getHistologyStereotaxicCoordinateIdentification());
+
     for (auto& mfi : mediaFilesAndIndices) {
         MediaFile* mediaFile(mfi.m_mapFile->castToMediaFile());
         CaretAssert(mediaFile);
