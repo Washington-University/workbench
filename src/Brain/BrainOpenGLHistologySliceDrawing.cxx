@@ -29,6 +29,7 @@
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -488,6 +489,15 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      * Slice spacing (thickness) used for drawing features histology slices
      */
     const float sliceSpacing(underlayHistologySlicesFile->getSliceSpacing());
+    
+    /*
+     * Draw surface outlines
+     */
+    const bool useNegativePolygonOffsetFlag(true);
+    BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayHistologySlice,
+                                                               m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                                               m_fixedPipelineDrawing,
+                                                               useNegativePolygonOffsetFlag);
     
     /*
      * Height used for drawing ID symbols

@@ -32,6 +32,7 @@
 namespace caret {
 
     class GraphicsPrimitive;
+    class HistologySlice;
     class Surface;
     class SceneAttributes;
     class SceneClassAssistant;
@@ -72,11 +73,13 @@ namespace caret {
         
         const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
-        void setOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+        void setOutlineCachePrimitives(const HistologySlice*          histologySlice,
+                                       const VolumeMappableInterface* underlayVolume,
                                        const VolumeSurfaceOutlineModelCacheKey& key,
                                        const std::vector<GraphicsPrimitive*>& primitives);
         
-        bool getOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+        bool getOutlineCachePrimitives(const HistologySlice*          histologySlice,
+                                       const VolumeMappableInterface* underlayVolume,
                                        const VolumeSurfaceOutlineModelCacheKey& key,
                                        std::vector<GraphicsPrimitive*>& primitivesOut);
         
@@ -121,10 +124,15 @@ namespace caret {
             void clear();
             
             bool isValid(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                         const HistologySlice*          histologySlice,
                          const VolumeMappableInterface* underlayVolume);
             
             void update(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                        const HistologySlice*      histologySlice,
                         const VolumeMappableInterface* underlayVolume);
+            
+            /** The histology slice */
+            const HistologySlice* m_histologySlice;
             
             /** The underlay volume */
             const VolumeMappableInterface* m_underlayVolume;

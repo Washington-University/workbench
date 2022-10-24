@@ -24,6 +24,7 @@
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_HISTOLOGY_DECLARE__
 
 #include <QAction>
+#include <QCheckBox>
 #include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -38,12 +39,14 @@
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
 #include "CursorDisplayScoped.h"
+#include "CziNonLinearTransform.h"
 #include "DisplayPropertiesCziImages.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventBrowserTabValidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsObjectToWindowTransform.h"
@@ -204,6 +207,14 @@ m_parentToolBar(parentToolBar)
     m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setEnabled(false);
 #endif
 
+    m_nonLinearTransformEnabledCheckBox = new QCheckBox("Non-Linear");
+    m_nonLinearTransformEnabledCheckBox->setToolTip("<html>"
+                                                    "Non-linear transformations enabled.  Affects all tabs "
+                                                    "and is not saved to scenes"
+                                                    "</html>");
+    QObject::connect(m_nonLinearTransformEnabledCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked);
+    
     /*
      * Layout widgets
      */
@@ -240,6 +251,8 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     ++row;
+    controlsLayout->addWidget(m_nonLinearTransformEnabledCheckBox,
+                              row, columnSliceLabels, 1, 2, Qt::AlignLeft);
     controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
@@ -385,6 +398,8 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     if (m_browserTabContent != NULL) {
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
     }
+    
+    m_nonLinearTransformEnabledCheckBox->setChecked(CziNonLinearTransform::isNonLinearTransformEnabled());
     
     setEnabled(histologySlicesFile != NULL);
 }
@@ -748,5 +763,19 @@ BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxIt
         m_browserTabContent->setHistologyDisplayCoordinateMode(mode);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
+}
+
+/**
+ * Called when non-linear checkbox checked
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked(bool checked)
+{
+    CziNonLinearTransform::setNonLinearTransformEnabled(checked);
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    updateGraphicsWindowAndYokedWindows();
+    updateUserInterface();
 }
 

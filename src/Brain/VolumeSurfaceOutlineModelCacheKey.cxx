@@ -58,44 +58,24 @@ m_sliceViewPlane(sliceViewPlane)
 {
     const float scaleFactor = computeScaleFactor(underlayVolume);
     m_sliceCoordinateScaled = static_cast<int64_t>(sliceCoordinate * scaleFactor);
+}
+
+/**
+ * Constructor.
+ *
+ * @param histologySlice
+ *     The histology slice
+ * @param histologySliceIndex
+ *     Index of histology slice
+ */
+VolumeSurfaceOutlineModelCacheKey::VolumeSurfaceOutlineModelCacheKey(const HistologySlice* histologySlice,
+                                                                     const int32_t histologySliceIndex)
+: CaretObject(),
+m_mode(Mode::HISTOLOGY_SLICE),
+m_histologySlice(histologySlice),
+m_histologySliceIndex(histologySliceIndex)
+{
     
-//    CaretAssert(underlayVolume);
-//    if (underlayVolume != NULL) {
-//        float voxelSizesMM[3];
-//        underlayVolume->getVoxelSpacing(voxelSizesMM[0],
-//                                        voxelSizesMM[1],
-//                                        voxelSizesMM[2]);
-//
-//        float voxelSize(0.0);
-//        switch (sliceViewPlane) {
-//            case VolumeSliceViewPlaneEnum::ALL:
-//                voxelSize = voxelSizesMM[2];
-//                break;
-//            case VolumeSliceViewPlaneEnum::AXIAL:
-//                voxelSize = voxelSizesMM[2];
-//                break;
-//            case VolumeSliceViewPlaneEnum::CORONAL:
-//                voxelSize = voxelSizesMM[1];
-//                break;
-//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                voxelSize = voxelSizesMM[0];
-//                break;
-//        }
-//
-//        if (voxelSize > 0.0) {
-//            /*
-//             * The coordinate for the slice is stored as an integer since
-//             * since integer comparison is precise oppposed to a float comparison
-//             * that requires some sort of tolerance.
-//             *
-//             * (1.0 / voxelSize) is used so that the scale factor will
-//             * be larger for small voxels and prevent an outline from
-//             * being used by adjacent volume slices
-//             */
-//            const float scaleFactor = 10.0 * (1.0 / voxelSize);
-//            m_sliceCoordinateScaled = static_cast<int32_t>(std::round(sliceCoordinate * scaleFactor));
-//        }
-//    }
 }
 
 /**
@@ -207,30 +187,9 @@ VolumeSurfaceOutlineModelCacheKey::copyHelperVolumeSurfaceOutlineModelCacheKey(c
     m_sliceViewPlane = obj.m_sliceViewPlane;
     m_sliceCoordinateScaled = obj.m_sliceCoordinateScaled;
     m_planeEquationScaled   = obj.m_planeEquationScaled;
+    m_histologySlice        = obj.m_histologySlice;
+    m_histologySliceIndex   = obj.m_histologySliceIndex;
 }
-
-///**
-// * Equality operator.
-// * @param obj
-// *    Instance compared to this for equality.
-// * @return
-// *    True if this instance and 'obj' instance are considered equal.
-// */
-//bool
-//VolumeSurfaceOutlineModelCacheKey::operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const
-//{
-//    if (this == &obj) {
-//        return true;
-//    }
-//
-//    /* perform equality testing HERE and return true if equal ! */
-//    if ((m_sliceViewPlane == obj.m_sliceViewPlane)
-//        && (m_sliceCoordinateScaled == obj.m_sliceCoordinateScaled)) {
-//        return true;
-//    }
-//
-//    return false;
-//}
 
 /**
  * Less than operator.
@@ -249,6 +208,18 @@ VolumeSurfaceOutlineModelCacheKey::operator<(const VolumeSurfaceOutlineModelCach
     
     if (m_mode == obj.m_mode) {
         switch (m_mode) {
+            case Mode::HISTOLOGY_SLICE:
+                if (m_histologySlice < obj.m_histologySlice) {
+                    return true;
+                }
+                else if (m_histologySlice > obj.m_histologySlice) {
+                    return false;
+                }
+                
+                if (m_histologySliceIndex < obj.m_histologySliceIndex) {
+                    return true;
+                }
+                break;
             case Mode::PLANE_EQUATION:
             {
                 for (int32_t i = 0; i < static_cast<int32_t>(m_planeEquationScaled.size()); i++) {
@@ -296,6 +267,12 @@ VolumeSurfaceOutlineModelCacheKey::toString() const
 {
     QString str;
     switch (m_mode) {
+        case Mode::HISTOLOGY_SLICE:
+            str = ("Histology Slice Ptr = "
+                   + QString::number((long long)m_histologySlice)
+                   + " Slice Index="
+                   + QString::number(m_histologySliceIndex));
+            break;
         case Mode::PLANE_EQUATION:
             str = ("Plane Equation = "
                    + AString::fromNumbers(&m_planeEquationScaled[0], m_planeEquationScaled.size(), ","));

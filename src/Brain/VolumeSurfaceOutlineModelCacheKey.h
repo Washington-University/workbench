@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class HistologySlice;
     class Plane;
     
     class VolumeMappableInterface;
@@ -45,13 +46,14 @@ namespace caret {
         VolumeSurfaceOutlineModelCacheKey(const VolumeMappableInterface* underlayVolume,
                                           const Plane& plane);
         
+        VolumeSurfaceOutlineModelCacheKey(const HistologySlice* histologySlice,
+                                          const int32_t histologySliceIndex);
+        
         virtual ~VolumeSurfaceOutlineModelCacheKey();
         
         VolumeSurfaceOutlineModelCacheKey(const VolumeSurfaceOutlineModelCacheKey& obj);
 
         VolumeSurfaceOutlineModelCacheKey& operator=(const VolumeSurfaceOutlineModelCacheKey& obj);
-        
-//        bool operator==(const VolumeSurfaceOutlineModelCacheKey& obj) const;
         
         bool operator<(const VolumeSurfaceOutlineModelCacheKey& obj) const;
 
@@ -61,6 +63,7 @@ namespace caret {
         
     private:
         enum class Mode {
+            HISTOLOGY_SLICE,
             PLANE_EQUATION,
             SLICE_VIEW_PLANE
         };
@@ -76,6 +79,10 @@ namespace caret {
         int64_t m_sliceCoordinateScaled = 100000;
         
         std::array<int64_t, 4> m_planeEquationScaled;
+        
+        const HistologySlice* m_histologySlice = NULL;
+        
+        int32_t m_histologySliceIndex = -1;
         
         // ADD_NEW_MEMBERS_HERE
 

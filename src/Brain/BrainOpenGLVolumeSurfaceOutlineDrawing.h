@@ -33,8 +33,11 @@
 namespace caret {
 
     class BrainOpenGLFixedPipeline;
+    class HistologySlice;
+    class GraphicsPrimitive;
     class Plane;
     class VolumeMappableInterface;
+    class VolumeSurfaceOutlineModelCacheKey;
     class VolumeSurfaceOutlineSetModel;
     
     class BrainOpenGLVolumeSurfaceOutlineDrawing : public CaretObject {
@@ -47,6 +50,11 @@ namespace caret {
         BrainOpenGLVolumeSurfaceOutlineDrawing(const BrainOpenGLVolumeSurfaceOutlineDrawing&) = delete;
 
         BrainOpenGLVolumeSurfaceOutlineDrawing& operator=(const BrainOpenGLVolumeSurfaceOutlineDrawing&) = delete;
+        
+        static void drawSurfaceOutline(const HistologySlice* histologySlice,
+                                       VolumeSurfaceOutlineSetModel* outlineSet,
+                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                       const bool useNegativePolygonOffsetFlag);
         
         static void drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
                                        const ModelTypeEnum::Enum modelType,
@@ -64,21 +72,33 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        static void drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
+        static void drawSurfaceOutlineCached(const HistologySlice* histologySlice,
+                                             const VolumeMappableInterface* underlayVolume,
                                              const ModelTypeEnum::Enum modelType,
-                                             const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                             const float sliceXYZ[3],
                                              const Plane& plane,
+                                             VolumeSurfaceOutlineModelCacheKey& outlineCacheKey,
                                              VolumeSurfaceOutlineSetModel* outlineSet,
                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                              const bool useNegativePolygonOffsetFlag);
         
+        static void drawSurfaceOutlineCachedOnVolume(const VolumeMappableInterface* underlayVolume,
+                                                     const ModelTypeEnum::Enum modelType,
+                                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                     const float sliceXYZ[3],
+                                                     const Plane& plane,
+                                                     VolumeSurfaceOutlineSetModel* outlineSet,
+                                                     BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                     const bool useNegativePolygonOffsetFlag);
+
         static void drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
                                                 const Plane& plane,
                                                 VolumeSurfaceOutlineSetModel* outlineSet,
                                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                 const bool useNegativePolygonOffsetFlag);
+        
+        static void projectContoursToHistologySlice(const HistologySlice* histologySlice,
+                                                    std::vector<GraphicsPrimitive*>& contourPrimitives);
         
         // ADD_NEW_MEMBERS_HERE
 

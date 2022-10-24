@@ -912,7 +912,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         defaultTabIndex = m_histologyTabIndex;
                         enableHistology = true;
                         enableLayers = false;
-                        enableVolumeSurfaceOutline = false;
+                        enableVolumeSurfaceOutline = true;
                         haveBorders = false;
                         haveFibers  = false;
                         haveFoci    = false;

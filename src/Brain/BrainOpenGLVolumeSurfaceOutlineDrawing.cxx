@@ -29,6 +29,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "HistologySlice.h"
 #include "Plane.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
@@ -77,6 +78,38 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::toString() const
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param histologySlice
+ *    The histology slice
+ * @param outlineSet
+ *    The surface outline set.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
+ * @param useNegativePolygonOffsetFlag
+ *    If true, use a negative offset for polygon offset
+ */
+void
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlice* histologySlice,
+                                                           VolumeSurfaceOutlineSetModel* outlineSet,
+                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                           const bool useNegativePolygonOffsetFlag)
+{
+    const VolumeMappableInterface* underlayVolume(NULL);
+    const Plane stereotaxicPlane(histologySlice->getStereotaxicPlane());
+    VolumeSurfaceOutlineModelCacheKey outlineCacheKey(histologySlice,
+                                                      histologySlice->getSliceIndex());
+    drawSurfaceOutlineCached(histologySlice,
+                             underlayVolume,
+                             ModelTypeEnum::MODEL_TYPE_HISTOLOGY,
+                             stereotaxicPlane,
+                             outlineCacheKey,
+                             outlineSet,
+                             fixedPipelineDrawing,
+                             useNegativePolygonOffsetFlag);
+}
+
+/**
+ * Draw surface outlines on the volume slices
+ *
  * @param underlayVolume
  *    The underlay volume
  * @param modelType
@@ -98,14 +131,14 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::toString() const
  */
 void
 BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableInterface* underlayVolume,
-                                                  const ModelTypeEnum::Enum modelType,
-                                                  const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const float sliceXYZ[3],
-                                                  const Plane& plane,
-                                                  VolumeSurfaceOutlineSetModel* outlineSet,
-                                                  BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                  const bool useNegativePolygonOffsetFlag)
+                                                           const ModelTypeEnum::Enum modelType,
+                                                           const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                           const float sliceXYZ[3],
+                                                           const Plane& plane,
+                                                           VolumeSurfaceOutlineSetModel* outlineSet,
+                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                           const bool useNegativePolygonOffsetFlag)
 {
     bool drawCachedFlag(true);
     
@@ -123,7 +156,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
      * previous algorithm
      */
     if (drawCachedFlag) {
-        drawSurfaceOutlineCached(underlayVolume,
+        drawSurfaceOutlineCachedOnVolume(underlayVolume,
                                  modelType,
                                  sliceProjectionType,
                                  sliceViewPlane,
@@ -167,7 +200,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const VolumeMappableInterface* underlayVolume,
                                                         const ModelTypeEnum::Enum modelType,
                                                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -177,37 +210,6 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMap
                                                         BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                         const bool useNegativePolygonOffsetFlag)
 {
-    glPushAttrib(GL_ENABLE_BIT);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    
-    switch (modelType) {
-        case ModelTypeEnum::MODEL_TYPE_CHART:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_INVALID:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            break;
-        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-            /*
-             * Enable depth so outlines in front or in back
-             * of the slices.  Without this the volume surface
-             * outlines "behind" the slices are visible and
-             * it looks weird
-             */
-            glEnable(GL_DEPTH_TEST);
-            break;
-    }
     
     float sliceCoordinate(0.0);
     switch (sliceViewPlane) {
@@ -242,6 +244,77 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMap
             break;
     }
     
+    const HistologySlice* histologySlice(NULL);
+    drawSurfaceOutlineCached(histologySlice,
+                             underlayVolume,
+                             modelType,
+                             plane,
+                             outlineCacheKey,
+                             outlineSet,
+                             fixedPipelineDrawing,
+                             useNegativePolygonOffsetFlag);
+}
+
+/**
+ * Draw surface outlines on the volume slices
+ *
+ * @param underlayVolume
+ *    The underlay volume
+ * @param modelType
+ *    Type of model on which outlines are drawn
+ * @param plane
+ *    Plane of the volume slice on which surface outlines are drawn.
+ * @param outlineCacheKey
+ *    Key for outline cache
+ * @param outlineSet
+ *    The surface outline set.
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing.
+ * @param useNegativePolygonOffsetFlag
+ *    If true, use a negative offset for polygon offset
+ */
+void
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const HistologySlice* histologySlice,
+                                                                 const VolumeMappableInterface* underlayVolume,
+                                                                 const ModelTypeEnum::Enum modelType,
+                                                                 const Plane& plane,
+                                                                 VolumeSurfaceOutlineModelCacheKey& outlineCacheKey,
+                                                                 VolumeSurfaceOutlineSetModel* outlineSet,
+                                                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                                 const bool useNegativePolygonOffsetFlag)
+{
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    
+    switch (modelType) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            break;
+        case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            /*
+             * Enable depth so outlines in front or in back
+             * of the slices.  Without this the volume surface
+             * outlines "behind" the slices are visible and
+             * it looks weird
+             */
+            glEnable(GL_DEPTH_TEST);
+            break;
+    }
+    
     /*
      * Process each surface outline
      * As of 24 May, "zero" is on top so draw in reverse order
@@ -271,7 +344,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMap
                     }
                 }
                 
-                if (outline->getOutlineCachePrimitives(underlayVolume,
+                if (outline->getOutlineCachePrimitives(histologySlice,
+                                                       underlayVolume,
                                                        outlineCacheKey,
                                                        contourPrimitives)) {
                     /* OK, have cached primitives to draw */
@@ -311,7 +385,13 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMap
                         CaretLogSevere(errorMessage);
                     }
                     
-                    outline->setOutlineCachePrimitives(underlayVolume,
+                    if (histologySlice != NULL) {
+                        projectContoursToHistologySlice(histologySlice,
+                                                        contourPrimitives);
+                    }
+                    
+                    outline->setOutlineCachePrimitives(histologySlice,
+                                                       underlayVolume,
                                                        outlineCacheKey,
                                                        contourPrimitives);
                 }
@@ -338,6 +418,36 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const VolumeMap
     }
     
     glPopAttrib();
+}
+
+/**
+ * Project the contours that are in sterotaxic space to plane coordinates on the histology slice
+ * @param histologySlice
+ *    The histology slice
+ * @param contourPrimitives
+ *    Primitives containing the contours
+ */
+void
+BrainOpenGLVolumeSurfaceOutlineDrawing::projectContoursToHistologySlice(const HistologySlice* histologySlice,
+                                                                        std::vector<GraphicsPrimitive*>& contourPrimitives)
+{
+    for (GraphicsPrimitive* primitive : contourPrimitives) {
+        CaretAssert(primitive);
+        const std::vector<float>& coordinates(primitive->getFloatXYZ());
+        const int32_t numCoordinates(primitive->getNumberOfVertices());
+        std::vector<float> planeCoordinates;
+        planeCoordinates.reserve(numCoordinates * 3);
+        for (int32_t i = 0; i < numCoordinates; i++) {
+            Vector3D planeXYZ;
+            histologySlice->stereotaxicXyzToPlaneXyz(&coordinates[i * 3],
+                                                     planeXYZ);
+            planeCoordinates.insert(planeCoordinates.end(),
+                                    &planeXYZ[0], &planeXYZ[0] + 3);
+        }
+        
+        CaretAssert(planeCoordinates.size() == coordinates.size());
+        primitive->replaceFloatXYZ(planeCoordinates);
+    }
 }
 
 /**

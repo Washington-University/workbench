@@ -26,6 +26,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "Matrix4x4.h"
@@ -60,6 +61,26 @@ m_filename(filename)
  */
 CziNonLinearTransform::~CziNonLinearTransform()
 {
+}
+
+/**
+ * @return Is non-linear transforms enabled (affects ALL files)
+ */
+bool
+CziNonLinearTransform::isNonLinearTransformEnabled()
+{
+    return s_nonLinearTransformEnabled;
+}
+
+/**
+ * Set non-linear transforms enabled (affects ALL files)
+ * @param enabled
+ *    New status
+ */
+void
+CziNonLinearTransform::setNonLinearTransformEnabled(const bool enabled)
+{
+    s_nonLinearTransformEnabled = enabled;
 }
 
 /**
@@ -220,7 +241,7 @@ CziNonLinearTransform::load(const AString& filename)
                     break;
             }
             
-            if (m_debugFlag) {
+            if (s_debugFlag) {
                 std::cout << "Mode: " << modeName << std::endl;
                 std::cout << "   NIFTI File: " << filename << std::endl;
                 std::cout << "   Dimensions:";
@@ -262,6 +283,13 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
     offsetXyzOut[1] = 0.0;
     offsetXyzOut[2] = 0.0;
     
+    if ( ! s_nonLinearTransformEnabled) {
+        /*
+         * Non-linear offsets disabled
+         */
+        return;
+    }
+    
     if (m_status == Status::UNREAD) {
         load(m_filename);
     }
@@ -296,7 +324,7 @@ CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& stereot
     int64_t indexI(static_cast<int64_t>(indexIJK[0]));
     const int64_t indexJ(static_cast<int64_t>(indexIJK[1]));
     const int64_t indexK(static_cast<int64_t>(indexIJK[2]));
-    if (m_debugFlag) {
+    if (s_debugFlag) {
         std::cout << "FROM millimeters Index: " << indexI << ", " << indexJ << ", " << indexK << std::endl;
     }
 
@@ -360,7 +388,7 @@ CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
     const int64_t indexI(static_cast<int64_t>(indexIJK[0]));
     const int64_t indexJ(static_cast<int64_t>(indexIJK[1]));
     const int64_t indexK(static_cast<int64_t>(indexIJK[2]));
-    if (m_debugFlag) {
+    if (s_debugFlag) {
         std::cout << "TO millimeters Index: " << indexI << ", " << indexJ << ", " << indexK << std::endl;
     }
 

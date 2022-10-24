@@ -23,6 +23,8 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
+class QCheckBox;
+
 namespace caret {
 
     class BrainOpenGLViewportContent;
@@ -71,6 +73,8 @@ namespace caret {
         
         void histologyDisplayCoordinateModeEnumComboBoxItemActivated();
         
+        void nonLinearTransformEnabledCheckBoxClicked(bool checked);
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -103,6 +107,8 @@ namespace caret {
         QAction* m_moveToCenterAction;
         
         EnumComboBoxTemplate* m_histologyDisplayCoordinateModeEnumComboBox;
+        
+        QCheckBox* m_nonLinearTransformEnabledCheckBox;
 };
     
     

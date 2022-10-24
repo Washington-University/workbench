@@ -139,6 +139,7 @@ VolumeSurfaceOutlineModel::receiveEvent(Event* event)
                 clearOutlineCache();
                 break;
             case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                clearOutlineCache();
                 break;
         }
     }
@@ -316,13 +317,18 @@ VolumeSurfaceOutlineModel::restoreFromScene(const SceneAttributes* sceneAttribut
 /**
  * Set the outline primitives for the given cache key
  *
+ * @param histologySlice
+ *    The histology slice
+ * @param underlayVolume
+ *    The underlay volume
  * @param key
  *     Key into the outline cache identifying axis and slice
  * @param primitivesOut
  *     Input containing the primitives
  */
 void
-VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const HistologySlice*          histologySlice,
+                                                     const VolumeMappableInterface* underlayVolume,
                                                      const VolumeSurfaceOutlineModelCacheKey& key,
                                                      const std::vector<GraphicsPrimitive*>& primitives)
 {
@@ -334,6 +340,7 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeMappableInterfa
     
     if (m_outlineCache.empty()) {
         m_outlineCacheInfo.update(this,
+                                  histologySlice,
                                   underlayVolume);
     }
     
@@ -349,6 +356,8 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeMappableInterfa
 /**
  * Get the outline primitives for the given cache key
  *
+ * @param histologySlice
+ *    The histology slice
  * @param underlayVolume
  *    The underlay volume
  * @param key
@@ -359,11 +368,13 @@ VolumeSurfaceOutlineModel::setOutlineCachePrimitives(const VolumeMappableInterfa
  *     Truie if outline primitives valid, else false.
  */
 bool
-VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const VolumeMappableInterface* underlayVolume,
+VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const HistologySlice*          histologySlice,
+                                                     const VolumeMappableInterface* underlayVolume,
                                                      const VolumeSurfaceOutlineModelCacheKey& key,
                                                      std::vector<GraphicsPrimitive*>& primitivesOut)
 {
     if ( ! m_outlineCacheInfo.isValid(this,
+                                      histologySlice,
                                       underlayVolume)) {
         clearOutlineCache();
     }
@@ -433,6 +444,8 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
  *
  * @param surfaceOutlineModel
  *     The parent surface outline model
+ * @param histologySlice
+ *    The histology slice
  * @param underlayVolume
  *    The underlay volume
  * @return
@@ -440,12 +453,24 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
  */
 bool
 VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                                                     const HistologySlice*          histologySlice,
                                                      const VolumeMappableInterface* underlayVolume)
 {
     bool validFlag(false);
     if (m_surface != NULL) {
+        const bool histologyMatchFlag((m_histologySlice == histologySlice)
+                                      && (m_histologySlice != NULL));
+        const bool volumeMatchFlag((m_underlayVolume    == underlayVolume)
+                                   && (m_underlayVolume != NULL));
+        if (histologyMatchFlag) {
+            CaretAssert( ! volumeMatchFlag);
+        }
+        else if (volumeMatchFlag) {
+            CaretAssert( ! histologyMatchFlag);
+        }
         if ((m_surface == surfaceOutlineModel->getSurface())
-            && (m_underlayVolume == underlayVolume)
+            && (histologyMatchFlag
+                || volumeMatchFlag)
             && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())) {
             if (m_colorItem != NULL) {
                 if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
@@ -463,13 +488,27 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
  *
  * @param surfaceOutlineModel
  *     The surface outline model
+ * @param histologySlice
+ *    The histology slice
  * @param underlayVolume
  *    The underlay volume
  */
 void
 VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* surfaceOutlineModel,
+                                                    const HistologySlice*          histologySlice,
                                                     const VolumeMappableInterface* underlayVolume)
 {
+    const bool histologyMatchFlag((m_histologySlice == histologySlice)
+                                  && (m_histologySlice != NULL));
+    const bool volumeMatchFlag((m_underlayVolume    == underlayVolume)
+                               && (m_underlayVolume != NULL));
+    if (histologyMatchFlag) {
+        CaretAssert( ! volumeMatchFlag);
+    }
+    else if (volumeMatchFlag) {
+        CaretAssert( ! histologyMatchFlag);
+    }
+    m_histologySlice = histologySlice;
     m_underlayVolume = underlayVolume;
     m_surface = surfaceOutlineModel->getSurface();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
