@@ -700,7 +700,7 @@ HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation&
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
-    const qsizetype numChars(30);
+    const uint64_t numChars(30);
     const QString separator(numChars, QChar('-'));
     const int32_t numSlices(getNumberOfHistologySlices());
     for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
