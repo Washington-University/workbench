@@ -128,6 +128,16 @@ DataFile::getFileNameNoPath() const
 }
 
 /**
+ * @return Name of path excluding file name..
+ */
+AString
+DataFile::getFilePath() const
+{
+    FileInformation fileInfo(m_filename);
+    return fileInfo.getAbsolutePath();
+}
+
+/**
  * Set the name of the data file.
  * This method is virtual so NEVER call it from
  * a constructor.  Instead, use setFileNameProtected().

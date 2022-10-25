@@ -603,8 +603,11 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
         const HistologySliceImage* image(getHistologySliceImage(jImage));
         const MediaFile* mediaFile(image->getMediaFile());
         dataFileInformation.addNameAndValue("Image",
-                                            mediaFile->getFileNameNoPath());
-        dataFileInformation.addNameAndValue("Stereotaxic Plane",
+                                            (mediaFile->getFileNameNoPath()
+                                             + " ("
+                                             + mediaFile->getFilePath()
+                                             + ")"));
+        dataFileInformation.addNameAndValue("Stereotaxic Plane Equation",
                                             mediaFile->getStereotaxicImagePlane()->toString());
         const_cast<MediaFile*>(mediaFile)->addPlaneCoordsToDataFileContentInformation(dataFileInformation);
     }

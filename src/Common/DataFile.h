@@ -51,6 +51,8 @@ namespace caret {
     public:
         virtual AString getFileName() const;
         
+        virtual AString getFilePath() const;
+        
         virtual AString getFileNameNoPath() const;
         
         virtual void setFileName(const AString& filename);

@@ -837,6 +837,31 @@ MediaFile::addPlaneCoordsToDataFileContentInformation(DataFileContentInformation
         dataFileInformation.addNameAndValue("Stereotaxic Bottom Left",  m_stereotaxicXyzBottomLeft);
         dataFileInformation.addNameAndValue("Stereotaxic Bottom Right", m_stereotaxicXyzBottomRight);
         dataFileInformation.addNameAndValue("Stereotaxic Top Right",    m_stereotaxicXyzTopRight);
+
+        Vector3D stl, str, sbl, sbr;
+        Vector3D stlNN, strNN, sblNN, sbrNN;
+        planeXyzToStereotaxicXyz(m_planeXyzTopLeft, stlNN, stl);
+        planeXyzToStereotaxicXyz(m_planeXyzBottomLeft, sblNN, sbl);
+        planeXyzToStereotaxicXyz(m_planeXyzBottomRight, sbrNN, sbr);
+        planeXyzToStereotaxicXyz(m_planeXyzTopRight, strNN, str);
+        
+        const float tol(0.001);
+        const bool tlError((m_stereotaxicXyzTopLeft - stl).length() > tol);
+        const bool blError((m_stereotaxicXyzBottomLeft - sbl).length() > tol);
+        const bool brError((m_stereotaxicXyzBottomRight - sbr).length() > tol);
+        const bool trError((m_stereotaxicXyzTopRight - str).length() > tol);
+        if (tlError || blError || brError || trError) {
+            dataFileInformation.addNameAndValue("", "Stereotaxic Coords do not match pre-calculated stereotaxic coords above");
+            dataFileInformation.addNameAndValue("Stereotaxic Top Left",     stl);
+            dataFileInformation.addNameAndValue("Stereotaxic Bottom Left",  sbl);
+            dataFileInformation.addNameAndValue("Stereotaxic Bottom Right", sbr);
+            dataFileInformation.addNameAndValue("Stereotaxic Top Right",    str);
+        }
+
+        dataFileInformation.addNameAndValue("Stereotaxic Top Left (No-Non-Linear)",     stlNN);
+        dataFileInformation.addNameAndValue("Stereotaxic Bottom Left (No-Non-Linear)",  sblNN);
+        dataFileInformation.addNameAndValue("Stereotaxic Bottom Right (No-Non-Linear)", sbrNN);
+        dataFileInformation.addNameAndValue("Stereotaxic Top Right (No-Non-Linear)",    strNN);
     }
     else {
         dataFileInformation.addNameAndValue("Pixel to Plane Matrix", "Invalid");
