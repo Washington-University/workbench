@@ -752,7 +752,8 @@ BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxIt
     if (m_browserTabContent != NULL) {
         const MediaDisplayCoordinateModeEnum::Enum mode(m_histologyDisplayCoordinateModeEnumComboBox->getSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>());
         m_browserTabContent->setHistologyDisplayCoordinateMode(mode);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        updateGraphicsWindowAndYokedWindows();
+        updateUserInterface();
     }
 }
 

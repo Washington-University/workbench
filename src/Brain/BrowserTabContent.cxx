@@ -1367,6 +1367,7 @@ BrowserTabContent::setMediaDisplayCoordinateMode(const MediaDisplayCoordinateMod
         resetView();
     }
     m_mediaDisplayCoordinateMode = mediaDisplayCoordinateMode;
+    updateYokedModelBrowserTabs();
 }
 
 /**
@@ -1386,15 +1387,18 @@ BrowserTabContent::getHistologyDisplayCoordinateMode() const
 void
 BrowserTabContent::setHistologyDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum histologyDisplayCoordinateMode)
 {
-    if (histologyDisplayCoordinateMode != m_histologyDisplayCoordinateMode) {
+    const bool resetViewFlag(histologyDisplayCoordinateMode != m_histologyDisplayCoordinateMode);
+    m_histologyDisplayCoordinateMode = histologyDisplayCoordinateMode;
+    if (resetViewFlag) {
         /*
          * Reset the view.  The pixel/plane coordinates may be substantially
          * different and if this is not done, the images may not be seen
          * until the Reset button is clicked.
+         *
+         * Reset view will also update the yoked browser tabs
          */
         resetView();
     }
-    m_histologyDisplayCoordinateMode = histologyDisplayCoordinateMode;
 }
 
 /**
