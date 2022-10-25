@@ -1326,7 +1326,10 @@ MediaFile::getPixelPlaneIdentificationTextForHistology(const int32_t tabIndex,
                               + ")");
     
     columnOneTextOut.push_back("Filename");
-    columnTwoTextOut.push_back(getFileNameNoPath());
+    columnTwoTextOut.push_back(getFileNameNoPath()
+                               + " ("
+                               + getFilePath()
+                               + ")");
     
     columnOneTextOut.push_back(pixelText);
     columnTwoTextOut.push_back(logicalText);
