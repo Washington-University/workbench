@@ -1825,15 +1825,17 @@ BrowserTabContent::receiveEvent(Event* event)
                 const Vector3D xyz(highlighXYZ[0],
                                    highlighXYZ[1],
                                    highlighXYZ[2]);
-                CaretAssert(getHistologyOverlaySet());
-                HistologyOverlay* histologyUnderlay(getHistologyOverlaySet()->getUnderlay());
-                if (histologyUnderlay != NULL) {
-                    HistologySlicesFile* histologySlicesFile(histologyUnderlay->getSelectionData().m_selectedFile);
-                    if (histologySlicesFile != NULL ) {
-                        HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
-                                                                                              xyz));
-                        if (hc.isValid()) {
-                            setHistologySelectedCoordinate(hc);
+                HistologyOverlaySet* histologyOverlaySet(getHistologyOverlaySet());
+                if (histologyOverlaySet != NULL) {
+                    HistologyOverlay* histologyUnderlay(histologyOverlaySet->getUnderlay());
+                    if (histologyUnderlay != NULL) {
+                        HistologySlicesFile* histologySlicesFile(histologyUnderlay->getSelectionData().m_selectedFile);
+                        if (histologySlicesFile != NULL ) {
+                            HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
+                                                                                                  xyz));
+                            if (hc.isValid()) {
+                                setHistologySelectedCoordinate(hc);
+                            }
                         }
                     }
                 }
@@ -7050,18 +7052,20 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                  */
 
                 
-                HistologySlicesFile* histologySlicesFile(NULL);
-                HistologyOverlaySet* overlaySet(btc->getHistologyOverlaySet());
-                if (overlaySet != NULL) {
-                    const HistologyOverlay* underlay(overlaySet->getUnderlay());
-                    if (underlay != NULL) {
-                        histologySlicesFile = underlay->getSelectionData().m_selectedFile;
+                if (m_histologyModel != NULL) {
+                    HistologySlicesFile* histologySlicesFile(NULL);
+                    HistologyOverlaySet* overlaySet(btc->getHistologyOverlaySet());
+                    if (overlaySet != NULL) {
+                        const HistologyOverlay* underlay(overlaySet->getUnderlay());
+                        if (underlay != NULL) {
+                            histologySlicesFile = underlay->getSelectionData().m_selectedFile;
+                        }
                     }
+                    m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
+                                                                *btc->m_histologySliceSettings);
+                    m_histologyViewingTransformation->copyFromOther(*btc->m_histologyViewingTransformation);
+                    m_histologyDisplayCoordinateMode = btc->m_histologyDisplayCoordinateMode;
                 }
-                m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
-                                                            *btc->m_histologySliceSettings);
-                m_histologyViewingTransformation->copyFromOther(*btc->m_histologyViewingTransformation);
-                m_histologyDisplayCoordinateMode = btc->m_histologyDisplayCoordinateMode;
                 
                 break;
             }
@@ -7248,6 +7252,10 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
         return;
     }
 
+    if (m_histologyModel == NULL) {
+        return;
+    }
+    
     /*
      * Copy yoked data from 'me' to all other yoked browser tabs
      */
