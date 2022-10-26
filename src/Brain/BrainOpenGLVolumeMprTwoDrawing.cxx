@@ -32,6 +32,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
+#include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLShapeRing.h"
 #include "BrainOpenGLViewportContent.h"
@@ -845,17 +846,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         
         const Plane slicePlane(sliceInfo.m_plane);
         
-        if ( ! m_identificationModeFlag) {
-            if (slicePlane.isValidPlane()) {
-                drawLayers(underlayVolume,
-                           sliceDrawingType,
-                           sliceProjectionType,
-                           sliceViewPlane,
-                           slicePlane,
-                           sliceCoordinates);
-            }
+        if (slicePlane.isValidPlane()) {
+            drawLayers(underlayVolume,
+                       sliceDrawingType,
+                       sliceProjectionType,
+                       sliceViewPlane,
+                       slicePlane,
+                       sliceCoordinates,
+                       sliceThickness);
         }
-        
+
         const bool annotationModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::ANNOTATIONS);
         const bool tileTabsEditModeFlag = (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
         std::set<AString> emptyMediaFileNames;
@@ -3204,6 +3204,8 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
  *    Plane of the slice.
  * @param sliceCoordinates
  *    Coordinates of the selected slices.
+ * @param sliceThickness
+ *    Thickness of slices
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underlayVolume,
@@ -3211,9 +3213,11 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const Plane& slicePlane,
-                                           const Vector3D& sliceCoordinates)
+                                           const Vector3D& sliceCoordinates,
+                                           const float sliceThickness)
 {
     bool drawFibersFlag     = true;
+    bool drawFociFlag       = true;
     bool drawOutlineFlag    = true;
     
     switch (m_brainModelMode) {
@@ -3226,54 +3230,61 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
             break;
     }
 
-    if ( ! m_identificationModeFlag) {
-        if (slicePlane.isValidPlane()) {
-            /*
-             * Save cull and depth test status
-             */
-            glPushAttrib(GL_ENABLE_BIT);
-            
-            /*
-             * Disable culling so that both sides of the triangles/quads are drawn.
-             */
-            glDisable(GL_CULL_FACE);
-            
-            glPushMatrix();
-            
-            /*
-             * Use some polygon offset that will adjust the depth values of the
-             * layers so that the layers depth values place the layers in front of
-             * the volume slice.
-             */
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(0.0, 1.0);
-            
-            if (drawOutlineFlag) {
-                BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
-                                                                  ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                  sliceProjectionType,
-                                                                  sliceViewPlane,
-                                                                  sliceCoordinates,
-                                                                  slicePlane,
-                                                                  m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                  m_fixedPipelineDrawing,
-                                                                  false);
-            }
-            
-            if (drawFibersFlag) {
-                glDisable(GL_DEPTH_TEST);
-                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
-                                                              StructureEnum::ALL);
-                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
-                                                              StructureEnum::ALL);
-            }
-            
-            glDisable(GL_POLYGON_OFFSET_FILL);
-                        
-            glPopMatrix();
-            
-            glPopAttrib();
+    if (slicePlane.isValidPlane()) {
+        /*
+         * Save cull and depth test status
+         */
+        glPushAttrib(GL_ENABLE_BIT);
+        
+        /*
+         * Disable culling so that both sides of the triangles/quads are drawn.
+         */
+        glDisable(GL_CULL_FACE);
+        
+        glPushMatrix();
+        
+        /*
+         * Use some polygon offset that will adjust the depth values of the
+         * layers so that the layers depth values place the layers in front of
+         * the volume slice.
+         */
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(0.0, 1.0);
+        
+        if (drawFociFlag) {
+            BrainOpenGLFociDrawing fociDrawing;
+            fociDrawing.drawVolumeOrthogonalFoci(m_brain,
+                                                 m_fixedPipelineDrawing,
+                                                 const_cast<VolumeMappableInterface*>(underlayVolume),
+                                                 slicePlane,
+                                                 sliceViewPlane,
+                                                 sliceThickness);
         }
+        if (drawOutlineFlag) {
+            BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
+                                                                       ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                       sliceProjectionType,
+                                                                       sliceViewPlane,
+                                                                       sliceCoordinates,
+                                                                       slicePlane,
+                                                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                                                       m_fixedPipelineDrawing,
+                                                                       false);
+        }
+        
+        if (drawFibersFlag) {
+            glDisable(GL_DEPTH_TEST);
+            m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
+                                                          StructureEnum::ALL);
+            m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
+                                                          StructureEnum::ALL);
+        }
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        
+        glPopMatrix();
+        
+        glPopAttrib();
     }
 }
 

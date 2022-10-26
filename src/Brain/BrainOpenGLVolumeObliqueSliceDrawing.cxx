@@ -31,6 +31,7 @@
 #include "BoundingBox.h"
 #include "Brain.h"
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
+#include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -43,11 +44,8 @@
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
 #include "DeveloperFlagsEnum.h"
-#include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesLabels.h"
 #include "ElapsedTimer.h"
-#include "FociFile.h"
-#include "Focus.h"
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -63,7 +61,6 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
-#include "SelectionItemFocusVolume.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
@@ -825,14 +822,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         }
     }
     
-    if ( ! m_identificationModeFlag) {
-        if (slicePlane.isValidPlane()) {
-            drawLayers(sliceDrawingType,
-                       sliceProjectionType,
-                       sliceViewPlane,
-                       slicePlane,
-                       sliceCoordinates);
-        }
+    if (slicePlane.isValidPlane()) {
+        drawLayers(sliceDrawingType,
+                   sliceProjectionType,
+                   sliceViewPlane,
+                   slicePlane,
+                   sliceCoordinates);
     }
     
     /*
@@ -1110,302 +1105,98 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
         drawFociFlag = false;
     }
     
-    if ( ! m_identificationModeFlag) {
-        if (slicePlane.isValidPlane()) {
-            /*
-             * Disable culling so that both sides of the triangles/quads are drawn.
-             */
-            GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
-            glDisable(GL_CULL_FACE);
-            
-            glPushMatrix();
-            
-            GLboolean depthBufferEnabled = false;
-            glGetBooleanv(GL_DEPTH_TEST,
-                          &depthBufferEnabled);
-            
-            /*
-             * Use some polygon offset that will adjust the depth values of the
-             * layers so that the layers depth values place the layers in front of
-             * the volume slice.
-             */
-            glEnable(GL_POLYGON_OFFSET_FILL);
-            glPolygonOffset(0.0, 1.0);
-            
-            if (drawOutlineFlag) {
-                BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(m_underlayVolume,
-                                                                  m_modelType,
-                                                                  sliceProjectionType,
-                                                                  sliceViewPlane,
-                                                                  sliceCoordinates,
-                                                                  slicePlane,
-                                                                  m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                  m_fixedPipelineDrawing,
-                                                                  true);
-            }
-            
-            if (drawFibersFlag) {
-                glDisable(GL_DEPTH_TEST);
-                m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
-                                                              StructureEnum::ALL);
-                m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
-                                                              StructureEnum::ALL);
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            if (drawFociFlag) {
-                glDisable(GL_DEPTH_TEST);
-                drawVolumeSliceFoci(slicePlane);
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            
-            glDisable(GL_POLYGON_OFFSET_FILL);
-            
-            if (drawCrosshairsFlag) {
-                glPushMatrix();
-                drawAxesCrosshairs(sliceProjectionType,
-                                   sliceDrawingType,
-                                   sliceViewPlane,
-                                   sliceCoordinates);
-                glPopMatrix();
-                if (depthBufferEnabled) {
-                    glEnable(GL_DEPTH_TEST);
-                }
-                else {
-                    glDisable(GL_DEPTH_TEST);
-                }
-            }
-            
-            glPopMatrix();
-            
-            if (cullFaceOn) {
-                glEnable(GL_CULL_FACE);
-            }
+    if (slicePlane.isValidPlane()) {
+        /*
+         * Disable culling so that both sides of the triangles/quads are drawn.
+         */
+        GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
+        glDisable(GL_CULL_FACE);
+        
+        glPushMatrix();
+        
+        GLboolean depthBufferEnabled = false;
+        glGetBooleanv(GL_DEPTH_TEST,
+                      &depthBufferEnabled);
+        
+        /*
+         * Use some polygon offset that will adjust the depth values of the
+         * layers so that the layers depth values place the layers in front of
+         * the volume slice.
+         */
+        glEnable(GL_POLYGON_OFFSET_FILL);
+        glPolygonOffset(0.0, 1.0);
+        
+        if (drawOutlineFlag) {
+            BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(m_underlayVolume,
+                                                                       m_modelType,
+                                                                       sliceProjectionType,
+                                                                       sliceViewPlane,
+                                                                       sliceCoordinates,
+                                                                       slicePlane,
+                                                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                                                       m_fixedPipelineDrawing,
+                                                                       true);
         }
-    }
-}
-
-/**
- * Draw foci on volume slice.
- *
- * @param plane
- *   Plane of the volume slice on which surface outlines are drawn.
- */
-void
-BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceFoci(const Plane& plane)
-{
-    SelectionItemFocusVolume* idFocus = m_brain->getSelectionManager()->getVolumeFocusIdentification();
-    
-    /*
-     * Check for a 'selection' type mode
-     */
-    bool isSelect = false;
-    switch (m_fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (idFocus->isEnabledForSelection()) {
-                isSelect = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        if (drawFibersFlag) {
+            glDisable(GL_DEPTH_TEST);
+            m_fixedPipelineDrawing->drawFiberOrientations(&slicePlane,
+                                                          StructureEnum::ALL);
+            m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
+                                                          StructureEnum::ALL);
+            if (depthBufferEnabled) {
+                glEnable(GL_DEPTH_TEST);
             }
             else {
-                return;
+                glDisable(GL_DEPTH_TEST);
             }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
-    }
-    
-    VolumeMappableInterface* underlayVolume = m_volumeDrawInfo[0].volumeFile;
-    float minVoxelSpacing;
-    float maxVoxelSpacing;
-    if ( ! getMinMaxVoxelSpacing(underlayVolume, minVoxelSpacing, maxVoxelSpacing)) {
-        return;
-    }
-    
-    const float sliceThickness = maxVoxelSpacing;
-    const float halfSliceThickness = sliceThickness * 0.5;
-    
-    
-    const DisplayPropertiesFoci* fociDisplayProperties = m_brain->getDisplayPropertiesFoci();
-    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
-    
-    if (fociDisplayProperties->isDisplayed(displayGroup,
-                                           m_fixedPipelineDrawing->windowTabIndex) == false) {
-        return;
-    }
-    const float focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
-                                                                   m_fixedPipelineDrawing->windowTabIndex);
-    const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
-                                                                                                  m_fixedPipelineDrawing->windowTabIndex);
-    
-    const CaretColorEnum::Enum caretColor = fociDisplayProperties->getStandardColorType(displayGroup,
-                                                                                        m_fixedPipelineDrawing->windowTabIndex);
-    float caretColorRGBA[4];
-    CaretColorEnum::toRGBAFloat(caretColor, caretColorRGBA);
-    
-    bool drawAsSpheres = false;
-    switch (fociDisplayProperties->getDrawingType(displayGroup,
-                                                  m_fixedPipelineDrawing->windowTabIndex)) {
-        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
-            drawAsSpheres = true;
-            break;
-        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
-            break;
-    }
-    
-    /*
-     * Process each foci file
-     */
-    const int32_t numberOfFociFiles = m_brain->getNumberOfFociFiles();
-    for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
-        FociFile* fociFile = m_brain->getFociFile(iFile);
-        
-        const GroupAndNameHierarchyModel* classAndNameSelection = fociFile->getGroupAndNameHierarchyModel();
-        if (classAndNameSelection->isSelected(displayGroup,
-                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
-            continue;
         }
-        
-        const GiftiLabelTable* classColorTable = fociFile->getClassColorTable();
-        const GiftiLabelTable* nameColorTable = fociFile->getNameColorTable();
-        
-        const int32_t numFoci = fociFile->getNumberOfFoci();
-        
-        for (int32_t j = 0; j < numFoci; j++) {
-            Focus* focus = fociFile->getFocus(j);
-            
-            const GroupAndNameHierarchyItem* groupNameItem = focus->getGroupNameSelectionItem();
-            if (groupNameItem != NULL) {
-                if (groupNameItem->isSelected(displayGroup,
-                                              m_fixedPipelineDrawing->windowTabIndex) == false) {
-                    continue;
+        if (drawFociFlag) {
+            float minVoxelSpacing;
+            float maxVoxelSpacing;
+            if (getMinMaxVoxelSpacing(m_underlayVolume,
+                                      minVoxelSpacing,
+                                      maxVoxelSpacing)) {
+                
+                const float sliceThickness = maxVoxelSpacing;
+                glDisable(GL_DEPTH_TEST);
+                BrainOpenGLFociDrawing fociDrawing;
+                fociDrawing.drawVolumeObliqueFoci(m_brain,
+                                                  m_fixedPipelineDrawing,
+                                                  m_underlayVolume,
+                                                  slicePlane,
+                                                  sliceViewPlane,
+                                                  sliceThickness);
+                if (depthBufferEnabled) {
+                    glEnable(GL_DEPTH_TEST);
                 }
-            }
-            
-            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
-            switch (fociColoringType) {
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
-                    if (focus->isClassRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
-                        if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setClassRgba(rgba);
-                        }
-                        else {
-                            focus->setClassRgba(rgba);
-                        }
-                    }
-                    focus->getClassRgba(rgba);
-                    break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
-                    rgba[0] = caretColorRGBA[0];
-                    rgba[1] = caretColorRGBA[1];
-                    rgba[2] = caretColorRGBA[2];
-                    rgba[3] = caretColorRGBA[3];
-                    break;
-                case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
-                    if (focus->isNameRgbaValid() == false) {
-                        const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
-                        if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setNameRgba(rgba);
-                        }
-                        else {
-                            focus->setNameRgba(rgba);
-                        }
-                    }
-                    focus->getNameRgba(rgba);
-                    break;
-            }
-            
-            const int32_t numProjections = focus->getNumberOfProjections();
-            for (int32_t k = 0; k < numProjections; k++) {
-                const SurfaceProjectedItem* spi = focus->getProjection(k);
-                if (spi->isVolumeXYZValid()) {
-                    float xyz[3];
-                    spi->getVolumeXYZ(xyz);
-                    
-                    bool drawIt = false;
-                    if (plane.absoluteDistanceToPlane(xyz) < halfSliceThickness) {
-                        drawIt = true;
-                    }
-                    
-                    if (drawIt) {
-                        glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        if (isSelect) {
-                            uint8_t idRGBA[4];
-                            m_fixedPipelineDrawing->colorIdentification->addItem(idRGBA,
-                                                                                 SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                                                                 iFile, // file index
-                                                                                 j, // focus index
-                                                                                 k);// projection index
-                            idRGBA[3] = 255;
-                            if (drawAsSpheres) {
-                                m_fixedPipelineDrawing->drawSphereWithDiameter(idRGBA,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor4ubv(idRGBA);
-                                drawSquare(focusDiameter);
-                            }
-                        }
-                        else {
-                            if (drawAsSpheres) {
-                                m_fixedPipelineDrawing->drawSphereWithDiameter(rgba,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor3fv(rgba);
-                                drawSquare(focusDiameter);
-                            }
-                        }
-                        glPopMatrix();
-                    }
+                else {
+                    glDisable(GL_DEPTH_TEST);
                 }
             }
         }
-    }
-    
-    if (isSelect) {
-        int32_t fociFileIndex = -1;
-        int32_t focusIndex = -1;
-        int32_t focusProjectionIndex = -1;
-        float depth = -1.0;
-        m_fixedPipelineDrawing->getIndexFromColorSelection(SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                                           m_fixedPipelineDrawing->mouseX,
-                                                           m_fixedPipelineDrawing->mouseY,
-                                                           fociFileIndex,
-                                                           focusIndex,
-                                                           focusProjectionIndex,
-                                                           depth);
-        if (fociFileIndex >= 0) {
-            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
-                Focus* focus = m_brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
-                idFocus->setBrain(m_brain);
-                idFocus->setFocus(focus);
-                idFocus->setFociFile(m_brain->getFociFile(fociFileIndex));
-                idFocus->setFocusIndex(focusIndex);
-                idFocus->setFocusProjectionIndex(focusProjectionIndex);
-                idFocus->setVolumeFile(underlayVolume);
-                idFocus->setScreenDepth(depth);
-                float xyz[3];
-                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
-                spi->getVolumeXYZ(xyz);
-                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(idFocus, xyz);
-                CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
+        
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        
+        if (drawCrosshairsFlag) {
+            glPushMatrix();
+            drawAxesCrosshairs(sliceProjectionType,
+                               sliceDrawingType,
+                               sliceViewPlane,
+                               sliceCoordinates);
+            glPopMatrix();
+            if (depthBufferEnabled) {
+                glEnable(GL_DEPTH_TEST);
             }
+            else {
+                glDisable(GL_DEPTH_TEST);
+            }
+        }
+        
+        glPopMatrix();
+        
+        if (cullFaceOn) {
+            glEnable(GL_CULL_FACE);
         }
     }
 }

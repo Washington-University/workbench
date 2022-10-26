@@ -1983,6 +1983,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             fociCompatibleViewFlag   = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            fociCompatibleViewFlag       = true;
             imageCompatibleViewFlag      = true;
             volumeEditCompatibleViewFlag = true;
             break;

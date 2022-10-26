@@ -202,7 +202,8 @@ namespace caret {
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
-                        const Vector3D& sliceCoordinates);
+                        const Vector3D& sliceCoordinates,
+                        const float sliceThickness);
         
         void drawVolumeSliceViewTypeMontage(const BrainOpenGLViewportContent* viewportContent,
                                             const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,

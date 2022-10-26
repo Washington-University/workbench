@@ -259,7 +259,8 @@ namespace caret {
                         const Plane& slicePlane,
                         const float sliceCoordinates[3]);
         
-        void drawVolumeSliceFoci(const Plane& plane);
+        void drawVolumeSliceFoci(const Plane& plane,
+                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
         
         void drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                 const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,

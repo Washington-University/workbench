@@ -40,6 +40,7 @@ BrainOpenGLChartDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLFociDrawing.h
 BrainOpenGLHistologySliceCoordinateDrawing.h
 BrainOpenGLHistologySliceDrawing.h
 BrainOpenGLIdentificationDrawing.h
@@ -249,6 +250,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline.cxx
 BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
+BrainOpenGLFociDrawing.cxx
 BrainOpenGLHistologySliceCoordinateDrawing.cxx
 BrainOpenGLHistologySliceDrawing.cxx
 BrainOpenGLIdentificationDrawing.cxx

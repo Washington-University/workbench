@@ -162,7 +162,7 @@ DisplayPropertiesFoci::resetPrivate()
         m_contralateralDisplayStatusInTab[i] = false;
         m_fociSizeInTab[i] = 4.0;
         m_coloringTypeInTab[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
-        m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_drawingTypeInTab[i] = FociDrawingTypeEnum::DRAW_AS_SPHERES;
         m_drawingProjectionTypeInTab[i] = FociDrawingProjectionTypeEnum::PROJECTED;
         m_standardColorTypeInTab[i] = defaultColor;
     }
@@ -173,7 +173,7 @@ DisplayPropertiesFoci::resetPrivate()
         m_contralateralDisplayStatusInDisplayGroup[i] = false;
         m_fociSizeInDisplayGroup[i] = 4.0;
         m_coloringTypeInDisplayGroup[i] = FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME;
-        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SQUARES;
+        m_drawingTypeInDisplayGroup[i] = FociDrawingTypeEnum::DRAW_AS_SPHERES;
         m_drawingProjectionTypeInDisplayGroup[i] = FociDrawingProjectionTypeEnum::PROJECTED;
         m_standardColorTypeInDisplayGroup[i] = defaultColor;
     }
