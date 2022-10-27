@@ -289,7 +289,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     glLoadIdentity();
     glOrtho(orthoLeft, orthoRight,
             orthoBottom, orthoTop,
-            -100.0, 100.0);
+            -1.0, 1.0);  /* using these fixes foci but messes up inverse transform -100.0, 100.0); */
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
