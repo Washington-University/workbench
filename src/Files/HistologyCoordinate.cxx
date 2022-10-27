@@ -331,7 +331,8 @@ HistologyCoordinate::newInstanceSliceIndexChanged(HistologySlicesFile* histology
  *    Object that is copied.
  */
 HistologyCoordinate::HistologyCoordinate(const HistologyCoordinate& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface()
 {
     initializeMembers();
     this->copyHelperHistologyCoordinate(obj);

@@ -82,7 +82,8 @@ HistologySlicesFile::~HistologySlicesFile()
  *    Object that is copied.
  */
 HistologySlicesFile::HistologySlicesFile(const HistologySlicesFile& obj)
-: CaretDataFile(obj)
+: CaretDataFile(obj),
+EventListenerInterface()
 {
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     

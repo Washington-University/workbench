@@ -23,6 +23,8 @@
 #include "HistologySlice.h"
 #undef __HISTOLOGY_SLICE_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "HistologySliceImage.h"

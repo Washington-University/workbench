@@ -66,7 +66,8 @@ HistologySliceSettings::~HistologySliceSettings()
  *    Object that is copied.
  */
 HistologySliceSettings::HistologySliceSettings(const HistologySliceSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface()
 {
     this->copyHelperHistologySliceSettings(obj);
 }
