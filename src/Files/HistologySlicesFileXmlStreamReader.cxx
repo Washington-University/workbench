@@ -443,7 +443,7 @@ HistologySlicesFileXmlStreamReader::readMatrixFromElementText(const QString& ele
                 
                 matrixOut.setMatrixElement(2, 0, matrixVector[6]);
                 matrixOut.setMatrixElement(2, 1, matrixVector[7]);
-                matrixOut.setMatrixElement(2, 2, 1.0);
+                matrixOut.setMatrixElement(2, 2, 0.0);
                 matrixOut.setMatrixElement(2, 3, matrixVector[8]);
                 
                 matrixOut.setMatrixElement(3, 0, 0.0);

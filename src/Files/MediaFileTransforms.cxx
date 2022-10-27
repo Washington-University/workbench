@@ -649,6 +649,12 @@ m_fromStereotaxicNonLinearTransform(fromStereotaxicNonLinearTransform)
         /*
          * 'Plane to Pixel' is inversion of 'Pixel to Plane'
          */
+        //TSC: 2D to 2D matrices should not be invertible as a 3D matrix, force dummy third dim to identity before inversion
+        m_pixelIndexToPlaneMatrix.setMatrixElement(2, 0, 0.0);
+        m_pixelIndexToPlaneMatrix.setMatrixElement(2, 1, 0.0);
+        m_pixelIndexToPlaneMatrix.setMatrixElement(2, 2, 1.0);
+        m_pixelIndexToPlaneMatrix.setMatrixElement(2, 3, 0.0);
+        //std::cout << m_pixelIndexToPlaneMatrix.toString() << std::endl;
         m_planeToPixelIndexMatrix = m_pixelIndexToPlaneMatrix;
         m_planeToPixelIndexMatrixValidFlag = m_planeToPixelIndexMatrix.invert();
         if ( ! m_planeToPixelIndexMatrixValidFlag) {
@@ -662,6 +668,18 @@ m_fromStereotaxicNonLinearTransform(fromStereotaxicNonLinearTransform)
          * to plane conversion if point is not on image plane.  But we will
          * compute it and use it for sanity checks during development.
          */
+        //TSC: XML reader should not spit out an invertible matrix when reading a 2D to 3D matrix, because that needs math, do the math here instead
+        Vector3D ivec = { m_planeToMillimetersMatrix.getMatrixElement(0, 0),
+                          m_planeToMillimetersMatrix.getMatrixElement(1, 0),
+                          m_planeToMillimetersMatrix.getMatrixElement(2, 0) };
+        Vector3D jvec = { m_planeToMillimetersMatrix.getMatrixElement(0, 1),
+                          m_planeToMillimetersMatrix.getMatrixElement(1, 1),
+                          m_planeToMillimetersMatrix.getMatrixElement(2, 1) };
+        Vector3D kvec = ivec.cross(jvec).normal();
+        m_planeToMillimetersMatrix.setMatrixElement(0, 2, kvec[0]);
+        m_planeToMillimetersMatrix.setMatrixElement(1, 2, kvec[1]);
+        m_planeToMillimetersMatrix.setMatrixElement(2, 2, kvec[2]);
+        //std::cout << m_planeToMillimetersMatrix.toString() << std::endl;
         m_invertedPlaneToMillimetersMatrix = m_planeToMillimetersMatrix;
         m_invertedPlaneToMillimetersMatrixValidFlag = m_invertedPlaneToMillimetersMatrix.invert();
         if ( ! m_invertedPlaneToMillimetersMatrixValidFlag) {
@@ -725,7 +743,7 @@ MediaFileTransforms::Inputs::computeMillimetersToPlaneMatrix(const Matrix4x4& pl
      *    plane3d = [[plane2mm(1:3, 1:2), newkvec(:), plane2mm(1:3, 3)]; 0 0 0 1]
      */
     Matrix4x4 plane3d;
-    const bool swapRowColFlag(true);
+    const bool swapRowColFlag(false);
     if (swapRowColFlag) {
         /*
          * This matrix seems to work when we go from
