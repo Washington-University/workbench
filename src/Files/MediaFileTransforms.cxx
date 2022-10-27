@@ -669,12 +669,12 @@ m_fromStereotaxicNonLinearTransform(fromStereotaxicNonLinearTransform)
          * compute it and use it for sanity checks during development.
          */
         //TSC: XML reader should not spit out an invertible matrix when reading a 2D to 3D matrix, because that needs math, do the math here instead
-        Vector3D ivec = { m_planeToMillimetersMatrix.getMatrixElement(0, 0),
-                          m_planeToMillimetersMatrix.getMatrixElement(1, 0),
-                          m_planeToMillimetersMatrix.getMatrixElement(2, 0) };
-        Vector3D jvec = { m_planeToMillimetersMatrix.getMatrixElement(0, 1),
-                          m_planeToMillimetersMatrix.getMatrixElement(1, 1),
-                          m_planeToMillimetersMatrix.getMatrixElement(2, 1) };
+        Vector3D ivec(m_planeToMillimetersMatrix.getMatrixElement(0, 0),
+                      m_planeToMillimetersMatrix.getMatrixElement(1, 0),
+                      m_planeToMillimetersMatrix.getMatrixElement(2, 0));
+        Vector3D jvec(m_planeToMillimetersMatrix.getMatrixElement(0, 1),
+                      m_planeToMillimetersMatrix.getMatrixElement(1, 1),
+                      m_planeToMillimetersMatrix.getMatrixElement(2, 1));
         Vector3D kvec = ivec.cross(jvec).normal();
         m_planeToMillimetersMatrix.setMatrixElement(0, 2, kvec[0]);
         m_planeToMillimetersMatrix.setMatrixElement(1, 2, kvec[1]);
