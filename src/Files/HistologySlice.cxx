@@ -249,6 +249,33 @@ HistologySlice::getPlaneXyzBoundingBox() const
 }
 
 /**
+ * @return Factor for converting a millimeters size to a plane size
+ */
+float
+HistologySlice::getMillimetersToPlaneFactor() const
+{
+    if (m_MillimetersToPlaneFactor < 0.0) {
+        const BoundingBox planeBoundingBox(getPlaneXyzBoundingBox());
+        const BoundingBox stereotaxicBoundingBox(getStereotaxicXyzBoundingBox());
+        const float planeLength(std::sqrt((planeBoundingBox.getDifferenceX() * planeBoundingBox.getDifferenceX())
+                                          + (planeBoundingBox.getDifferenceY() * planeBoundingBox.getDifferenceY())
+                                          + (planeBoundingBox.getDifferenceZ() * planeBoundingBox.getDifferenceZ())));
+        const float stereotaxicLength(std::sqrt((stereotaxicBoundingBox.getDifferenceX() * stereotaxicBoundingBox.getDifferenceX())
+                                                + (stereotaxicBoundingBox.getDifferenceY() * stereotaxicBoundingBox.getDifferenceY())
+                                                + (stereotaxicBoundingBox.getDifferenceZ() * stereotaxicBoundingBox.getDifferenceZ())));
+        
+        m_MillimetersToPlaneFactor = 1.0;
+        
+        if (stereotaxicLength > 0.0) {
+            m_MillimetersToPlaneFactor = (planeLength
+                                          / stereotaxicLength);
+        }
+    }
+    
+    return m_MillimetersToPlaneFactor;
+}
+
+/**
  * Convert a plane XYZ to stereotaxic XYZ
  * @param planeXyz
  *     XYZ in plane

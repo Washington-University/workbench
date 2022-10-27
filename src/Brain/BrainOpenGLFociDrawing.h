@@ -32,6 +32,7 @@ namespace caret {
 
     class Brain;
     class BrainOpenGLFixedPipeline;
+    class HistologySlice;
     class Plane;
     class VolumeMappableInterface;
     
@@ -42,6 +43,12 @@ namespace caret {
         
         virtual ~BrainOpenGLFociDrawing();
         
+        void drawHistologyFoci(Brain* brain,
+                               BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                               const HistologySlice* histologySlice,
+                               const Plane& plane,
+                               const float sliceThickness);
+
         void drawVolumeMprFoci(Brain* brain,
                                BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                VolumeMappableInterface* underlayVolume,
@@ -72,6 +79,7 @@ namespace caret {
 
     private:
         enum class DrawType {
+            HISTOLOGY,
             VOLUME_MPR,
             VOLUME_OBLIQUE,
             VOLUME_ORTHOGONAL
@@ -80,6 +88,7 @@ namespace caret {
         void drawAllFoci(const DrawType drawType,
                          Brain* brain,
                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                         const HistologySlice* histologySlice,
                          VolumeMappableInterface* underlayVolume,
                          const Plane& plane,
                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,

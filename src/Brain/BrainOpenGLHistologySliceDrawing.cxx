@@ -27,6 +27,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLFociDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
@@ -288,7 +289,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     glLoadIdentity();
     glOrtho(orthoLeft, orthoRight,
             orthoBottom, orthoTop,
-            -1.0, 1.0);
+            -100.0, 100.0);
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -507,6 +508,9 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
         planeRangeY = bb.getDifferenceY();
     }
 
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_DEPTH_TEST);
+    
     /*
      * Draw identification symbols
      */
@@ -514,14 +518,22 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                m_fixedPipelineDrawing->m_brain,
                                                m_browserTabContent,
                                                m_fixedPipelineDrawing->mode);
-    Plane plane;
     idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(underlayHistologySlicesFile,
                                                                     underlayHistologySliceNumber,
-                                                                    plane,
+                                                                    underlayHistologySlice->getPlaneXyzPlane(),
                                                                     sliceSpacing,
                                                                     m_browserTabContent->getScaling(),
                                                                     planeRangeY);
 
+    /*
+     * Draw Foci
+     */
+    BrainOpenGLFociDrawing fociDrawing;
+    fociDrawing.drawHistologyFoci(m_fixedPipelineDrawing->m_brain,
+                                  m_fixedPipelineDrawing,
+                                  underlayHistologySlice,
+                                  underlayHistologySlice->getPlaneXyzPlane(),
+                                  sliceSpacing);
 
     /*
      * Draw the crosshairs
@@ -542,6 +554,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                               underlayHistologySlice,
                                                               sliceSpacing);
     }
+    
+    glPopAttrib();
 }
 
 /**

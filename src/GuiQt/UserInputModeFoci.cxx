@@ -39,6 +39,7 @@
 #include "GuiManager.h"
 #include "SelectionItemFocusSurface.h"
 #include "SelectionItemFocusVolume.h"
+#include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
@@ -209,6 +210,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
         {
             SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
             SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
+            SelectionItemHistologyCoordinate* idHistology(idManager->getHistologyPlaneCoordinateIdentification());
             if (idNode->isValid()) {
                 Surface* surfaceViewed = idNode->getSurface();
                 CaretAssert(surfaceViewed);
@@ -255,6 +257,27 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                 FociPropertiesEditorDialog::createFocus(focus,
                                                         browserTabContent,
                                                         m_inputModeFociWidget);
+            }
+            else if (idHistology->isValid()) {
+                const HistologyCoordinate histCoord(idHistology->getCoordinate());
+                if (histCoord.isStereotaxicXYZValid()) {
+                    const Vector3D xyz(histCoord.getStereotaxicXYZ());
+                    const AString focusName = (histCoord.getHistologySlicesFileName()
+                                               + " Slice ("
+                                               + AString::number(histCoord.getSliceNumber())
+                                               + ")");
+                    
+                    const AString comment = ("Created from "
+                                             + focusName);
+                    
+                    Focus* focus = new Focus();
+                    focus->setName(focusName);
+                    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                    focus->setComment(comment);
+                    FociPropertiesEditorDialog::createFocus(focus,
+                                                            browserTabContent,
+                                                            m_inputModeFociWidget);
+                }
             }
         }            break;
         case MODE_DELETE:

@@ -71,6 +71,8 @@ namespace caret {
          
         MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
 
+        float getMillimetersToPlaneFactor() const;
+        
 //        Matrix4x4 getPlaneToMillimetersMatrix() const;
         
 //        bool isPlaneToMillimetersMatrixValid() const;
@@ -178,6 +180,8 @@ namespace caret {
         mutable Plane m_planeXyzPlane;
         
         mutable bool m_planeXyzPlaneValidFlag = false;
+        
+        mutable float m_MillimetersToPlaneFactor = -1.0;
         
         static constexpr bool m_debugFlag = false;
         

@@ -1971,6 +1971,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            fociCompatibleViewFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;

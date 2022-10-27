@@ -511,7 +511,7 @@ BrainOpenGLIdentificationDrawing::getVolumeMaximumCoordinateDimension(const Volu
  * @param volume
  *    volume will be non-NULL when drawing identification symbols on a a volume
  * @param plane
- *    Plane of the volume
+ *    Plane that may or may not be used depending upon drawing type
  * @param planeThickness
  *    Thickness of the plane for media and volume
  * @param viewingZoom

@@ -1088,14 +1088,24 @@ GraphicsEngineDataOpenGL::drawPointsPrimitiveMillimeters(const GraphicsPrimitive
                         const float* xyz = &primitive->m_xyz[i3];
                         const int32_t i4 = i * 4;
                         
-                        uint8_t* rgba = NULL;
+                        uint8_t rgba[4];
                         switch (primitive->m_colorDataType) {
                             case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
-                                CaretAssert(0);
+                            {
+                                CaretAssertVectorIndex(primitive->m_floatRGBA, i4 + 3);
+                                
+                                rgba[0] = static_cast<uint8_t>(primitive->m_floatRGBA[i4] * 255.0);
+                                rgba[1] = static_cast<uint8_t>(primitive->m_floatRGBA[i4+1] * 255.0);
+                                rgba[2] = static_cast<uint8_t>(primitive->m_floatRGBA[i4+2] * 255.0);
+                                rgba[3] = static_cast<uint8_t>(primitive->m_floatRGBA[i4+3] * 255.0);
+                            }
                                 break;
                             case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
                                 CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
-                                rgba = const_cast<uint8_t*>(&primitive->m_unsignedByteRGBA[i4]);
+                                rgba[0] = primitive->m_unsignedByteRGBA[i4];
+                                rgba[1] = primitive->m_unsignedByteRGBA[i4+1];
+                                rgba[2] = primitive->m_unsignedByteRGBA[i4+2];
+                                rgba[3] = primitive->m_unsignedByteRGBA[i4+3];
                                 break;
                             case GraphicsPrimitive::ColorDataType::NONE:
                                 CaretAssert(0);
@@ -1159,7 +1169,18 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
                 
                 switch (primitive->m_colorDataType) {
                     case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
-                        CaretAssert(0);
+                    {
+                        CaretAssertVectorIndex(primitive->m_floatRGBA, i4 + 3);
+                        uint8_t rgba[4] = {
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+1] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+2] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+3] * 255.0)
+                        };
+                        GraphicsShape::drawSphereByteColor(&primitive->m_xyz[i3],
+                                                           rgba,
+                                                           sizeValue);
+                    }
                         break;
                     case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
                         CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);

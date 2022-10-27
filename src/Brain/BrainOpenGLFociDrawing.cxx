@@ -32,7 +32,10 @@
 #include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsPrimitiveV3fC4ub.h"
 #include "GroupAndNameHierarchyModel.h"
+#include "HistologySlice.h"
 #include "IdentificationWithColor.h"
 #include "Plane.h"
 #include "SelectionItemFocusVolume.h"
@@ -67,81 +70,39 @@ BrainOpenGLFociDrawing::~BrainOpenGLFociDrawing()
 
 /**
  * Draw foci on MPR volume slices.
+ * @param brain
+ *    The brain
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param histologySlice
+ *    The histology slice
  * @param plane
  *    Plane of the volume slice
- * @param sliceViewPlane
- *    Slice plane being viewed
+ * @param sliceThickness
+ *   Thickness of a slice
  */
 void
-BrainOpenGLFociDrawing::drawVolumeMprFoci(Brain* brain,
+BrainOpenGLFociDrawing::drawHistologyFoci(Brain* brain,
                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                          VolumeMappableInterface* underlayVolume,
+                                          const HistologySlice* histologySlice,
                                           const Plane& plane,
-                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const float sliceThickness)
 {
-    drawAllFoci(DrawType::VOLUME_MPR,
+    CaretAssert(histologySlice);
+    VolumeMappableInterface* invalidVolumeFile(NULL);
+    const VolumeSliceViewPlaneEnum::Enum invalidSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
+    drawAllFoci(DrawType::HISTOLOGY,
                 brain,
                 fixedPipelineDrawing,
-                underlayVolume,
+                histologySlice,
+                invalidVolumeFile,
                 plane,
-                sliceViewPlane,
-                sliceThickness);
-}
-
-
-/**
- * Draw foci on oblique volume slices.
- * @param plane
- *    Plane of the volume slice
- * @param sliceViewPlane
- *    Slice plane being viewed
- */
-void
-BrainOpenGLFociDrawing::drawVolumeObliqueFoci(Brain* brain,
-                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                              VolumeMappableInterface* underlayVolume,
-                                              const Plane& plane,
-                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                              const float sliceThickness)
-{
-    drawAllFoci(DrawType::VOLUME_OBLIQUE,
-                brain,
-                fixedPipelineDrawing,
-                underlayVolume,
-                plane,
-                sliceViewPlane,
+                invalidSliceViewPlane,
                 sliceThickness);
 }
 
 /**
- * Draw foci on orthogonal volume slices.
- * @param plane
- *    Plane of the volume slice
- * @param sliceViewPlane
- *    Slice plane being viewed
- */
-void
-BrainOpenGLFociDrawing::drawVolumeOrthogonalFoci(Brain* brain,
-                                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                 VolumeMappableInterface* underlayVolume,
-                                                 const Plane& plane,
-                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                 const float sliceThickness)
-{
-    drawAllFoci(DrawType::VOLUME_ORTHOGONAL,
-                brain,
-                fixedPipelineDrawing,
-                underlayVolume,
-                plane,
-                sliceViewPlane,
-                sliceThickness);
-}
-
-/**
- * Draw foci
- * @param drawType
- *    Type of model for drawing foci
+ * Draw foci on MPR volume slices.
  * @param brain
  *    The brain
  * @param fixedPipelineDrawing
@@ -156,12 +117,119 @@ BrainOpenGLFociDrawing::drawVolumeOrthogonalFoci(Brain* brain,
  *   Thickness of a slice
  */
 void
+BrainOpenGLFociDrawing::drawVolumeMprFoci(Brain* brain,
+                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                          VolumeMappableInterface* underlayVolume,
+                                          const Plane& plane,
+                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const float sliceThickness)
+{
+    const HistologySlice* invalidHistologySlice(NULL);
+    drawAllFoci(DrawType::VOLUME_MPR,
+                brain,
+                fixedPipelineDrawing,
+                invalidHistologySlice,
+                underlayVolume,
+                plane,
+                sliceViewPlane,
+                sliceThickness);
+}
+
+
+/**
+ * Draw foci on oblique volume slices.
+ * @param brain
+ *    The brain
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param underlayVolume
+ *    Underlay volume for volume drawing
+ * @param plane
+ *    Plane of the volume slice
+ * @param sliceViewPlane
+ *    Slice plane being viewed
+ * @param sliceThickness
+ *   Thickness of a slice */
+void
+BrainOpenGLFociDrawing::drawVolumeObliqueFoci(Brain* brain,
+                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                              VolumeMappableInterface* underlayVolume,
+                                              const Plane& plane,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const float sliceThickness)
+{
+    const HistologySlice* invalidHistologySlice(NULL);
+    drawAllFoci(DrawType::VOLUME_OBLIQUE,
+                brain,
+                fixedPipelineDrawing,
+                invalidHistologySlice,
+                underlayVolume,
+                plane,
+                sliceViewPlane,
+                sliceThickness);
+}
+
+/**
+ * Draw foci on orthogonal volume slices.
+ * @param brain
+ *    The brain
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param underlayVolume
+ *    Underlay volume for volume drawing
+ * @param plane
+ *    Plane of the volume slice
+ * @param sliceViewPlane
+ *    Slice plane being viewed
+ * @param sliceThickness
+ *   Thickness of a slice
+ */
+void
+BrainOpenGLFociDrawing::drawVolumeOrthogonalFoci(Brain* brain,
+                                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                 VolumeMappableInterface* underlayVolume,
+                                                 const Plane& plane,
+                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                 const float sliceThickness)
+{
+    const HistologySlice* invalidHistologySlice(NULL);
+    drawAllFoci(DrawType::VOLUME_ORTHOGONAL,
+                brain,
+                fixedPipelineDrawing,
+                invalidHistologySlice,
+                underlayVolume,
+                plane,
+                sliceViewPlane,
+                sliceThickness);
+}
+
+/**
+ * Draw foci
+ * @param drawType
+ *    Type of model for drawing foci
+ * @param brain
+ *    The brain
+ * @param fixedPipelineDrawing
+ *    The fixed pipeline drawing
+ * @param histologySlice
+ *    Histology slice
+ * @param underlayVolume
+ *    Underlay volume for volume drawing
+ * @param plane
+ *    Plane of the volume slice
+ * @param sliceViewPlane
+ *    Slice plane being viewed
+ * @param sliceThickness
+ *   Thickness of a slice
+ */
+void
 BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                                     Brain* brain,
                                     BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                    const HistologySlice* histologySlice,
                                     VolumeMappableInterface* underlayVolume,
                                     const Plane& plane,
-                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                    const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                     const float sliceThickness)
 {
     SelectionItemFocusVolume* selectVolumeFocus = brain->getSelectionManager()->getVolumeFocusIdentification();
@@ -177,6 +245,9 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
         {
             SelectionItem* selectionItem(NULL);
             switch (drawType) {
+                case DrawType::HISTOLOGY:
+                    selectionItem = selectVolumeFocus;  /* NEED TO REPLACE */
+                    break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
@@ -215,14 +286,20 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
         return;
     }
     float focusDiameter(1.0);
-    switch (fociDisplayProperties->getFociSymbolSizeType(displayGroup,
-                                                         fixedPipelineDrawing->windowTabIndex)) {
+    IdentificationSymbolSizeTypeEnum::Enum fociSizeType(fociDisplayProperties->getFociSymbolSizeType(displayGroup,
+                                                                                            fixedPipelineDrawing->windowTabIndex));
+    bool useMmFlag(false);
+    bool usePctFlag(false);
+    switch (fociSizeType) {
         case IdentificationSymbolSizeTypeEnum::MILLIMETERS:
-            focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
-                                                                          fixedPipelineDrawing->windowTabIndex);
+            useMmFlag = true;
             break;
         case IdentificationSymbolSizeTypeEnum::PERCENTAGE:
-        {
+            usePctFlag = true;
+            break;
+    }
+    if (usePctFlag) {
+        if (underlayVolume != NULL) {
             focusDiameter = fociDisplayProperties->getFociSizePercentage(displayGroup,
                                                                          fixedPipelineDrawing->windowTabIndex);
             BoundingBox boundingBox;
@@ -230,9 +307,15 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
             const float maxDimension = boundingBox.getMaximumDifferenceOfXYZ();
             focusDiameter = maxDimension * (focusDiameter / 100.0);
         }
-            break;
+        else {
+            useMmFlag = true;
+        }
     }
-    
+    if (useMmFlag) {
+        focusDiameter = fociDisplayProperties->getFociSizeMillimeters(displayGroup,
+                                                                      fixedPipelineDrawing->windowTabIndex);
+    }
+
     const FeatureColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType(displayGroup,
                                                                                                   fixedPipelineDrawing->windowTabIndex);
     
@@ -247,16 +330,25 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
     }
     
     switch (drawType) {
-        case DrawType::VOLUME_MPR:
-        case DrawType::VOLUME_OBLIQUE:
-        case DrawType::VOLUME_ORTHOGONAL:
+        case DrawType::HISTOLOGY:
             /*
-             * Always use spheres on volume since flat does not work
-             * on oblique slices without some work
+             * Histology slice is drawn in "histology plane coordinates"
              */
-            drawAsSpheresFlag = true;
+            CaretAssert(histologySlice);
+            focusDiameter *= histologySlice->getMillimetersToPlaneFactor();
+            
+            /*
+             * Spheres do not work on histology
+             */
+            break;
+        case DrawType::VOLUME_MPR:
+            break;
+        case DrawType::VOLUME_ORTHOGONAL:
+            break;
+        case DrawType::VOLUME_OBLIQUE:
             break;
     }
+
     /*
      * Process each foci file
      */
@@ -286,46 +378,46 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                 }
             }
             
-            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            float rgbaFloat[4] = { 0.0, 0.0, 0.0, 1.0 };
             switch (fociColoringType) {
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_CLASS:
                     if (focus->isClassRgbaValid() == false) {
                         const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(focus->getClassName());
                         if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setClassRgba(rgba);
+                            colorLabel->getColor(rgbaFloat);
+                            focus->setClassRgba(rgbaFloat);
                         }
                         else {
-                            focus->setClassRgba(rgba);
+                            focus->setClassRgba(rgbaFloat);
                         }
                     }
-                    focus->getClassRgba(rgba);
+                    focus->getClassRgba(rgbaFloat);
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_STANDARD_COLOR:
-                    rgba[0] = caretColorRGBA[0];
-                    rgba[1] = caretColorRGBA[1];
-                    rgba[2] = caretColorRGBA[2];
-                    rgba[3] = caretColorRGBA[3];
+                    rgbaFloat[0] = caretColorRGBA[0];
+                    rgbaFloat[1] = caretColorRGBA[1];
+                    rgbaFloat[2] = caretColorRGBA[2];
+                    rgbaFloat[3] = caretColorRGBA[3];
                     break;
                 case FeatureColoringTypeEnum::FEATURE_COLORING_TYPE_NAME:
                     if (focus->isNameRgbaValid() == false) {
                         const GiftiLabel* colorLabel = nameColorTable->getLabelBestMatching(focus->getName());
                         if (colorLabel != NULL) {
-                            colorLabel->getColor(rgba);
-                            focus->setNameRgba(rgba);
+                            colorLabel->getColor(rgbaFloat);
+                            focus->setNameRgba(rgbaFloat);
                         }
                         else {
-                            focus->setNameRgba(rgba);
+                            focus->setNameRgba(rgbaFloat);
                         }
                     }
-                    focus->getNameRgba(rgba);
+                    focus->getNameRgba(rgbaFloat);
                     break;
             }
             
             /*
              * Some label tables may have alpha at zero, so correct it
              */
-            rgba[3] = 1.0;
+            rgbaFloat[3] = 1.0;
             
             const int32_t numProjections = focus->getNumberOfProjections();
             for (int32_t k = 0; k < numProjections; k++) {
@@ -336,6 +428,31 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                     
                     bool drawFocusFlag = false;
                     switch (drawType) {
+                        case DrawType::HISTOLOGY:
+                        {
+                            CaretAssert(histologySlice);
+                            Vector3D xyzOnSlice;
+                            /*
+                             * Need to convert stereotaxic to 'histology plane' XYZ
+                             */
+                            Vector3D stereotaxicOnSliceXYZ;
+                            Vector3D planeOnSliceXYZ;
+                            float distanceToSlice;
+                            if (histologySlice->projectStereotaxicXyzToSlice(xyz,
+                                                                             stereotaxicOnSliceXYZ,
+                                                                             distanceToSlice,
+                                                                             planeOnSliceXYZ)) {
+                                float distanceToHistologySliceTolerance = halfSliceThickness;
+                                distanceToHistologySliceTolerance = 500.0;
+                                if (distanceToSlice < distanceToHistologySliceTolerance) {
+                                    xyz[0] = planeOnSliceXYZ[0];
+                                    xyz[1] = planeOnSliceXYZ[1];
+                                    xyz[2] = planeOnSliceXYZ[2];
+                                    drawFocusFlag = true;
+                                }
+                            }
+                        }
+                            break;
                         case DrawType::VOLUME_MPR:
                         case DrawType::VOLUME_OBLIQUE:
                         case DrawType::VOLUME_ORTHOGONAL:
@@ -351,56 +468,41 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                     }
                     
                     if (drawFocusFlag) {
+                        uint8_t rgbaByte[4] = {
+                            static_cast<uint8_t>(rgbaFloat[0] * 255.0),
+                            static_cast<uint8_t>(rgbaFloat[1] * 255.0),
+                            static_cast<uint8_t>(rgbaFloat[2] * 255.0),
+                            static_cast<uint8_t>(rgbaFloat[3] * 255.0),
+                        };
+                        
                         glPushMatrix();
-                        glTranslatef(xyz[0], xyz[1], xyz[2]);
                         if (selectFlag) {
-                            uint8_t idRGBA[4];
-                            fixedPipelineDrawing->colorIdentification->addItem(idRGBA,
-                                                                                 SelectionItemDataTypeEnum::FOCUS_VOLUME,
-                                                                                 iFile, /* file index */
-                                                                                 j,     /* focus index */
-                                                                                 k);    /* projection index */
-                            idRGBA[3] = 255;
-                            if (drawAsSpheresFlag) {
-                                fixedPipelineDrawing->drawSphereWithDiameter(idRGBA,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor4ubv(idRGBA);
-                                drawSquare(focusDiameter);
-                            }
+                            fixedPipelineDrawing->colorIdentification->addItem(rgbaByte,
+                                                                               SelectionItemDataTypeEnum::FOCUS_VOLUME,
+                                                                               iFile, /* file index */
+                                                                               j,     /* focus index */
+                                                                               k);    /* projection index */
+                            rgbaByte[3] = 255;
+                        }
+                        /*
+                         * Need to draw each symbol independently since each symbol
+                         * contains a unique size (diameter)
+                         */
+                        std::unique_ptr<GraphicsPrimitiveV3fC4ub> idPrimitive;
+                        if (drawAsSpheresFlag) {
+                            idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
+                            idPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS,
+                                                           focusDiameter);
+                            
                         }
                         else {
-                            if (drawAsSpheresFlag) {
-                                fixedPipelineDrawing->drawSphereWithDiameter(rgba,
-                                                                               focusDiameter);
-                            }
-                            else {
-                                glColor3fv(rgba);
-                                {
-                                    glPushMatrix();
-                                    /*
-                                     * These rotations will need more work for display
-                                     * on oblique slices
-                                     */
-                                    switch (sliceViewPlane) {
-                                        case VolumeSliceViewPlaneEnum::ALL:
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::AXIAL:
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::CORONAL:
-                                            glRotatef(90.0, 1.0, 0.0, 0.0);
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                            glRotatef(90.0, 1.0, 0.0, 0.0);
-                                            glRotatef(90.0, 0.0, 1.0, 0.0);
-                                            break;
-                                    }
-                                    drawSquare(focusDiameter);
-                                    glPopMatrix();
-                                }
-                            }
+                            idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS));
+                            idPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::MILLIMETERS,
+                                                          focusDiameter);
                         }
+                        idPrimitive->addVertex(xyz,
+                                               rgbaByte);
+                        GraphicsEngineDataOpenGL::draw(idPrimitive.get());
                         glPopMatrix();
                     }
                 }
@@ -422,6 +524,8 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                                                            depth);
         if (fociFileIndex >= 0) {
             switch (drawType) {
+                case DrawType::HISTOLOGY:
+                    break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
@@ -445,7 +549,6 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
             }
          }
     }
-
 }
 
 /**

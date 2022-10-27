@@ -915,7 +915,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         enableVolumeSurfaceOutline = true;
                         haveBorders = false;
                         haveFibers  = false;
-                        haveFoci    = false;
+                        haveFoci    = true;
                         haveLabels  = false;
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
