@@ -47,7 +47,7 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemImageControlPoint.h"
@@ -92,7 +92,7 @@ SelectionManager::SelectionManager()
     m_ciftiConnectivityMatrixRowColumnIdentfication = new SelectionItemCiftiConnectivityMatrixRowColumn();
     m_chartTimeSeriesIdentification = new SelectionItemChartTimeSeries();
     m_surfaceFocusIdentification = new SelectionItemFocusSurface();
-    m_volumeFocusIdentification = new SelectionItemFocusVolume();
+    m_focusIdentification = new SelectionItemFocus();
     m_histologyPlaneCoordinateIdentification.reset(new SelectionItemHistologyCoordinate());
     m_histologyStereotaxicCoordinateIdentification.reset(new SelectionItemHistologyStereotaxicCoordinate());
     m_imageControlPointIdentification = new SelectionItemImageControlPoint();
@@ -132,17 +132,17 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_volumeMprCrosshairIdentification.get());
     m_allSelectionItems.push_back(m_voxelIdentification);
     m_allSelectionItems.push_back(m_voxelEditingIdentification);
-    m_allSelectionItems.push_back(m_volumeFocusIdentification);
+    m_allSelectionItems.push_back(m_focusIdentification);
     
     m_surfaceSelectedItems.push_back(m_surfaceNodeIdentification);
     m_surfaceSelectedItems.push_back(m_surfaceTriangleIdentification);
     
     m_layeredSelectedItems.push_back(m_surfaceBorderIdentification);
     m_layeredSelectedItems.push_back(m_surfaceFocusIdentification);
-    
+    m_layeredSelectedItems.push_back(m_focusIdentification);
+
     m_volumeSelectedItems.push_back(m_voxelIdentification);
     m_volumeSelectedItems.push_back(m_voxelEditingIdentification);
-    m_volumeSelectedItems.push_back(m_volumeFocusIdentification);
     
     m_idTextGenerator = new IdentificationSimpleTextGenerator();
     m_idFormattedTextGenerator.reset(new IdentificationFormattedTextGenerator());
@@ -187,8 +187,8 @@ SelectionManager::~SelectionManager()
     m_voxelIdentification = NULL;
     delete m_voxelEditingIdentification;
     m_voxelEditingIdentification = NULL;
-    delete m_volumeFocusIdentification;
-    m_volumeFocusIdentification = NULL;
+    delete m_focusIdentification;
+    m_focusIdentification = NULL;
     delete m_idTextGenerator;
     m_idTextGenerator = NULL;
     
@@ -770,19 +770,19 @@ SelectionManager::getSurfaceFocusIdentification() const
 /**
  * @return Identification for foci.
  */
-SelectionItemFocusVolume*
-SelectionManager::getVolumeFocusIdentification()
+SelectionItemFocus*
+SelectionManager::getFocusIdentification()
 {
-    return m_volumeFocusIdentification;
+    return m_focusIdentification;
 }
 
 /**
  * @return Identification for foci.
  */
-const SelectionItemFocusVolume*
-SelectionManager::getVolumeFocusIdentification() const
+const SelectionItemFocus*
+SelectionManager::getFocusIdentification() const
 {
-    return m_volumeFocusIdentification;
+    return m_focusIdentification;
 }
 
 /**

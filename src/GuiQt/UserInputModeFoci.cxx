@@ -38,7 +38,7 @@
 #include "Focus.h"
 #include "GuiManager.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemVoxel.h"
@@ -286,18 +286,18 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
             FociFile* fociFile = NULL;
             Focus*    focus = NULL;
             
-            SelectionItemFocusVolume* idVolFocus = idManager->getVolumeFocusIdentification();
+            SelectionItemFocus* idVolFocus = idManager->getFocusIdentification();
             if (idVolFocus->isValid()) {
                 fociFile = idVolFocus->getFociFile();
                 CaretAssert(fociFile);
                 focus    = idVolFocus->getFocus();
                 CaretAssert(focus);
             }
-            SelectionItemFocusSurface* idFocus = idManager->getSurfaceFocusIdentification();
-            if (idFocus->isValid()) {
-                fociFile = idFocus->getFociFile();
+            SelectionItemFocusSurface* idFocusSurface = idManager->getSurfaceFocusIdentification();
+            if (idFocusSurface->isValid()) {
+                fociFile = idFocusSurface->getFociFile();
                 CaretAssert(fociFile);
-                focus    = idFocus->getFocus();
+                focus    = idFocusSurface->getFocus();
                 CaretAssert(focus);
                 
             }

@@ -531,6 +531,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     BrainOpenGLFociDrawing fociDrawing;
     fociDrawing.drawHistologyFoci(m_fixedPipelineDrawing->m_brain,
                                   m_fixedPipelineDrawing,
+                                  underlayHistologySlicesFile,
                                   underlayHistologySlice,
                                   underlayHistologySlice->getPlaneXyzPlane(),
                                   sliceSpacing);

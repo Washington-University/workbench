@@ -192,7 +192,7 @@ SelectionItemChartTwoLineSeries.h
 SelectionItemChartTwoMatrix.h
 SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
-SelectionItemFocusVolume.h
+SelectionItemFocus.h
 SelectionItemHistologyCoordinate.h
 SelectionItemHistologyStereotaxicCoordinate.h
 SelectionItemImageControlPoint.h
@@ -400,7 +400,7 @@ SelectionItemChartTwoLineSeries.cxx
 SelectionItemChartTwoMatrix.cxx
 SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
-SelectionItemFocusVolume.cxx
+SelectionItemFocus.cxx
 SelectionItemHistologyCoordinate.cxx
 SelectionItemHistologyStereotaxicCoordinate.cxx
 SelectionItemImageControlPoint.cxx

@@ -72,7 +72,7 @@
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemChartTwoLabel.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionItemSurfaceNode.h"
 #include "SelectionItemUniversalIdentificationSymbol.h"
 #include "SelectionItemVoxel.h"
@@ -326,7 +326,7 @@ UserInputModeViewContextMenu::createIdentifyMenu()
     /*
      * Identify Volume Focus
      */
-    SelectionItemFocusVolume* focusVolID = this->selectionManager->getVolumeFocusIdentification();
+    SelectionItemFocus* focusVolID = this->selectionManager->getFocusIdentification();
     if (focusVolID->isValid()) {
         const QString text = ("Identify Volume Focus ("
                               + focusVolID->getFocus()->getName()
@@ -1019,7 +1019,7 @@ UserInputModeViewContextMenu::createFociMenu()
     SelectionItemFocusSurface* focusID = this->selectionManager->getSurfaceFocusIdentification();
     SelectionItemSurfaceNode* surfaceID = this->selectionManager->getSurfaceNodeIdentification();
     SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
-    SelectionItemFocusVolume* focusVolID = this->selectionManager->getVolumeFocusIdentification();
+    SelectionItemFocus* focusVolID = this->selectionManager->getFocusIdentification();
     
     
     /*
@@ -1713,7 +1713,7 @@ UserInputModeViewContextMenu::identifySurfaceFocusSelected()
 void
 UserInputModeViewContextMenu::identifyVolumeFocusSelected()
 {
-    SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
+    SelectionItemFocus* focusID = this->selectionManager->getFocusIdentification();
     Brain* brain = focusID->getBrain();
     this->selectionManager->clearOtherSelectedItems(focusID);
     
@@ -1748,7 +1748,7 @@ UserInputModeViewContextMenu::editSurfaceFocusSelected()
 void
 UserInputModeViewContextMenu::editVolumeFocusSelected()
 {
-    SelectionItemFocusVolume* focusID = this->selectionManager->getVolumeFocusIdentification();
+    SelectionItemFocus* focusID = this->selectionManager->getFocusIdentification();
     Focus* focus = focusID->getFocus();
     FociFile* fociFile = focusID->getFociFile();
     

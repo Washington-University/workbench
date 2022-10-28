@@ -38,7 +38,7 @@
 #include "HistologySlice.h"
 #include "IdentificationWithColor.h"
 #include "Plane.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionManager.h"
 #include "VolumeMappableInterface.h"
 
@@ -74,6 +74,8 @@ BrainOpenGLFociDrawing::~BrainOpenGLFociDrawing()
  *    The brain
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
+ * @param histologySlicesFile
+ *   The histology slices file
  * @param histologySlice
  *    The histology slice
  * @param plane
@@ -84,6 +86,7 @@ BrainOpenGLFociDrawing::~BrainOpenGLFociDrawing()
 void
 BrainOpenGLFociDrawing::drawHistologyFoci(Brain* brain,
                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                          HistologySlicesFile* histologySlicesFile,
                                           const HistologySlice* histologySlice,
                                           const Plane& plane,
                                           const float sliceThickness)
@@ -94,6 +97,7 @@ BrainOpenGLFociDrawing::drawHistologyFoci(Brain* brain,
     drawAllFoci(DrawType::HISTOLOGY,
                 brain,
                 fixedPipelineDrawing,
+                histologySlicesFile,
                 histologySlice,
                 invalidVolumeFile,
                 plane,
@@ -124,10 +128,12 @@ BrainOpenGLFociDrawing::drawVolumeMprFoci(Brain* brain,
                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                           const float sliceThickness)
 {
+    HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
     drawAllFoci(DrawType::VOLUME_MPR,
                 brain,
                 fixedPipelineDrawing,
+                invalidHistologySlicesFile,
                 invalidHistologySlice,
                 underlayVolume,
                 plane,
@@ -158,10 +164,12 @@ BrainOpenGLFociDrawing::drawVolumeObliqueFoci(Brain* brain,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               const float sliceThickness)
 {
+    HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
     drawAllFoci(DrawType::VOLUME_OBLIQUE,
                 brain,
                 fixedPipelineDrawing,
+                invalidHistologySlicesFile,
                 invalidHistologySlice,
                 underlayVolume,
                 plane,
@@ -192,10 +200,12 @@ BrainOpenGLFociDrawing::drawVolumeOrthogonalFoci(Brain* brain,
                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const float sliceThickness)
 {
+    HistologySlicesFile* invalidHistologySlicesFile(NULL);
     const HistologySlice* invalidHistologySlice(NULL);
     drawAllFoci(DrawType::VOLUME_ORTHOGONAL,
                 brain,
                 fixedPipelineDrawing,
+                invalidHistologySlicesFile,
                 invalidHistologySlice,
                 underlayVolume,
                 plane,
@@ -211,6 +221,8 @@ BrainOpenGLFociDrawing::drawVolumeOrthogonalFoci(Brain* brain,
  *    The brain
  * @param fixedPipelineDrawing
  *    The fixed pipeline drawing
+ * @param histologySlicesFile
+ *    The histology slices file
  * @param histologySlice
  *    Histology slice
  * @param underlayVolume
@@ -226,13 +238,14 @@ void
 BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                                     Brain* brain,
                                     BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                    HistologySlicesFile* histologySlicesFile,
                                     const HistologySlice* histologySlice,
                                     VolumeMappableInterface* underlayVolume,
                                     const Plane& plane,
                                     const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                     const float sliceThickness)
 {
-    SelectionItemFocusVolume* selectVolumeFocus = brain->getSelectionManager()->getVolumeFocusIdentification();
+    SelectionItemFocus* selectFocus = brain->getSelectionManager()->getFocusIdentification();
     
     /*
      * Check for a 'selection' type mode
@@ -246,13 +259,13 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
             SelectionItem* selectionItem(NULL);
             switch (drawType) {
                 case DrawType::HISTOLOGY:
-                    selectionItem = selectVolumeFocus;  /* NEED TO REPLACE */
+                    selectionItem = selectFocus;  /* NEED TO REPLACE */
                     break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
-                    CaretAssert(selectVolumeFocus);
-                    selectionItem = selectVolumeFocus;
+                    CaretAssert(selectFocus);
+                    selectionItem = selectFocus;
                     break;
             }
             CaretAssert(selectionItem);
@@ -525,24 +538,44 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
         if (fociFileIndex >= 0) {
             switch (drawType) {
                 case DrawType::HISTOLOGY:
+                    if (selectFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                        Focus* focus = brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                        selectFocus->setBrain(brain);
+                        selectFocus->setHistologySelection(histologySlicesFile,
+                                                        brain->getFociFile(fociFileIndex),
+                                                        focus,
+                                                        focusIndex,
+                                                        focusProjectionIndex);
+                        selectFocus->setScreenDepth(depth);
+                        float xyz[3];
+                        const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
+                        spi->getVolumeXYZ(xyz);
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectFocus, xyz);
+                        CaretLogFine("Selected Histology Focus Identification Symbol: " + QString::number(focusIndex));
+                    }
                     break;
                 case DrawType::VOLUME_MPR:
                 case DrawType::VOLUME_OBLIQUE:
                 case DrawType::VOLUME_ORTHOGONAL:
-                    CaretAssert(selectVolumeFocus);
-                    if (selectVolumeFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                    CaretAssert(selectFocus);
+                    if (selectFocus->isOtherScreenDepthCloserToViewer(depth)) {
                         Focus* focus = brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
-                        selectVolumeFocus->setBrain(brain);
-                        selectVolumeFocus->setFocus(focus);
-                        selectVolumeFocus->setFociFile(brain->getFociFile(fociFileIndex));
-                        selectVolumeFocus->setFocusIndex(focusIndex);
-                        selectVolumeFocus->setFocusProjectionIndex(focusProjectionIndex);
-                        selectVolumeFocus->setVolumeFile(underlayVolume);
-                        selectVolumeFocus->setScreenDepth(depth);
+                        selectFocus->setBrain(brain);
+                        selectFocus->setVolumeSelection(underlayVolume,
+                                                        brain->getFociFile(fociFileIndex),
+                                                        focus,
+                                                        focusIndex,
+                                                        focusProjectionIndex);
+//                        selectFocus->setFocus(focus);
+//                        selectFocus->setFociFile(brain->getFociFile(fociFileIndex));
+//                        selectFocus->setFocusIndex(focusIndex);
+//                        selectFocus->setFocusProjectionIndex(focusProjectionIndex);
+//                        selectFocus->setVolumeFile(underlayVolume);
+                        selectFocus->setScreenDepth(depth);
                         float xyz[3];
                         const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
                         spi->getVolumeXYZ(xyz);
-                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectVolumeFocus, xyz);
+                        fixedPipelineDrawing->setSelectedItemScreenXYZ(selectFocus, xyz);
                         CaretLogFine("Selected Volume Focus Identification Symbol: " + QString::number(focusIndex));
                     }
                     break;

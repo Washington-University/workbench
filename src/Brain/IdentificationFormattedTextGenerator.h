@@ -56,7 +56,7 @@ namespace caret {
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
-    class SelectionItemFocusVolume;
+    class SelectionItemFocus;
     class SelectionItemHistologyCoordinate;
     class SelectionItemHistologyStereotaxicCoordinate;
     class SelectionItemMediaLogicalCoordinate;
@@ -145,8 +145,10 @@ namespace caret {
                                                   const SelectionItemFocusSurface* idSurfaceFocus,
                                                   const bool toolTipFlag) const;
         
-        void generateVolumeFocusIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
-                                                  const SelectionItemFocusVolume* idVolumeFocus) const;
+        void generateFocusIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                            IdentificationStringBuilder& idText,
+                                            const SelectionItemFocus* idFocus,
+                                            const bool toolTipFlag) const;
         
         void generateFocusIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
                                             IdentificationStringBuilder& idText,
@@ -261,6 +263,10 @@ namespace caret {
         
         bool isParcelAndScalarTypeFile(const DataFileTypeEnum::Enum dataFileType) const;
 
+        void addIfColumnTwoNotEmpty(HtmlTableBuilder& htmlTableBuilder,
+                                    const AString& columnOne,
+                                    const AString& columnTwo) const;
+        
         const AString m_noDataText;
         
         friend class DataToolTipsManager;

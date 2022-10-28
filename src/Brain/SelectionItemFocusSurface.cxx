@@ -81,7 +81,7 @@ SelectionItemFocusSurface::isValid() const
 /**
  * @return Surface on which focus was drawn.
  */
-const Surface* 
+const Surface*
 SelectionItemFocusSurface::getSurface() const
 {
     return this->surface;
@@ -90,7 +90,7 @@ SelectionItemFocusSurface::getSurface() const
 /**
  * @return Surface on which focus was drawn.
  */
-Surface* 
+Surface*
 SelectionItemFocusSurface::getSurface()
 {
     return this->surface;

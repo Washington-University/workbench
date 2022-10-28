@@ -45,7 +45,7 @@ namespace caret {
     class SelectionItemCiftiConnectivityMatrixRowColumn;
     class SelectionItemChartTimeSeries;
     class SelectionItemFocusSurface;
-    class SelectionItemFocusVolume;
+    class SelectionItemFocus;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
     class SelectionItemSurfaceNode;
@@ -100,8 +100,8 @@ namespace caret {
                                                   const SelectionItemFocusSurface* idSurfaceFocus,
                                                   const bool toolTipFlag) const;
         
-        void generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                  const SelectionItemFocusVolume* idVolumeFocus) const;
+        void generateFociIdentifcationText(IdentificationStringBuilder& idText,
+                                                  const SelectionItemFocus* idFocus) const;
         
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,

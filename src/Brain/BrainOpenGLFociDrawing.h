@@ -33,6 +33,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLFixedPipeline;
     class HistologySlice;
+    class HistologySlicesFile;
     class Plane;
     class VolumeMappableInterface;
     
@@ -45,6 +46,7 @@ namespace caret {
         
         void drawHistologyFoci(Brain* brain,
                                BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                               HistologySlicesFile* histologySlicesFile,
                                const HistologySlice* histologySlice,
                                const Plane& plane,
                                const float sliceThickness);
@@ -88,6 +90,7 @@ namespace caret {
         void drawAllFoci(const DrawType drawType,
                          Brain* brain,
                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                         HistologySlicesFile* histologySlicesFile,
                          const HistologySlice* histologySlice,
                          VolumeMappableInterface* underlayVolume,
                          const Plane& plane,

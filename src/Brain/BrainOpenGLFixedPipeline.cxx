@@ -127,7 +127,6 @@
 #include "Matrix4x4.h"
 #include "SelectionItemBorderSurface.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemImageControlPoint.h"

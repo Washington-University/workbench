@@ -67,7 +67,7 @@
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -141,8 +141,8 @@ IdentificationSimpleTextGenerator::createIdentificationText(const SelectionManag
                                                idManager->getSurfaceFocusIdentification(),
                                                false);
     
-    this->generateVolumeFociIdentifcationText(idText,
-                                              idManager->getVolumeFocusIdentification());
+    this->generateFociIdentifcationText(idText,
+                                              idManager->getFocusIdentification());
     
     this->generateVolumeIdentificationText(idText,
                                            brain,
@@ -1434,9 +1434,6 @@ IdentificationSimpleTextGenerator::generateSurfaceFociIdentifcationText(Identifi
                            "Index",
                            AString::number(idSurfaceFocus->getFocusIndex()));
             
-            float xyzProj[3];
-            spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyzProj, false);
-            
             idText.addLine(true,
                            "Structure",
                            StructureEnum::toGuiName(spi->getStructure()));
@@ -1451,29 +1448,6 @@ IdentificationSimpleTextGenerator::generateSurfaceFociIdentifcationText(Identifi
             else {
                 idText.addLine(true,
                                "XYZ (Stereotaxic)",
-                               "Invalid");
-            }
-            
-            bool projValid = false;
-            AString xyzProjName = "XYZ (Projected)";
-            if (spi->getBarycentricProjection()->isValid()) {
-                xyzProjName = "XYZ (Projected to Triangle)";
-                projValid = true;
-            }
-            else if (spi->getVanEssenProjection()->isValid()) {
-                xyzProjName = "XYZ (Projected to Edge)";
-                projValid = true;
-            }
-            if (projValid) {
-                idText.addLine(true,
-                               xyzProjName,
-                               xyzProj,
-                               3,
-                               true);
-            }
-            else {
-                idText.addLine(true,
-                               xyzProjName,
                                "Invalid");
             }
             
@@ -1536,19 +1510,19 @@ IdentificationSimpleTextGenerator::generateSurfaceFociIdentifcationText(Identifi
 }
 
 /**
- * Generate identification text for a volume focus identification.
+ * Generate identification text for a focus identification.
  * @param idText
  *     String builder for identification text.
- * @param idVolumeFocus
- *     Information for surface focus ID.
+ * @param idFocus
+ *     Information for focus ID.
  */
 void
-IdentificationSimpleTextGenerator::generateVolumeFociIdentifcationText(IdentificationStringBuilder& idText,
-                                                                  const SelectionItemFocusVolume* idVolumeFocus) const
+IdentificationSimpleTextGenerator::generateFociIdentifcationText(IdentificationStringBuilder& idText,
+                                                                  const SelectionItemFocus* idFocus) const
 {
-    if (idVolumeFocus->isValid()) {
-        const Focus* focus = idVolumeFocus->getFocus();
-        const SurfaceProjectedItem* spi = focus->getProjection(idVolumeFocus->getFocusProjectionIndex());
+    if (idFocus->isValid()) {
+        const Focus* focus = idFocus->getFocus();
+        const SurfaceProjectedItem* spi = focus->getProjection(idFocus->getFocusProjectionIndex());
         float xyzVolume[3];
         spi->getVolumeXYZ(xyzVolume);
         float xyzStereo[3];
@@ -1560,7 +1534,7 @@ IdentificationSimpleTextGenerator::generateVolumeFociIdentifcationText(Identific
         
         idText.addLine(true,
                        "Index",
-                       AString::number(idVolumeFocus->getFocusIndex()));
+                       AString::number(idFocus->getFocusIndex()));
         
         idText.addLine(true,
                        "Structure",

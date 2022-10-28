@@ -79,7 +79,7 @@
 #include "SelectionItemChartTwoLineSeries.h"
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemFocusSurface.h"
-#include "SelectionItemFocusVolume.h"
+#include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
@@ -274,8 +274,10 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
         this->generateSurfaceFocusIdentifcationText(*layersHtmlTableBuilder,
                                                     selectionManager->getSurfaceFocusIdentification(),
                                                     false);
-        this->generateVolumeFocusIdentifcationText(*layersHtmlTableBuilder,
-                                                   selectionManager->getVolumeFocusIdentification());
+        this->generateFocusIdentifcationText(*layersHtmlTableBuilder,
+                                             idText,
+                                             selectionManager->getFocusIdentification(),
+                                             false);
     }
 
     if (filter->isShowBorderEnabled()) {
@@ -2114,61 +2116,129 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
         htmlTableBuilder.addRow(stereoXYZText,
                                       ("FOCUS " + AString::number(focusIndex)),
                                       ("Name: " + focus->getName() + "<br>Class: " + focus->getClassName()));
-        if (surface != NULL) {
-            float xyzProj[3];
-            if (spi->getProjectedPosition(*surface, xyzProj, false)) {
-                bool projValid = false;
-                AString xyzProjName = "XYZ (Projected)";
-                if (spi->getBarycentricProjection()->isValid()) {
-                    xyzProjName = "(Projected to Triangle)";
-                    projValid = true;
-                }
-                else if (spi->getVanEssenProjection()->isValid()) {
-                    xyzProjName = "(Projected to Edge)";
-                    projValid = true;
-                }
-                if (projValid) {
-                    idText.addLine(true,
-                                   xyzProjName,
-                                   xyzProj,
-                                   3,
-                                   true);
-                    htmlTableBuilder.addRow((AString::fromNumbers(xyzProj, 3, ", ") + xyzProjName),
-                                            StructureEnum::toGuiName(spi->getStructure()),
-                                            "");
-                }
-            }
-        }
     }
 }
 
 /**
- * Generate identification text for a volume focus identification.
+ * Generate identification text for a focus identification.
  * @param htmlTableBuilder
  *     HTML table builder for identification text.
- * @param idVolumeFocus
+ * @param idText
+ *     Text for tooltip
+ * @param idFocus
  *     Information for surface focus ID.
+ * @param toolTipFlag
+ *     True when generating text for tooltip
  */
 void
-IdentificationFormattedTextGenerator::generateVolumeFocusIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
-                                                                  const SelectionItemFocusVolume* idVolumeFocus) const
+IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBuilder& htmlTableBuilder,
+                                                                     IdentificationStringBuilder& idText,
+                                                                     const SelectionItemFocus* idFocus,
+                                                                     const bool toolTipFlag) const
 {
-    if (idVolumeFocus->isValid()) {
-        const Focus* focus = idVolumeFocus->getFocus();
-        const SurfaceProjectedItem* spi = focus->getProjection(idVolumeFocus->getFocusProjectionIndex());
-        float xyzVolume[3];
-        spi->getVolumeXYZ(xyzVolume);
-        float xyzStereo[3];
-        spi->getStereotaxicXYZ(xyzStereo);
-        
-        IdentificationStringBuilder idText;
-        generateFocusIdentifcationText(htmlTableBuilder,
-                                       idText,
-                                       focus,
-                                       idVolumeFocus->getFocusIndex(),
-                                       idVolumeFocus->getFocusProjectionIndex(),
-                                       NULL,
-                                       false);
+    if ( ! idFocus->isValid()) {
+        return;
+    }
+    const Focus* focus = idFocus->getFocus();
+    CaretAssert(focus);
+    const SurfaceProjectedItem* spi = focus->getProjection(idFocus->getFocusProjectionIndex());
+    CaretAssert(spi);
+    float xyzVolume[3];
+    spi->getVolumeXYZ(xyzVolume);
+    float xyzStereo[3];
+    spi->getStereotaxicXYZ(xyzStereo);
+    
+    const AString stereoXYZText((spi->isStereotaxicXYZValid()
+                                 ? AString::fromNumbers(xyzStereo, 3, ",")
+                                 : "Invalid"));
+    
+    if (toolTipFlag) {
+        bool indentFlag = false;
+        idText.addLine(indentFlag,
+                       "Focus",
+                       focus->getName());
+        indentFlag = true;
+        idText.addLine(indentFlag,
+                       "XYZ",
+                       stereoXYZText);
+        return;
+    }
+    
+    AString projectedXYZText;
+    switch (idFocus->getIdType()) {
+        case SelectionItemFocus::IdType::INVALID:
+            break;
+        case SelectionItemFocus::IdType::HISTOLOGY:
+            break;
+        case SelectionItemFocus::IdType::SURFACE:
+        {
+            const Surface* surface(idFocus->getSurface());
+            if (surface != NULL) {
+                float xyzProj[3];
+                if (spi->getProjectedPosition(*surface, xyzProj, false)) {
+                    AString xyzProjName;
+                    if (spi->getBarycentricProjection()->isValid()) {
+                        xyzProjName = "XYZ (Projected to Triangle): ";
+                    }
+                    else if (spi->getVanEssenProjection()->isValid()) {
+                        xyzProjName = "XYZ (Projected to Edge): ";
+                    }
+                    if ( ! xyzProjName.isEmpty()) {
+                        projectedXYZText = (xyzProjName +
+                                            AString::fromNumbers(xyzProj, 3, ", "));
+                    }
+                    
+                }
+            }
+        }
+            break;
+        case SelectionItemFocus::IdType::VOLUME:
+            break;
+    }
+    
+    htmlTableBuilder.addRow(("Focus Name: " + focus->getName()),
+                            ("Class: " + focus->getClassName()));
+    htmlTableBuilder.addRow(("Stereotaxic XYZ: " + stereoXYZText),
+                            projectedXYZText);
+    addIfColumnTwoNotEmpty(htmlTableBuilder,
+                           "Area: ",
+                           focus->getArea());
+    if (focus->getExtent() != 0.0) {
+        addIfColumnTwoNotEmpty(htmlTableBuilder,
+                               "Extent: ",
+                               AString::number(focus->getExtent(), 'f', 3));
+    }
+    addIfColumnTwoNotEmpty(htmlTableBuilder,
+                           "Geography: ",
+                           focus->getGeography());
+    addIfColumnTwoNotEmpty(htmlTableBuilder,
+                           "Region of Interest: ",
+                           focus->getRegionOfInterest());
+    addIfColumnTwoNotEmpty(htmlTableBuilder,
+                           "Statistic: ",
+                           focus->getStatistic());
+    addIfColumnTwoNotEmpty(htmlTableBuilder,
+                           "Comment : ",
+                           focus->getComment());
+}
+
+/**
+ * Add if second column is not empty
+ * @param htmlTableBuilder
+ *     HTML table builder for identification text.
+ * @param columnOne
+ *    Text for column one
+ * @param columnTwo
+ *    Text for column two
+ */
+void
+IdentificationFormattedTextGenerator::addIfColumnTwoNotEmpty(HtmlTableBuilder& htmlTableBuilder,
+                                                             const AString& columnOne,
+                                                             const AString& columnTwo) const
+{
+    if ( ! columnTwo.trimmed().isEmpty()) {
+        htmlTableBuilder.addRow(columnOne,
+                                columnTwo);
     }
 }
 
@@ -2545,6 +2615,11 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                 }
             }
         }
+        
+        generateFocusIdentifcationText(*htmlTableBuilder,
+                                       idText,
+                                       selectionManager->getFocusIdentification(),
+                                       true);
     }
 }
 
