@@ -31,6 +31,7 @@
 #include "DataFileContentInformation.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
@@ -582,24 +583,43 @@ HistologySlicesFile::readFile(const AString& filename)
 void
 HistologySlicesFile::addFileWarningsForMissingChildFiles()
 {
+    std::vector<AString> permissionChildFileNames;
     std::vector<AString> missingChildFileNames;
     
     const std::vector<AString> childDataFileNames(getChildDataFilePathNames());
     for (auto& filename : childDataFileNames) {
-        if ( ! QFile::exists(filename)) {
+        FileInformation fileInfo(filename);
+        if ( ! fileInfo.exists()) {
             missingChildFileNames.push_back(filename);
+        }
+        else if ( ! fileInfo.isReadable()) {
+            permissionChildFileNames.push_back(filename);
         }
     }
     
+    AString warningMessage;
+    bool haveWarningsFlag(false);
     if ( ! missingChildFileNames.empty()) {
-        AString msg("For "
-                    + getFileName()
-                    + ", these child files are missing: ");
+        AString msg("These child files are missing: ");
         for (const auto& name : missingChildFileNames) {
             msg.appendWithNewLine("   " + name);
         }
-        msg.appendWithNewLine("This will result in images not displayed and possibly Workbench crashing.");
-        addFileReadWarning(msg);
+        haveWarningsFlag = true;
+        warningMessage.appendWithNewLine(msg);
+    }
+    
+    if ( ! permissionChildFileNames.empty()) {
+        AString msg("These child file permissions do not allow reading: ");
+        for (const auto& name : permissionChildFileNames) {
+            msg.appendWithNewLine("   " + name);
+        }
+        haveWarningsFlag = true;
+        warningMessage.appendWithNewLine(msg);
+    }
+    
+    if (haveWarningsFlag) {
+        warningMessage.appendWithNewLine("This will result in images not displayed and possibly Workbench crashing.");
+        addFileReadWarning(warningMessage);
     }
 }
 

@@ -210,6 +210,8 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     m_viewport             = viewport;
     m_mediaFilesAndDataToDraw.clear();
     
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning of BrainOpenGLHistologySliceDrawing::draw()");
+
     HistologyOverlaySet* overlaySet = histologyModel->getHistologyOverlaySet(m_browserTabContent->getTabNumber());
     CaretAssert(overlaySet);
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
@@ -280,6 +282,9 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         || (m_viewport[3] < 1)) {
         return;
     }
+    
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "In BrainOpenGLHistologySliceDrawing::draw() before glViewport()");
+
     glViewport(m_viewport[0],
                m_viewport[1],
                m_viewport[2],
@@ -289,7 +294,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     glLoadIdentity();
     glOrtho(orthoLeft, orthoRight,
             orthoBottom, orthoTop,
-            -1.0, 1.0);  /* using these fixes foci but messes up inverse transform -100.0, 100.0); */
+            -1.0, 1.0);  /* JWH using (-100, 100) fixes foci sphere drawing but messes up inverse transform  */
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -350,6 +355,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         glPopMatrix();
     }
     
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At end of BrainOpenGLHistologySliceDrawing::draw()");
 }
 
 /**
@@ -439,47 +445,43 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
 
         GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(drawingData.m_tabIndex,
                                                                                              drawingData.m_overlayIndex));
-        if (primitive == NULL) {
+        if (primitive != NULL) {
+
+            glPushMatrix();
+            
+            CaretAssert(primitive->isValid());
+            
+            glPushAttrib(GL_COLOR_BUFFER_BIT);
+            if ( ! selectImageFlag) {
+                /*
+                 * Allow blending.  Images may have a border color with alpha of zero
+                 * so that background shows through.
+                 */
+                BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+            }
+            
             /*
-             * If a CZI image is completely offscreen there may be no data to load for it
+             * Set texture filtering
              */
-            continue;
-        }
-
-        glPushMatrix();
-        
-        CaretAssert(primitive->isValid());
-
-        glPushAttrib(GL_COLOR_BUFFER_BIT);
-        if ( ! selectImageFlag) {
-            /*
-             * Allow blending.  Images may have a border color with alpha of zero
-             * so that background shows through.
-             */
-            BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
-        }
-        
-        /*
-         * Set texture filtering
-         */
-        primitive->setTextureMinificationFilter(s_textureMinificationFilter);
-        primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
-        
-        GraphicsEngineDataOpenGL::draw(primitive);
-        glPopAttrib();
-
-        if (selectImageFlag) {
-            processSelection(m_browserTabContent->getTabNumber(),
-                             drawingData,
-                             primitive);
-        }
-        
-        glPopMatrix();
-        
-        if (underlayHistologySlicesFile == NULL) {
-            underlayHistologySlicesFile  = drawingData.m_selectedFile;
-            underlayHistologySlice       = drawingData.m_selectedFile->getHistologySliceByIndex(drawingData.m_selectedSliceIndex);
-            underlayHistologySliceNumber = drawingData.m_selectedSliceNumber;
+            primitive->setTextureMinificationFilter(s_textureMinificationFilter);
+            primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
+            
+            GraphicsEngineDataOpenGL::draw(primitive);
+            glPopAttrib();
+            
+            if (selectImageFlag) {
+                processSelection(m_browserTabContent->getTabNumber(),
+                                 drawingData,
+                                 primitive);
+            }
+            
+            glPopMatrix();
+            
+            if (underlayHistologySlicesFile == NULL) {
+                underlayHistologySlicesFile  = drawingData.m_selectedFile;
+                underlayHistologySlice       = drawingData.m_selectedFile->getHistologySliceByIndex(drawingData.m_selectedSliceIndex);
+                underlayHistologySliceNumber = drawingData.m_selectedSliceNumber;
+            }
         }
     }
     
@@ -623,6 +625,7 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
+            /* Problem if near/far are not -1, +1 */
             float windowXYZ[3] { mouseX, mouseY, 0.0 };
             Vector3D planeXYZ;
             xform.inverseTransformPoint(windowXYZ, planeXYZ);

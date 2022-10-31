@@ -1392,9 +1392,23 @@ GuiManager::receiveEvent(Event* event)
         const AString message = alertUserEvent->getMessage();
         
         BrainBrowserWindow* bbw = getActiveBrowserWindow();
-        CaretAssert(bbw);
-        
-        WuQMessageBox::errorOk(bbw, message);
+        bool useDialog(false);
+        if (bbw != NULL) {
+            if (bbw->isVisible()) {
+                useDialog = true;
+            }
+        }
+        if (useDialog) {
+            CaretAssert(bbw);
+            
+            WuQMessageBox::errorOk(bbw, message);
+        }
+        else {
+            /*
+             * Display independent window with no parent
+             */
+            WuQMessageBox::errorOk(nullptr, message);
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW) {
         EventAnnotationGetDrawnInWindow* annGetEvent = dynamic_cast<EventAnnotationGetDrawnInWindow*>(event);

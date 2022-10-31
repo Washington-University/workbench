@@ -245,6 +245,13 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                                     const VolumeSliceViewPlaneEnum::Enum /*sliceViewPlane*/,
                                     const float sliceThickness)
 {
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLFociDrawing::drawAllFoci())");
+
+    const int32_t numberOfFociFiles = brain->getNumberOfFociFiles();
+    if (numberOfFociFiles <= 0) {
+        return;
+    }
+    
     SelectionItemFocus* selectFocus = brain->getSelectionManager()->getFocusIdentification();
     
     /*
@@ -365,7 +372,6 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
     /*
      * Process each foci file
      */
-    const int32_t numberOfFociFiles = brain->getNumberOfFociFiles();
     for (int32_t iFile = 0; iFile < numberOfFociFiles; iFile++) {
         FociFile* fociFile = brain->getFociFile(iFile);
         
@@ -582,6 +588,8 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
             }
          }
     }
+    
+    fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLFociDrawing::drawAllFoci())");
 }
 
 /**

@@ -534,6 +534,8 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                                                             const float heightForPercentageSizedSymbols,
                                                             const float surfaceOrVolumeMaximumDimension)
 {
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning BrainOpenGLIdentificationDrawing::drawIdentificationSymbols()");
+
     /*
      * Maximum distance for non-media ID shown on media
      */
@@ -1216,6 +1218,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             }
         }
     }
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At end BrainOpenGLIdentificationDrawing::drawIdentificationSymbols()");
 }
 
 /**

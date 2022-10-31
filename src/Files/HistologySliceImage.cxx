@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "CziImageFile.h"
 #include "DataFileException.h"
+#include "EventAlertUser.h"
 #include "EventManager.h"
 #include "ImageFile.h"
 #include "MediaFile.h"
@@ -161,9 +162,12 @@ HistologySliceImage::getMediaFilePrivate() const
     bool validExtensionFlag(false);
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(m_mediaFileName,
                                                                                     &validExtensionFlag);
+    const bool alertUserFlag(false);
     if ( ! validExtensionFlag) {
-        CaretLogSevere("File extension is not a medial file for file with name "
-                       + m_mediaFileName);
+        const AString msg("File extension is not recogonized by Workbench: "
+                          + m_mediaFileName);
+        if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
+        CaretLogSevere(msg);
         return NULL;
     }
     
@@ -175,10 +179,12 @@ HistologySliceImage::getMediaFilePrivate() const
                 m_mediaFile.reset(cziImageFile.release());
             }
             catch (const DataFileException& dfe) {
-                CaretLogSevere("Error while reading "
-                               + m_mediaFileName
-                               + ": "
-                               + dfe.whatString());
+                const AString msg("Error while reading "
+                                  + m_mediaFileName
+                                  + ": "
+                                  + dfe.whatString());
+                if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
+                CaretLogSevere(msg);
             }
             break;
         case DataFileTypeEnum::IMAGE:
@@ -188,15 +194,19 @@ HistologySliceImage::getMediaFilePrivate() const
                 m_mediaFile.reset(imageFile.release());
             }
             catch (const DataFileException& dfe) {
-                CaretLogSevere("Error while reading "
-                               + m_mediaFileName
-                               + ": "
-                               + dfe.whatString());
+                const AString msg("Error while reading "
+                                  + m_mediaFileName
+                                  + ": "
+                                  + dfe.whatString());
+                if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
+                CaretLogSevere(msg);
             }
             break;
         default:
-            CaretLogSevere("File extension is not supported for reading file "
-                           + m_mediaFileName);
+            const AString msg("File extension is not supported for reading file "
+                              + m_mediaFileName);
+            if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
+            CaretLogSevere(msg);
             break;
     }
     

@@ -831,46 +831,47 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         int32_t viewport[4];
         viewportContent->getModelViewport(viewport);
         const GraphicsObjectToWindowTransform* transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-        
-        const float vpMinX(viewport[0]);
-        const float vpMaxX(viewport[0] + viewport[2]);
-        const float vpMinY(viewport[1]);
-        const float vpMaxY(viewport[1] + viewport[3]);
-        const float vpZ(0.0);
-        float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-        transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
-        transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
-        transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
-        transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
-        
-        BoundingBox windowBounds;
-        windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
-        
-        std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
-        BoundingBox orthoBounds;
-        orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
-                        orthoBoundsLRBT[2], orthoBoundsLRBT[3],
-                        vpZ, vpZ);
-        
-        switch (selectionBox->getStatus()) {
-            case GraphicsRegionSelectionBox::Status::INVALID:
-                break;
-            case GraphicsRegionSelectionBox::Status::VALID:
-            {
-                ModelHistology* histologyModel = browserTabContent->getDisplayedHistologyModel();
-                if (histologyModel != NULL) {
-                    /*
-                     * Zoom to selection region
-                     */
-                    browserTabContent->setHistologyViewToBounds(viewportContent,
-                                                                &orthoBounds,
-                                                                selectionBox);
+        if (transform != NULL) {
+            const float vpMinX(viewport[0]);
+            const float vpMaxX(viewport[0] + viewport[2]);
+            const float vpMinY(viewport[1]);
+            const float vpMaxY(viewport[1] + viewport[3]);
+            const float vpZ(0.0);
+            float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
+            transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
+            transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
+            transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
+            transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
+            
+            BoundingBox windowBounds;
+            windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
+            
+            std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
+            BoundingBox orthoBounds;
+            orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
+                            orthoBoundsLRBT[2], orthoBoundsLRBT[3],
+                            vpZ, vpZ);
+            
+            switch (selectionBox->getStatus()) {
+                case GraphicsRegionSelectionBox::Status::INVALID:
+                    break;
+                case GraphicsRegionSelectionBox::Status::VALID:
+                {
+                    ModelHistology* histologyModel = browserTabContent->getDisplayedHistologyModel();
+                    if (histologyModel != NULL) {
+                        /*
+                         * Zoom to selection region
+                         */
+                        browserTabContent->setHistologyViewToBounds(viewportContent,
+                                                                    &orthoBounds,
+                                                                    selectionBox);
+                    }
                 }
+                    break;
             }
-                break;
+            
+            selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
         }
-        
-        selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
         
         /*
          * Update graphics.
