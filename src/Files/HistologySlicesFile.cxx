@@ -567,6 +567,10 @@ HistologySlicesFile::readFile(const AString& filename)
         m_stereotaxicXyzBoundingBoxValidFlag = false;
         m_planeXyzBoundingBoxValidFlag       = false;
         
+        if (getNumberOfHistologySlices() <= 0) {
+            throw DataFileException("No histology slices were read\n"
+                                    + getFileReadWarnings());
+        }
         addFileWarningsForMissingChildFiles();
         
         clearModified();

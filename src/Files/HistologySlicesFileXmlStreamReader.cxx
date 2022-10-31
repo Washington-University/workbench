@@ -289,9 +289,11 @@ HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histol
     }
     
     if (images.empty()) {
-        m_xmlReader->raiseError("Slice "
-                                + AString::number(sliceNumber)
-                                + " contains no scenes (images)");
+        const AString msg("Slice "
+                          + AString::number(sliceNumber)
+                          + " contains no scenes (images) or images are not readable");
+        histologySlicesFile->addFileReadWarning(msg);
+        //m_xmlReader->raiseError(msg);
         return NULL;
     }
     
@@ -341,7 +343,7 @@ HistologySlicesFileXmlStreamReader::makeAbsoluteFilePath(const AString& filename
  *     Pointer to scene
  */
 HistologySliceImage*
-HistologySlicesFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*histologySlicesFile*/,
+HistologySlicesFileXmlStreamReader::readSceneElement(HistologySlicesFile* histologySlicesFile,
                                              const QString& sceneName)
 {
     /*
@@ -399,13 +401,22 @@ HistologySlicesFileXmlStreamReader::readSceneElement(HistologySlicesFile* /*hist
     }
     
     imageFileName    = makeAbsoluteFilePath(imageFileName);
-    distanceFileName = makeAbsoluteFilePath(distanceFileName);
-    HistologySliceImage* image(new HistologySliceImage(sceneName,
-                                                       imageFileName,
-                                                       distanceFileName,
-                                                       scaledToPlaneMatrix,
-                                                       scaledToPlaneMatrixValidFlag));
-    return image;
+    
+    AString errorMessage;
+    if (isFileOpenableForReading(imageFileName,
+                                 errorMessage)) {
+        distanceFileName = makeAbsoluteFilePath(distanceFileName);
+        HistologySliceImage* image(new HistologySliceImage(sceneName,
+                                                           imageFileName,
+                                                           distanceFileName,
+                                                           scaledToPlaneMatrix,
+                                                           scaledToPlaneMatrixValidFlag));
+        return image;
+    }
+    
+    histologySlicesFile->addFileReadWarning("Unable to open for reading: "
+                                            + imageFileName);
+    return NULL;
 }
 
 /**
@@ -470,5 +481,36 @@ HistologySlicesFileXmlStreamReader::readMatrixFromElementText(const QString& ele
                                 + text);
                                 
     }
+}
+
+/**
+ * Test the file for reading.
+ * @param filenamef
+ *    Name of file.
+ * @param errorMessageOut
+ *    Output with description of error if file is not openable
+ * @return
+ *    True if file can be opened for reading, else false.
+ */
+bool
+HistologySlicesFileXmlStreamReader::isFileOpenableForReading(const AString& filename,
+                                                             AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    /*
+     * Try to open the file for reading.
+     * Testing file permssions may return incorrect results
+     * if NFS is mounted with 'defer_permissions' and also
+     * there are notes in QFileInfo about NTFS file systems.
+     */
+    QFile file(filename);
+    if (file.open(QFile::ReadOnly)) {
+        file.close();
+        return true;
+    }
+    
+    errorMessageOut = file.errorString();
+    return false;
 }
 

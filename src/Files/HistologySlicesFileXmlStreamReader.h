@@ -74,6 +74,9 @@ namespace caret {
         
         AString makeAbsoluteFilePath(const AString& filename) const;
         
+        bool isFileOpenableForReading(const AString& filename,
+                                      AString& errorMessageOut) const;
+
         QDir m_directory;
         
         AString m_filename;
