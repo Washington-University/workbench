@@ -27,7 +27,6 @@
 #include "CaretLogger.h"
 #include "CziImageFile.h"
 #include "DataFileException.h"
-#include "EventAlertUser.h"
 #include "EventManager.h"
 #include "ImageFile.h"
 #include "MediaFile.h"
@@ -162,11 +161,9 @@ HistologySliceImage::getMediaFilePrivate() const
     bool validExtensionFlag(false);
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(m_mediaFileName,
                                                                                     &validExtensionFlag);
-    const bool alertUserFlag(false);
     if ( ! validExtensionFlag) {
         const AString msg("File extension is not recogonized by Workbench: "
                           + m_mediaFileName);
-        if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
         CaretLogSevere(msg);
         return NULL;
     }
@@ -183,7 +180,6 @@ HistologySliceImage::getMediaFilePrivate() const
                                   + m_mediaFileName
                                   + ": "
                                   + dfe.whatString());
-                if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
                 CaretLogSevere(msg);
             }
             break;
@@ -198,14 +194,12 @@ HistologySliceImage::getMediaFilePrivate() const
                                   + m_mediaFileName
                                   + ": "
                                   + dfe.whatString());
-                if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
                 CaretLogSevere(msg);
             }
             break;
         default:
             const AString msg("File extension is not supported for reading file "
                               + m_mediaFileName);
-            if (alertUserFlag) EventManager::get()->sendEvent(EventAlertUser(msg).getPointer());
             CaretLogSevere(msg);
             break;
     }
