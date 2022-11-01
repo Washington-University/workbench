@@ -348,8 +348,14 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
                 m_planeXyzSpinBox[i]->getWidget()->setEnabled(true);
             }
             else {
-                m_planeXyzSpinBox[i]->getWidget()->setEnabled(true);
+                m_planeXyzSpinBox[i]->getWidget()->setEnabled(false);
             }
+            
+            /*
+             * Plane Z always disabled since it should be the same for all slices.
+             * Plane coordinates are 2D.
+             */
+            m_planeXyzSpinBox[2]->getWidget()->setEnabled(false);
         }
         
         const BoundingBox stereotaxicBB(histologySlicesFile->getStereotaxicXyzBoundingBox());
@@ -560,7 +566,9 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                 /*
                  * Update with new histology coordinate in browser tab
                  */
-                m_browserTabContent->setHistologySelectedCoordinate(hc);
+                m_browserTabContent->setHistologySelectedCoordinate(histologySlicesFile,
+                                                                    hc,
+                                                                    BrowserTabContent::MoveYokedVolumeSlices::MOVE_YES);
                 
                 /*
                  * Changing to an adjacent slice
@@ -672,7 +680,9 @@ BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged()
             HistologyCoordinate hc(HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
                                                                                     sliceIndex,
                                                                                     planeXYZ));
-            m_browserTabContent->setHistologySelectedCoordinate(hc);
+            m_browserTabContent->setHistologySelectedCoordinate(histologySlicesFile,
+                                                                hc,
+                                                                BrowserTabContent::MoveYokedVolumeSlices::MOVE_YES);
             updateGraphicsWindowAndYokedWindows();
             updateUserInterface();
         }
@@ -697,7 +707,9 @@ BrainBrowserWindowToolBarHistology::stereotaxicXyzSpinBoxValueChanged()
 
             HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
                                                                                   xyz));
-            m_browserTabContent->setHistologySelectedCoordinate(hc);
+            m_browserTabContent->setHistologySelectedCoordinate(histologySlicesFile,
+                                                                hc,
+                                                                BrowserTabContent::MoveYokedVolumeSlices::MOVE_YES);
             updateGraphicsWindowAndYokedWindows();
             updateUserInterface();
         }

@@ -97,6 +97,11 @@ namespace caret {
     class BrowserTabContent : public TabContentBase, public EventListenerInterface, public SceneableInterface {
         
     public:
+        enum class MoveYokedVolumeSlices {
+            MOVE_NO,
+            MOVE_YES
+        };
+        
         BrowserTabContent(const int32_t tabNumber);
         
         virtual ~BrowserTabContent();
@@ -565,7 +570,9 @@ namespace caret {
         
         HistologyCoordinate getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
-        void setHistologySelectedCoordinate(const HistologyCoordinate& histologyCoordinate);
+        void setHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile,
+                                            const HistologyCoordinate& histologyCoordinate,
+                                            const MoveYokedVolumeSlices moveYokedVolumeSlices);
                 
         void selectHistologySlicesAtOrigin(const HistologySlicesFile* histologySlicesFile);
         
@@ -698,6 +705,9 @@ namespace caret {
                                             const int32_t mouseY,
                                             const int32_t mouseDX,
                                             const int32_t mouseDY);
+        
+        void moveYokedVolumeSlicesToHistologyCoordinate(const HistologySlicesFile* histologySlicesFile,
+                                                        const HistologyCoordinate& histologyCoordinate);
         
         /** Number of this tab */
         int32_t m_tabNumber;

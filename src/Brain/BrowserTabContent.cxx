@@ -1830,7 +1830,9 @@ BrowserTabContent::receiveEvent(Event* event)
                             HistologyCoordinate hc(HistologyCoordinate::newInstanceStereotaxicXYZ(histologySlicesFile,
                                                                                                   xyz));
                             if (hc.isValid()) {
-                                setHistologySelectedCoordinate(hc);
+                                setHistologySelectedCoordinate(histologySlicesFile,
+                                                               hc,
+                                                               MoveYokedVolumeSlices::MOVE_NO);
                             }
                         }
                     }
@@ -6558,14 +6560,29 @@ BrowserTabContent::getHistologySelectedCoordinate(const HistologySlicesFile* his
 
 /**
  * She selected histology coordinate
+ * @param histologySlicesFile
+ *    The histology slices file
  * @param histologyCoordinate
  *    New value
+ * @param moveYokedVolumeSlices
+ *    Indicates if yoked volume slices should be moved to same coordinate as histology slices
  */
 void
-BrowserTabContent::setHistologySelectedCoordinate(const HistologyCoordinate& histologyCoordinate)
+BrowserTabContent::setHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile,
+                                                  const HistologyCoordinate& histologyCoordinate,
+                                                  const MoveYokedVolumeSlices moveYokedVolumeSlices)
 {
     m_histologySliceSettings->setHistologyCoordinate(histologyCoordinate);
     updateHistologyModelYokedBrowserTabs();
+    
+    switch (moveYokedVolumeSlices) {
+        case MoveYokedVolumeSlices::MOVE_NO:
+            break;
+        case MoveYokedVolumeSlices::MOVE_YES:
+            moveYokedVolumeSlicesToHistologyCoordinate(histologySlicesFile,
+                                                       histologyCoordinate);
+            break;
+    }
 }
 
 /**
@@ -7215,6 +7232,56 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
     
     updateHistologyModelYokedBrowserTabs();
 }
+
+/**
+ * Move yoked volume slices to the histology coordinate's stereotaxic position
+ * @param histologySlicesFile
+ *    The histology slices file
+ * @param histologyCoordinate
+ *    The histology coordinate
+ */
+void
+BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySlicesFile* histologySlicesFile,
+                                                              const HistologyCoordinate& histologyCoordinate)
+{
+    if (isExecutingConstructor) {
+        return;
+    }
+    
+    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
+    }
+    
+    if (m_histologyModel == NULL) {
+        return;
+    }
+    
+    const HistologyCoordinate hc(getHistologySelectedCoordinate(histologySlicesFile));
+    if (hc.isStereotaxicXYZValid()) {
+        const Vector3D xyz(hc.getStereotaxicXYZ());
+        setVolumeSliceCoordinateParasagittal(xyz[0]);
+        setVolumeSliceCoordinateCoronal(xyz[1]);
+        setVolumeSliceCoordinateAxial(xyz[2]);
+
+        /*
+         * Copy yoked data from 'me' to all other yoked browser tabs
+         */
+        std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+        for (auto btc : activeTabs) {
+            if (btc != this) {
+                if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
+                    /*
+                     * Preserve slice plane in other tabs (keep it the same)
+                     */
+                    const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
+                    *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
+                    btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane);
+                }
+            }
+        }
+    }
+}
+
 
 /**
  * Update other browser tabs with brain model yoked data.
