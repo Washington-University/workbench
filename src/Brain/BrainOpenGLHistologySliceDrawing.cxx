@@ -625,10 +625,32 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
             
-            /* Problem if near/far are not -1, +1 */
-            float windowXYZ[3] { mouseX, mouseY, 0.0 };
+            /*
+             * The window Z-coordinate is the value in the depth buffer.
+             * Since the histology slices are always drawn with plane-Z equal
+             * to zero, the depth value will be 0.5 (provided the near and far
+             * values passed to glOrtho are the -X and X).  However, if
+             * the user clicks outside of an image, the depth value will
+             * be 1 since no image was drawn.  But, using a depth value of 1
+             * will cause an incorrect steretaxic coordinate whebn the plane
+             * coordinate is converted to a stereotaxic coordinate and this
+             * may cause the selected histology slice to change.  So,
+             * always use 0.5 for the depth so that the output plane-Z
+             * will be zero.
+             */
+            const float depthValue(0.5);
+            Vector3D windowXYZ(mouseX, mouseY, depthValue);
             Vector3D planeXYZ;
             xform.inverseTransformPoint(windowXYZ, planeXYZ);
+            
+            const float tooSmall(-0.0001);
+            const float tooBig(0.0001);
+            if ((planeXYZ[2] < tooSmall)
+                || (planeXYZ[2] > tooBig)) {
+                CaretLogWarning("Transformation of window coord to plane coord has non-zero plane-Z.  "
+                                "Window XYZ=" + windowXYZ.toString(5)
+                                + " Plane XYZ=" + planeXYZ.toString(5));
+            }
             
             MediaFile* mediaFile(drawingData.m_mediaFile);
             CaretAssert(mediaFile);
