@@ -391,11 +391,9 @@ namespace caret {
                                     const float scaling);
         
         void setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
-                                      const BoundingBox* windowBounds,
                                       const GraphicsRegionSelectionBox* selectionBounds);
 
         void setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
-                                  const BoundingBox* windowBounds,
                                   const GraphicsRegionSelectionBox* selectionBounds);
         
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,

@@ -76,7 +76,6 @@ namespace caret {
                                      const float scaling);
         
         virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
-                                     const BoundingBox* windowBounds,
                                      const GraphicsRegionSelectionBox* selectionBounds);
         
         Matrix4x4 getRotationMatrix() const;

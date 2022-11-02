@@ -828,30 +828,8 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
         CaretAssert(selectionBox);
         
-        int32_t viewport[4];
-        viewportContent->getModelViewport(viewport);
         const GraphicsObjectToWindowTransform* transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
         if (transform != NULL) {
-            const float vpMinX(viewport[0]);
-            const float vpMaxX(viewport[0] + viewport[2]);
-            const float vpMinY(viewport[1]);
-            const float vpMaxY(viewport[1] + viewport[3]);
-            const float vpZ(0.0);
-            float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-            transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
-            transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
-            transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
-            transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
-            
-            BoundingBox windowBounds;
-            windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
-            
-            std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
-            BoundingBox orthoBounds;
-            orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
-                            orthoBoundsLRBT[2], orthoBoundsLRBT[3],
-                            vpZ, vpZ);
-            
             switch (selectionBox->getStatus()) {
                 case GraphicsRegionSelectionBox::Status::INVALID:
                     break;
@@ -863,7 +841,6 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                          * Zoom to selection region
                          */
                         browserTabContent->setHistologyViewToBounds(viewportContent,
-                                                                    &orthoBounds,
                                                                     selectionBox);
                     }
                 }
@@ -882,31 +859,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
     else if (browserTabContent->isMediaDisplayed()) {
         GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
         CaretAssert(selectionBox);
-        
-        int32_t viewport[4];
-        viewportContent->getModelViewport(viewport);
-        const GraphicsObjectToWindowTransform* transform = viewportContent->getMediaGraphicsObjectToWindowTransform();
-        
-        const float vpMinX(viewport[0]);
-        const float vpMaxX(viewport[0] + viewport[2]);
-        const float vpMinY(viewport[1]);
-        const float vpMaxY(viewport[1] + viewport[3]);
-        const float vpZ(0.0);
-        float bottomLeft[3], bottomRight[3], topRight[3], topLeft[3];
-        transform->inverseTransformPoint(vpMinX, vpMinY, vpZ, bottomLeft);
-        transform->inverseTransformPoint(vpMaxX, vpMinY, vpZ, bottomRight);
-        transform->inverseTransformPoint(vpMaxX, vpMaxY, vpZ, topRight);
-        transform->inverseTransformPoint(vpMinX, vpMaxY, vpZ, topLeft);
-        
-        BoundingBox windowBounds;
-        windowBounds.set(bottomLeft, bottomRight, topRight, topLeft);
-        
-        std::array<float, 4> orthoBoundsLRBT(transform->getOrthoLRBT());
-        BoundingBox orthoBounds;
-        orthoBounds.set(orthoBoundsLRBT[0], orthoBoundsLRBT[1],
-                        orthoBoundsLRBT[2], orthoBoundsLRBT[3],
-                        vpZ, vpZ);
-        
+                
         switch (selectionBox->getStatus()) {
             case GraphicsRegionSelectionBox::Status::INVALID:
                 break;
@@ -918,7 +871,6 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                      * Zoom to selection region
                      */
                     browserTabContent->setMediaViewToBounds(viewportContent,
-                                                            &orthoBounds,
                                                             selectionBox);
                 }
             }

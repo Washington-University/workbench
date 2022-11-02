@@ -252,22 +252,6 @@ ViewingTransformationsMedia::scaleAboutMouse(const GraphicsObjectToWindowTransfo
     }
 }
 
-///**
-// * Set scaling for histology
-// *
-// * @param transform
-// *    Graphics object to window transform
-// * @param scaling
-// *    New value for scaling
-// */
-//void
-//ViewingTransformationsMedia::setHistologyScaling(const GraphicsObjectToWindowTransform* transform,
-//                                                 const float scaling)
-//{
-//    setMediaScaling(transform,
-//                    scaling);
-//}
-
 /**
  * Set scaling for media
  *
@@ -324,17 +308,14 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  * Set the bounds of the view to the given selection bounds.
  * @param transform
  *    Graphics object to window transform
- * @param windowBounds
- *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
  */
 void
 ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                             const BoundingBox* windowBounds,
                                              const GraphicsRegionSelectionBox* selectionBounds)
 {
-    CaretAssert(windowBounds);
+    CaretAssert(transform);
     CaretAssert(selectionBounds);
     
     
@@ -342,13 +323,16 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
     selectionBounds->getCenter(selectionBoxCenterX,
                                selectionBoxCenterY);
     
+    const std::array<float, 4> orthoLRBT(transform->getOrthoLRBT());
+    const float windowWidth(orthoLRBT[1] - orthoLRBT[0]);
+    const float windowHeight(orthoLRBT[2] - orthoLRBT[3]); /* for images positive Y is down */
+
+    const float selectionWidth(selectionBounds->getWidth());
+    const float selectionHeight(selectionBounds->getHeight());
+
     /*
      * Ensure window and selection region are valid
      */
-    const float windowWidth(windowBounds->getMaxX() - windowBounds->getMinX());
-    const float windowHeight(windowBounds->getMaxY() - windowBounds->getMinY());
-    const float selectionWidth(selectionBounds->getWidth());
-    const float selectionHeight(selectionBounds->getHeight());
     if ((windowWidth > 0.0)
         && (selectionWidth > 0.0)
         && (windowHeight > 0.0)
@@ -364,13 +348,11 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
         const float scale(std::min(widthScale, heightScale));
         setScaling(scale);
         
-        const std::array<float, 4> orthoBounds(transform->getOrthoLRBT());
         const float orthoCenterXYZ[] {
-            (orthoBounds[0] + orthoBounds[1]) / 2.0f,
-            (orthoBounds[2] + orthoBounds[3]) / 2.0f,
+            (orthoLRBT[0] + orthoLRBT[1]) / 2.0f,
+            (orthoLRBT[2] + orthoLRBT[3]) / 2.0f,
             0.0
         };
-        
         
         /*
          * Translate so that center of selection box is moved
@@ -392,5 +374,6 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
         undoStack->push(undoCommand);
     }
 }
+
 
 

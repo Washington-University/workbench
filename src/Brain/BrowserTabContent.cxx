@@ -4376,20 +4376,16 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
  * Set the bounds of the view to the given selection bounds.
  * @param viewportContent
  *    Content of the viewport
- * @param windowBounds
- *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
  */
 void
 BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
-                                            const BoundingBox* windowBounds,
                                             const GraphicsRegionSelectionBox* selectionBounds)
 {
     const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
     m_histologyViewingTransformation->setViewToBounds(xform,
-                                                  windowBounds,
-                                                  selectionBounds);
+                                                      selectionBounds);
     updateBrainModelYokedBrowserTabs();
 }
 
@@ -4397,19 +4393,15 @@ BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* vi
  * Set the bounds of the view to the given selection bounds.
  * @param viewportContent
  *    Content of the viewport
- * @param windowBounds
- *    Box containing bounds of window
  * @param selectionBounds
  *    Box containing bounds of selection
  */
 void
 BrowserTabContent::setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
-                                        const BoundingBox* windowBounds,
                                         const GraphicsRegionSelectionBox* selectionBounds)
 {
     const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
     m_mediaViewingTransformation->setViewToBounds(xform,
-                                                  windowBounds,
                                                   selectionBounds);
     updateMediaModelYokedBrowserTabs();
 }

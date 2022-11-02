@@ -291,14 +291,11 @@ ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /
  * Set the bounds of the view to the given bounds.
  * @param transform
  *    Graphics object to window transform
- * @param windowBounds
- *    Box containing window bounds
  * @param selectionBounds
  *    The selection bounds
  */
 void
 ViewingTransformations::setViewToBounds(const GraphicsObjectToWindowTransform* /*transform*/,
-                                        const BoundingBox* /*windowBounds*/,
                                         const GraphicsRegionSelectionBox* /*selectionBounds*/)
 {
     const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");

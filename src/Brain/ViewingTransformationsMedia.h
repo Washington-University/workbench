@@ -55,7 +55,6 @@ namespace caret {
                                      const float scaling) override;
         
         virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
-                                     const BoundingBox* windowBounds,
                                      const GraphicsRegionSelectionBox* selectionBounds) override;
         
         virtual void resetView();
