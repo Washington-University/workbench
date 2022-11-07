@@ -192,14 +192,19 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
         return NULL;
     }
     
+    /*
+     * Allocate storage for rgba data that is used by the graphics primitive
+     */
+    int64_t numberOfTextureBytes(0);
+    std::shared_ptr<uint8_t> imageRgbaData = GraphicsTextureSettings::allocateImageRgbaData(numberOfColumns,
+                                                                                            numberOfRows,
+                                                                                            numberOfSlices,
+                                                                                            &numberOfTextureBytes);
+    uint8_t* imageRgbaPtr(imageRgbaData.get()); /* simplify access for loading */
+    
     const int64_t numSliceBytes = (numberOfRows * numberOfColumns * 4);
-    
-    const int64_t textureBytes = (numberOfColumns * numberOfRows * numberOfSlices * 4);
-    
-    std::vector<uint8_t> rgba;
-    rgba.resize(textureBytes, 0);
-    
     std::vector<uint8_t> rgbaSlice(numSliceBytes);
+
     for (int64_t k = 0; k < numberOfSlices; k++) {
         int64_t firstVoxelIJK[3] = { 0, 0, k };
         int64_t rowStepIJK[3] = { 0, 1, 0 };
@@ -222,9 +227,9 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                 const int32_t textureOffset = ((k * numberOfColumns * numberOfRows)
                                                + (j * numberOfColumns) + i) * 4;
                 for (int32_t m = 0; m < 4; m++) {
-                    CaretAssertVectorIndex(rgba, (textureOffset + 3));
+                    CaretAssertArrayIndex(imageRgbaPtr, numberOfTextureBytes, (textureOffset + m));
                     CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
-                    rgba[textureOffset + m] = rgbaSlice[sliceOffset + m];
+                    imageRgbaPtr[textureOffset + m] = rgbaSlice[sliceOffset + m];
                 }
             }
         }
@@ -239,7 +244,7 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
         minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
     }
     std::array<float, 4> backgroundColor { 0.0, 0.0, 0.0, 0.0 };
-    GraphicsTextureSettings textureSettings(&rgba[0],
+    GraphicsTextureSettings textureSettings(imageRgbaData,
                                             numberOfColumns,
                                             numberOfRows,
                                             numberOfSlices,

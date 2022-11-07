@@ -780,7 +780,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
          */
         
         CaretLogWarning("Generate 3D mip maps has not been tested");
-        const int errorCode = gluBuild3DMipmaps(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_2D
+        const int errorCode = gluBuild3DMipmaps(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_3D
                                                 GL_RGBA,           // internal format
                                                 imageWidth,        // width of image
                                                 imageHeight,       // height of image

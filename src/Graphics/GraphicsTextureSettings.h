@@ -112,8 +112,27 @@ namespace caret {
             ENABLED
         };
         
+        static std::shared_ptr<uint8_t> allocateImageRgbaData(const int32_t imageWidth,
+                                                              const int32_t imageHeight,
+                                                              const int32_t imageSlices,
+                                                              int64_t* optionalNumberOfBytesOut = NULL);
+
         GraphicsTextureSettings();
 
+        GraphicsTextureSettings(std::shared_ptr<uint8_t>& imageRgbaData,
+                                const int32_t         imageWidth,
+                                const int32_t         imageHeight,
+                                const int32_t         imageSlices,
+                                const DimensionType   dimensionType,
+                                const PixelFormatType pixelFormatType,
+                                const PixelOrigin     pixelOrigin,
+                                const WrappingType    wrappingType,
+                                const MipMappingType  mipMappingType,
+                                const CompressionType compressionType,
+                                const GraphicsTextureMagnificationFilterEnum::Enum magnificationFilter,
+                                const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
+                                const std::array<float, 4>& borderColor);
+        
         GraphicsTextureSettings(const uint8_t*        imageBytesPointer,
                                 const int32_t         imageWidth,
                                 const int32_t         imageHeight,
@@ -173,8 +192,18 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum class ImageDataType {
+            INVALID,
+            POINTER,
+            SHARED_PTR
+        };
+        
         void copyHelperGraphicsTextureSettings(const GraphicsTextureSettings& obj);
 
+        ImageDataType m_imageDataType = ImageDataType::INVALID;
+        
+        std::shared_ptr<uint8_t> m_imageRgbaData;
+        
         uint8_t* m_imageBytesPointer = 0;
         
         int32_t m_imageWidth = 0;

@@ -39,13 +39,152 @@ using namespace caret;
  */
 
 /**
+ * Static method for allocating a shared pointer pointing to storage for image's RGBA coloring
+ * @param imageWidth
+ *    Width of image in pixels
+ * @param imageHeight
+ *    Height of image in pixels
+ * @param imageSlices
+ *    Number of slices in image (1 if 2D)
+ * @param optionalNumberOfBytesOut
+ *    If not NULL, contains the number of bytes allocated upon exit
+ * @return
+ *    Shared point containing memory for loading of rgba color components
+ */
+std::shared_ptr<uint8_t>
+GraphicsTextureSettings::allocateImageRgbaData(const int32_t imageWidth,
+                                               const int32_t imageHeight,
+                                               const int32_t imageSlices,
+                                               int64_t* optionalNumberOfBytesOut)
+{
+    CaretAssert(imageWidth > 0);
+    CaretAssert(imageHeight > 0);
+    CaretAssert(imageSlices > 0);
+    
+    const int64_t bytesPerPixel(4); /* RGBA components*/
+    const int64_t numTextureBytes(imageWidth * imageHeight * imageSlices * bytesPerPixel);
+
+    if (optionalNumberOfBytesOut != NULL) {
+        *optionalNumberOfBytesOut = numTextureBytes;
+    }
+    
+    /*
+     * Compilers before C++17 need deleter for array
+     * https://stackoverflow.com/questions/13061979/shared-ptr-to-an-array-should-it-be-used
+     * https://kezunlin.me/post/b82753fc/
+     * std::shared_ptr<int> sp(new int[10], std::default_delete<int[]>());
+     */
+    std::shared_ptr<uint8_t> imageData(new uint8_t[numTextureBytes], std::default_delete<uint8_t[]>());
+    return imageData;
+}
+
+/**
  * Default constructor
  */
 GraphicsTextureSettings::GraphicsTextureSettings()
 : CaretObject(),
+m_imageDataType(ImageDataType::INVALID),
 m_imageBytesPointer(NULL)
 {
     m_borderColor.fill(0.0f);
+}
+
+/**
+ * Constructor.
+ * @param imageRgbaData
+ *    Shared pointer pointing to image data rgba coloring
+ *    Use GraphicsTextureSettings::allocateImageRgbaData() to allocate this memory CORRECTLY
+ * @param imageWidth
+ *    Width of image in pixels
+ * @param imageHeight
+ *    Height of image in pixels
+ * @param imageSlices
+ *    Number of slices in image (1 if 2D)
+ * @param dimensionType
+ *    Texture dimension (2D or 3D)
+ * @param pixelFormatType
+ *    Pixel color components type
+ * @param pixelOrigin
+ *    Origin of first pixel in image
+ * @param wrappingType
+ *    Texture wrapping type
+ * @param mipMappingType
+ *    Mip mapping type
+ * @param compressionType
+ *    Type of compression
+ * @param magnificationFilter
+ *    Type of texture magnification
+ * @param minificationFilter
+ *    Type of texture minification
+ * @param borderColor
+ *    Color for texture border (used where there is no texture data)
+ */
+GraphicsTextureSettings::GraphicsTextureSettings(std::shared_ptr<uint8_t>& imageRgbaData,
+                                                 const int32_t         imageWidth,
+                                                 const int32_t         imageHeight,
+                                                 const int32_t         imageSlices,
+                                                 const DimensionType   dimensionType,
+                                                 const PixelFormatType pixelFormatType,
+                                                 const PixelOrigin     pixelOrigin,
+                                                 const WrappingType    wrappingType,
+                                                 const MipMappingType  mipMappingType,
+                                                 const CompressionType compressionType,
+                                                 const GraphicsTextureMagnificationFilterEnum::Enum magnificationFilter,
+                                                 const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
+                                                 const std::array<float, 4>& borderColor)
+: CaretObject(),
+m_imageDataType(ImageDataType::SHARED_PTR),
+m_imageRgbaData(imageRgbaData),
+m_imageBytesPointer(NULL),
+m_imageWidth(imageWidth),
+m_imageHeight(imageHeight),
+m_imageSlices(imageSlices),
+m_dimensionType(dimensionType),
+m_pixelFormatType(pixelFormatType),
+m_pixelOrigin(pixelOrigin),
+m_wrappingType(wrappingType),
+m_mipMappingType(mipMappingType),
+m_compressionType(compressionType),
+m_magnificationFilter(magnificationFilter),
+m_minificationFilter(minificationFilter),
+m_borderColor(borderColor)
+{
+    switch (m_mipMappingType) {
+        case MipMappingType::DISABLED:
+        {
+            AString filterName;
+            switch (m_minificationFilter) {
+                case GraphicsTextureMinificationFilterEnum::LINEAR:
+                    break;
+                case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+                    filterName = "LINEAR_MIPMAP_LINEAR";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+                    filterName = "LINEAR_MIPMAP_NEAREST";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST:
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+                    filterName = "NEAREST_MIPMAP_LINEAR";
+                    break;
+                case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+                    filterName = "NEAREST_MIPMAP_NEAREST";
+                    break;
+            }
+            
+            if ( ! filterName.isEmpty()) {
+                const AString msg("Mip mapping is DISABLED but the minification filter is set to a "
+                                  "mip mapping type "
+                                  + filterName
+                                  + ".  This may result in nothing or just white displayed.  Either "
+                                  "enable mip mapping or use a non-mip mapping minification filter.");
+                CaretLogSevere(msg);
+            }
+        }
+            break;
+        case MipMappingType::ENABLED:
+            break;
+    }
 }
 
 /**
@@ -91,6 +230,7 @@ GraphicsTextureSettings::GraphicsTextureSettings(const uint8_t*        imageByte
                                                  const GraphicsTextureMinificationFilterEnum::Enum minificationFilter,
                                                  const std::array<float, 4>& borderColor)
 : CaretObject(),
+m_imageDataType(ImageDataType::POINTER),
 m_imageBytesPointer(const_cast<uint8_t*>(imageBytesPointer)),
 m_imageWidth(imageWidth),
 m_imageHeight(imageHeight),
@@ -186,6 +326,8 @@ GraphicsTextureSettings::operator=(const GraphicsTextureSettings& obj)
 void 
 GraphicsTextureSettings::copyHelperGraphicsTextureSettings(const GraphicsTextureSettings& obj)
 {
+    m_imageDataType       = obj.m_imageDataType;
+    m_imageRgbaData       = obj.m_imageRgbaData;
     m_imageBytesPointer   = obj.m_imageBytesPointer;
     m_imageWidth          = obj.m_imageWidth;
     m_imageHeight         = obj.m_imageHeight;
@@ -208,7 +350,23 @@ GraphicsTextureSettings::copyHelperGraphicsTextureSettings(const GraphicsTexture
 const uint8_t*
 GraphicsTextureSettings::getImageBytesPointer() const
 {
-    return m_imageBytesPointer;
+    switch (m_imageDataType) {
+        case ImageDataType::INVALID:
+            CaretAssert(0);
+            return NULL;
+            break;
+        case ImageDataType::POINTER:
+            CaretAssert(m_imageBytesPointer);
+            return m_imageBytesPointer;
+            break;
+        case ImageDataType::SHARED_PTR:
+            CaretAssert(m_imageRgbaData.get());
+            return m_imageRgbaData.get();
+            break;
+    }
+    
+    CaretAssert(0);
+    return NULL;
 }
 
 /**
