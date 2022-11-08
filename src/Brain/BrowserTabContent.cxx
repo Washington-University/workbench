@@ -210,10 +210,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "VolumeSurfaceOutlineSetModel",
                                m_volumeSurfaceOutlineSetModel);
     
-    m_sceneClassAssistant->add("m_clippingPlaneGroup",
-                               "ClippingPlaneGroup",
-                               m_clippingPlaneGroup);
-    
     m_sceneClassAssistant->add("m_cerebellumViewingTransformation",
                                "ViewingTransformations",
                                m_cerebellumViewingTransformation);
@@ -5337,6 +5333,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
 
+    m_clippingPlaneGroup->saveToScene(sceneAttributes,
+                                      "m_clippingPlaneGroup");
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
     
@@ -5367,10 +5365,21 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
-    initializeScaleBar();
-
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
+    
+    initializeScaleBar();
+    
+    /*
+     * Need to recreate clipping plane group since tab is passed
+     * to constructor and is constant in the instance
+     */
+    if (m_clippingPlaneGroup != NULL) {
+        delete m_clippingPlaneGroup;
+    }
+    m_clippingPlaneGroup = new ClippingPlaneGroup(m_tabNumber);
+    m_clippingPlaneGroup->restoreFromScene(sceneAttributes,
+                                           sceneClass->getClass("m_clippingPlaneGroup"));
     
     TileTabsBrowserTabGeometry manualLayoutTabGeometry(m_tabNumber);
     TileTabsBrowserTabGeometrySceneHelper geometryHelper(&manualLayoutTabGeometry);
