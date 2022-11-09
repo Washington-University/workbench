@@ -527,8 +527,6 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
 {
     makeCurrent();
     
-    QImage image;
-    
     OffScreenOpenGLRenderer offscreen(this,
                                       imageWidth,
                                       imageHeight);
@@ -536,7 +534,7 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
         WuQMessageBox::errorOk(this,
                                offscreen.getErrorMessage());
         doneCurrent();
-        return image;
+        return QImage();
     }
 
     const int32_t viewport[4] = { 0, 0, imageWidth, imageHeight };
@@ -557,10 +555,17 @@ BrainOpenGLWidget::performOffScreenImageCapture(const int32_t imageWidth,
         WuQMessageBox::errorOk(this,
                                offscreen.getErrorMessage());
         doneCurrent();
-        return image;
+        return QImage();
     }
     
-    return offscreen.getImage();
+    QImage imageOut(offscreen.getImage());
+
+    /*
+     * Note: doneCurrent must be after call to getImage()
+     */
+    doneCurrent();
+    
+    return imageOut;
 }
 
 /**
@@ -1703,6 +1708,7 @@ BrainOpenGLWidget::performIdentification(const int x,
     const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
 
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -1720,7 +1726,6 @@ BrainOpenGLWidget::performIdentification(const int x,
                                   applySelectionBackgroundFiltering);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so 
@@ -1732,9 +1737,7 @@ BrainOpenGLWidget::performIdentification(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
+
     return idManager;
 }
 
@@ -1777,6 +1780,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                                     : this->getViewportContentAtXY(x, y));
 
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -1803,7 +1807,6 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
                                   true);
     }
 
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -1815,9 +1818,6 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return annotationID;
 }
@@ -1842,6 +1842,7 @@ BrainOpenGLWidget::performIdentificationVolumeMprCrosshairs(const int x,
     const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -1868,7 +1869,6 @@ BrainOpenGLWidget::performIdentificationVolumeMprCrosshairs(const int x,
                                        true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -1880,9 +1880,6 @@ BrainOpenGLWidget::performIdentificationVolumeMprCrosshairs(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return idMprCrosshair;
 }
@@ -1926,6 +1923,7 @@ BrainOpenGLWidget::performIdentificationHistologyPlaneCoordinate(const int x,
                                                     : this->getViewportContentAtXY(x, y));
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -1952,7 +1950,6 @@ BrainOpenGLWidget::performIdentificationHistologyPlaneCoordinate(const int x,
                                        true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -1964,9 +1961,6 @@ BrainOpenGLWidget::performIdentificationHistologyPlaneCoordinate(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return histologyID;
 }
@@ -2010,6 +2004,7 @@ BrainOpenGLWidget::performIdentificationHistologyStereotaxicCoordinate(const int
                                                     : this->getViewportContentAtXY(x, y));
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -2036,7 +2031,6 @@ BrainOpenGLWidget::performIdentificationHistologyStereotaxicCoordinate(const int
                                        true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -2048,9 +2042,6 @@ BrainOpenGLWidget::performIdentificationHistologyStereotaxicCoordinate(const int
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return histologyID;
 }
@@ -2094,6 +2085,7 @@ BrainOpenGLWidget::performIdentificationMediaLogicalCoordinate(const int x,
                                                     : this->getViewportContentAtXY(x, y));
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -2120,7 +2112,6 @@ BrainOpenGLWidget::performIdentificationMediaLogicalCoordinate(const int x,
                                        true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -2132,9 +2123,6 @@ BrainOpenGLWidget::performIdentificationMediaLogicalCoordinate(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return mediaID;
 }
@@ -2178,6 +2166,7 @@ BrainOpenGLWidget::performIdentificationMediaPlaneCoordinate(const int x,
                                                     : this->getViewportContentAtXY(x, y));
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -2204,7 +2193,6 @@ BrainOpenGLWidget::performIdentificationMediaPlaneCoordinate(const int x,
                                        true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -2216,9 +2204,6 @@ BrainOpenGLWidget::performIdentificationMediaPlaneCoordinate(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return mediaID;
 }
@@ -2244,6 +2229,7 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
     const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
+    
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
@@ -2271,7 +2257,6 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
                                   true);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -2283,9 +2268,6 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
      */
     this->repaintGraphics();
     this->doneCurrent();
-#else
-    this->repaintGraphics();
-#endif
     
     return idManager;
 }
@@ -2308,6 +2290,7 @@ BrainOpenGLWidget::performProjection(const int x,
     const BrainOpenGLViewportContent* projectionViewport = this->getViewportContentAtXY(x, y);
     
     this->makeCurrent();
+    
     CaretLogFine("Performing projection");
     
     if (projectionViewport != NULL) {
@@ -2321,7 +2304,6 @@ BrainOpenGLWidget::performProjection(const int x,
                                      projectionOut);
     }
     
-#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
     /*
      * Note: The QOpenGLWidget always renders in a
      * frame buffer object (see its documentation) so
@@ -2333,7 +2315,6 @@ BrainOpenGLWidget::performProjection(const int x,
      */
     this->repaintGraphics();
     this->doneCurrent();
-#endif
 }
 
 /**
