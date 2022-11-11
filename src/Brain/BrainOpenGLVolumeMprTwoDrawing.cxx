@@ -878,6 +878,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     }
 
     m_fixedPipelineDrawing->disableClippingPlanes();
+    
+    /*
+     * Draw yellow cross at center of viewport
+     */
+    GraphicsShape::drawYellowCrossAtViewportCenter();
+
 }
 
 /**

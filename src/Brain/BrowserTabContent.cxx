@@ -4417,9 +4417,6 @@ BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLV
                                                           stereotaxicWidth,
                                                           stereotaxicHeight)) {
         
-        std::cout << "Center: " << stereotaxicCenterXYZ.toString(5) << std::endl;
-        std::cout << "   Height: " << stereotaxicHeight << std::endl;
-        
         panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
                                            viewportContent,
                                            histologySlice,
@@ -7576,9 +7573,10 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
     panOut  = Vector3D();
     zoomOut = 1.0;
     
-    std::cout << "Region Stereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
-    std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
-    std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
+    const bool debugFlag(false);
+    if (debugFlag) std::cout << "Region Stereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+    if (debugFlag) std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
+    if (debugFlag) std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
     
     if ((regionStereotaxicWidth <= 0.0)
         || (regionStereotaxicHeight <= 0.0)) {
@@ -7649,8 +7647,8 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
     const Vector3D volumeMidPointXYZ(volumeBoundingBox.getCenterX(),
                                      volumeBoundingBox.getCenterY(),
                                      volumeBoundingBox.getCenterZ());
-    std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
-    std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
+    if (debugFlag) std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
+    if (debugFlag) std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
     << volumeBoundingBox.getDifferenceY() << ", " << volumeBoundingBox.getDifferenceZ() << std::endl;
     
     int32_t viewport[4];
@@ -7687,11 +7685,12 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
         volumeSliceHeight = std::fabs(orthographicBounds[3] - orthographicBounds[2]);
     }
     
-    std::cout << "   Slicd width/height: " << volumeSliceWidth << ", " << volumeSliceHeight << std::endl;
+    if (debugFlag) std::cout << "   Slicd width/height: " << volumeSliceWidth << ", " << volumeSliceHeight << std::endl;
 
     bool doZoomFlag(false);
     switch (volumeBrowserTabContent->getVolumeSliceProjectionType()) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            doZoomFlag = true;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             doZoomFlag = true;
@@ -7701,7 +7700,7 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
             break;
     }
 
-    std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+    if (debugFlag) std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
 
     float zoom(1.0);
     if (doZoomFlag) {
@@ -7710,38 +7709,63 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
             const float zoomVertical   = volumeSliceHeight / regionStereotaxicHeight;
             zoom = std::min(zoomHorizontal,
                             zoomVertical);
-            std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
-            std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
+            if (debugFlag) std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
+            if (debugFlag) std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
         }
     }
 
-    std::cout << "   Zoom: " << zoom << std::endl;
+    if (debugFlag) std::cout << "   Zoom: " << zoom << std::endl;
 
-    /*
-     * Need to offset by mid-point
-     * AND need to shift to the region's center
-     * Zoom about the new center point
-     */
-    const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
-    Matrix4x4 matrix;
-    matrix.translate(translate);
-    matrix.scale(zoom, zoom, zoom);
-    matrix.translate(-translate);
+    bool panZoomValidFlag(false);
+    switch (volumeBrowserTabContent->getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            panOut  = (volumeMidPointXYZ - regionStereotaxicCenterXYZ);
+            zoomOut = zoom;
+            panZoomValidFlag = true;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            /*
+             * Just need to set translation and zooming
+             */
+            const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
+            panOut  = translate;
+            zoomOut = zoom;
+            panZoomValidFlag = true;
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+        {
+            /*
+             * Need to offset by mid-point
+             * AND need to shift to the region's center
+             * Zoom about the new center point
+             */
+            const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
+            Matrix4x4 matrix;
+            matrix.translate(translate);
+            matrix.scale(zoom, zoom, zoom);
+            matrix.translate(-translate);
+            
+            /*
+             * Get translation and zooming from matrix and apply it to view transform
+             */
+            Vector3D t;
+            matrix.getTranslation(t);
+            double sx, sy, sz;
+            matrix.getScale(sx, sy, sz);
+            if (debugFlag) std::cout << "   Trans: " << t.toString(5) << std::endl;
+            if (debugFlag) std::cout << "   Scale: " << sx << std::endl;
+            
+            panOut = t;
+            zoomOut = sx;
+            panZoomValidFlag = true;
+        }
+            break;
+    }
 
-    /*
-     * Get translation and zooming from matrix and apply it to view transform
-     */
-    Vector3D t;
-    matrix.getTranslation(t);
-    double sx, sy, sz;
-    matrix.getScale(sx, sy, sz);
-    std::cout << "   Trans: " << t.toString(5) << std::endl;
-    std::cout << "   Scale: " << sx << std::endl;
-
-    panOut = t;
-    zoomOut = sx;
     
-    return true;
+    return panZoomValidFlag;
 }
 
 
