@@ -58,6 +58,8 @@ namespace caret {
         
         VolumeMappableInterface* getUnderlayVolume();
         
+        const VolumeMappableInterface* getUnderlayVolume() const;
+        
         Overlay* getUnderlayContainingVolume();
         
         Overlay* getOverlay(const int32_t overlayNumber);

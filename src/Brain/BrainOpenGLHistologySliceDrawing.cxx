@@ -46,6 +46,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT2f.h"
+#include "GraphicsShape.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "HistologySlicesFile.h"
@@ -340,8 +341,9 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         /*
          * Draw small yellow crosshairs across center of viewport
          */
-        const float xCenter((orthoLeft + orthoRight) / 2.0);
-        const float yCenter((orthoBottom + orthoTop) / 2.0);
+        GraphicsShape::drawYellowCrossAtViewportCenter();
+        const float xCenter(0.0); //(orthoLeft + orthoRight) / 2.0);
+        const float yCenter(0.0); //(orthoBottom + orthoTop) / 2.0);
         const float length(300);
         glColor3f(1.0, 1.0, 0.0);
         glLineWidth(1.0);

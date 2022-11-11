@@ -53,6 +53,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
+#include "GraphicsShape.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "IdentificationWithColor.h"
 #include "LabelDrawingProperties.h"
@@ -454,6 +455,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewType(const BrainOpenGLV
             break;
     }
     
+    
+    GraphicsShape::drawYellowCrossAtViewportCenter();
 }
 
 /**

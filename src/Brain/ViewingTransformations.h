@@ -29,10 +29,13 @@
 
 namespace caret {
     class BoundingBox;
+    class BrowserTabContent;
     class CaretUndoStack;
     class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
+    class HistologySlice;
     class SceneClassAssistant;
+    class Vector3D;
 
     class ViewingTransformations : public CaretObject, public SceneableInterface  {
         
@@ -75,8 +78,12 @@ namespace caret {
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
                                      const float scaling);
         
-        virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
-                                     const GraphicsRegionSelectionBox* selectionBounds);
+        virtual bool setViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                     const GraphicsRegionSelectionBox* selectionBounds,
+                                     const HistologySlice* histologySlice,
+                                     Vector3D& stereotaxicCenterXyzOut,
+                                     float& stereotaxicWidthOut,
+                                     float& stereotaxicHeightOut);
         
         Matrix4x4 getRotationMatrix() const;
         

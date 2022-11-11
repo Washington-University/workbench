@@ -65,6 +65,13 @@ namespace caret {
                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                   const int32_t viewport[4]);
         
+        static void getOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const BoundingBox& boundingBox,
+                                              const float zoomFactor,
+                                              const int viewport[4],
+                                              double orthographicBoundsOut[6]);
+        
         static void setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               const BoundingBox& boundingBox,

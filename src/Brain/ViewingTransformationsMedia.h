@@ -27,7 +27,7 @@
 
 
 namespace caret {
-
+    
     class ViewingTransformationsMedia : public ViewingTransformations {
         
     public:
@@ -54,8 +54,12 @@ namespace caret {
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
                                      const float scaling) override;
         
-        virtual void setViewToBounds(const GraphicsObjectToWindowTransform* xform,
-                                     const GraphicsRegionSelectionBox* selectionBounds) override;
+        virtual bool setViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                     const GraphicsRegionSelectionBox* selectionBounds,
+                                     const HistologySlice* histologySlice,
+                                     Vector3D& stereotaxicCenterXyzOut,
+                                     float& stereotaxicWidthOut,
+                                     float& stereotaxicHeightOut) override;
         
         virtual void resetView();
         

@@ -33,6 +33,7 @@
 #include "ClippingPlanePanningModeEnum.h"
 #include "EventListenerInterface.h"
 #include "HistologyCoordinate.h"
+#include "HistologySlice.h"
 #include "Matrix4x4.h"
 #include "MediaDisplayCoordinateModeEnum.h"
 #include "Model.h"
@@ -57,6 +58,7 @@ namespace caret {
     class AnnotationColorBar;
     class AnnotationScaleBar;
     class BrainOpenGLViewportContent;
+    class BrainOpenGLWindowContent;
     class CaretDataFile;
     class CaretMappableDataFile;
     class ChartTwoCartesianOrientedAxes;
@@ -390,7 +392,8 @@ namespace caret {
         void setMediaScalingFromGui(BrainOpenGLViewportContent* viewportContent,
                                     const float scaling);
         
-        void setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+        void setHistologyViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                      const BrainOpenGLViewportContent* viewportContent,
                                       const GraphicsRegionSelectionBox* selectionBounds);
 
         void setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
@@ -707,6 +710,20 @@ namespace caret {
         void moveYokedVolumeSlicesToHistologyCoordinate(const HistologySlicesFile* histologySlicesFile,
                                                         const HistologyCoordinate& histologyCoordinate);
         
+        static bool getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                    const Vector3D& regionStereotaxicCenterXYZ,
+                                                    const float regionStereotaxicWidth,
+                                                    const float regionStereotaxicHeight,
+                                                    Vector3D& panOut,
+                                                    float& zoomOut);
+
+        void panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                const BrainOpenGLViewportContent* viewportContent,
+                                                const HistologySlice* histologySlice,
+                                                const Vector3D& regionStereotaxicCenterXYZ,
+                                                const float regionStereotaxicWidth,
+                                                const float regionStereotaxicHeight);
+
         /** Number of this tab */
         int32_t m_tabNumber;
         

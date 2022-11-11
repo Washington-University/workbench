@@ -33,8 +33,10 @@
 #include "BorderFile.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLWindowContent.h"
 #include "BrainStructure.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
+#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "CaretAssert.h"
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
@@ -4374,18 +4376,57 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
 
 /**
  * Set the bounds of the view to the given selection bounds.
+ * @param allViewportContent
+ *    Content of all viewports in all windows
  * @param viewportContent
  *    Content of the viewport
  * @param selectionBounds
  *    Box containing bounds of selection
  */
 void
-BrowserTabContent::setHistologyViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                            const BrainOpenGLViewportContent* viewportContent,
                                             const GraphicsRegionSelectionBox* selectionBounds)
 {
+    CaretAssert(viewportContent);
+    CaretAssert(selectionBounds);
+    
+    HistologySlice* histologySlice(NULL);
+    ModelHistology* histologyModel(getDisplayedHistologyModel());
+    if (histologyModel != NULL) {
+        HistologyOverlaySet* histologyOverlaySet(getHistologyOverlaySet());
+        if (histologyOverlaySet != NULL) {
+            HistologyOverlay* histologyOverlay(histologyOverlaySet->getUnderlay());
+            if (histologyOverlay != NULL) {
+                HistologyOverlay::SelectionData selectionData(histologyOverlay->getSelectionData());
+                if (selectionData.m_selectedFile != NULL) {
+                    histologySlice = selectionData.m_selectedFile->getHistologySliceByIndex(selectionData.m_selectedSliceIndex);
+                }
+            }
+        }
+    }
+
     const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-    m_histologyViewingTransformation->setViewToBounds(xform,
-                                                      selectionBounds);
+    Vector3D stereotaxicCenterXYZ;
+    float stereotaxicWidth(0.0);
+    float stereotaxicHeight(0.0);
+    if (m_histologyViewingTransformation->setViewToBounds(xform,
+                                                          selectionBounds,
+                                                          histologySlice,
+                                                          stereotaxicCenterXYZ,
+                                                          stereotaxicWidth,
+                                                          stereotaxicHeight)) {
+        
+        std::cout << "Center: " << stereotaxicCenterXYZ.toString(5) << std::endl;
+        std::cout << "   Height: " << stereotaxicHeight << std::endl;
+        
+        panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
+                                           viewportContent,
+                                           histologySlice,
+                                           stereotaxicCenterXYZ,
+                                           stereotaxicWidth,
+                                           stereotaxicHeight);
+    }
     updateBrainModelYokedBrowserTabs();
 }
 
@@ -4401,8 +4442,16 @@ BrowserTabContent::setMediaViewToBounds(const BrainOpenGLViewportContent* viewpo
                                         const GraphicsRegionSelectionBox* selectionBounds)
 {
     const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
+    HistologySlice* histologySlice(NULL);
+    Vector3D stereotaxicCenterXYZ;
+    float stereotaxicWidth(0.0);
+    float stereotaxicHeight(0.0);
     m_mediaViewingTransformation->setViewToBounds(xform,
-                                                  selectionBounds);
+                                                  selectionBounds,
+                                                  histologySlice,
+                                                  stereotaxicCenterXYZ,
+                                                  stereotaxicWidth,
+                                                  stereotaxicHeight);
     updateMediaModelYokedBrowserTabs();
 }
 
@@ -6213,9 +6262,9 @@ BrowserTabContent::getValidVolumeSliceProjectionTypes(std::vector<VolumeSlicePro
                     case ModelTypeEnum::MODEL_TYPE_CHART:
                     case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                     case ModelTypeEnum::MODEL_TYPE_INVALID:
-                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                     case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
                         orthoValidFlag = true;
@@ -7274,6 +7323,479 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySli
     }
 }
 
+
+///**
+// * Pan and zoom yoked volume slices to approximate center and height
+// * @param windowContent
+// *    Content of window including all tabs
+// * @param viewportContent
+// *    Content of viewport containing this tab
+// * @param histologySlice
+// *    The underlay histology slice
+// * @param regionStereotaxicCenterXYZ
+// *    Center of region
+// * @param stereotaxicWidth
+// *    Width of region
+// * @param stereotaxicHeight
+// *    Height of region
+// */
+//void
+//BrowserTabContent::panZoomYokedVolumeSlices(const BrainOpenGLWindowContent* windowContent,
+//                                            const BrainOpenGLViewportContent* viewportContent,
+//                                            const HistologySlice* histologySlice,
+//                                            const Vector3D& regionStereotaxicCenterXYZ,
+//                                            const float regionStereotaxicWidth,
+//                                            const float regionStereotaxicHeight)
+//{
+//    CaretAssert(windowContent);
+//    CaretAssert(viewportContent);
+//
+//    std::cout << "RegionStereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+//    std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
+//    std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
+//
+//    if (isExecutingConstructor) {
+//        return;
+//    }
+//
+//    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+//        return;
+//    }
+//
+//    if (m_histologyModel == NULL) {
+//        return;
+//    }
+//
+//    if ((regionStereotaxicWidth <= 0.0)
+//        || (regionStereotaxicHeight <= 0.0)) {
+//        return;
+//    }
+//
+//    if (histologySlice == NULL) {
+//        return;
+//    }
+//
+////    BoundingBox sliceStereotaxicBounds(histologySlice->getStereotaxicXyzBoundingBox());
+////    float sliceStereotaxicHeight(std::max(sliceStereotaxicBounds.getDifferenceY(),
+////                                          sliceStereotaxicBounds.getDifferenceZ()));
+////    if (sliceStereotaxicHeight <= 0.0) {
+////        return;
+////    }
+//
+//    if (m_volumeModel == NULL) {
+//        return;
+//    }
+//
+//    OverlaySet* volumeOverlaySet(m_volumeModel->getOverlaySet(m_tabNumber));
+//    CaretAssert(volumeOverlaySet);
+//    const VolumeMappableInterface* underlayVolume(volumeOverlaySet->getUnderlayVolume());
+//    CaretAssert(underlayVolume);
+//    BoundingBox volumeBoundingBox;
+//    underlayVolume->getVoxelSpaceBoundingBox(volumeBoundingBox);
+//    if ( ! volumeBoundingBox.isValid()) {
+//        return;
+//    }
+//
+//    /*
+//     * Mid-point is stereotaxic coordinate at the "mid-point" of the volume
+//     * The origin (0, 0, 0)  is typically at the anterior commissure that is
+//     * anterior to the mid-point
+//     */
+//    const Vector3D volumeMidPointXYZ(volumeBoundingBox.getCenterX(),
+//                                     volumeBoundingBox.getCenterY(),
+//                                     volumeBoundingBox.getCenterZ());
+//    std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
+//    std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
+//    << volumeBoundingBox.getDifferenceY() << ", " << volumeBoundingBox.getDifferenceZ() << std::endl;
+//
+//    int32_t viewport[4];
+//    viewportContent->getModelViewport(viewport);
+//
+////    /*
+////     * Move the volume so that the region center is at the
+////     * center of the screen
+////     */
+////    Vector3D panXYZ(-regionStereotaxicCenterXYZ[0],
+////                    -regionStereotaxicCenterXYZ[1],
+////                    -regionStereotaxicCenterXYZ[2]);
+//
+//    /*
+//     * The volume origin (0, 0, 0) is typically not at the
+//     * center of the screen so we need to translate to
+//     * account for this offset
+//     */
+////    panXYZ += volumeMidPointXYZ;
+//
+//    /*
+//     * Get width / height of slice as viewed
+//     */
+//    float volumeSliceWidth(1.0);
+//    float volumeSliceHeight(1.0);
+////    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(getVolumeSliceViewPlane());
+////    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+////        sliceViewPlane = VolumeSliceViewPlaneEnum::CORONAL;
+////    }
+////    switch (sliceViewPlane) {
+////        case VolumeSliceViewPlaneEnum::ALL:
+////            CaretAssert(0);
+////            break;
+////        case VolumeSliceViewPlaneEnum::AXIAL:
+////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
+////            volumeSliceHeight = volumeBoundingBox.getDifferenceY();
+////            break;
+////        case VolumeSliceViewPlaneEnum::CORONAL:
+////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
+////            volumeSliceHeight = volumeBoundingBox.getDifferenceZ();
+////            break;
+////        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
+////            volumeSliceHeight = volumeBoundingBox.getDifferenceZ();
+////            break;
+////    }
+////    volumeSliceWidth  = std::fabs(volumeSliceWidth);
+////    volumeSliceHeight = std::fabs(volumeSliceHeight);
+//
+//    /*
+//     * Need to get width of how ortho viewport is set inside of volume drawing.
+//     * CANNOT use viewport from viewportContent since it is for THIS TAB that
+//     * contains histology slice
+//     */
+//    CaretAssertToDoWarning();
+//    volumeSliceWidth  = 80.0;
+//    volumeSliceHeight = 80.0;
+//
+//    bool doZoomFlag(false);
+//    switch (getVolumeSliceProjectionType()) {
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+//            break;
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+//            doZoomFlag = true;
+//            break;
+//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+//            doZoomFlag = true;
+//        {
+//         }
+////            switch (getVolumeSliceViewPlane()) {
+////                case VolumeSliceViewPlaneEnum::ALL:
+////                    break;
+////                case VolumeSliceViewPlaneEnum::AXIAL:
+////                    panXYZ[2] = 0.0;
+////                    break;
+////                case VolumeSliceViewPlaneEnum::CORONAL:
+////                    panXYZ[1] = 0.0;
+////                    break;
+////                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+////                    panXYZ[0] = 0.0;
+////                    break;
+////            }
+//            break;
+//    }
+//
+//    std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+//
+//    float zoom(1.0);
+//    if (doZoomFlag) {
+//        if (volumeSliceHeight > 0.0) {
+//            const float zoomHorizontal = volumeSliceWidth / regionStereotaxicWidth;
+//            const float zoomVertical   = volumeSliceHeight / regionStereotaxicHeight;
+//            zoom = std::min(zoomHorizontal,
+//                            zoomVertical);
+//            std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
+//            std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
+//        }
+//    }
+//
+//    std::cout << "   Zoom: " << zoom << std::endl;
+//
+//    /*
+//     * Need to offset by mid-point
+//     * AND need to shift to the region's center
+//     * Zoom about the new center point
+//     */
+//    const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
+//    Matrix4x4 matrix;
+//    matrix.translate(translate);
+//    matrix.scale(zoom, zoom, zoom);
+//    matrix.translate(-translate);
+//
+//    /*
+//     * Get translation and zooming from matrix and apply it to view transform
+//     */
+//    Vector3D t;
+//    matrix.getTranslation(t);
+//    double sx, sy, sz;
+//    matrix.getScale(sx, sy, sz);
+//    std::cout << "   Trans: " << t.toString(5) << std::endl;
+//    std::cout << "   Scale: " << sx << std::endl;
+//
+//    m_volumeSliceViewingTransformation->resetView();
+//    m_volumeSliceViewingTransformation->setRotationMatrix(Matrix4x4());
+//    m_volumeSliceViewingTransformation->setFlatRotationMatrix(Matrix4x4());
+//    m_volumeSliceViewingTransformation->setTranslation(t);
+//    m_volumeSliceViewingTransformation->setScaling(sx);
+//
+//
+//    /*
+//     * Copy yoked data from 'me' to all other yoked browser tabs
+//     */
+//    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+//    for (auto btc : activeTabs) {
+//        if (btc != this) {
+//            if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
+//                *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+//            }
+//        }
+//    }
+//}
+
+/**
+ * Get pan and zoom yoked volume slices to approximate center and size matching histology slice
+ * @param allViewportContent
+ *    Content of all viewports in all windows
+ * @param regionStereotaxicCenterXYZ
+ *    Center of region
+ * @param stereotaxicWidth
+ *    Width of region
+ * @param stereotaxicHeight
+ *    Height of region
+ * @param panOut
+ *    Output with panning
+ * @param zoomOut
+ *    Output with zooming
+ * @return
+ *    True if output panning and zooming are valid
+ */
+bool
+BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                   const Vector3D& regionStereotaxicCenterXYZ,
+                                                   const float regionStereotaxicWidth,
+                                                   const float regionStereotaxicHeight,
+                                                   Vector3D& panOut,
+                                                   float& zoomOut)
+{
+    panOut  = Vector3D();
+    zoomOut = 1.0;
+    
+    std::cout << "Region Stereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+    std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
+    std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
+    
+    if ((regionStereotaxicWidth <= 0.0)
+        || (regionStereotaxicHeight <= 0.0)) {
+        return false;
+    }
+    
+    /*
+     * Find a volume model in tabs
+     */
+    const BrainOpenGLViewportContent* volumeViewportContent(NULL);
+    for (const BrainOpenGLViewportContent* vpContent : allViewportContent) {
+        switch (vpContent->getBrowserTabContent()->getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                volumeViewportContent = vpContent;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                break;
+        }
+        if (volumeViewportContent != NULL) {
+            break;
+        }
+    }
+    
+    if (volumeViewportContent == NULL) {
+        return false;
+    }
+    
+    const BrowserTabContent* volumeBrowserTabContent(volumeViewportContent->getBrowserTabContent());
+    if (volumeBrowserTabContent == NULL) {
+        return false;
+    }
+    
+    const ModelVolume* volumeModel(volumeBrowserTabContent->getDisplayedVolumeModel());
+    if (volumeModel == NULL) {
+        return NULL;
+    }
+    const int32_t volumeTabNumber(volumeBrowserTabContent->getTabNumber());
+    
+    const OverlaySet* volumeOverlaySet(volumeModel->getOverlaySet(volumeTabNumber));
+    CaretAssert(volumeOverlaySet);
+    const VolumeMappableInterface* underlayVolume(volumeOverlaySet->getUnderlayVolume());
+    CaretAssert(underlayVolume);
+    BoundingBox volumeBoundingBox;
+    underlayVolume->getVoxelSpaceBoundingBox(volumeBoundingBox);
+    if ( ! volumeBoundingBox.isValid()) {
+        return false;
+    }
+    
+    /*
+     * Mid-point is stereotaxic coordinate at the "mid-point" of the volume
+     * The origin (0, 0, 0)  is typically at the anterior commissure that is
+     * anterior to the mid-point
+     */
+    const Vector3D volumeMidPointXYZ(volumeBoundingBox.getCenterX(),
+                                     volumeBoundingBox.getCenterY(),
+                                     volumeBoundingBox.getCenterZ());
+    std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
+    std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
+    << volumeBoundingBox.getDifferenceY() << ", " << volumeBoundingBox.getDifferenceZ() << std::endl;
+    
+    int32_t viewport[4];
+    volumeViewportContent->getModelViewport(viewport);
+
+    float volumeSliceWidth  = 80.0;
+    float volumeSliceHeight = 80.0;
+
+    {
+        BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
+        VolumeSliceViewPlaneEnum::Enum sliceViewPlane(volumeBrowserTabContent->getVolumeSliceViewPlane());
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                allSliceViewMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
+                sliceViewPlane = VolumeSliceViewPlaneEnum::CORONAL;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                break;
+        }
+
+        const float zoomFactor(1.0);
+        double orthographicBounds[6];
+        BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceViewMode,
+                                                                 sliceViewPlane,
+                                                                 volumeBoundingBox,
+                                                                 zoomFactor,
+                                                                 viewport,
+                                                                 orthographicBounds);
+        volumeSliceWidth  = std::fabs(orthographicBounds[1] - orthographicBounds[0]);
+        volumeSliceHeight = std::fabs(orthographicBounds[3] - orthographicBounds[2]);
+    }
+    
+    std::cout << "   Slicd width/height: " << volumeSliceWidth << ", " << volumeSliceHeight << std::endl;
+
+    bool doZoomFlag(false);
+    switch (volumeBrowserTabContent->getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            doZoomFlag = true;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            doZoomFlag = true;
+            break;
+    }
+
+    std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
+
+    float zoom(1.0);
+    if (doZoomFlag) {
+        if (volumeSliceHeight > 0.0) {
+            const float zoomHorizontal = volumeSliceWidth / regionStereotaxicWidth;
+            const float zoomVertical   = volumeSliceHeight / regionStereotaxicHeight;
+            zoom = std::min(zoomHorizontal,
+                            zoomVertical);
+            std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
+            std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
+        }
+    }
+
+    std::cout << "   Zoom: " << zoom << std::endl;
+
+    /*
+     * Need to offset by mid-point
+     * AND need to shift to the region's center
+     * Zoom about the new center point
+     */
+    const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
+    Matrix4x4 matrix;
+    matrix.translate(translate);
+    matrix.scale(zoom, zoom, zoom);
+    matrix.translate(-translate);
+
+    /*
+     * Get translation and zooming from matrix and apply it to view transform
+     */
+    Vector3D t;
+    matrix.getTranslation(t);
+    double sx, sy, sz;
+    matrix.getScale(sx, sy, sz);
+    std::cout << "   Trans: " << t.toString(5) << std::endl;
+    std::cout << "   Scale: " << sx << std::endl;
+
+    panOut = t;
+    zoomOut = sx;
+    
+    return true;
+}
+
+
+/**
+ * Pan and zoom yoked volume slices to approximate center and height
+ * @param allViewportContent
+ *    Content of all viewports in all windows
+ * @param viewportContent
+ *    Content of viewport containing this tab
+ * @param histologySlice
+ *    The underlay histology slice
+ * @param regionStereotaxicCenterXYZ
+ *    Center of region
+ * @param stereotaxicWidth
+ *    Width of region
+ * @param stereotaxicHeight
+ *    Height of region
+ */
+void
+BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                      const BrainOpenGLViewportContent* viewportContent,
+                                                      const HistologySlice* histologySlice,
+                                                      const Vector3D& regionStereotaxicCenterXYZ,
+                                                      const float regionStereotaxicWidth,
+                                                      const float regionStereotaxicHeight)
+{
+    Vector3D newPan;
+    float newZoom(0.0);
+    if (getPanZoomToFitVolumeIntoRegion(allViewportContent,
+                                        regionStereotaxicCenterXYZ,
+                                        regionStereotaxicWidth,
+                                        regionStereotaxicHeight,
+                                        newPan,
+                                        newZoom)) {
+        m_volumeSliceViewingTransformation->resetView();
+        m_volumeSliceViewingTransformation->setRotationMatrix(Matrix4x4());
+        m_volumeSliceViewingTransformation->setFlatRotationMatrix(Matrix4x4());
+        m_volumeSliceViewingTransformation->setTranslation(newPan);
+        m_volumeSliceViewingTransformation->setScaling(newZoom);
+        
+        
+        /*
+         * Copy yoked data from 'me' to all other yoked browser tabs
+         */
+        std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
+        for (auto btc : activeTabs) {
+            if (btc != this) {
+                if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
+                    *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+                }
+            }
+        }
+    }
+}
 
 /**
  * Update other browser tabs with brain model yoked data.

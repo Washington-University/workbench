@@ -52,6 +52,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "GraphicsShape.h"
 #include "GraphicsViewport.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
@@ -449,7 +450,11 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewType(const AllSliceViewMode al
         }
             break;
     }
-    
+  
+    /*
+     * Draw yellow cross at center of viewport
+     */
+    GraphicsShape::drawYellowCrossAtViewportCenter();
 }
 
 /**
@@ -2790,13 +2795,15 @@ BrainOpenGLVolumeSliceDrawing::getMinMaxVoxelSpacing(const VolumeMappableInterfa
  *    View plane that is displayed.
  * @param boundingBox
  *    Bounding box for all volume.
+ * @param zoomFactor
+ *    Zooming
  * @param viewport
  *    The viewport.
  * @param orthographicBoundsOut
  *    Output containing the orthographic bounds used for orthographic projection.
  */
 void
-BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(const AllSliceViewMode allSliceViewMode,
                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                          const BoundingBox& boundingBox,
                                                          const float zoomFactor,
@@ -2887,6 +2894,38 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode 
     orthographicBoundsOut[3] = orthoTop;
     orthographicBoundsOut[4] = nearDepth;
     orthographicBoundsOut[5] = farDepth;
+}
+
+/**
+ * Set the orthographic projection.
+ *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param boundingBox
+ *    Bounding box for all volume.
+ * @param zoomFactor
+ *    Zooming
+ * @param viewport
+ *    The viewport.
+ * @param orthographicBoundsOut
+ *    Output containing the orthographic bounds used for orthographic projection.
+ */
+void
+BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode allSliceViewMode,
+                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         const BoundingBox& boundingBox,
+                                                         const float zoomFactor,
+                                                         const int viewport[4],
+                                                         double orthographicBoundsOut[6])
+{
+    getOrthographicProjection(allSliceViewMode,
+                              sliceViewPlane,
+                              boundingBox,
+                              zoomFactor,
+                              viewport,
+                              orthographicBoundsOut);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

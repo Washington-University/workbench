@@ -131,6 +131,7 @@ GraphicsShape::deleteAllPrimitives()
      * is deleted.
      */
     s_byteSquarePrimitive.reset();
+    s_yellowCrossPrimitive.reset();
 }
 
 
@@ -1702,6 +1703,58 @@ GraphicsShape::drawOutlineRectangleVerticesAtInside(const double bottomLeft[3],
 }
 
 /**
+ * Draw a yellow cross at the viewport center
+ */
+void
+GraphicsShape::drawYellowCrossAtViewportCenter()
+{
+    if ( ! s_yellowCrossPrimitive) {
+        uint8_t yellow[4] { 255, 255, 0, 255 };
+        s_yellowCrossPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES, yellow));
+        s_yellowCrossPrimitive->addVertex(-0.5, 0.0);
+        s_yellowCrossPrimitive->addVertex( 0.5, 0.0);
+        s_yellowCrossPrimitive->addVertex( 0.0,-0.5);
+        s_yellowCrossPrimitive->addVertex( 0.0, 0.5);
+        s_yellowCrossPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 2.0);
+    }
+    
+    CaretAssert(s_yellowCrossPrimitive);
+    
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+//    const float vpX(vp[0]);
+//    const float vpY(vp[1]);
+    const float vpW(vp[2]);
+    const float vpH(vp[3]);
+    
+    const float halfWidth(vpW / 2.0);
+    const float halfHeight(vpH / 2.0);
+    const float lineLength(std::min(halfWidth, halfHeight));
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(-halfWidth, halfWidth, -halfHeight, halfHeight, -1.0, 1.0);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    glScalef(lineLength, lineLength, 1.0);
+    
+    glPushAttrib(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    GraphicsEngineDataOpenGL::draw(s_yellowCrossPrimitive.get());
+    glPopAttrib();
+    
+    
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -1710,4 +1763,5 @@ GraphicsShape::toString() const
 {
     return "GraphicsShape";
 }
+
 

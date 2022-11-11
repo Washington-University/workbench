@@ -252,6 +252,21 @@ OverlaySet::getUnderlayVolume()
     return vf;
 }
 
+/*
+ * Get the bottom-most overlay that is a volume file for the given
+ * browser tab and return its volume file.
+ * @param browserTabContent
+ *    Content of browser tab.
+ * @return Returns the bottom-most overlay that is set a a volume file.
+ * Will return NULL if no, enabled overlays are set to a volume file.
+ */
+const VolumeMappableInterface*
+OverlaySet::getUnderlayVolume() const
+{
+    OverlaySet* nonConstOverlaySet(const_cast<OverlaySet*>(this));
+    return nonConstOverlaySet->getUnderlayVolume();
+}
+
 /**
  * If NO overlay (any overlay) is set to a volume, set the underlay to the first
  * volume that it finds.

@@ -288,19 +288,34 @@ ViewingTransformations::setMediaScaling(const GraphicsObjectToWindowTransform* /
 }
 
 /**
- * Set the bounds of the view to the given bounds.
+ * Set the bounds of the view to the given selection bounds.
  * @param transform
  *    Graphics object to window transform
  * @param selectionBounds
- *    The selection bounds
+ *    Box containing bounds of selection
+ * @param histologySlice
+ *    histology slice on which bounds are set
+ * @param stereotaxicCenterXyzOut
+ *    Output with center of selection box in stereotaxic coordinates
+ * @param stereotaxicWidthOut
+ *    Output with width of selection box in stereotaxic space
+ * @param stereotaxicHeightOut
+ *    Output with height of selection box in stereotaxic space
+ * @return
+ *    True if outputs are valid, else false.
  */
-void
+bool
 ViewingTransformations::setViewToBounds(const GraphicsObjectToWindowTransform* /*transform*/,
-                                        const GraphicsRegionSelectionBox* /*selectionBounds*/)
+                                        const GraphicsRegionSelectionBox* /*selectionBounds*/,
+                                        const HistologySlice* /*histologySlice*/,
+                                        Vector3D& /*stereotaxicCenterXyzOut*/,
+                                        float& /*stereotaxicWidthOut*/,
+                                        float& /*stereotaxicHeightOut*/)
 {
     const QString msg("ViewingTransformations::setViewToBounds() is not supported for this view");
     CaretAssertMessage(0, msg);
     CaretLogSevere(msg);
+    return false;
 }
 
 /**

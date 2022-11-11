@@ -31,6 +31,8 @@
 #include "CaretUndoStack.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "HistologySlice.h"
+#include "Vector3D.h"
 #include "ViewingTransformationsUndoCommand.h"
 
 using namespace caret;
@@ -310,19 +312,39 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  *    Graphics object to window transform
  * @param selectionBounds
  *    Box containing bounds of selection
+ * @param histologySlice
+ *    histology slice on which bounds are set
+ * @param stereotaxicCenterXyzOut
+ *    Output with center of selection box in stereotaxic coordinates
+ * @param stereotaxicWidthOut
+ *    Output with width of selection box in stereotaxic space
+ * @param stereotaxicHeightOut
+ *    Output with height of selection box in stereotaxic space
+ * @return
+ *    True if outputs are valid, else false.
  */
-void
+bool
 ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                             const GraphicsRegionSelectionBox* selectionBounds)
+                                             const GraphicsRegionSelectionBox* selectionBounds,
+                                             const HistologySlice* histologySlice,
+                                             Vector3D& stereotaxicCenterXyzOut,
+                                             float& stereotaxicWidthOut,
+                                             float& stereotaxicHeightOut)
 {
     CaretAssert(transform);
     CaretAssert(selectionBounds);
     
+    stereotaxicCenterXyzOut = Vector3D();
+    stereotaxicWidthOut  = 0.0;
+    stereotaxicHeightOut = 0.0;
     
     float selectionBoxCenterX(0.0), selectionBoxCenterY(0.0);
     selectionBounds->getCenter(selectionBoxCenterX,
                                selectionBoxCenterY);
     
+    /*
+     * Ortho is in plane coordinates
+     */
     const std::array<float, 4> orthoLRBT(transform->getOrthoLRBT());
     const float windowWidth(orthoLRBT[1] - orthoLRBT[0]);
     const float windowHeight(orthoLRBT[2] - orthoLRBT[3]); /* for images positive Y is down */
@@ -330,6 +352,8 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
     const float selectionWidth(selectionBounds->getWidth());
     const float selectionHeight(selectionBounds->getHeight());
 
+    bool resultValidFlag(false);
+    
     /*
      * Ensure window and selection region are valid
      */
@@ -348,11 +372,9 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
         const float scale(std::min(widthScale, heightScale));
         setScaling(scale);
         
-        const float orthoCenterXYZ[] {
-            (orthoLRBT[0] + orthoLRBT[1]) / 2.0f,
-            (orthoLRBT[2] + orthoLRBT[3]) / 2.0f,
-            0.0
-        };
+        const Vector3D orthoCenterXYZ((orthoLRBT[0] + orthoLRBT[1]) / 2.0f,
+                                      (orthoLRBT[2] + orthoLRBT[3]) / 2.0f,
+                                      0.0);
         
         /*
          * Translate so that center of selection box is moved
@@ -372,7 +394,37 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
                                        undoViewTrans);
         CaretUndoStack* undoStack = getRedoUndoStack();
         undoStack->push(undoCommand);
+        
+        if (histologySlice != NULL) {
+            const Vector3D selectionBoundCenterXYZ(selectionBoxCenterX,
+                                                   selectionBoxCenterY,
+                                                   0.0);
+            if (histologySlice->planeXyzToStereotaxicXyz(selectionBoundCenterXYZ,
+                                                         stereotaxicCenterXyzOut)) {
+                float minX(0.0) ,maxX(0.0), minY(0.0), maxY(0.0);
+                if (selectionBounds->getBounds(minX, minY, maxX, maxY)) {
+//                    std::cout << "   Min/Max X: " << minX << ", " << maxX << std::endl;
+//                    std::cout << "   Min/Max Y: " << minY << ", " << maxY << std::endl;
+                    
+                    Vector3D planeTopLeftXYZ(minX, minY, 0.0);
+                    Vector3D planeBottomLeftXYZ(minX, maxY, 0.0);
+                    Vector3D planeTopRightXYZ(maxX, minY, 0.0);
+                    Vector3D stereotaxicBottomLeftXYZ;
+                    Vector3D stereotaxicTopLeftXYZ;
+                    Vector3D stereotaxicTopRightXYZ;
+                    if (histologySlice->planeXyzToStereotaxicXyz(planeBottomLeftXYZ, stereotaxicBottomLeftXYZ)
+                        && histologySlice->planeXyzToStereotaxicXyz(planeTopLeftXYZ, stereotaxicTopLeftXYZ)
+                        && histologySlice->planeXyzToStereotaxicXyz(planeTopRightXYZ, stereotaxicTopRightXYZ)) {
+                        stereotaxicWidthOut  = (stereotaxicTopLeftXYZ - stereotaxicTopRightXYZ).length();
+                        stereotaxicHeightOut = (stereotaxicTopLeftXYZ - stereotaxicBottomLeftXYZ).length();
+                        resultValidFlag = true;
+                    }
+                }
+            }
+        }
     }
+    
+    return resultValidFlag;
 }
 
 

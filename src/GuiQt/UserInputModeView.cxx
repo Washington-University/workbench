@@ -27,6 +27,7 @@
 #undef __USER_INPUT_MODE_VIEW_DECLARE__
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
@@ -840,7 +841,34 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
                         /*
                          * Zoom to selection region
                          */
-                        browserTabContent->setHistologyViewToBounds(viewportContent,
+                        std::vector<const BrainOpenGLViewportContent*> viewportContentInAllWindows;
+                        
+                        /*
+                         * Get all tab viewports in the window using this instance as we
+                         * want it FIRST in all viewport content
+                         */
+                        BrainOpenGLWindowContent* windowContent(mouseEvent.getWindowContent());
+                        CaretAssert(windowContent);
+                        std::vector<const BrainOpenGLViewportContent*> vpContents(windowContent->getAllTabViewports());
+                        viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
+                                                           vpContents.begin(),
+                                                           vpContents.end());
+                        
+                        /*
+                         * Get viewport content in all other windows
+                         */
+                        std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
+                        for (auto& bw : allBrowserWindows) {
+                            if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
+                                std::vector<const BrainOpenGLViewportContent*> vpContents;
+                                bw->getAllBrainOpenGLViewportContent(vpContents);
+                                viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
+                                                                   vpContents.begin(),
+                                                                   vpContents.end());
+                            }
+                        }
+                        browserTabContent->setHistologyViewToBounds(viewportContentInAllWindows,
+                                                                    viewportContent,
                                                                     selectionBox);
                     }
                 }
