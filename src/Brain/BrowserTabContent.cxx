@@ -4418,6 +4418,7 @@ BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLV
                                                           stereotaxicHeight)) {
         
         panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
+                                           viewportContent,
                                            stereotaxicCenterXYZ,
                                            stereotaxicWidth,
                                            stereotaxicHeight);
@@ -7542,13 +7543,13 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
  * Get pan and zoom yoked volume slices to approximate center and size matching histology slice
  * @param allViewportContent
  *    Content of all viewports in all windows
- * @param yokingGroup
- *    The yoking group other tabs must match
+ * @param tabViewportContent
+ *    Viewport content for 'this' tab
  * @param regionStereotaxicCenterXYZ
  *    Center of region
- * @param stereotaxicWidth
+ * @param regionStereotaxicWidth
  *    Width of region
- * @param stereotaxicHeight
+ * @param regionStereotaxicHeight
  *    Height of region
  * @param panOut
  *    Output with panning
@@ -7559,7 +7560,7 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
  */
 bool
 BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                   const YokingGroupEnum::Enum yokingGroup,
+                                                   const BrainOpenGLViewportContent* tabViewportContent,                                                   const YokingGroupEnum::Enum yokingGroup,
                                                    const Vector3D& regionStereotaxicCenterXYZ,
                                                    const float regionStereotaxicWidth,
                                                    const float regionStereotaxicHeight,
@@ -7616,19 +7617,39 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
         }
     }
     
+    const BrowserTabContent* volumeBrowserTabContent(NULL);
+    const ModelVolume* volumeModel(NULL);
+    if (volumeViewportContent != NULL) {
+        volumeBrowserTabContent = volumeViewportContent->getBrowserTabContent();
+        if (volumeBrowserTabContent != NULL) {
+            volumeModel = volumeBrowserTabContent->getDisplayedVolumeModel();
+        }
+    }
+    else {
+        /*
+         * Since no volume model found in other tabs, use volume model in
+         * 'this' tab even though it is not dipslayed
+         */
+        volumeViewportContent = tabViewportContent;
+        if (volumeViewportContent != NULL) {
+            volumeBrowserTabContent = volumeViewportContent->getBrowserTabContent();
+            if (volumeBrowserTabContent != NULL) {
+                /* Volume model may not be displayed */
+                volumeModel = volumeBrowserTabContent->m_volumeModel;
+            }
+        }
+    }
+    
     if (volumeViewportContent == NULL) {
         return false;
     }
-    
-    const BrowserTabContent* volumeBrowserTabContent(volumeViewportContent->getBrowserTabContent());
     if (volumeBrowserTabContent == NULL) {
         return false;
     }
-    
-    const ModelVolume* volumeModel(volumeBrowserTabContent->getDisplayedVolumeModel());
     if (volumeModel == NULL) {
-        return NULL;
+        return false;
     }
+    
     const int32_t volumeTabNumber(volumeBrowserTabContent->getTabNumber());
     
     const OverlaySet* volumeOverlaySet(volumeModel->getOverlaySet(volumeTabNumber));
@@ -7775,6 +7796,8 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
  * Pan and zoom yoked volume slices to approximate center and height
  * @param allViewportContent
  *    Content of all viewports in all windows
+ * @param tabViewportContent
+ *    Viewport content for 'this' tab
  * @param regionStereotaxicCenterXYZ
  *    Center of region
  * @param stereotaxicWidth
@@ -7784,6 +7807,7 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
  */
 void
 BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                      const BrainOpenGLViewportContent* tabViewportContent,
                                                       const Vector3D& regionStereotaxicCenterXYZ,
                                                       const float regionStereotaxicWidth,
                                                       const float regionStereotaxicHeight)
@@ -7791,6 +7815,7 @@ BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const Br
     Vector3D newPan;
     float newZoom(0.0);
     if (getPanZoomToFitVolumeIntoRegion(allViewportContent,
+                                        tabViewportContent,
                                         m_brainModelYokingGroup,
                                         regionStereotaxicCenterXYZ,
                                         regionStereotaxicWidth,
