@@ -500,6 +500,19 @@ PreferencesDialog::createMiscellaneousWidget()
     m_allWidgets->add(m_guiGesturesEnabledComboBox);
     
     /*
+     * Cross at viewport center
+     */
+    const QString crossToolTip("Display a yellow cross at center of histology and volume views");
+    m_crossAtViewportCenterEnabledComboBox = new WuQTrueFalseComboBox("On",
+                                                            "Off",
+                                                            this);
+    WuQtUtilities::setWordWrappedToolTip(m_crossAtViewportCenterEnabledComboBox->getWidget(),
+                                         crossToolTip);
+    QObject::connect(m_crossAtViewportCenterEnabledComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDialog::miscCrossAtViewportCenterEnabledComboBoxChanged);
+    m_allWidgets->add(m_crossAtViewportCenterEnabledComboBox);
+
+    /*
      * Manage Files View Files Type
      */
     m_miscSpecFileDialogViewFilesTypeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -550,6 +563,9 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Window ToolBar Width Mode: ",
                       m_windowToolBarWidthModeComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Display Cross at Histology/Volume Center",
+                      m_crossAtViewportCenterEnabledComboBox->getWidget());
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -586,6 +602,8 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_windowToolBarWidthModeComboBox->setSelectedItem<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>(prefs->getToolBarWidthMode());
     
     m_fileOpenFromOpSysTypeComboBox->setSelectedItem<FileOpenFromOpSysTypeEnum, FileOpenFromOpSysTypeEnum::Enum>(prefs->getFileOpenFromOpSysType());
+    
+    m_crossAtViewportCenterEnabledComboBox->setStatus(prefs->isCrossAtViewportCenterEnabled());
 }
 
 /**
@@ -1372,6 +1390,20 @@ PreferencesDialog::miscGuiGesturesEnabledComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setGuiGesturesEnabled(value);
+}
+
+/**
+ * Called when cross at viewport center enabled changed.
+ *
+ * @param value
+ *   New value.
+ */
+void
+PreferencesDialog::miscCrossAtViewportCenterEnabledComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setCrossAtViewportCenterEnabled(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

@@ -35,6 +35,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "CziImage.h"
 #include "CziImageFile.h"
 #include "DisplayPropertiesCziImages.h"
@@ -56,6 +57,7 @@
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -334,28 +336,34 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     
     drawSelectionBox();
     
-    {
-        glPushMatrix();
-        glLoadIdentity();
-        
-        /*
-         * Draw small yellow crosshairs across center of viewport
-         */
+    /*
+     * Draw yellow cross at center of viewport
+     */
+    if (SessionManager::get()->getCaretPreferences()->isCrossAtViewportCenterEnabled()) {
         GraphicsShape::drawYellowCrossAtViewportCenter();
-        const float xCenter(0.0); //(orthoLeft + orthoRight) / 2.0);
-        const float yCenter(0.0); //(orthoBottom + orthoTop) / 2.0);
-        const float length(300);
-        glColor3f(1.0, 1.0, 0.0);
-        glLineWidth(1.0);
-        glBegin(GL_LINES);
-        glVertex2f(xCenter - length, yCenter);
-        glVertex2f(xCenter + length, yCenter);
-        glVertex2f(xCenter, yCenter - length);
-        glVertex2f(xCenter, yCenter + length);
-        glEnd();
-        
-        glPopMatrix();
     }
+//    {
+//        glPushMatrix();
+//        glLoadIdentity();
+//        
+//        /*
+//         * Draw small yellow crosshairs across center of viewport
+//         */
+//        GraphicsShape::drawYellowCrossAtViewportCenter();
+//        const float xCenter(0.0); //(orthoLeft + orthoRight) / 2.0);
+//        const float yCenter(0.0); //(orthoBottom + orthoTop) / 2.0);
+//        const float length(300);
+//        glColor3f(1.0, 1.0, 0.0);
+//        glLineWidth(1.0);
+//        glBegin(GL_LINES);
+//        glVertex2f(xCenter - length, yCenter);
+//        glVertex2f(xCenter + length, yCenter);
+//        glVertex2f(xCenter, yCenter - length);
+//        glVertex2f(xCenter, yCenter + length);
+//        glEnd();
+//        
+//        glPopMatrix();
+//    }
     
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At end of BrainOpenGLHistologySliceDrawing::draw()");
 }

@@ -156,6 +156,12 @@ CaretPreferences::CaretPreferences()
                                                                      CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                      RecentFilesSystemAccessModeEnum::toName(RecentFilesSystemAccessModeEnum::ON)));
     
+    m_crossAtViewportCenterEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                      "m_crossAtViewportCenterEnabled",
+                                                                      CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                      CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                      false));
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -1676,6 +1682,26 @@ void
 CaretPreferences::setImageFileTextureCompressionEnabled(const bool status)
 {
     m_imageFileTextureCompressionEnabled->setValue(status);
+}
+
+/**
+ * @return True if cross is displayed at viewport center
+ */
+bool
+CaretPreferences::isCrossAtViewportCenterEnabled() const
+{
+    return m_crossAtViewportCenterEnabled->getValue().toBool();
+}
+
+/**
+ * Set display cross at viewport center
+ * @param status
+ *    New status
+ */
+void
+CaretPreferences::setCrossAtViewportCenterEnabled(const bool status)
+{
+    m_crossAtViewportCenterEnabled->setValue(status);
 }
 
 /**

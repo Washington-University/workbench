@@ -455,8 +455,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewType(const BrainOpenGLV
             break;
     }
     
-    
-    GraphicsShape::drawYellowCrossAtViewportCenter();
+    /*
+     * Draw yellow cross at center of viewport
+     */
+    if (SessionManager::get()->getCaretPreferences()->isCrossAtViewportCenterEnabled()) {
+        GraphicsShape::drawYellowCrossAtViewportCenter();
+    }
 }
 
 /**

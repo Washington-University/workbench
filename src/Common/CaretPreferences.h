@@ -280,6 +280,10 @@ namespace caret {
         
         void setImageFileTextureCompressionEnabled(const bool status);
         
+        bool isCrossAtViewportCenterEnabled() const;
+        
+        void setCrossAtViewportCenterEnabled(const bool status);
+        
         bool isGraphicsFramesPerSecondEnabled() const;
         
         void setGraphicsFramesPerSecondEnabled(const bool status);
@@ -450,6 +454,8 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_identificationStereotaxicDistance;
         
         std::unique_ptr<CaretPreferenceDataValue> m_imageFileTextureCompressionEnabled;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_crossAtViewportCenterEnabled;
         
         bool splashScreenEnabled;
         
