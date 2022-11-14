@@ -324,6 +324,27 @@ DataToolTipsManager::setShowMedia(const bool status)
 }
 
 /**
+ * @return Is show histology enabled?
+ */
+bool
+DataToolTipsManager::isShowHistology() const
+{
+    return m_showHistologyFlag;
+}
+
+/**
+ * Set status for show histology
+ *
+ * @param status
+ *     New status.
+ */
+void
+DataToolTipsManager::setShowHistology(const bool status)
+{
+    m_showHistologyFlag = status;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

@@ -129,6 +129,10 @@ namespace caret {
                                   const DataToolTipsManager* dataToolTipsManager,
                                   IdentificationStringBuilder& idText) const;
         
+        void generateHistologyPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+                                                     const DataToolTipsManager* dataToolTipsManager,
+                                                     IdentificationStringBuilder& idText) const;
+        
         void generateMediaLogicalCoordinateToolTip(const SelectionManager* selectionManager,
                                                    const DataToolTipsManager* dataToolTipsManager,
                                                    IdentificationStringBuilder& idText) const;

@@ -548,6 +548,7 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
 
     const SelectionItemSurfaceNode* selectedNode = selectionManager->getSurfaceNodeIdentification();
     const SelectionItemVoxel* selectedVoxel = selectionManager->getVoxelIdentification();
+    const SelectionItemHistologyCoordinate* selectionHistologyCoordinate(selectionManager->getHistologyPlaneCoordinateIdentification());
     const SelectionItemMediaLogicalCoordinate* selectionMediaLogicalCoordinate = selectionManager->getMediaLogicalCoordinateIdentification();
     const SelectionItemMediaPlaneCoordinate* selectionMediaPlaneCoordinate(selectionManager->getMediaPlaneCoordinateIdentification());
     const SelectionItemUniversalIdentificationSymbol* selectionSymbol = selectionManager->getUniversalIdentificationSymbol();
@@ -576,6 +577,11 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
                               selectionManager,
                               dataToolTipsManager,
                               idText);
+    }
+    else if (selectionHistologyCoordinate->isValid()) {
+        generateHistologyPlaneCoordinateToolTip(selectionManager,
+                                                dataToolTipsManager,
+                                                idText);
     }
     else if (selectionMediaLogicalCoordinate->isValid()) {
         generateMediaLogicalCoordinateToolTip(selectionManager,
@@ -2792,6 +2798,34 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
                                                        true);
     }
 }
+
+/**
+ * Get text for the tooltip for media
+ *
+ * @param selectionManager
+ *     The selection manager.
+ * @param dataToolTipsManager
+ *     The data tooltips manager
+ * @param idText
+ *     String builder for identification text.
+ */
+void
+IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+                                                                              const DataToolTipsManager* dataToolTipsManager,
+                                                                              IdentificationStringBuilder& idText) const
+{
+    if (dataToolTipsManager->isShowHistology()) {
+        std::unique_ptr<HtmlTableBuilder> htmlTableBuilder = createHtmlTableBuilder(3);
+        
+        const SelectionItemHistologyCoordinate* histologySelection(selectionManager->getHistologyPlaneCoordinateIdentification());
+        if (histologySelection->isValid()) {
+            generateHistologyPlaneCoordinateIdentificationText(*htmlTableBuilder,
+                                                               idText,
+                                                               histologySelection);
+        }
+    }
+}
+
 
 /**
  * Get text for the tooltip for media

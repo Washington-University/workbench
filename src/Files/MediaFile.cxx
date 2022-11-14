@@ -1345,7 +1345,6 @@ MediaFile::getPixelPlaneIdentificationTextForHistology(const int32_t tabIndex,
         columnTwoTextOut.push_back(rightRgbaText[i]);
     }
     toolTipTextOut.push_back(pixelText);
-    toolTipTextOut.push_back(logicalText);
     
     CaretAssert(columnOneTextOut.size() == columnTwoTextOut.size());
 }

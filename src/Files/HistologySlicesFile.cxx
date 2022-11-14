@@ -446,6 +446,8 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
         || ( ! mmText.isEmpty())) {
         columnOneText.push_back(mmText);
         columnTwoText.push_back(planeText);
+        toolTipText.push_back(mmText);
+        toolTipText.push_back(planeText);
     }
     
     if (histologyCoordinate.isStereotaxicNoNonLinearXYZValid()) {

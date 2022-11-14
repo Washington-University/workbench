@@ -90,6 +90,10 @@ namespace caret {
         
         void setShowMedia(const bool status);
         
+        bool isShowHistology() const;
+        
+        void setShowHistology(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -137,6 +141,8 @@ namespace caret {
         bool m_showChartFlag = true;
         
         bool m_showMediaFlag = true;
+        
+        bool m_showHistologyFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 
