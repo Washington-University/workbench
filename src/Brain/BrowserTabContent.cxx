@@ -4418,8 +4418,6 @@ BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLV
                                                           stereotaxicHeight)) {
         
         panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
-                                           viewportContent,
-                                           histologySlice,
                                            stereotaxicCenterXYZ,
                                            stereotaxicWidth,
                                            stereotaxicHeight);
@@ -6617,8 +6615,7 @@ BrowserTabContent::setHistologySelectedCoordinate(const HistologySlicesFile* his
         case MoveYokedVolumeSlices::MOVE_NO:
             break;
         case MoveYokedVolumeSlices::MOVE_YES:
-            moveYokedVolumeSlicesToHistologyCoordinate(histologySlicesFile,
-                                                       histologyCoordinate);
+            moveYokedVolumeSlicesToHistologyCoordinate(getHistologySelectedCoordinate(histologySlicesFile));
             break;
     }
 }
@@ -7273,14 +7270,11 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
 
 /**
  * Move yoked volume slices to the histology coordinate's stereotaxic position
- * @param histologySlicesFile
- *    The histology slices file
  * @param histologyCoordinate
  *    The histology coordinate
  */
 void
-BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySlicesFile* histologySlicesFile,
-                                                              const HistologyCoordinate& histologyCoordinate)
+BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoordinate& histologyCoordinate)
 {
     if (isExecutingConstructor) {
         return;
@@ -7294,9 +7288,8 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySli
         return;
     }
     
-    const HistologyCoordinate hc(getHistologySelectedCoordinate(histologySlicesFile));
-    if (hc.isStereotaxicXYZValid()) {
-        const Vector3D xyz(hc.getStereotaxicXYZ());
+    if (histologyCoordinate.isStereotaxicXYZValid()) {
+        const Vector3D xyz(histologyCoordinate.getStereotaxicXYZ());
         setVolumeSliceCoordinateParasagittal(xyz[0]);
         setVolumeSliceCoordinateCoronal(xyz[1]);
         setVolumeSliceCoordinateAxial(xyz[2]);
@@ -7549,6 +7542,8 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySli
  * Get pan and zoom yoked volume slices to approximate center and size matching histology slice
  * @param allViewportContent
  *    Content of all viewports in all windows
+ * @param yokingGroup
+ *    The yoking group other tabs must match
  * @param regionStereotaxicCenterXYZ
  *    Center of region
  * @param stereotaxicWidth
@@ -7564,6 +7559,7 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologySli
  */
 bool
 BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                   const YokingGroupEnum::Enum yokingGroup,
                                                    const Vector3D& regionStereotaxicCenterXYZ,
                                                    const float regionStereotaxicWidth,
                                                    const float regionStereotaxicHeight,
@@ -7588,29 +7584,35 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
      */
     const BrainOpenGLViewportContent* volumeViewportContent(NULL);
     for (const BrainOpenGLViewportContent* vpContent : allViewportContent) {
-        switch (vpContent->getBrowserTabContent()->getSelectedModelType()) {
-            case ModelTypeEnum::MODEL_TYPE_CHART:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_INVALID:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                break;
-            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                volumeViewportContent = vpContent;
-                break;
-            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                break;
-        }
-        if (volumeViewportContent != NULL) {
-            break;
+        CaretAssert(vpContent);
+        const BrowserTabContent* btc(vpContent->getBrowserTabContent());
+        if (btc != NULL) {
+            if (btc->getBrainModelYokingGroup() == yokingGroup) {
+                switch (vpContent->getBrowserTabContent()->getSelectedModelType()) {
+                    case ModelTypeEnum::MODEL_TYPE_CHART:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_INVALID:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                        volumeViewportContent = vpContent;
+                        break;
+                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                        break;
+                }
+                if (volumeViewportContent != NULL) {
+                    break;
+                }
+            }
         }
     }
     
@@ -7773,10 +7775,6 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
  * Pan and zoom yoked volume slices to approximate center and height
  * @param allViewportContent
  *    Content of all viewports in all windows
- * @param viewportContent
- *    Content of viewport containing this tab
- * @param histologySlice
- *    The underlay histology slice
  * @param regionStereotaxicCenterXYZ
  *    Center of region
  * @param stereotaxicWidth
@@ -7786,8 +7784,6 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
  */
 void
 BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                      const BrainOpenGLViewportContent* viewportContent,
-                                                      const HistologySlice* histologySlice,
                                                       const Vector3D& regionStereotaxicCenterXYZ,
                                                       const float regionStereotaxicWidth,
                                                       const float regionStereotaxicHeight)
@@ -7795,6 +7791,7 @@ BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const Br
     Vector3D newPan;
     float newZoom(0.0);
     if (getPanZoomToFitVolumeIntoRegion(allViewportContent,
+                                        m_brainModelYokingGroup,
                                         regionStereotaxicCenterXYZ,
                                         regionStereotaxicWidth,
                                         regionStereotaxicHeight,

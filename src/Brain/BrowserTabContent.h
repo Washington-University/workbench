@@ -707,10 +707,10 @@ namespace caret {
                                             const int32_t mouseDX,
                                             const int32_t mouseDY);
         
-        void moveYokedVolumeSlicesToHistologyCoordinate(const HistologySlicesFile* histologySlicesFile,
-                                                        const HistologyCoordinate& histologyCoordinate);
+        void moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoordinate& histologyCoordinate);
         
         static bool getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                    const YokingGroupEnum::Enum yokingGroup,
                                                     const Vector3D& regionStereotaxicCenterXYZ,
                                                     const float regionStereotaxicWidth,
                                                     const float regionStereotaxicHeight,
@@ -718,8 +718,6 @@ namespace caret {
                                                     float& zoomOut);
 
         void panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                const BrainOpenGLViewportContent* viewportContent,
-                                                const HistologySlice* histologySlice,
                                                 const Vector3D& regionStereotaxicCenterXYZ,
                                                 const float regionStereotaxicWidth,
                                                 const float regionStereotaxicHeight);
