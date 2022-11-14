@@ -135,6 +135,12 @@ namespace caret {
         
         bool isStereotaxicXYZValid() const;
         
+        float getDistanceToPreviousIdentifiedItem() const;
+        
+        void setDistanceToPreviousIdentifiedItem(const float distance);
+        
+        bool isDistanceToPreviousIdentifiedItemValid() const;
+        
         const HistologyCoordinate& getHistologyCoordinate() const;
         
         bool isOldIdentification() const;
@@ -202,6 +208,10 @@ namespace caret {
         
         bool m_stereotaxicXYZValidFlag = false;
 
+        float m_distanceToPreviousIdentifiedItem = 0.0;
+        
+        bool m_distanceToPreviousIdentifiedItemValid = false;
+        
         CaretColorEnum::Enum m_symbolColor = CaretColorEnum::WHITE;
         
         CaretColorEnum::Enum m_contralateralSymbolColor = CaretColorEnum::LIME;

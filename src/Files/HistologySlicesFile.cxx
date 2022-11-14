@@ -727,6 +727,9 @@ HistologySlicesFile::addToDataFileContentInformation(DataFileContentInformation&
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
     
+    dataFileInformation.addNameAndValue("Slice Spacing (mm)",
+                                        getSliceSpacing());
+    
     const uint64_t numChars(30);
     const QString separator(numChars, QChar('-'));
     const int32_t numSlices(getNumberOfHistologySlices());
@@ -756,11 +759,33 @@ HistologySlicesFile::getChildDataFilePathNames() const
 }
 
 /**
- * @return Slice spacing (distance between slices)
+ * @return Slice spacing (distance between slices) in millimeters.  Returns 1.0 if distance unknown.
  */
 float
 HistologySlicesFile::getSliceSpacing() const
 {
+    if ( ! m_sliceSpacingValid) {
+        m_sliceSpacing = 1.0;
+        
+        const int32_t numSlices(getNumberOfHistologySlices());
+        if (numSlices >= 2) {
+            const BoundingBox firstSliceBoundingBox(getHistologySliceByIndex(0)->getStereotaxicXyzBoundingBox());
+            const BoundingBox lastSliceBoundingBox(getHistologySliceByIndex(numSlices - 1)->getStereotaxicXyzBoundingBox());
+            if (firstSliceBoundingBox.isValid()
+                && lastSliceBoundingBox.isValid()) {
+                Vector3D firstSliceCenterXYZ, lastSliceCenterXYZ;
+                firstSliceBoundingBox.getCenter(firstSliceCenterXYZ);
+                lastSliceBoundingBox.getCenter(lastSliceCenterXYZ);
+                const float distanceFirstToLastSlice((lastSliceCenterXYZ - firstSliceCenterXYZ).length());
+                const float sliceSpacing(distanceFirstToLastSlice
+                                         / static_cast<float>(numSlices - 1));
+                if (sliceSpacing > 0.0) {
+                    m_sliceSpacing = sliceSpacing;
+                }
+            }
+            m_sliceSpacingValid = true;
+        }
+    }
     return m_sliceSpacing;
 }
 

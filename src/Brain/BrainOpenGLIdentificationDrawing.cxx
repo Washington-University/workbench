@@ -682,7 +682,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
             break;
     }
     
-    const float distanceToHistologySliceTolerance(10.0); //0.5);
+    const float distanceToHistologySliceTolerance(halfSliceThickness * 2.0);
 
     
     std::vector<const IdentifiedItemUniversal*> allItems(getIdentifiedItems());
@@ -980,8 +980,7 @@ BrainOpenGLIdentificationDrawing::drawIdentificationSymbols(const IdentifiedItem
                      * Is symbol near plane of slice?
                      */
                     const float dist = std::fabs(plane.signedDistanceToPlane(xyz));
-//                    if (dist <= halfSliceThickness) {
-                    if (dist <= (halfSliceThickness * 10)) { /* allow slices to show up on many slices since histology is oblique */
+                    if (dist <= halfSliceThickness) {
                         Vector3D xyzProjected;
                         plane.projectPointToPlane(xyz, xyzProjected);
                         xyz = xyzProjected;

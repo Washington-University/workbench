@@ -148,6 +148,8 @@ namespace caret {
         
         mutable float m_sliceSpacing = 2.0;
         
+        mutable bool m_sliceSpacingValid = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

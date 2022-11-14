@@ -30,7 +30,9 @@
 #include "CaretPreferences.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
+#include "HtmlTableBuilder.h"
 #include "IdentificationFilter.h"
+#include "IdentificationFormattedTextGenerator.h"
 #include "IdentificationHistoryManager.h"
 #include "IdentificationHistoryRecord.h"
 #include "IdentifiedItemNode.h"
@@ -165,6 +167,29 @@ IdentificationManager::addIdentifiedItem(IdentifiedItemUniversal* item)
     CaretAssert(item);
 
     const bool restoringSceneFlag(false);
+    
+    if ( ! m_identifiedItems.empty()) {
+        const auto& previousItem(m_identifiedItems.back());
+        if (previousItem->isStereotaxicXYZValid()) {
+            if (item->isStereotaxicXYZValid()) {
+                const float dist((item->getStereotaxicXYZ() - previousItem->getStereotaxicXYZ()).length());
+                if (dist > 0.0) {
+                    item->setDistanceToPreviousIdentifiedItem(dist);
+                    
+                    AString simpleText("Distance to previous ID: "
+                                       + AString::number(dist, 'f', 3));
+                    
+                    const int32_t columnCount(2);
+                    HtmlTableBuilder idTableBuilder(HtmlTableBuilder::V4_01,
+                                                    columnCount);
+                    idTableBuilder.addRow("Distance to last previous ID ",
+                                          AString::number(dist, 'f', 3));
+                    const AString formattedText(idTableBuilder.getAsHtmlTable());
+                    item->appendText(simpleText, formattedText);
+                }
+            }
+        }
+    }
     addIdentifiedItemPrivate(item,
                              restoringSceneFlag);
 }

@@ -108,7 +108,9 @@ m_pixelPlaneCoordinate(pixelPlaneCoordinate),
 m_voxelIJK(voxelIJK),
 m_histologyCoordinate(histologyCoordinate),
 m_stereotaxicXYZ(stereotaxicXYZ),
-m_stereotaxicXYZValidFlag(stereotaxicXYZValidFlag)
+m_stereotaxicXYZValidFlag(stereotaxicXYZValidFlag),
+m_distanceToPreviousIdentifiedItem(0.0),
+m_distanceToPreviousIdentifiedItemValid(false)
 {
     initializeInstance();
 }
@@ -575,6 +577,8 @@ IdentifiedItemUniversal::copyHelperIdentifiedItemUniversal(const IdentifiedItemU
     m_histologyCoordinate = obj.m_histologyCoordinate;
     m_stereotaxicXYZ = obj.m_stereotaxicXYZ;
     m_stereotaxicXYZValidFlag = obj.m_stereotaxicXYZValidFlag;
+    m_distanceToPreviousIdentifiedItem = obj.m_distanceToPreviousIdentifiedItem;
+    m_distanceToPreviousIdentifiedItemValid = obj.m_distanceToPreviousIdentifiedItemValid;
     m_symbolColor = obj.m_symbolColor;
     m_contralateralSymbolColor = obj.m_contralateralSymbolColor;
     m_symbolSizeType = obj.m_symbolSizeType;
@@ -664,6 +668,8 @@ IdentifiedItemUniversal::initializeInstance()
                           &m_histologyCoordinate);
     m_sceneAssistant->addArray("m_stereotaxicXYZ", m_stereotaxicXYZ, 3, 0.0);
     m_sceneAssistant->add("m_stereotaxicXYZValidFlag", &m_stereotaxicXYZValidFlag);
+    m_sceneAssistant->add("m_distanceToPreviousIdentifiedItem", &m_distanceToPreviousIdentifiedItem);
+    m_sceneAssistant->add("m_distanceToPreviousIdentifiedItemValid", &m_distanceToPreviousIdentifiedItemValid);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_symbolColor", &m_symbolColor);
     m_sceneAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_contralateralSymbolColor", &m_contralateralSymbolColor);
     m_sceneAssistant->add("m_symbolSize", &m_symbolSize);
@@ -971,6 +977,36 @@ IdentifiedItemUniversal::isStereotaxicXYZValid() const
 }
 
 /**
+ * @return Distance to previous identified item
+ */
+float
+IdentifiedItemUniversal::getDistanceToPreviousIdentifiedItem() const
+{
+    return m_distanceToPreviousIdentifiedItem;
+}
+
+/**
+ * Set distance to previous identifiied item.  Valid will be set to true if distance is positive.
+ * @param distance
+ *    Distance to previous item.
+ */
+void
+IdentifiedItemUniversal::setDistanceToPreviousIdentifiedItem(const float distance)
+{
+    m_distanceToPreviousIdentifiedItem = distance;
+    m_distanceToPreviousIdentifiedItemValid = (m_distanceToPreviousIdentifiedItem > 0.0);
+}
+
+/**
+ * @return Is the previous identified item valid
+ */
+bool
+IdentifiedItemUniversal::isDistanceToPreviousIdentifiedItemValid() const
+{
+    return m_distanceToPreviousIdentifiedItemValid;
+}
+
+/**
  * @return Reference to the histology coordinate
  */
 const HistologyCoordinate&
@@ -1009,6 +1045,8 @@ IdentifiedItemUniversal::toString() const
                        + ", m_histologyCoordinate=" + m_histologyCoordinate.toString()
                        + ", m_stereotaxicXYZ=" + AString::fromNumbers(m_stereotaxicXYZ, 3, ", ")
                        + ", m_stereotaxicXYZValidFlag=" + AString::fromBool(m_stereotaxicXYZValidFlag)
+                       + ", m_distanceToPreviousIdentifiedItem=" + AString::number(m_distanceToPreviousIdentifiedItem)
+                       + ", m_distanceToPreviousIdentifiedItemValid=" + AString::fromBool(m_distanceToPreviousIdentifiedItemValid)
                        + ", m_symbolColor=" + CaretColorEnum::toName(m_symbolColor)
                        + ", m_contralateralSymbolColor=" + CaretColorEnum::toName(m_contralateralSymbolColor)
                        + ", m_symbolSize=" + AString::number(m_symbolSize)
