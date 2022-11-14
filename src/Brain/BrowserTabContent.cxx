@@ -4417,11 +4417,13 @@ BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLV
                                                           stereotaxicWidth,
                                                           stereotaxicHeight)) {
         
-        panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
-                                           viewportContent,
-                                           stereotaxicCenterXYZ,
-                                           stereotaxicWidth,
-                                           stereotaxicHeight);
+        if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
+            panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
+                                               viewportContent,
+                                               stereotaxicCenterXYZ,
+                                               stereotaxicWidth,
+                                               stereotaxicHeight);
+        }
     }
     updateBrainModelYokedBrowserTabs();
 }
