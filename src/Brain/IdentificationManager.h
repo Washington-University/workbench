@@ -74,6 +74,8 @@ namespace caret {
                                            std::array<uint8_t, 4>& rgbaOut,
                                            float& symbolDiameterOut) const;
         
+        const IdentifiedItemUniversal* getMostRecentIdentifiedItem() const;
+        
         bool removeIdentifiedItem(const SelectionItem* selectedItem);
         
         void removeIdentificationText();

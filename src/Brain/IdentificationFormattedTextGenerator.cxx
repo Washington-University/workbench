@@ -248,7 +248,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
                                                        false);
     }
     
-    generateHistologyPlaneCoordinateIdentificationText(*histologyHtmlTableBuilder,
+    generateHistologyPlaneCoordinateIdentificationText(idManager,
+                                                       *histologyHtmlTableBuilder,
                                                        idText,
                                                        selectionManager->getHistologyPlaneCoordinateIdentification());
     generateHistologyStereotaxicCoordinateIdentificationText(*histologyHtmlTableBuilder,
@@ -567,19 +568,22 @@ IdentificationFormattedTextGenerator::createToolTipText(const Brain* brain,
     }
     else if (selectedNode->isValid()) {
         generateSurfaceToolTip(brain,
+                               idManager,
                                browserTab,
                                selectionManager,
                                dataToolTipsManager,
                                idText);
     }
     else if (selectedVoxel->isValid()) {
-        generateVolumeToolTip(browserTab,
+        generateVolumeToolTip(idManager,
+                              browserTab,
                               selectionManager,
                               dataToolTipsManager,
                               idText);
     }
     else if (selectionHistologyCoordinate->isValid()) {
-        generateHistologyPlaneCoordinateToolTip(selectionManager,
+        generateHistologyPlaneCoordinateToolTip(idManager,
+                                                selectionManager,
                                                 dataToolTipsManager,
                                                 idText);
     }
@@ -2071,7 +2075,6 @@ IdentificationFormattedTextGenerator::generateSurfaceFocusIdentifcationText(Html
                                        focus,
                                        idSurfaceFocus->getFocusIndex(),
                                        projectionIndex,
-                                       idSurfaceFocus->getSurface(),
                                        toolTipFlag);
     }
 }
@@ -2088,8 +2091,6 @@ IdentificationFormattedTextGenerator::generateSurfaceFocusIdentifcationText(Html
  *     Index of focus
  * @param projectionIndex
  *     Index of projection
- * @param surface
- *     Surface for focus (may be NULL)
  * @param toolTipFlag
  *     True if this is for tooltip.
  */
@@ -2099,7 +2100,6 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                                                                      const Focus* focus,
                                                                      const int32_t focusIndex,
                                                                      const int32_t projectionIndex,
-                                                                     const Surface* surface,
                                                                      const bool toolTipFlag) const
 {
     const SurfaceProjectedItem* spi = focus->getProjection(projectionIndex);
@@ -2258,7 +2258,8 @@ IdentificationFormattedTextGenerator::addIfColumnTwoNotEmpty(HtmlTableBuilder& h
  *    Histology identification
  */
 void
-IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentificationText(const IdentificationManager* idManager,
+                                                                                         HtmlTableBuilder& htmlTableBuilder,
                                                                                          IdentificationStringBuilder& idText,
                                                                                          const SelectionItemHistologyCoordinate* idHistology) const
 {
@@ -2294,10 +2295,18 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateIdentifica
         /*
          * For tooltip
          */
+        const bool indentFlag(false);
         for (const auto& text : toolTipText) {
-            bool indentFlag(false);
             idText.addLine(indentFlag,
                            text);
+        }
+        if (histologyCoordinate.isStereotaxicXYZValid()) {
+            const AString distanceText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                                                         histologyCoordinate.getStereotaxicXYZ());
+            if ( ! distanceText.isEmpty()) {
+                idText.addLine(indentFlag,
+                               distanceText);
+            }
         }
     }
 }
@@ -2484,6 +2493,8 @@ IdentificationFormattedTextGenerator::generateMediaPlaneCoordinateIdentification
 /**
  * Get text for the tooltip for a selected node.
  *
+ * @param idManager
+ *    The identification manager
  * @param brain
  *     The Brain.
  * @param browserTab
@@ -2497,6 +2508,7 @@ IdentificationFormattedTextGenerator::generateMediaPlaneCoordinateIdentification
  */
 void
 IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
+                                                             const IdentificationManager* idManager,
                                                           const BrowserTabContent* browserTab,
                                                           const SelectionManager* selectionManager,
                                                           const DataToolTipsManager* dataToolTipsManager,
@@ -2506,6 +2518,8 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
     
     const SelectionItemSurfaceNode* nodeSelection = selectionManager->getSurfaceNodeIdentification();
     CaretAssert(nodeSelection);
+    Vector3D vertexXYZ;
+    bool vertexXYZValidFlag(false);
     if (nodeSelection->isValid()) {
         const Surface* surface = nodeSelection->getSurface();
         CaretAssert(surface);
@@ -2524,9 +2538,9 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                 const Surface* anatSurface = brain->getPrimaryAnatomicalSurfaceForStructure(surfaceStructure);
                 if (anatSurface != NULL) {
                     if (anatSurface->getNumberOfNodes() == surfaceNumberOfNodes) {
-                        float xyz[3];
                         anatSurface->getCoordinate(surfaceNodeIndex,
-                                                   xyz);
+                                                   vertexXYZ);
+                        vertexXYZValidFlag = true;
                         idText.addLine(indentFlag,
                                        "Vertex",
                                        AString::number(surfaceNodeIndex));
@@ -2535,7 +2549,7 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                         
                         idText.addLine(indentFlag,
                                        "Anatomy Surface",
-                                       AString::fromNumbers(xyz, 3, ", ", 'f', 2));
+                                       AString::fromNumbers(vertexXYZ, 3, ", ", 'f', 2));
                         if (surface == anatSurface) {
                             showSurfaceFlag = false;
                         }
@@ -2616,7 +2630,6 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                    focus,
                                                    focusIndex,
                                                    focusSelection->getFocusProjectionIndex(),
-                                                   focusSelection->getSurface(),
                                                    true);
                 }
             }
@@ -2627,11 +2640,21 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                        selectionManager->getFocusIdentification(),
                                        true);
     }
+    
+    if (vertexXYZValidFlag) {
+        const AString distText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                                                 vertexXYZ);
+        if ( ! distText.isEmpty()) {
+            idText.append(distText);
+        }
+    }
 }
 
 /**
  * Get text for the tooltip for a selected node.
  *
+ * @param idManager
+ *    The identification manager
  * @param browserTab
  *     Browser tab in which tooltip is displayed
  * @param selectionManager
@@ -2642,7 +2665,8 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
  *     String builder for identification text.
  */
 void
-IdentificationFormattedTextGenerator::generateVolumeToolTip(const BrowserTabContent* browserTab,
+IdentificationFormattedTextGenerator::generateVolumeToolTip(const IdentificationManager* idManager,
+                                                            const BrowserTabContent* browserTab,
                                                    const SelectionManager* selectionManager,
                                                    const DataToolTipsManager* dataToolTipsManager,
                                                    IdentificationStringBuilder& idText) const
@@ -2659,6 +2683,9 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const BrowserTabCont
         static_cast<float>(selectionXYZ[1]),
         static_cast<float>(selectionXYZ[2])
     };
+    
+    Vector3D voxelXYZ;
+    bool voxelXYZValidFlag(false);
     
     bool indentFlag = false;
     if (dataToolTipsManager->isShowVolumeUnderlay()) {
@@ -2703,6 +2730,8 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const BrowserTabCont
                     idText.addLine(indentFlag,
                                    "XYZ",
                                    AString::fromNumbers(xyz, 3, ", ", 'f', 1));
+                    voxelXYZ.set(xyz[0], xyz[1], xyz[2]);
+                    voxelXYZValidFlag = true;
                 }
             }
         }
@@ -2731,6 +2760,14 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const BrowserTabCont
                                     + textValue));
                 }
             }
+        }
+    }
+    
+    if (voxelXYZValidFlag) {
+        const AString distText = getTextDistanceToMostRecentIdentificationSymbol(idManager,
+                                                                                 voxelXYZ);
+        if ( ! distText.isEmpty()) {
+            idText.append(distText);
         }
     }
 }
@@ -2802,6 +2839,8 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
 /**
  * Get text for the tooltip for media
  *
+ * @param idManager
+ *    The identification manager
  * @param selectionManager
  *     The selection manager.
  * @param dataToolTipsManager
@@ -2810,7 +2849,8 @@ IdentificationFormattedTextGenerator::generateChartToolTip(const SelectionManage
  *     String builder for identification text.
  */
 void
-IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(const IdentificationManager* idManager,
+                                                                              const SelectionManager* selectionManager,
                                                                               const DataToolTipsManager* dataToolTipsManager,
                                                                               IdentificationStringBuilder& idText) const
 {
@@ -2819,13 +2859,40 @@ IdentificationFormattedTextGenerator::generateHistologyPlaneCoordinateToolTip(co
         
         const SelectionItemHistologyCoordinate* histologySelection(selectionManager->getHistologyPlaneCoordinateIdentification());
         if (histologySelection->isValid()) {
-            generateHistologyPlaneCoordinateIdentificationText(*htmlTableBuilder,
+            generateHistologyPlaneCoordinateIdentificationText(idManager,
+                                                               *htmlTableBuilder,
                                                                idText,
                                                                histologySelection);
         }
     }
 }
 
+/**
+ * Append distance from item to most recent identification symbol
+ * @param idManager
+ *    The identification manager
+ * @param selectionXYZ
+ *    Stereotaxic coordinate of selection
+ */
+AString
+IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
+                                                                                      const float selectionXYZ[3]) const
+{
+    CaretAssert(idManager);
+    
+    const IdentifiedItemUniversal* lastIdItem(idManager->getMostRecentIdentifiedItem());
+    if (lastIdItem != NULL) {
+        if (lastIdItem->isStereotaxicXYZValid()) {
+            const Vector3D xyz(lastIdItem->getStereotaxicXYZ());
+            const float distance((xyz - Vector3D(selectionXYZ)).length());
+            const AString text("Distance to Most Recent ID Symbol: "
+                               + AString::number(distance, 'f', 4));
+            return text;
+        }
+    }
+    
+    return "";
+}
 
 /**
  * Get text for the tooltip for media

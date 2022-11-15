@@ -40,6 +40,8 @@ namespace caret {
     class HistologySlicesFile;
     class HtmlTableBuilder;
     class IdentificationFilter;
+    class IdentificationManager;
+    class IdentificationStringBuilder;
     class MapFileDataSelector;
     class MediaFile;
     class Overlay;
@@ -65,7 +67,6 @@ namespace caret {
     class SelectionItemVoxel;
     class SelectionManager;
     class Surface;
-    class IdentificationStringBuilder;
     
     class IdentificationFormattedTextGenerator : public CaretObject {
         
@@ -115,12 +116,14 @@ namespace caret {
                                        std::vector<MapFileAndMapIndices>& mediaFilesAndIndicesOut) const;
         
         void generateSurfaceToolTip(const Brain* brain,
+                                    const IdentificationManager* idManager,
                                     const BrowserTabContent* browserTab,
                                     const SelectionManager* selectionManager,
                                     const DataToolTipsManager* dataToolTipsManager,
                                     IdentificationStringBuilder& idText) const;
         
-        void generateVolumeToolTip(const BrowserTabContent* browserTab,
+        void generateVolumeToolTip(const IdentificationManager* idManager,
+                                   const BrowserTabContent* browserTab,
                                    const SelectionManager* selectionManager,
                                    const DataToolTipsManager* dataToolTipsManager,
                                    IdentificationStringBuilder& idText) const;
@@ -129,7 +132,8 @@ namespace caret {
                                   const DataToolTipsManager* dataToolTipsManager,
                                   IdentificationStringBuilder& idText) const;
         
-        void generateHistologyPlaneCoordinateToolTip(const SelectionManager* selectionManager,
+        void generateHistologyPlaneCoordinateToolTip(const IdentificationManager* idManager,
+                                                     const SelectionManager* selectionManager,
                                                      const DataToolTipsManager* dataToolTipsManager,
                                                      IdentificationStringBuilder& idText) const;
         
@@ -159,7 +163,6 @@ namespace caret {
                                             const Focus* focus,
                                             const int32_t focusIndex,
                                             const int32_t projectionIndex,
-                                            const Surface* surface,
                                             const bool toolTipFlag) const;
         
         void generateSurfaceVertexIdentificationText(HtmlTableBuilder& htmlTableBuilder,
@@ -173,7 +176,8 @@ namespace caret {
                                                    const Brain* brain,
                                                    const SelectionItemSurfaceNode* idSurfaceNode) const;
 
-        void generateHistologyPlaneCoordinateIdentificationText(HtmlTableBuilder& htmlTableBuilder,
+        void generateHistologyPlaneCoordinateIdentificationText(const IdentificationManager* idManager,
+                                                                HtmlTableBuilder& htmlTableBuilder,
                                                             IdentificationStringBuilder& idText,
                                                             const SelectionItemHistologyCoordinate* idHistology) const;
         
@@ -270,6 +274,9 @@ namespace caret {
         void addIfColumnTwoNotEmpty(HtmlTableBuilder& htmlTableBuilder,
                                     const AString& columnOne,
                                     const AString& columnTwo) const;
+        
+        AString getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
+                                                                const float selectionXYZ[3]) const;
         
         const AString m_noDataText;
         
