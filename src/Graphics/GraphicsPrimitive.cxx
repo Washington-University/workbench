@@ -727,6 +727,8 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             s.appendWithNewLine("   Width: " + AString::number(m_textureSettings.getImageWidth())
                                 + " Height: " + AString::number(m_textureSettings.getImageHeight())
                                 + " Slices: " + AString::number(m_textureSettings.getImageSlices()));
+            s.appendWithNewLine("Texture Settings");
+            s.appendWithNewLine(m_textureSettings.toString());
             break;
     }
     

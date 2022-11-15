@@ -522,6 +522,150 @@ GraphicsTextureSettings::getBorderColor() const
 AString 
 GraphicsTextureSettings::toString() const
 {
-    return "GraphicsTextureSettings";
+    AString txt;
+    
+    AString imagePointerTypeString("   Image Pointer Type: ");
+    switch (m_imageDataType) {
+        case ImageDataType::INVALID:
+            imagePointerTypeString.append("INVALID");
+            break;
+        case ImageDataType::POINTER:
+            imagePointerTypeString.append("POINTER");
+            break;
+        case ImageDataType::SHARED_PTR:
+            imagePointerTypeString.append("SHARED_PTR");
+            break;
+    }
+    txt.appendWithNewLine(imagePointerTypeString);
+    
+    AString dimensionTypeString("   Dimension Type: ");
+    switch (m_dimensionType) {
+        case DimensionType::NONE:
+            dimensionTypeString.append("NONE");
+            break;
+        case DimensionType::FLOAT_STR_2D:
+            dimensionTypeString.append("FLOAT_STR_2D");
+            break;
+        case DimensionType::FLOAT_STR_3D:
+            dimensionTypeString.append("FLOAT_STR_3D");
+            break;
+    }
+    txt.appendWithNewLine(dimensionTypeString);
+    
+    txt.appendWithNewLine("   Texture Width: "
+                          + AString::number(m_imageWidth));
+    txt.appendWithNewLine("   Texture Height: "
+                          + AString::number(m_imageHeight));
+    txt.appendWithNewLine("   Texture Slices: "
+                          + AString::number(m_imageSlices));
+
+    AString pixelFormatString("   Pixel Format Type: ");
+    switch (m_pixelFormatType) {
+        case PixelFormatType::NONE:
+            pixelFormatString.append("NONE");
+            break;
+        case PixelFormatType::BGR:
+            pixelFormatString.append("BGR");
+            break;
+        case PixelFormatType::BGRA:
+            pixelFormatString.append("BGRA");
+            break;
+        case PixelFormatType::BGRX:
+            pixelFormatString.append("BGRX");
+            break;
+        case PixelFormatType::RGB:
+            pixelFormatString.append("RGB");
+            break;
+        case PixelFormatType::RGBA:
+            pixelFormatString.append("RGBA");
+            break;
+    }
+    txt.appendWithNewLine(pixelFormatString);
+    
+    AString pixelOriginString("   Pixel Origin: ");
+    switch (m_pixelOrigin) {
+        case PixelOrigin::NONE:
+            pixelOriginString.append("NONE");
+            break;
+        case PixelOrigin::BOTTOM_LEFT:
+            pixelOriginString.append("BOTTOM_LEFT");
+            break;
+        case PixelOrigin::TOP_LEFT:
+            pixelOriginString.append("TOP_LEFT");
+            break;
+    }
+    txt.appendWithNewLine(pixelOriginString);
+    
+    AString wrappingTypeString("   Wrapping Type: ");
+    switch (m_wrappingType) {
+        case WrappingType::CLAMP:
+            wrappingTypeString.append("CLAMP");
+            break;
+        case WrappingType::CLAMP_TO_BORDER:
+            wrappingTypeString.append("CLAMP_TO_BORDER");
+            break;
+        case WrappingType::REPEAT:
+            wrappingTypeString.append("REPEAT");
+            break;
+    }
+    txt.appendWithNewLine(wrappingTypeString);
+    
+    AString mipMappingTypeString("   Mip Mapping Type: ");
+    switch (m_mipMappingType) {
+        case MipMappingType::DISABLED:
+            mipMappingTypeString.append("DISABLED");
+            break;
+        case MipMappingType::ENABLED:
+            mipMappingTypeString.append("ENABLED");
+            break;
+    }
+    txt.appendWithNewLine(mipMappingTypeString);
+    
+    AString compressionTypeString("   Compression Type: ");
+    switch (m_compressionType) {
+        case CompressionType::ENABLED:
+            compressionTypeString.append("ENABLED");
+            break;
+        case CompressionType::DISABLED:
+            compressionTypeString.append("DISABLED");
+            break;
+    }
+    txt.appendWithNewLine(compressionTypeString);
+    
+    AString magnificationFilterString("   Magnification Filter: ");
+    switch (m_magnificationFilter) {
+        case GraphicsTextureMagnificationFilterEnum::LINEAR:
+            magnificationFilterString.append("LINEAR");
+            break;
+        case GraphicsTextureMagnificationFilterEnum::NEAREST:
+            magnificationFilterString.append("NEAREST");
+            break;
+    }
+    txt.appendWithNewLine(magnificationFilterString);
+    
+    AString minificationFilterString("   Minification Filter: ");
+    switch (m_minificationFilter) {
+        case GraphicsTextureMinificationFilterEnum::NEAREST:
+            minificationFilterString.append("NEAREST");
+            break;
+        case GraphicsTextureMinificationFilterEnum::LINEAR:
+            minificationFilterString.append("LINEAR");
+            break;
+        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR:
+            minificationFilterString.append("LINEAR_MIPMAP_LINEAR");
+            break;
+        case GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_NEAREST:
+            minificationFilterString.append("LINEAR_MIPMAP_NEAREST");
+            break;
+        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_LINEAR:
+            minificationFilterString.append("NEAREST_MIPMAP_LINEAR");
+            break;
+        case GraphicsTextureMinificationFilterEnum::NEAREST_MIPMAP_NEAREST:
+            minificationFilterString.append("NEAREST_MIPMAP_NEAREST");
+            break;
+    }
+    txt.appendWithNewLine(minificationFilterString);
+    
+    return txt;
 }
 

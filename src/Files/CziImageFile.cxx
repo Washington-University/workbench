@@ -2164,7 +2164,7 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
 int32_t
 CziImageFile::getPreferencesImageDimension() const
 {
-    CaretAssert(m_maximumImageDimension >= 2048);
+    CaretAssert(m_maximumImageDimension >= 256);
     return m_maximumImageDimension;
 }
 

@@ -1021,6 +1021,8 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     
     brainOpenGL.reset(createBrainOpenGL());
     
+    CaretLogFine(brainOpenGL->getOpenGLInformation());
+    
     int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
     const int windowBeforeAspectLockingViewport[4] = { 0, 0, imageWidth, imageHeight };
     
@@ -1031,8 +1033,6 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
      * If tile tabs was saved to the scene, restore it as the scenes tile tabs configuration
      */
     if (restoreToTabTiles) {
-//        CaretPointer<BrainOpenGL> brainOpenGL(createBrainOpenGL());
-        
         TileTabsLayoutGridConfiguration* gridConfig = NULL;
         bool manualFlag(false);
         switch (bwc->getTileTabsConfigurationMode()) {

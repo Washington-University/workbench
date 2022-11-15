@@ -491,6 +491,9 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
         CaretAssert((internalFormat == GL_RGB)
                     || (internalFormat == GL_RGBA));
         
+        CaretLogFine("Loading Texture Primitive: "
+                     + primitive->toString());
+        
         /*
          * Texture compression
          */
