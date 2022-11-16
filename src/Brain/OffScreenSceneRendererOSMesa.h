@@ -57,6 +57,8 @@ namespace caret {
         virtual bool initialize(const int32_t imageWidth,
                                 const int32_t imageHeight) override;
 
+        virtual AString toString() const;
+
         // ADD_NEW_METHODS_HERE
 
     private:

@@ -176,3 +176,22 @@ OffScreenSceneRendererOSMesa::initialize(const int32_t imageWidth,
 #endif
 }
 
+/**
+ * @return Info about this instance
+ */
+AString
+OffScreenSceneRendererOSMesa::toString() const
+{
+    AString txt("OSMesa Info: ");
+#ifdef HAVE_OSMESA
+    GLint maxWidth(0), maxHeight(0);
+    OSMesaGetIntegerv(OSMESA_MAX_WIDTH, &maxWidth);
+    OSMesaGetIntegerv(OSMESA_MAX_HEIGHT, &maxHeight);
+    txt.appendWithNewLine("   OSMESA_MAX_WIDTH: " + AString::number(maxWidth));
+    txt.appendWithNewLine("   OSMESA_MAX_HEIGHT: " + AString::number(maxHeight));
+#else
+    txt.append("Invalid");
+#endif
+    return txt;
+}
+

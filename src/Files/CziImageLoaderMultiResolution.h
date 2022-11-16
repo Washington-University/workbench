@@ -139,9 +139,27 @@ namespace caret {
         
         /*
          * Note CZI_BITMAP does not support alpha channel that is needed for distance/masking file alpha values.
+         * If QImage is used, gluBuild2DMipmaps() will crash when the Mesa3D library is used.  This may be due to
+         * the way QImage stores data; perhaps when number of pixels in a row is not a multiple of 4.
+         *
+         * If QImage is used, will need to copy image data to contiguous storage.  If CZI_BITMAP is used, will
+         * need to copy data so that an alpha channel can be added.
+         *
+         * When data is loaded, we should load the data so that both the width and height are powers of two.  When
+         * OpenGL builds mipmaps, it will accept non-powers-of-two for width and height.  However it will resize the
+         * image and it map downsample the data.  From documentation for gluBuild2DMipmaps(): Initially, the
+         * width and height of data are checked to see if they are a power of 2. If not, a copy of data (not data),
+         * is scaled up or down to the nearest power of 2. This copy will be used for subsequent mipmapping
+         * operations described below. (If width or height is exactly between powers of 2, then the copy of data
+         * will scale upwards.) For example, if width is 57 and height is 23, then a copy of data will scale up to
+         * 64 in width and down to 16 in depth, before mipmapping takes place.
+         *
+         * See https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluBuild2DMipmaps.xml
+         *
+         * static const CziImageFile::ImageDataFormat s_imageDataFormatForReading = CziImageFile::ImageDataFormat::Q_IMAGE
          */
-        static const CziImageFile::ImageDataFormat s_imageDataFormatForReading = CziImageFile::ImageDataFormat::Q_IMAGE;
-        
+        static const CziImageFile::ImageDataFormat s_imageDataFormatForReading = CziImageFile::ImageDataFormat::CZI_BITMAP;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
