@@ -37,6 +37,10 @@ CommandLine/wb_shortcuts
 CommandLine/bashcomplete_wb_*
 Copyright (C) 2014-2018 Washington University School of Medicine
 
+Some GPLv2 source files can be used under the MIT license (Expat) specifically in FSL or MSM code:
+Files/SignedDistanceHelper.*
+Common/OctTree.h
+
 Some included code/files are from third party sources, with the following licenses:
 
 CZIlib/*:
