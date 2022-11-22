@@ -23,12 +23,9 @@
 
 #include "BrainBrowserWindowToolBarComponent.h"
 
-class QAction;
-
 namespace caret {
 
     class BrowserTabContent;
-    class CaretUndoStack;
     class EnumComboBoxTemplate;
     
     class BrainBrowserWindowToolBarImage : public BrainBrowserWindowToolBarComponent {
@@ -43,10 +40,6 @@ namespace caret {
         virtual void updateContent(BrowserTabContent* browserTabContent);
         
     private slots:
-        void redoActionTriggered();
-        
-        void undoActionTriggered();
-
         void mediaDisplayCoordinateModeEnumComboBoxItemActivated();
         
     private:
@@ -59,17 +52,11 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        CaretUndoStack* getUndoStack();
-        
         // ADD_NEW_MEMBERS_HERE
 
         BrainBrowserWindowToolBar* m_parentToolBar;
         
         BrowserTabContent* m_browserTabContent = NULL;
-        
-        QAction* m_redoAction;
-        
-        QAction* m_undoAction;
         
         EnumComboBoxTemplate* m_mediaDisplayCoordinateModeEnumComboBox;
     };

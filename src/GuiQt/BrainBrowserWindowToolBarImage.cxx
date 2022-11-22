@@ -31,12 +31,10 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
-#include "CaretUndoStack.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "ModelMedia.h"
-#include "ViewingTransformationsMedia.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -62,28 +60,6 @@ BrainBrowserWindowToolBarImage::BrainBrowserWindowToolBarImage(BrainBrowserWindo
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_parentToolBar(parentToolBar)
 {
-    m_redoAction = WuQtUtilities::createAction("Redo",
-                                               "Redo ToolTip",
-                                               this,
-                                               this,
-                                               SLOT(redoActionTriggered()));
-    QToolButton* redoToolButton = new QToolButton();
-    redoToolButton->setDefaultAction(m_redoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
-    m_redoAction->setObjectName(parentObjectName + ":Redo");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
-    
-    m_undoAction = WuQtUtilities::createAction("Undo",
-                                               "Undo ToolTip",
-                                               this,
-                                               this,
-                                               SLOT(undoActionTriggered()));
-    QToolButton* undoToolButton = new QToolButton();
-    undoToolButton->setDefaultAction(m_undoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
-    m_undoAction->setObjectName(parentObjectName + ":Undo");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
-
     QLabel* modeLabel(new QLabel("Coord"));
     m_mediaDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
     std::vector<MediaDisplayCoordinateModeEnum::Enum> supportedModes;
@@ -99,9 +75,6 @@ m_parentToolBar(parentToolBar)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(redoToolButton, 0, Qt::AlignHCenter);
-    layout->addWidget(undoToolButton, 0, Qt::AlignHCenter);
-    layout->addSpacing(5);
     layout->addWidget(modeLabel, 0, Qt::AlignHCenter);
     layout->addWidget(m_mediaDisplayCoordinateModeEnumComboBox->getWidget(), 0, Qt::AlignHCenter);
     layout->addStretch();
@@ -125,76 +98,12 @@ BrainBrowserWindowToolBarImage::updateContent(BrowserTabContent* browserTabConte
 {
     m_browserTabContent = browserTabContent;
 
-    m_redoAction->setEnabled(false);
-    m_undoAction->setEnabled(false);
-    
     if (browserTabContent != NULL) {
-        CaretUndoStack* undoStack = getUndoStack();
-        if (undoStack != NULL) {
-            m_redoAction->setEnabled(undoStack->canRedo());
-            m_redoAction->setToolTip(undoStack->redoText());
-            
-            m_undoAction->setEnabled(undoStack->canUndo());
-            m_undoAction->setToolTip(undoStack->undoText());
-        }
-        
         const MediaDisplayCoordinateModeEnum::Enum mediaDisplayMode(browserTabContent->getMediaDisplayCoordinateMode());
         m_mediaDisplayCoordinateModeEnumComboBox->setSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(mediaDisplayMode);
     }
     
     m_mediaDisplayCoordinateModeEnumComboBox->getWidget()->setEnabled(browserTabContent != NULL);
-}
-
-/**
- * @return Undo stack for this tab or NULL if not valid
- */
-CaretUndoStack*
-BrainBrowserWindowToolBarImage::getUndoStack()
-{
-    CaretUndoStack* undoStack(NULL);
-    if (m_browserTabContent != NULL) {
-        if (m_browserTabContent->isMediaDisplayed()) {
-            ViewingTransformationsMedia* mediaTransform = dynamic_cast<ViewingTransformationsMedia*>(m_browserTabContent->getViewingTransformation());
-            if (mediaTransform != NULL) {
-                undoStack = mediaTransform->getRedoUndoStack();
-            }
-        }
-    }
-    return undoStack;
-}
-
-/**
- * Gets called when the redo action is triggered
- */
-void
-BrainBrowserWindowToolBarImage::redoActionTriggered()
-{
-    CaretUndoStack* undoStack = getUndoStack();
-    AString errorMessage;
-    if ( ! undoStack->redo(errorMessage)) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
-
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    updateContent(m_browserTabContent);
-}
-
-/**
- * Gets called when the undo action is triggered
- */
-void
-BrainBrowserWindowToolBarImage::undoActionTriggered()
-{
-    CaretUndoStack* undoStack = getUndoStack();
-    AString errorMessage;
-    if ( ! undoStack->undo(errorMessage)) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    updateContent(m_browserTabContent);
 }
 
 /**

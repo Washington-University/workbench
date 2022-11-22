@@ -33,6 +33,7 @@ class QToolButton;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
+    class CaretUndoStack;
     class ClippingPlanesWidget;
     class EnumComboBoxTemplate;
     class ScaleBarWidget;
@@ -66,6 +67,10 @@ namespace caret {
         
         void scaleBarMenuAboutToShow();
         
+        void redoActionTriggered();
+        
+        void undoActionTriggered();
+        
     private:
         BrainBrowserWindowToolBarTab(const BrainBrowserWindowToolBarTab&);
 
@@ -77,6 +82,8 @@ namespace caret {
         
         QPixmap createScaleBarPixmap(const QWidget* widget);
         
+        CaretUndoStack* getUndoStack();
+        
         QString m_objectNamePrefix;
         
         QLabel* m_yokeToLabel;
@@ -86,6 +93,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         BrainBrowserWindowToolBar* m_parentToolBar;
+        
+        BrowserTabContent* m_browserTabContent = NULL;
         
         QToolButton* m_lockWindowAndAllTabAspectButton;
         
@@ -100,6 +109,10 @@ namespace caret {
         QAction* m_scaleBarAction;
         
         ScaleBarWidget* m_scaleBarWidget;
+        
+        QAction* m_redoAction;
+        
+        QAction* m_undoAction;
         
         // ADD_NEW_MEMBERS_HERE
 
