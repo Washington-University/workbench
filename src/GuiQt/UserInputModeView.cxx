@@ -32,6 +32,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "CaretUndoStack.h"
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
@@ -1367,3 +1368,118 @@ UserInputModeView::processChartActiveLayerAction(const ChartActiveLayerMode char
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());    
 }
 
+/**
+ * Get the menu items that should be enabled for the current user input processor.
+ * Intended for override by sub-classes.
+ * Unless this method is overridden, all items on Edit menu are disabled.
+ *
+ * @param enabledEditMenuItemsOut
+ *     Upon exit contains edit menu items that should be enabled.
+ * @param redoMenuItemSuffixTextOut
+ *     If the redo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Redo' menu item.
+ * @param undoMenuItemSuffixTextOut
+ *     If the undo menu is enabled, the contents of string becomes
+ *     the suffix for the 'Undo' menu item.
+ * @param pasteTextOut
+ *     If not empty, this text is shown for the PASTE menu item
+ * @param pasteSpecialTextOut
+ *     If not empty, this text is shown for the PASTE_SPECIAL menu item
+ */
+void
+UserInputModeView::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                           AString& redoMenuItemSuffixTextOut,
+                                           AString& undoMenuItemSuffixTextOut,
+                                           AString& pasteTextOut,
+                                           AString& pasteSpecialTextOut)
+{
+    enabledEditMenuItemsOut.clear();
+    redoMenuItemSuffixTextOut = "";
+    undoMenuItemSuffixTextOut = "";
+    
+    
+    pasteTextOut        = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE);
+    pasteSpecialTextOut = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
+    
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent != NULL) {
+        ViewingTransformations* viewingTransform(browserTabContent->getViewingTransformation());
+        CaretAssert(viewingTransform);
+
+        CaretUndoStack* undoStack(viewingTransform->getRedoUndoStack());
+        CaretAssert(undoStack);
+        
+        if (undoStack->canRedo()) {
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::REDO);
+            redoMenuItemSuffixTextOut = undoStack->redoText();
+        }
+        
+        if (undoStack->canUndo()) {
+            enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::UNDO);
+            undoMenuItemSuffixTextOut = undoStack->undoText();
+        }
+    }
+}
+
+/**
+ * Process a selection that was made from the browser window's edit menu.
+ * Intended for override by sub-classes.
+ *
+ * @param editMenuItem
+ *     Item that was selected from the edit menu.
+ */
+void
+UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem)
+{
+    CaretUndoStack* undoStack(NULL);
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent != NULL) {
+        ViewingTransformations* viewingTransform(browserTabContent->getViewingTransformation());
+        CaretAssert(viewingTransform);
+        
+        undoStack = viewingTransform->getRedoUndoStack();
+    }
+    
+    switch (editMenuItem) {
+        case BrainBrowserWindowEditMenuItemEnum::COPY:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::CUT:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::DELETER:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::PASTE:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::REDO:
+        if (undoStack != NULL) {
+            AString errorMessage;
+            if ( ! undoStack->redo(errorMessage)) {
+                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex),
+                                       errorMessage);
+            }
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
+            break;
+        case BrainBrowserWindowEditMenuItemEnum::UNDO:
+        if (undoStack != NULL) {
+            AString errorMessage;
+            if ( ! undoStack->undo(errorMessage)) {
+                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex),
+                                       errorMessage);
+            }
+            
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+            break;
+    }
+}

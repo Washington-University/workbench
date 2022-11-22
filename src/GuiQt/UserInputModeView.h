@@ -75,6 +75,14 @@ namespace caret {
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);
         
+        virtual void processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem) override;
+        
+        virtual void getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMenuItemEnum::Enum>& enabledEditMenuItemsOut,
+                                             AString& redoMenuItemSuffixTextOut,
+                                             AString& undoMenuItemSuffixTextOut,
+                                             AString& pasteTextOut,
+                                             AString& pasteSpecialTextOut) override;
+        
     protected:
         UserInputModeView(const int32_t windowIndex,
                           const UserInputModeEnum::Enum inputMode);
