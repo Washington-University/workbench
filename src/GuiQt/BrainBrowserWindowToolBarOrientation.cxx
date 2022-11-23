@@ -28,11 +28,13 @@ using namespace caret;
 
 #include <QAction>
 #include <QGridLayout>
+#include <QStackedLayout>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
+#include "CaretUndoStack.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "Model.h"
@@ -44,7 +46,9 @@ using namespace caret;
 #include "ModelWholeBrain.h"
 #include "Surface.h"
 #include "StructureEnum.h"
+#include "ViewingTransformations.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
     
@@ -208,7 +212,7 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     macroManager->addMacroSupportToObject(this->orientationAnteriorPosteriorToolButtonAction,
                                           "Select anterior/posterior orientation");
     
-    this->orientationResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT",
+    this->orientationResetToolButtonAction = WuQtUtilities::createAction("Reset",
                                                                          "Reset the view to lateral and remove any panning or zooming",
                                                                          this,
                                                                          this,
@@ -273,28 +277,79 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     
     this->orientationCustomViewSelectToolButton = new QToolButton();
     this->orientationCustomViewSelectToolButton->setDefaultAction(getParentToolBar()->customViewAction);
-    this->orientationCustomViewSelectToolButton->setSizePolicy(QSizePolicy::Minimum,
-                                                               QSizePolicy::Fixed);
     WuQtUtilities::setToolButtonStyleForQt5Mac(this->orientationCustomViewSelectToolButton);
+        
+    m_singleViewWidget = new QWidget();
+    QGridLayout* singleViewLayout = new QGridLayout(m_singleViewWidget);
+    singleViewLayout->setHorizontalSpacing(0);
+    singleViewLayout->setVerticalSpacing(0);
+    singleViewLayout->setContentsMargins(0, 0, 0, 0);
+    singleViewLayout->addWidget(this->orientationLeftOrLateralToolButton, 0, 0);
+    singleViewLayout->addWidget(this->orientationDorsalToolButton, 0, 1);
+    singleViewLayout->addWidget(this->orientationAnteriorToolButton, 0, 2);
+    singleViewLayout->addWidget(this->orientationRightOrMedialToolButton, 1, 0);
+    singleViewLayout->addWidget(this->orientationVentralToolButton, 1, 1);
+    singleViewLayout->addWidget(this->orientationPosteriorToolButton, 1, 2);
+
+    m_dualViewWidget = new QWidget();
+    QGridLayout* dualViewLayout = new QGridLayout(m_dualViewWidget);
+    dualViewLayout->setHorizontalSpacing(0);
+    dualViewLayout->setVerticalSpacing(0);
+    dualViewLayout->setContentsMargins(0, 0, 0, 0);
+    dualViewLayout->addWidget(this->orientationLateralMedialToolButton, 0, 0);
+    dualViewLayout->addWidget(this->orientationDorsalVentralToolButton, 0, 1);
+    dualViewLayout->addWidget(this->orientationAnteriorPosteriorToolButton, 1, 0, 1, 2, Qt::AlignHCenter);
+
+    m_emptyViewWidget = new QWidget();
     
-    QGridLayout* buttonGridLayout = new QGridLayout();
-    buttonGridLayout->setColumnStretch(3, 100);
-    WuQtUtilities::setLayoutSpacingAndMargins(buttonGridLayout, 0, 0);
-    buttonGridLayout->addWidget(this->orientationLeftOrLateralToolButton,      0, 0);
-    buttonGridLayout->addWidget(this->orientationRightOrMedialToolButton,     0, 1);
-    buttonGridLayout->addWidget(this->orientationDorsalToolButton,    1, 0);
-    buttonGridLayout->addWidget(this->orientationVentralToolButton,   1, 1);
-    buttonGridLayout->addWidget(this->orientationAnteriorToolButton,  2, 0);
-    buttonGridLayout->addWidget(this->orientationPosteriorToolButton, 2, 1);
-    buttonGridLayout->addWidget(this->orientationLateralMedialToolButton, 0, 2);
-    buttonGridLayout->addWidget(this->orientationDorsalVentralToolButton, 1, 2);
-    buttonGridLayout->addWidget(this->orientationAnteriorPosteriorToolButton, 2, 2);
-    buttonGridLayout->addWidget(this->orientationCustomViewSelectToolButton, 3, 0, 1, 5, Qt::AlignHCenter);
-    buttonGridLayout->addWidget(orientationResetToolButton, 0, 4, 3, 1);
+    m_singleDualViewLayout = new QStackedLayout();
+    m_singleDualViewLayout->addWidget(m_singleViewWidget);
+    m_singleDualViewLayout->addWidget(m_dualViewWidget);
+    m_singleDualViewLayout->addWidget(m_emptyViewWidget);
     
+    m_redoAction = new QAction("R");
+    m_redoAction->setToolTip("Redo change in view");
+    QObject::connect(m_redoAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::redoActionTriggered);
+    QToolButton* redoToolButton = new QToolButton();
+    redoToolButton->setDefaultAction(m_redoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
+    m_redoAction->setObjectName(objectNamePrefix + ":Redo");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
+    
+    m_undoAction = new QAction("U");
+    m_undoAction->setToolTip("Undo change in view");
+    QObject::connect(m_undoAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::undoActionTriggered);
+    QToolButton* undoToolButton = new QToolButton();
+    undoToolButton->setDefaultAction(m_undoAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
+    m_undoAction->setObjectName(objectNamePrefix + ":Undo");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
+
+    m_selectRegionAction = new QAction("SR");
+    m_selectRegionAction->setEnabled(false);
+    m_selectRegionAction->setToolTip("<html>Select region by dragging mouse to form a rectangle</html>");
+    QObject::connect(m_selectRegionAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered);
+    QToolButton* selectRegionToolButton(new QToolButton());
+    selectRegionToolButton->setDefaultAction(m_selectRegionAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(selectRegionToolButton);
+    m_selectRegionAction->setObjectName(objectNamePrefix + ":SelectRegion");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_selectRegionAction, "Selection Region");
+    
+    QHBoxLayout* redoUndoLayout(new QHBoxLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(redoUndoLayout, 0, 0);
+    redoUndoLayout->addWidget(redoToolButton);
+    redoUndoLayout->addWidget(undoToolButton);
+    redoUndoLayout->addWidget(selectRegionToolButton);
+
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addLayout(buttonGridLayout);
+    layout->addLayout(m_singleDualViewLayout, 0);
+    layout->addWidget(this->orientationCustomViewSelectToolButton, 0, Qt::AlignHCenter);
+    layout->addWidget(orientationResetToolButton, 0, Qt::AlignHCenter);
+    layout->addLayout(redoUndoLayout);
     
     addToWidgetGroup(this->orientationLeftOrLateralToolButtonAction);
     addToWidgetGroup(this->orientationRightOrMedialToolButtonAction);
@@ -369,6 +424,7 @@ BrainBrowserWindowToolBarOrientation::~BrainBrowserWindowToolBarOrientation()
 void
 BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTabContent)
 {
+    m_browserTabContent = browserTabContent;
     const int32_t tabIndex = browserTabContent->getTabNumber();
     
     blockAllSignals(true);
@@ -503,21 +559,33 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
          * Reset button remains on the right and it looks weird.  So,
          * display them but disable them when a flat map montage.
          */
-        this->orientationLateralMedialToolButton->setVisible(showDualViewOrientationButtons);
-        this->orientationDorsalVentralToolButton->setVisible(showDualViewOrientationButtons);
-        this->orientationAnteriorPosteriorToolButton->setVisible(showDualViewOrientationButtons);
-        
         this->orientationLateralMedialToolButton->setEnabled(enableDualViewOrientationButtons);
         this->orientationDorsalVentralToolButton->setEnabled(enableDualViewOrientationButtons);
         this->orientationAnteriorPosteriorToolButton->setEnabled(enableDualViewOrientationButtons);
-        
-        
-        this->orientationLeftOrLateralToolButton->setVisible(showSingleViewOrientationButtons);
-        this->orientationRightOrMedialToolButton->setVisible(showSingleViewOrientationButtons);
-        this->orientationDorsalToolButton->setVisible(showSingleViewOrientationButtons);
-        this->orientationVentralToolButton->setVisible(showSingleViewOrientationButtons);
-        this->orientationAnteriorToolButton->setVisible(showSingleViewOrientationButtons);
-        this->orientationPosteriorToolButton->setVisible(showSingleViewOrientationButtons);
+
+        if (showDualViewOrientationButtons) {
+            m_singleDualViewLayout->setCurrentWidget(m_dualViewWidget);
+        }
+        else if (showSingleViewOrientationButtons) {
+            m_singleDualViewLayout->setCurrentWidget(m_singleViewWidget);
+        }
+        else {
+            m_singleDualViewLayout->setCurrentWidget(m_emptyViewWidget);
+        }
+    }
+    
+    m_redoAction->setEnabled(false);
+    m_undoAction->setEnabled(false);
+    
+    if (browserTabContent != NULL) {
+        CaretUndoStack* undoStack = getUndoStack();
+        if (undoStack != NULL) {
+            m_redoAction->setEnabled(undoStack->canRedo());
+            m_redoAction->setToolTip(undoStack->redoText());
+            
+            m_undoAction->setEnabled(undoStack->canUndo());
+            m_undoAction->setToolTip(undoStack->undoText());
+        }
     }
     
     blockAllSignals(false);
@@ -641,3 +709,63 @@ BrainBrowserWindowToolBarOrientation::orientationAnteriorPosteriorToolButtonTrig
     btc->anteriorView();
     this->updateGraphicsWindowAndYokedWindows();
 }
+
+/**
+ * Gets called when the redo action is triggered
+ */
+void
+BrainBrowserWindowToolBarOrientation::redoActionTriggered()
+{
+    CaretUndoStack* undoStack = getUndoStack();
+    AString errorMessage;
+    if ( ! undoStack->redo(errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    updateGraphicsWindowAndYokedWindows();
+    updateContent(m_browserTabContent);
+}
+
+/**
+ * Gets called when the undo action is triggered
+ */
+void
+BrainBrowserWindowToolBarOrientation::undoActionTriggered()
+{
+    CaretUndoStack* undoStack = getUndoStack();
+    AString errorMessage;
+    if ( ! undoStack->undo(errorMessage)) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+    }
+    
+    updateGraphicsWindowAndYokedWindows();
+    updateContent(m_browserTabContent);
+}
+
+/**
+ * Gets called when the select region action is triggered
+ */
+void
+BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered()
+{
+    
+}
+
+/**
+ * @return Undo stack for this tab or NULL if not valid
+ */
+CaretUndoStack*
+BrainBrowserWindowToolBarOrientation::getUndoStack()
+{
+    CaretUndoStack* undoStack(NULL);
+    if (m_browserTabContent != NULL) {
+        ViewingTransformations* viewingTransform(m_browserTabContent->getViewingTransformation());
+        if (viewingTransform != NULL) {
+            undoStack = viewingTransform->getRedoUndoStack();
+        }
+    }
+    return undoStack;
+}
+

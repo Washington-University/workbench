@@ -143,19 +143,7 @@ m_parentToolBar(parentToolBar)
     m_volumePlaneActionGroup->setExclusive(true);
     QObject::connect(m_volumePlaneActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(volumePlaneActionGroupTriggered(QAction*)));
-    
-    
-    m_volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset",
-                                                                         "Reset to remove panning, zooming, and/or oblique rotation",
-                                                                         this,
-                                                                         this,
-                                                                         SLOT(volumePlaneResetToolButtonTriggered(bool)));
-    m_volumePlaneResetToolButtonAction->setObjectName(objectNamePrefix
-                                                      + "ResetView");
-    macroManager->addMacroSupportToObject(m_volumePlaneResetToolButtonAction,
-                                          "Reset slice view pan/rotate/zoom");
-    
-    
+        
     QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
     volumePlaneParasagittalToolButton->setDefaultAction(m_volumePlaneParasagittalToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneParasagittalToolButton);
@@ -175,10 +163,6 @@ m_parentToolBar(parentToolBar)
     volumePlaneAllToolButton->setDefaultAction(m_volumePlaneAllToolButtonAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneAllToolButton);
     m_volumePlaneAllToolButtonAction->setParent(volumePlaneAllToolButton);
-    
-    QToolButton* volumePlaneResetToolButton = new QToolButton();
-    volumePlaneResetToolButton->setDefaultAction(m_volumePlaneResetToolButtonAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(volumePlaneResetToolButton);
     
     WuQtUtilities::matchWidgetHeights(volumePlaneParasagittalToolButton,
                                       volumePlaneCoronalToolButton,
@@ -243,8 +227,6 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(volumePlaneAxialToolButton, rowIndex, 0);
     gridLayout->addWidget(volumePlaneAllToolButton,   rowIndex, 1);
     rowIndex++;
-    gridLayout->addWidget(volumePlaneResetToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
-    rowIndex++;
     gridLayout->addWidget(slicePlaneCustomToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
     rowIndex++;
     gridLayout->addWidget(volumeCrosshairsToolButton, rowIndex, 0, Qt::AlignRight);
@@ -252,7 +234,6 @@ m_parentToolBar(parentToolBar)
     
     m_volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumePlaneWidgetGroup->add(m_volumePlaneActionGroup);
-    m_volumePlaneWidgetGroup->add(m_volumePlaneResetToolButtonAction);
 }
 
 /**
@@ -473,19 +454,6 @@ BrainBrowserWindowToolBarSlicePlane::volumePlaneActionGroupTriggered(QAction* ac
     BrowserTabContent* btc = getTabContentFromSelectedTab();
     
     btc->setVolumeSliceViewPlane(plane);
-    
-    m_parentToolBar->updateVolumeIndicesWidget(btc);
-    updateGraphicsWindowAndYokedWindows();
-}
-
-/**
- * Called when volume reset slice view button is pressed.
- */
-void
-BrainBrowserWindowToolBarSlicePlane::volumePlaneResetToolButtonTriggered(bool /*checked*/)
-{
-    BrowserTabContent* btc = getTabContentFromSelectedTab();
-    btc->resetView();
     
     m_parentToolBar->updateVolumeIndicesWidget(btc);
     updateGraphicsWindowAndYokedWindows();

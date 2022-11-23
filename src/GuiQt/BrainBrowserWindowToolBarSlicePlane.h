@@ -48,7 +48,6 @@ namespace caret {
         
     private slots:
         void volumePlaneActionGroupTriggered(QAction*);
-        void volumePlaneResetToolButtonTriggered(bool checked);
         
         void viewAllSliceLayoutMenuTriggered(QAction* action);
 
@@ -84,7 +83,6 @@ namespace caret {
         QAction* m_volumePlaneCoronalToolButtonAction;
         QAction* m_volumePlaneAxialToolButtonAction;
         QAction* m_volumePlaneAllToolButtonAction;
-        QAction* m_volumePlaneResetToolButtonAction;
         QAction* m_volumeAxisCrosshairsToolButtonAction;
         QAction* m_volumeAxisCrosshairLabelsToolButtonAction;
         

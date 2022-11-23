@@ -2077,6 +2077,7 @@ BrainBrowserWindowToolBar::updateToolBar()
                 break;
             case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
                 showVolumeIndicesWidget = true;
+                showOrientationWidget = true;
                 showVolumePlaneWidget = true;
                 showVolumeMontageWidget = true;
                 showVolumeMprWidget = true;

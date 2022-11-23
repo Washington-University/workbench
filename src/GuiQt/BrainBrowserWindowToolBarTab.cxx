@@ -40,18 +40,15 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "CaretUndoStack.h"
 #include "ClippingPlanesWidget.h"
 #include "EnumComboBoxTemplate.h"
 #include "GuiManager.h"
 #include "ScaleBarWidget.h"
-#include "ViewingTransformations.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "YokingGroupEnum.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMacroManager.h"
-#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -180,34 +177,6 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
 
     m_macroRecordingLabel = new QLabel("");
     
-    m_redoAction = WuQtUtilities::createAction("Redo",
-                                               "Redo ToolTip",
-                                               this,
-                                               this,
-                                               SLOT(redoActionTriggered()));
-    QToolButton* redoToolButton = new QToolButton();
-    redoToolButton->setDefaultAction(m_redoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
-    m_redoAction->setObjectName(m_objectNamePrefix + ":Redo");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
-    
-    m_undoAction = WuQtUtilities::createAction("Undo",
-                                               "Undo ToolTip",
-                                               this,
-                                               this,
-                                               SLOT(undoActionTriggered()));
-    QToolButton* undoToolButton = new QToolButton();
-    undoToolButton->setDefaultAction(m_undoAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
-    m_undoAction->setObjectName(m_objectNamePrefix + ":Undo");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
-
-    QHBoxLayout* redoUndoLayout(new QHBoxLayout());
-    redoUndoLayout->addWidget(redoToolButton);
-    redoUndoLayout->addWidget(undoToolButton);
-    redoUndoLayout->addWidget(m_macroRecordingLabel);
-    redoUndoLayout->addStretch();
-    
     QHBoxLayout* yokeLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(yokeLayout, 2, 0);
     yokeLayout->addWidget(m_yokeToLabel);
@@ -226,8 +195,7 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     layout->addLayout(yokeLayout);
     layout->addWidget(m_lockWindowAndAllTabAspectButton, 0, Qt::AlignLeft);
     layout->addLayout(buttonsLayout);
-    layout->addLayout(redoUndoLayout);
-//    layout->addWidget(m_macroRecordingLabel, 0, Qt::AlignLeft);
+    layout->addWidget(m_macroRecordingLabel, 0, Qt::AlignLeft);
     
     addToWidgetGroup(m_yokeToLabel);
     addToWidgetGroup(m_yokingGroupComboBox->getWidget());
@@ -253,7 +221,6 @@ BrainBrowserWindowToolBarTab::~BrainBrowserWindowToolBarTab()
 void
 BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent)
 {
-    m_browserTabContent = browserTabContent;
     if (browserTabContent == NULL) {
         return;
     }
@@ -318,20 +285,6 @@ BrainBrowserWindowToolBarTab::updateContent(BrowserTabContent* browserTabContent
     
     m_clippingPlanesAction->setChecked(browserTabContent->isClippingPlanesEnabled());
     m_scaleBarAction->setChecked(browserTabContent->getScaleBar()->isDisplayed());
-    
-    m_redoAction->setEnabled(false);
-    m_undoAction->setEnabled(false);
-    
-    if (browserTabContent != NULL) {
-        CaretUndoStack* undoStack = getUndoStack();
-        if (undoStack != NULL) {
-            m_redoAction->setEnabled(undoStack->canRedo());
-            m_redoAction->setToolTip(undoStack->redoText());
-            
-            m_undoAction->setEnabled(undoStack->canUndo());
-            m_undoAction->setToolTip(undoStack->undoText());
-        }
-    }
     
     blockAllSignals(false);
 }
@@ -496,56 +449,6 @@ BrainBrowserWindowToolBarTab::scaleBarMenuAboutToShow()
 {
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     m_scaleBarWidget->updateContent(browserTabContent);
-}
-
-/**
- * @return Undo stack for this tab or NULL if not valid
- */
-CaretUndoStack*
-BrainBrowserWindowToolBarTab::getUndoStack()
-{
-    CaretUndoStack* undoStack(NULL);
-    if (m_browserTabContent != NULL) {
-            ViewingTransformations* viewingTransform(m_browserTabContent->getViewingTransformation());
-            if (viewingTransform != NULL) {
-                undoStack = viewingTransform->getRedoUndoStack();
-            }
-    }
-    return undoStack;
-}
-
-/**
- * Gets called when the redo action is triggered
- */
-void
-BrainBrowserWindowToolBarTab::redoActionTriggered()
-{
-    CaretUndoStack* undoStack = getUndoStack();
-    AString errorMessage;
-    if ( ! undoStack->redo(errorMessage)) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
-    
-    updateGraphicsWindowAndYokedWindows();
-    updateContent(m_browserTabContent);
-}
-
-/**
- * Gets called when the undo action is triggered
- */
-void
-BrainBrowserWindowToolBarTab::undoActionTriggered()
-{
-    CaretUndoStack* undoStack = getUndoStack();
-    AString errorMessage;
-    if ( ! undoStack->undo(errorMessage)) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-    }
-    
-    updateGraphicsWindowAndYokedWindows();
-    updateContent(m_browserTabContent);
 }
 
 

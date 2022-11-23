@@ -28,11 +28,14 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QIcon;
+class QStackedLayout;
 class QToolButton;
-
 
 namespace caret {
 
+    class BrowserTabContent;
+    class CaretUndoStack;
+    
     class BrainBrowserWindowToolBarOrientation : public BrainBrowserWindowToolBarComponent {
 
         Q_OBJECT        
@@ -65,7 +68,15 @@ namespace caret {
         void orientationDorsalVentralToolButtonTriggered(bool checked);
         void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
         
+        void redoActionTriggered();
+        void undoActionTriggered();
+        void selectRegionActionTriggered();
+        
     private:
+        CaretUndoStack* getUndoStack();
+        
+        BrowserTabContent* m_browserTabContent = NULL;
+        
         QAction* orientationLateralMedialToolButtonAction;
         QAction* orientationDorsalVentralToolButtonAction;
         QAction* orientationAnteriorPosteriorToolButtonAction;
@@ -102,6 +113,15 @@ namespace caret {
         QIcon* viewOrientationRightLateralIcon;
         QIcon* viewOrientationRightMedialIcon;
 
+        QAction* m_redoAction;
+        QAction* m_undoAction;
+        QAction* m_selectRegionAction;
+        
+        QWidget* m_emptyViewWidget;
+        QWidget* m_singleViewWidget;
+        QWidget* m_dualViewWidget;
+        QStackedLayout* m_singleDualViewLayout;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
