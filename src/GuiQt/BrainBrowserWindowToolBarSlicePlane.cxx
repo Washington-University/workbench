@@ -173,12 +173,6 @@ m_parentToolBar(parentToolBar)
                                      volumePlaneAxialToolButton,
                                      volumePlaneAllToolButton);
     
-    QToolButton* slicePlaneCustomToolButton = new QToolButton();
-    slicePlaneCustomToolButton->setDefaultAction(m_parentToolBar->customViewAction);
-    slicePlaneCustomToolButton->setSizePolicy(QSizePolicy::Minimum,
-                                              QSizePolicy::Fixed);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(slicePlaneCustomToolButton);
-    
     m_volumeAxisCrosshairsToolButtonAction = new QAction("", this);
     m_volumeAxisCrosshairsToolButtonAction->setCheckable(true);
     m_volumeAxisCrosshairsToolButtonAction->setToolTip("<html>"
@@ -226,8 +220,6 @@ m_parentToolBar(parentToolBar)
     rowIndex++;
     gridLayout->addWidget(volumePlaneAxialToolButton, rowIndex, 0);
     gridLayout->addWidget(volumePlaneAllToolButton,   rowIndex, 1);
-    rowIndex++;
-    gridLayout->addWidget(slicePlaneCustomToolButton, rowIndex, 0, 1, 2, Qt::AlignHCenter);
     rowIndex++;
     gridLayout->addWidget(volumeCrosshairsToolButton, rowIndex, 0, Qt::AlignRight);
     gridLayout->addWidget(volumeCrosshairLabelsToolButton, rowIndex, 1, Qt::AlignLeft);
