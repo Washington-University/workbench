@@ -217,19 +217,66 @@ bool NiftiHeader::operator==(const NiftiHeader& rhs) const
     return memcmp(&m_header, &(rhs.m_header), sizeof(m_header)) == 0;
 }
 
+namespace
+{
+    bool sformToQform(const vector<vector<float> >& sForm, double pixdimOut[4], double quatOut[4])
+    {
+        Vector3D ivec, jvec, kvec;
+        ivec[0] = sForm[0][0]; ivec[1] = sForm[1][0]; ivec[2] = sForm[2][0];
+        jvec[0] = sForm[0][1]; jvec[1] = sForm[1][1]; jvec[2] = sForm[2][1];
+        kvec[0] = sForm[0][2]; kvec[1] = sForm[1][2]; kvec[2] = sForm[2][2];
+        pixdimOut[0] = 1.0f;
+        pixdimOut[1] = ivec.length();
+        pixdimOut[2] = jvec.length();
+        pixdimOut[3] = kvec.length();
+        ivec = ivec.normal();
+        jvec = jvec.normal();
+        kvec = kvec.normal();
+        if (kvec.dot(ivec.cross(jvec)) < 0.0f)//left handed sform!
+        {
+            pixdimOut[0] = -1.0f;
+            kvec = -kvec;//because to nifti, "left handed" apparently means "up is down", not "left is right"
+        }
+        float rotmat[3][3];
+        rotmat[0][0] = ivec[0]; rotmat[1][0] = ivec[1]; rotmat[2][0] = ivec[2];
+        rotmat[0][1] = jvec[0]; rotmat[1][1] = jvec[1]; rotmat[2][1] = jvec[2];
+        rotmat[0][2] = kvec[0]; rotmat[1][2] = kvec[1]; rotmat[2][2] = kvec[2];
+        float quat[4];
+        if (!MathFunctions::matrixToQuatern(rotmat, quat))
+        {
+            quatOut[0] = 0.0;//set dummy values anyway
+            quatOut[1] = 0.0;
+            quatOut[2] = 0.0;
+            quatOut[3] = 0.0;
+            return false;
+        } else {
+            quatOut[0] = quat[0];
+            quatOut[1] = quat[1];
+            quatOut[2] = quat[2];
+            quatOut[3] = quat[3];
+            return true;
+        }
+    }
+}
+
 vector<vector<float> > NiftiHeader::getSForm() const
 {
     FloatMatrix ret = FloatMatrix::zeros(4, 4);
     ret[3][3] = 1.0f;//force 0 0 0 1 last row
+    FloatMatrix sform = ret, qform = ret;
+    bool sformGood = false, qformGood = false;
     if (m_header.sform_code != 0)//prefer sform
     {
         for(int i = 0; i < 4; i++)
         {
-            ret[0][i] = m_header.srow_x[i];
-            ret[1][i] = m_header.srow_y[i];
-            ret[2][i] = m_header.srow_z[i];
+            sform[0][i] = m_header.srow_x[i];
+            sform[1][i] = m_header.srow_y[i];
+            sform[2][i] = m_header.srow_z[i];
         }
-    } else if (m_header.qform_code != 0) {//fall back to qform
+        sformGood = true;
+    }
+    if (m_header.qform_code != 0)
+    {
         float rotmat[3][3], quat[4];
         quat[1] = m_header.quatern_b;
         quat[2] = m_header.quatern_c;
@@ -261,23 +308,47 @@ vector<vector<float> > NiftiHeader::getSForm() const
             {
                 for (int j = 0; j < 3; ++j)
                 {
-                    ret[i][j] = rotmat[i][j];
+                    qform[i][j] = rotmat[i][j];
                 }
             }
-            ret[0][3] = m_header.qoffset_x;
-            ret[1][3] = m_header.qoffset_y;
-            ret[2][3] = m_header.qoffset_z;
+            qform[0][3] = m_header.qoffset_x;
+            qform[1][3] = m_header.qoffset_y;
+            qform[2][3] = m_header.qoffset_z;
+            qformGood = true;
         } else {
-            CaretLogWarning("found quaternion with length greater than 1 in nifti header, using ANALYZE coordinates!");
+            CaretLogWarning("found quaternion with length greater than 1 in nifti header!");
+        }
+    }
+    if (sformGood)//prefer sform
+    {
+        ret = sform;
+    } else {
+        if (qformGood)
+        {
+            ret = qform;
+        } else {//fall back to analyze and complain
+            CaretLogWarning("no sform or qform code found, using ANALYZE coordinates!");
             ret[0][0] = m_header.pixdim[1];
             ret[1][1] = m_header.pixdim[2];
             ret[2][2] = m_header.pixdim[3];
         }
-    } else {//fall back to analyze and complain
-        CaretLogWarning("no sform or qform code found, using ANALYZE coordinates!");
-        ret[0][0] = m_header.pixdim[1];
-        ret[1][1] = m_header.pixdim[2];
-        ret[2][2] = m_header.pixdim[3];
+    }
+    {//do sanity checks based on how we would write the new header
+        //we compare to the raw pixdim, so do this before checking units
+        double pixdimd[4], quat[4];
+        sformToQform(ret.getMatrix(), pixdimd, quat);//doesn't matter if quaternion doesn't work, FSL probably only checks the pixdim
+        if (qformGood && ((pixdimd[0] < 0.0) != (m_header.pixdim[0] < 0.0)))//if the new qform is hand-flipped compared to the original, things are on fire, yo
+        {
+            CaretLogWarning("sform and qform are flipped!");
+        }
+        for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim
+        {//assume nifti-1, so convert to float before checking equality
+            if (float(pixdimd[i]) != m_header.pixdim[i])
+            {
+                CaretLogWarning("recomputed pixdim doesn't match the original header exactly, FSL may complain about output files");
+                break;
+            }
+        }
     }
     int32_t spaceUnit = XYZT_TO_SPACE(m_header.xyzt_units);
     switch (spaceUnit)
@@ -470,45 +541,22 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         m_header.srow_z[i] = sForm[2][i];
     }
     m_header.sform_code = NIFTI_XFORM_MNI_152;
-    Vector3D ivec, jvec, kvec;
-    ivec[0] = sForm[0][0]; ivec[1] = sForm[1][0]; ivec[2] = sForm[2][0];
-    jvec[0] = sForm[0][1]; jvec[1] = sForm[1][1]; jvec[2] = sForm[2][1];
-    kvec[0] = sForm[0][2]; kvec[1] = sForm[1][2]; kvec[2] = sForm[2][2];
-    m_header.pixdim[0] = 1.0f;
-    m_header.pixdim[1] = ivec.length();
-    m_header.pixdim[2] = jvec.length();
-    m_header.pixdim[3] = kvec.length();
-    ivec = ivec.normal();
-    jvec = jvec.normal();
-    kvec = kvec.normal();
-    if (kvec.dot(ivec.cross(jvec)) < 0.0f)//left handed sform!
-    {
-        m_header.pixdim[0] = -1.0f;
-        kvec = -kvec;//because to nifti, "left handed" apparently means "up is down", not "left is right"
-    }
-    float rotmat[3][3];
-    rotmat[0][0] = ivec[0]; rotmat[1][0] = ivec[1]; rotmat[2][0] = ivec[2];
-    rotmat[0][1] = jvec[0]; rotmat[1][1] = jvec[1]; rotmat[2][1] = jvec[2];
-    rotmat[0][2] = kvec[0]; rotmat[1][2] = kvec[1]; rotmat[2][2] = kvec[2];
-    float quat[4];
-    if (!MathFunctions::matrixToQuatern(rotmat, quat))
+    double pixdim[4], quat[4];
+    if (!sformToQform(sForm, pixdim, quat))
     {
         m_header.qform_code = NIFTI_XFORM_UNKNOWN;//0, implies that there is no qform
         m_header.quatern_b = 0.0;//set dummy values anyway
         m_header.quatern_c = 0.0;
         m_header.quatern_d = 0.0;
-        m_header.qoffset_x = sForm[0][3];
-        m_header.qoffset_y = sForm[1][3];
-        m_header.qoffset_z = sForm[2][3];
     } else {
         m_header.qform_code = NIFTI_XFORM_MNI_152;
         m_header.quatern_b = quat[1];
         m_header.quatern_c = quat[2];
         m_header.quatern_d = quat[3];
-        m_header.qoffset_x = sForm[0][3];
-        m_header.qoffset_y = sForm[1][3];
-        m_header.qoffset_z = sForm[2][3];
     }
+    m_header.qoffset_x = sForm[0][3];
+    m_header.qoffset_y = sForm[1][3];
+    m_header.qoffset_z = sForm[2][3];
 }
 
 void NiftiHeader::setTimeStep(const double& seconds)
