@@ -59,8 +59,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param underlayVolume
+ *    Current underlay volume
+ * @param parent
+ *    The parent dialog
  */
-VolumeFileCreateDialog::VolumeFileCreateDialog(QWidget* parent)
+VolumeFileCreateDialog::VolumeFileCreateDialog(const VolumeMappableInterface* underlayVolume,
+                                               QWidget* parent)
 : WuQDialogModal("Create Volume",
                  parent)
 {
@@ -95,13 +100,43 @@ VolumeFileCreateDialog::VolumeFileCreateDialog(QWidget* parent)
         row4.push_back(0);
         row4.push_back(1);
         
+        /*
+         * If available, match underlay volume
+         */
+        if (underlayVolume != NULL) {
+            const VolumeFile* vf(dynamic_cast<const VolumeFile*>(underlayVolume));
+            if (vf != NULL) {
+                std::vector<int64_t> dims;
+                vf->getDimensions(dims);
+                if (dims.size() >= 4) {
+                    s_previousVolumeSettings.m_dimensions.clear();
+                    s_previousVolumeSettings.m_dimensions.push_back(dims[0]);
+                    s_previousVolumeSettings.m_dimensions.push_back(dims[1]);
+                    s_previousVolumeSettings.m_dimensions.push_back(dims[2]);
+                    s_previousVolumeSettings.m_dimensions.push_back(1);
+                    
+                    std::vector<std::vector<float>> sform(vf->getSform());
+                    if (sform.size() == 4) {
+                        if ((sform[0].size() == 4)
+                            && (sform[1].size() == 4)
+                            && (sform[2].size() == 4)
+                            && (sform[3].size() == 4)) {
+                            row1 = sform[0];
+                            row2 = sform[1];
+                            row3 = sform[2];
+                            row4 = sform[3];
+                        }
+                    }
+                }
+            }
+        }
         s_previousVolumeSettings.m_indexToSpace.clear();
         s_previousVolumeSettings.m_indexToSpace.push_back(row1);
         s_previousVolumeSettings.m_indexToSpace.push_back(row2);
         s_previousVolumeSettings.m_indexToSpace.push_back(row3);
         s_previousVolumeSettings.m_indexToSpace.push_back(row4);
         
-        s_previousVolumeSettings.m_volumeType = SubvolumeAttributes::FUNCTIONAL;
+        s_previousVolumeSettings.m_volumeType = SubvolumeAttributes::UNKNOWN;
         
         s_previousVolumeSettingsValid = true;
     }
@@ -144,21 +179,23 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
                                      + ".nii.gz");
     s_fileNameCounter++;
     
-    QLabel* newFileNameLabel = new QLabel("Name:");
+    QLabel* newFileNameLabel = new QLabel("Volume Filename:");
     m_newFileNameLineEdit = new QLineEdit();
     m_newFileNameLineEdit->setText(defaultFileName);
     QPushButton* newFileNamePushButton = new QPushButton("Select...");
     QObject::connect(newFileNamePushButton, SIGNAL(clicked()),
                      this, SLOT(newFileNamePushButtonClicked()));
     
-    QLabel* newFileTypeLabel = new QLabel("Type:");
+    QLabel* newFileTypeLabel = new QLabel("Volume Type:");
     m_newFileTypeComboBox = new QComboBox();
-    m_newFileTypeComboBox->addItem("Functional (Scalar)",
+    m_newFileTypeComboBox->addItem("Choose Type",
+                                   SubvolumeAttributes::UNKNOWN);
+    m_newFileTypeComboBox->addItem("Functional (Scalars)",
                                    SubvolumeAttributes::FUNCTIONAL);
-    m_newFileTypeComboBox->addItem("Label",
+    m_newFileTypeComboBox->addItem("Label (Names)",
                                    SubvolumeAttributes::LABEL);
     
-    QLabel* newFileNumberOfMapsLabel = new QLabel("Maps:");
+    QLabel* newFileNumberOfMapsLabel = new QLabel("Number of Maps:");
     m_newFileNumberOfMapsSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, s_maximumNumberOfMaps, 1);
     m_newFileNumberOfMapsSpinBox->setFixedWidth(50);
     QObject::connect(m_newFileNumberOfMapsSpinBox, SIGNAL(valueChanged(int)),
@@ -406,6 +443,10 @@ VolumeFileCreateDialog::okButtonClicked()
 
     const int typeIndex = m_newFileTypeComboBox->currentIndex();
     const SubvolumeAttributes::VolumeType volumeType = static_cast<SubvolumeAttributes::VolumeType>(m_newFileTypeComboBox->itemData(typeIndex).toInt());
+    if (volumeType == SubvolumeAttributes::UNKNOWN) {
+        WuQMessageBox::errorOk(this, "Select a valid Volume Type.");
+        return;
+    }
     
     const int32_t numMaps = m_newFileNumberOfMapsSpinBox->value();
     std::vector<int64_t> dimensions;

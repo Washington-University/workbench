@@ -34,12 +34,15 @@ class QSpinBox;
 
 namespace caret {
 
+    class VolumeMappableInterface;
+    
     class VolumeFileCreateDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
-        VolumeFileCreateDialog(QWidget* parent);
+        VolumeFileCreateDialog(const VolumeMappableInterface* underlayVolume,
+                               QWidget* parent);
         
         virtual ~VolumeFileCreateDialog();
         

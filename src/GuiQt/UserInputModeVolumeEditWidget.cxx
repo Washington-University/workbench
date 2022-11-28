@@ -587,7 +587,14 @@ UserInputModeVolumeEditWidget::getEditingMode() const
 void
 UserInputModeVolumeEditWidget::newFileActionTriggered()
 {
-    VolumeFileCreateDialog newVolumeDialog(m_newFileToolButton);
+    VolumeMappableInterface* underlayVolume(NULL);
+    UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
+    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        underlayVolume = volumeEditInfo.m_underlayVolume;
+    }
+    
+    VolumeFileCreateDialog newVolumeDialog(underlayVolume,
+                                           m_newFileToolButton);
     if (newVolumeDialog.exec() == VolumeFileCreateDialog::Accepted) {
         VolumeFile* vf = newVolumeDialog.getVolumeFile();
         if (vf != NULL) {

@@ -33,6 +33,7 @@ namespace caret {
     class OverlaySet;
     class VolumeFile;
     class VolumeFileEditorDelegate;
+    class VolumeMappableInterface;
     
     class UserInputModeVolumeEditWidget;
     
@@ -45,16 +46,19 @@ namespace caret {
          */
         struct VolumeEditInfo {
             /** The overlay set in the tab */
-            OverlaySet* m_overlaySet;
+            OverlaySet* m_overlaySet = NULL;
+            
+            /** The underlay volume */
+            VolumeMappableInterface* m_underlayVolume = NULL;
             
             /** The top-most overlay in the tab */
-            Overlay* m_topOverlay;
+            Overlay* m_topOverlay = NULL;
             
             /** The overlay containing the volume file */
-            Overlay* m_volumeOverlay;
+            Overlay* m_volumeOverlay = NULL;
             
             /** The volume file being edited */
-            VolumeFile* m_volumeFile;
+            VolumeFile* m_volumeFile = NULL;
             
             /** Index of the map in the volume file being edited */
             int32_t m_mapIndex;

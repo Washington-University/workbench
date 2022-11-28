@@ -319,6 +319,7 @@ bool
 UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
 {
     volumeEditInfo.m_overlaySet     = NULL;
+    volumeEditInfo.m_underlayVolume = NULL;
     volumeEditInfo.m_topOverlay     = NULL;
     volumeEditInfo.m_volumeOverlay  = NULL;
     volumeEditInfo.m_volumeFile     = NULL;
@@ -353,6 +354,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
                         VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
                         if (vf != NULL) {
                             volumeEditInfo.m_overlaySet     = overlaySet;
+                            volumeEditInfo.m_underlayVolume = overlaySet->getUnderlayVolume();
                             volumeEditInfo.m_volumeOverlay  = overlay;
                             volumeEditInfo.m_volumeFile     = vf;
                             volumeEditInfo.m_mapIndex       = mapIndex;
