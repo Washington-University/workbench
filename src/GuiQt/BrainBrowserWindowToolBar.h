@@ -332,9 +332,15 @@ namespace caret {
         BrowserTabContent* createNewTab(AString& errorMessage);
         
         QAction* customViewAction;
+        
+        QMenu* customViewMenu;
 
     private slots:
         void customViewActionTriggered();
+        
+        void customViewMenuAboutToShow();
+        
+        void customViewMenuTriggered(QAction* action);
         
         void sceneToolButtonClicked();
         
@@ -342,7 +348,6 @@ namespace caret {
         
         QToolButton* m_movieToolButton = NULL;
         
-    
     private:
         BrainBrowserWindowToolBarAllSurface* m_allSurfaceToolBarComponent;
         BrainBrowserWindowToolBarChartAxes* m_chartAxisToolBarComponent;

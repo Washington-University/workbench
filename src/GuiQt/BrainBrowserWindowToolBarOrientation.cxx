@@ -307,7 +307,23 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     m_singleDualViewLayout->addWidget(m_dualViewWidget);
     m_singleDualViewLayout->addWidget(m_emptyViewWidget);
     
-    m_redoAction = new QAction("R");
+    /*
+     * Redo and Undo
+     */
+    QIcon redoIcon;
+    const bool redoIconValid(WuQtUtilities::loadIcon(":/ToolBar/redo.png",
+                                                     redoIcon));
+    QIcon undoIcon;
+    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
+                                                     undoIcon));
+
+    m_redoAction = new QAction();
+    if (redoIconValid) {
+        m_redoAction->setIcon(redoIcon);
+    }
+    else {
+        m_redoAction->setText("R");
+    }
     m_redoAction->setToolTip("Redo change in view");
     QObject::connect(m_redoAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::redoActionTriggered);
@@ -317,7 +333,13 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     m_redoAction->setObjectName(objectNamePrefix + ":Redo");
     WuQMacroManager::instance()->addMacroSupportToObject(m_redoAction, "Redo Image View");
     
-    m_undoAction = new QAction("U");
+    m_undoAction = new QAction();
+    if (undoIconValid) {
+        m_undoAction->setIcon(undoIcon);
+    }
+    else {
+        m_undoAction->setText("U");
+    }
     m_undoAction->setToolTip("Undo change in view");
     QObject::connect(m_undoAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::undoActionTriggered);
@@ -327,7 +349,19 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     m_undoAction->setObjectName(objectNamePrefix + ":Undo");
     WuQMacroManager::instance()->addMacroSupportToObject(m_undoAction, "Undo Image View");
 
-    m_selectRegionAction = new QAction("SR");
+    /*
+     * Select region
+     */
+    QIcon selectRegionIcon;
+    const bool selectRegionIconValid(WuQtUtilities::loadIcon(":/ToolBar/select-region.png",
+                                                             selectRegionIcon));
+    m_selectRegionAction = new QAction();
+    if (selectRegionIconValid) {
+        m_selectRegionAction->setIcon(selectRegionIcon);
+    }
+    else {
+        m_selectRegionAction->setText("SR");
+    }
     m_selectRegionAction->setEnabled(false);
     m_selectRegionAction->setToolTip("<html>Select region by dragging mouse to form a rectangle</html>");
     QObject::connect(m_selectRegionAction, &QAction::triggered,
@@ -581,10 +615,10 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
         CaretUndoStack* undoStack = getUndoStack();
         if (undoStack != NULL) {
             m_redoAction->setEnabled(undoStack->canRedo());
-            m_redoAction->setToolTip(undoStack->redoText());
+            m_redoAction->setToolTip("Redo " + undoStack->redoText());
             
             m_undoAction->setEnabled(undoStack->canUndo());
-            m_undoAction->setToolTip(undoStack->undoText());
+            m_undoAction->setToolTip("Undo " + undoStack->undoText());
         }
     }
     

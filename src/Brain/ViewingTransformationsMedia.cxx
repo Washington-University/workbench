@@ -389,9 +389,9 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
         redoViewTrans.copyFromOther(*this);
         
         ViewingTransformationsUndoCommand* undoCommand = new ViewingTransformationsUndoCommand(this);
-        undoCommand->setDescription("select image region");
+        undoCommand->setDescription("selection of image region");
         if (histologySlice != NULL) {
-            undoCommand->setDescription("select histology region");
+            undoCommand->setDescription("selection of histology region");
         }
         undoCommand->setRedoUndoValues(redoViewTrans,
                                        undoViewTrans);

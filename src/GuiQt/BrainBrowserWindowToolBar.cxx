@@ -271,14 +271,20 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     /*
      * Custom view action
      */
+    this->customViewMenu = new QMenu();
+    QObject::connect(this->customViewMenu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBar::customViewMenuAboutToShow);
+    QObject::connect(this->customViewMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBar::customViewMenuTriggered);
     const QString customToolTip = ("Pressing the \"Custom\" button displays a dialog for creating and editing orientations.\n"
                                    "Note that custom orientations are stored in your Workbench's preferences and thus\n"
-                                   "will be availble in any concurrent or future instances of Workbench.");
-    this->customViewAction = WuQtUtilities::createAction("Custom",
-                                                         customToolTip,
-                                                         this,
-                                                         this,
-                                                         SLOT(customViewActionTriggered()));
+                                   "will be availble in any concurrent or future instances of Workbench.\n"
+                                   "Press arrow on right to select and apply existing custom view.");
+    this->customViewAction = new QAction("Custom");
+    this->customViewAction->setToolTip(customToolTip);
+    this->customViewAction->setMenu(this->customViewMenu);
+    QObject::connect(this->customViewAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBar::customViewActionTriggered);
     this->customViewAction->setObjectName(m_objectNamePrefix
                                           + ":CustomView");
     WuQMacroManager::instance()->addMacroSupportToObject(this->customViewAction,
@@ -3429,47 +3435,50 @@ BrainBrowserWindowToolBar::sceneToolButtonClicked()
 }
 
 /**
+ * Called when item is selected from custom view menu
+ */
+void
+BrainBrowserWindowToolBar::customViewMenuTriggered(QAction* action)
+{
+    if (action != NULL) {
+        const QString customViewName(action->text());
+        
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        ModelTransform modelTransform;
+        if (prefs->getCustomView(customViewName, modelTransform)) {
+            BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+            btc->setTransformationsFromModelTransform(modelTransform);
+            this->updateGraphicsWindowAndYokedWindows();
+        }
+    }
+}
+
+/**
+ * Called when custom view menu is about to show
+ */
+void
+BrainBrowserWindowToolBar::customViewMenuAboutToShow()
+{
+    this->customViewMenu->clear();
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->readCustomViews();
+    const std::vector<std::pair<AString, AString> > customViewNameAndComments = prefs->getCustomViewNamesAndComments();
+    
+    const int32_t numViews = static_cast<int32_t>(customViewNameAndComments.size());
+    for (int32_t i = 0; i < numViews; i++) {
+        QAction* action = this->customViewMenu->addAction(customViewNameAndComments[i].first);
+        action->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customViewNameAndComments[i].second));
+    }
+}
+/**
  * Called when custom view is triggered and displays Custom View Menu.
  */
 void
 BrainBrowserWindowToolBar::customViewActionTriggered()
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->readCustomViews();
-    const std::vector<std::pair<AString, AString> > customViewNameAndComments = prefs->getCustomViewNamesAndComments();
-    
-    QMenu menu;
-    
-    QAction* editAction = menu.addAction("Create and Edit...");
-    editAction->setToolTip("Add and delete Custom Views.\n"
-                           "Edit model transformations.");
-    
-    const int32_t numViews = static_cast<int32_t>(customViewNameAndComments.size());
-    if (numViews > 0) {
-        menu.addSeparator();
-    }
-    for (int32_t i = 0; i < numViews; i++) {
-        QAction* action = menu.addAction(customViewNameAndComments[i].first);
-        action->setToolTip(WuQtUtilities::createWordWrappedToolTipText(customViewNameAndComments[i].second));
-    }
-    
-    QAction* selectedAction = menu.exec(QCursor::pos());
-    if (selectedAction != NULL) {
-        if (selectedAction == editAction) {
-            CaretAssert(m_parentBrainBrowserWindow);
-            GuiManager::get()->processShowCustomViewDialog(m_parentBrainBrowserWindow);
-        }
-        else {
-            const AString customViewName = selectedAction->text();
-            
-            ModelTransform modelTransform;
-            if (prefs->getCustomView(customViewName, modelTransform)) {
-                BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-                btc->setTransformationsFromModelTransform(modelTransform);
-                this->updateGraphicsWindowAndYokedWindows();
-            }
-        }
-    }
+    CaretAssert(m_parentBrainBrowserWindow);
+    GuiManager::get()->processShowCustomViewDialog(m_parentBrainBrowserWindow);
 }
 
 /**

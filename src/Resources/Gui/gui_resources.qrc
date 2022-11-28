@@ -40,7 +40,10 @@
 <file>./ToolBar/macro.png</file>
 <file>./ToolBar/movie.png</file>
 <file>./ToolBar/overlay_toolbox.png</file>
+<file>./ToolBar/redo.png</file>
+<file>./ToolBar/select-region.png</file>
 <file>./ToolBar/toolbar.png</file>
+<file>./ToolBar/undo.png</file>
 <file>./ToolBar/view-anterior.png</file>
 <file>./ToolBar/view-dorsal.png</file>
 <file>./ToolBar/view-left-lateral.png</file>
