@@ -3199,8 +3199,8 @@ BrowserTabContent::resetView()
     getViewingTransformation()->resetView();
     if (isVolumeSlicesDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
+        resetMprRotations();
     }
-    resetMprRotations();
     updateYokedModelBrowserTabs();
     
     EventResetView resetViewEvent(getTabNumber());
