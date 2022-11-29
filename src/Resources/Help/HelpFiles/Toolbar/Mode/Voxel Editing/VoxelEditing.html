@@ -1,10 +1,62 @@
 <html><title>Voxel Editing</title>
 <body>
 <h1>Voxel Editing></h1>
-<img src="VoxelEditing.png">
+<img src="VoxelEditing.png"><br>
+    Voxel editing is similar to that found in a image editing program.
 <h2>Voxel Operations</h2>
-This section provides voxel operations for editing the voxels.  Tooltips on each of the controls describe their operations.
+This section provides voxel operations for editing the voxels.  Tooltips on each of the controls describe their operations.  For a functional volume, a voxel is <i>on</i> when its value is non-zero; <i>off</i> is zero.  For a label volume, a voxel is <i>on</i> when its label is not <i>???</i>; <i>off</i> is the label <i>???</i>.
+<ul>
+    <li> <b>On</b> - When the mouse is clicked, the voxel under the mouse is set to the <b>value</b>.  If any of the brush values are greater than one, surrounding voxels are also set.  One can also drag the mouse with the CTRL (Command on Apple) and SHIFT keys down to turn multiple voxels on.
+    <li> <b>Off</b> - Just like <b>On</b> but turns voxels off (set to 0 or the ??? label)
+    <li> <b>Dilate</b> - If the voxel under the mouse is in a region, the region is enlarged by adding one voxel around the region's edges (makes an island bigger).
+    <li> <b>Erode</b> - If the voxel under the mouse is in a region, the region is reduced in size by removing one voxel from around region's edges (makes an island smaller).
+    <li> <b>Fill 2D</b> - If the voxel is off and the voxel and its neighbors that are off are filled until reaching other <i>on</i> voxels (fills a lake).  This only affects the viewed slice.
+    <li> <b>Fill 3D</b> - Like <i>Fill 2D</i> but filling continues into slices in the viewed plane.
+    <li> <b>Remove 2D</b> - The voxel under the mouse and all of its connected neighbors with the same value are set to <i>off</i> (removes an island).
+    <li> <b>Remove 3D</b> - Like <b>Remove 2D</b> execept that connected neighbors in slices along the plane are also turned off.
+    <li> <b>Retain 3D</b> - The voxel under the mouse and all of its connected neighbors stay the way they are.  All other voxels are set to <i>off</i>.
+</ul>
+
+<ul>
+    <li> <b>Undo</b> - Revert the last operation.
+    <li> <b>Redo</b> - Reapplies the last operation that was <i>undone</i>
+    <li> <b>Reset</b> - Resets volume's voxels to their values when the volume was created or loaded.
+</ul>
+
 <h2>Options</h2>
-The options allow creating a new volume file, adding a new map to an existing volume file, setting the brush (number of voxels affected by a mouse click) and the value to which voxels are set.
+The options allow creating a new volume file, adding a new map to an existing volume file, setting the brush (number of voxels affected by a mouse click), and the value to which voxels are set.
+
+<h3> File </h3>
+<ul>
+    <li> <b>New</b> - Click this button to create a new volume file.  The new volume file is inserted into the top layer and is ready for editing.
+    <li> <b>Add</b> - Add a new layer to the volume file in the top layer.  The new layer is ready for editing.
+    <li> <b>Lock</b> - Prevents editing of the top layer.  Click the button to unlock the top layer so that voxels are editable.
+</ul>
+
+<h3> Brush </h3>
+The brush determines the voxels turned on or off when using the mouse when the Operation is set to On or Off.  When 1, only the voxel under the mouse changes its value.  When 3 (5, 7, 9, ...), the voxel under the mouse and the adjacent voxels in the 2 (4, 6, 8, ...) neighboring slices are turned on or off.
+<ul>
+    <li> <b>P</b> - Sets the brush thickness for the parasagittal axis.
+    <li> <b>C</b> - Sets the brush thickness for the coronal axis.
+    <li> <b>A</b> - Sets the brush thickness for the axial axis.
+</ul>
+
+<h3> Value </h3>
+<ul>
+    <li> <b>Numeric value</b> - For editing a functional volume.  Voxels are set to this value when the Operation is On, Dilate, Fill 2D, or Fill 3D.
+    <li> <b>Label value</b> - For editing a label volume.  Voxels are set to this value when the Operation is On, Dilate, Fill 2D, or Fill 3D.  Clicking the button displays a dialog that allows selection editing of label (name and color) values.
+</ul>
+
+<h2> Create Volume Dialog</h2>
+The Create Volume dialog is used to create a new volume file for editing.  It is important that this new volume has the same spatial characteristics (dimensions, origin, and spacing)
+as the anatomical volume that servers as the underlay volume.  This enures that there is one-to-one correspondence between the volume that is edited and the anatomical volume that is under the edited volume.
+<br>
+To create a new volume:
+<ol>
+    <li> Set the name of the volume file.  Click the <b>Select</b> button to set the correct directory for the volume file.
+    <li> Set the Volume Type to either <b>Label</b> (most common) or <b>Functional</b>.
+    <li> Set the Number of Maps (usually 1).
+    <li> In the Voxel section, click the <b>File</b> button to display a dialog containing all volume files in memory.  Select the anatomical volume that will serve as the underlay for voxel editing.  This will set the correct values for the dimensions, origin, and spacing.
+</ol>
 </body>
 </html>
