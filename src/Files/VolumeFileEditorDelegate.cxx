@@ -171,9 +171,6 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            CaretAssertToDoFatal();
-            errorMessageOut = ("Volume editing not yet supported for MPR modes");
-            return false;
             break;
     }
     
@@ -223,7 +220,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                        errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                    CaretAssertToDoFatal();
+                    result = performTurnOnOrOffOblique(editInfo,
+                                                       errorMessageOut);
                     break;
             }
             break;
@@ -554,36 +552,13 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
             break;
     }
     
-//    float voxelDiffXYZ[3];
-    
     float voxelXYZ[3];
     m_volumeFile->indexToSpace(editInfo.m_voxelIJK,
                                voxelXYZ);
     
-//    const int64_t planeVoxelsDI = (editInfo.m_ijkMax[0] - editInfo.m_ijkMin[0]) / 2 ;
-//    const int64_t planeVoxelsDJ = (editInfo.m_ijkMax[1] - editInfo.m_ijkMin[1]) / 2 ;
-//    const int64_t planeVoxelsDK = (editInfo.m_ijkMax[2] - editInfo.m_ijkMin[2]) / 2 ;
-    
     CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
     modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
                                                     editInfo.m_mapIndex));
-//    const float planeZ = voxelXYZ[2];
-//    for (int64_t i = -planeVoxelsDI; i <= planeVoxelsDI; i++) {
-//        const float planeX = voxelXYZ[0] + i * editInfo.m_voxelDiffXYZ[0];
-//        for (int64_t j = -planeVoxelsDJ; j <= planeVoxelsDJ; j++) {
-//            const float planeY = voxelXYZ[1] + j * editInfo.m_voxelDiffXYZ[1];
-//            const float xyz[3] = { planeX, planeY, planeZ };
-//            float ijkFloat[3];
-//            m_volumeFile->spaceToIndex(xyz, ijkFloat);
-//            int64_t ijk[3] = { ijkFloat[0], ijkFloat[1], ijkFloat[2] };
-//            modifiedVoxels->addVoxelRedoUndo(ijk,
-//                                             redoVoxelValue,
-//                                             m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
-//            m_volumeFile->setValue(redoVoxelValue,
-//                                   ijk,
-//                                   editInfo.m_mapIndex);
-//        }
-//    }
     
     const int64_t halfBrushI = editInfo.m_brushSize[0] / 2;
     const int64_t halfBrushJ = editInfo.m_brushSize[1] / 2;
@@ -623,27 +598,7 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
             }
         }
     }
-    
-//    for (int64_t k = -planeVoxelsDZ; k <= planeVoxelsDZ; ++k) {
-//        
-//    }
-//    CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
-//    modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
-//                                                    editInfo.m_mapIndex));
-//    for (int64_t i = editInfo.m_ijkMin[0]; i <= editInfo.m_ijkMax[0]; i++) {
-//        for (int64_t j = editInfo.m_ijkMin[1]; j <= editInfo.m_ijkMax[1]; j++) {
-//            for (int64_t k = editInfo.m_ijkMin[2]; k <= editInfo.m_ijkMax[2]; k++) {
-//                const int64_t ijk[3] = { i, j, k };
-//                modifiedVoxels->addVoxelRedoUndo(ijk,
-//                                                 redoVoxelValue,
-//                                                 m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
-//                m_volumeFile->setValue(redoVoxelValue,
-//                                       ijk,
-//                                       editInfo.m_mapIndex);
-//            }
-//        }
-//    }
-    
+        
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
     

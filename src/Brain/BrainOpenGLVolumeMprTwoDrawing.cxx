@@ -2362,12 +2362,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
     }
     
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
     bool idModeFlag(false);
     switch (m_fixedPipelineDrawing->mode) {
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (voxelID->isEnabledForSelection()) {
+            if (voxelID->isEnabledForSelection()
+                || voxelEditingID->isEnabledForSelection()) {
                 idModeFlag = true;
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             }
@@ -3173,6 +3175,9 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                              GL_FLOAT,
                              &selectedPrimitiveDepth);
                 
+                /*
+                 * Voxel identification
+                 */
                 if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
                     voxelID->setVoxelIdentification(m_brain,
                                                     volumeInterface,
@@ -3185,6 +3190,45 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                                                                      xyz);
                     CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
                 }
+            }
+        }
+                
+        /*
+         * Voxel editing identification
+         */
+        SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+        if (voxelEditID->isEnabledForSelection()) {
+            if (voxelEditID->getVolumeFileForEditing() == volumeInterface) {
+                /*
+                 * Get depth from depth buffer
+                 */
+                glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float */
+                float selectedPrimitiveDepth(0.0);
+                glReadPixels(mouseX,
+                             mouseY,
+                             1,
+                             1,
+                             GL_DEPTH_COMPONENT,
+                             GL_FLOAT,
+                             &selectedPrimitiveDepth);
+                voxelEditID->setVoxelIdentification(m_brain,
+                                                    volumeInterface,
+                                                    ijk,
+                                                    selectedPrimitiveDepth);
+                const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
+                voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                
+                //                            float voxelCoordinates[3];
+                //                            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                //                                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                
+                m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                 xyz);
+                CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                               + AString::fromNumbers(ijk, 3, ",")
+                               + ") Diff XYZ ("
+                               + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                               + ")");
             }
         }
     }
@@ -3715,6 +3759,9 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                 }
             }
             if (minMaxIJK[0] >= 0) {
+                /*
+                 * Voxel Identification
+                 */
                 SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
                 float xyz[3];
                 volume->indexToSpace(minMaxIJK, xyz);
@@ -3728,6 +3775,33 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                  xyz);
+                
+                /*
+                 * Voxel editing identification
+                 */
+                SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+                if (voxelEditID->isEnabledForSelection()) {
+                    if (voxelEditID->getVolumeFileForEditing() == volume) {
+                        voxelEditID->setVoxelIdentification(m_brain,
+                                                            volume,
+                                                            minMaxIJK,
+                                                            primitiveDepth);
+                        const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
+                        voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                        
+                        //                            float voxelCoordinates[3];
+                        //                            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
+                        //                                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                        
+                        m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                         xyz);
+                        CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                       + AString::fromNumbers(minMaxIJK, 3, ",")
+                                       + ") Diff XYZ ("
+                                       + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                       + ")");
+                    }
+                }
             }
         }
     }
