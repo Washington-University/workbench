@@ -29,7 +29,6 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
-    class EnumComboBoxTemplate;
     class HistologySlice;
     class HistologySlicesFile;
     class Vector3D;
@@ -71,8 +70,6 @@ namespace caret {
         
         void moveToCenterActionTriggered();
         
-        void histologyDisplayCoordinateModeEnumComboBoxItemActivated();
-        
         void nonLinearTransformEnabledCheckBoxClicked(bool checked);
         
     private:
@@ -105,8 +102,6 @@ namespace caret {
         QAction* m_identificationMovesSlicesAction;
         
         QAction* m_moveToCenterAction;
-        
-        EnumComboBoxTemplate* m_histologyDisplayCoordinateModeEnumComboBox;
         
         QCheckBox* m_nonLinearTransformEnabledCheckBox;
 };

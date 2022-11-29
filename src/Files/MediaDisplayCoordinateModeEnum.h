@@ -38,9 +38,7 @@ public:
         /** Pixel Coordinates */
         PIXEL,
         /** Plane Coordinates */
-        PLANE,
-        /** Stereotaxic Coordinates */
-        STEREOTAXIC,
+        PLANE
     };
 
 

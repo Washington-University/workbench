@@ -178,26 +178,6 @@ m_parentToolBar(parentToolBar)
     moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
     
-    /*
-     * Drawing mode
-     */
-//    QLabel* modeLabel(new QLabel("Coord"));
-    std::vector<MediaDisplayCoordinateModeEnum::Enum> supportedModes;
-    supportedModes.push_back(MediaDisplayCoordinateModeEnum::PLANE);
-    supportedModes.push_back(MediaDisplayCoordinateModeEnum::STEREOTAXIC);
-    m_histologyDisplayCoordinateModeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_histologyDisplayCoordinateModeEnumComboBox->setupWithItems<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(supportedModes);
-    QObject::connect(m_histologyDisplayCoordinateModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
-                     this, &BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxItemActivated);
-    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setObjectName(parentObjectName
-                                                                         + ":histologyDisplayModeComboBox");
-    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setToolTip("Coordinate Display Mode");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
-                                                         "Set media coordinate mode for display");
-#ifdef NDEBUG
-    m_histologyDisplayCoordinateModeEnumComboBox->getWidget()->setEnabled(false);
-#endif
-
     m_nonLinearTransformEnabledCheckBox = new QCheckBox("Non-Linear");
     m_nonLinearTransformEnabledCheckBox->setToolTip("<html>"
                                                     "Non-linear transformations enabled.  Affects all tabs "
@@ -251,8 +231,6 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignLeft);
-    controlsLayout->addWidget(m_histologyDisplayCoordinateModeEnumComboBox->getWidget(),
-                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -387,9 +365,6 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
                 m_stereotaxicXyzSpinBox[i]->getWidget()->setEnabled(true);
             }
         }
-        
-        const MediaDisplayCoordinateModeEnum::Enum histologyDisplayMode(browserTabContent->getHistologyDisplayCoordinateMode());
-        m_histologyDisplayCoordinateModeEnumComboBox->setSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>(histologyDisplayMode);
     }
     
     if (m_browserTabContent != NULL) {
@@ -550,17 +525,6 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                                                                                      previousHistologyCoord,
                                                                                      sliceIndex));
             
-            switch (m_browserTabContent->getHistologyDisplayCoordinateMode()) {
-                case MediaDisplayCoordinateModeEnum::PIXEL:
-                    CaretAssert(0);
-                    break;
-                case MediaDisplayCoordinateModeEnum::PLANE:
-                    break;
-                case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-                    /* Do not need to recenter for stereotaxic */
-                    previousValidFlag = false;
-                    break;
-            }
             if (hc.isValid()) {
                 if (debugFlag) std::cout << "histology coord stereotaxic: " << hc.getStereotaxicXYZ().toString(5) << std::endl;
                 /*
@@ -752,20 +716,6 @@ BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered()
                 updateUserInterface();
             }
         }
-    }
-}
-
-/**
- * Called when media coordinate display mode is changed
- */
-void
-BrainBrowserWindowToolBarHistology::histologyDisplayCoordinateModeEnumComboBoxItemActivated()
-{
-    if (m_browserTabContent != NULL) {
-        const MediaDisplayCoordinateModeEnum::Enum mode(m_histologyDisplayCoordinateModeEnumComboBox->getSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>());
-        m_browserTabContent->setHistologyDisplayCoordinateMode(mode);
-        updateGraphicsWindowAndYokedWindows();
-        updateUserInterface();
     }
 }
 

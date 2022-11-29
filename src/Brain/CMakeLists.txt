@@ -41,7 +41,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline.h
 BrainOpenGLChartTwoDrawingInterface.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLFociDrawing.h
-BrainOpenGLHistologySliceCoordinateDrawing.h
 BrainOpenGLHistologySliceDrawing.h
 BrainOpenGLIdentificationDrawing.h
 BrainOpenGLMediaCoordinateDrawing.h
@@ -194,7 +193,6 @@ SelectionItemCiftiConnectivityMatrixRowColumn.h
 SelectionItemFocusSurface.h
 SelectionItemFocus.h
 SelectionItemHistologyCoordinate.h
-SelectionItemHistologyStereotaxicCoordinate.h
 SelectionItemImageControlPoint.h
 SelectionItemMediaLogicalCoordinate.h
 SelectionItemMediaPlaneCoordinate.h
@@ -251,7 +249,6 @@ BrainOpenGLChartDrawingFixedPipeline.cxx
 BrainOpenGLChartTwoDrawingFixedPipeline.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLFociDrawing.cxx
-BrainOpenGLHistologySliceCoordinateDrawing.cxx
 BrainOpenGLHistologySliceDrawing.cxx
 BrainOpenGLIdentificationDrawing.cxx
 BrainOpenGLMediaCoordinateDrawing.cxx
@@ -402,7 +399,6 @@ SelectionItemCiftiConnectivityMatrixRowColumn.cxx
 SelectionItemFocusSurface.cxx
 SelectionItemFocus.cxx
 SelectionItemHistologyCoordinate.cxx
-SelectionItemHistologyStereotaxicCoordinate.cxx
 SelectionItemImageControlPoint.cxx
 SelectionItemMediaLogicalCoordinate.cxx
 SelectionItemMediaPlaneCoordinate.cxx

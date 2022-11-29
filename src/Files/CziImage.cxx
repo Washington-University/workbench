@@ -415,23 +415,6 @@ CziImage::getGraphicsPrimitiveForPlaneXyzDrawing(const CziImageMaskingFile* mask
 }
 
 /**
- * @return The graphics primitive for drawing the image as a texture in stereotaxic coordinates
- * @param maskingFile
- *    Masking file (invalid if NULL)
- */
-GraphicsPrimitiveV3fT2f*
-CziImage::getGraphicsPrimitiveForStereotaxicXyzDrawing(const CziImageMaskingFile* maskingFile) const
-{
-    if (m_graphicsPrimitiveForStereotaxicXyzDrawing == NULL) {
-        m_graphicsPrimitiveForStereotaxicXyzDrawing.reset(createGraphicsPrimitive(MediaDisplayCoordinateModeEnum::STEREOTAXIC,
-                                                                                  maskingFile));
-    }
-    
-    return m_graphicsPrimitiveForStereotaxicXyzDrawing.get();
-}
-
-
-/**
  * @return A new graphics primitive for loaded data
  * @param mediaDisplayCoordMode
  *    The media display coordinate mode
@@ -698,20 +681,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                     primitiveOut->addVertex(maxX, maxY, textureMaxS, textureMaxT);  /* Bottom Right */
                     CaretLogSevere("Failed to set plane coordinates for CZI primitive");
                 }
-            }
-                break;
-            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-            {
-                /*
-                 * A Triangle Strip (consisting of two triangles) is used
-                 * for drawing the image.
-                 * The order of the vertices in the triangle strip is
-                 * Top Left, Bottom Left, Top Right, Bottom Right.
-                 */
-                primitiveOut->addVertex(m_parentCziImageFile->getStereotaxicXyzTopLeft(), textureMinS, textureMinT);  /* Top Left */
-                primitiveOut->addVertex(m_parentCziImageFile->getStereotaxicXyzBottomLeft(), textureMinS, textureMaxT);  /* Bottom Left */
-                primitiveOut->addVertex(m_parentCziImageFile->getStereotaxicXyzTopRight(), textureMaxS, textureMinT);  /* Top Right */
-                primitiveOut->addVertex(m_parentCziImageFile->getStereotaxicXyzBottomRight(), textureMaxS, textureMaxT);  /* Bottom Right */
             }
                 break;
         }

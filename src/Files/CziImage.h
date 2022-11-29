@@ -79,8 +79,6 @@ namespace caret {
         
         GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const CziImageMaskingFile* maskingFile) const;
         
-        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const CziImageMaskingFile* maskingFile) const;
-        
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
         bool isPixelIndexValid(const PixelLogicalIndex& pixelLogicalIndex) const;

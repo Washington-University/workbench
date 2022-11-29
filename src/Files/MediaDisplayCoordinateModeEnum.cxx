@@ -113,9 +113,6 @@ MediaDisplayCoordinateModeEnum::initialize()
     enumData.push_back(MediaDisplayCoordinateModeEnum(PLANE,
                                                       "PLANE",
                                                       "Plane"));
-    enumData.push_back(MediaDisplayCoordinateModeEnum(STEREOTAXIC,
-                                                      "STEREOTAXIC",
-                                                      "Stereotaxic"));
 }
 
 /**

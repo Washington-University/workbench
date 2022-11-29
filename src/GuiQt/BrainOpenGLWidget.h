@@ -62,7 +62,6 @@ namespace caret {
     class GraphicsFramesPerSecond;
     class SelectionItemAnnotation;
     class SelectionItemHistologyCoordinate;
-    class SelectionItemHistologyStereotaxicCoordinate;
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
     class SelectionItemVolumeMprCrosshair;
@@ -94,9 +93,6 @@ namespace caret {
         
         SelectionItemHistologyCoordinate*   performIdentificationHistologyPlaneCoordinate(const int x,
                                                                                                const int y);
-        
-        SelectionItemHistologyStereotaxicCoordinate*   performIdentificationHistologyStereotaxicCoordinate(const int x,
-                                                                                          const int y);
         
         SelectionItemMediaLogicalCoordinate* performIdentificationMediaLogicalCoordinate(const int x,
                                                                                          const int y);

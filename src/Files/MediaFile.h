@@ -240,9 +240,6 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                                 const int32_t overlayIndex) const = 0;
         
-        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
-                                                                                      const int32_t overlayIndex) const = 0;
-        
         QRectF planeRectToLogicalRect(const QRectF& planeRect) const;
         
         QRectF logicalRectToPlaneRect(const QRectF& logicalRect) const;

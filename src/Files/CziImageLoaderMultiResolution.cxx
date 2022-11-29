@@ -297,19 +297,6 @@ CziImageLoaderMultiResolution::getLayerIndexForCurrentZoom(const CziImageFile::C
             transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
         }
             break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-        {
-            /*
-             * The transform will convert plane coordinates to window coordinates
-             */
-            const Vector3D bottomLeftXYZ(m_cziImageFile->getStereotaxicXyzBottomLeft());
-            const Vector3D topLeftXYZ(m_cziImageFile->getStereotaxicXyzTopLeft());
-            const float imageBottomLeftPixel[3] { bottomLeftXYZ[0], bottomLeftXYZ[1], bottomLeftXYZ[2] };
-            const float imageTopLeftPixel[3] { topLeftXYZ[0], topLeftXYZ[1], topLeftXYZ[2] };
-            transform->transformPoint(imageBottomLeftPixel, imageBottomLeftWindow);
-            transform->transformPoint(imageTopLeftPixel, imageTopLeftWindow);
-        }
-            break;
     }
     const float drawnPixelHeight = imageTopLeftWindow[1] - imageBottomLeftWindow[1];
     if (cziDebugFlag) std::cout << "Drawn pixel height: " << drawnPixelHeight << std::endl;
@@ -348,9 +335,6 @@ CziImageLoaderMultiResolution::getViewportLogicalCoordinates(const GraphicsObjec
             break;
         case MediaDisplayCoordinateModeEnum::PLANE:
             rect = getViewportLogicalCoordinatesForPlaneCoords(transform);
-            break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-            rect = getViewportLogicalCoordinatesForStereotaxicCoords(transform);
             break;
     }
     return rect;
@@ -776,13 +760,6 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                                  transform,
                                                                  resolutionChangeMode,
                                                                  pyramidLayerIndexIn);
-            break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-            cziImageOut = loadImageForPyrmaidLayerForStereotaxicCoords(oldCziImage,
-                                                                       cziSceneInfo,
-                                                                       transform,
-                                                                       resolutionChangeMode,
-                                                                       pyramidLayerIndexIn);
             break;
     }
     return cziImageOut;

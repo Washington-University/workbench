@@ -47,7 +47,6 @@
 #include "BrainOpenGLAnnotationDrawingFixedPipeline.h"
 #include "BrainOpenGLChartDrawingFixedPipeline.h"
 #include "BrainOpenGLChartTwoDrawingFixedPipeline.h"
-#include "BrainOpenGLHistologySliceCoordinateDrawing.h"
 #include "BrainOpenGLHistologySliceDrawing.h"
 #include "BrainOpenGLIdentificationDrawing.h"
 #include "BrainOpenGLMediaCoordinateDrawing.h"
@@ -8965,31 +8964,12 @@ BrainOpenGLFixedPipeline::drawHistologyModel(const BrainOpenGLViewportContent* v
                                              ModelHistology* histologyModel,
                                              const int32_t viewport[4])
 {
-    switch (browserTabContent->getHistologyDisplayCoordinateMode()) {
-        case MediaDisplayCoordinateModeEnum::PIXEL:
-            CaretAssertMessage(0, "Stereotaxic drawing not supported for histology slice drawing");
-            break;
-        case MediaDisplayCoordinateModeEnum::PLANE:
-        {
-            BrainOpenGLHistologySliceDrawing planeHistologyDrawing;
-            planeHistologyDrawing.draw(this,
-                                       viewportContent,
-                                       browserTabContent,
-                                       histologyModel,
-                                       { viewport[0], viewport[1], viewport[2], viewport[3] });
-        }
-            break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-        {
-            BrainOpenGLHistologySliceCoordinateDrawing coordinateHistologyDrawing;
-            coordinateHistologyDrawing.draw(this,
-                                            viewportContent,
-                                            browserTabContent,
-                                            histologyModel,
-                                            { viewport[0], viewport[1], viewport[2], viewport[3] });
-        }
-            break;
-    }
+    BrainOpenGLHistologySliceDrawing planeHistologyDrawing;
+    planeHistologyDrawing.draw(this,
+                               viewportContent,
+                               browserTabContent,
+                               histologyModel,
+                               { viewport[0], viewport[1], viewport[2], viewport[3] });
 }
 
 /**
@@ -9030,9 +9010,6 @@ BrainOpenGLFixedPipeline::drawMediaModel(const BrainOpenGLViewportContent* viewp
                                    mediaModel,
                                    { viewport[0], viewport[1], viewport[2], viewport[3] });
         }
-            break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-            CaretAssertMessage(0, "Stereotaxic drawing not supported for media drawing");
             break;
     }
 }

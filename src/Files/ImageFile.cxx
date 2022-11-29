@@ -2490,23 +2490,6 @@ ImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t /*tabIndex*/,
     return m_graphicsPrimitive.get();
 }
 
-/*
- * @return Primitive for drawing media with stereotaxic coordinates
- * @param tabIndex
- *    Index of tab where image is drawn
- * @param overlayIndex
- *    Index of overlay
- */
-GraphicsPrimitiveV3fT2f*
-ImageFile::getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t /*tabIndex*/,
-                                                        const int32_t /*overlayIndex*/) const
-{
-    /*
-     * Not supported
-     */
-    return NULL;
-}
-
 /**
  * @return True if the texture for the image should be compressed to save memory.
  */

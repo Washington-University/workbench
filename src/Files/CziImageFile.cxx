@@ -1958,27 +1958,6 @@ CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
     return primitive;
 }
 
-/*
- * @return Primitive for drawing media with stereotaxic coordinates
- * @param tabIndex
- *    Index of tab where image is drawn
- * @param overlayIndex
- *    Index of overlay
- */
-GraphicsPrimitiveV3fT2f*
-CziImageFile::getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
-                                                           const int32_t overlayIndex) const
-{
-    const CziImage* cziImage(getImageForTabOverlay(tabIndex,
-                                                   overlayIndex));
-    if (cziImage == NULL) {
-        return NULL;
-    }
-    
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForStereotaxicXyzDrawing(m_maskingFile.get()));
-    return primitive;
-}
-
 /**
  * @return True if the given pixel index is valid for the CZI image file (may be outside of currently loaded sub-image)
  * @param frameIndex

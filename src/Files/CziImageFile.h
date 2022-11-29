@@ -135,9 +135,6 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                                                 const int32_t overlayIndex) const override;
         
-        virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForStereotaxicXyzDrawing(const int32_t tabIndex,
-                                                                                      const int32_t overlayIndex) const override;
-        
         virtual bool getPixelRGBA(const int32_t tabIndex,
                                   const int32_t overlayIndex,
                                   const PixelLogicalIndex& pixelLogicalIndex,

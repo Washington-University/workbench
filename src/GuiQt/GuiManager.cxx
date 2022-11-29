@@ -121,7 +121,6 @@
 #include "SelectionItemChartTwoMatrix.h"
 #include "SelectionItemCiftiConnectivityMatrixRowColumn.h"
 #include "SelectionItemHistologyCoordinate.h"
-#include "SelectionItemHistologyStereotaxicCoordinate.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionItemMediaPlaneCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
@@ -3787,32 +3786,6 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 }
             }
         }
-        
-        SelectionItemHistologyStereotaxicCoordinate* idStereotaxicHistology = selectionManager->getHistologyStereotaxicCoordinateIdentification();
-        if (idStereotaxicHistology != NULL) {
-            if (idStereotaxicHistology->isValid()) {
-                if (identifiedItem == NULL) {
-                    const HistologyCoordinate coordinate(idStereotaxicHistology->getCoordinate());
-                    if (coordinate.isStereotaxicXYZValid()) {
-                        Vector3D stereotaxicXYZ = coordinate.getStereotaxicXYZ();
-                        bool stereotaxicXYZValidFlag = coordinate.isStereotaxicXYZValid();
-                        identifiedItem = IdentifiedItemUniversal::newInstanceHistologyStereotaxicCoordinateIdentification(identificationMessage,
-                                                                                                                          formattedIdentificationMessage,
-                                                                                                                          coordinate);
-                        if (stereotaxicXYZValidFlag) {
-                            if ( ! issuedIdentificationLocationEvent) {
-                                EventIdentificationHighlightLocation idLocation(tabIndex,
-                                                                                stereotaxicXYZ,
-                                                                                EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
-                                EventManager::get()->sendEvent(idLocation.getPointer());
-                                issuedIdentificationLocationEvent = true;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         
         SelectionItemMediaLogicalCoordinate* idLogicalMedia = selectionManager->getMediaLogicalCoordinateIdentification();
         if (idLogicalMedia != NULL) {

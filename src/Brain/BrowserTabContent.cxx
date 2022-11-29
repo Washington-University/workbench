@@ -153,7 +153,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PIXEL;
-    m_histologyDisplayCoordinateMode = MediaDisplayCoordinateModeEnum::PLANE;
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     m_identificationUpdatesHistologySlices = prefs->isHistologyIdentificationDefaultedOn();
     
@@ -285,8 +284,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 
     m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_mediaDisplayCoordinateMode",
                                                                                                      &m_mediaDisplayCoordinateMode);
-    m_sceneClassAssistant->add<MediaDisplayCoordinateModeEnum, MediaDisplayCoordinateModeEnum::Enum>("m_histologyDisplayCoordinateMode",
-                                                                                                     &m_histologyDisplayCoordinateMode);
 
     m_sceneClassAssistant->add("m_scaleBar",
                                "AnnotationScaleBar",
@@ -443,7 +440,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
     m_mediaDisplayCoordinateMode = tabToClone->m_mediaDisplayCoordinateMode;
-    m_histologyDisplayCoordinateMode = tabToClone->m_histologyDisplayCoordinateMode;
     
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
@@ -1366,37 +1362,6 @@ BrowserTabContent::setMediaDisplayCoordinateMode(const MediaDisplayCoordinateMod
     }
     m_mediaDisplayCoordinateMode = mediaDisplayCoordinateMode;
     updateYokedModelBrowserTabs();
-}
-
-/**
- * @return Histology display coordinate mode
- */
-MediaDisplayCoordinateModeEnum::Enum
-BrowserTabContent::getHistologyDisplayCoordinateMode() const
-{
-    return m_histologyDisplayCoordinateMode;
-}
-
-/**
- * Set the histology display coordinate mode
- * @param histologyDisplayCoordinateMode
- *    New histology display coordinate mode
- */
-void
-BrowserTabContent::setHistologyDisplayCoordinateMode(const MediaDisplayCoordinateModeEnum::Enum histologyDisplayCoordinateMode)
-{
-    const bool resetViewFlag(histologyDisplayCoordinateMode != m_histologyDisplayCoordinateMode);
-    m_histologyDisplayCoordinateMode = histologyDisplayCoordinateMode;
-    if (resetViewFlag) {
-        /*
-         * Reset the view.  The pixel/plane coordinates may be substantially
-         * different and if this is not done, the images may not be seen
-         * until the Reset button is clicked.
-         *
-         * Reset view will also update the yoked browser tabs
-         */
-        resetView();
-    }
 }
 
 /**
@@ -4188,27 +4153,6 @@ BrowserTabContent::applyHistologyMouseScaling(BrainOpenGLViewportContent* viewpo
                                               const float dataY,
                                               const bool dataXYValidFlag)
 {
-    switch (getHistologyDisplayCoordinateMode()) {
-        case MediaDisplayCoordinateModeEnum::PIXEL:
-            break;
-        case MediaDisplayCoordinateModeEnum::PLANE:
-            break;
-        case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-        {
-            float scaling = getViewingTransformation()->getScaling();
-            if (mouseDY != 0.0) {
-                scaling *= (1.0f + (mouseDY * 0.01));
-            }
-            if (scaling < 0.01) {
-                scaling = 0.01;
-            }
-            getViewingTransformation()->setScaling(scaling);
-            updateYokedModelBrowserTabs();
-        }
-            return;
-            break;
-    }
-
     if (isHistologyDisplayed()) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
         getViewingTransformation()->scaleAboutMouse(xform,
@@ -4734,33 +4678,6 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                 const float scaleX((coordWidth / modelViewport[2]) * zoom);
                 const float scaleY((coordHeight / modelViewport[3]) * zoom);
 
-                const float accelerate(1.0);
-                txyz[0] += ((mouseDX * scaleX) * accelerate);
-                txyz[1] += ((mouseDY * scaleY) * accelerate);
-            }
-                break;
-            case MediaDisplayCoordinateModeEnum::STEREOTAXIC:
-            {
-                /*
-                 * Mouse movement is in viewport (window) coordinates.
-                 * Need to convert to plane coordinates.
-                 */
-                const GraphicsObjectToWindowTransform* transform(viewportContent->getMediaGraphicsObjectToWindowTransform());
-                CaretAssert(transform);
-                int32_t modelViewport[4];
-                viewportContent->getModelViewport(modelViewport);
-                const Vector3D topLeftViewport(modelViewport[0], modelViewport[1] + modelViewport[3], 0.0);
-                const Vector3D bottomRightViewport(modelViewport[0] + modelViewport[2], modelViewport[1], 0.0);
-                Vector3D topLeftCoord;
-                Vector3D bottomRightCoord;
-                transform->inverseTransformPoint(topLeftViewport, topLeftCoord);
-                transform->inverseTransformPoint(bottomRightViewport, bottomRightCoord);
-                const float coordWidth(std::fabs(topLeftCoord[0] - bottomRightCoord[0]));
-                const float coordHeight(std::fabs(topLeftCoord[1] - bottomRightCoord[1]));
-                const float zoom(getScaling());
-                const float scaleX((coordWidth / modelViewport[2]) * zoom);
-                const float scaleY((coordHeight / modelViewport[3]) * zoom);
-                
                 const float accelerate(1.0);
                 txyz[0] += ((mouseDX * scaleX) * accelerate);
                 txyz[1] += ((mouseDY * scaleY) * accelerate);
@@ -7128,7 +7045,6 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                     m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
                                                                 *btc->m_histologySliceSettings);
                     m_histologyViewingTransformation->copyFromOther(*btc->m_histologyViewingTransformation);
-                    m_histologyDisplayCoordinateMode = btc->m_histologyDisplayCoordinateMode;
                 }
                 
                 break;
@@ -7915,7 +7831,6 @@ BrowserTabContent::updateHistologyModelYokedBrowserTabs()
                 btc->m_histologySliceSettings->copyYokedSettings(histologySlicesFile,
                                                                  *m_histologySliceSettings);
                 btc->m_histologyViewingTransformation->copyFromOther(*m_histologyViewingTransformation);
-                btc->m_histologyDisplayCoordinateMode = m_histologyDisplayCoordinateMode;
             }
         }
     }
