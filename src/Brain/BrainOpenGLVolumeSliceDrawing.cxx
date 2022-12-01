@@ -891,6 +891,41 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
     
     m_fixedPipelineDrawing->disableClippingPlanes();
     
+    bool drawSelectionBoxFlag(false);
+    switch (sliceDrawingType) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+            switch (allSliceViewMode) {
+                case AllSliceViewMode::ALL_NO:
+                    drawSelectionBoxFlag = true;
+                    break;
+                case AllSliceViewMode::ALL_YES:
+                    break;
+            }
+            break;
+    }
+    if (drawSelectionBoxFlag) {
+        GraphicsRegionSelectionBox::DrawMode drawMode(GraphicsRegionSelectionBox::DrawMode::Z_PLANE);
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::Z_PLANE;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::Y_PLANE;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::X_PLANE;
+                break;
+        }
+        BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                                 drawMode,
+                                                                 m_fixedPipelineDrawing->m_foregroundColorFloat);
+    }
+    
     if (cullFaceOn) {
         glEnable(GL_CULL_FACE);
     }

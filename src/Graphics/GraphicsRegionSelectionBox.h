@@ -26,13 +26,18 @@
 
 #include "CaretObject.h"
 
-
-
 namespace caret {
 
     class GraphicsRegionSelectionBox : public CaretObject {
         
     public:
+        enum class DrawMode {
+            X_PLANE,
+            Y_PLANE,
+            Z_PLANE,
+            VIEWPORT
+        };
+        
         enum class Status {
             INVALID,
             VALID
@@ -51,22 +56,40 @@ namespace caret {
         void setStatus(const Status status);
         
         bool getCenter(float& centerX,
-                       float& centerY) const;
+                       float& centerY,
+                       float& centerZ) const;
         
-        float getWidth() const;
+        float getSizeX() const;
+        
+        float getSizeY() const;
+        
+        float getSizeZ() const;
         
         float getHeight() const;
         
         bool getBounds(float& minX,
                        float& minY,
                        float& maxX,
-                       float& maxY) const;
+                       float& maxY,
+                       float& minZ,
+                       float& maxZ) const;
         
+        bool getViewportBounds(float& vpMinX,
+                               float& vpMinY,
+                               float& vpMaxX,
+                               float& vpMaxY) const;
+
         void initialize(const float x,
-                        const float y);
+                        const float y,
+                        const float z,
+                        const float vpX,
+                        const float vpY);
         
         void update(const float x,
-                    const float y);
+                    const float y,
+                    const float z,
+                    const float vpX,
+                    const float vpY);
 
         // ADD_NEW_METHODS_HERE
 
@@ -77,15 +100,29 @@ namespace caret {
 
         bool isValidCoords() const;
         
+        bool isValidViewportCoords() const;
+        
         Status m_status = Status::INVALID;
         
         float m_x1 = 0.0;
         
         float m_y1 = 0.0;
         
+        float m_z1 = 0.0;
+        
         float m_x2 = 0.0;
         
         float m_y2 = 0.0;
+        
+        float m_z2 = 0.0;
+        
+        float m_vpX1 = 0.0;
+        
+        float m_vpY1 = 0.0;
+        
+        float m_vpX2 = 0.0;
+        
+        float m_vpY2 = 0.0;
         
         // ADD_NEW_MEMBERS_HERE
 

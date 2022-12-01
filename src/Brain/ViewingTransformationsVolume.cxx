@@ -99,3 +99,21 @@ ViewingTransformationsVolume::resetView()
     m_rotationMatrix->identity();
 }
 
+/**
+ * Set the view of the orthogonal volume to the given bounds
+ * @param transform
+ *    The object to window transform
+ * @param selectionBounds
+ *    The selection bounds
+ * @param browserTabContent
+ *    The content of the browser tab
+ */
+bool
+ViewingTransformationsVolume::setOrthogonalViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                                        const GraphicsRegionSelectionBox* selectionBounds,
+                                                        const BrowserTabContent* browserTabContent)
+{
+    std::cout << "setOrthogonalViewToBounds called" << std::endl;
+    return false;
+}
+

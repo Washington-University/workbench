@@ -28,6 +28,9 @@
 
 namespace caret {
     
+    class GraphicsRegionSelectionBox;
+    class HistologySlice;
+    
     class ViewingTransformationsMedia : public ViewingTransformations {
         
     public:
@@ -54,13 +57,13 @@ namespace caret {
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
                                      const float scaling) override;
         
-        virtual bool setViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                     const GraphicsRegionSelectionBox* selectionBounds,
-                                     const HistologySlice* histologySlice,
-                                     Vector3D& stereotaxicCenterXyzOut,
-                                     float& stereotaxicWidthOut,
-                                     float& stereotaxicHeightOut) override;
-        
+        virtual bool setMediaViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                          const GraphicsRegionSelectionBox* selectionBounds,
+                                          const HistologySlice* histologySlice,
+                                          Vector3D& stereotaxicCenterXyzOut,
+                                          float& stereotaxicWidthOut,
+                                          float& stereotaxicHeightOut);
+
         virtual void resetView();
         
         // ADD_NEW_METHODS_HERE

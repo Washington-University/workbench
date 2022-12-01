@@ -9091,33 +9091,88 @@ BrainOpenGLFixedPipeline::setupBlending(const BlendDataType blendDataType)
  */
 void
 BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox* graphicsRegionSelectionBox,
+                                                         const GraphicsRegionSelectionBox::DrawMode drawMode,
                                                          const float rgba[4])
 {
+    glPushAttrib(GL_DEPTH_BITS);
+    glDisable(GL_DEPTH_TEST);
+    
     switch (graphicsRegionSelectionBox->getStatus()) {
         case GraphicsRegionSelectionBox::Status::INVALID:
             break;
         case GraphicsRegionSelectionBox::Status::VALID:
         {
-            float minX, maxX, minY, maxY;
-            if (graphicsRegionSelectionBox->getBounds(minX, minY, maxX, maxY)) {
-                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
-                                                                                                   rgba));
-                
-                const float z(0.0f);
-                primitive->addVertex(minX, minY, z);
-                primitive->addVertex(maxX, minY, z);
-                primitive->addVertex(maxX, maxY, z);
-                primitive->addVertex(minX, maxY, z);
-                
-                const float lineWidthPercentage(0.5);
-                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                        lineWidthPercentage);
-                
-                GraphicsEngineDataOpenGL::draw(primitive.get());
+            bool drawFlag(false);
+            float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0), minZ(0.0), maxZ(0.0);
+            float vpMinX(0.0), vpMinY(0.0), vpMaxX(0.0), vpMaxY(0.0);
+            switch (drawMode) {
+                case GraphicsRegionSelectionBox::DrawMode::X_PLANE:
+                case GraphicsRegionSelectionBox::DrawMode::Y_PLANE:
+                case GraphicsRegionSelectionBox::DrawMode::Z_PLANE:
+                    if (graphicsRegionSelectionBox->getBounds(minX, minY, minZ, maxX, maxY, maxZ)) {
+                        drawFlag = true;
+                    }
+                    break;
+                case GraphicsRegionSelectionBox::DrawMode::VIEWPORT:
+                    if (graphicsRegionSelectionBox->getViewportBounds(vpMinX, vpMinY, vpMaxX, vpMaxY)) {
+                        drawFlag = true;
+                    }
+                    break;
             }
+            
+        
+            std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                                               rgba));
+            switch (drawMode) {
+                case GraphicsRegionSelectionBox::DrawMode::X_PLANE:
+                {
+                    const float x(0.0f);
+                    primitive->addVertex(x, minY, minZ);
+                    primitive->addVertex(x, maxY, minZ);
+                    primitive->addVertex(x, maxY, maxZ);
+                    primitive->addVertex(x, minY, maxZ);
+                }
+                    break;
+                case GraphicsRegionSelectionBox::DrawMode::Y_PLANE:
+                {
+                    const float y(0.0f);
+                    primitive->addVertex(minX, y, minZ);
+                    primitive->addVertex(maxX, y, minZ);
+                    primitive->addVertex(maxX, y, maxZ);
+                    primitive->addVertex(minX, y, maxZ);
+                }
+                    break;
+                case GraphicsRegionSelectionBox::DrawMode::Z_PLANE:
+                {
+                    const float z(0.0f);
+                    primitive->addVertex(minX, minY, z);
+                    primitive->addVertex(maxX, minY, z);
+                    primitive->addVertex(maxX, maxY, z);
+                    primitive->addVertex(minX, maxY, z);
+                }
+                    break;
+                case GraphicsRegionSelectionBox::DrawMode::VIEWPORT:
+                {
+                    const float z(0.0f);
+                    primitive->addVertex(vpMinX, vpMinY, z);
+                    primitive->addVertex(vpMaxX, vpMinY, z);
+                    primitive->addVertex(vpMaxX, vpMaxY, z);
+                    primitive->addVertex(vpMinX, vpMaxY, z);
+                }
+                    break;
+            }
+            
+            
+            const float lineWidthPercentage(0.5);
+            primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                    lineWidthPercentage);
+            
+            GraphicsEngineDataOpenGL::draw(primitive.get());
         }
             break;
     }
+    
+    glPopAttrib();
 }
 
 /* ============================================================================ */

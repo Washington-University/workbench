@@ -491,7 +491,11 @@ UserInputModeView::updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     CaretAssert(openGLWidget);
 
-
+    int32_t viewport[4];
+    viewportContent->getModelViewport(viewport);
+    const float vpX(mouseEvent.getX() - viewport[0]);
+    const float vpY(mouseEvent.getY() - viewport[1]);
+    
     bool modelXyzValidFlag(false);
     double modelXYZ[3];
 
@@ -541,6 +545,15 @@ UserInputModeView::updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent
                 break;
         }
     }
+    else if (browserTabContent->isVolumeSlicesDisplayed()) {
+        openGLWidget->performIdentification(mouseEvent.getX(), mouseEvent.getY(), false);
+        SelectionItemVoxel* voxelID(GuiManager::get()->getBrain()->getSelectionManager()->getVoxelIdentification());
+        CaretAssert(voxelID);
+        if (voxelID->isValid()) {
+            voxelID->getModelXYZ(modelXYZ);
+            modelXyzValidFlag = true;
+        }
+    }
 
     
     if (modelXyzValidFlag) {
@@ -549,14 +562,19 @@ UserInputModeView::updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent
         
         if (mouseEvent.isFirstDragging()) {
             box->initialize(modelXYZ[0],
-                            modelXYZ[1]);
+                            modelXYZ[1],
+                            modelXYZ[2],
+                            vpX,
+                            vpY);
         }
         else {
             box->update(modelXYZ[0],
-                        modelXYZ[1]);
+                        modelXYZ[1],
+                        modelXYZ[2],
+                        vpX,
+                        vpY);
         }
     }
-
 }
 
 /**
@@ -743,6 +761,20 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         return;
     }
     
+    switch (browserTabContent->getMouseLeftDragMode()) {
+        case MouseLeftDragModeEnum::INVALID:
+            CaretAssert(0);
+            return;
+            break;
+        case MouseLeftDragModeEnum::DEFAULT:
+            /* handled below */
+            break;
+        case MouseLeftDragModeEnum::REGION_SELECTION:
+            applyGraphicsRegionSelectionBox(mouseEvent);
+            return;
+            break;
+    }
+
     if (browserTabContent->isChartTwoDisplayed()) {
         const int32_t x1(mouseEvent.getPressedX());
         const int32_t y1(mouseEvent.getPressedY());
@@ -762,94 +794,99 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
             CaretLogSevere("Chart viewport is invalid");
         }
     }
-    else if (browserTabContent->isHistologyDisplayed()) {
-        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getRegionSelectionBox();
-        CaretAssert(selectionBox);
-        
-        const GraphicsObjectToWindowTransform* transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-        if (transform != NULL) {
-            switch (selectionBox->getStatus()) {
-                case GraphicsRegionSelectionBox::Status::INVALID:
-                    break;
-                case GraphicsRegionSelectionBox::Status::VALID:
-                {
-                    ModelHistology* histologyModel = browserTabContent->getDisplayedHistologyModel();
-                    if (histologyModel != NULL) {
-                        /*
-                         * Zoom to selection region
-                         */
-                        std::vector<const BrainOpenGLViewportContent*> viewportContentInAllWindows;
-                        
-                        /*
-                         * Get all tab viewports in the window using this instance as we
-                         * want it FIRST in all viewport content
-                         */
-                        BrainOpenGLWindowContent* windowContent(mouseEvent.getWindowContent());
-                        CaretAssert(windowContent);
-                        std::vector<const BrainOpenGLViewportContent*> vpContents(windowContent->getAllTabViewports());
+}
+
+/**
+ * Apply the graphics region selection box after user has release left mouse button
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeView::applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    GraphicsRegionSelectionBox* selectionBox = browserTabContent->getRegionSelectionBox();
+    CaretAssert(selectionBox);
+    switch (selectionBox->getStatus()) {
+        case GraphicsRegionSelectionBox::Status::INVALID:
+            return;
+            break;
+        case GraphicsRegionSelectionBox::Status::VALID:
+            break;
+    }
+    
+    const GraphicsObjectToWindowTransform* transform(NULL);
+    switch (browserTabContent->getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+            break;
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            transform = viewportContent->getMediaGraphicsObjectToWindowTransform();
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            break;
+    }
+                /*
+                 * Zoom to selection region
+                 */
+                std::vector<const BrainOpenGLViewportContent*> viewportContentInAllWindows;
+                
+                /*
+                 * Get all tab viewports in the window using this instance as we
+                 * want it FIRST in all viewport content
+                 */
+                BrainOpenGLWindowContent* windowContent(mouseEvent.getWindowContent());
+                CaretAssert(windowContent);
+                std::vector<const BrainOpenGLViewportContent*> vpContents(windowContent->getAllTabViewports());
+                viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
+                                                   vpContents.begin(),
+                                                   vpContents.end());
+                
+                /*
+                 * Get viewport content in all other windows
+                 */
+                std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
+                for (auto& bw : allBrowserWindows) {
+                    if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
+                        std::vector<const BrainOpenGLViewportContent*> vpContents;
+                        bw->getAllBrainOpenGLViewportContent(vpContents);
                         viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
                                                            vpContents.begin(),
                                                            vpContents.end());
-                        
-                        /*
-                         * Get viewport content in all other windows
-                         */
-                        std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
-                        for (auto& bw : allBrowserWindows) {
-                            if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
-                                std::vector<const BrainOpenGLViewportContent*> vpContents;
-                                bw->getAllBrainOpenGLViewportContent(vpContents);
-                                viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
-                                                                   vpContents.begin(),
-                                                                   vpContents.end());
-                            }
-                        }
-                        browserTabContent->setHistologyViewToBounds(viewportContentInAllWindows,
-                                                                    viewportContent,
-                                                                    selectionBox);
                     }
                 }
-                    break;
-            }
-            
-            selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
-        }
-        
-        /*
-         * Update graphics.
-         */
-        updateGraphics(mouseEvent);
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    }
-    else if (browserTabContent->isMediaDisplayed()) {
-        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getRegionSelectionBox();
-        CaretAssert(selectionBox);
-                
-        switch (selectionBox->getStatus()) {
-            case GraphicsRegionSelectionBox::Status::INVALID:
-                break;
-            case GraphicsRegionSelectionBox::Status::VALID:
-            {
-                ModelMedia* mediaModel = browserTabContent->getDisplayedMediaModel();
-                if (mediaModel != NULL) {
-                    /*
-                     * Zoom to selection region
-                     */
-                    browserTabContent->setMediaViewToBounds(viewportContent,
-                                                            selectionBox);
-                }
-            }
-                break;
-        }
-        
-        selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
-
-        /*
-         * Update graphics.
-         */
-        updateGraphics(mouseEvent);
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    }
+                browserTabContent->setViewToBounds(viewportContentInAllWindows,
+                                                   viewportContent,
+                                                   selectionBox);
+    
+    selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
+    
+    /*
+     * Update graphics.
+     */
+    updateGraphics(mouseEvent);
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

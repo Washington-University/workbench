@@ -294,6 +294,7 @@ BrainOpenGLMediaCoordinateDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineD
                     viewport[3]);
     
     BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                             GraphicsRegionSelectionBox::DrawMode::Z_PLANE,
                                                              m_fixedPipelineDrawing->m_foregroundColorFloat);
 }
 

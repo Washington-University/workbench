@@ -33,6 +33,7 @@
 #include "FiberOrientationColoringTypeEnum.h"
 #include "FiberOrientationSymbolTypeEnum.h"
 #include "FiberTrajectoryColorModel.h"
+#include "GraphicsRegionSelectionBox.h"
 #include "HistologySpaceKey.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SelectionItemDataTypeEnum.h"
@@ -62,7 +63,6 @@ namespace caret {
     class FastStatistics;
     class DisplayPropertiesFiberOrientation;
     class FiberOrientation;
-    class GraphicsRegionSelectionBox;
     class SelectionItem;
     class SelectionManager;
     class HistologySlice;
@@ -121,6 +121,7 @@ namespace caret {
                                                  int32_t& gapOut);
         
         static void drawGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox* graphicsRegionSelectionBox,
+                                                   const GraphicsRegionSelectionBox::DrawMode drawMode,
                                                    const float rgba[4]);
         
     protected:

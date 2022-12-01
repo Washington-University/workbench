@@ -324,12 +324,12 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  *    True if outputs are valid, else false.
  */
 bool
-ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                             const GraphicsRegionSelectionBox* selectionBounds,
-                                             const HistologySlice* histologySlice,
-                                             Vector3D& stereotaxicCenterXyzOut,
-                                             float& stereotaxicWidthOut,
-                                             float& stereotaxicHeightOut)
+ViewingTransformationsMedia::setMediaViewToBounds(const GraphicsObjectToWindowTransform* transform,
+                                                  const GraphicsRegionSelectionBox* selectionBounds,
+                                                  const HistologySlice* histologySlice,
+                                                  Vector3D& stereotaxicCenterXyzOut,
+                                                  float& stereotaxicWidthOut,
+                                                  float& stereotaxicHeightOut)
 {
     CaretAssert(transform);
     CaretAssert(selectionBounds);
@@ -338,9 +338,10 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
     stereotaxicWidthOut  = 0.0;
     stereotaxicHeightOut = 0.0;
     
-    float selectionBoxCenterX(0.0), selectionBoxCenterY(0.0);
+    float selectionBoxCenterX(0.0), selectionBoxCenterY(0.0), selectionBoxCenterZ(0.0);
     selectionBounds->getCenter(selectionBoxCenterX,
-                               selectionBoxCenterY);
+                               selectionBoxCenterY,
+                               selectionBoxCenterZ);
     
     /*
      * Ortho is in plane coordinates
@@ -349,8 +350,8 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
     const float windowWidth(orthoLRBT[1] - orthoLRBT[0]);
     const float windowHeight(orthoLRBT[2] - orthoLRBT[3]); /* for images positive Y is down */
 
-    const float selectionWidth(selectionBounds->getWidth());
-    const float selectionHeight(selectionBounds->getHeight());
+    const float selectionWidth(selectionBounds->getSizeX());
+    const float selectionHeight(selectionBounds->getSizeY());
 
     bool resultValidFlag(false);
     
@@ -404,8 +405,8 @@ ViewingTransformationsMedia::setViewToBounds(const GraphicsObjectToWindowTransfo
                                                    0.0);
             if (histologySlice->planeXyzToStereotaxicXyz(selectionBoundCenterXYZ,
                                                          stereotaxicCenterXyzOut)) {
-                float minX(0.0) ,maxX(0.0), minY(0.0), maxY(0.0);
-                if (selectionBounds->getBounds(minX, minY, maxX, maxY)) {
+                float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0), minZ(0.0), maxZ(0.0);
+                if (selectionBounds->getBounds(minX, minY, maxX, maxY, minZ, maxZ)) {
 //                    std::cout << "   Min/Max X: " << minX << ", " << maxX << std::endl;
 //                    std::cout << "   Min/Max Y: " << minY << ", " << maxY << std::endl;
                     

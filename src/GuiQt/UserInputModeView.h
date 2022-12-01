@@ -121,6 +121,8 @@ namespace caret {
                                            ChartTwoOverlay* chartOverlay,
                                            const int32_t pointIndex);
         
+        void applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent);
+        
         void updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent);
         
         const int32_t m_browserWindowIndex;

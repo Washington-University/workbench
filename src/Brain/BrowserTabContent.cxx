@@ -4334,73 +4334,79 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
  *    Box containing bounds of selection
  */
 void
-BrowserTabContent::setHistologyViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                            const BrainOpenGLViewportContent* viewportContent,
-                                            const GraphicsRegionSelectionBox* selectionBounds)
+BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                   const BrainOpenGLViewportContent* viewportContent,
+                                   const GraphicsRegionSelectionBox* selectionBounds)
 {
     CaretAssert(viewportContent);
     CaretAssert(selectionBounds);
     
-    HistologySlice* histologySlice(NULL);
-    ModelHistology* histologyModel(getDisplayedHistologyModel());
-    if (histologyModel != NULL) {
-        HistologyOverlaySet* histologyOverlaySet(getHistologyOverlaySet());
-        if (histologyOverlaySet != NULL) {
-            HistologyOverlay* histologyOverlay(histologyOverlaySet->getUnderlay());
-            if (histologyOverlay != NULL) {
-                HistologyOverlay::SelectionData selectionData(histologyOverlay->getSelectionData());
-                if (selectionData.m_selectedFile != NULL) {
-                    histologySlice = selectionData.m_selectedFile->getHistologySliceByIndex(selectionData.m_selectedSliceIndex);
+    if (getDisplayedHistologyModel() != NULL) {
+        HistologySlice* histologySlice(NULL);
+        ModelHistology* histologyModel(getDisplayedHistologyModel());
+        if (histologyModel != NULL) {
+            HistologyOverlaySet* histologyOverlaySet(getHistologyOverlaySet());
+            if (histologyOverlaySet != NULL) {
+                HistologyOverlay* histologyOverlay(histologyOverlaySet->getUnderlay());
+                if (histologyOverlay != NULL) {
+                    HistologyOverlay::SelectionData selectionData(histologyOverlay->getSelectionData());
+                    if (selectionData.m_selectedFile != NULL) {
+                        histologySlice = selectionData.m_selectedFile->getHistologySliceByIndex(selectionData.m_selectedSliceIndex);
+                    }
                 }
             }
         }
-    }
-
-    const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-    Vector3D stereotaxicCenterXYZ;
-    float stereotaxicWidth(0.0);
-    float stereotaxicHeight(0.0);
-    if (m_histologyViewingTransformation->setViewToBounds(xform,
-                                                          selectionBounds,
-                                                          histologySlice,
-                                                          stereotaxicCenterXYZ,
-                                                          stereotaxicWidth,
-                                                          stereotaxicHeight)) {
         
-        if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
-            panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
-                                               viewportContent,
-                                               stereotaxicCenterXYZ,
-                                               stereotaxicWidth,
-                                               stereotaxicHeight);
-        }
-    }
-    updateBrainModelYokedBrowserTabs();
-}
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        Vector3D stereotaxicCenterXYZ;
+        float stereotaxicWidth(0.0);
+        float stereotaxicHeight(0.0);
+        if (m_histologyViewingTransformation->setMediaViewToBounds(xform,
+                                                                   selectionBounds,
+                                                                   histologySlice,
+                                                                   stereotaxicCenterXYZ,
+                                                                   stereotaxicWidth,
+                                                                   stereotaxicHeight)) {
 
-/**
- * Set the bounds of the view to the given selection bounds.
- * @param viewportContent
- *    Content of the viewport
- * @param selectionBounds
- *    Box containing bounds of selection
- */
-void
-BrowserTabContent::setMediaViewToBounds(const BrainOpenGLViewportContent* viewportContent,
-                                        const GraphicsRegionSelectionBox* selectionBounds)
-{
-    const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
-    HistologySlice* histologySlice(NULL);
-    Vector3D stereotaxicCenterXYZ;
-    float stereotaxicWidth(0.0);
-    float stereotaxicHeight(0.0);
-    m_mediaViewingTransformation->setViewToBounds(xform,
-                                                  selectionBounds,
-                                                  histologySlice,
-                                                  stereotaxicCenterXYZ,
-                                                  stereotaxicWidth,
-                                                  stereotaxicHeight);
-    updateMediaModelYokedBrowserTabs();
+            if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
+                panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
+                                                   viewportContent,
+                                                   stereotaxicCenterXYZ,
+                                                   stereotaxicWidth,
+                                                   stereotaxicHeight);
+            }
+        }
+        updateBrainModelYokedBrowserTabs();
+    }
+    else if (getDisplayedMediaModel() != NULL) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
+        HistologySlice* histologySlice(NULL);
+        Vector3D stereotaxicCenterXYZ;
+        float stereotaxicWidth(0.0);
+        float stereotaxicHeight(0.0);
+        m_mediaViewingTransformation->setMediaViewToBounds(xform,
+                                                           selectionBounds,
+                                                           histologySlice,
+                                                           stereotaxicCenterXYZ,
+                                                           stereotaxicWidth,
+                                                           stereotaxicHeight);
+        updateMediaModelYokedBrowserTabs();
+    }
+    else if (getDisplayedVolumeModel() != NULL) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
+        switch (getVolumeSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(xform,
+                                                                              selectionBounds,
+                                                                              this);
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                break;
+        }
+        updateBrainModelYokedBrowserTabs();
+    }
 }
 
 /**

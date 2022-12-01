@@ -93,6 +93,12 @@ GraphicsRegionSelectionBox::copyHelperGraphicsRegionSelectionBox(const GraphicsR
     m_x2     = obj.m_x2;
     m_y1     = obj.m_y1;
     m_y2     = obj.m_y2;
+    m_z1     = obj.m_z1;
+    m_z2     = obj.m_z2;
+    m_vpX1   = obj.m_vpX1;
+    m_vpX2   = obj.m_vpX2;
+    m_vpY1   = obj.m_vpY1;
+    m_vpY2   = obj.m_vpY2;
 }
 
 /**
@@ -111,41 +117,68 @@ GraphicsRegionSelectionBox::toString() const
             statusName = "Valid";
             break;
     }
-    return QString("x1=%1, x2=%2, y1=%3, y2=%4, valid=%5").arg(m_x1).arg(m_x2).arg(m_y1).arg(m_y2).arg(statusName);
+    return QString("x1=%1, x2=%2, y1=%3, y2=%4, z1=%5, z2=%6, valid=%7").arg(m_x1).arg(m_x2).arg(m_y1).arg(m_y2).arg(m_z1).arg(m_z2).arg(statusName);
 }
 
 /**
- * Initalize the corners to the same X, Y coordinates.
+ * Initalize the corners to the same X, Y, Z coordinates.
  * Also sets the box status to valid.
  * @param x
  *    The x-coordinate
  * @param y
  *    The y-coordinate
+ * @param z
+ *    The z-coordinate
+ * @param vpX
+ *    The viewport X-coordinate
+ * @param vpY
+ *    The viewport X-coordinate
  */
 void
 GraphicsRegionSelectionBox::initialize(const float x,
-                                       const float y)
+                                       const float y,
+                                       const float z,
+                                       const float vpX,
+                                       const float vpY)
 {
     m_x1 = x;
     m_y1 = y;
+    m_z1 = z;
     m_x2 = x;
     m_y2 = y;
+    m_z2 = z;
+    m_vpX1 = vpX;
+    m_vpY1 = vpY;
+    m_vpX2 = vpX;
+    m_vpY2 = vpY;
     m_status = Status::VALID;
 }
 
 /**
- * Update the second corner same X, Y coordinates
+ * Update the second corner same X, Y, Z coordinates
  * @param x
  *    The x-coordinate
  * @param y
  *    The y-coordinate
+ * @param z
+ *    The z-coordinate
+ * @param vpX
+ *    The viewport X-coordinate
+ * @param vpY
+ *    The viewport X-coordinate
  */
 void
 GraphicsRegionSelectionBox::update(const float x,
-                                   const float y)
+                                   const float y,
+                                   const float z,
+                                   const float vpX,
+                                   const float vpY)
 {
     m_x2 = x;
     m_y2 = y;
+    m_z2 = z;
+    m_vpX2 = vpX;
+    m_vpY2 = vpY;
 }
 
 /**
@@ -174,17 +207,23 @@ GraphicsRegionSelectionBox::setStatus(const Status status)
  *    The minimum x-coordinate
  * @param minY
  *    The minimum y-coordinate
+ * @param minZ
+ *    The minimum z-coordinate
  * @param maxX
  *    The maximum x-coordinate
  * @param maxY
  *    The maximum y-coordinate
+ * @param maxZ
+ *    The maximum z-coordinate
  * @return True if the status is valid AND the min and max are NOT coincident (same values)
  */
 bool
 GraphicsRegionSelectionBox::getBounds(float& minX,
                                       float& minY,
+                                      float& minZ,
                                       float& maxX,
-                                      float& maxY) const
+                                      float& maxY,
+                                      float& maxZ) const
 {
     if (m_x1 > m_x2) {
         minX = m_x2;
@@ -202,9 +241,55 @@ GraphicsRegionSelectionBox::getBounds(float& minX,
         minY = m_y1;
         maxY = m_y2;
     }
- 
+    if (m_z1 > m_z2) {
+        minZ = m_z2;
+        maxZ = m_z1;
+    }
+    else {
+        minZ = m_z1;
+        maxZ = m_z2;
+    }
+
     return isValidCoords();
 }
+
+/**
+ * Get the box's bounds
+ * @param vpMinX
+ *    The viewport minimum x-coordinate
+ * @param vpMinY
+ *    The viewport minimum y-coordinate
+ * @param vpMinZ
+ *    The viewport minimum z-coordinate
+ * @param vpMaxX
+ *    The viewport maximum x-coordinate
+ * @return True if the status is valid AND the min and max are NOT coincident (same values)
+ */
+bool
+GraphicsRegionSelectionBox::getViewportBounds(float& vpMinX,
+                                              float& vpMinY,
+                                              float& vpMaxX,
+                                              float& vpMaxY) const
+{
+    if (m_vpX1 > m_vpX2) {
+        vpMinX = m_vpX2;
+        vpMaxX = m_vpX1;
+    }
+    else {
+        vpMinX = m_vpX1;
+        vpMaxX = m_vpX2;
+    }
+    if (m_vpY1 > m_vpY2) {
+        vpMinY = m_vpY2;
+        vpMaxY = m_vpY1;
+    }
+    else {
+        vpMinY = m_vpY1;
+        vpMaxY = m_vpY2;
+    }
+    return isValidViewportCoords();
+}
+
 
 /**
  * Get the box's center.
@@ -212,37 +297,51 @@ GraphicsRegionSelectionBox::getBounds(float& minX,
  *    The maximum x-coordinate
  * @param centerY
  *    The maximum y-coordinate
+ * @param centerZ
+ *    The maximum z-coordinate
  * @return True if the status is valid AND the min and max are NOT coincident (same values)
  */
 bool
 GraphicsRegionSelectionBox::getCenter(float& centerX,
-                                      float& centerY) const
+                                      float& centerY,
+                                      float& centerZ) const
 {
     centerX = (m_x1 + m_x2) / 2.0f;
     centerY = (m_y1 + m_y2) / 2.0f;
+    centerZ = (m_z1 + m_z2) / 2.0f;
     return isValidCoords();
 }
 
 /**
- * @return Width of the selection box
+ * @return X-Size of the selection box
  */
 float
-GraphicsRegionSelectionBox::getWidth() const
+GraphicsRegionSelectionBox::getSizeX() const
 {
     return std::fabs(m_x1 - m_x2);
 }
 
 /**
- * @return Height of the selection box
+ * @return Y-Size of the selection box
  */
 float
-GraphicsRegionSelectionBox::getHeight() const
+GraphicsRegionSelectionBox::getSizeY() const
 {
     return std::fabs(m_y1 - m_y2);
 }
 
+/**
+ * @return Z-Size of the selection box
+ */
+float
+GraphicsRegionSelectionBox::getSizeZ() const
+{
+    return std::fabs(m_z1 - m_z2);
+}
+
 /*
- * @return True if the status is valid AND the min and max are NOT coincident (same values)
+ * @return True if the status is valid AND at least two of the X, Y, Z,
+ * min and max are NOT coincident (same values)
  */
 bool
 GraphicsRegionSelectionBox::isValidCoords() const
@@ -253,10 +352,38 @@ GraphicsRegionSelectionBox::isValidCoords() const
         case Status::INVALID:
             break;
         case Status::VALID:
-            if ((m_x1 != m_x2)
-                && (m_y1 != m_y2)) {
-                validFlag = true;
-            }
+        {
+            int32_t validCount(0);
+            if (m_x1 != m_x2) ++validCount;
+            if (m_y1 != m_y2) ++validCount;
+            if (m_z1 != m_z2) ++validCount;
+            validFlag = (validCount >= 2);
+        }
+            break;
+    }
+    
+    return validFlag;
+}
+
+/*
+ * @return True if the status is valid AND the viewport coordinates
+ * for a box with a non-zero area
+ */
+bool
+GraphicsRegionSelectionBox::isValidViewportCoords() const
+{
+    bool validFlag(false);
+    
+    switch (m_status) {
+        case Status::INVALID:
+            break;
+        case Status::VALID:
+        {
+            int32_t validCount(0);
+            if (m_vpX1 != m_vpX2) ++validCount;
+            if (m_vpY1 != m_vpY2) ++validCount;
+            validFlag = (validCount >= 2);
+        }
             break;
     }
     
