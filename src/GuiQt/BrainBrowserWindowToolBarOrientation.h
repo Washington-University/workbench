@@ -70,10 +70,12 @@ namespace caret {
         
         void redoActionTriggered();
         void undoActionTriggered();
-        void selectRegionActionTriggered();
+        void selectRegionActionTriggered(const bool checked);
         
     private:
         CaretUndoStack* getUndoStack();
+        
+        void updateRegionSelectionAction();
         
         BrowserTabContent* m_browserTabContent = NULL;
         

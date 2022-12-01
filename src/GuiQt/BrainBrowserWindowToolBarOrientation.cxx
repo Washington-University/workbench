@@ -362,8 +362,8 @@ BrainBrowserWindowToolBarOrientation::BrainBrowserWindowToolBarOrientation(const
     else {
         m_selectRegionAction->setText("SR");
     }
-    m_selectRegionAction->setEnabled(false);
     m_selectRegionAction->setToolTip("<html>Select region by dragging mouse to form a rectangle</html>");
+    m_selectRegionAction->setCheckable(true);
     QObject::connect(m_selectRegionAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered);
     QToolButton* selectRegionToolButton(new QToolButton());
@@ -622,7 +622,47 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
         }
     }
     
+    updateRegionSelectionAction();
+    
     blockAllSignals(false);
+}
+
+void
+BrainBrowserWindowToolBarOrientation::updateRegionSelectionAction()
+{
+    if (m_browserTabContent != NULL) {
+        const std::vector<MouseLeftDragModeEnum::Enum> mouseDragModes(m_browserTabContent->getSupportedMouseLeftDragModes());
+        bool enableSelectRegionFlag(false);
+        for (const auto mdm : mouseDragModes) {
+            switch (mdm) {
+                case MouseLeftDragModeEnum::INVALID:
+                    CaretAssert(0);
+                    break;
+                case MouseLeftDragModeEnum::DEFAULT:
+                    break;
+                case MouseLeftDragModeEnum::REGION_SELECTION:
+                    enableSelectRegionFlag = true;
+                    break;
+            }
+        }
+        m_selectRegionAction->setEnabled(enableSelectRegionFlag);
+        
+        switch (m_browserTabContent->getMouseLeftDragMode()) {
+            case MouseLeftDragModeEnum::INVALID:
+                CaretAssert(0);
+                break;
+            case MouseLeftDragModeEnum::DEFAULT:
+                m_selectRegionAction->setChecked(false);
+                break;
+            case MouseLeftDragModeEnum::REGION_SELECTION:
+                m_selectRegionAction->setChecked(true);
+                break;
+        }
+    }
+    else {
+        m_selectRegionAction->setEnabled(false);
+    }
+    
 }
 
 /**
@@ -780,11 +820,21 @@ BrainBrowserWindowToolBarOrientation::undoActionTriggered()
 
 /**
  * Gets called when the select region action is triggered
+ * @param checked
+ *    New checked status
  */
 void
-BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered()
+BrainBrowserWindowToolBarOrientation::selectRegionActionTriggered(const bool checked)
 {
-    
+    if (m_browserTabContent != NULL) {
+        if (checked) {
+            m_browserTabContent->setMouseLeftDragMode(MouseLeftDragModeEnum::REGION_SELECTION);
+        }
+        else {
+            m_browserTabContent->setMouseLeftDragMode(MouseLeftDragModeEnum::DEFAULT);
+        }
+    }
+    updateRegionSelectionAction();
 }
 
 /**

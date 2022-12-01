@@ -62,6 +62,7 @@ namespace caret {
     class FastStatistics;
     class DisplayPropertiesFiberOrientation;
     class FiberOrientation;
+    class GraphicsRegionSelectionBox;
     class SelectionItem;
     class SelectionManager;
     class HistologySlice;
@@ -118,6 +119,9 @@ namespace caret {
                                                  const int32_t numberOfSubViewports,
                                                  int32_t& subViewportSizeOut,
                                                  int32_t& gapOut);
+        
+        static void drawGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox* graphicsRegionSelectionBox,
+                                                   const float rgba[4]);
         
     protected:
         void drawModelsImplementation(const int32_t windowIndex,

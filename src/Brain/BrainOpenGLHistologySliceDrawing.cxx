@@ -334,7 +334,9 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
                     orthoHeight,
                     viewport[3]);
     
-    drawSelectionBox();
+    BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                             m_fixedPipelineDrawing->m_foregroundColorFloat);
+
     
     /*
      * Draw yellow cross at center of viewport
@@ -342,28 +344,6 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     if (SessionManager::get()->getCaretPreferences()->isCrossAtViewportCenterEnabled()) {
         GraphicsShape::drawYellowCrossAtViewportCenter();
     }
-//    {
-//        glPushMatrix();
-//        glLoadIdentity();
-//        
-//        /*
-//         * Draw small yellow crosshairs across center of viewport
-//         */
-//        GraphicsShape::drawYellowCrossAtViewportCenter();
-//        const float xCenter(0.0); //(orthoLeft + orthoRight) / 2.0);
-//        const float yCenter(0.0); //(orthoBottom + orthoTop) / 2.0);
-//        const float length(300);
-//        glColor3f(1.0, 1.0, 0.0);
-//        glLineWidth(1.0);
-//        glBegin(GL_LINES);
-//        glVertex2f(xCenter - length, yCenter);
-//        glVertex2f(xCenter + length, yCenter);
-//        glVertex2f(xCenter, yCenter - length);
-//        glVertex2f(xCenter, yCenter + length);
-//        glEnd();
-//        
-//        glPopMatrix();
-//    }
     
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At end of BrainOpenGLHistologySliceDrawing::draw()");
 }
@@ -569,41 +549,6 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     }
     
     glPopAttrib();
-}
-
-/**
- * Draw the selection box
- */
-void
-BrainOpenGLHistologySliceDrawing::drawSelectionBox()
-{
-    const GraphicsRegionSelectionBox* selectionBox = m_browserTabContent->getMediaRegionSelectionBox();
-
-    switch (selectionBox->getStatus()) {
-        case GraphicsRegionSelectionBox::Status::INVALID:
-            break;
-        case GraphicsRegionSelectionBox::Status::VALID:
-        {
-            float minX, maxX, minY, maxY;
-            if (selectionBox->getBounds(minX, minY, maxX, maxY)) {
-                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
-                                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
-
-                const float z(0.0f);
-                primitive->addVertex(minX, minY, z);
-                primitive->addVertex(maxX, minY, z);
-                primitive->addVertex(maxX, maxY, z);
-                primitive->addVertex(minX, maxY, z);
-                
-                const float lineWidthPercentage(0.5);
-                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                        lineWidthPercentage);
-                
-                GraphicsEngineDataOpenGL::draw(primitive.get());
-            }
-        }
-            break;
-    }
 }
 
 /**

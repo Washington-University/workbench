@@ -38,6 +38,7 @@
 #include "MediaDisplayCoordinateModeEnum.h"
 #include "Model.h"
 #include "ModelTypeEnum.h"
+#include "MouseLeftDragModeEnum.h"
 #include "Plane.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
@@ -653,10 +654,16 @@ namespace caret {
         
         int32_t getClosedTabWindowIndex() const;
         
-        GraphicsRegionSelectionBox* getMediaRegionSelectionBox();
+        GraphicsRegionSelectionBox* getRegionSelectionBox();
 
-        const GraphicsRegionSelectionBox* getMediaRegionSelectionBox() const;
+        const GraphicsRegionSelectionBox* getRegionSelectionBox() const;
         
+        std::vector<MouseLeftDragModeEnum::Enum> getSupportedMouseLeftDragModes() const;
+        
+        MouseLeftDragModeEnum::Enum getMouseLeftDragMode() const;
+        
+        void setMouseLeftDragMode(const MouseLeftDragModeEnum::Enum mouseLeftDragMode);
+
     private:
         class ColorBarFileMap {
         public:
@@ -884,8 +891,11 @@ namespace caret {
         /** Index of window before tab was closed */
         int32_t m_closedWindowIndex = -1;
         
-        /** Selection box for meda NOT copied when tab cloned*/
-        std::unique_ptr<GraphicsRegionSelectionBox> m_mediaRegionSelectionBox;
+        /** Selection box NOT copied when tab cloned*/
+        std::unique_ptr<GraphicsRegionSelectionBox> m_regionSelectionBox;
+        
+        /** Not saved to scenes nor copied when tab copied/yoked*/
+        mutable MouseLeftDragModeEnum::Enum m_mouseLeftDragMode = MouseLeftDragModeEnum::INVALID;
         
         /**
          * NEVER access this directly as it may contain tabs that are closed but available for reopening.

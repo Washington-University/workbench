@@ -77,8 +77,6 @@ namespace caret {
                              const int32_t tabIndex,
                              const float viewportHeight);
         
-        void drawSelectionBox();
-        
         void processMediaFileSelection(const int32_t tabIndex,
                                        const int32_t overlayIndex,
                                        MediaFile* mediaFile,

@@ -71,8 +71,6 @@ namespace caret {
                              const float orthoHeight,
                              const float viewportHeight);
         
-        void drawSelectionBox();
-        
         void processMediaFileSelection(const int32_t tabIndex,
                                        const MediaOverlay::SelectionData& selectionData,
                                        GraphicsPrimitiveV3fT2f* primitive);

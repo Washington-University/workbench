@@ -121,6 +121,8 @@ namespace caret {
                                            ChartTwoOverlay* chartOverlay,
                                            const int32_t pointIndex);
         
+        void updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent);
+        
         const int32_t m_browserWindowIndex;
         
         float m_mediaLeftDragWithCtrlModelXYZ[3];

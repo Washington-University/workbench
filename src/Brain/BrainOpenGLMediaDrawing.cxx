@@ -267,7 +267,8 @@ BrainOpenGLMediaDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                     browserTabContent->getTabNumber(),
                     viewport[3]);
     
-    drawSelectionBox();
+    BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                             m_fixedPipelineDrawing->m_foregroundColorFloat);
 }
 
 /**
@@ -431,41 +432,6 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
         }
         
         glPopMatrix();
-    }
-}
-
-/**
- * Draw the selection box
- */
-void
-BrainOpenGLMediaDrawing::drawSelectionBox()
-{
-    const GraphicsRegionSelectionBox* selectionBox = m_browserTabContent->getMediaRegionSelectionBox();
-
-    switch (selectionBox->getStatus()) {
-        case GraphicsRegionSelectionBox::Status::INVALID:
-            break;
-        case GraphicsRegionSelectionBox::Status::VALID:
-        {
-            float minX, maxX, minY, maxY;
-            if (selectionBox->getBounds(minX, minY, maxX, maxY)) {
-                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
-                                                                                                   m_fixedPipelineDrawing->m_foregroundColorFloat));
-
-                const float z(0.0f);
-                primitive->addVertex(minX, minY, z);
-                primitive->addVertex(maxX, minY, z);
-                primitive->addVertex(maxX, maxY, z);
-                primitive->addVertex(minX, maxY, z);
-                
-                const float lineWidthPercentage(0.5);
-                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                        lineWidthPercentage);
-                
-                GraphicsEngineDataOpenGL::draw(primitive.get());
-            }
-        }
-            break;
     }
 }
 

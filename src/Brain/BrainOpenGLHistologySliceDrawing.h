@@ -74,8 +74,6 @@ namespace caret {
                              const float orthoHeight,
                              const float viewportHeight);
         
-        void drawSelectionBox();
-        
         void processSelection(const int32_t tabIndex,
                               const HistologyOverlay::DrawingData& drawingData,
                               GraphicsPrimitiveV3fT2f* primitive);

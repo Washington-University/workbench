@@ -350,6 +350,20 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         return;
     }
 
+    switch (browserTabContent->getMouseLeftDragMode()) {
+        case MouseLeftDragModeEnum::INVALID:
+            CaretAssert(0);
+            return;
+            break;
+        case MouseLeftDragModeEnum::DEFAULT:
+            /* handled below */
+            break;
+        case MouseLeftDragModeEnum::REGION_SELECTION:
+            updateGraphicsRegionSelectionBox(mouseEvent);
+            return;
+            break;
+    }
+    
     bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
     if (browserTabContent->isVolumeSlicesDisplayed()) {
@@ -437,9 +451,51 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isHistologyDisplayed()) {
-        bool modelXyzValidFlag(false);
-        double modelXYZ[3];
-        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        /* Nothing, selection box handled at beginning of function */
+    }
+    else if (browserTabContent->isMediaDisplayed()) {
+        /* Nothing, selection box handled at beginning of function */
+    }
+    else if (allowRotationFlag) {
+        browserTabContent->applyMouseRotation(viewportContent,
+                                              mouseEvent.getPressedX(),
+                                              mouseEvent.getPressedY(),
+                                              mouseEvent.getX(),
+                                              mouseEvent.getY(),
+                                              mouseEvent.getDx(),
+                                              mouseEvent.getDy());
+    }
+    
+    /*
+     * Update graphics.
+     */
+    updateGraphics(mouseEvent);
+}
+
+/**
+ * Update the graphics region selection box
+ */
+void
+UserInputModeView::updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    CaretAssert(openGLWidget);
+
+
+    bool modelXyzValidFlag(false);
+    double modelXYZ[3];
+
+    if (browserTabContent->isHistologyDisplayed()) {
         {
             SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(mouseEvent.getX(),
                                                                                                                         mouseEvent.getY());
@@ -455,25 +511,8 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
         }
-
-        if (modelXyzValidFlag) {
-            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
-            CaretAssert(box);
-            
-            if (mouseEvent.isFirstDragging()) {
-                box->initialize(modelXYZ[0],
-                                modelXYZ[1]);
-            }
-            else {
-                box->update(modelXYZ[0],
-                            modelXYZ[1]);
-            }
-        }
     }
     else if (browserTabContent->isMediaDisplayed()) {
-        bool modelXyzValidFlag(false);
-        double modelXYZ[3];
-        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         switch (browserTabContent->getMediaDisplayCoordinateMode()) {
             case MediaDisplayCoordinateModeEnum::PIXEL:
             {
@@ -501,35 +540,23 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
                 break;
         }
+    }
 
-        if (modelXyzValidFlag) {
-            GraphicsRegionSelectionBox* box = browserTabContent->getMediaRegionSelectionBox();
-            CaretAssert(box);
-            
-            if (mouseEvent.isFirstDragging()) {
-                box->initialize(modelXYZ[0],
-                                modelXYZ[1]);
-            }
-            else {
-                box->update(modelXYZ[0],
+    
+    if (modelXyzValidFlag) {
+        GraphicsRegionSelectionBox* box = browserTabContent->getRegionSelectionBox();
+        CaretAssert(box);
+        
+        if (mouseEvent.isFirstDragging()) {
+            box->initialize(modelXYZ[0],
                             modelXYZ[1]);
-            }
+        }
+        else {
+            box->update(modelXYZ[0],
+                        modelXYZ[1]);
         }
     }
-    else if (allowRotationFlag) {
-        browserTabContent->applyMouseRotation(viewportContent,
-                                              mouseEvent.getPressedX(),
-                                              mouseEvent.getPressedY(),
-                                              mouseEvent.getX(),
-                                              mouseEvent.getY(),
-                                              mouseEvent.getDx(),
-                                              mouseEvent.getDy());
-    }
-    
-    /*
-     * Update graphics.
-     */
-    updateGraphics(mouseEvent);
+
 }
 
 /**
@@ -736,7 +763,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isHistologyDisplayed()) {
-        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
+        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getRegionSelectionBox();
         CaretAssert(selectionBox);
         
         const GraphicsObjectToWindowTransform* transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
@@ -795,7 +822,7 @@ UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     else if (browserTabContent->isMediaDisplayed()) {
-        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getMediaRegionSelectionBox();
+        GraphicsRegionSelectionBox* selectionBox = browserTabContent->getRegionSelectionBox();
         CaretAssert(selectionBox);
                 
         switch (selectionBox->getStatus()) {

@@ -196,6 +196,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_manualLayoutBrowserTabAnnotation.reset(new AnnotationBrowserTab(AnnotationAttributesDefaultTypeEnum::NORMAL));
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
                                                              m_tabNumber);
+    m_mouseLeftDragMode = MouseLeftDragModeEnum::INVALID;
     
     m_sceneClassAssistant = new SceneClassAssistant();
     m_sceneClassAssistant->add("m_tabNumber", 
@@ -308,7 +309,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     /*
      * Media selection box is NOT saved to scenes NOR copie
      */
-    m_mediaRegionSelectionBox.reset(new GraphicsRegionSelectionBox());
+    m_regionSelectionBox.reset(new GraphicsRegionSelectionBox());
     
     /*
      * Need to be done from here
@@ -475,6 +476,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
                                       minXY + tabWidth,
                                       minXY,
                                       minXY + tabHeight);
+    
+    setMouseLeftDragMode(MouseLeftDragModeEnum::INVALID);
 }
 
 /**
@@ -719,6 +722,7 @@ void
 BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 {
     m_selectedModelType = selectedModelType;
+    setMouseLeftDragMode(MouseLeftDragModeEnum::INVALID);
 }
 
 /**
@@ -1567,6 +1571,8 @@ BrowserTabContent::update(const std::vector<Model*> models)
         else if (m_mediaModel != NULL) {
             m_selectedModelType = ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA;
         }
+        
+        setMouseLeftDragMode(MouseLeftDragModeEnum::INVALID);
     }
     
     if (m_volumeModel != NULL) {
@@ -7232,231 +7238,6 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
     }
 }
 
-
-///**
-// * Pan and zoom yoked volume slices to approximate center and height
-// * @param windowContent
-// *    Content of window including all tabs
-// * @param viewportContent
-// *    Content of viewport containing this tab
-// * @param histologySlice
-// *    The underlay histology slice
-// * @param regionStereotaxicCenterXYZ
-// *    Center of region
-// * @param stereotaxicWidth
-// *    Width of region
-// * @param stereotaxicHeight
-// *    Height of region
-// */
-//void
-//BrowserTabContent::panZoomYokedVolumeSlices(const BrainOpenGLWindowContent* windowContent,
-//                                            const BrainOpenGLViewportContent* viewportContent,
-//                                            const HistologySlice* histologySlice,
-//                                            const Vector3D& regionStereotaxicCenterXYZ,
-//                                            const float regionStereotaxicWidth,
-//                                            const float regionStereotaxicHeight)
-//{
-//    CaretAssert(windowContent);
-//    CaretAssert(viewportContent);
-//
-//    std::cout << "RegionStereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
-//    std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
-//    std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
-//
-//    if (isExecutingConstructor) {
-//        return;
-//    }
-//
-//    if (m_brainModelYokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
-//        return;
-//    }
-//
-//    if (m_histologyModel == NULL) {
-//        return;
-//    }
-//
-//    if ((regionStereotaxicWidth <= 0.0)
-//        || (regionStereotaxicHeight <= 0.0)) {
-//        return;
-//    }
-//
-//    if (histologySlice == NULL) {
-//        return;
-//    }
-//
-////    BoundingBox sliceStereotaxicBounds(histologySlice->getStereotaxicXyzBoundingBox());
-////    float sliceStereotaxicHeight(std::max(sliceStereotaxicBounds.getDifferenceY(),
-////                                          sliceStereotaxicBounds.getDifferenceZ()));
-////    if (sliceStereotaxicHeight <= 0.0) {
-////        return;
-////    }
-//
-//    if (m_volumeModel == NULL) {
-//        return;
-//    }
-//
-//    OverlaySet* volumeOverlaySet(m_volumeModel->getOverlaySet(m_tabNumber));
-//    CaretAssert(volumeOverlaySet);
-//    const VolumeMappableInterface* underlayVolume(volumeOverlaySet->getUnderlayVolume());
-//    CaretAssert(underlayVolume);
-//    BoundingBox volumeBoundingBox;
-//    underlayVolume->getVoxelSpaceBoundingBox(volumeBoundingBox);
-//    if ( ! volumeBoundingBox.isValid()) {
-//        return;
-//    }
-//
-//    /*
-//     * Mid-point is stereotaxic coordinate at the "mid-point" of the volume
-//     * The origin (0, 0, 0)  is typically at the anterior commissure that is
-//     * anterior to the mid-point
-//     */
-//    const Vector3D volumeMidPointXYZ(volumeBoundingBox.getCenterX(),
-//                                     volumeBoundingBox.getCenterY(),
-//                                     volumeBoundingBox.getCenterZ());
-//    std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
-//    std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
-//    << volumeBoundingBox.getDifferenceY() << ", " << volumeBoundingBox.getDifferenceZ() << std::endl;
-//
-//    int32_t viewport[4];
-//    viewportContent->getModelViewport(viewport);
-//
-////    /*
-////     * Move the volume so that the region center is at the
-////     * center of the screen
-////     */
-////    Vector3D panXYZ(-regionStereotaxicCenterXYZ[0],
-////                    -regionStereotaxicCenterXYZ[1],
-////                    -regionStereotaxicCenterXYZ[2]);
-//
-//    /*
-//     * The volume origin (0, 0, 0) is typically not at the
-//     * center of the screen so we need to translate to
-//     * account for this offset
-//     */
-////    panXYZ += volumeMidPointXYZ;
-//
-//    /*
-//     * Get width / height of slice as viewed
-//     */
-//    float volumeSliceWidth(1.0);
-//    float volumeSliceHeight(1.0);
-////    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(getVolumeSliceViewPlane());
-////    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-////        sliceViewPlane = VolumeSliceViewPlaneEnum::CORONAL;
-////    }
-////    switch (sliceViewPlane) {
-////        case VolumeSliceViewPlaneEnum::ALL:
-////            CaretAssert(0);
-////            break;
-////        case VolumeSliceViewPlaneEnum::AXIAL:
-////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
-////            volumeSliceHeight = volumeBoundingBox.getDifferenceY();
-////            break;
-////        case VolumeSliceViewPlaneEnum::CORONAL:
-////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
-////            volumeSliceHeight = volumeBoundingBox.getDifferenceZ();
-////            break;
-////        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-////            volumeSliceWidth  = volumeBoundingBox.getDifferenceX();
-////            volumeSliceHeight = volumeBoundingBox.getDifferenceZ();
-////            break;
-////    }
-////    volumeSliceWidth  = std::fabs(volumeSliceWidth);
-////    volumeSliceHeight = std::fabs(volumeSliceHeight);
-//
-//    /*
-//     * Need to get width of how ortho viewport is set inside of volume drawing.
-//     * CANNOT use viewport from viewportContent since it is for THIS TAB that
-//     * contains histology slice
-//     */
-//    CaretAssertToDoWarning();
-//    volumeSliceWidth  = 80.0;
-//    volumeSliceHeight = 80.0;
-//
-//    bool doZoomFlag(false);
-//    switch (getVolumeSliceProjectionType()) {
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-//            doZoomFlag = true;
-//            break;
-//        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-//            doZoomFlag = true;
-//        {
-//         }
-////            switch (getVolumeSliceViewPlane()) {
-////                case VolumeSliceViewPlaneEnum::ALL:
-////                    break;
-////                case VolumeSliceViewPlaneEnum::AXIAL:
-////                    panXYZ[2] = 0.0;
-////                    break;
-////                case VolumeSliceViewPlaneEnum::CORONAL:
-////                    panXYZ[1] = 0.0;
-////                    break;
-////                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-////                    panXYZ[0] = 0.0;
-////                    break;
-////            }
-//            break;
-//    }
-//
-//    std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
-//
-//    float zoom(1.0);
-//    if (doZoomFlag) {
-//        if (volumeSliceHeight > 0.0) {
-//            const float zoomHorizontal = volumeSliceWidth / regionStereotaxicWidth;
-//            const float zoomVertical   = volumeSliceHeight / regionStereotaxicHeight;
-//            zoom = std::min(zoomHorizontal,
-//                            zoomVertical);
-//            std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
-//            std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
-//        }
-//    }
-//
-//    std::cout << "   Zoom: " << zoom << std::endl;
-//
-//    /*
-//     * Need to offset by mid-point
-//     * AND need to shift to the region's center
-//     * Zoom about the new center point
-//     */
-//    const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
-//    Matrix4x4 matrix;
-//    matrix.translate(translate);
-//    matrix.scale(zoom, zoom, zoom);
-//    matrix.translate(-translate);
-//
-//    /*
-//     * Get translation and zooming from matrix and apply it to view transform
-//     */
-//    Vector3D t;
-//    matrix.getTranslation(t);
-//    double sx, sy, sz;
-//    matrix.getScale(sx, sy, sz);
-//    std::cout << "   Trans: " << t.toString(5) << std::endl;
-//    std::cout << "   Scale: " << sx << std::endl;
-//
-//    m_volumeSliceViewingTransformation->resetView();
-//    m_volumeSliceViewingTransformation->setRotationMatrix(Matrix4x4());
-//    m_volumeSliceViewingTransformation->setFlatRotationMatrix(Matrix4x4());
-//    m_volumeSliceViewingTransformation->setTranslation(t);
-//    m_volumeSliceViewingTransformation->setScaling(sx);
-//
-//
-//    /*
-//     * Copy yoked data from 'me' to all other yoked browser tabs
-//     */
-//    std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
-//    for (auto btc : activeTabs) {
-//        if (btc != this) {
-//            if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
-//                *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
-//            }
-//        }
-//    }
-//}
-
 /**
  * Get pan and zoom yoked volume slices to approximate center and size matching histology slice
  * @param allViewportContent
@@ -8045,17 +7826,128 @@ BrowserTabContent::getOpenBrowserTabs()
  * @return Media selection box
  */
 GraphicsRegionSelectionBox*
-BrowserTabContent::getMediaRegionSelectionBox()
+BrowserTabContent::getRegionSelectionBox()
 {
-    return m_mediaRegionSelectionBox.get();
+    return m_regionSelectionBox.get();
 }
 
 /**
  * @return Media selection box (const method)
  */
 const GraphicsRegionSelectionBox*
-BrowserTabContent::getMediaRegionSelectionBox() const
+BrowserTabContent::getRegionSelectionBox() const
 {
-    return m_mediaRegionSelectionBox.get();
+    return m_regionSelectionBox.get();
 }
 
+/**
+ * @return Modes supported for left drag with mouse for current model
+ */
+std::vector<MouseLeftDragModeEnum::Enum>
+BrowserTabContent::getSupportedMouseLeftDragModes() const
+{
+    std::vector<MouseLeftDragModeEnum::Enum> leftDragModes;
+    
+    bool allowsRegionSelectionFlag(false);
+    switch (getSelectedModelType()) {
+        case ModelTypeEnum::MODEL_TYPE_CHART:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            allowsRegionSelectionFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+            allowsRegionSelectionFlag = true;
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            break;
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            switch (getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    allowsRegionSelectionFlag = true;
+                    break;
+            }
+            break;
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            break;
+    }
+    
+    leftDragModes.push_back(MouseLeftDragModeEnum::DEFAULT);
+    if (allowsRegionSelectionFlag) {
+        leftDragModes.push_back(MouseLeftDragModeEnum::REGION_SELECTION);
+    }
+    
+    return leftDragModes;
+}
+
+/**
+ * @return The mode for a mouse left drag
+ */
+MouseLeftDragModeEnum::Enum
+BrowserTabContent::getMouseLeftDragMode() const
+{
+    /*
+     * Verify that left drag mode type is still valid.  Not all
+     * models support all drag modes.
+     */
+    std::vector<MouseLeftDragModeEnum::Enum> allModes(getSupportedMouseLeftDragModes());
+    if (std::find(allModes.begin(),
+                  allModes.end(),
+                  m_mouseLeftDragMode) == allModes.end()) {
+        /*
+         * Current mode is invalid (model may have changed)
+         * Use first mode, typically the default mode.
+         * Some models may prefer a different mode.
+         */
+        if ( ! allModes.empty()) {
+            m_mouseLeftDragMode = allModes.front();
+        }
+        switch (getSelectedModelType()) {
+            case ModelTypeEnum::MODEL_TYPE_CHART:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+                m_mouseLeftDragMode = MouseLeftDragModeEnum::REGION_SELECTION;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_INVALID:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
+                m_mouseLeftDragMode = MouseLeftDragModeEnum::REGION_SELECTION;
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+                break;
+            case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                 break;
+            case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                break;
+        }
+        
+        CaretAssert(std::find(allModes.begin(),
+                              allModes.end(),
+                              m_mouseLeftDragMode) != allModes.end());
+    }
+    return m_mouseLeftDragMode;
+}
+
+/**
+ * Set the mode for a left mouse drag
+ * @param mouseLeftDragMode
+ *    New mode
+ */
+void
+BrowserTabContent::setMouseLeftDragMode(const MouseLeftDragModeEnum::Enum mouseLeftDragMode)
+{
+    m_mouseLeftDragMode = mouseLeftDragMode;
+}

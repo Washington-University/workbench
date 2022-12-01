@@ -117,6 +117,7 @@
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fN3fC4f.h"
+#include "GraphicsRegionSelectionBox.h"
 #include "GraphicsShape.h"
 #include "GraphicsViewport.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -9078,6 +9079,44 @@ BrainOpenGLFixedPipeline::setupBlending(const BlendDataType blendDataType)
          */
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+}
+
+/**
+ * Draw the graphics region selection box in the given color if box is valid.
+ * @param graphicsRegionSelectionBox,
+ *    The selection box.
+ * @param rgba
+ *    Color for drawing boxl
+ */
+void
+BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(const GraphicsRegionSelectionBox* graphicsRegionSelectionBox,
+                                                         const float rgba[4])
+{
+    switch (graphicsRegionSelectionBox->getStatus()) {
+        case GraphicsRegionSelectionBox::Status::INVALID:
+            break;
+        case GraphicsRegionSelectionBox::Status::VALID:
+        {
+            float minX, maxX, minY, maxY;
+            if (graphicsRegionSelectionBox->getBounds(minX, minY, maxX, maxY)) {
+                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                                                   rgba));
+                
+                const float z(0.0f);
+                primitive->addVertex(minX, minY, z);
+                primitive->addVertex(maxX, minY, z);
+                primitive->addVertex(maxX, maxY, z);
+                primitive->addVertex(minX, maxY, z);
+                
+                const float lineWidthPercentage(0.5);
+                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                        lineWidthPercentage);
+                
+                GraphicsEngineDataOpenGL::draw(primitive.get());
+            }
+        }
+            break;
     }
 }
 
