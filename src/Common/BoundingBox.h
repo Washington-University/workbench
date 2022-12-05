@@ -51,6 +51,8 @@ public:
     
     bool isValid2D() const;
     
+    bool isValidTwoAxis() const;
+    
     void resetZeros();
 
     void resetWithMaximumExtent();

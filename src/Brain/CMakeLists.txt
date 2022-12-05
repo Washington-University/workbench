@@ -219,6 +219,7 @@ SurfaceNodeColoring.h
 SurfaceSelectionModel.h
 TabContentBase.h
 UserInputModeEnum.h
+ViewingTransformationToFitRegion.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
 ViewingTransformationsMedia.h
@@ -426,6 +427,7 @@ SurfaceNodeColoring.cxx
 SurfaceSelectionModel.cxx
 TabContentBase.cxx
 UserInputModeEnum.cxx
+ViewingTransformationToFitRegion.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
 ViewingTransformationsMedia.cxx

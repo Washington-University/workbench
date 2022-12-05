@@ -117,7 +117,10 @@ GraphicsRegionSelectionBox::toString() const
             statusName = "Valid";
             break;
     }
-    return QString("x1=%1, x2=%2, y1=%3, y2=%4, z1=%5, z2=%6, valid=%7").arg(m_x1).arg(m_x2).arg(m_y1).arg(m_y2).arg(m_z1).arg(m_z2).arg(statusName);
+    
+    QString s1(QString("x1=%1, x2=%2, y1=%3, y2=%4, z1=%5, z2=%6\n").arg(m_x1).arg(m_x2).arg(m_y1).arg(m_y2).arg(m_z1).arg(m_z2));
+    QString s2(QString("vpX1=%1, vpX2=%2, vpY1=%3, vpY2=%4, valid=%5").arg(m_vpX1).arg(m_vpX2).arg(m_vpY1).arg(m_vpY2).arg(statusName));
+    return (s1 + s2);
 }
 
 /**
@@ -199,6 +202,43 @@ void
 GraphicsRegionSelectionBox::setStatus(const Status status)
 {
     m_status = status;
+}
+
+/**
+ * @return bounds of region in a bounding box
+ */
+BoundingBox
+GraphicsRegionSelectionBox::getBounds() const
+{
+    BoundingBox box;
+    
+    float minX, minY, minZ, maxX, maxY, maxZ;
+    if (getBounds(minX, minY, minZ, maxX, maxY, maxZ)) {
+        box.set(minX, maxX, minY, maxY, minZ, maxZ);
+    }
+    
+    return box;
+}
+
+/**
+ * Get the box's bounds
+ * @param minXYZ
+ *    The minimum x/y/z-coordinate
+ * @param maxXYZ
+ *    The maximum x/y/z-coordinate
+ * @return True if the status is valid AND the min and max are NOT coincident (same values)
+ */
+bool
+GraphicsRegionSelectionBox::getBounds(Vector3D& minXYZ,
+                                      Vector3D& maxXYZ) const
+{
+    float minX, minY, minZ, maxX, maxY, maxZ;
+    if (getBounds(minX, minY, minZ, maxX, maxY, maxZ)) {
+        minXYZ.set(minX, minY, minZ);
+        maxXYZ.set(maxX, maxY, maxZ);
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -290,6 +330,23 @@ GraphicsRegionSelectionBox::getViewportBounds(float& vpMinX,
     return isValidViewportCoords();
 }
 
+/**
+ * @return The region of the viewport that was selected.
+ */
+GraphicsViewport
+GraphicsRegionSelectionBox::getViewport() const
+{
+    float vpMinX(0.0), vpMaxX(0.0), vpMinY(0.0), vpMaxY(0.0);
+    if (getViewportBounds(vpMinX, vpMinY, vpMaxX, vpMaxY)) {
+        GraphicsViewport vp(static_cast<int32_t>(vpMinX),
+                            static_cast<int32_t>(vpMinY),
+                            static_cast<int32_t>(vpMaxX - vpMinX),
+                            static_cast<int32_t>(vpMaxY - vpMinY));
+        return vp;
+
+    }
+    return GraphicsViewport(0, 0, 0, 0);
+}
 
 /**
  * Get the box's center.

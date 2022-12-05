@@ -23,7 +23,15 @@
 #include "ViewingTransformationsVolume.h"
 #undef __VIEWING_TRANSFORMATIONS_VOLUME_DECLARE__
 
+#include "BrowserTabContent.h"
+#include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLVolumeSliceDrawing.h"
 #include "CaretAssert.h"
+#include "GraphicsRegionSelectionBox.h"
+#include "OverlaySet.h"
+#include "ViewingTransformationToFitRegion.h"
+#include "VolumeMappableInterface.h"
+
 using namespace caret;
 
 /**
@@ -101,19 +109,59 @@ ViewingTransformationsVolume::resetView()
 
 /**
  * Set the view of the orthogonal volume to the given bounds
- * @param transform
- *    The object to window transform
- * @param selectionBounds
+ * @param viewportContent
+ *    The content of the viewport
+ * @param selectionRegion
  *    The selection bounds
  * @param browserTabContent
  *    The content of the browser tab
  */
 bool
-ViewingTransformationsVolume::setOrthogonalViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                                        const GraphicsRegionSelectionBox* selectionBounds,
+ViewingTransformationsVolume::setOrthogonalViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                                        const GraphicsRegionSelectionBox* selectionRegion,
                                                         const BrowserTabContent* browserTabContent)
 {
-    std::cout << "setOrthogonalViewToBounds called" << std::endl;
-    return false;
+    const bool testFlag(false);
+    if (testFlag) {
+        const float x1=3.9, x2=74.6, y1=-17.5, y2=83.3, z1=0.0999985, z2=0.0999985;
+        const float vpX1=520, vpX2=638, vpY1=352, vpY2=184;
+        GraphicsRegionSelectionBox box;
+        box.initialize(x1, y1, z1, vpX1, vpY1);
+        box.update(x2, y2, z2, vpX2, vpY2);
+        
+        Vector3D translation;
+        float zoom(0.0);
+        ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
+                                                              &box,
+                                                              browserTabContent);
+        if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                            translation,
+                                                            zoom)) {
+            return false;
+        }
+        
+        resetView();
+        setTranslation(translation);
+        setScaling(zoom);
+
+        return true;
+    }
+    
+    
+    Vector3D translation;
+    float zoom(0.0);
+    ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
+                                                          selectionRegion,
+                                                          browserTabContent);
+    if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                        translation,
+                                                        zoom)) {
+        return false;
+    }
+    
+    resetView();
+    setTranslation(translation);
+    setScaling(zoom);
+    return true;
 }
 

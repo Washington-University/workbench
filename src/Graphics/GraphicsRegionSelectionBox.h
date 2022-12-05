@@ -24,7 +24,10 @@
 
 #include <memory>
 
+#include "BoundingBox.h"
 #include "CaretObject.h"
+#include "GraphicsViewport.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -67,11 +70,16 @@ namespace caret {
         
         float getHeight() const;
         
+        BoundingBox getBounds() const;
+        
+        bool getBounds(Vector3D& minXYZ,
+                       Vector3D& maxXYZ) const;
+        
         bool getBounds(float& minX,
                        float& minY,
+                       float& minZ,
                        float& maxX,
                        float& maxY,
-                       float& minZ,
                        float& maxZ) const;
         
         bool getViewportBounds(float& vpMinX,
@@ -79,6 +87,8 @@ namespace caret {
                                float& vpMaxX,
                                float& vpMaxY) const;
 
+        GraphicsViewport getViewport() const;
+        
         void initialize(const float x,
                         const float y,
                         const float z,

@@ -138,6 +138,19 @@ BoundingBox::isValid2D() const
 }
 
 /**
+ * @return True if the bounding box is valid for at least two axes
+ */
+bool
+BoundingBox::isValidTwoAxis() const
+{
+    int32_t validCount(0);
+    if (getMinX() < getMaxX()) ++validCount;
+    if (getMinY() < getMaxY()) ++validCount;
+    if (getMinZ() < getMaxZ()) ++validCount;
+    return (validCount >= 2);
+}
+
+/**
  * Reset a new bounding box with the minimum and maximum values
  * all set to zero.
  */
@@ -206,10 +219,6 @@ BoundingBox::set(const float minX,
                  const float minZ,
                  const float maxZ)
 {
-//    CaretAssert(minX <= maxX);
-//    CaretAssert(minY <= maxY);
-//    CaretAssert(minZ <= maxZ);
-    
     this->boundingBox[0] = minX;
     this->boundingBox[1] = maxX;
     this->boundingBox[2] = minY;

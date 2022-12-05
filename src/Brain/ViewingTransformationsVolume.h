@@ -27,6 +27,7 @@
 
 
 namespace caret {
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsRegionSelectionBox;
 
@@ -41,8 +42,8 @@ namespace caret {
 
         ViewingTransformationsVolume& operator=(const ViewingTransformationsVolume& obj);
         
-        bool setOrthogonalViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                       const GraphicsRegionSelectionBox* selectionBounds,
+        bool setOrthogonalViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                       const GraphicsRegionSelectionBox* selectionRegion,
                                        const BrowserTabContent* browserTabContent);
 
         virtual void resetView();

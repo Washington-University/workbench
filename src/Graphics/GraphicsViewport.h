@@ -36,6 +36,8 @@ namespace caret {
     public:
         static GraphicsViewport newInstanceCurrentViewport();
         
+        GraphicsViewport();
+        
         GraphicsViewport(const int32_t viewport[4]);
         
         GraphicsViewport(const std::array<int32_t, 4>& viewport);
@@ -126,8 +128,6 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        GraphicsViewport();
-        
         void copyHelperGraphicsViewport(const GraphicsViewport& obj);
 
         std::array<int32_t, 4> m_viewport;

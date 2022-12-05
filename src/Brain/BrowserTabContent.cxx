@@ -4396,7 +4396,7 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(xform,
+                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(viewportContent,
                                                                               selectionBounds,
                                                                               this);
                 break;
