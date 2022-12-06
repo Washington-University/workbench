@@ -874,6 +874,35 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                                                                                             slicePlane,
                                                                                             doubleSliceThickness);
         
+        bool drawSelectionBoxFlag(false);
+        switch (sliceDrawingType) {
+            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                break;
+            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                drawSelectionBoxFlag = true;
+                break;
+        }
+        if (drawSelectionBoxFlag) {
+            GraphicsRegionSelectionBox::DrawMode drawMode(GraphicsRegionSelectionBox::DrawMode::Z_PLANE);
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    drawMode = GraphicsRegionSelectionBox::DrawMode::Z_PLANE;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    drawMode = GraphicsRegionSelectionBox::DrawMode::Y_PLANE;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    drawMode = GraphicsRegionSelectionBox::DrawMode::X_PLANE;
+                    break;
+            }
+            BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                                     drawMode,
+                                                                     m_fixedPipelineDrawing->m_foregroundColorFloat);
+        }
+        
         glPopMatrix();
     }
 
@@ -1817,13 +1846,22 @@ BrainOpenGLVolumeMprTwoDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum::E
 }
 
 /**
- * Set the orthographic projection.
+ * Get the orthographic projection.
  *
+ * @param boundingBox
+ *    Bounding box for all volume.
+ * @param zoomFactor
+ *    Zooming
  * @param viewport
  *    The viewport.
+ * @param orthographicBoundsOut
+ *    Output containing the orthographic bounds used for orthographic projection.
  */
 void
-BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport& viewport)
+BrainOpenGLVolumeMprTwoDrawing::getOrthographicProjection(const BoundingBox& boundingBox,
+                                                          const float zoomFactor,
+                                                          const GraphicsViewport& viewport,
+                                                          double orthographicBoundsOut[6])
 {
     /*
      * Determine aspect ratio of viewport
@@ -1839,8 +1877,6 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport
     /*
      * Bounds of volume
      */
-    BoundingBox boundingBox;
-    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
     const float lengthX(boundingBox.getDifferenceX());
     const float lengthY(boundingBox.getDifferenceY());
     const float lengthZ(boundingBox.getDifferenceZ());
@@ -1861,7 +1897,7 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport
         defaultOrthoWidth = (defaultOrthoHeight / viewportAspectRatio);
     }
     
-    const float scaling(1.0 / m_browserTabContent->getScaling());
+    const float scaling(1.0 / zoomFactor);
     
     const double halfOrthoHeight((defaultOrthoHeight / 2.0) * scaling);
     const double halfOrthoWidth((defaultOrthoWidth / 2.0) * scaling);
@@ -1876,13 +1912,43 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
     
-    m_orthographicBounds[0] = orthoLeft;
-    m_orthographicBounds[1] = orthoRight;
-    m_orthographicBounds[2] = orthoBottom;
-    m_orthographicBounds[3] = orthoTop;
-    m_orthographicBounds[4] = nearDepth;
-    m_orthographicBounds[5] = farDepth;
+    orthographicBoundsOut[0] = orthoLeft;
+    orthographicBoundsOut[1] = orthoRight;
+    orthographicBoundsOut[2] = orthoBottom;
+    orthographicBoundsOut[3] = orthoTop;
+    orthographicBoundsOut[4] = nearDepth;
+    orthographicBoundsOut[5] = farDepth;
+}
+
+/**
+ * Set the orthographic projection.
+ *
+ * @param viewport
+ *    The viewport.
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport& viewport)
+{
+    /*
+     * Bounds of volume
+     */
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+    const float zoomFactor(m_browserTabContent->getScaling());
+    double orthographicBounds[6];
+    getOrthographicProjection(boundingBox,
+                              zoomFactor,
+                              viewport,
+                              orthographicBounds);
     
+    m_orthographicBounds[0] = orthographicBounds[0];
+    m_orthographicBounds[1] = orthographicBounds[1];
+    m_orthographicBounds[2] = orthographicBounds[2];
+    m_orthographicBounds[3] = orthographicBounds[3];
+    m_orthographicBounds[4] = orthographicBounds[4];
+    m_orthographicBounds[5] = orthographicBounds[5];
+    
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(m_orthographicBounds[0],
@@ -1896,6 +1962,11 @@ BrainOpenGLVolumeMprTwoDrawing::setOrthographicProjection(const GraphicsViewport
     
     bool drawOrthoBoxFlag(false);
     if (drawOrthoBoxFlag) {
+        const float orthoLeft(m_orthographicBounds[0]);
+        const float orthoRight(m_orthographicBounds[1]);
+        const float orthoBottom(m_orthographicBounds[2]);
+        const float orthoTop(m_orthographicBounds[3]);
+        
         glColor3f(1.0, 0.0, 0.0);
         glLineWidth(5.0);
         glBegin(GL_LINE_LOOP);
@@ -3217,11 +3288,7 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                                                     selectedPrimitiveDepth);
                 const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                 voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                
-                //                            float voxelCoordinates[3];
-                //                            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                //                                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                
+                                
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                  xyz);
                 CaretLogFinest("Selected Voxel Editing (3D): Indices ("
@@ -3788,11 +3855,7 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                                                             primitiveDepth);
                         const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                         voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                        
-                        //                            float voxelCoordinates[3];
-                        //                            vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
-                        //                                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                        
+                                                
                         m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                          xyz);
                         CaretLogFinest("Selected Voxel Editing (3D): Indices ("

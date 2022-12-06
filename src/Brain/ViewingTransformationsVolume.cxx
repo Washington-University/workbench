@@ -109,7 +109,7 @@ ViewingTransformationsVolume::resetView()
 }
 
 /**
- * Set the view of the orthogonal volume to the given bounds
+ * Set the view of the  volume to the given bounds
  * @param mouseEvent
  *    The mouse event
  * @param selectionRegion
@@ -118,9 +118,9 @@ ViewingTransformationsVolume::resetView()
  *    The content of the browser tab
  */
 bool
-ViewingTransformationsVolume::setOrthogonalViewToBounds(const MouseEvent* mouseEvent,
-                                                        const GraphicsRegionSelectionBox* selectionRegion,
-                                                        const BrowserTabContent* browserTabContent)
+ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
+                                              const GraphicsRegionSelectionBox* selectionRegion,
+                                              const BrowserTabContent* browserTabContent)
 {
     const bool testFlag(false);
     if (testFlag) {
@@ -135,16 +135,32 @@ ViewingTransformationsVolume::setOrthogonalViewToBounds(const MouseEvent* mouseE
         ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
                                                               &box,
                                                               browserTabContent);
-        if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
-                                                            translation,
-                                                            zoom)) {
-            return false;
+        switch (browserTabContent->getVolumeSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                if ( ! transformFitToRegion.applyToMprVolume(m_translation,
+                                                             translation,
+                                                             zoom)) {
+                    return false;
+                }
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                CaretAssert(0);
+                return false;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                                    translation,
+                                                                    zoom)) {
+                    return false;
+                }
+                break;
         }
+
         
         resetView();
         setTranslation(translation);
         setScaling(zoom);
-
+        
         return true;
     }
     
@@ -154,10 +170,23 @@ ViewingTransformationsVolume::setOrthogonalViewToBounds(const MouseEvent* mouseE
     ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
                                                           selectionRegion,
                                                           browserTabContent);
-    if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
-                                                        translation,
-                                                        zoom)) {
-        return false;
+    switch (browserTabContent->getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            if ( ! transformFitToRegion.applyToMprVolume(m_translation,
+                                                         translation,
+                                                         zoom)) {
+                return false;
+            }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                                translation,
+                                                                zoom)) {
+                return false;
+            }
+            break;
     }
     
     resetView();

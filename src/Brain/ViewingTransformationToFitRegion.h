@@ -54,15 +54,29 @@ namespace caret {
                                      Vector3D& translationOut,
                                      float& zoomOut);
 
+        bool applyToMprVolume(const Vector3D& translationIn,
+                                     Vector3D& translationOut,
+                                     float& zoomOut);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
+        enum class Mode {
+            MPR,
+            Orthogonal
+        };
+        
         bool initializeData();
         
         bool generateZoom(float& zoomOut);
         
+        bool applyToVolume(const Mode mode,
+                           const Vector3D& translationIn,
+                           Vector3D& translationOut,
+                           float& zoomOut);
+
         const MouseEvent* m_mouseEvent = NULL;
         
         const BrainOpenGLViewportContent* m_viewportContent = NULL;

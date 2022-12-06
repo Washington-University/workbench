@@ -23,6 +23,7 @@
 #include "ViewingTransformationToFitRegion.h"
 #undef __VIEWING_TRANSFORMATION_TO_FIT_REGION_DECLARE__
 
+#include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrowserTabContent.h"
@@ -84,7 +85,30 @@ ViewingTransformationToFitRegion::toString() const
 }
 
 /**
+ * @return True if MPR volume successfully fit into region and output values valid
+ * @param translationIn
+ *    Input with translation
+ * @param translationOut
+ *    Output with translation
+ * @param zoomOut
+ *    Output with zooming
+ */
+bool
+ViewingTransformationToFitRegion::applyToMprVolume(const Vector3D& translationIn,
+                                                   Vector3D& translationOut,
+                                                   float& zoomOut)
+{
+    return applyToVolume(Mode::MPR,
+                         translationIn,
+                         translationOut,
+                         zoomOut);
+}
+
+
+/**
  * @return True if orthogonal volume successfully fit into region and output values valid
+ * @param translationIn
+ *    Input with translation
  * @param translationOut
  *    Output with translation
  * @param zoomOut
@@ -95,16 +119,33 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
                                                           Vector3D& translationOut,
                                                           float& zoomOut)
 {
+    return applyToVolume(Mode::Orthogonal,
+                         translationIn,
+                         translationOut,
+                         zoomOut);
+}
+
+/**
+ * @return True if volume successfully fit into region and output values valid
+ * @param translationIn
+ *    Input with translation
+ * @param translationOut
+ *    Output with translation
+ * @param zoomOut
+ *    Output with zooming
+ */
+bool
+ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
+                                                const Vector3D& translationIn,
+                                                Vector3D& translationOut,
+                                                float& zoomOut)
+{
     const bool debugFlag(false);
     
     translationOut.set(0.0, 0.0, 0.0);
     zoomOut = 1.0;
     
     if ( ! initializeData()) {
-        return false;
-    }
-    
-    if (m_browserTabContent->getVolumeSliceProjectionType() != VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL) {
         return false;
     }
     
@@ -118,7 +159,7 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
     if ( ! voxelBoundingBox.isValid()) {
         return false;
     }
-
+    
     if (debugFlag) std::cout << "Region: " << m_selectedRegion->toString() << std::endl;
     
     Vector3D volumeCenterXYZ;
@@ -129,29 +170,34 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_browserTabContent->getVolumeSliceViewPlane());
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-        {
-            /*
-             * Find out which slice plane contains mouse
-             */
-            int viewport[4];
-            m_viewportContent->getModelViewport(viewport);
-            int sliceViewport[4] = {
-                viewport[0],
-                viewport[1],
-                viewport[2],
-                viewport[3]
-            };
-            sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                                                                m_mouseEvent->getPressedX(),
-                                                                                                m_mouseEvent->getPressedY(),
-                                                                                                sliceViewport);
-            if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-                /* Not in slice plane*/
-                return false;
+            switch (mode) {
+                case Mode::MPR:
+                case Mode::Orthogonal:
+                {
+                    /*
+                     * Find out which slice plane contains mouse
+                     */
+                    int viewport[4];
+                    m_viewportContent->getModelViewport(viewport);
+                    int sliceViewport[4] = {
+                        viewport[0],
+                        viewport[1],
+                        viewport[2],
+                        viewport[3]
+                    };
+                    sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                        m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
+                                                                                                        m_mouseEvent->getPressedX(),
+                                                                                                        m_mouseEvent->getPressedY(),
+                                                                                                        sliceViewport);
+                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+                        /* Not in slice plane*/
+                        return false;
+                    }
+                    allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
+                }
+                    break;
             }
-            allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
-        }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             break;
@@ -160,16 +206,26 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             break;
     }
-
+    
     float zoomFactor(1.0);
     const std::array<int32_t, 4> viewportArray(m_viewport.getViewport());
     double orthoBounds[6];
-    BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceMode,
-                                                             sliceViewPlane,
-                                                             voxelBoundingBox,
-                                                             zoomFactor,
-                                                             viewportArray.data(),
-                                                             orthoBounds);
+    switch (mode) {
+        case Mode::MPR:
+            BrainOpenGLVolumeMprTwoDrawing::getOrthographicProjection(voxelBoundingBox,
+                                                                      zoomFactor,
+                                                                      viewportArray,
+                                                                      orthoBounds);
+            break;
+        case Mode::Orthogonal:
+            BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceMode,
+                                                                     sliceViewPlane,
+                                                                     voxelBoundingBox,
+                                                                     zoomFactor,
+                                                                     viewportArray.data(),
+                                                                     orthoBounds);
+            break;
+    }
     if (debugFlag) std::cout << "   Ortho bounds: " << AString::fromNumbers(orthoBounds, 6) << std::endl;
     const Vector3D orthoCenter((orthoBounds[0] + orthoBounds[1]) / 2.0,
                                (orthoBounds[2] + orthoBounds[3]) / 2.0,
@@ -221,10 +277,20 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
             volumeCenterOffsetZ = volumeCenterXYZ[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            translation[1] = (-orthoCenter[0] - regionCenterXYZ[1]);
-            translation[2] = (orthoCenter[1] - regionCenterXYZ[2]);
-            volumeCenterOffsetY = volumeCenterXYZ[1];
-            volumeCenterOffsetZ = volumeCenterXYZ[2];
+            switch (mode) {
+                case Mode::MPR:
+                    translation[1] = -(-orthoCenter[0] - regionCenterXYZ[1]);
+                    translation[2] = (orthoCenter[1] - regionCenterXYZ[2]);
+                    volumeCenterOffsetY = -volumeCenterXYZ[1];
+                    volumeCenterOffsetZ = volumeCenterXYZ[2];
+                    break;
+                case Mode::Orthogonal:
+                    translation[1] = (-orthoCenter[0] - regionCenterXYZ[1]);
+                    translation[2] = (orthoCenter[1] - regionCenterXYZ[2]);
+                    volumeCenterOffsetY = volumeCenterXYZ[1];
+                    volumeCenterOffsetZ = volumeCenterXYZ[2];
+                    break;
+            }
             break;
     }
     
@@ -232,14 +298,20 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
     
     Matrix4x4 m1;
     m1.translate(translation);
-    m1.scale(zoom, zoom, zoom);
+    switch (mode) {
+        case Mode::Orthogonal:
+            m1.scale(zoom, zoom, zoom);
+            break;
+        case Mode::MPR:
+            break;
+    }
     m1.translate(volumeCenterOffsetX, volumeCenterOffsetY, volumeCenterOffsetZ);
     float t[3];
     m1.getTranslation(t);
-    double sx, sy, sz;
-    m1.getScale(sx, sy, sz);
-    CaretAssert(sx != 0.0);
-        
+    double matrixZoom, sy, sz;
+    m1.getScale(matrixZoom, sy, sz);
+    CaretAssert(matrixZoom != 0.0);
+    
     /*
      * Need to preserve translation along plane
      * being viewed using input translation value
@@ -258,13 +330,22 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
             t[0] = translation[0];
             break;
     }
-
+    
     translationOut = t;
-    zoomOut = sx;
 
+    switch (mode) {
+        case Mode::Orthogonal:
+            zoomOut = matrixZoom;
+            break;
+        case Mode::MPR:
+            zoomOut = zoom;
+            break;
+    }
+    
     if (debugFlag) std::cout << "   Final Trans: " << t[0] << ", " << t[1] << ", " << t[2] << std::endl;
-    if (debugFlag) std::cout << "   Final Zoom : " << sx << ", " << sy << std::endl;
-
+    if (debugFlag) std::cout << "   Matrix Zoom: " << matrixZoom << ", " << sy << std::endl;
+    if (debugFlag) std::cout << "          Zoom: " << zoom << std::endl;
+    
     return true;
 }
 

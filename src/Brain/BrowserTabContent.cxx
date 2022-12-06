@@ -4399,13 +4399,16 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(mouseEvent,
-                                                                              selectionBounds,
-                                                                              this);
+                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
+                                                                    selectionBounds,
+                                                                    this);
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
+                                                                    selectionBounds,
+                                                                    this);
                 break;
         }
         updateBrainModelYokedBrowserTabs();
@@ -7878,6 +7881,7 @@ BrowserTabContent::getSupportedMouseLeftDragModes() const
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             switch (getVolumeSliceProjectionType()) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    allowsRegionSelectionFlag = true;
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                     break;

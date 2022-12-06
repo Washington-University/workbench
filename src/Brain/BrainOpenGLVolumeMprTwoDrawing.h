@@ -78,6 +78,11 @@ namespace caret {
 
         BrainOpenGLVolumeMprTwoDrawing& operator=(const BrainOpenGLVolumeMprTwoDrawing&) = delete;
         
+        static void getOrthographicProjection(const BoundingBox& boundingBox,
+                                              const float zoomFactor,
+                                              const GraphicsViewport& viewport,
+                                              double orthographicBoundsOut[6]);
+
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   const BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,

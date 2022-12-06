@@ -42,9 +42,9 @@ namespace caret {
 
         ViewingTransformationsVolume& operator=(const ViewingTransformationsVolume& obj);
         
-        bool setOrthogonalViewToBounds(const MouseEvent* mouseEvent,
-                                       const GraphicsRegionSelectionBox* selectionRegion,
-                                       const BrowserTabContent* browserTabContent);
+        bool setViewToBounds(const MouseEvent* mouseEvent,
+                             const GraphicsRegionSelectionBox* selectionRegion,
+                             const BrowserTabContent* browserTabContent);
 
         virtual void resetView();
         
