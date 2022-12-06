@@ -163,6 +163,7 @@ ModelSurfaceSelector.h
 ModelTypeEnum.h
 ModelVolume.h
 ModelWholeBrain.h
+MouseEvent.h
 MouseLeftDragModeEnum.h
 MovieRecorder.h
 MovieRecorderCaptureRegionTypeEnum.h
@@ -371,6 +372,7 @@ ModelSurfaceSelector.cxx
 ModelTypeEnum.cxx
 ModelVolume.cxx
 ModelWholeBrain.cxx
+MouseEvent.cxx
 MouseLeftDragModeEnum.cxx
 MovieRecorder.cxx
 MovieRecorderCaptureRegionTypeEnum.cxx

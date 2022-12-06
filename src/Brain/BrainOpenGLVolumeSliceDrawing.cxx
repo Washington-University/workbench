@@ -896,13 +896,7 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
             break;
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-            switch (allSliceViewMode) {
-                case AllSliceViewMode::ALL_NO:
-                    drawSelectionBoxFlag = true;
-                    break;
-                case AllSliceViewMode::ALL_YES:
-                    break;
-            }
+            drawSelectionBoxFlag = true;
             break;
     }
     if (drawSelectionBoxFlag) {

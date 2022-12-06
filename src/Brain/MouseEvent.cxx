@@ -362,33 +362,6 @@ MouseEvent::getHistoryAtIndex(const int32_t index) const
     return m_xyHistory[index];
 }
 
-///**
-// * Get the Global X-coordinate of where the mouse was pressed.
-// * @return The Global X-coordinate.
-// *
-// * @param x
-// *     X-coordinate in widget (0 is left side of widget)
-// * @param y
-// *     Y-coordinate in widget (0 is bottom side of widget)
-// * @param outGlobalX
-// *     Output with global X-coordinate
-// * @param outGlobalY
-// *     Output with global Y-coordinate
-// */
-//void
-//MouseEvent::getGlobalXY(const int32_t x,
-//                        const int32_t y,
-//                        int32_t& outGlobalX,
-//                        int32_t& outGlobalY) const
-//{
-//    CaretAssert(m_openGLWidget);
-//    const int32_t yOriginTop = m_openGLWidget->height() - y;
-//    const QPoint globalPoint = m_openGLWidget->mapToGlobal(QPoint(x,
-//                                                                  yOriginTop));
-//    outGlobalX = globalPoint.x();
-//    outGlobalY = globalPoint.y();
-//}
-
 /**
  * Get the amount of rotation in the mouse wheel.
  * @return  Amount mouse wheel rotated.

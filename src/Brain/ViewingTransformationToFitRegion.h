@@ -35,11 +35,12 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsRegionSelectionBox;
+    class MouseEvent;
     
     class ViewingTransformationToFitRegion : public CaretObject {
         
     public:
-        ViewingTransformationToFitRegion(const BrainOpenGLViewportContent* viewportContent,
+        ViewingTransformationToFitRegion(const MouseEvent* mouseEvent,
                                          const GraphicsRegionSelectionBox* selectedRegion,
                                          const BrowserTabContent* browserTabContent);
         
@@ -61,6 +62,8 @@ namespace caret {
         bool initializeData();
         
         bool generateZoom(float& zoomOut);
+        
+        const MouseEvent* m_mouseEvent = NULL;
         
         const BrainOpenGLViewportContent* m_viewportContent = NULL;
         

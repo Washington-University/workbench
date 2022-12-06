@@ -490,7 +490,6 @@ MediaOverlayViewController.h
 MediaOverlaySetViewController.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
-MouseEvent.h
 MovieRecordingDialog.h
 OffScreenOpenGLRenderer.h
 OverlaySetViewController.h
@@ -820,7 +819,6 @@ MediaOverlayViewController.cxx
 MediaOverlaySetViewController.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
-MouseEvent.cxx
 MovieRecordingDialog.cxx
 OffScreenOpenGLRenderer.cxx
 OverlaySetViewController.cxx

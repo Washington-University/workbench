@@ -92,6 +92,7 @@
 #include "ModelTransform.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
+#include "MouseEvent.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteColorMapping.h"
@@ -4328,16 +4329,18 @@ BrowserTabContent::setMediaScaling(const float newScaleValue)
  * Set the bounds of the view to the given selection bounds.
  * @param allViewportContent
  *    Content of all viewports in all windows
- * @param viewportContent
- *    Content of the viewport
+ * @param mouseEvent
+ *    The mouse event
  * @param selectionBounds
  *    Box containing bounds of selection
  */
 void
 BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                   const BrainOpenGLViewportContent* viewportContent,
+                                   const MouseEvent* mouseEvent,
                                    const GraphicsRegionSelectionBox* selectionBounds)
 {
+    CaretAssert(mouseEvent);
+    const BrainOpenGLViewportContent* viewportContent(mouseEvent->getViewportContent());
     CaretAssert(viewportContent);
     CaretAssert(selectionBounds);
     
@@ -4396,7 +4399,7 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(viewportContent,
+                m_volumeSliceViewingTransformation->setOrthogonalViewToBounds(mouseEvent,
                                                                               selectionBounds,
                                                                               this);
                 break;

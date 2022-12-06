@@ -28,6 +28,7 @@
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "CaretAssert.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "MouseEvent.h"
 #include "OverlaySet.h"
 #include "ViewingTransformationToFitRegion.h"
 #include "VolumeMappableInterface.h"
@@ -109,15 +110,15 @@ ViewingTransformationsVolume::resetView()
 
 /**
  * Set the view of the orthogonal volume to the given bounds
- * @param viewportContent
- *    The content of the viewport
+ * @param mouseEvent
+ *    The mouse event
  * @param selectionRegion
  *    The selection bounds
  * @param browserTabContent
  *    The content of the browser tab
  */
 bool
-ViewingTransformationsVolume::setOrthogonalViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+ViewingTransformationsVolume::setOrthogonalViewToBounds(const MouseEvent* mouseEvent,
                                                         const GraphicsRegionSelectionBox* selectionRegion,
                                                         const BrowserTabContent* browserTabContent)
 {
@@ -131,7 +132,7 @@ ViewingTransformationsVolume::setOrthogonalViewToBounds(const BrainOpenGLViewpor
         
         Vector3D translation;
         float zoom(0.0);
-        ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
+        ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
                                                               &box,
                                                               browserTabContent);
         if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
@@ -150,7 +151,7 @@ ViewingTransformationsVolume::setOrthogonalViewToBounds(const BrainOpenGLViewpor
     
     Vector3D translation;
     float zoom(0.0);
-    ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
+    ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
                                                           selectionRegion,
                                                           browserTabContent);
     if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,

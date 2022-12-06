@@ -28,6 +28,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "MouseEvent.h"
 #include "OverlaySet.h"
 #include "VolumeMappableInterface.h"
 
@@ -43,21 +44,23 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param viewportContent
- *    The content of the viewport
+ * @param mouseEvent
+ *    The mouse event
  * @param selectionRegion
  *    The selection bounds
  * @param browserTabContent
  *    The content of the browser tab
  */
-ViewingTransformationToFitRegion::ViewingTransformationToFitRegion(const BrainOpenGLViewportContent* viewportContent,
+ViewingTransformationToFitRegion::ViewingTransformationToFitRegion(const MouseEvent* mouseEvent,
                                                                    const GraphicsRegionSelectionBox* selectedRegion,
                                                                    const BrowserTabContent* browserTabContent)
 : CaretObject(),
-m_viewportContent(viewportContent),
+m_mouseEvent(mouseEvent),
+m_viewportContent(m_mouseEvent->getViewportContent()),
 m_selectedRegion(selectedRegion),
 m_browserTabContent(browserTabContent)
 {
+    CaretAssert(m_mouseEvent);
     CaretAssert(m_viewportContent);
     CaretAssert(m_selectedRegion);
     CaretAssert(m_browserTabContent);
@@ -122,10 +125,33 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
     voxelBoundingBox.getCenter(volumeCenterXYZ);
     if (debugFlag) std::cout << "   Volume Center: " << volumeCenterXYZ.toString(5) << std::endl;
     
-    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_browserTabContent->getVolumeSliceViewPlane());
+    BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_browserTabContent->getVolumeSliceViewPlane());
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
-            return false;
+        {
+            /*
+             * Find out which slice plane contains mouse
+             */
+            int viewport[4];
+            m_viewportContent->getModelViewport(viewport);
+            int sliceViewport[4] = {
+                viewport[0],
+                viewport[1],
+                viewport[2],
+                viewport[3]
+            };
+            sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
+                                                                                                m_mouseEvent->getPressedX(),
+                                                                                                m_mouseEvent->getPressedY(),
+                                                                                                sliceViewport);
+            if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+                /* Not in slice plane*/
+                return false;
+            }
+            allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
+        }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             break;
@@ -138,7 +164,7 @@ ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& transl
     float zoomFactor(1.0);
     const std::array<int32_t, 4> viewportArray(m_viewport.getViewport());
     double orthoBounds[6];
-    BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO,
+    BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceMode,
                                                              sliceViewPlane,
                                                              voxelBoundingBox,
                                                              zoomFactor,
@@ -308,5 +334,10 @@ ViewingTransformationToFitRegion::generateZoom(float& zoomOut)
         zoomOut = m_viewport.getWidthF() / m_selectionRegionViewport.getWidthF();
     }
 
+    /*
+     * User may be zoomed in/out and need to include it
+     */
+    zoomOut *= m_browserTabContent->getScaling();
+    
     return (zoomOut != 0.0);
 }

@@ -83,6 +83,7 @@ namespace caret {
     class ModelTransform;
     class ModelVolume;
     class ModelWholeBrain;
+    class MouseEvent;
     class OverlaySet;
     class Palette;
     class PlainTextStringBuilder;
@@ -390,7 +391,7 @@ namespace caret {
                                     const float scaling);
         
         void setViewToBounds(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                             const BrainOpenGLViewportContent* viewportContent,
+                             const MouseEvent* mouseEvent,
                              const GraphicsRegionSelectionBox* selectionBounds);
         
         void applyMouseScaling(BrainOpenGLViewportContent* viewportContent,

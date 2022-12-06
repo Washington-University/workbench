@@ -877,7 +877,7 @@ UserInputModeView::applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
                     }
                 }
                 browserTabContent->setViewToBounds(viewportContentInAllWindows,
-                                                   viewportContent,
+                                                   &mouseEvent,
                                                    selectionBox);
     
     selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
