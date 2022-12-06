@@ -194,6 +194,21 @@ UserInputModeView::getCursor() const
 {
     CursorEnum::Enum cursorOut(CursorEnum::CURSOR_DEFAULT);
     
+    BrowserTabContent* browserTabContent =
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent != NULL) {
+        switch (browserTabContent->getMouseLeftDragMode()) {
+            case MouseLeftDragModeEnum::INVALID:
+                break;
+            case MouseLeftDragModeEnum::DEFAULT:
+                break;
+            case MouseLeftDragModeEnum::REGION_SELECTION:
+                cursorOut = CursorEnum::CURSOR_CROSS;
+                return cursorOut;
+                break;
+        }
+    }
+
     switch (m_mprCursorMode) {
         case VOLUME_MPR_CURSOR_MODE::INVALID:
             cursorOut = CursorEnum::CURSOR_DEFAULT;
