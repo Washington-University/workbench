@@ -34,6 +34,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
     class MouseEvent;
     
@@ -57,6 +58,10 @@ namespace caret {
         bool applyToMprVolume(const Vector3D& translationIn,
                                      Vector3D& translationOut,
                                      float& zoomOut);
+        
+        bool applyToMediaImage(const GraphicsObjectToWindowTransform* transform,
+                               Vector3D& translationOut,
+                               float& zoomOut);
         
         // ADD_NEW_METHODS_HERE
 

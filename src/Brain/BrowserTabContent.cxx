@@ -4361,22 +4361,16 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         }
         
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-        Vector3D stereotaxicCenterXYZ;
-        float stereotaxicWidth(0.0);
-        float stereotaxicHeight(0.0);
-        if (m_histologyViewingTransformation->setMediaViewToBounds(xform,
+        if (m_histologyViewingTransformation->setMediaViewToBounds(mouseEvent,
                                                                    selectionBounds,
-                                                                   histologySlice,
-                                                                   stereotaxicCenterXYZ,
-                                                                   stereotaxicWidth,
-                                                                   stereotaxicHeight)) {
-
+                                                                   xform,
+                                                                   histologySlice)) {
             if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
-                panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
-                                                   viewportContent,
-                                                   stereotaxicCenterXYZ,
-                                                   stereotaxicWidth,
-                                                   stereotaxicHeight);
+//                panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
+//                                                   viewportContent,
+//                                                   stereotaxicCenterXYZ,
+//                                                   stereotaxicWidth,
+//                                                   stereotaxicHeight);
             }
         }
         updateBrainModelYokedBrowserTabs();
@@ -4384,19 +4378,13 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
     else if (getDisplayedMediaModel() != NULL) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         HistologySlice* histologySlice(NULL);
-        Vector3D stereotaxicCenterXYZ;
-        float stereotaxicWidth(0.0);
-        float stereotaxicHeight(0.0);
-        m_mediaViewingTransformation->setMediaViewToBounds(xform,
+        m_mediaViewingTransformation->setMediaViewToBounds(mouseEvent,
                                                            selectionBounds,
-                                                           histologySlice,
-                                                           stereotaxicCenterXYZ,
-                                                           stereotaxicWidth,
-                                                           stereotaxicHeight);
+                                                           xform,
+                                                           histologySlice);
         updateMediaModelYokedBrowserTabs();
     }
     else if (getDisplayedVolumeModel() != NULL) {
-        const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
         switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
@@ -7278,6 +7266,7 @@ BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const Brain
                                                    Vector3D& panOut,
                                                    float& zoomOut)
 {
+    CaretAssertToDoFatal();
     panOut  = Vector3D();
     zoomOut = 1.0;
     
@@ -7523,6 +7512,7 @@ BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const Br
                                                       const float regionStereotaxicWidth,
                                                       const float regionStereotaxicHeight)
 {
+    CaretAssertToDoFatal();
     Vector3D newPan;
     float newZoom(0.0);
     if (getPanZoomToFitVolumeIntoRegion(allViewportContent,

@@ -28,8 +28,10 @@
 
 namespace caret {
     
+    class BrowserTabContent;
     class GraphicsRegionSelectionBox;
     class HistologySlice;
+    class MouseEvent;
     
     class ViewingTransformationsMedia : public ViewingTransformations {
         
@@ -57,13 +59,10 @@ namespace caret {
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
                                      const float scaling) override;
         
-        virtual bool setMediaViewToBounds(const GraphicsObjectToWindowTransform* transform,
-                                          const GraphicsRegionSelectionBox* selectionBounds,
-                                          const HistologySlice* histologySlice,
-                                          Vector3D& stereotaxicCenterXyzOut,
-                                          float& stereotaxicWidthOut,
-                                          float& stereotaxicHeightOut);
-
+        virtual bool setMediaViewToBounds(const MouseEvent* mouseEvent,
+                                          const GraphicsRegionSelectionBox* selectionRegion,
+                                          const GraphicsObjectToWindowTransform* transform,
+                                          const HistologySlice* histologySlice);
         virtual void resetView();
         
         // ADD_NEW_METHODS_HERE
