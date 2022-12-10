@@ -541,8 +541,8 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         m_header.srow_z[i] = sForm[2][i];
     }
     m_header.sform_code = NIFTI_XFORM_MNI_152;
-    double pixdim[4], quat[4];
-    if (!sformToQform(sForm, pixdim, quat))
+    double quat[4];
+    if (!sformToQform(sForm, m_header.pixdim, quat))
     {
         m_header.qform_code = NIFTI_XFORM_UNKNOWN;//0, implies that there is no qform
         m_header.quatern_b = 0.0;//set dummy values anyway
