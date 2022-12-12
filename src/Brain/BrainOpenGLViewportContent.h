@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretObject.h"
+#include "GraphicsViewport.h"
 #include "Matrix4x4.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -88,7 +89,7 @@ namespace caret {
         void setVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                          GraphicsObjectToWindowTransform* transform) const;
         
-        const GraphicsObjectToWindowTransform* getVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
+        const GraphicsObjectToWindowTransform* getVolumeGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
         float getTranslationStepValueForCustomViewDialog() const;
         
@@ -126,6 +127,10 @@ namespace caret {
                                                                                      const int32_t mousePressX,
                                                                                      const int32_t mousePressY,
                                                                                      int sliceViewportOut[4]);
+        
+        std::pair<GraphicsViewport,
+                  VolumeSliceViewPlaneEnum::Enum> getVolumeSliceViewportAtMouseXY(const int32_t mouseX,
+                                                                                  const int32_t mouseY) const;
         
     private:
         /**

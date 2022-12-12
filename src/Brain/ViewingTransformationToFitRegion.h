@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 #include "Vector3D.h"
 #include "GraphicsViewport.h"
+#include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
 
@@ -36,12 +37,11 @@ namespace caret {
     class BrowserTabContent;
     class GraphicsObjectToWindowTransform;
     class GraphicsRegionSelectionBox;
-    class MouseEvent;
     
     class ViewingTransformationToFitRegion : public CaretObject {
         
     public:
-        ViewingTransformationToFitRegion(const MouseEvent* mouseEvent,
+        ViewingTransformationToFitRegion(const BrainOpenGLViewportContent* viewportContent,
                                          const GraphicsRegionSelectionBox* selectedRegion,
                                          const BrowserTabContent* browserTabContent);
         
@@ -51,14 +51,24 @@ namespace caret {
 
         ViewingTransformationToFitRegion& operator=(const ViewingTransformationToFitRegion&) = delete;
 
-        bool applyToOrthogonalVolume(const Vector3D& translationIn,
-                                     Vector3D& translationOut,
-                                     float& zoomOut);
+        bool applyToObliqueVolume(const Vector3D& translationIn,
+                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
+                                  Vector3D& translationOut,
+                                  float& zoomOut);
 
-        bool applyToMprVolume(const Vector3D& translationIn,
+        bool applyToOrthogonalVolume(const Vector3D& translationIn,
+                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                                      Vector3D& translationOut,
                                      float& zoomOut);
         
+        bool applyToMprVolume(const Vector3D& translationIn,
+                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
+                              Vector3D& translationOut,
+                              float& zoomOut);
+
         bool applyToMediaImage(const GraphicsObjectToWindowTransform* transform,
                                Vector3D& translationOut,
                                float& zoomOut);
@@ -68,22 +78,25 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        enum class Mode {
+        enum class VolumeMode {
             MPR,
+            Oblique,
             Orthogonal
         };
         
         bool initializeData();
         
+        bool setupViewport(const int32_t viewport[4]);
+        
         bool generateZoom(float& zoomOut);
         
-        bool applyToVolume(const Mode mode,
+        bool applyToVolume(const VolumeMode volumeMode,
                            const Vector3D& translationIn,
+                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                            Vector3D& translationOut,
                            float& zoomOut);
 
-        const MouseEvent* m_mouseEvent = NULL;
-        
         const BrainOpenGLViewportContent* m_viewportContent = NULL;
         
         const GraphicsRegionSelectionBox* m_selectedRegion = NULL;
@@ -99,6 +112,10 @@ namespace caret {
         GraphicsViewport m_selectionRegionViewport;
         
         float m_selectionRegionViewportAspectRatio = 0.0;
+        
+        AString m_modeName = "UNKNOWN";
+        
+        bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

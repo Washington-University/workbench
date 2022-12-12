@@ -1393,7 +1393,7 @@ BrainOpenGLViewportContent::setVolumeMprGraphicsObjectToWindowTransform(const Vo
  * @return Object to window transformation (MAY BE NULL !!!) for volume
  */
 const GraphicsObjectToWindowTransform*
-BrainOpenGLViewportContent::getVolumeMprGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const
+BrainOpenGLViewportContent::getVolumeGraphicsObjectToWindowTransform(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const
 {
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -1757,3 +1757,54 @@ BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t
     return view;
 }
 
+/**
+ * @return Pair with GraphicsViewport and slice plane.
+ *
+ * The viewport at the mouse XY.  If this is a volume slice with ALL view, the
+ * viewport will be for the individual slice (axial, coronal, parasagittal) NOT all three slices.
+ * Otherwise, the viewport is the same as getModelViewport().
+ *
+ * The graphics viewport will be invalid if there is a failure to find the viewport.
+ */
+std::pair<GraphicsViewport,
+VolumeSliceViewPlaneEnum::Enum>
+BrainOpenGLViewportContent::getVolumeSliceViewportAtMouseXY(const int32_t mouseX,
+                                                            const int32_t mouseY) const
+{
+    std::array<int32_t, 4> viewport;
+    getModelViewport(viewport.data());
+    
+    VolumeSliceViewPlaneEnum::Enum slicePlaneOut = VolumeSliceViewPlaneEnum::ALL;
+    const BrowserTabContent* btc(getBrowserTabContent());
+    if (btc != NULL) {
+        if (btc->isVolumeSlicesDisplayed()) {
+            switch (btc->getVolumeSliceViewPlane()) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                {
+                    std::array<int32_t, 4>  sliceViewport;
+                    slicePlaneOut = getSliceViewPlaneForVolumeAllSliceView(viewport.data(),
+                                                                           btc->getVolumeSlicePlanesAllViewLayout(),
+                                                                           mouseX,
+                                                                           mouseY,
+                                                                           sliceViewport.data());
+                    if (slicePlaneOut == VolumeSliceViewPlaneEnum::ALL) {
+                        return std::make_pair(GraphicsViewport(),
+                                              VolumeSliceViewPlaneEnum::ALL);
+                    }
+                    viewport = sliceViewport;
+                }
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    break;
+            }
+        }
+    }
+    
+    return std::make_pair(GraphicsViewport(viewport),
+                          slicePlaneOut);
+    
+}

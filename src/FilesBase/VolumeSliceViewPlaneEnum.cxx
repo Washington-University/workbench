@@ -25,15 +25,16 @@
 #undef __VOLUME_SLICE_VIEW_AXIS_ENUM_DECLARE__
 
 #include "CaretAssert.h"
+#include "MathFunctions.h"
+#include "Plane.h"
+#include "Vector3D.h"
 
 using namespace caret;
 
     
 /**
  * \class VolumeSliceViewPlaneEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief enumerated type for volume slice plane
  */
 /**
  * Constructor.
@@ -406,4 +407,77 @@ VolumeSliceViewPlaneEnum::getAllGuiNames(std::vector<AString>& allGuiNames, cons
         std::sort(allGuiNames.begin(), allGuiNames.end());
     }
 }
+
+/**
+ * @return The view plane that whose normal vector best matches
+ * the plane's normal vector.  If ALL is returned, it should be interpreted
+ * as finding view plane failed
+ * @param plane
+ *     The plane.
+ */
+VolumeSliceViewPlaneEnum::Enum
+VolumeSliceViewPlaneEnum::fromPlane(const Plane& plane)
+{
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlaneOut(VolumeSliceViewPlaneEnum::ALL);
+    
+    if (plane.isValidPlane()) {
+        Vector3D planeNormal;
+        plane.getNormalVector(planeNormal);
+        
+        const Vector3D axialSuperiorNormal(0.0, 0.0, 1.0);
+        const Vector3D axialInferiorNormal(0.0, 0.0, -1.0);
+        const Vector3D coronalAnteriorNormal(0.0, 1.0, 0.0);
+        const Vector3D coronalPosteriorNormal(0.0, -1.0, 0.0);
+        const Vector3D parasagittalRightNormal(1.0, 0.0, 0.0);
+        const Vector3D parasagittalLeftNormal(-1.0, 0.0, 0.0);
+        
+        float minimumAngle(100000.0);
+        
+        const float axialSuperiorAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                   axialSuperiorNormal));
+        if (axialSuperiorAngle < minimumAngle) {
+            minimumAngle      = axialSuperiorAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::AXIAL;
+        }
+        
+        const float axialInferiorAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                   axialInferiorNormal));
+        if (axialInferiorAngle < minimumAngle) {
+            minimumAngle      = axialInferiorAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::AXIAL;
+        }
+        
+        
+        const float coronalAnteriorAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                     coronalAnteriorNormal));
+        if (coronalAnteriorAngle < minimumAngle) {
+            minimumAngle      = coronalAnteriorAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::CORONAL;
+        }
+        
+        const float coronalPosteriorAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                      coronalPosteriorNormal));
+        if (coronalPosteriorAngle < minimumAngle) {
+            minimumAngle      = coronalPosteriorAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::CORONAL;
+        }
+        
+        const float parasagittalRightAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                       parasagittalRightNormal));
+        if (parasagittalRightAngle < minimumAngle) {
+            minimumAngle      = parasagittalRightAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::PARASAGITTAL;
+        }
+        
+        const float parasagittalLeftAngle(MathFunctions::angleInDegreesBetweenVectors(planeNormal,
+                                                                                      parasagittalLeftNormal));
+        if (parasagittalLeftAngle < minimumAngle) {
+            minimumAngle      = parasagittalLeftAngle;
+            sliceViewPlaneOut = VolumeSliceViewPlaneEnum::PARASAGITTAL;
+        }
+    }
+    
+    return sliceViewPlaneOut;
+}
+
 

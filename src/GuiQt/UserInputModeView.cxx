@@ -217,7 +217,6 @@ UserInputModeView::getCursor() const
             cursorOut = CursorEnum::CURSOR_ROTATION;
             break;
         case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
-            /* cursorOut = CursorEnum::CURSOR_RESIZE_VERTICAL; */
             break;
         case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
             cursorOut = CursorEnum::CURSOR_FOUR_ARROWS;
@@ -862,39 +861,41 @@ UserInputModeView::applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             break;
     }
-                /*
-                 * Zoom to selection region
-                 */
-                std::vector<const BrainOpenGLViewportContent*> viewportContentInAllWindows;
-                
-                /*
-                 * Get all tab viewports in the window using this instance as we
-                 * want it FIRST in all viewport content
-                 */
-                BrainOpenGLWindowContent* windowContent(mouseEvent.getWindowContent());
-                CaretAssert(windowContent);
-                std::vector<const BrainOpenGLViewportContent*> vpContents(windowContent->getAllTabViewports());
-                viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
-                                                   vpContents.begin(),
-                                                   vpContents.end());
-                
-                /*
-                 * Get viewport content in all other windows
-                 */
-                std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
-                for (auto& bw : allBrowserWindows) {
-                    if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
-                        std::vector<const BrainOpenGLViewportContent*> vpContents;
-                        bw->getAllBrainOpenGLViewportContent(vpContents);
-                        viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
-                                                           vpContents.begin(),
-                                                           vpContents.end());
-                    }
-                }
-                browserTabContent->setViewToBounds(viewportContentInAllWindows,
-                                                   &mouseEvent,
-                                                   selectionBox);
     
+    /*
+     * Zoom to selection region
+     */
+    std::vector<const BrainOpenGLViewportContent*> viewportContentInAllWindows;
+    
+    /*
+     * Get all tab viewports in the window using this instance as we
+     * want it FIRST in all viewport content
+     */
+    BrainOpenGLWindowContent* windowContent(mouseEvent.getWindowContent());
+    CaretAssert(windowContent);
+    std::vector<const BrainOpenGLViewportContent*> vpContents(windowContent->getAllTabViewports());
+    viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
+                                       vpContents.begin(),
+                                       vpContents.end());
+    
+    /*
+     * Get viewport content in all other windows
+     */
+    std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
+    for (auto& bw : allBrowserWindows) {
+        if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
+            std::vector<const BrainOpenGLViewportContent*> vpContents;
+            bw->getAllBrainOpenGLViewportContent(vpContents);
+            viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
+                                               vpContents.begin(),
+                                               vpContents.end());
+        }
+    }
+        
+    browserTabContent->setViewToBounds(viewportContentInAllWindows,
+                                       &mouseEvent,
+                                       selectionBox);
+
     selectionBox->setStatus(GraphicsRegionSelectionBox::Status::INVALID);
     
     /*

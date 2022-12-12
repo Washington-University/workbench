@@ -30,6 +30,7 @@
 #include "HistologySliceImage.h"
 #include "CziNonLinearTransform.h"
 #include "DataFileContentInformation.h"
+#include "GraphicsRegionSelectionBox.h"
 #include "MediaFile.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -370,6 +371,48 @@ HistologySlice::stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
     planeNoNonLinearXyzOut.fill(0);
     planeWithNonLinearXyzOut.fill(0);
     return false;
+}
+
+/**
+ * Convert a region from plane coordinates to stereotaxic coordinates
+ */
+std::unique_ptr<GraphicsRegionSelectionBox>
+HistologySlice::planeRegionToStereotaxicRegion(const GraphicsRegionSelectionBox* planeRegion) const
+{
+    CaretAssert(planeRegion);
+    
+    std::unique_ptr<GraphicsRegionSelectionBox> regionOut;
+    
+    if (planeRegion != NULL) {
+        float minX(0.0), maxX(0.0), minY(0.0), maxY(0.0), minZ(0.0), maxZ(0.0);
+        if (planeRegion->getBounds(minX, minY, minZ, maxX, maxY, maxZ)) {
+            Vector3D planeTopLeftXYZ(minX, minY, 0.0);
+            Vector3D planeBottomLeftXYZ(minX, maxY, 0.0);
+            Vector3D planeTopRightXYZ(maxX, minY, 0.0);
+            Vector3D planeBottomRightXYZ(maxX, maxY, 0.0);
+            Vector3D blXYZ;
+            Vector3D tlXYZ;
+            Vector3D trXYZ;
+            Vector3D brXYZ;
+            if (planeXyzToStereotaxicXyz(planeBottomLeftXYZ, blXYZ)
+                && planeXyzToStereotaxicXyz(planeTopLeftXYZ, tlXYZ)
+                && planeXyzToStereotaxicXyz(planeTopRightXYZ, trXYZ)
+                && planeXyzToStereotaxicXyz(planeBottomRightXYZ, brXYZ)) {
+                /*
+                 * Note: For histology viewport, origin is top left
+                 */
+                float vpMinX, vpMinY, vpMaxX, vpMaxY;
+                planeRegion->getViewportBounds(vpMinX, vpMinY, vpMaxX, vpMaxY);
+                regionOut.reset(new GraphicsRegionSelectionBox);
+                regionOut->initialize(blXYZ[0], blXYZ[1], blXYZ[2], vpMinX, vpMaxY);
+                regionOut->update(brXYZ[0], brXYZ[1], brXYZ[2], vpMaxX, vpMaxY);
+                regionOut->update(tlXYZ[0], tlXYZ[1], tlXYZ[2], vpMinX, vpMinY);
+                regionOut->update(trXYZ[0], trXYZ[1], trXYZ[2], vpMaxX, vpMinY);
+            }
+        }
+    }
+    
+    return regionOut;
 }
 
 /**

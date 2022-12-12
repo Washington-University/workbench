@@ -710,19 +710,10 @@ namespace caret {
         
         void moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoordinate& histologyCoordinate);
         
-        static bool getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                    const BrainOpenGLViewportContent* tabViewportContent,                                                    const YokingGroupEnum::Enum yokingGroup,
-                                                    const Vector3D& regionStereotaxicCenterXYZ,
-                                                    const float regionStereotaxicWidth,
-                                                    const float regionStereotaxicHeight,
-                                                    Vector3D& panOut,
-                                                    float& zoomOut);
-
-        void panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                const BrainOpenGLViewportContent* tabViewportContent,
-                                                const Vector3D& regionStereotaxicCenterXYZ,
-                                                const float regionStereotaxicWidth,
-                                                const float regionStereotaxicHeight);
+        void setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::Enum yokingGroup,
+                                                  const HistologySlice* histologySlice,
+                                                  const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                  const GraphicsRegionSelectionBox* histologySelectionBounds);
 
         /** Number of this tab */
         int32_t m_tabNumber;

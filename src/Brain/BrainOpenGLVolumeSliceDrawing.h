@@ -34,6 +34,7 @@
 namespace caret {
     
     class Brain;
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class CiftiMappableDataFile;
     class Matrix4x4;
@@ -59,6 +60,7 @@ namespace caret {
         virtual ~BrainOpenGLVolumeSliceDrawing();
         
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                  BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -295,8 +297,9 @@ namespace caret {
                                        const VolumeMappableInterface* volumeInterface,
                                        const int32_t volumeIndex,
                                        const int32_t mapIndex,
-                                       const uint8_t sliceOpacity);
-        
+                                       const uint8_t sliceOpacity,
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+       
         void drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
                                                   const float coordinate[3],
                                                   const float rowStep[3],
@@ -367,6 +370,8 @@ namespace caret {
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         
         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo> m_volumeDrawInfo;
+        
+        BrainOpenGLViewportContent* m_viewportContent = NULL;
         
         BrowserTabContent* m_browserTabContent;
         

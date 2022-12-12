@@ -51,6 +51,7 @@
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "GraphicsEngineDataOpenGL.h"
+#include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsShape.h"
@@ -120,6 +121,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::~BrainOpenGLVolumeObliqueSliceDrawing()
  */
 void
 BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                           BrainOpenGLViewportContent* viewportContent,
                                            BrowserTabContent* browserTabContent,
                                            std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -134,9 +136,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     }
     
     CaretAssert(fixedPipelineDrawing);
+    CaretAssert(viewportContent);
     CaretAssert(browserTabContent);
     m_browserTabContent = browserTabContent;    
     m_fixedPipelineDrawing = fixedPipelineDrawing;
+    m_viewportContent = viewportContent;
     m_obliqueSliceMaskingType = obliqueSliceMaskingType;
     /*
      * No lighting for drawing slices
@@ -829,6 +833,17 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
         }
     }
     
+    std::array<float, 4> orthoLRBT {
+        static_cast<float>(m_orthographicBounds[0]),
+        static_cast<float>(m_orthographicBounds[1]),
+        static_cast<float>(m_orthographicBounds[2]),
+        static_cast<float>(m_orthographicBounds[3])
+    };
+    GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+    m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+    CaretAssert(m_viewportContent);
+    m_viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
+
     if (slicePlane.isValidPlane()) {
         drawLayers(sliceDrawingType,
                    sliceProjectionType,
@@ -889,6 +904,35 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                                                                         slicePlane,
                                                                                         sliceThickness);
     
+    bool drawSelectionBoxFlag(false);
+    switch (sliceDrawingType) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+            drawSelectionBoxFlag = true;
+            break;
+    }
+    if (drawSelectionBoxFlag) {
+        GraphicsRegionSelectionBox::DrawMode drawMode(GraphicsRegionSelectionBox::DrawMode::Z_PLANE);
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::Z_PLANE;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::Y_PLANE;
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                drawMode = GraphicsRegionSelectionBox::DrawMode::X_PLANE;
+                break;
+        }
+        BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
+                                                                 drawMode,
+                                                                 m_fixedPipelineDrawing->m_foregroundColorFloat);
+    }
+
     m_fixedPipelineDrawing->disableClippingPlanes();
     
     
@@ -1935,43 +1979,27 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
 /**
  * Set the orthographic projection.
  *
+ * @param voxelSpaceBoundingBox
+ *   Bounding box of voxels
+ * @param zoomFactor
+ *  The zoom factor
  * @param allSliceViewMode
  *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
  * @param sliceViewPlane
  *    View plane that is displayed.
  * @param viewport
  *    The viewport.
+ * @param orthographicsBoundsOut
+ *    Output with orthographic bounds
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+BrainOpenGLVolumeObliqueSliceDrawing::getOrthographicProjection(const BoundingBox& voxelSpaceBoundingBox,
+                                                                const float zoomFactor,
+                                                                const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
                                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                const int viewport[4])
+                                                                const int viewport[4],
+                                                                double orthographicsBoundsOut[6])
 {
-    const bool useOrthosDrawingProjectionFlag = false; /* does not work as expected when oblique */
-    if (useOrthosDrawingProjectionFlag) {
-        /*
-         * Determine model size in screen Y when viewed
-         */
-        BoundingBox boundingBox;
-        m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-        
-        const double zoomFactor = m_browserTabContent->getScaling();
-        BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(allSliceViewMode,
-                                                                 sliceViewPlane,
-                                                                 boundingBox,
-                                                                 zoomFactor,
-                                                                 viewport,
-                                                                 m_orthographicBounds);
-
-        return;
-    }
-    
-    /*
-     * Determine model size in screen Y when viewed
-     */
-    BoundingBox boundingBox;
-    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
-    
     /*
      * Set top and bottom to the min/max coordinate
      * that runs vertically on the screen
@@ -1983,16 +2011,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenG
             CaretAssertMessage(0, "Should never get here");
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            modelTop = boundingBox.getMaxY();
-            modelBottom = boundingBox.getMinY();
+            modelTop = voxelSpaceBoundingBox.getMaxY();
+            modelBottom = voxelSpaceBoundingBox.getMinY();
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            modelTop = boundingBox.getMaxZ();
-            modelBottom = boundingBox.getMinZ();
+            modelTop = voxelSpaceBoundingBox.getMaxZ();
+            modelBottom = voxelSpaceBoundingBox.getMinZ();
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            modelTop = boundingBox.getMaxZ();
-            modelBottom = boundingBox.getMinZ();
+            modelTop = voxelSpaceBoundingBox.getMaxZ();
+            modelBottom = voxelSpaceBoundingBox.getMinZ();
             break;
     }
     
@@ -2005,8 +2033,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenG
              * So, use maximum of Brain's Y- and Z-axes for sizing height of slice
              * so that voxels are same size for each slice in each axis view
              */
-            const float maxRangeYZ = std::max(boundingBox.getDifferenceY(),
-                                              boundingBox.getDifferenceZ());
+            const float maxRangeYZ = std::max(voxelSpaceBoundingBox.getDifferenceY(),
+                                              voxelSpaceBoundingBox.getDifferenceZ());
             const float range = modelTop - modelBottom;
             if (maxRangeYZ > range) {
                 const float diff = maxRangeYZ - range;
@@ -2023,7 +2051,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenG
     /*
      * Scale ratio makes region slightly larger than model
      */
-    const double zoom = m_browserTabContent->getScaling();
+    const double zoom(zoomFactor);
     double scaleRatio = (1.0 / 0.98);
     if (zoom > 0.0) {
         scaleRatio /= zoom;
@@ -2049,12 +2077,46 @@ BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenG
     const double orthoLeft   = -halfModelY * aspectRatio;
     const double nearDepth = -1000.0;
     const double farDepth  =  1000.0;
-    m_orthographicBounds[0] = orthoLeft;
-    m_orthographicBounds[1] = orthoRight;
-    m_orthographicBounds[2] = orthoBottom;
-    m_orthographicBounds[3] = orthoTop;
-    m_orthographicBounds[4] = nearDepth;
-    m_orthographicBounds[5] = farDepth;
+    orthographicsBoundsOut[0] = orthoLeft;
+    orthographicsBoundsOut[1] = orthoRight;
+    orthographicsBoundsOut[2] = orthoBottom;
+    orthographicsBoundsOut[3] = orthoTop;
+    orthographicsBoundsOut[4] = nearDepth;
+    orthographicsBoundsOut[5] = farDepth;
+
+}
+
+/**
+ * Set the orthographic projection.
+ *
+ * @param allSliceViewMode
+ *    Indicates drawing of ALL slices volume view (axial, coronal, parasagittal in one view)
+ * @param sliceViewPlane
+ *    View plane that is displayed.
+ * @param viewport
+ *    The viewport.
+ */
+void
+BrainOpenGLVolumeObliqueSliceDrawing::setOrthographicProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                const int viewport[4])
+{
+    /*
+     * Determine model size in screen Y when viewed
+     */
+    BoundingBox boundingBox;
+    m_volumeDrawInfo[0].volumeFile->getVoxelSpaceBoundingBox(boundingBox);
+        
+    /*
+     * Scale ratio makes region slightly larger than model
+     */
+    const double zoom = m_browserTabContent->getScaling();
+    getOrthographicProjection(boundingBox,
+                              zoom,
+                              allSliceViewMode,
+                              sliceViewPlane,
+                              viewport,
+                              m_orthographicBounds);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

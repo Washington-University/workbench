@@ -4583,6 +4583,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
     else if (useNewDrawingFlag) {
         BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
         volumeSliceDrawing.draw(this,
+                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
                                 browserTabContent,
                                 volumeDrawInfo,
                                 sliceDrawingType,
@@ -4592,6 +4593,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
     else {
         BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
         obliqueVolumeSliceDrawing.draw(this,
+                                       const_cast<BrainOpenGLViewportContent*>(viewportContent),
                                        browserTabContent,
                                        volumeDrawInfo,
                                        sliceDrawingType,
@@ -6906,6 +6908,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                         VolumeSliceInterpolationEdgeEffectsMaskingEnum::Enum obliqueMaskType = browserTabContent->getVolumeSliceInterpolationEdgeEffectsMaskingType();
                         BrainOpenGLVolumeObliqueSliceDrawing volumeSliceDrawing;
                         volumeSliceDrawing.draw(this,
+                                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
                                                 browserTabContent,
                                                 twoDimSliceDrawVolumeDrawInfo,
                                                 sliceDrawingType,
@@ -6918,6 +6921,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     {
                         BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
                         volumeSliceDrawing.draw(this,
+                                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
                                                 browserTabContent,
                                                 twoDimSliceDrawVolumeDrawInfo,
                                                 sliceDrawingType,

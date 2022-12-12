@@ -110,17 +110,26 @@ ViewingTransformationsVolume::resetView()
 
 /**
  * Set the view of the  volume to the given bounds
- * @param mouseEvent
- *    The mouse event
+ * @param viewportContent
+ *    The viewport content
+ * @param sliceViewPlaneSelectedInTab
+ *    The slice plane selected in the tab. This may be ALL, AXIAL, CORONAL, or PARASAGITTAL
+ * @param sliceViewPlaneForFitToRegion
+ *    The slice plane that is fit to plane (perhaps the slice plane containing mouse).  This may be
+ * AXIAL, CORONAL, or PARASAGITTAL only.  It is NEVER ALL !!!   When ALL is selected for
+ * the tab, this is the particular slice plane in the ALL view.
  * @param selectionRegion
  *    The selection bounds
  * @param browserTabContent
  *    The content of the browser tab
  */
 bool
-ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
+ViewingTransformationsVolume::setViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                                               const GraphicsRegionSelectionBox* selectionRegion,
                                               const BrowserTabContent* browserTabContent)
+
 {
     const bool testFlag(false);
     if (testFlag) {
@@ -132,12 +141,14 @@ ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
         
         Vector3D translation;
         float zoom(0.0);
-        ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
+        ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
                                                               &box,
                                                               browserTabContent);
         switch (browserTabContent->getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 if ( ! transformFitToRegion.applyToMprVolume(m_translation,
+                                                             sliceViewPlaneSelectedInTab,
+                                                             sliceViewPlaneForFitToRegion,
                                                              translation,
                                                              zoom)) {
                     return false;
@@ -149,6 +160,8 @@ ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                                    sliceViewPlaneSelectedInTab,
+                                                                    sliceViewPlaneForFitToRegion,
                                                                     translation,
                                                                     zoom)) {
                     return false;
@@ -167,21 +180,33 @@ ViewingTransformationsVolume::setViewToBounds(const MouseEvent* mouseEvent,
     
     Vector3D translation;
     float zoom(0.0);
-    ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
+    ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
                                                           selectionRegion,
                                                           browserTabContent);
+    
     switch (browserTabContent->getVolumeSliceProjectionType()) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             if ( ! transformFitToRegion.applyToMprVolume(m_translation,
+                                                         sliceViewPlaneSelectedInTab,
+                                                         sliceViewPlaneForFitToRegion,
                                                          translation,
                                                          zoom)) {
                 return false;
             }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            if ( ! transformFitToRegion.applyToObliqueVolume(m_translation,
+                                                             sliceViewPlaneSelectedInTab,
+                                                             sliceViewPlaneForFitToRegion,
+                                                             translation,
+                                                             zoom)) {
+                return false;
+            }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             if ( ! transformFitToRegion.applyToOrthogonalVolume(m_translation,
+                                                                sliceViewPlaneSelectedInTab,
+                                                                sliceViewPlaneForFitToRegion,
                                                                 translation,
                                                                 zoom)) {
                 return false;

@@ -23,15 +23,16 @@
 #include "ViewingTransformationToFitRegion.h"
 #undef __VIEWING_TRANSFORMATION_TO_FIT_REGION_DECLARE__
 
-#include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLViewportContent.h"
+#include "BrainOpenGLVolumeMprTwoDrawing.h"
+#include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GraphicsObjectToWindowTransform.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "HistologySlice.h"
-#include "MouseEvent.h"
 #include "OverlaySet.h"
 #include "VolumeMappableInterface.h"
 
@@ -47,23 +48,22 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param mouseEvent
- *    The mouse event
+ * @param viewportContent
+ *    Content of the viewport from which region is fit
  * @param selectionRegion
  *    The selection bounds
  * @param browserTabContent
  *    The content of the browser tab
  */
-ViewingTransformationToFitRegion::ViewingTransformationToFitRegion(const MouseEvent* mouseEvent,
+ViewingTransformationToFitRegion::ViewingTransformationToFitRegion(const BrainOpenGLViewportContent* viewportContent,
                                                                    const GraphicsRegionSelectionBox* selectedRegion,
                                                                    const BrowserTabContent* browserTabContent)
 : CaretObject(),
-m_mouseEvent(mouseEvent),
-m_viewportContent(m_mouseEvent->getViewportContent()),
+m_viewportContent(viewportContent),
 m_selectedRegion(selectedRegion),
 m_browserTabContent(browserTabContent)
 {
-    CaretAssert(m_mouseEvent);
+    m_debugFlag = false;
     CaretAssert(m_viewportContent);
     CaretAssert(m_selectedRegion);
     CaretAssert(m_browserTabContent);
@@ -75,6 +75,20 @@ m_browserTabContent(browserTabContent)
 ViewingTransformationToFitRegion::~ViewingTransformationToFitRegion()
 {
 }
+
+/**
+ * Constructor.
+ * @param mouseEvent
+ *    The mouse event
+ * @param selectionRegion
+ *    The selection bounds
+ * @param selectedRegionPercentageViewportWidth
+ *    Percentage of viewport width occupied by selected region
+ * @param selectedRegionPercentageViewportHeight
+ *    Percentage of viewport height occupied by selected region
+ * @param browserTabContent
+ *    The content of the browser tab
+ */
 
 /**
  * Get a description of this object's content.
@@ -90,60 +104,137 @@ ViewingTransformationToFitRegion::toString() const
  * @return True if MPR volume successfully fit into region and output values valid
  * @param translationIn
  *    Input with translation
+ * @param sliceViewPlaneSelectedInTab
+ *    The slice plane selected in the tab. This may be ALL, AXIAL, CORONAL, or PARASAGITTAL
+ * @param sliceViewPlaneForFitToRegion
+ *    The slice plane that is fit to plane (perhaps the slice plane containing mouse).  This may be
+ * AXIAL, CORONAL, or PARASAGITTAL only.  It is NEVER ALL !!!   When ALL is selected for
+ * the tab, this is the particular slice plane in the ALL view.
  * @param translationOut
  *    Output with translation
  * @param zoomOut
  *    Output with zooming
+ * @return True if successful, else false.
  */
 bool
 ViewingTransformationToFitRegion::applyToMprVolume(const Vector3D& translationIn,
+                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                                                    Vector3D& translationOut,
                                                    float& zoomOut)
 {
-    return applyToVolume(Mode::MPR,
+    m_modeName = "Mode: Volume MPR";
+    return applyToVolume(VolumeMode::MPR,
                          translationIn,
+                         sliceViewPlaneSelectedInTab,
+                         sliceViewPlaneForFitToRegion,
                          translationOut,
                          zoomOut);
 }
-
 
 /**
  * @return True if orthogonal volume successfully fit into region and output values valid
  * @param translationIn
  *    Input with translation
+ * @param sliceViewPlaneSelectedInTab
+ *    The slice plane selected in the tab. This may be ALL, AXIAL, CORONAL, or PARASAGITTAL
+ * @param sliceViewPlaneForFitToRegion
+ *    The slice plane that is fit to plane (perhaps the slice plane containing mouse).  This may be
+ * AXIAL, CORONAL, or PARASAGITTAL only.  It is NEVER ALL !!!   When ALL is selected for
+ * the tab, this is the particular slice plane in the ALL view.
  * @param translationOut
  *    Output with translation
  * @param zoomOut
  *    Output with zooming
+ * @return True if successful, else false.
  */
 bool
-ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& translationIn,
-                                                          Vector3D& translationOut,
-                                                          float& zoomOut)
+ViewingTransformationToFitRegion::applyToObliqueVolume(const Vector3D& translationIn,
+                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
+                                                       Vector3D& translationOut,
+                                                       float& zoomOut)
 {
-    return applyToVolume(Mode::Orthogonal,
+    const std::vector<MouseLeftDragModeEnum::Enum> mouseModes(m_browserTabContent->getSupportedMouseLeftDragModes());
+    if (std::find(mouseModes.begin(),
+                  mouseModes.end(),
+                  MouseLeftDragModeEnum::REGION_SELECTION) == mouseModes.end()) {
+        /*
+         * Note: to enable this functionality, enable REGION_SELECTION for oblique slice
+         * drawing in BrowserTabContent::getSupportedMouseLeftDragModes().
+         */
+        CaretLogSevere("Region selection with mouse is not available for Oblique Slice Viewing");
+        return false;
+    }
+    
+    m_modeName = "Mode: Volume Oblique";
+    return applyToVolume(VolumeMode::Oblique,
                          translationIn,
+                         sliceViewPlaneSelectedInTab,
+                         sliceViewPlaneForFitToRegion,
                          translationOut,
                          zoomOut);
 }
 
 /**
- * @return True if volume successfully fit into region and output values valid
+ * @return True if orthogonal volume successfully fit into region and output values valid
  * @param translationIn
  *    Input with translation
+ * @param sliceViewPlaneSelectedInTab
+ *    The slice plane selected in the tab. This may be ALL, AXIAL, CORONAL, or PARASAGITTAL
+ * @param sliceViewPlaneForFitToRegion
+ *    The slice plane that is fit to plane (perhaps the slice plane containing mouse).  This may be
+ * AXIAL, CORONAL, or PARASAGITTAL only.  It is NEVER ALL !!!   When ALL is selected for
+ * the tab, this is the particular slice plane in the ALL view.
  * @param translationOut
  *    Output with translation
  * @param zoomOut
  *    Output with zooming
+ * @return True if successful, else false.
  */
 bool
-ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
+ViewingTransformationToFitRegion::applyToOrthogonalVolume(const Vector3D& translationIn,
+                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
+                                                          Vector3D& translationOut,
+                                                          float& zoomOut)
+{
+    m_modeName = "Mode: Volume Orthogonal";
+    return applyToVolume(VolumeMode::Orthogonal,
+                         translationIn,
+                         sliceViewPlaneSelectedInTab,
+                         sliceViewPlaneForFitToRegion,
+                         translationOut,
+                         zoomOut);
+}
+
+/**
+ *@p
+ * @return True if volume successfully fit into region and output values valid
+ * @param volumeMode
+ *    The volume mode (type of volume view)
+ * @param translationIn
+ *    Input with translation
+ * @param sliceViewPlaneSelectedInTab
+ *    The slice plane selected in the tab. This may be ALL, AXIAL, CORONAL, or PARASAGITTAL
+ * @param sliceViewPlaneForFitToRegion
+ *    The slice plane that is fit to plane (perhaps the slice plane containing mouse).  This may be
+ * AXIAL, CORONAL, or PARASAGITTAL only.  It is NEVER ALL !!!   When ALL is selected for
+ * the tab, this is the particular slice plane in the ALL view.
+ * @param translationOut
+ *    Output with translation
+ * @param zoomOut
+ *    Output with zooming
+ * @return True if successful, else false.
+ */
+bool
+ViewingTransformationToFitRegion::applyToVolume(const VolumeMode volumeMode,
                                                 const Vector3D& translationIn,
+                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab,
+                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                                                 Vector3D& translationOut,
                                                 float& zoomOut)
 {
-    const bool debugFlag(false);
-    
     translationOut.set(0.0, 0.0, 0.0);
     zoomOut = 1.0;
     
@@ -162,77 +253,86 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
         return false;
     }
     
-    if (debugFlag) std::cout << "Region: " << m_selectedRegion->toString() << std::endl;
+    if (m_debugFlag) std::cout << m_modeName << std::endl;
+    if (m_debugFlag) std::cout << "   Region: " << m_selectedRegion->toString() << std::endl;
     
     Vector3D volumeCenterXYZ;
     voxelBoundingBox.getCenter(volumeCenterXYZ);
-    if (debugFlag) std::cout << "   Volume Center: " << volumeCenterXYZ.toString(5) << std::endl;
-    
+    if (m_debugFlag) std::cout << "   Volume Center: " << volumeCenterXYZ.toString(5) << std::endl;
+
     BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
-    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_browserTabContent->getVolumeSliceViewPlane());
-    switch (sliceViewPlane) {
+    switch (sliceViewPlaneSelectedInTab) {
         case VolumeSliceViewPlaneEnum::ALL:
-            switch (mode) {
-                case Mode::MPR:
-                case Mode::Orthogonal:
-                {
-                    /*
-                     * Find out which slice plane contains mouse
-                     */
-                    int viewport[4];
-                    m_viewportContent->getModelViewport(viewport);
-                    int sliceViewport[4] = {
-                        viewport[0],
-                        viewport[1],
-                        viewport[2],
-                        viewport[3]
-                    };
-                    sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                        m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
-                                                                                                        m_mouseEvent->getPressedX(),
-                                                                                                        m_mouseEvent->getPressedY(),
-                                                                                                        sliceViewport);
-                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-                        /* Not in slice plane*/
-                        return false;
-                    }
-                    allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
-                }
-                    break;
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
+            allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO;
             break;
     }
     
+    switch (sliceViewPlaneForFitToRegion) {
+        case VolumeSliceViewPlaneEnum::ALL:
+        {
+            const AString msg("sliceViewPlaneForFitToRegion must NEVER be ALL.  "
+                              "It must be one of AXIAL, CORONAL, or PARASAGITTAL");
+            CaretLogSevere(msg);
+            CaretAssertMessage(0, msg);
+            return false;
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            break;
+    }
+        
+    std::array<int32_t, 4> viewportArray(m_viewport.getViewport());
+    if (sliceViewPlaneSelectedInTab == VolumeSliceViewPlaneEnum::ALL) {
+        /*
+         * In ALL view, the viewport in tab is for all three of the slices.
+         * Must update viewport to that for the single slice plane
+         */
+        int32_t newViewport[4] { 0, 0, 0, 0};
+        BrainOpenGLViewportContent::getSliceAllViewViewport(viewportArray.data(),
+                                                            sliceViewPlaneForFitToRegion,
+                                                            m_browserTabContent->getVolumeSlicePlanesAllViewLayout(),
+                                                            newViewport);
+        setupViewport(newViewport);
+        viewportArray = m_viewport.getViewport();
+    }
+
     float zoomFactor(1.0);
-    const std::array<int32_t, 4> viewportArray(m_viewport.getViewport());
     double orthoBounds[6];
-    switch (mode) {
-        case Mode::MPR:
+    switch (volumeMode) {
+        case VolumeMode::Oblique:
+            BrainOpenGLVolumeObliqueSliceDrawing::getOrthographicProjection(voxelBoundingBox,
+                                                                            zoomFactor,
+                                                                            allSliceMode,
+                                                                            sliceViewPlaneForFitToRegion,
+                                                                            viewportArray.data(),
+                                                                            orthoBounds);
+        case VolumeMode::MPR:
             BrainOpenGLVolumeMprTwoDrawing::getOrthographicProjection(voxelBoundingBox,
                                                                       zoomFactor,
                                                                       viewportArray,
                                                                       orthoBounds);
             break;
-        case Mode::Orthogonal:
+        case VolumeMode::Orthogonal:
             BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceMode,
-                                                                     sliceViewPlane,
+                                                                     sliceViewPlaneForFitToRegion,
                                                                      voxelBoundingBox,
                                                                      zoomFactor,
                                                                      viewportArray.data(),
                                                                      orthoBounds);
             break;
     }
-    if (debugFlag) std::cout << "   Ortho bounds: " << AString::fromNumbers(orthoBounds, 6) << std::endl;
+    if (m_debugFlag) std::cout << "   Ortho bounds: " << AString::fromNumbers(orthoBounds, 6) << std::endl;
     const Vector3D orthoCenter((orthoBounds[0] + orthoBounds[1]) / 2.0,
                                (orthoBounds[2] + orthoBounds[3]) / 2.0,
                                (orthoBounds[4] + orthoBounds[5]) / 2.0);
-    if (debugFlag) std::cout << "   Ortho Center: " << orthoCenter.toString(5) << std::endl;
+    if (m_debugFlag) std::cout << "   Ortho Center: " << orthoCenter.toString(5) << std::endl;
     
     const float volumeSliceX(m_browserTabContent->getVolumeSliceCoordinateParasagittal());
     const float volumeSliceY(m_browserTabContent->getVolumeSliceCoordinateCoronal());
@@ -240,18 +340,19 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
     const Vector3D volumeSliceXYZ(volumeSliceX,
                                   volumeSliceY,
                                   volumeSliceZ);
-    if (debugFlag) std::cout << "   Volume Slice XYZ: " << volumeSliceXYZ.toString(5) << std::endl;
+    if (m_debugFlag) std::cout << "   Volume Slice XYZ: " << volumeSliceXYZ.toString(5) << std::endl;
     
     Vector3D regionCenterXYZ;
     m_selectionRegionBounds.getCenter(regionCenterXYZ);
-    if (debugFlag) std::cout << "   Region center: " << regionCenterXYZ.toString(5) << std::endl;
+    if (m_debugFlag) std::cout << "   Region center: " << regionCenterXYZ.toString(5) << std::endl;
     
     float zoom(1.0);
     if ( ! generateZoom(zoom)) {
         return false;
     }
     
-    if (debugFlag) std::cout << "   Zoom: " << zoom << std::endl;
+    if (m_debugFlag) std::cout << "   Zoom: " << zoom << std::endl;
+    
     
     /*
      * Center of volume is NOT the origin (0, 0, 0).
@@ -262,7 +363,7 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
     float volumeCenterOffsetX(0.0);
     float volumeCenterOffsetY(0.0);
     float volumeCenterOffsetZ(0.0);
-    switch (sliceViewPlane) {
+    switch (sliceViewPlaneForFitToRegion) {
         case VolumeSliceViewPlaneEnum::ALL:
             return false;
             break;
@@ -279,14 +380,15 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
             volumeCenterOffsetZ = volumeCenterXYZ[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            switch (mode) {
-                case Mode::MPR:
+            switch (volumeMode) {
+                case VolumeMode::MPR:
                     translation[1] = -(-orthoCenter[0] - regionCenterXYZ[1]);
                     translation[2] = (orthoCenter[1] - regionCenterXYZ[2]);
                     volumeCenterOffsetY = -volumeCenterXYZ[1];
                     volumeCenterOffsetZ = volumeCenterXYZ[2];
                     break;
-                case Mode::Orthogonal:
+                case VolumeMode::Oblique:
+                case VolumeMode::Orthogonal:
                     translation[1] = (-orthoCenter[0] - regionCenterXYZ[1]);
                     translation[2] = (orthoCenter[1] - regionCenterXYZ[2]);
                     volumeCenterOffsetY = volumeCenterXYZ[1];
@@ -296,15 +398,16 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
             break;
     }
     
-    if (debugFlag) std::cout << "   Translation: " << translation.toString(5) << std::endl;
+    if (m_debugFlag) std::cout << "   Translation: " << translation.toString(5) << std::endl;
     
     Matrix4x4 m1;
     m1.translate(translation);
-    switch (mode) {
-        case Mode::Orthogonal:
+    switch (volumeMode) {
+        case VolumeMode::Oblique:
+        case VolumeMode::Orthogonal:
             m1.scale(zoom, zoom, zoom);
             break;
-        case Mode::MPR:
+        case VolumeMode::MPR:
             break;
     }
     m1.translate(volumeCenterOffsetX, volumeCenterOffsetY, volumeCenterOffsetZ);
@@ -318,7 +421,7 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
      * Need to preserve translation along plane
      * being viewed using input translation value
      */
-    switch (sliceViewPlane) {
+    switch (sliceViewPlaneForFitToRegion) {
         case VolumeSliceViewPlaneEnum::ALL:
             return false;
             break;
@@ -335,18 +438,19 @@ ViewingTransformationToFitRegion::applyToVolume(const Mode mode,
     
     translationOut = t;
 
-    switch (mode) {
-        case Mode::Orthogonal:
+    switch (volumeMode) {
+        case VolumeMode::Oblique:
+        case VolumeMode::Orthogonal:
             zoomOut = matrixZoom;
             break;
-        case Mode::MPR:
+        case VolumeMode::MPR:
             zoomOut = zoom;
             break;
     }
     
-    if (debugFlag) std::cout << "   Final Trans: " << t[0] << ", " << t[1] << ", " << t[2] << std::endl;
-    if (debugFlag) std::cout << "   Matrix Zoom: " << matrixZoom << ", " << sy << std::endl;
-    if (debugFlag) std::cout << "          Zoom: " << zoom << std::endl;
+    if (m_debugFlag) std::cout << "   Final Trans: " << t[0] << ", " << t[1] << ", " << t[2] << std::endl;
+    if (m_debugFlag) std::cout << "   Matrix Zoom: " << matrixZoom << ", " << sy << std::endl;
+    if (m_debugFlag) std::cout << "          Zoom: " << zoom << std::endl;
     
     return true;
 }
@@ -363,6 +467,7 @@ ViewingTransformationToFitRegion::applyToMediaImage(const GraphicsObjectToWindow
                                                     Vector3D& translationOut,
                                                     float& zoomOut)
 {
+    m_modeName = "Mode: Media Image";
     CaretAssert(transform);
     
     translationOut.set(0.0, 0.0, 0.0);
@@ -420,7 +525,28 @@ ViewingTransformationToFitRegion::applyToMediaImage(const GraphicsObjectToWindow
     return resultValidFlag;
 }
 
+/**
+ * Setup viewport and related data
+ * @param viewport
+ *    Viewport dimensions
+ * @return True if viewport is valid
+ */
+bool
+ViewingTransformationToFitRegion::setupViewport(const int32_t viewport[4])
+{
+    m_viewport = GraphicsViewport(viewport);
+    if ( ! m_viewport.isValid()) {
+        return false;
+    }
 
+    m_viewportAspectRatio = (m_viewport.getHeightF()
+                             / m_viewport.getWidthF());
+    if (m_viewportAspectRatio <= 0.0) {
+        return false;
+    }
+
+    return true;
+}
 /**
  * Initialize and validate input data
  * @return True if initialization was successful, else false.
@@ -448,12 +574,9 @@ ViewingTransformationToFitRegion::initializeData()
      */
     int32_t viewport[4];
     m_viewportContent->getModelViewport(viewport);
-    m_viewport = GraphicsViewport(viewport);
-    if ( ! m_viewport.isValid()) {
+    if ( ! setupViewport(viewport)) {
         return false;
     }
-    m_viewportAspectRatio = (m_viewport.getHeightF()
-                             / m_viewport.getWidthF());
     
     /*
      * Viewport of selected region
@@ -479,6 +602,9 @@ bool
 ViewingTransformationToFitRegion::generateZoom(float& zoomOut)
 {
     zoomOut = 1.0;
+    
+    if (m_debugFlag) std::cout << "   Viewport:     " << m_viewport.toString() << std::endl;
+    if (m_debugFlag) std::cout << "   Region VP: " << m_selectionRegionViewport.toString() << std::endl;
     
     if (m_selectionRegionViewportAspectRatio > m_viewportAspectRatio) {
         zoomOut = m_viewport.getHeightF() / m_selectionRegionViewport.getHeightF();

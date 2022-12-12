@@ -37,6 +37,7 @@
 namespace caret {
     class CziNonLinearTransform;
     class DataFileContentInformation;
+    class GraphicsRegionSelectionBox;
     class HistologySliceImage;
     class MediaFile;
     class SceneClassAssistant;
@@ -103,6 +104,8 @@ namespace caret {
                                           float& stereotaxicDistanceToSliceOut,
                                           Vector3D& planeOnSliceXYZ) const;
 
+        std::unique_ptr<GraphicsRegionSelectionBox> planeRegionToStereotaxicRegion(const GraphicsRegionSelectionBox* planeRegion) const;
+        
         const Plane& getStereotaxicPlane() const;
         
         const Plane& getPlaneXyzPlane() const;

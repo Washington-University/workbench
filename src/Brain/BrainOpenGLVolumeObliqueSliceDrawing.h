@@ -54,6 +54,7 @@ namespace caret {
         virtual ~BrainOpenGLVolumeObliqueSliceDrawing();
         
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                  BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,
                   std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -71,6 +72,14 @@ namespace caret {
         
         static void setVoxelStepScaling(const float voxelStepScaling);
         
+        static void getOrthographicProjection(const BoundingBox& voxelSpaceBoundingBox,
+                                              const float zoomFactor,
+                                              const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const int viewport[4],
+                                              double orthographicsBoundsOut[6]);
+
+
     private:        
         class ObliqueSlice {
         public:
@@ -305,6 +314,8 @@ namespace caret {
         std::vector<std::vector<float> > m_ciftiMappableFileData;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
+        
+        BrainOpenGLViewportContent* m_viewportContent;
         
         std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo> m_volumeDrawInfo;
         

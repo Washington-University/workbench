@@ -23,13 +23,13 @@
 
 
 #include "ViewingTransformations.h"
-
+#include "VolumeSliceViewPlaneEnum.h"
 
 
 namespace caret {
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsRegionSelectionBox;
-    class MouseEvent;
 
     class ViewingTransformationsVolume : public ViewingTransformations {
         
@@ -42,7 +42,9 @@ namespace caret {
 
         ViewingTransformationsVolume& operator=(const ViewingTransformationsVolume& obj);
         
-        bool setViewToBounds(const MouseEvent* mouseEvent,
+        bool setViewToBounds(const BrainOpenGLViewportContent* viewportContent,
+                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab, 
+                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion,
                              const GraphicsRegionSelectionBox* selectionRegion,
                              const BrowserTabContent* browserTabContent);
 

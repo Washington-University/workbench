@@ -315,6 +315,10 @@ ViewingTransformationsMedia::setMediaScaling(const GraphicsObjectToWindowTransfo
  *    The mouse event that triggered this function
  * @param selectionRegion
  *    Box containing bounds of selection
+ * @param regionPercentageViewportWidth
+ *    Percentage of viewport width occupied by selected region
+ * @param regionPercentageViewportHeight
+ *    Percentage of viewport height occupied by selected region
  * @param transform
  *    Graphics object to window transform
  * @param histologySlice
@@ -337,7 +341,7 @@ ViewingTransformationsMedia::setMediaViewToBounds(const MouseEvent* mouseEvent,
                                                       
     Vector3D translation;
     float zoom(0.0);
-    ViewingTransformationToFitRegion transformFitToRegion(mouseEvent,
+    ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
                                                           selectionRegion,
                                                           browserTabContent);
     if (transformFitToRegion.applyToMediaImage(transform,

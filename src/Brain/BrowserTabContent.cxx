@@ -4360,20 +4360,20 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
             }
         }
         
+        updateBrainModelYokedBrowserTabs();
+
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
         if (m_histologyViewingTransformation->setMediaViewToBounds(mouseEvent,
                                                                    selectionBounds,
                                                                    xform,
                                                                    histologySlice)) {
             if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
-//                panZoomYokedVolumeSlicesIntoRegion(allViewportContent,
-//                                                   viewportContent,
-//                                                   stereotaxicCenterXYZ,
-//                                                   stereotaxicWidth,
-//                                                   stereotaxicHeight);
+                setVolumeSliceViewsToHistologyRegion(getBrainModelYokingGroup(),
+                                                     histologySlice,
+                                                     allViewportContent,
+                                                     selectionBounds);
             }
         }
-        updateBrainModelYokedBrowserTabs();
     }
     else if (getDisplayedMediaModel() != NULL) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getMediaGraphicsObjectToWindowTransform();
@@ -4385,16 +4385,51 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         updateMediaModelYokedBrowserTabs();
     }
     else if (getDisplayedVolumeModel() != NULL) {
+        
+        VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion(VolumeSliceViewPlaneEnum::ALL);
+        BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
+        const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(getVolumeSliceViewPlane());
+        switch (sliceViewPlaneSelectedInTab) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                    {
+                        /*
+                         * Find out which slice plane contains mouse
+                         */
+                        int viewport[4];
+                        viewportContent->getModelViewport(viewport);
+                        int sliceViewport[4] = {
+                            viewport[0],
+                            viewport[1],
+                            viewport[2],
+                            viewport[3]
+                        };
+                        sliceViewPlaneForFitToRegion = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                            getVolumeSlicePlanesAllViewLayout(),
+                                                                                                            mouseEvent->getPressedX(),
+                                                                                                            mouseEvent->getPressedY(),
+                                                                                                            sliceViewport);
+                        if (sliceViewPlaneForFitToRegion == VolumeSliceViewPlaneEnum::ALL) {
+                            /* Not in slice plane*/
+                            return;
+                        }
+                        allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
+                    }
+                        break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+            case VolumeSliceViewPlaneEnum::AXIAL:
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                sliceViewPlaneForFitToRegion = sliceViewPlaneSelectedInTab;
+                break;
+        }
+        CaretAssert(sliceViewPlaneForFitToRegion != VolumeSliceViewPlaneEnum::ALL);
+
         switch (getVolumeSliceProjectionType()) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
-                                                                    selectionBounds,
-                                                                    this);
-                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent,
+                m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent->getViewportContent(),
+                                                                    sliceViewPlaneSelectedInTab,
+                                                                    sliceViewPlaneForFitToRegion,
                                                                     selectionBounds,
                                                                     this);
                 break;
@@ -4910,7 +4945,7 @@ BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* vi
                                                                                         sliceViewport);
     }
     
-    const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeMprGraphicsObjectToWindowTransform(slicePlane);
+    const GraphicsObjectToWindowTransform* objectToWindowXform = viewportContent->getVolumeGraphicsObjectToWindowTransform(slicePlane);
     if (objectToWindowXform != NULL) {
         /*
          * Previous position of mouse
@@ -7239,306 +7274,133 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
 }
 
 /**
- * Get pan and zoom yoked volume slices to approximate center and size matching histology slice
+ * Set volume slices in yoked tabs to same view as histology slice view
+ * @param yokingGroup
+ *    The yoking group
+ * @param histologySlice
+ *    The histology slice
  * @param allViewportContent
  *    Content of all viewports in all windows
- * @param tabViewportContent
- *    Viewport content for 'this' tab
- * @param regionStereotaxicCenterXYZ
- *    Center of region
- * @param regionStereotaxicWidth
- *    Width of region
- * @param regionStereotaxicHeight
- *    Height of region
- * @param panOut
- *    Output with panning
- * @param zoomOut
- *    Output with zooming
- * @return
- *    True if output panning and zooming are valid
+ * @param histologySelectionBounds
+ *    The selection bounds in the histology slice
  */
-bool
-BrowserTabContent::getPanZoomToFitVolumeIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                   const BrainOpenGLViewportContent* tabViewportContent,                                                   const YokingGroupEnum::Enum yokingGroup,
-                                                   const Vector3D& regionStereotaxicCenterXYZ,
-                                                   const float regionStereotaxicWidth,
-                                                   const float regionStereotaxicHeight,
-                                                   Vector3D& panOut,
-                                                   float& zoomOut)
+void
+BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::Enum yokingGroup,
+                                                        const HistologySlice* histologySlice,
+                                                        const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
+                                                        const GraphicsRegionSelectionBox* histologySelectionBounds)
 {
-    CaretAssertToDoFatal();
-    panOut  = Vector3D();
-    zoomOut = 1.0;
-    
-    const bool debugFlag(false);
-    if (debugFlag) std::cout << "Region Stereotaxic CenterXYZ: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
-    if (debugFlag) std::cout << "   Region stereotaxic width: " << regionStereotaxicWidth << std::endl;
-    if (debugFlag) std::cout << "   Region stereotaxic height: " << regionStereotaxicHeight << std::endl;
-    
-    if ((regionStereotaxicWidth <= 0.0)
-        || (regionStereotaxicHeight <= 0.0)) {
-        return false;
+    CaretAssert(histologySlice);
+    CaretAssert(histologySelectionBounds);
+    if (yokingGroup == YokingGroupEnum::YOKING_GROUP_OFF) {
+        return;
     }
     
-    /*
-     * Find a volume model in tabs
-     */
-    const BrainOpenGLViewportContent* volumeViewportContent(NULL);
+    const std::unique_ptr<GraphicsRegionSelectionBox> stereotaxicBounds(histologySlice->planeRegionToStereotaxicRegion(histologySelectionBounds));
+    if ( ! stereotaxicBounds) {
+        return;
+    }
+
+    const Plane histologyPlane(histologySlice->getStereotaxicPlane());
+    if ( ! histologyPlane.isValidPlane()) {
+        return;
+    }
+    
+    const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion(VolumeSliceViewPlaneEnum::fromPlane(histologyPlane));
+    if (sliceViewPlaneForFitToRegion == VolumeSliceViewPlaneEnum::ALL) {
+        return;
+    }
+    
+    
     for (const BrainOpenGLViewportContent* vpContent : allViewportContent) {
         CaretAssert(vpContent);
         const BrowserTabContent* btc(vpContent->getBrowserTabContent());
-        if (btc != NULL) {
-            if (btc->getBrainModelYokingGroup() == yokingGroup) {
-                switch (vpContent->getBrowserTabContent()->getSelectedModelType()) {
-                    case ModelTypeEnum::MODEL_TYPE_CHART:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_INVALID:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-                        volumeViewportContent = vpContent;
-                        break;
-                    case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-                        break;
-                }
-                if (volumeViewportContent != NULL) {
+        CaretAssert(btc);
+        if (btc->m_closedFlag) {
+            continue;
+        }
+        if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
+            const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(btc->getVolumeSliceViewPlane());
+            switch (sliceViewPlaneSelectedInTab) {
+                case VolumeSliceViewPlaneEnum::ALL:
                     break;
-                }
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    if (sliceViewPlaneForFitToRegion != sliceViewPlaneSelectedInTab) {
+                        continue;
+                    }
+                    break;
             }
-        }
-    }
-    
-    const BrowserTabContent* volumeBrowserTabContent(NULL);
-    const ModelVolume* volumeModel(NULL);
-    if (volumeViewportContent != NULL) {
-        volumeBrowserTabContent = volumeViewportContent->getBrowserTabContent();
-        if (volumeBrowserTabContent != NULL) {
-            volumeModel = volumeBrowserTabContent->getDisplayedVolumeModel();
-        }
-    }
-    else {
-        /*
-         * Since no volume model found in other tabs, use volume model in
-         * 'this' tab even though it is not dipslayed
-         */
-        volumeViewportContent = tabViewportContent;
-        if (volumeViewportContent != NULL) {
-            volumeBrowserTabContent = volumeViewportContent->getBrowserTabContent();
-            if (volumeBrowserTabContent != NULL) {
-                /* Volume model may not be displayed */
-                volumeModel = volumeBrowserTabContent->m_volumeModel;
+                     
+            /*
+             * Need to uses steretaxic bounds and convert to viewport coordinates
+             */
+            const GraphicsObjectToWindowTransform* xform(vpContent->getVolumeGraphicsObjectToWindowTransform(sliceViewPlaneForFitToRegion));
+            CaretAssert(xform);
+            if (xform == NULL) {
+                continue;
             }
-        }
-    }
-    
-    if (volumeViewportContent == NULL) {
-        return false;
-    }
-    if (volumeBrowserTabContent == NULL) {
-        return false;
-    }
-    if (volumeModel == NULL) {
-        return false;
-    }
-    
-    const int32_t volumeTabNumber(volumeBrowserTabContent->getTabNumber());
-    
-    const OverlaySet* volumeOverlaySet(volumeModel->getOverlaySet(volumeTabNumber));
-    CaretAssert(volumeOverlaySet);
-    const VolumeMappableInterface* underlayVolume(volumeOverlaySet->getUnderlayVolume());
-    CaretAssert(underlayVolume);
-    BoundingBox volumeBoundingBox;
-    underlayVolume->getVoxelSpaceBoundingBox(volumeBoundingBox);
-    if ( ! volumeBoundingBox.isValid()) {
-        return false;
-    }
-    
-    /*
-     * Mid-point is stereotaxic coordinate at the "mid-point" of the volume
-     * The origin (0, 0, 0)  is typically at the anterior commissure that is
-     * anterior to the mid-point
-     */
-    const Vector3D volumeMidPointXYZ(volumeBoundingBox.getCenterX(),
-                                     volumeBoundingBox.getCenterY(),
-                                     volumeBoundingBox.getCenterZ());
-    if (debugFlag) std::cout << "   Volume Mid Point: " << volumeMidPointXYZ.toString(5) << std::endl;
-    if (debugFlag) std::cout << "   Volume size x/y/z: " << volumeBoundingBox.getDifferenceX() << ", "
-    << volumeBoundingBox.getDifferenceY() << ", " << volumeBoundingBox.getDifferenceZ() << std::endl;
-    
-    int32_t viewport[4];
-    volumeViewportContent->getModelViewport(viewport);
-
-    float volumeSliceWidth  = 80.0;
-    float volumeSliceHeight = 80.0;
-
-    {
-        BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
-        VolumeSliceViewPlaneEnum::Enum sliceViewPlane(volumeBrowserTabContent->getVolumeSliceViewPlane());
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                allSliceViewMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
-                sliceViewPlane = VolumeSliceViewPlaneEnum::CORONAL;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                break;
-        }
-
-        const float zoomFactor(1.0);
-        double orthographicBounds[6];
-        BrainOpenGLVolumeSliceDrawing::getOrthographicProjection(allSliceViewMode,
-                                                                 sliceViewPlane,
-                                                                 volumeBoundingBox,
-                                                                 zoomFactor,
-                                                                 viewport,
-                                                                 orthographicBounds);
-        volumeSliceWidth  = std::fabs(orthographicBounds[1] - orthographicBounds[0]);
-        volumeSliceHeight = std::fabs(orthographicBounds[3] - orthographicBounds[2]);
-    }
-    
-    if (debugFlag) std::cout << "   Slicd width/height: " << volumeSliceWidth << ", " << volumeSliceHeight << std::endl;
-
-    bool doZoomFlag(false);
-    switch (volumeBrowserTabContent->getVolumeSliceProjectionType()) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            doZoomFlag = true;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            doZoomFlag = true;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            doZoomFlag = true;
-            break;
-    }
-
-    if (debugFlag) std::cout << "   Region offset with no zoom: " << regionStereotaxicCenterXYZ.toString(5) << std::endl;
-
-    float zoom(1.0);
-    if (doZoomFlag) {
-        if (volumeSliceHeight > 0.0) {
-            const float zoomHorizontal = volumeSliceWidth / regionStereotaxicWidth;
-            const float zoomVertical   = volumeSliceHeight / regionStereotaxicHeight;
-            zoom = std::min(zoomHorizontal,
-                            zoomVertical);
-            if (debugFlag) std::cout << "   Zoom Horizontal: " << zoomHorizontal << std::endl;
-            if (debugFlag) std::cout << "   Zoom Vertical:   " << zoomVertical << std::endl;
-        }
-    }
-
-    if (debugFlag) std::cout << "   Zoom: " << zoom << std::endl;
-
-    bool panZoomValidFlag(false);
-    switch (volumeBrowserTabContent->getVolumeSliceProjectionType()) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            panOut  = (volumeMidPointXYZ - regionStereotaxicCenterXYZ);
-            zoomOut = zoom;
-            panZoomValidFlag = true;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        {
-            /*
-             * Just need to set translation and zooming
-             */
-            const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
-            panOut  = translate;
-            zoomOut = zoom;
-            panZoomValidFlag = true;
-        }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-        {
-            /*
-             * Need to offset by mid-point
-             * AND need to shift to the region's center
-             * Zoom about the new center point
-             */
-            const Vector3D translate(volumeMidPointXYZ - regionStereotaxicCenterXYZ);
-            Matrix4x4 matrix;
-            matrix.translate(translate);
-            matrix.scale(zoom, zoom, zoom);
-            matrix.translate(-translate);
             
             /*
-             * Get translation and zooming from matrix and apply it to view transform
+             * Get viewport coordinates in volume slices view
              */
-            Vector3D t;
-            matrix.getTranslation(t);
-            double sx, sy, sz;
-            matrix.getScale(sx, sy, sz);
-            if (debugFlag) std::cout << "   Trans: " << t.toString(5) << std::endl;
-            if (debugFlag) std::cout << "   Scale: " << sx << std::endl;
-            
-            panOut = t;
-            zoomOut = sx;
-            panZoomValidFlag = true;
-        }
-            break;
-    }
-
-    
-    return panZoomValidFlag;
-}
-
-
-/**
- * Pan and zoom yoked volume slices to approximate center and height
- * @param allViewportContent
- *    Content of all viewports in all windows
- * @param tabViewportContent
- *    Viewport content for 'this' tab
- * @param regionStereotaxicCenterXYZ
- *    Center of region
- * @param stereotaxicWidth
- *    Width of region
- * @param stereotaxicHeight
- *    Height of region
- */
-void
-BrowserTabContent::panZoomYokedVolumeSlicesIntoRegion(const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
-                                                      const BrainOpenGLViewportContent* tabViewportContent,
-                                                      const Vector3D& regionStereotaxicCenterXYZ,
-                                                      const float regionStereotaxicWidth,
-                                                      const float regionStereotaxicHeight)
-{
-    CaretAssertToDoFatal();
-    Vector3D newPan;
-    float newZoom(0.0);
-    if (getPanZoomToFitVolumeIntoRegion(allViewportContent,
-                                        tabViewportContent,
-                                        m_brainModelYokingGroup,
-                                        regionStereotaxicCenterXYZ,
-                                        regionStereotaxicWidth,
-                                        regionStereotaxicHeight,
-                                        newPan,
-                                        newZoom)) {
-        m_volumeSliceViewingTransformation->resetView();
-        m_volumeSliceViewingTransformation->setRotationMatrix(Matrix4x4());
-        m_volumeSliceViewingTransformation->setFlatRotationMatrix(Matrix4x4());
-        m_volumeSliceViewingTransformation->setTranslation(newPan);
-        m_volumeSliceViewingTransformation->setScaling(newZoom);
-        
-        
-        /*
-         * Copy yoked data from 'me' to all other yoked browser tabs
-         */
-        std::vector<BrowserTabContent*> activeTabs = BrowserTabContent::getOpenBrowserTabs();
-        for (auto btc : activeTabs) {
-            if (btc != this) {
-                if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
-                    *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
+            const BoundingBox bb(stereotaxicBounds->getBounds());
+            Vector3D bottomLeftXYZ, topRightXYZ;
+            switch (sliceViewPlaneForFitToRegion) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                {
+                    const float sliceZ(bb.getCenterZ());
+                    bottomLeftXYZ.set(bb.getMinX(), bb.getMinY(), sliceZ);
+                    topRightXYZ.set(bb.getMaxX(), bb.getMaxY(), sliceZ);
                 }
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                {
+                    const float sliceY(bb.getCenterY());
+                    bottomLeftXYZ.set(bb.getMinX(), sliceY, bb.getMinZ());
+                    topRightXYZ.set(bb.getMaxX(), sliceY, bb.getMaxZ());
+                }
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                {
+                    /* Parasagittal has positive Y on left (left view) */
+                    const float sliceX(bb.getCenterX());
+                    bottomLeftXYZ.set(sliceX, bb.getMaxY(), bb.getMinZ());
+                    topRightXYZ.set(sliceX, bb.getMinY(), bb.getMaxZ());
+                }
+            }
+            
+            /*
+             * Compute region's viewport width/height
+             */
+            Vector3D windowBottomLeftXYZ, windowTopRightXYZ;
+            xform->transformPoint(bottomLeftXYZ, windowBottomLeftXYZ);
+            xform->transformPoint(topRightXYZ, windowTopRightXYZ);
+
+            /*
+             * Box with stereotaxic bounds and viewport coordinates
+             * in volume's viewport
+             */
+            GraphicsRegionSelectionBox sliceBox;
+            sliceBox.initialize(bottomLeftXYZ[0], bottomLeftXYZ[1], bottomLeftXYZ[2],
+                                windowBottomLeftXYZ[0], windowBottomLeftXYZ[1]);
+            sliceBox.update(topRightXYZ[0], topRightXYZ[1], topRightXYZ[2],
+                            windowTopRightXYZ[0], windowTopRightXYZ[1]);
+            
+            switch (btc->getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    btc->m_volumeSliceViewingTransformation->setViewToBounds(vpContent,
+                                                                             sliceViewPlaneSelectedInTab,
+                                                                             sliceViewPlaneForFitToRegion,
+                                                                             &sliceBox,
+                                                                             btc);
+                    break;
             }
         }
     }
@@ -7874,6 +7736,7 @@ BrowserTabContent::getSupportedMouseLeftDragModes() const
                     allowsRegionSelectionFlag = true;
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    /* No region selection for Oblique slice viewing */
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                     allowsRegionSelectionFlag = true;
