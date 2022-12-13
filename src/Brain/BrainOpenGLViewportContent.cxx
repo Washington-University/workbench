@@ -218,17 +218,17 @@ BrainOpenGLViewportContent::copyHelperBrainOpenGLViewportContent(const BrainOpen
     if (obj.m_mediaGraphicsObjectToWindowTransform) {
         m_mediaGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_mediaGraphicsObjectToWindowTransform));
     }
-    m_volumeMprAxialGraphicsObjectToWindowTransform.reset();
-    if (obj.m_volumeMprAxialGraphicsObjectToWindowTransform) {
-        m_volumeMprAxialGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprAxialGraphicsObjectToWindowTransform));
+    m_volumeAxialGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeAxialGraphicsObjectToWindowTransform) {
+        m_volumeAxialGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeAxialGraphicsObjectToWindowTransform));
     }
-    m_volumeMprCoronalGraphicsObjectToWindowTransform.reset();
-    if (obj.m_volumeMprCoronalGraphicsObjectToWindowTransform) {
-        m_volumeMprCoronalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprCoronalGraphicsObjectToWindowTransform));
+    m_volumeCoronalGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeCoronalGraphicsObjectToWindowTransform) {
+        m_volumeCoronalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeCoronalGraphicsObjectToWindowTransform));
     }
-    m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset();
-    if (obj.m_volumeMprParasagittalGraphicsObjectToWindowTransform) {
-        m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeMprParasagittalGraphicsObjectToWindowTransform));
+    m_volumeParasagittalGraphicsObjectToWindowTransform.reset();
+    if (obj.m_volumeParasagittalGraphicsObjectToWindowTransform) {
+        m_volumeParasagittalGraphicsObjectToWindowTransform.reset(new GraphicsObjectToWindowTransform(*obj.m_volumeParasagittalGraphicsObjectToWindowTransform));
     }
 }
 
@@ -1378,13 +1378,13 @@ BrainOpenGLViewportContent::setVolumeMprGraphicsObjectToWindowTransform(const Vo
             CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            m_volumeMprAxialGraphicsObjectToWindowTransform.reset(transform);
+            m_volumeAxialGraphicsObjectToWindowTransform.reset(transform);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            m_volumeMprCoronalGraphicsObjectToWindowTransform.reset(transform);
+            m_volumeCoronalGraphicsObjectToWindowTransform.reset(transform);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_volumeMprParasagittalGraphicsObjectToWindowTransform.reset(transform);
+            m_volumeParasagittalGraphicsObjectToWindowTransform.reset(transform);
             break;
     }
 }
@@ -1400,13 +1400,13 @@ BrainOpenGLViewportContent::getVolumeGraphicsObjectToWindowTransform(const Volum
             CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            return m_volumeMprAxialGraphicsObjectToWindowTransform.get();
+            return m_volumeAxialGraphicsObjectToWindowTransform.get();
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            return m_volumeMprCoronalGraphicsObjectToWindowTransform.get();
+            return m_volumeCoronalGraphicsObjectToWindowTransform.get();
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            return m_volumeMprParasagittalGraphicsObjectToWindowTransform.get();
+            return m_volumeParasagittalGraphicsObjectToWindowTransform.get();
             break;
     }
     return NULL;

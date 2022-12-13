@@ -270,11 +270,11 @@ namespace caret {
         
         mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_mediaGraphicsObjectToWindowTransform;
         
-        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprAxialGraphicsObjectToWindowTransform;
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeAxialGraphicsObjectToWindowTransform;
         
-        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprCoronalGraphicsObjectToWindowTransform;
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeCoronalGraphicsObjectToWindowTransform;
         
-        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeMprParasagittalGraphicsObjectToWindowTransform;
+        mutable std::unique_ptr<GraphicsObjectToWindowTransform> m_volumeParasagittalGraphicsObjectToWindowTransform;
         
     public:
         virtual AString toString() const;

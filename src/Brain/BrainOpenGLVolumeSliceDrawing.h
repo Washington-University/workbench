@@ -298,7 +298,8 @@ namespace caret {
                                        const int32_t volumeIndex,
                                        const int32_t mapIndex,
                                        const uint8_t sliceOpacity,
-                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                       const int32_t sliceIndex);
        
         void drawOrthogonalSliceVoxelsSingleQuads(const float sliceNormalVector[3],
                                                   const float coordinate[3],

@@ -1475,7 +1475,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
                                   iVol,
                                   volInfo.mapIndex,
                                   volumeDrawingOpacity,
-                                  sliceViewingPlane);
+                                  sliceViewingPlane,
+                                  sliceIndexForDrawing);
         glDisable(GL_POLYGON_OFFSET_FILL);
         
         if (m_identificationModeFlag) {
@@ -2096,7 +2097,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
                                   iVol,
                                   mapIndex,
                                   volumeDrawingOpacity,
-                                  sliceViewPlane);
+                                  sliceViewPlane,
+                                  sliceIndexForDrawing);
         
         glDisable(GL_POLYGON_OFFSET_FILL);
         
@@ -3036,6 +3038,8 @@ BrainOpenGLVolumeSliceDrawing::setOrthographicProjection(const AllSliceViewMode 
  *    Opacity from the overlay.
  * @param sliceViewPlane
  *    Slice plane being drawn
+ * @param sliceIndex
+ *    Index of slice being drawn
  */
 void
 BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormalVector[3],
@@ -3050,7 +3054,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
                                                          const int32_t volumeIndex,
                                                          const int32_t mapIndex,
                                                          const uint8_t sliceOpacity,
-                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane)
+                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                         const int32_t sliceIndex)
 {
     if (validVoxelCount <= 0) {
         if (m_identificationModeFlag) {
@@ -3138,16 +3143,44 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceVoxels(const float sliceNormal
     }
     glGetBooleanv(GL_BLEND, &blendOn);
     
-    std::array<float, 4> orthoLRBT {
-        static_cast<float>(m_orthographicBounds[0]),
-        static_cast<float>(m_orthographicBounds[1]),
-        static_cast<float>(m_orthographicBounds[2]),
-        static_cast<float>(m_orthographicBounds[3])
-    };
-    GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
-    m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
-    CaretAssert(m_viewportContent);
-    m_viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
+    
+    if (volumeIndex == 0) {
+        if (m_modelType == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
+            bool updateFlag(false);
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexAxial(volumeInterface)) {
+                        updateFlag = true;
+                    }
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexCoronal(volumeInterface)) {
+                        updateFlag = true;
+                    }
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexParasagittal(volumeInterface)) {
+                        updateFlag = true;
+                    }
+                    break;
+            }
+            
+            if (updateFlag) {
+                std::array<float, 4> orthoLRBT {
+                    static_cast<float>(m_orthographicBounds[0]),
+                    static_cast<float>(m_orthographicBounds[1]),
+                    static_cast<float>(m_orthographicBounds[2]),
+                    static_cast<float>(m_orthographicBounds[3])
+                };
+                GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+                m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+                CaretAssert(m_viewportContent);
+                m_viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
+            }
+        }
+    }
 }
 
 /**
@@ -5023,7 +5056,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
                                   iVol,
                                   volInfo.mapIndex,
                                   volumeDrawingOpacity,
-                                  sliceViewingPlane);
+                                  sliceViewingPlane,
+                                  sliceIndexForDrawing);
         
         glDisable(GL_POLYGON_OFFSET_FILL);
         

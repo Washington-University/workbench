@@ -302,7 +302,23 @@ ViewingTransformationToFitRegion::applyToVolume(const VolumeMode volumeMode,
         setupViewport(newViewport);
         viewportArray = m_viewport.getViewport();
     }
-
+    
+    if (m_debugFlag) std::cout << "Viewport: " << AString::fromNumbers(viewportArray.data(), 4) << std::endl;
+    {
+        const GraphicsObjectToWindowTransform* xform(m_viewportContent->getVolumeGraphicsObjectToWindowTransform(sliceViewPlaneForFitToRegion));
+        if (xform != NULL) {
+            const std::array<float, 4> vpFloat(xform->getViewport());
+            if (m_debugFlag) std::cout << "Replace viewport with XFORM: " << AString::fromNumbers(vpFloat.data(), 4) << std::endl;
+            const int32_t vp[4] {
+                static_cast<int32_t>(vpFloat[0]),
+                static_cast<int32_t>(vpFloat[1]),
+                static_cast<int32_t>(vpFloat[2]),
+                static_cast<int32_t>(vpFloat[3]),
+            };
+            setupViewport(vp);
+        }
+    }
+    
     float zoomFactor(1.0);
     double orthoBounds[6];
     switch (volumeMode) {
