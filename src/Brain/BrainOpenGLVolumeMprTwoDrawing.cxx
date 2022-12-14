@@ -63,6 +63,7 @@
 #include "MathFunctions.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
+#include "SelectionItemAnnotation.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
@@ -746,6 +747,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             break;
     }
 
+    SelectionItemAnnotation* annotationID(m_brain->getSelectionManager()->getAnnotationIdentification());
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
@@ -762,7 +764,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         case BrainOpenGLFixedPipeline::MODE_DRAWING:
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (voxelID->isEnabledForSelection()
+            if (annotationID->isEnabledForSelection()
+                || voxelID->isEnabledForSelection()
                 || crosshairID->isEnabledForSelection()
                 || voxelEditingID->isEnabledForSelection()) {
                 m_identificationModeFlag = true;
@@ -841,42 +844,40 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
             drawIdentificationSymbolsFlag = true;
         }
 
-//        if (volumeIndex == 0) {
-            if (m_brainModelMode == BrainModelMode::VOLUME_2D) {
-                bool updateFlag(false);
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        if (sliceIndex == m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume)) {
-                            updateFlag = true;
-                        }
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        if (sliceIndex == m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume)) {
-                            updateFlag = true;
-                        }
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        if (sliceIndex == m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume)) {
-                            updateFlag = true;
-                        }
-                        break;
-                }
-                
-                if (updateFlag) {
-                    std::array<float, 4> orthoLRBT {
-                        static_cast<float>(viewport.getLeft()),
-                        static_cast<float>(viewport.getRight()),
-                        static_cast<float>(viewport.getBottom()),
-                        static_cast<float>(viewport.getTop())
-                    };
-                    GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
-                    m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
-                    viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
-                }
+        if (m_brainModelMode == BrainModelMode::VOLUME_2D) {
+            bool updateFlag(false);
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume)) {
+                        updateFlag = true;
+                    }
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume)) {
+                        updateFlag = true;
+                    }
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume)) {
+                        updateFlag = true;
+                    }
+                    break;
             }
-//        }
+            
+            if (updateFlag) {
+                std::array<float, 4> orthoLRBT {
+                    static_cast<float>(viewport.getLeft()),
+                    static_cast<float>(viewport.getRight()),
+                    static_cast<float>(viewport.getBottom()),
+                    static_cast<float>(viewport.getTop())
+                };
+                GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
+                m_fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+                viewportContent->setVolumeMprGraphicsObjectToWindowTransform(sliceViewPlane, transform);
+            }
+        }
 
         float sliceThickness = 1.0;
         if ( ! m_volumeDrawInfo.empty()) {
