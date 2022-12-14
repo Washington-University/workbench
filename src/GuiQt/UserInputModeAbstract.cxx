@@ -27,6 +27,7 @@
 
 #include <QWidget>
 
+#include "BrainOpenGLViewportContent.h"
 #include "CaretAssert.h"
 #include "MouseEvent.h"
 
@@ -47,9 +48,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param browserIndexIndex
+ *    Index of window containing this processor
+ * @param inputMode
+ *    Mode of this processor
  */
-UserInputModeAbstract::UserInputModeAbstract(const UserInputModeEnum::Enum inputMode)
+UserInputModeAbstract::UserInputModeAbstract(const int32_t browserIndexIndex,
+                                             const UserInputModeEnum::Enum inputMode)
 : CaretObject(),
+m_browserWindowIndex(browserIndexIndex),
 m_userInputMode(inputMode),
 m_widgetForToolBar(NULL),
 m_mousePositionValid(false)
@@ -202,4 +209,31 @@ UserInputModeAbstract::setMousePosition(const MouseEvent* mouseEvent,
         *m_mousePositionEvent = *mouseEvent;
     }
 }
+
+/**
+ * @return Index of window containing this input processor
+ */
+int32_t
+UserInputModeAbstract::getBrowserWindowIndex() const
+{
+    return m_browserWindowIndex;
+}
+
+/**
+ * @return The browser tab containing the mouse or NULL if mouse not in a tab.
+ */
+BrowserTabContent*
+UserInputModeAbstract::getBrowserTabContainingMouse() const
+{
+    const MouseEvent* mouseEvent(getMousePosition());
+    if (mouseEvent != NULL) {
+        BrainOpenGLViewportContent* vpContent(mouseEvent->getViewportContent());
+        if (vpContent != NULL) {
+            BrowserTabContent* btc(vpContent->getBrowserTabContent());
+            return btc;
+        }
+    }
+    return NULL;
+}
+
 

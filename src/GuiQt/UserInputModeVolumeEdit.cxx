@@ -59,15 +59,15 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserIndexIndex
  * Index of window using this volume editor input handler.
  */
-UserInputModeVolumeEdit::UserInputModeVolumeEdit(const int32_t windowIndex)
-: UserInputModeView(windowIndex,
-                    UserInputModeEnum::Enum::VOLUME_EDIT),
-m_windowIndex(windowIndex)
+UserInputModeVolumeEdit::UserInputModeVolumeEdit(const int32_t browserIndexIndex)
+: UserInputModeView(browserIndexIndex,
+                    UserInputModeEnum::Enum::VOLUME_EDIT)
 {
     m_inputModeVolumeEditWidget = new UserInputModeVolumeEditWidget(this,
-                                                                    windowIndex);
+                                                                    browserIndexIndex);
     setWidgetForToolBar(m_inputModeVolumeEditWidget);
 }
 
@@ -328,7 +328,7 @@ UserInputModeVolumeEdit::getVolumeEditInfo(VolumeEditInfo& volumeEditInfo)
     volumeEditInfo.m_sliceProjectionType = VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL;
     volumeEditInfo.m_obliqueRotationMatrix.identity();
     
-    EventBrowserWindowDrawingContent windowEvent(m_windowIndex);
+    EventBrowserWindowDrawingContent windowEvent(getBrowserWindowIndex());
     EventManager::get()->sendEvent(windowEvent.getPointer());
     
     BrowserTabContent* tabContent = windowEvent.getSelectedBrowserTabContent();

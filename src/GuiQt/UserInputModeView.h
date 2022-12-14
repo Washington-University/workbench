@@ -33,7 +33,7 @@ namespace caret {
     class UserInputModeView : public UserInputModeAbstract {
         
     public:
-        UserInputModeView(const int32_t windowIndex);
+        UserInputModeView(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeView();
         
@@ -84,7 +84,7 @@ namespace caret {
                                              AString& pasteSpecialTextOut) override;
         
     protected:
-        UserInputModeView(const int32_t windowIndex,
+        UserInputModeView(const int32_t browserIndexIndex,
                           const UserInputModeEnum::Enum inputMode);
         
     private:
@@ -124,8 +124,6 @@ namespace caret {
         void applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent);
         
         void updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent);
-        
-        const int32_t m_browserWindowIndex;
         
         float m_mediaLeftDragWithCtrlModelXYZ[3];
         

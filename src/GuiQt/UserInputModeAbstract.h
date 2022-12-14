@@ -34,6 +34,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
+    class BrowserTabContent;
     class GestureEvent;
     class KeyEvent;
     class MouseEvent;
@@ -42,7 +43,8 @@ namespace caret {
         
     public:
         
-        UserInputModeAbstract(const UserInputModeEnum::Enum inputMode);
+        UserInputModeAbstract(const int32_t browserIndexIndex,
+                              const UserInputModeEnum::Enum inputMode);
         
         virtual ~UserInputModeAbstract();
         
@@ -227,7 +229,12 @@ namespace caret {
         void setMousePosition(const MouseEvent* mouseEvent,
                               const bool valid);
         
+        int32_t getBrowserWindowIndex() const;
+        
+        BrowserTabContent* getBrowserTabContainingMouse() const;
+        
     protected:
+        
         void setWidgetForToolBar(QWidget* widgetForToolBar);
         
     private:
@@ -235,6 +242,8 @@ namespace caret {
 
         UserInputModeAbstract& operator=(const UserInputModeAbstract&);
 
+        const int32_t m_browserWindowIndex;
+     
         const UserInputModeEnum::Enum m_userInputMode;
         
         QWidget* m_widgetForToolBar;

@@ -541,7 +541,7 @@ UserInputModeBordersWidget::executeFinishOperation()
 void 
 UserInputModeBordersWidget::drawFinishButtonClicked()
 {
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->inputModeBorders->windowIndex);
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->inputModeBorders->getBrowserWindowIndex());
     if (browserWindow == NULL) {
         return;
     }

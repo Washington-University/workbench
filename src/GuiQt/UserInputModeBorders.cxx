@@ -67,15 +67,14 @@ using namespace caret;
  *
  * @param borderBeingDrawnByOpenGL
  *    Border that is displayed in OpenGL area when a border is being drawn
- * @param windowIndex
+ * @param browserIndexIndex
  *    Index of the browser window using this border processing.
  */
-UserInputModeBorders::UserInputModeBorders(const int32_t windowIndex)
-: UserInputModeView(windowIndex,
+UserInputModeBorders::UserInputModeBorders(const int32_t browserIndexIndex)
+: UserInputModeView(browserIndexIndex,
                     UserInputModeEnum::Enum::BORDERS)
 {
     this->borderBeingDrawn = new Border();
-    this->windowIndex = windowIndex;
     this->mode = MODE_DRAW;
     this->drawOperation = DRAW_OPERATION_CREATE;
     this->editOperation = EDIT_OPERATION_PROPERTIES;
@@ -226,7 +225,7 @@ UserInputModeBorders::setMode(const Mode mode)
     if (this->mode != mode) {
         this->mode = mode;
         this->borderBeingDrawn->clear();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
     }
     this->borderToolsWidget->updateWidget();
 }
@@ -286,7 +285,7 @@ void
 UserInputModeBorders::drawOperationUndo()
 {
     this->borderBeingDrawn->removeLastPoint();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -296,7 +295,7 @@ void
 UserInputModeBorders::drawOperationReset()
 {
     this->borderBeingDrawn->clear();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -361,7 +360,7 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
         {
@@ -460,7 +459,7 @@ UserInputModeBorders::mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
             break;
@@ -487,7 +486,7 @@ UserInputModeBorders::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
             break;

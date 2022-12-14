@@ -50,7 +50,7 @@ namespace caret {
             EDIT_OPERATION_PROPERTIES
         };
         
-        UserInputModeBorders(const int32_t windowIndex);
+        UserInputModeBorders(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeBorders();
         
@@ -124,7 +124,6 @@ namespace caret {
         
         Border* borderBeingDrawn;
         
-        int32_t windowIndex;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

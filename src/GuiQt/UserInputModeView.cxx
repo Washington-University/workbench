@@ -79,12 +79,12 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param windowIndex
+ * @param browserIndexIndex
  *    Index of the window
  */
-UserInputModeView::UserInputModeView(const int32_t windowIndex)
-: UserInputModeAbstract(UserInputModeEnum::Enum::VIEW),
-m_browserWindowIndex(windowIndex)
+UserInputModeView::UserInputModeView(const int32_t browserIndexIndex)
+: UserInputModeAbstract(browserIndexIndex,
+                        UserInputModeEnum::Enum::VIEW)
 {
     
 }
@@ -92,15 +92,15 @@ m_browserWindowIndex(windowIndex)
 /**
  * Constructor for subclasses.
  *
- * @param windowIndex
+ * @param browserIndexIndex
  *    Index of the window
  * @param inputMode
  *    Subclass' input mode.
  */
-UserInputModeView::UserInputModeView(const int32_t windowIndex,
+UserInputModeView::UserInputModeView(const int32_t browserIndexIndex,
                                      const UserInputModeEnum::Enum inputMode)
-: UserInputModeAbstract(inputMode),
-m_browserWindowIndex(windowIndex)
+: UserInputModeAbstract(browserIndexIndex,
+                        inputMode)
 {
     
 }
@@ -194,8 +194,7 @@ UserInputModeView::getCursor() const
 {
     CursorEnum::Enum cursorOut(CursorEnum::CURSOR_DEFAULT);
     
-    BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    BrowserTabContent* browserTabContent(getBrowserTabContainingMouse());
     if (browserTabContent != NULL) {
         switch (browserTabContent->getMouseLeftDragMode()) {
             case MouseLeftDragModeEnum::INVALID:
@@ -208,6 +207,7 @@ UserInputModeView::getCursor() const
                 break;
         }
     }
+    
 
     switch (m_mprCursorMode) {
         case VOLUME_MPR_CURSOR_MODE::INVALID:
@@ -883,7 +883,7 @@ UserInputModeView::applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
      */
     std::vector<BrainBrowserWindow*> allBrowserWindows(GuiManager::get()->getAllOpenBrainBrowserWindows());
     for (auto& bw : allBrowserWindows) {
-        if (bw->getBrowserWindowIndex() != m_browserWindowIndex) {
+        if (bw->getBrowserWindowIndex() != getBrowserWindowIndex()) {
             std::vector<const BrainOpenGLViewportContent*> vpContents;
             bw->getAllBrainOpenGLViewportContent(vpContents);
             viewportContentInAllWindows.insert(viewportContentInAllWindows.end(),
@@ -1304,7 +1304,7 @@ UserInputModeView::processChartActiveLayerAction(const ChartActiveLayerMode char
 {
     ChartTwoOverlaySet* chartOverlaySet = NULL;
     BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(getBrowserWindowIndex(), true);
     if (browserTabContent != NULL) {
         chartOverlaySet = browserTabContent->getChartTwoOverlaySet();
     }
@@ -1366,7 +1366,7 @@ UserInputModeView::getEnabledEditMenuItems(std::vector<BrainBrowserWindowEditMen
     pasteSpecialTextOut = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
     
     BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(getBrowserWindowIndex(), true);
     if (browserTabContent != NULL) {
         ViewingTransformations* viewingTransform(browserTabContent->getViewingTransformation());
         CaretAssert(viewingTransform);
@@ -1398,7 +1398,7 @@ UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenu
 {
     CaretUndoStack* undoStack(NULL);
     BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(getBrowserWindowIndex(), true);
     if (browserTabContent != NULL) {
         ViewingTransformations* viewingTransform(browserTabContent->getViewingTransformation());
         CaretAssert(viewingTransform);
@@ -1423,7 +1423,7 @@ UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenu
         if (undoStack != NULL) {
             AString errorMessage;
             if ( ! undoStack->redo(errorMessage)) {
-                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex),
+                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex()),
                                        errorMessage);
             }
             
@@ -1437,7 +1437,7 @@ UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenu
         if (undoStack != NULL) {
             AString errorMessage;
             if ( ! undoStack->undo(errorMessage)) {
-                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex),
+                WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex()),
                                        errorMessage);
             }
             

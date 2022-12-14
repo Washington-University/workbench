@@ -2379,6 +2379,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     }
     
     me->accept();
+    
+    updateCursor();
 }
 
 /**

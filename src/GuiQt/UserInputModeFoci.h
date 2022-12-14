@@ -42,7 +42,7 @@ namespace caret {
             MODE_EDIT
         };
         
-        UserInputModeFoci(const int32_t windowIndex);
+        UserInputModeFoci(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeFoci();
         
@@ -82,8 +82,6 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
-        const int32_t m_windowIndex;
-
         UserInputModeFociWidget* m_inputModeFociWidget;
         
         Mode m_mode;

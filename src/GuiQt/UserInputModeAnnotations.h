@@ -72,7 +72,7 @@ namespace caret {
             MODE_SET_COORDINATE_TWO
         };
         
-        UserInputModeAnnotations(const int32_t windowIndex);
+        UserInputModeAnnotations(const int32_t browserWindowIndex);
         
         virtual ~UserInputModeAnnotations();
         
@@ -134,7 +134,7 @@ namespace caret {
 
     protected:
         UserInputModeAnnotations(const UserInputModeEnum::Enum userInputMode,
-                                 const int32_t windowIndex);
+                                 const int32_t browserWindowIndex);
         
         virtual void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
                                                   const bool shiftKeyDownFlag,
@@ -254,8 +254,6 @@ namespace caret {
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
-        
-        const int32_t m_browserWindowIndex;
         
         Annotation* m_annotationUnderMouse;
         

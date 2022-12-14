@@ -51,12 +51,12 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param windowIndex
+ * @param browserIndexIndex
  *     Index of window
  */
-UserInputModeTileTabsLayout::UserInputModeTileTabsLayout(const int32_t windowIndex)
+UserInputModeTileTabsLayout::UserInputModeTileTabsLayout(const int32_t browserIndexIndex)
 : UserInputModeAnnotations(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING,
-                           windowIndex)
+                           browserIndexIndex)
 {
     
 }
@@ -83,7 +83,7 @@ UserInputModeTileTabsLayout::showContextMenu(const MouseEvent& mouseEvent,
                                           const QPoint& menuPosition,
                                           BrainOpenGLWidget* openGLWidget)
 {
-    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex());
     CaretAssert(window);
     BrowserWindowContent* windowContent = window->getBrowerWindowContent();
     CaretAssert(windowContent);
@@ -131,7 +131,7 @@ void
 UserInputModeTileTabsLayout::deleteSelectedAnnotations()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         std::vector<BrowserTabContent*> tabs;
         for (auto ann : selectedAnnotations) {
@@ -142,7 +142,7 @@ UserInputModeTileTabsLayout::deleteSelectedAnnotations()
         }
         
         if ( ! tabs.empty()) {
-            BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
+            BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex());
             CaretAssert(window);
             
             QString msg("Close the selected tab(s)?");
@@ -195,7 +195,7 @@ UserInputModeTileTabsLayout::processMouseSelectAnnotation(const MouseEvent& mous
                                                            singleSelectionModeFlag);
     
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
+    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
         AnnotationBrowserTab* tabAnn = dynamic_cast<AnnotationBrowserTab*>(selectedAnnotations[0]);

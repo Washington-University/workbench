@@ -60,14 +60,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param browserIndexIndex
+ *    Index of window
  */
-UserInputModeFoci::UserInputModeFoci(const int32_t windowIndex)
-: UserInputModeView(windowIndex,
-                    UserInputModeEnum::Enum::FOCI),
-  m_windowIndex(windowIndex)
+UserInputModeFoci::UserInputModeFoci(const int32_t browserIndexIndex)
+: UserInputModeView(browserIndexIndex,
+                    UserInputModeEnum::Enum::FOCI)
 {
     m_inputModeFociWidget = new UserInputModeFociWidget(this,
-                                                        windowIndex);
+                                                        browserIndexIndex);
     m_mode = MODE_CREATE_AT_ID;
     setWidgetForToolBar(m_inputModeFociWidget);
 }
@@ -99,7 +100,7 @@ UserInputModeFoci::setMode(const Mode mode)
 {
     if (m_mode != mode) {
         m_mode = mode;
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
     }
     this->m_inputModeFociWidget->updateWidget();
 }

@@ -41,7 +41,7 @@ namespace caret {
             EDIT_OPERATION_DELETE
         };
         
-        UserInputModeImage(const int32_t windowIndex);
+        UserInputModeImage(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeImage();
         
@@ -90,8 +90,6 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
         
-        const int32_t m_windowIndex;
-
         UserInputModeImageWidget* m_inputModeImageWidget;
         
         EditOperation m_editOperation;

@@ -62,14 +62,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param browserIndexIndex
+ *    Index of window
  */
-UserInputModeImage::UserInputModeImage(const int32_t windowIndex)
-: UserInputModeView(windowIndex,
-                    UserInputModeEnum::Enum::IMAGE),
-  m_windowIndex(windowIndex)
+UserInputModeImage::UserInputModeImage(const int32_t browserIndexIndex)
+: UserInputModeView(browserIndexIndex,
+                    UserInputModeEnum::Enum::IMAGE)
 {
     m_inputModeImageWidget = new UserInputModeImageWidget(this,
-                                                        windowIndex);
+                                                          browserIndexIndex);
     m_editOperation = EDIT_OPERATION_ADD;
     setWidgetForToolBar(m_inputModeImageWidget);
 }
@@ -309,7 +310,7 @@ UserInputModeImage::deleteAllControlPoints()
 ImageFile*
 UserInputModeImage::getImageFile() const
 {
-    EventBrowserWindowDrawingContent windowGet(m_windowIndex);
+    EventBrowserWindowDrawingContent windowGet(getBrowserWindowIndex());
     EventManager::get()->sendEvent(windowGet.getPointer());
     
     DisplayPropertiesImages* dpi = GuiManager::get()->getBrain()->getDisplayPropertiesImages();
@@ -334,7 +335,7 @@ UserInputModeImage::getTabIndex() const
 {
     int32_t tabIndex = -1;
     
-    EventBrowserWindowDrawingContent windowGet(m_windowIndex);
+    EventBrowserWindowDrawingContent windowGet(getBrowserWindowIndex());
     EventManager::get()->sendEvent(windowGet.getPointer());
     
     BrowserTabContent* tabContent = windowGet.getSelectedBrowserTabContent();

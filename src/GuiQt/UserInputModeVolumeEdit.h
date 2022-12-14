@@ -76,7 +76,7 @@ namespace caret {
             Matrix4x4 m_obliqueRotationMatrix;
         };
         
-        UserInputModeVolumeEdit(const int32_t windowIndex);
+        UserInputModeVolumeEdit(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeVolumeEdit();
         
@@ -109,8 +109,6 @@ namespace caret {
         UserInputModeVolumeEdit& operator=(const UserInputModeVolumeEdit&);
         
         void processEditCommandFromMouse(const MouseEvent& mouseEvent);
-        
-        const int32_t m_windowIndex;
         
         UserInputModeVolumeEditWidget* m_inputModeVolumeEditWidget;
         
