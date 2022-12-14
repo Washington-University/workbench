@@ -1268,9 +1268,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
             
             if (coordInfo.m_histologySpaceInfo.m_validFlag) {
-                annSpatialMod.setMediaCoordinateAtMouseXY(coordInfo.m_histologySpaceInfo.m_xyz[0],
-                                                          coordInfo.m_histologySpaceInfo.m_xyz[1],
-                                                          coordInfo.m_histologySpaceInfo.m_xyz[2]);
+                annSpatialMod.setHistologyCoordinateAtMouseXY(coordInfo.m_histologySpaceInfo.m_xyz[0],
+                                                              coordInfo.m_histologySpaceInfo.m_xyz[1],
+                                                              coordInfo.m_histologySpaceInfo.m_xyz[2]);
             }
             if (coordInfo.m_mediaSpaceInfo.m_validFlag) {
                 annSpatialMod.setMediaCoordinateAtMouseXY(coordInfo.m_mediaSpaceInfo.m_xyz[0],
@@ -1303,15 +1303,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                                       previousMouseXYCoordInfo.m_chartSpaceInfo.m_xyz[2]);
                 }
                 if (previousMouseXYCoordInfo.m_histologySpaceInfo.m_validFlag) {
-                    annSpatialMod.setMediaCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[0],
-                                                              previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[1],
-                                                              previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[2]);
+                    annSpatialMod.setHistologyCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[0],
+                                                                          previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[1],
+                                                                          previousMouseXYCoordInfo.m_histologySpaceInfo.m_xyz[2]);
                 }
                 if (previousMouseXYCoordInfo.m_mediaSpaceInfo.m_validFlag) {
                     annSpatialMod.setMediaCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[0],
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[1],
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[2]);
-                }            }
+                }
+            }
             
             std::vector<Annotation*> annotationsBeforeMoveAndResize;
             std::vector<Annotation*> annotationsAfterMoveAndResize;

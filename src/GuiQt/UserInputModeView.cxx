@@ -440,11 +440,16 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
     }
     if (scrollVolumeSlicesFlag) {
-        browserTabContent->applyMouseVolumeSliceIncrement(viewportContent,
-                                                          mouseEvent.getPressedX(),
-                                                          mouseEvent.getPressedY(),
-                                                          mouseEvent.getDy());
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+        if (getUserInputMode() == UserInputModeEnum::Enum::ANNOTATIONS) {
+            /* Don't scroll slices when editing annotations */
+        }
+        else {
+            browserTabContent->applyMouseVolumeSliceIncrement(viewportContent,
+                                                              mouseEvent.getPressedX(),
+                                                              mouseEvent.getPressedY(),
+                                                              mouseEvent.getDy());
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+        }
     }
     else if (browserTabContent->isChartTwoDisplayed()) {
         const int32_t x1(mouseEvent.getPressedX());
