@@ -6029,6 +6029,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
             testFlatSurfaceFlag = true;
+            
+            /*
+             * In stereotaxic space annotations on histology slices, logic elsewhere
+             * will only draw annotation if it is close to the slice's plane.
+             */
+            if (m_histologySpacePlaneValid) {
+                depthTestFlag = false;
+            }
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             testFlatSurfaceFlag = true;
