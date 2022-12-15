@@ -144,6 +144,15 @@ namespace caret {
         
         void moveTransformToCustomView(ModelTransform& modelTransform);
         
+        void updateSpinBoxSingleStepValue(QDoubleSpinBox* spinBox,
+                                          const double singleStep);
+        
+        void updateSpinBoxValue(QDoubleSpinBox* spinBox,
+                                const double newValue) const;
+
+        int64_t createScaledInt(const double value,
+                                const int32_t decimals) const;
+        
         QWidget* m_copyWidget;
         
         QDoubleSpinBox* m_xPanDoubleSpinBox;

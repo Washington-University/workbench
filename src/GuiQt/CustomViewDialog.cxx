@@ -1062,12 +1062,15 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 float stepValue(1.0);
                 if (vpc != NULL) {
                     stepValue = vpc->getTranslationStepValueForCustomViewDialog();
-                    QSignalBlocker xBlocker(m_xPanDoubleSpinBox);
-                    QSignalBlocker yBlocker(m_yPanDoubleSpinBox);
-                    QSignalBlocker zBlocker(m_zPanDoubleSpinBox);
-                    m_xPanDoubleSpinBox->setSingleStep(stepValue);
-                    m_yPanDoubleSpinBox->setSingleStep(stepValue);
-                    m_zPanDoubleSpinBox->setSingleStep(stepValue);
+                    updateSpinBoxSingleStepValue(m_xPanDoubleSpinBox, stepValue);
+                    updateSpinBoxSingleStepValue(m_yPanDoubleSpinBox, stepValue);
+                    updateSpinBoxSingleStepValue(m_zPanDoubleSpinBox, stepValue);
+//                    QSignalBlocker xBlocker(m_xPanDoubleSpinBox);
+//                    QSignalBlocker yBlocker(m_yPanDoubleSpinBox);
+//                    QSignalBlocker zBlocker(m_zPanDoubleSpinBox);
+//                    m_xPanDoubleSpinBox->setSingleStep(stepValue);
+//                    m_yPanDoubleSpinBox->setSingleStep(stepValue);
+//                    m_zPanDoubleSpinBox->setSingleStep(stepValue);
                 }
             }
         }
@@ -1206,32 +1209,142 @@ CustomViewDialog::setTransformationControlValues(const double panX,
 {
     m_transformWidgetGroup->blockAllSignals(true);
     
-    m_xPanDoubleSpinBox->setValue(panX);
-    m_yPanDoubleSpinBox->setValue(panY);
-    m_zPanDoubleSpinBox->setValue(panZ);
-    
-    m_xRotateDoubleSpinBox->setValue(rotX);
-    m_yRotateDoubleSpinBox->setValue(rotY);
-    m_zRotateDoubleSpinBox->setValue(rotZ);
-    
-    m_xObliqueRotateDoubleSpinBox->setValue(obRotX);
-    m_yObliqueRotateDoubleSpinBox->setValue(obRotY);
-    m_zObliqueRotateDoubleSpinBox->setValue(obRotZ);
-    
-    m_xMprRotateDoubleSpinBox->setValue(mprRotX);
-    m_yMprRotateDoubleSpinBox->setValue(mprRotY);
-    m_zMprRotateDoubleSpinBox->setValue(mprRotZ);
+//    m_xPanDoubleSpinBox->setValue(panX);
+//    m_yPanDoubleSpinBox->setValue(panY);
+//    m_zPanDoubleSpinBox->setValue(panZ);
+    updateSpinBoxValue(m_xPanDoubleSpinBox, panX);
+    updateSpinBoxValue(m_yPanDoubleSpinBox, panY);
+    updateSpinBoxValue(m_zPanDoubleSpinBox, panZ);
 
-    m_flatRotationDoubleSpinBox->setValue(flatRotation);
+//    m_xRotateDoubleSpinBox->setValue(rotX);
+//    m_yRotateDoubleSpinBox->setValue(rotY);
+//    m_zRotateDoubleSpinBox->setValue(rotZ);
+    updateSpinBoxValue(m_xRotateDoubleSpinBox, rotX);
+    updateSpinBoxValue(m_yRotateDoubleSpinBox, rotY);
+    updateSpinBoxValue(m_zRotateDoubleSpinBox, rotZ);
+
+//    m_xObliqueRotateDoubleSpinBox->setValue(obRotX);
+//    m_yObliqueRotateDoubleSpinBox->setValue(obRotY);
+//    m_zObliqueRotateDoubleSpinBox->setValue(obRotZ);
+    updateSpinBoxValue(m_xObliqueRotateDoubleSpinBox, obRotX);
+    updateSpinBoxValue(m_yObliqueRotateDoubleSpinBox, obRotY);
+    updateSpinBoxValue(m_zObliqueRotateDoubleSpinBox, obRotZ);
+
+//    m_xMprRotateDoubleSpinBox->setValue(mprRotX);
+//    m_yMprRotateDoubleSpinBox->setValue(mprRotY);
+//    m_zMprRotateDoubleSpinBox->setValue(mprRotZ);
+    updateSpinBoxValue(m_xMprRotateDoubleSpinBox, mprRotX);
+    updateSpinBoxValue(m_yMprRotateDoubleSpinBox, mprRotY);
+    updateSpinBoxValue(m_zMprRotateDoubleSpinBox, mprRotZ);
+
+//    m_flatRotationDoubleSpinBox->setValue(flatRotation);
+    updateSpinBoxValue(m_flatRotationDoubleSpinBox, flatRotation);
     
-    m_zoomDoubleSpinBox->setValue(zoom);
+//    m_zoomDoubleSpinBox->setValue(zoom);
+    updateSpinBoxValue(m_zoomDoubleSpinBox, zoom);
     
-    m_xRightFlatMapSpinBox->setValue(rightFlatX);
-    m_yRightFlatMapSpinBox->setValue(rightFlatY);
-    
-    m_rightFlatMapZoomFactorSpinBox->setValue(rightFlatZoom);
+//    m_xRightFlatMapSpinBox->setValue(rightFlatX);
+//    m_yRightFlatMapSpinBox->setValue(rightFlatY);
+    updateSpinBoxValue(m_xRightFlatMapSpinBox, rightFlatX);
+    updateSpinBoxValue(m_yRightFlatMapSpinBox, rightFlatY);
+
+//    m_rightFlatMapZoomFactorSpinBox->setValue(rightFlatZoom);
+    updateSpinBoxValue(m_rightFlatMapZoomFactorSpinBox, rightFlatZoom);
     
     m_transformWidgetGroup->blockAllSignals(false);
+}
+
+/**
+ * Scale the double value to a 'scaled integer' with the given number of decimals.
+ * Example createScaledInt(123.457, 2) returns 12346.
+ * @param value
+ *    The floating point value
+ * @param decimals
+ *    Number of decimals for scaling
+ * @return
+ *    The value scaled to an integer
+ */
+int64_t
+CustomViewDialog::createScaledInt(const double value,
+                                  const int32_t decimals) const
+{
+    CaretAssert(decimals >= 0);
+    
+    static std::vector<double> scaleVector;
+    static bool firstTime(true);
+    if (firstTime) {
+        firstTime = false;
+        scaleVector.push_back(1.0);
+        scaleVector.push_back(10.0);
+        scaleVector.push_back(100.0);
+        scaleVector.push_back(1000.0);
+        scaleVector.push_back(10000.0);
+        scaleVector.push_back(100000.0);
+        scaleVector.push_back(1000000.0);
+        scaleVector.push_back(10000000.0);
+        scaleVector.push_back(100000000.0);
+    }
+    
+    double scaleToInt(1.0);
+    if (decimals >= 0) {
+        if (decimals >= static_cast<int32_t>(scaleVector.size())) {
+            scaleToInt = std::pow(10.0, decimals);
+        }
+        else {
+            CaretAssertVectorIndex(scaleVector, decimals);
+            scaleToInt = scaleVector[decimals];
+        }
+    }
+    const int64_t intValue(std::round(value * scaleToInt));
+    return intValue;
+}
+/**
+ * Update the spin box value if its value has changed.
+ * @param spinBox
+ *    The spin box
+ * @param value
+ *    New value.
+ */
+void
+CustomViewDialog::updateSpinBoxValue(QDoubleSpinBox* spinBox,
+                                     const double newValue) const
+{
+    /*
+     * Prevent updates since the dialog can get updated
+     * as the user is typing in values and messes up
+     * user's typing.
+     */
+    CaretAssert(spinBox);
+    const double value(spinBox->value());
+    const int32_t decimals(spinBox->decimals());
+    
+    /*
+     * Compare floating point numbers for given number of decimal places
+     */
+    if (createScaledInt(value, decimals)
+        != createScaledInt(newValue, decimals)) {
+        QSignalBlocker blocker(spinBox);
+        spinBox->setValue(newValue);
+        std::cout << "Updating new value: " << newValue << " old value: " << value << std::endl << std::flush;
+    }
+}
+
+/**
+ * Updfate the step value if it has changed to prevent signals and when user editing.
+ * @param spinBox
+ *    The spin box
+ * @param singleStep
+ *   New single step value.
+ */
+void
+CustomViewDialog::updateSpinBoxSingleStepValue(QDoubleSpinBox* spinBox,
+                                               const double singleStep)
+{
+    CaretAssert(spinBox);
+    if (spinBox->singleStep() != singleStep) {
+        QSignalBlocker blocker(spinBox);
+        spinBox->setSingleStep(singleStep);
+    }
 }
 
 /**
