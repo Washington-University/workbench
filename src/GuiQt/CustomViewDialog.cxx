@@ -1065,12 +1065,6 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                     updateSpinBoxSingleStepValue(m_xPanDoubleSpinBox, stepValue);
                     updateSpinBoxSingleStepValue(m_yPanDoubleSpinBox, stepValue);
                     updateSpinBoxSingleStepValue(m_zPanDoubleSpinBox, stepValue);
-//                    QSignalBlocker xBlocker(m_xPanDoubleSpinBox);
-//                    QSignalBlocker yBlocker(m_yPanDoubleSpinBox);
-//                    QSignalBlocker zBlocker(m_zPanDoubleSpinBox);
-//                    m_xPanDoubleSpinBox->setSingleStep(stepValue);
-//                    m_yPanDoubleSpinBox->setSingleStep(stepValue);
-//                    m_zPanDoubleSpinBox->setSingleStep(stepValue);
                 }
             }
         }
@@ -1209,46 +1203,29 @@ CustomViewDialog::setTransformationControlValues(const double panX,
 {
     m_transformWidgetGroup->blockAllSignals(true);
     
-//    m_xPanDoubleSpinBox->setValue(panX);
-//    m_yPanDoubleSpinBox->setValue(panY);
-//    m_zPanDoubleSpinBox->setValue(panZ);
     updateSpinBoxValue(m_xPanDoubleSpinBox, panX);
     updateSpinBoxValue(m_yPanDoubleSpinBox, panY);
     updateSpinBoxValue(m_zPanDoubleSpinBox, panZ);
 
-//    m_xRotateDoubleSpinBox->setValue(rotX);
-//    m_yRotateDoubleSpinBox->setValue(rotY);
-//    m_zRotateDoubleSpinBox->setValue(rotZ);
     updateSpinBoxValue(m_xRotateDoubleSpinBox, rotX);
     updateSpinBoxValue(m_yRotateDoubleSpinBox, rotY);
     updateSpinBoxValue(m_zRotateDoubleSpinBox, rotZ);
 
-//    m_xObliqueRotateDoubleSpinBox->setValue(obRotX);
-//    m_yObliqueRotateDoubleSpinBox->setValue(obRotY);
-//    m_zObliqueRotateDoubleSpinBox->setValue(obRotZ);
     updateSpinBoxValue(m_xObliqueRotateDoubleSpinBox, obRotX);
     updateSpinBoxValue(m_yObliqueRotateDoubleSpinBox, obRotY);
     updateSpinBoxValue(m_zObliqueRotateDoubleSpinBox, obRotZ);
 
-//    m_xMprRotateDoubleSpinBox->setValue(mprRotX);
-//    m_yMprRotateDoubleSpinBox->setValue(mprRotY);
-//    m_zMprRotateDoubleSpinBox->setValue(mprRotZ);
     updateSpinBoxValue(m_xMprRotateDoubleSpinBox, mprRotX);
     updateSpinBoxValue(m_yMprRotateDoubleSpinBox, mprRotY);
     updateSpinBoxValue(m_zMprRotateDoubleSpinBox, mprRotZ);
 
-//    m_flatRotationDoubleSpinBox->setValue(flatRotation);
     updateSpinBoxValue(m_flatRotationDoubleSpinBox, flatRotation);
     
-//    m_zoomDoubleSpinBox->setValue(zoom);
     updateSpinBoxValue(m_zoomDoubleSpinBox, zoom);
     
-//    m_xRightFlatMapSpinBox->setValue(rightFlatX);
-//    m_yRightFlatMapSpinBox->setValue(rightFlatY);
     updateSpinBoxValue(m_xRightFlatMapSpinBox, rightFlatX);
     updateSpinBoxValue(m_yRightFlatMapSpinBox, rightFlatY);
 
-//    m_rightFlatMapZoomFactorSpinBox->setValue(rightFlatZoom);
     updateSpinBoxValue(m_rightFlatMapZoomFactorSpinBox, rightFlatZoom);
     
     m_transformWidgetGroup->blockAllSignals(false);
@@ -1325,7 +1302,6 @@ CustomViewDialog::updateSpinBoxValue(QDoubleSpinBox* spinBox,
         != createScaledInt(newValue, decimals)) {
         QSignalBlocker blocker(spinBox);
         spinBox->setValue(newValue);
-        std::cout << "Updating new value: " << newValue << " old value: " << value << std::endl << std::flush;
     }
 }
 
