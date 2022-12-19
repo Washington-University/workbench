@@ -3056,6 +3056,13 @@ Matrix4x4
 BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                         const VolumeSliceViewPlaneEnum::Enum slicePlane) const
 {
+    /*
+     * Correct rotation of volume so that it matches crosshairs
+     * Crosshairs and volume were rotating opposite direction
+     * in volume slice mode.
+     */
+    static bool fixFlipVolumeSliceRotationFlag(true);
+    
     Matrix4x4 matrixOut;
 
     bool wholeBrainFlag(false);
@@ -3071,6 +3078,9 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enu
             return matrixOut;
             break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            if (fixFlipVolumeSliceRotationFlag) {
+                wholeBrainFlag = true;
+            }
             break;
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             wholeBrainFlag = true;
