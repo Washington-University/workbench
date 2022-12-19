@@ -280,7 +280,7 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
 
     QLabel* brushSizeLabel = new QLabel("Brush");
     const int MIN_BRUSH_SIZE = 1;
-    const int MAX_BRUSH_SIZE = 99;
+    const int MAX_BRUSH_SIZE = 9999;
     
     QLabel* xLabel = new QLabel("P:");
     m_xBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
