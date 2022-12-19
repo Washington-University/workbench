@@ -84,6 +84,7 @@ CaretOMP.h
 CaretPointer.h
 CaretPointLocator.h
 CaretPreferenceDataValue.h
+CaretPreferenceDataValueList.h
 CaretPreferences.h
 CaretResult.h
 CaretRgb.h
@@ -171,6 +172,7 @@ RecentFileItemsContainer.h
 RecentFileItemsContainerModeEnum.h
 RecentFileItemsFilter.h
 RecentFilesSystemAccessModeEnum.h
+RecentSceneInfoContainer.h
 ReductionEnum.h
 ReductionOperation.h
 SpacerTabIndex.h
@@ -244,6 +246,7 @@ CaretObject.cxx
 CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferenceDataValue.cxx
+CaretPreferenceDataValueList.cxx
 CaretPreferences.cxx
 CaretResult.cxx
 CaretRgb.cxx
@@ -323,6 +326,7 @@ RecentFileItemsContainer.cxx
 RecentFileItemsContainerModeEnum.cxx
 RecentFileItemsFilter.cxx
 RecentFilesSystemAccessModeEnum.cxx
+RecentSceneInfoContainer.cxx
 ReductionEnum.cxx
 ReductionOperation.cxx
 SpacerTabIndex.cxx
