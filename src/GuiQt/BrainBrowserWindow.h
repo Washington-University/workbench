@@ -118,6 +118,9 @@ namespace caret {
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
                                       const LoadSpecFileMode loadSpecFileMode);
         
+        void loadRecentScene(const AString& sceneFileName,
+                             const AString& sceneName);
+        
         void loadSceneFromCommandLine(const AString& sceneFileName,
                                       const AString& sceneNameOrNumber,
                                       const LoadSceneFromCommandLineDialogMode sceneDialogMode);

@@ -5149,6 +5149,24 @@ Brain::getSceneFile(const int32_t indx) const
 }
 
 /**
+ * Get the scene file with the given name
+ * @param sceneFileName
+ *   Name of scene file
+ * @return Pointer to scene file or NULL if not found
+ */
+SceneFile*
+Brain::getSceneFileWithName(const AString& sceneFileName) const
+{
+    for (auto& sf : m_sceneFiles) {
+        CaretAssert(sf);
+        if (sf->getFileName() == sceneFileName) {
+            return sf;
+        }
+    }
+    return NULL;
+}
+
+/**
  * @return The Spec File.
  */
 const SpecFile*

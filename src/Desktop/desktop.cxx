@@ -92,6 +92,8 @@ struct ProgramState
     AString sceneFileNameNoDialog;
     AString sceneNameOrNumber;
     
+    bool sceneMostRecentFlag;
+    
     ProgramState();
 };
 
@@ -452,6 +454,19 @@ main(int argc, char* argv[])
                                                BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
         }
         
+        if (myState.sceneMostRecentFlag) {
+            std::vector<RecentSceneInfoContainer> recentSceneInfo;
+            CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+            preferences->getMostRecentScenes(recentSceneInfo);
+
+            if ( ! recentSceneInfo.empty()) {
+                CaretAssertVectorIndex(recentSceneInfo, 0);
+                const RecentSceneInfoContainer& rsic(recentSceneInfo[0]);
+                myWindow->loadRecentScene(rsic.getSceneFileName(),
+                                          rsic.getSceneName());
+            }
+        }
+        
         if ( ! myState.directoryName.isEmpty()) {
             myWindow->loadDirectoryFromCommandLine(myState.directoryName);
         }
@@ -693,6 +708,9 @@ void printHelp(const AString& progName)
     << "        Same as \"-scene-load\" except that the scene dialog " << endl
     << "        is hidden after the scene has loaded." << endl
     << endl
+    << "    -scene-recent" << endl
+    << "        Loads the most recently loaded scene from its scene file." << endl
+    << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
     << "        the following styles are valid on this system:" << endl;
@@ -817,6 +835,8 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                         cerr << "Missing scene file name for " << thisParam << " option" << std::endl;
                         hasFatalError = true;
                     }
+                } else if (thisParam == "-scene-recent") {
+                    myState.sceneMostRecentFlag = true;
                 } else if (thisParam == "-spec-load-all") {
                     if ( ! myState.specFileNameLoadAll.isEmpty()) {
                         cerr << qPrintable(moreThanOneSpecFileErrorMessage) << endl;
@@ -948,6 +968,9 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
     if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
         myState.showSplash = false;
     }
+    if (myState.sceneMostRecentFlag) {
+        myState.showSplash = false;
+    }
     if ( ! myState.specFileNameLoadAll.isEmpty()) {
         myState.showSplash = false;
     }
@@ -958,6 +981,7 @@ ProgramState::ProgramState()
     sceneFileName = "";
     sceneFileNameNoDialog = "";
     sceneNameOrNumber = "";
+    sceneMostRecentFlag = false;
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
     windowPosXY[0] = -1;

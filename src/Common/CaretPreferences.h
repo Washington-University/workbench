@@ -35,6 +35,7 @@
 #include "LogLevelEnum.h"
 #include "OpenGLDrawingMethodEnum.h"
 #include "RecentFilesSystemAccessModeEnum.h"
+#include "RecentSceneInfoContainer.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
 #include "ToolBarWidthModeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -45,6 +46,7 @@ class QSettings;
 namespace caret {
 
     class CaretPreferenceDataValue;
+    class CaretPreferenceDataValueList;
     class ModelTransform;
     class RecentFileItemsContainer;
     class TileTabsLayoutBaseConfiguration;
@@ -333,6 +335,15 @@ namespace caret {
                                      const AString& paletteXML,
                                      AString& errorMessageOut);
 
+        void getMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut);
+        
+        void addToMostRecentScenes(const AString& sceneFileName,
+                                   const AString& sceneName);
+        
+        bool isMostRecentScenesEnabled() const;
+        
+        void setMostRecentScenesEnabled(const bool status);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -457,6 +468,10 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_crossAtViewportCenterEnabled;
         
+        std::unique_ptr<CaretPreferenceDataValueList> m_mostRecentScenesList;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_mostRecentScenesEnabled;
+        
         bool splashScreenEnabled;
         
         bool developMenuEnabled;
@@ -536,6 +551,8 @@ namespace caret {
         static const AString NAME_REMOTE_FILE_USER_NAME;
         static const AString NAME_REMOTE_FILE_PASSWORD;
         static const AString NAME_REMOTE_FILE_LOGIN_SAVED;
+        static const AString NAME_SCENE_FILE_MOST_RECENT;
+        static const AString NAME_SCENE_MOST_RECENT;
         static const AString NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS;
         static const AString NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS;
@@ -598,6 +615,8 @@ namespace caret {
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";
     const AString CaretPreferences::NAME_REMOTE_FILE_PASSWORD = "remoteFilePassword";
     const AString CaretPreferences::NAME_REMOTE_FILE_LOGIN_SAVED = "removeFileLoginSaved";
+    const AString CaretPreferences::NAME_SCENE_FILE_MOST_RECENT = "sceneFileMostRecent";
+    const AString CaretPreferences::NAME_SCENE_MOST_RECENT = "sceneMostRecent";
     const AString CaretPreferences::NAME_SHOW_HISTOLOGY_IDENTIFICATION_SYMBOLS = "showHistologyIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_MEDIA_IDENTIFICATION_SYMBOLS = "showMediaIdentificationSymbols";
     const AString CaretPreferences::NAME_SHOW_SURFACE_IDENTIFICATION_SYMBOLS = "showSurfaceIdentificationSymbols";

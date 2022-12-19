@@ -98,6 +98,7 @@
 #include "PlainTextStringBuilder.h"
 #include "ProgressReportingDialog.h"
 #include "RecentFilesDialog.h"
+#include "RecentSceneMenu.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -1882,6 +1883,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addSeparator();
     menu->addAction(m_openFileAction);
     menu->addAction(m_openRecentAction);
+    menu->addMenu(new RecentSceneMenu(this));
     menu->addAction(m_openLocationAction);
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
@@ -3420,6 +3422,65 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
         prefs->addToRecentFilesAndOrDirectories(name);
     }
 
+}
+
+/**
+ * Load a recent scene from the scene file
+ */
+void
+BrainBrowserWindow::loadRecentScene(const AString& sceneFileName,
+                                    const AString& sceneName)
+{
+    /*
+     * Scene file may already be loaded
+     */
+    Brain* brain = GuiManager::get()->getBrain();
+    SceneFile* sceneFile(brain->getSceneFileWithName(sceneFileName));
+    if (sceneFile == NULL) {
+        /*
+         * Load the scene file
+         */
+        EventDataFileRead readFileEvent(brain);
+        readFileEvent.addDataFile(DataFileTypeEnum::SCENE,
+                                  sceneFileName);
+        EventManager::get()->sendEvent(readFileEvent.getPointer());
+        
+        const int32_t fileIndex(0);
+        if (readFileEvent.getEventProcessCount() > 0) {
+            if (readFileEvent.isFileError(fileIndex)) {
+                WuQMessageBox::errorOk(this,
+                                       readFileEvent.getFileErrorMessage(fileIndex));
+                return;
+            }
+        }
+        
+        CaretDataFile* caretDataFile(readFileEvent.getDataFileRead(fileIndex));
+        if (caretDataFile != NULL) {
+            sceneFile = dynamic_cast<SceneFile*>(caretDataFile);
+        }
+    }
+    
+    if (sceneFile == NULL) {
+        WuQMessageBox::errorOk(this,
+                               ("Failed to read scene file " + sceneFileName));
+        return;
+    }
+    
+    Scene* scene = sceneFile->getSceneWithName(sceneName);
+    if (scene == NULL) {
+        WuQMessageBox::errorOk(this,
+                               ("Scene \""
+                                + sceneName
+                                + "\" not found in scene file: "
+                                + sceneFileName));
+        return;
+    }
+
+    const bool showSceneDialogFlag(false);
+    GuiManager::get()->processShowSceneDialogAndScene(this,
+                                                      sceneFile,
+                                                      scene,
+                                                      showSceneDialogFlag);
 }
 
 /**

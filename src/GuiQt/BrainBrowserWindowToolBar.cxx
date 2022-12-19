@@ -123,6 +123,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "OverlaySet.h"
+#include "RecentSceneMenu.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -303,14 +304,20 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     helpDialogToolButton->setDefaultAction(GuiManager::get()->getHelpViewerDialogDisplayAction());
 
     /*
+     * Scene button action
+     */
+    QAction* sceneButtonAction = new QAction(this);
+    sceneButtonAction->setText("");
+    sceneButtonAction->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
+    sceneButtonAction->setMenu(new RecentSceneMenu(m_parentBrainBrowserWindow));
+    QObject::connect(sceneButtonAction, &QAction::triggered,
+                     [=](bool) { sceneToolButtonClicked(); });
+
+    /*
      * Scene button
      */
     QToolButton* sceneDialogToolButton = new QToolButton();
-    sceneDialogToolButton->setText("");
-    sceneDialogToolButton->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
-    sceneDialogToolButton->setDefaultAction(GuiManager::get()->getSceneDialogDisplayAction());
-    QObject::connect(sceneDialogToolButton, &QToolButton::clicked,
-                     this, &BrainBrowserWindowToolBar::sceneToolButtonClicked);
+    sceneDialogToolButton->setDefaultAction(sceneButtonAction);
 
     /*
      * Movie button

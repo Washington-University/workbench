@@ -191,6 +191,8 @@ namespace caret {
 
         int32_t getNumberOfSceneFiles() const;
         
+        SceneFile* getSceneFileWithName(const AString& sceneFileName) const;
+        
         SceneFile* getSceneFile(const int32_t indx);
         
         const SceneFile* getSceneFile(const int32_t indx) const;

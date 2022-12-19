@@ -313,7 +313,7 @@ GuiManager::initializeGuiManager()
     m_sceneDialogDisplayAction->setToolTip("Show the scenes window");
     WuQMacroManager::instance()->addMacroSupportToObject(m_sceneDialogDisplayAction,
                                                          "Display Scene Dialog");
-    
+
     /*
      * Menu for scene dialog action
      * Disabled because in the Window Menu, it creates a sub menu with

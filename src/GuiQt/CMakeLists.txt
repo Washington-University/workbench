@@ -205,6 +205,7 @@ ELSE()
         ProgressReportingWithSlots.h
 	RecentFilesDialog.h
 	RecentFilesTableWidget.h
+	RecentSceneMenu.h
         RegionOfInterestCreateFromBorderDialog.h
 	ScaleBarWidget.h
         SceneBasePathWidget.h
@@ -515,6 +516,7 @@ ProgressReportingWithSlots.h
 QGLWidgetTextRenderer.h
 RecentFilesDialog.h
 RecentFilesTableWidget.h
+RecentSceneMenu.h
 RegionOfInterestCreateFromBorderDialog.h
 ScaleBarWidget.h
 SceneBasePathWidget.h
@@ -844,6 +846,7 @@ ProgressReportingWithSlots.cxx
 QGLWidgetTextRenderer.cxx
 RecentFilesDialog.cxx
 RecentFilesTableWidget.cxx
+RecentSceneMenu.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 ScaleBarWidget.cxx
 SceneBasePathWidget.cxx

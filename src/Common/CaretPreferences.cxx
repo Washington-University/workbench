@@ -33,6 +33,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPreferenceDataValue.h"
+#include "CaretPreferenceDataValueList.h"
 #include "DataFileTypeEnum.h"
 #include "FileInformation.h"
 #include "ModelTransform.h"
@@ -161,6 +162,17 @@ CaretPreferences::CaretPreferences()
                                                                       CaretPreferenceDataValue::DataType::BOOLEAN,
                                                                       CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                       false));
+        
+    m_mostRecentScenesList.reset(new CaretPreferenceDataValueList(this->qSettings,
+                                                                  "m_mostRecentScenesList",
+                                                                  CaretPreferenceDataValueList::DataType::QVARIANT,
+                                                                  5)); /* maximum number of elements */
+    
+    m_mostRecentScenesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                 "m_mostRecentScenesEnabled",
+                                                                 CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                 CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                 false));
     
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
@@ -3364,5 +3376,83 @@ CaretPreferences::paletteUserCustomRename(const AString& paletteName,
                               paletteXML);
     
     return true;
+}
+
+/**
+ * Get the info about the most recently loaded scenes
+ * @param sceneFileNameOut
+ *    Name of scene file
+ * @param sceneNameOut
+ *    Name of scene
+ * @return
+ *    True if the scene file name and scene name are valid, else false.
+ */
+void
+CaretPreferences::getMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut)
+{
+    recentSceneInfoOut.clear();
+    
+    const int32_t numElements(m_mostRecentScenesList->getSize());
+    for (int32_t i = 0; i < numElements; i++) {
+        bool validFlag(false);
+        RecentSceneInfoContainer rsic(m_mostRecentScenesList->getValue(i),
+                                      validFlag);
+        if (validFlag) {
+            recentSceneInfoOut.push_back(rsic);
+        }
+    }
+}
+
+/**
+ * @return True if most recent scenes is enabled
+ */
+bool
+CaretPreferences::isMostRecentScenesEnabled() const
+{
+    return m_mostRecentScenesEnabled->getValue().toBool();
+}
+
+/**
+ * Set most recent scenes enabled
+ * @param status
+ *    New enabled status
+ */
+void
+CaretPreferences::setMostRecentScenesEnabled(const bool status)
+{
+    m_mostRecentScenesEnabled->setValue(status);
+}
+
+/**
+ * Set the most recent scene and the file containing the scene
+ * @param sceneFileName
+ *    Name of scene file
+ * @param sceneName
+ *    Name of scene
+ */
+void
+CaretPreferences::addToMostRecentScenes(const AString& sceneFileName,
+                                        const AString& sceneName)
+{
+    RecentSceneInfoContainer newElement(sceneFileName,
+                                        sceneName);
+    
+    /*
+     * Remove any pre-existing items with the same scene file and scene name
+     * NOTE: Start at end since we may remove multiple
+     * items and the list will shrink.
+     */
+    std::vector<RecentSceneInfoContainer> recentSceneInfo;
+    getMostRecentScenes(recentSceneInfo);
+    const int32_t numElements(recentSceneInfo.size());
+    for (int32_t i (numElements - 1); i >= 0; --i) {
+        if (newElement == recentSceneInfo[i]) {
+            if (m_mostRecentScenesList->removeAt(i)) {
+                /* removed a duplicate */
+            }
+        }
+    }
+
+    m_mostRecentScenesList->pushFront(newElement.toQVariant());
 }
 
