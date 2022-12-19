@@ -136,7 +136,6 @@ MediaFileTransforms::copyHelper(const MediaFileTransforms& mft)
 PixelIndex
 MediaFileTransforms::logicalPixelIndexToPixelIndex(const PixelLogicalIndex& pixelLogicalIndex) const
 {
-    CaretAssert(m_inputs.m_logicalBoundsRect.isValid());
     PixelIndex pixelIndex(pixelLogicalIndex.getI() - m_inputs.m_logicalBoundsRect.x(),
                           pixelLogicalIndex.getJ() - m_inputs.m_logicalBoundsRect.y(),
                           pixelLogicalIndex.getK());
@@ -231,7 +230,6 @@ MediaFileTransforms::logicalPixelIndexToStereotaxicXYZ(const float logicalX,
 PixelLogicalIndex
 MediaFileTransforms::pixelIndexToLogicalPixelIndex(const PixelIndex& pixelIndex) const
 {
-    CaretAssert(m_inputs.m_logicalBoundsRect.isValid());
     PixelLogicalIndex pixelLogicalIndex(pixelIndex.getI() +  m_inputs.m_logicalBoundsRect.x(),
                                         pixelIndex.getJ() +  m_inputs.m_logicalBoundsRect.y(),
                                         pixelIndex.getK());
@@ -251,7 +249,6 @@ bool
 MediaFileTransforms::pixelIndexToPlaneXYZ(const PixelIndex& pixelIndex,
                                 Vector3D& planeXyzOut) const
 {
-    CaretAssert(m_inputs.m_pixelIndexToPlaneMatrixValidFlag);
     if (m_inputs.m_pixelIndexToPlaneMatrixValidFlag) {
         Vector3D xyz(pixelIndex.getI(),
                      pixelIndex.getJ(),
@@ -321,7 +318,6 @@ bool
 MediaFileTransforms::planeXyzToPixelIndex(const Vector3D& planeXyz,
                                 PixelIndex& pixelIndexOut) const
 {
-    CaretAssert(m_inputs.m_planeToPixelIndexMatrixValidFlag);
     if (m_inputs.m_planeToPixelIndexMatrixValidFlag) {
         Vector3D xyz(planeXyz);
         m_inputs.m_planeToPixelIndexMatrix.multiplyPoint3(xyz);
