@@ -1416,6 +1416,14 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
             btc->getSurfaceModelSelector()->setSelectedSurfaceModel(surfaceModel);
             btc->setSelectedModelType(ModelTypeEnum::MODEL_TYPE_SURFACE);
         }
+        
+        /*
+         * Histology defaults with yoking off
+         */
+        ModelHistology* histologyModel(dynamic_cast<ModelHistology*>(controller));
+        if (histologyModel) {
+            btc->setBrainModelYokingGroup(YokingGroupEnum::YOKING_GROUP_OFF);
+        }
         this->updateTabName(tabIndex);
         
         tabIndex++;
