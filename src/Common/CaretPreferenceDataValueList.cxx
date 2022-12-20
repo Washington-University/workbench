@@ -24,6 +24,7 @@
 #undef __CARET_PREFERENCE_DATA_VALUE_LIST_DECLARE__
 
 #include <QSettings>
+#include <QVector>
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -113,7 +114,7 @@ CaretPreferenceDataValueList::removeAt(const int32_t index)
     CaretAssertVectorIndex(m_dataList, index);
     if ((index >= 0)
         && (index < m_dataList.size())) {
-        m_dataList.remove(index);
+        m_dataList.removeAt(index);
         writeToPreferences();
         return true;
     }
@@ -233,7 +234,18 @@ CaretPreferenceDataValueList::resizeListToMaximumNumberOfElements()
 {
     const int32_t numElements(m_dataList.size());
     if (numElements > m_maximumNumberOfElements) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         m_dataList.resize(m_maximumNumberOfElements);
+#else
+        /*
+         * QList::resize() is not in Qt 5.15 and earlier but documentation
+         * does not state when resize() was added.
+         */
+        const int32_t numElementsToRemove(m_dataList.size() - m_maximumNumberOfElements);
+        for (int32_t i = 0; i < numElementsToRemove; i++) {
+            m_dataList.removeLast();
+        }
+#endif
     }
 }
 

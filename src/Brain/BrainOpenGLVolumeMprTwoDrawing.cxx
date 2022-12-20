@@ -287,10 +287,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
                     sliceIndex = axialSliceIndex;
+                    break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
                     sliceIndex = coronalSliceIndex;
+                    break;
                 case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                     sliceIndex = parasagittalSliceIndex;
+                    break;
             }
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,

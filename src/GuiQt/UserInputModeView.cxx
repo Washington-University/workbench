@@ -843,30 +843,6 @@ UserInputModeView::applyGraphicsRegionSelectionBox(const MouseEvent& mouseEvent)
             break;
     }
     
-    const GraphicsObjectToWindowTransform* transform(NULL);
-    switch (browserTabContent->getSelectedModelType()) {
-        case ModelTypeEnum::MODEL_TYPE_INVALID:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_CHART:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
-            transform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-            break;
-        case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
-            transform = viewportContent->getMediaGraphicsObjectToWindowTransform();
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
-            break;
-        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-            break;
-    }
-    
     /*
      * Zoom to selection region
      */

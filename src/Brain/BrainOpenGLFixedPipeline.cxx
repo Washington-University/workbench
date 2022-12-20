@@ -9124,71 +9124,72 @@ BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(const GraphicsRegionSel
                     break;
             }
             
-        
-            std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
-                                                                                               rgba));
-            switch (drawMode) {
-                case GraphicsRegionSelectionBox::DrawMode::X_PLANE:
-                {
-                    if ((minY != maxY)
-                        && (minZ != maxZ)) {
-                        const float x(0.0f);
-                        primitive->addVertex(x, minY, minZ);
-                        primitive->addVertex(x, maxY, minZ);
-                        primitive->addVertex(x, maxY, maxZ);
-                        primitive->addVertex(x, minY, maxZ);
+            if (drawFlag) {
+                std::unique_ptr<GraphicsPrimitiveV3f> primitive(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                                                                   rgba));
+                switch (drawMode) {
+                    case GraphicsRegionSelectionBox::DrawMode::X_PLANE:
+                    {
+                        if ((minY != maxY)
+                            && (minZ != maxZ)) {
+                            const float x(0.0f);
+                            primitive->addVertex(x, minY, minZ);
+                            primitive->addVertex(x, maxY, minZ);
+                            primitive->addVertex(x, maxY, maxZ);
+                            primitive->addVertex(x, minY, maxZ);
+                        }
                     }
-                }
-                    break;
-                case GraphicsRegionSelectionBox::DrawMode::Y_PLANE:
-                {
-                    if ((minX != maxX)
-                        && (minZ != maxZ)) {
-                        const float y(0.0f);
-                        primitive->addVertex(minX, y, minZ);
-                        primitive->addVertex(maxX, y, minZ);
-                        primitive->addVertex(maxX, y, maxZ);
-                        primitive->addVertex(minX, y, maxZ);
+                        break;
+                    case GraphicsRegionSelectionBox::DrawMode::Y_PLANE:
+                    {
+                        if ((minX != maxX)
+                            && (minZ != maxZ)) {
+                            const float y(0.0f);
+                            primitive->addVertex(minX, y, minZ);
+                            primitive->addVertex(maxX, y, minZ);
+                            primitive->addVertex(maxX, y, maxZ);
+                            primitive->addVertex(minX, y, maxZ);
+                        }
                     }
-                }
-                    break;
-                case GraphicsRegionSelectionBox::DrawMode::Z_PLANE:
-                {
-                    if ((minX != maxX)
-                        && (minY != maxY)) {
-                        const float z(0.0f);
-                        primitive->addVertex(minX, minY, z);
-                        primitive->addVertex(maxX, minY, z);
-                        primitive->addVertex(maxX, maxY, z);
-                        primitive->addVertex(minX, maxY, z);
+                        break;
+                    case GraphicsRegionSelectionBox::DrawMode::Z_PLANE:
+                    {
+                        if ((minX != maxX)
+                            && (minY != maxY)) {
+                            const float z(0.0f);
+                            primitive->addVertex(minX, minY, z);
+                            primitive->addVertex(maxX, minY, z);
+                            primitive->addVertex(maxX, maxY, z);
+                            primitive->addVertex(minX, maxY, z);
+                        }
                     }
-                }
-                    break;
-                case GraphicsRegionSelectionBox::DrawMode::VIEWPORT:
-                {
-                    if ((vpMinX != vpMaxX)
-                        && (vpMinY != vpMaxY)) {
-                        const float z(0.0f);
-                        primitive->addVertex(vpMinX, vpMinY, z);
-                        primitive->addVertex(vpMaxX, vpMinY, z);
-                        primitive->addVertex(vpMaxX, vpMaxY, z);
-                        primitive->addVertex(vpMinX, vpMaxY, z);
+                        break;
+                    case GraphicsRegionSelectionBox::DrawMode::VIEWPORT:
+                    {
+                        if ((vpMinX != vpMaxX)
+                            && (vpMinY != vpMaxY)) {
+                            const float z(0.0f);
+                            primitive->addVertex(vpMinX, vpMinY, z);
+                            primitive->addVertex(vpMaxX, vpMinY, z);
+                            primitive->addVertex(vpMaxX, vpMaxY, z);
+                            primitive->addVertex(vpMinX, vpMaxY, z);
+                        }
                     }
+                        break;
                 }
-                    break;
-            }
-            
-            /*
-             * Vertices are not added when the box has no geometric area.
-             * This prevents a "Primitive invalid, all points may be coincident" warning.
-             * Occurs when box is initialized with 'min' equals 'max'.
-             */
-            if (primitive->getNumberOfVertices() > 0) {
-                const float lineWidthPercentage(0.5);
-                primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                        lineWidthPercentage);
                 
-                GraphicsEngineDataOpenGL::draw(primitive.get());
+                /*
+                 * Vertices are not added when the box has no geometric area.
+                 * This prevents a "Primitive invalid, all points may be coincident" warning.
+                 * Occurs when box is initialized with 'min' equals 'max'.
+                 */
+                if (primitive->getNumberOfVertices() > 0) {
+                    const float lineWidthPercentage(0.5);
+                    primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                            lineWidthPercentage);
+                    
+                    GraphicsEngineDataOpenGL::draw(primitive.get());
+                }
             }
         }
             break;

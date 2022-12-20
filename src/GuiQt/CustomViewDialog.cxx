@@ -23,6 +23,8 @@
 #include "CustomViewDialog.h"
 #undef __CUSTOM_VIEW_DIALOG_DECLARE__
 
+#include <cmath>
+
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>

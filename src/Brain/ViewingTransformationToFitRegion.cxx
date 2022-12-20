@@ -329,6 +329,7 @@ ViewingTransformationToFitRegion::applyToVolume(const VolumeMode volumeMode,
                                                                             sliceViewPlaneForFitToRegion,
                                                                             viewportArray.data(),
                                                                             orthoBounds);
+            break;
         case VolumeMode::MPR:
             BrainOpenGLVolumeMprTwoDrawing::getOrthographicProjection(voxelBoundingBox,
                                                                       zoomFactor,

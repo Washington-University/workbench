@@ -4397,7 +4397,6 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
     else if (getDisplayedVolumeModel() != NULL) {
         
         VolumeSliceViewPlaneEnum::Enum sliceViewPlaneForFitToRegion(VolumeSliceViewPlaneEnum::ALL);
-        BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceMode(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_NO);
         const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(getVolumeSliceViewPlane());
         switch (sliceViewPlaneSelectedInTab) {
             case VolumeSliceViewPlaneEnum::ALL:
@@ -4422,7 +4421,6 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
                             /* Not in slice plane*/
                             return;
                         }
-                        allSliceMode = BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES;
                     }
                         break;
             case VolumeSliceViewPlaneEnum::CORONAL:
