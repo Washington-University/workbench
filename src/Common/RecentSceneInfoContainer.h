@@ -25,6 +25,8 @@
 
 #include <memory>
 
+#include <QVariant>
+
 #include "CaretObject.h"
 
 
