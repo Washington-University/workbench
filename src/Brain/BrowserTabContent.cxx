@@ -7329,6 +7329,9 @@ BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::E
         if (btc->m_closedFlag) {
             continue;
         }
+        if (yokingGroup != btc->getBrainModelYokingGroup()) {
+            continue;
+        }
         if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
             const VolumeSliceViewPlaneEnum::Enum sliceViewPlaneSelectedInTab(btc->getVolumeSliceViewPlane());
             switch (sliceViewPlaneSelectedInTab) {
