@@ -3476,6 +3476,10 @@ BrainBrowserWindow::loadRecentScene(const AString& sceneFileName,
         return;
     }
 
+    ProgressReportingDialog progressDialog("Loading " + sceneName,
+                                           "Initializing",
+                                           this);
+    
     const bool showSceneDialogFlag(false);
     GuiManager::get()->processShowSceneDialogAndScene(this,
                                                       sceneFile,
