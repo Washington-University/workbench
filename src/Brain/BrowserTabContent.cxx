@@ -5374,10 +5374,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_chartModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     m_mediaModelYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
     
+    initializeScaleBar();
+
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
     
-    initializeScaleBar();
     
     /*
      * Need to recreate clipping plane group since tab is passed
