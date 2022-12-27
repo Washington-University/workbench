@@ -186,6 +186,11 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_nonLinearTransformEnabledCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked);
     
+    m_overlapCheckBox = new QCheckBox("Overlap");
+    m_overlapCheckBox->setEnabled(false);
+    QObject::connect(m_overlapCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked);
+    
     /*
      * Layout widgets
      */
@@ -231,6 +236,8 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignLeft);
+    controlsLayout->addWidget(m_overlapCheckBox,
+                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -372,6 +379,8 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     }
     
     m_nonLinearTransformEnabledCheckBox->setChecked(CziNonLinearTransform::isNonLinearTransformEnabled());
+    
+    m_overlapCheckBox->setChecked(HistologySlicesFile::isOverlapTestingEnabled());
     
     setEnabled(histologySlicesFile != NULL);
 }
@@ -728,6 +737,20 @@ void
 BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked(bool checked)
 {
     CziNonLinearTransform::setNonLinearTransformEnabled(checked);
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    updateGraphicsWindowAndYokedWindows();
+    updateUserInterface();
+}
+
+/**
+ * Called when overlap checkbox checked
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked(bool checked)
+{
+    HistologySlicesFile::setOverlapTestingEnabled(checked);
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     updateGraphicsWindowAndYokedWindows();
     updateUserInterface();
