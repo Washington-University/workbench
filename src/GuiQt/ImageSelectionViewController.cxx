@@ -61,6 +61,8 @@ static const int COLUMN_RADIO_BUTTON = 0;
  * \ingroup GuiQt
  */
 
+static const bool disableSomeItemsFlag(true);
+
 /**
  * Constructor.
  */
@@ -137,6 +139,10 @@ m_objectNamePrefix(parentObjectName
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     s_allImageSelectionViewControllers.insert(this);
+    
+    if (disableSomeItemsFlag) {
+        m_controlPointsDisplayCheckBox->setEnabled(false);
+    }
 }
 
 /**
@@ -306,6 +312,14 @@ ImageSelectionViewController::createAttributesWidget()
     layout->addWidget(gridWidget);
     layout->addStretch();
     
+    if (disableSomeItemsFlag) {
+        thresholdMinimumLabel->setEnabled(false);
+        thresholdMaximumLabel->setEnabled(false);
+        m_thresholdMinimumSpinBox->setEnabled(false);
+        m_thresholdMaximumSpinBox->setEnabled(false);
+        opacityLabel->setEnabled(false);
+        m_opacitySpinBox->setEnabled(false);
+    }
     return widget;
 }
 

@@ -83,6 +83,7 @@ ImageFile::initializeMembersImageFile()
     m_fileMetaData.grabNew(new GiftiMetaData());
     m_image = new QImage();
     m_graphicsPrimitive.reset();
+    m_featuresImageGraphicsPrimitive.reset();
     m_pixelPrimitiveVertexStartIndex = -1;
     m_pixelPrimitiveVertexCount      = -1;
     m_planePrimitiveVertexStartIndex = -1;
@@ -1428,6 +1429,9 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                                 const int32_t resizeToHeight,
                                 std::vector<uint8_t>& bytesRGBAOut) const
 {
+    CaretAssertMessage(0, "There is a bug in this function, it has not been fixed. "
+                       "Use getGraphicsPrimitiveForFeaturesImageDrawing()");
+    
     bytesRGBAOut.clear();
     
     if (m_image == NULL) {
@@ -1446,7 +1450,9 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
                                    resizeToHeight,
                                    Qt::IgnoreAspectRatio,
                                    Qt::SmoothTransformation);
-
+    CaretAssert(scaledImage.width() == resizeToWidth);
+    CaretAssert(scaledImage.height() == resizeToHeight);
+    
     /*
      * QImage::scaled() failed.
      */
@@ -1475,9 +1481,10 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
         const uchar* scanLine = scaledImage.scanLine(scanLineIndex);
         QRgb* rgbScanLine = (QRgb*)scanLine;
         
+        const int32_t rowLength(resizeToWidth * 4);
+        const int32_t rowOffset(rowLength * y);
         for (int x = 0; x < resizeToWidth; x++) {
-            const int32_t contentOffset = (((y * resizeToWidth) * 4)
-                                           + (x * 4));
+            const int32_t contentOffset(rowOffset + (x * 4));
             QRgb& rgb = rgbScanLine[x];
             CaretAssertVectorIndex(bytesRGBAOut, contentOffset + 3);
             bytesRGBAOut[contentOffset] = static_cast<uint8_t>(qRed(rgb));
@@ -1485,6 +1492,14 @@ ImageFile::getImageResizedBytes(const IMAGE_DATA_ORIGIN_LOCATION imageOrigin,
             bytesRGBAOut[contentOffset+2] = static_cast<uint8_t>(qBlue(rgb));
             bytesRGBAOut[contentOffset+3] = static_cast<uint8_t>(qAlpha(rgb));
         }
+    }
+    
+    {
+        QImage test(bytesRGBAOut.data(),
+                    resizeToWidth,
+                    resizeToHeight,
+                    scaledImage.format());
+        test.save("john.png");
     }
     return true;
 }
@@ -1782,6 +1797,25 @@ const ControlPointFile*
 ImageFile::getControlPointFile() const
 {
     return m_controlPointFile;
+}
+
+GraphicsPrimitiveV3fT2f*
+ImageFile::getGraphicsPrimitiveForFeaturesImageDrawing() const
+{
+    if (m_image == NULL) {
+        return NULL;
+    }
+    
+    if (m_featuresImageGraphicsPrimitive == NULL) {
+        GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive());
+        m_featuresImageGraphicsPrimitive.reset(primitive);
+    }
+    
+    const int32_t pixelPrimitiveVertexStartIndex(0);
+    const int32_t pixelPrimitiveVertexCount(4);
+    m_featuresImageGraphicsPrimitive->setDrawArrayIndicesSubset(pixelPrimitiveVertexStartIndex,
+                                                                pixelPrimitiveVertexCount);
+    return m_featuresImageGraphicsPrimitive.get();
 }
 
 /**

@@ -8198,17 +8198,25 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                                     ImageFile* imageFile,
                                     const float windowZ,
                                     const float frontZ,
-                                    const float minimumThreshold,
-                                    const float maximumThreshold,
-                                    const float opacity,
+                                    const float /*minimumThreshold*/,
+                                    const float /*maximumThreshold*/,
+                                    const float /*opacity*/,
                                     const bool drawControlPointsFlag)
 {
     CaretAssert(vpContent);
     
-    const int32_t originalImageWidth  = imageFile->getWidth();
-    const int32_t originalImageHeight = imageFile->getHeight();
-    const int32_t originalNumberOfPixels = originalImageWidth * originalImageHeight;
-    if (originalNumberOfPixels <= 0) {
+    CaretAssert(imageFile);
+    if (imageFile == NULL) {
+        return;
+    }
+    GraphicsPrimitiveV3fT2f* primitive(imageFile->getGraphicsPrimitiveForFeaturesImageDrawing());
+    if (primitive == NULL) {
+        return;
+    }
+    
+    BoundingBox vertexBounds;
+    primitive->getVertexBounds(vertexBounds);
+    if ( ! vertexBounds.isValid2D()) {
         return;
     }
     
@@ -8237,6 +8245,16 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             if (idControlPoint->isEnabledForSelection()) {
                 isSelectImageControlPoint = true;
             }
+            
+            /*
+             * DISABLE SELECTION SINCE IT MAY NOT WORK.
+             * SEE NOTE BELOW WHERE SELECTED PIXEL IS
+             * PROCESSED FOR IDENTIFICATION.
+             */
+            isSelectImage = false;
+            isSelectImageControlPoint = false;
+            
+            
             if (isSelectImage
                 || isSelectImageControlPoint) {
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -8250,72 +8268,54 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             break;
     }
     
-   /*
-     * Normalized width/height
-     * 
-     * > 1.0 ===> viewport dimension larger than image dimension
-     * < 1.0 ===> viewport dimension smaller than image dimension
-     */
-    const int32_t viewportWidth  = viewport[2];
-    const int32_t viewportHeight = viewport[3];
-    const float widthNormalized  = static_cast<float>(viewportWidth)  / static_cast<float>(originalImageWidth);
-    const float heightNormalized = static_cast<float>(viewportHeight) / static_cast<float>(originalImageHeight);
+    const float imageWidth(vertexBounds.getDifferenceX());
+    const float imageHeight(vertexBounds.getDifferenceY());
+    if ((imageWidth < 1.0)
+        || (imageHeight < 1.0)) {
+        return;
+    }
     
-    /*
-     * Scale image so that it fills window in one dimension and other
-     * image dimension is less than or equal to the window dimension.
-     */
-    float imageScale = 0.0;
-    if (widthNormalized < heightNormalized) {
-        imageScale = widthNormalized;
+    const float viewportWidth(viewport[2]);
+    const float viewportHeight(viewport[3]);
+    if ((viewportWidth < 1.0)
+        || (viewportHeight < 1.0)) {
+        return ;
+    }
+    
+    const float imageAspectRatio(imageHeight / imageWidth);
+    const float viewportAspectRatio(viewportHeight / viewportWidth);
+    float imageX(0.0);
+    float imageY(0.0);
+    float orthoWidth(imageWidth);
+    float orthoHeight(imageHeight);
+    if (imageAspectRatio > viewportAspectRatio) {
+        orthoHeight = imageHeight;
+        orthoWidth  = imageHeight / viewportAspectRatio;
+        imageX      = (orthoWidth - imageWidth) / 2.0;
     }
     else {
-        imageScale = heightNormalized;
-    }
-    
-    std::vector<uint8_t> imageBytesRGBA;
-    int32_t imageWidth  = originalImageWidth;
-    int32_t imageHeight = originalImageHeight;
-    if (imageScale > 0.0) {
-        imageWidth  = originalImageWidth  * imageScale;
-        imageHeight = originalImageHeight * imageScale;
-        imageFile->getImageResizedBytes(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                        imageWidth,
-                                        imageHeight,
-                                        imageBytesRGBA);
-    }
-    else {
-        int32_t dummyWidth  = 0;
-        int32_t dummyHeight = 0;
-        imageFile->getImageBytesRGBA(ImageFile::IMAGE_DATA_ORIGIN_AT_BOTTOM,
-                                     imageBytesRGBA,
-                                     dummyWidth,
-                                     dummyHeight);
-    }
-    
-    const int32_t numberOfPixels = imageWidth * imageHeight;
-    const int32_t bytesPerPixel  = 4;
-    const int32_t correctNumberOfBytes = numberOfPixels * bytesPerPixel;
-    if (static_cast<int32_t>(imageBytesRGBA.size()) != correctNumberOfBytes) {
-        CaretLogSevere("Image size is incorrect.  Number of bytes is "
-                       + QString::number(imageBytesRGBA.size())
-                       + " but should be "
-                       + QString::number(correctNumberOfBytes));
+        orthoWidth = imageWidth;
+        orthoHeight = imageWidth * viewportAspectRatio;
+        imageY      = (orthoHeight - imageHeight) / 2.0;
     }
 
+    bool useBlendingFlag = false;
+#ifdef HAVE_THRESHOLD_OPACITY_FLAG
     const bool testThresholdFlag = ((minimumThreshold > 0.0)
                                     || (maximumThreshold < 255.0));
     const bool testOpacityFlag   = (opacity < 1.0);
     
-    bool useBlendingFlag = false;
     
+    /*
+     * THRESHOLD AND OPACTY DISABLE - WHAT IS IT FOR ?
+     */
     if (testThresholdFlag
         || testOpacityFlag) {
         for (int32_t i = 0; i < numberOfPixels; i++) {
             const int32_t i4 = i * 4;
             CaretAssertVectorIndex(imageBytesRGBA, i4 + 3);
             uint8_t pixelAlpha = 255;
-            
+
             if (testThresholdFlag) {
                 if ((imageBytesRGBA[i4] < minimumThreshold)
                     || (imageBytesRGBA[i4] > maximumThreshold)
@@ -8329,20 +8329,21 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
             if (testOpacityFlag) {
                 pixelAlpha = static_cast<uint8_t>(pixelAlpha * opacity);
             }
-            
+
             if (pixelAlpha < 255) {
                 useBlendingFlag = true;
             }
-            
+
             imageBytesRGBA[i4 + 3] = pixelAlpha;
         }
     }
-    
+
     if (isSelectImage
         || isSelectImageControlPoint) {
         useBlendingFlag = false;
     }
-    
+#endif // HAVE_THRESHOLD_OPACITY_FLAG
+
     /*
      * Center image in the window
      */
@@ -8361,13 +8362,19 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     const double maxClip  = 1000.0;
     const double nearClip = -maxClip;
     const double farClip  =  maxClip;
-    glOrtho(0, viewportWidth,
-            0, viewportHeight,
+
+    const float orthoLeft(0.0);
+    const float orthoRight(orthoLeft + orthoWidth);
+    const float orthoTop(0.0);
+    const float orthoBottom(orthoTop + orthoHeight);
+    glOrtho(orthoLeft, orthoRight,
+            orthoBottom, orthoTop,    /* images have origin at TOP left */
             nearClip, farClip);
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
+    glTranslatef(imageX, imageY, windowZ);
+
     /*
      * Saves glPixelStore parameters
      */
@@ -8380,20 +8387,9 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
         BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
     }
     
-    /*
-     * Set the image's Z coordinate where a depth percentage of 100.0
-     * is at the far clipping plane (away from viewer) and a percentage
-     * of zero is at the near clipping plane (closest to viewer).
-     *
-     * Old way to set Z:  const float imageZ = 10.0 - farClip;
-     */
-    glRasterPos3f(xPos, yPos, windowZ);
-    
-    glDrawPixels(imageWidth, imageHeight,
-                 GL_RGBA, GL_UNSIGNED_BYTE,
-                 (GLvoid*)&imageBytesRGBA[0]);
-    
-    if (blendingEnabled == GL_FALSE) {
+    GraphicsEngineDataOpenGL::draw(primitive);
+        
+    if ( ! blendingEnabled) {
         glDisable(GL_BLEND);
     }
     
@@ -8409,9 +8405,9 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                 const float pixelX = cp->getSourceX();
                 const float pixelY = cp->getSourceY();
                 
-                const float percentX = pixelX / originalImageWidth;
-                const float percentY = pixelY / originalImageHeight;
-                
+                const float percentX = pixelX / imageWidth - imageX;
+                const float percentY = pixelY / imageHeight - imageY;
+
                 const float x = xPos + (percentX * imageWidth);
                 const float y = yPos + (percentY * imageHeight);
                 
@@ -8438,32 +8434,40 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
     glMatrixMode(GL_MODELVIEW);
     
     if (isSelectImage) {
-        const float mx = this->mouseX - viewport[0];
-        const float my = this->mouseY - viewport[1];
+        /*
+         * Note as of 27 Dec 2022
+         *
+         * This identfication logic may not work.  Identification
+         * changes may result with only image files in overlays
+         * getting identification info shown.  The problem is that
+         * this image drawing is in features and NOT in an overlay.
+         *
+         * This control point login, that was for ???, if needed,
+         * should be moved to a browser tab containing a Media file.
+         */
+        const float mouseVpX(this->mouseX - viewport[0]);
+        const float mouseVpY(viewport[3] - (this->mouseY - viewport[1]));
         
-        const float imageX = mx - xPos;
-        const float imageY = my - yPos;
+        const float mouseOrthoX((mouseVpX / viewport[2]) * orthoWidth);
+        const float mouseOrthoY((mouseVpY / viewport[3]) * orthoHeight);
         
-        const float normalizedX = imageX / static_cast<float>(imageWidth);
-        const float normalizedY = imageY / static_cast<float>(imageHeight);
-        
-        const int64_t pixelX = static_cast<int32_t>(normalizedX *
-                                                    static_cast<float>(originalImageWidth));
-        const int64_t pixelY = static_cast<int32_t>(normalizedY *
-                                                    static_cast<float>(originalImageHeight));
-        
-        if ((pixelX    >= 0)
-            && (pixelX <  originalImageWidth)
-            && (pixelY >= 0)
-            && (pixelY <  originalImageHeight)) {
+        const float mouseImageX(mouseOrthoX - imageX);
+        const float mouseImageY(mouseOrthoY - imageY);
+
+        if ((mouseImageX >= 0)
+            && (mouseImageY >= 0)
+            && (mouseImageX < imageWidth)
+            && (mouseImageY < imageHeight)) {
+            const int64_t pixelX(mouseImageX);
+            const int64_t pixelY(mouseImageY);
             idMediaLogicalCoordinate->setMediaFile(imageFile);
             const int64_t pixelZ(0);
-            PixelIndex pixelIndexOriginTop(pixelX, originalImageHeight - pixelY - 1, pixelZ);
+            PixelIndex pixelIndexOriginTop(pixelX, pixelY, pixelZ);
             PixelLogicalIndex pixelLogicalIndex(pixelIndexOriginTop.getI(),
                                                 pixelIndexOriginTop.getJ(),
                                                 pixelIndexOriginTop.getK());
             idMediaLogicalCoordinate->setPixelLogicalIndex(pixelLogicalIndex);
-
+            
             uint8_t pixelByteRGBA[4];
             const int32_t tabIndex(0); /* no tabs fof ImageFile */
             const int32_t overlayIndex(0); /* no overlays for ImageFile */
@@ -8473,6 +8477,7 @@ BrainOpenGLFixedPipeline::drawImage(const BrainOpenGLViewportContent* vpContent,
                                         pixelByteRGBA)) {
                 idMediaLogicalCoordinate->setPixelRGBA(pixelByteRGBA);
             }
+
         }
     }
     

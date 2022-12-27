@@ -189,6 +189,8 @@ public:
     VolumeFile* convertToVolumeFile(const CONVERT_TO_VOLUME_COLOR_MODE colorMode,
                                     AString& errorMessageOut) const;
 
+    virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForFeaturesImageDrawing() const;
+    
     virtual GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                                          const int32_t overlayIndex) const override; 
     
@@ -283,6 +285,8 @@ private:
 
     mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitive;
 
+    mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_featuresImageGraphicsPrimitive;
+    
     mutable int32_t m_pixelPrimitiveVertexStartIndex = -1;
     
     mutable int32_t m_pixelPrimitiveVertexCount = -1;
