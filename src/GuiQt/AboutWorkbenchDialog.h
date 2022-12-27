@@ -49,6 +49,8 @@ namespace caret {
 
         AboutWorkbenchDialog& operator=(const AboutWorkbenchDialog&);
         
+        void displaySystemInformation();
+        
         void displayMoreInformation();
         
         void displayOpenGLInformation();
@@ -56,6 +58,8 @@ namespace caret {
         QPushButton* m_morePushButton;
         
         QPushButton* m_openGLPushButton;
+        
+        QPushButton* m_systemPushButton;
         
         BrainOpenGLWidget* m_openGLParentWidget;
     };

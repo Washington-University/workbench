@@ -99,6 +99,10 @@ namespace caret {
         QLineEdit* addLineEditWidget(const QString& labelText,
                                      const QString& defaultText = "");
         
+        // add labels
+        QLabel* addLabel(const QString& labelLeftText,
+                         const QString& labelRightText);
+        
         // add list box
         QListWidget* addListWidget(const QString& labelText,
                                    const QStringList& listBoxItems);

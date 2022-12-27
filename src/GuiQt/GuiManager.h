@@ -54,6 +54,7 @@ namespace caret {
     class IdentificationDisplayDialog;
     class ImageFile;
     class ImageCaptureDialog;
+    class InfoItem;
     class InformationDisplayDialog;
     class MovieRecordingDialog;
     class OverlaySettingsEditorDialog;
@@ -99,6 +100,8 @@ namespace caret {
                                            const QString& workingDirectory,
                                            QWidget* parent);
         
+        static std::vector<std::unique_ptr<InfoItem>> getScreensInfo();
+
         Brain* getBrain() const;
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;

@@ -133,6 +133,9 @@ namespace caret {
         
         bool m_histologyLeftDragWithCtrlModelXYZValidFlag = false;
         
+        bool m_lastSliceIncrementMouseYValid = false;
+        int32_t m_lastSliceIncrementMouseY = -1;
+        
         VOLUME_MPR_CURSOR_MODE m_mprCursorMode = VOLUME_MPR_CURSOR_MODE::INVALID;
         
     public:

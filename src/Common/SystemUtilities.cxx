@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QHostInfo>
 #include <QRegularExpression>
+#include <QSysInfo>
 #include <QThread>
 #include <QUuid>
 
@@ -45,6 +46,7 @@
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CaretLogger.h"
+#include "InfoItem.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -709,4 +711,57 @@ SystemUtilities::getLocalHostName()
     return hostName;
 }
 
+/**
+ * @return system information with separate names and values.
+ */
+std::vector<std::unique_ptr<InfoItem>>
+SystemUtilities::getSystemInfo()
+{
+    std::vector<std::unique_ptr<InfoItem>> dataOut;
+        
+    const AString buildApiTT("Returns the full architecture string that Qt was compiled for. "
+                             "This string is useful for identifying different, incompatible "
+                             "builds. For example, it can be used as an identifier to request "
+                             "an upgrade package from a server.");
+    dataOut.push_back(std::make_unique<InfoItem>("Compiled on ABI: ",
+                                                 QSysInfo::buildAbi(),
+                                                 buildApiTT));
+    
+    const AString cpuTT("Returns the architecture of the CPU that the application is running "
+                        "on, in text format. Note that this function depends on what the OS "
+                        "will report and may not detect the actual CPU architecture if the OS "
+                        "hides that information or is unable to provide it. For example, a "
+                        "32-bit OS running on a 64-bit CPU is usually unable to determine "
+                        "the CPU is actually capable of running 64-bit programs.");
+    dataOut.push_back(std::make_unique<InfoItem>("Curent CPU: ",
+                                                 QSysInfo::currentCpuArchitecture(),
+                                                 cpuTT));
+    
+    const AString kernelTT("Returns the type of the operating system kernel Qt was compiled "
+                           "for. It's also the kernel the application is running on, unless "
+                           "the host operating system is running a form of compatibility or "
+                           "virtualization layer.");
+    dataOut.push_back(std::make_unique<InfoItem>("Kernel: ",
+                                                 QSysInfo::kernelType(),
+                                                 kernelTT));
+    
+    const AString kernVerTT("Returns the release version of the operating system kernel. "
+                            "On Windows, it returns the version of the NT kernel. On Unix "
+                            "systems, including Android and macOS, it returns the same as "
+                            "the uname -r command would return.");
+    dataOut.push_back(std::make_unique<InfoItem>("Version: ",
+                                                 QSysInfo::kernelVersion(),
+                                                 kernVerTT));
+    
+    const AString osTT("Returns a prettier form of productType() and productVersion(), "
+                       "containing other tokens like the operating system type, codenames "
+                       "and other information. The result of this function is suitable for "
+                       "displaying to the user, but not for long-term storage, as the "
+                       "string may change with updates to Qt.");
+    dataOut.push_back(std::make_unique<InfoItem>("O/S: ",
+                                                 QSysInfo::prettyProductName(),
+                                                 osTT));
+
+    return dataOut;
+}
 

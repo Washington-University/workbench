@@ -442,6 +442,27 @@ WuQDataEntryDialog::addFileSelectionComboBox(const QString& labelText,
     return comboBox;
 }
 
+/**
+ * Add labels in both columns
+ * @param labelTextLeft
+ *    Text for left label
+ * @param labelTextRight
+ *    Text for right label
+ */
+QLabel*
+WuQDataEntryDialog::addLabel(const QString& labelLeftText,
+                             const QString& labelRightText)
+{
+    QLabel* rightLabel(new QLabel(labelRightText));
+    
+    //
+    // Add to dialog
+    //
+    addWidget(labelLeftText, rightLabel);
+    
+    return rightLabel;
+}
+
 
 /**
  * add line edit.

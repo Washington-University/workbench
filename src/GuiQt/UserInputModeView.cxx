@@ -21,6 +21,7 @@
 
 #include <QMessageBox>
 #include <QLineEdit>
+#include <QScreen>
 
 #define __USER_INPUT_MODE_VIEW_DECLARE__
 #include "UserInputModeView.h"
@@ -444,11 +445,62 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             /* Don't scroll slices when editing annotations */
         }
         else {
-            browserTabContent->applyMouseVolumeSliceIncrement(viewportContent,
-                                                              mouseEvent.getPressedX(),
-                                                              mouseEvent.getPressedY(),
-                                                              mouseEvent.getDy());
-            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+            int32_t sliceStep(0);
+            if (m_lastSliceIncrementMouseYValid) {
+                /*
+                 * Get the screen containing the mouse.
+                 * If available get high DPI factor.
+                 */
+                const QScreen* screen(mouseEvent.getScreen());
+                const int32_t highDpiFactor((screen != NULL)
+                                            ? static_cast<int32_t>(screen->devicePixelRatio())
+                                            : 1);
+                
+                /*
+                 * Number of vertical pixels mouse must move to
+                 * trigger an increment or decrement slice increment/decrement
+                 */
+                const int32_t pixelMinDist(4 * highDpiFactor);
+                
+                /*
+                 * Distance mouse has moved since:
+                 * (1) user first dragged mouse
+                 * OR (2) vertical pixels that mouse has moved since slice was
+                 *        incremented or decremented
+                 */
+                const int32_t dy(mouseEvent.getY() - m_lastSliceIncrementMouseY);
+                
+                /*
+                 * Integers are used.
+                 * If user moves mouse moves slowly, slice will increment or decrement
+                 * by one slice at a time.  If the user moves the mouse very quickly,
+                 * "dy" will be larger and slice will increment or decrement by
+                 * several slices.
+                 */
+                sliceStep = dy / pixelMinDist;
+                if (sliceStep != 0) {
+                    /*
+                     * Slice will change to reset Y-position of mouse
+                     */
+                    m_lastSliceIncrementMouseY = mouseEvent.getY();
+                }
+            }
+            else {
+                /*
+                 * User has just started to drag mouse so initialize
+                 * Y-postion of mouse
+                 */
+                m_lastSliceIncrementMouseYValid = true;
+                m_lastSliceIncrementMouseY = mouseEvent.getY();
+            }
+
+            if (sliceStep != 0) {
+                browserTabContent->applyMouseVolumeSliceIncrement(viewportContent,
+                                                                  mouseEvent.getPressedX(),
+                                                                  mouseEvent.getPressedY(),
+                                                                  sliceStep);
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+            }
         }
     }
     else if (browserTabContent->isChartTwoDisplayed()) {
@@ -768,7 +820,7 @@ void
 UserInputModeView::mouseLeftRelease(const MouseEvent& mouseEvent)
 {
     m_mprCursorMode = VOLUME_MPR_CURSOR_MODE::INVALID;
-    
+    m_lastSliceIncrementMouseYValid = false;
 
     BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
     if (viewportContent == NULL) {
@@ -896,6 +948,7 @@ void
 UserInputModeView::mouseLeftPress(const MouseEvent& mouseEvent)
 {
     m_mprCursorMode = getVolumeMprMouseMode(mouseEvent);
+    m_lastSliceIncrementMouseYValid = false;
 }
 
 /**

@@ -98,6 +98,7 @@
 #include "IdentifyBrainordinateDialog.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
+#include "InfoItem.h"
 #include "InformationDisplayDialog.h"
 #include "MediaFile.h"
 #include "MetricDynamicConnectivityFile.h"
@@ -4034,4 +4035,107 @@ GuiManager::startNewWbViewInstance(const QStringList& parameters,
     }
     
     return true;
+}
+
+/**
+ * @return screens information with separate names and values.
+ */
+std::vector<std::unique_ptr<InfoItem>>
+
+GuiManager::getScreensInfo()
+{
+    std::vector<std::unique_ptr<InfoItem>> infoOut;
+    
+    QList<QScreen*> allScreens = QGuiApplication::screens();
+
+    const int32_t numScreens(allScreens.size());
+    for (int32_t i = 0; i < numScreens; i++) {
+        CaretAssertVectorIndex(allScreens, i);
+        
+        const QScreen* screen(allScreens[i]);
+
+        if (i == 0) {
+            /*
+             * Desktop
+             */
+            infoOut.push_back(std::make_unique<InfoItem>("Desktop",
+                                                         ""));
+            
+            const AString geomTT("This property holds the pixel geometry of the virtual desktop.");
+            const QRect vg(screen->virtualGeometry());
+            const AString vgString(AString::number(vg.x())
+                                   + ", "
+                                   + AString::number(vg.y())
+                                   + ", "
+                                   + AString::number(vg.width())
+                                   + ", "
+                                   + AString::number(vg.height()));
+            infoOut.push_back(std::make_unique<InfoItem>("   Virtual Geometry: ",
+                                                         vgString,
+                                                         geomTT));
+        }
+        
+        infoOut.push_back(std::make_unique<InfoItem>("Screen " + AString::number(i),
+                                                     ""));
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 9, 0)
+        infoOut.push_back(std::make_unique<InfoItem>("   Name: ",
+                                                     screen->name()));
+        
+        infoOut.push_back(std::make_unique<InfoItem>("   Manufacturer: ",
+                                                     screen->manufacturer()));
+        
+        infoOut.push_back(std::make_unique<InfoItem>("   Model: ",
+                                                     screen->model()));
+#endif //
+        
+        const AString dprTT("This property holds the screen's ratio between physical pixels and device-independent pixels.  "
+                            "Common values are 1.0 on normal displays and 2.0 on \"retina\" displays. Higher values are also possible.");
+        infoOut.push_back(std::make_unique<InfoItem>("   Device Pixel Ratio: ",
+                                                     AString::number(screen->devicePixelRatio()),
+                                                     dprTT));
+
+        const AString physTT("This property holds the screen's physical size (in millimeters). "
+                             "The physical size represents the actual physical dimensions of the screen's display. "
+                             "Depending on what information the underlying system provides the value might not be entirely accurate.");
+        infoOut.push_back(std::make_unique<InfoItem>("   Physical Size w/h: ",
+                                                     (AString::number(screen->physicalSize().width())
+                                                      + "mm x "
+                                                      + AString::number(screen->physicalSize().height())
+                                                      + "mm"),
+                                                     physTT));
+
+
+        const AString logTT("This property holds the number of logical dots or pixels per inch. "
+                            "This value can be used to convert font point sizes to pixel sizes.");
+        infoOut.push_back(std::make_unique<InfoItem>("   Logical DPI: ",
+                                                     (AString::number((float)screen->logicalDotsPerInchX(), 'f', 2)
+                                                      + " x "
+                                                      + AString::number(screen->logicalDotsPerInchY(), 'f', 2)),
+                                                     logTT));
+
+        const AString physDpiTT("This property holds the number of physical dots or pixels per inch. "
+                             "This value represents the pixel density on the screen's display. "
+                             "Depending on what information the underlying system provides the value might not be entirely accurate.");
+        infoOut.push_back(std::make_unique<InfoItem>("   Physical DPI: ",
+                                                     (AString::number((float)screen->physicalDotsPerInchX(), 'f', 2)
+                                                      + " x "
+                                                      + AString::number(screen->physicalDotsPerInchY(), 'f', 2)),
+                                                     physDpiTT));
+        
+        const AString geomTT("This property holds the screen's geometry in pixels");
+        const QRect vg(screen->geometry());
+        const AString vgString(AString::number(vg.x())
+                               + ", "
+                               + AString::number(vg.y())
+                               + ", "
+                               + AString::number(vg.width())
+                               + ", "
+                               + AString::number(vg.height()));
+        infoOut.push_back(std::make_unique<InfoItem>("   Geometry: ",
+                                                     vgString,
+                                                     geomTT));
+    }
+
+    return infoOut;
 }

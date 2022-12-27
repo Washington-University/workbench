@@ -73,6 +73,8 @@ m_mousePositionValid(false)
                                                 0,
                                                 0,
                                                 emptyHistoryXY,
+                                                -1,
+                                                -1,
                                                 false));
 }
 

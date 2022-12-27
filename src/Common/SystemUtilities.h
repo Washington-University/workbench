@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 
 #include <stdint.h>
 
@@ -41,6 +42,8 @@ public:
     friend class SystemUtilities;
 };
 
+    class InfoItem;
+    
 /**
  * Methods to help out with files and directories.
  */
@@ -103,6 +106,7 @@ public:
     
     static AString getLocalHostName();
     
+    static std::vector<std::unique_ptr<InfoItem>> getSystemInfo();
 };
 
 } // namespace

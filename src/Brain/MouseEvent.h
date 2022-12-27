@@ -25,6 +25,8 @@
 
 #include <stdint.h>
 
+class QScreen;
+
 namespace caret {
     
     class BrainOpenGLViewportContent;
@@ -62,6 +64,8 @@ namespace caret {
                    const int32_t mousePressX,
                    const int32_t mousePressY,
                    const std::vector<XY>& mouseHistoryXY,
+                   const int32_t globalX,
+                   const int32_t globalY,
                    const bool firstDraggingFlag);
         
         virtual ~MouseEvent();
@@ -107,6 +111,12 @@ namespace caret {
         
         int32_t getWheelRotation() const;
         
+        QScreen* getScreen() const;
+        
+        int32_t getGlobalX() const;
+        
+        int32_t getGlobalY() const;
+        
         bool isFirstDragging() const;
         
     private:
@@ -133,6 +143,10 @@ namespace caret {
         std::vector<XY> m_xyHistory;
         
         int32_t m_wheelRotation;
+        
+        int32_t m_globalX = -1;
+        
+        int32_t m_globalY = -1;
         
         bool m_firstDraggingFlag;
     };

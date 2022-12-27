@@ -3307,26 +3307,28 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
         return;
     }
     
-    /*
-     * Prevents "too fast" scrolling.
-     * If set to a very large number, it will result in the
-     * slice increment becoming one
-     */
-    int32_t slowDownIncrementer = 3;
+    const int32_t sliceDelta(mouseDY);
     
-    int32_t sliceDelta = mouseDY;
-    if (sliceDelta > 1) {
-        sliceDelta /= slowDownIncrementer;
-        if (sliceDelta == 0) {
-            sliceDelta = 1;
-        }
-    }
-    else if (sliceDelta < -1) {
-        sliceDelta /= slowDownIncrementer;
-        if (sliceDelta == 0) {
-            sliceDelta = -1;
-        }
-    }
+//    /*
+//     * Prevents "too fast" scrolling.
+//     * If set to a very large number, it will result in the
+//     * slice increment becoming one
+//     */
+//    int32_t slowDownIncrementer = 3;
+//
+//    int32_t sliceDelta = mouseDY;
+//    if (sliceDelta > 1) {
+//        sliceDelta /= slowDownIncrementer;
+//        if (sliceDelta == 0) {
+//            sliceDelta = 1;
+//        }
+//    }
+//    else if (sliceDelta < -1) {
+//        sliceDelta /= slowDownIncrementer;
+//        if (sliceDelta == 0) {
+//            sliceDelta = -1;
+//        }
+//    }
     
     const int32_t tabIndex = viewportContent->getTabIndex();
     VolumeMappableInterface* underlayVolume(NULL);

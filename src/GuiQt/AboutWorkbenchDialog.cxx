@@ -37,7 +37,9 @@
 #include "ApplicationInformation.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "GuiManager.h"
 #include "ImageFile.h"
+#include "InfoItem.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
@@ -101,7 +103,9 @@ AboutWorkbenchDialog::AboutWorkbenchDialog(BrainOpenGLWidget* openGLParentWidget
                                            QDialogButtonBox::NoRole);
     m_openGLPushButton = addUserPushButton("OpenGL...",
                                            QDialogButtonBox::NoRole);
-    
+    m_systemPushButton = addUserPushButton("System...",
+                                            QDialogButtonBox::NoRole);
+
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout,
@@ -140,6 +144,9 @@ AboutWorkbenchDialog::userButtonPressed(QPushButton* userPushButton)
     }
     else if (userPushButton == m_morePushButton) {
         displayMoreInformation();
+    }
+    else if (userPushButton == m_systemPushButton) {
+        displaySystemInformation();
     }
     else {
         CaretAssert(0);
@@ -294,6 +301,44 @@ AboutWorkbenchDialog::displayMoreInformation()
     for (int32_t i = 0; i < numInfo; i++) {
         ded.addWidget("", new QLabel(informationData[i]));
     }
+    ded.setCancelButtonText("");
+    ded.exec();
+}
+
+void
+AboutWorkbenchDialog::displaySystemInformation()
+{
+    ApplicationInformation appInfo;
+    std::vector<AString> informationData;
+    WuQDataEntryDialog ded("System Information",
+                           this,
+                           true);
+
+    std::vector<std::unique_ptr<InfoItem>> sysInfo(SystemUtilities::getSystemInfo());
+    for (const auto& infoValue : sysInfo) {
+        QLabel* label(ded.addLabel(infoValue->getName(),
+                                   infoValue->getValue()));
+        const AString toolTip(infoValue->getToolTip());
+        if ( ! toolTip.isEmpty()) {
+            WuQtUtilities::setWordWrappedToolTip(label,
+                                                 toolTip);
+        }
+    }
+
+    std::vector<std::unique_ptr<InfoItem>> screenInfo(GuiManager::getScreensInfo());
+    for (const auto& infoValue : screenInfo) {
+        QLabel* label(ded.addLabel(infoValue->getName(),
+                                   infoValue->getValue()));
+        const AString toolTip(infoValue->getToolTip());
+        if ( ! toolTip.isEmpty()) {
+            WuQtUtilities::setWordWrappedToolTip(label,
+                                                 toolTip);
+        }
+    }
+
+    ded.addLabel("", "");
+    ded.addLabel("Note:", "Move mouse over items above for description");
+    
     ded.setCancelButtonText("");
     ded.exec();
 }

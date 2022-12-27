@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <QGuiApplication>
+
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWindowContent.h"
 #include "CaretAssert.h"
@@ -55,6 +57,10 @@ using namespace caret;
  *    Y-coordinate of mouse when button was pressed
  * @param mouseHistoryXY
  *    History of XY-coordinatdes from time mouse was pressed until released
+ * @param globalX
+ *    Global mouse in virtual desktop (all screens)
+ * @param globalY
+ *    Global mouse in virtual desktop (all screens)
  * @param firstDraggingFlag
  *    Should be true the first time in in a mouse dragging operation.
  */
@@ -69,6 +75,8 @@ MouseEvent::MouseEvent(const BrainOpenGLWindowContent* windowContent,
                        const int32_t mousePressX,
                        const int32_t mousePressY,
                        const std::vector<XY>& mouseHistoryXY,
+                       const int32_t globalX,
+                       const int32_t globalY,
                        const bool firstDraggingFlag)
 : CaretObject()
 {
@@ -95,6 +103,8 @@ MouseEvent::MouseEvent(const BrainOpenGLWindowContent* windowContent,
     m_pressX = mousePressX;
     m_pressY = mousePressY;
     m_xyHistory = mouseHistoryXY;
+    m_globalX   = globalX;
+    m_globalY   = globalY;
     m_firstDraggingFlag = firstDraggingFlag;
 }
 
@@ -371,6 +381,42 @@ int32_t
 MouseEvent::getWheelRotation() const
 {
     return m_wheelRotation;
+}
+
+/**
+ * @return the screen containing the mouse or NULL if unknown.
+ * Must have compiled with Qt 5.10.0 or later.
+ */
+QScreen*
+MouseEvent::getScreen() const
+{
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    if ((m_globalX >= 0)
+        && (m_globalY >= 0)) {
+        QScreen* screen(QGuiApplication::screenAt(QPoint(m_globalX, m_globalY)));
+        return screen;
+    }
+#endif
+
+    return NULL;
+}
+
+/**
+ * @return global X of mouse (all screens virtual region)
+ */
+int32_t
+MouseEvent::getGlobalX() const
+{
+    return m_globalX;
+}
+
+/**
+ * @return global Y of mouse (all screens virtual region)
+ */
+int32_t
+MouseEvent::getGlobalY() const
+{
+    return m_globalY;
 }
 
 /**

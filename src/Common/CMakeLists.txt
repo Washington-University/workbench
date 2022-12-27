@@ -139,6 +139,7 @@ HtmlStringBuilder.h
 HtmlTableBuilder.h
 IdentificationDisplayModeEnum.h
 ImageCaptureMethodEnum.h
+InfoItem.h
 JsonHelper.h
 Logger.h
 LogHandler.h
@@ -299,6 +300,7 @@ HtmlStringBuilder.cxx
 HtmlTableBuilder.cxx
 IdentificationDisplayModeEnum.cxx
 ImageCaptureMethodEnum.cxx
+InfoItem.cxx
 JsonHelper.cxx
 Logger.cxx
 LogHandler.cxx
