@@ -719,6 +719,7 @@ SystemUtilities::getSystemInfo()
 {
     std::vector<std::unique_ptr<InfoItem>> dataOut;
         
+#ifdef HAVE_MAKE_UNIQUE
     const AString buildApiTT("Returns the full architecture string that Qt was compiled for. "
                              "This string is useful for identifying different, incompatible "
                              "builds. For example, it can be used as an identifier to request "
@@ -761,6 +762,7 @@ SystemUtilities::getSystemInfo()
     dataOut.push_back(std::make_unique<InfoItem>("O/S: ",
                                                  QSysInfo::prettyProductName(),
                                                  osTT));
+#endif // HAVE_MAKE_UNIQUE
 
     return dataOut;
 }

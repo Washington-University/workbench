@@ -23,6 +23,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 #include <vector>
 #include <stdint.h>

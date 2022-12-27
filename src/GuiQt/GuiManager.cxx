@@ -4041,11 +4041,11 @@ GuiManager::startNewWbViewInstance(const QStringList& parameters,
  * @return screens information with separate names and values.
  */
 std::vector<std::unique_ptr<InfoItem>>
-
 GuiManager::getScreensInfo()
 {
     std::vector<std::unique_ptr<InfoItem>> infoOut;
     
+#ifdef HAVE_MAKE_UNIQUE
     QList<QScreen*> allScreens = QGuiApplication::screens();
 
     const int32_t numScreens(allScreens.size());
@@ -4136,6 +4136,7 @@ GuiManager::getScreensInfo()
                                                      vgString,
                                                      geomTT));
     }
+#endif // HAVE_MAKE_UNIQUE
 
     return infoOut;
 }
