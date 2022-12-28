@@ -719,12 +719,11 @@ SystemUtilities::getSystemInfo()
 {
     std::vector<std::unique_ptr<InfoItem>> dataOut;
         
-#ifdef HAVE_MAKE_UNIQUE
     const AString buildApiTT("Returns the full architecture string that Qt was compiled for. "
                              "This string is useful for identifying different, incompatible "
                              "builds. For example, it can be used as an identifier to request "
                              "an upgrade package from a server.");
-    dataOut.push_back(std::make_unique<InfoItem>("Compiled on ABI: ",
+    dataOut.push_back(InfoItem::makeItem("Compiled on ABI: ",
                                                  QSysInfo::buildAbi(),
                                                  buildApiTT));
     
@@ -734,7 +733,7 @@ SystemUtilities::getSystemInfo()
                         "hides that information or is unable to provide it. For example, a "
                         "32-bit OS running on a 64-bit CPU is usually unable to determine "
                         "the CPU is actually capable of running 64-bit programs.");
-    dataOut.push_back(std::make_unique<InfoItem>("Curent CPU: ",
+    dataOut.push_back(InfoItem::makeItem("Curent CPU: ",
                                                  QSysInfo::currentCpuArchitecture(),
                                                  cpuTT));
     
@@ -742,7 +741,7 @@ SystemUtilities::getSystemInfo()
                            "for. It's also the kernel the application is running on, unless "
                            "the host operating system is running a form of compatibility or "
                            "virtualization layer.");
-    dataOut.push_back(std::make_unique<InfoItem>("Kernel: ",
+    dataOut.push_back(InfoItem::makeItem("Kernel: ",
                                                  QSysInfo::kernelType(),
                                                  kernelTT));
     
@@ -750,7 +749,7 @@ SystemUtilities::getSystemInfo()
                             "On Windows, it returns the version of the NT kernel. On Unix "
                             "systems, including Android and macOS, it returns the same as "
                             "the uname -r command would return.");
-    dataOut.push_back(std::make_unique<InfoItem>("Version: ",
+    dataOut.push_back(InfoItem::makeItem("Version: ",
                                                  QSysInfo::kernelVersion(),
                                                  kernVerTT));
     
@@ -759,10 +758,9 @@ SystemUtilities::getSystemInfo()
                        "and other information. The result of this function is suitable for "
                        "displaying to the user, but not for long-term storage, as the "
                        "string may change with updates to Qt.");
-    dataOut.push_back(std::make_unique<InfoItem>("O/S: ",
+    dataOut.push_back(InfoItem::makeItem("O/S: ",
                                                  QSysInfo::prettyProductName(),
                                                  osTT));
-#endif // HAVE_MAKE_UNIQUE
 
     return dataOut;
 }

@@ -37,6 +37,12 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param name
+ *   Name of info item
+ * @param value
+ *   Value (text) for item
+ * @param tooltip
+ *   Tooltip long text describing item
  */
 InfoItem::InfoItem(const AString& name,
                    const AString& value,
@@ -65,6 +71,26 @@ InfoItem::InfoItem(const InfoItem& obj)
 : CaretObject(obj)
 {
     this->copyHelperInfoItem(obj);
+}
+
+/**
+ *  Return a unique pointer to a new InfoItem (useful on system without "make_unique".
+ * @param name
+ *   Name of info item
+ * @param value
+ *   Value (text) for item
+ * @param tooltip
+ *   Tooltip long text describing item
+ */
+std::unique_ptr<InfoItem>
+InfoItem::makeItem(const AString& name,
+                   const AString& value,
+                   const AString& tooltip)
+{
+    std::unique_ptr<InfoItem> itemPtr(new InfoItem(name,
+                                                   value,
+                                                   tooltip));
+    return itemPtr;
 }
 
 /**

@@ -32,6 +32,10 @@ namespace caret {
     class InfoItem : public CaretObject {
         
     public:
+        static std::unique_ptr<InfoItem> makeItem(const AString& name,
+                                                  const AString& value,
+                                                  const AString& tooltip = "");
+        
         InfoItem(const AString& name,
                  const AString& value,
                  const AString& tooltip = "");

@@ -1221,8 +1221,13 @@ BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
                               wheelX,
                               wheelY,
                               emptyHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                               we->globalPosition().x(),
                               we->globalPosition().y(),
+#else
+                              we->globalPos().x(),
+                              we->globalPos().y(),
+#endif
                               newMouseDraggingFlag);
         
         UserInputModeAbstract* inputProcessor = getSelectedInputProcessor();
@@ -1417,8 +1422,13 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
                                   this->mousePressX,
                                   this->mousePressY,
                                   m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                   me->globalPosition().x(),
                                   me->globalPosition().y(),
+#else
+                                  me->globalPos().x(),
+                                  me->globalPos().y(),
+#endif
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
@@ -1495,8 +1505,13 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       this->mousePressX,
                                       this->mousePressY,
                                       m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                       me->globalPosition().x(),
                                       me->globalPosition().y(),
+#else
+                                      me->globalPos().x(),
+                                      me->globalPos().y(),
+#endif
                                       this->mouseNewDraggingStartedFlag);
                 inputProcessor->mouseLeftRelease(mouseEvent);
             }
@@ -1524,8 +1539,13 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                       this->mousePressX,
                                       this->mousePressY,
                                       m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                       me->globalPosition().x(),
                                       me->globalPosition().y(),
+#else
+                                      me->globalPos().x(),
+                                      me->globalPos().y(),
+#endif
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
@@ -1599,8 +1619,13 @@ BrainOpenGLWidget::mouseDoubleClickEvent(QMouseEvent* me)
                                       this->mousePressX,
                                       this->mousePressY,
                                       emptyHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                       me->globalPosition().x(),
                                       me->globalPosition().y(),
+#else
+                                      me->globalPos().x(),
+                                      me->globalPos().y(),
+#endif
                                       this->mouseNewDraggingStartedFlag);
                 
                 getSelectedInputProcessor()->mouseLeftDoubleClick(mouseEvent);
@@ -2317,8 +2342,13 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                       this->mousePressX,
                                       this->mousePressY,
                                       m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                       me->globalPosition().x(),
                                       me->globalPosition().y(),
+#else
+                                      me->globalPos().x(),
+                                      me->globalPos().y(),
+#endif
                                       this->mouseNewDraggingStartedFlag);
                 
                 if (keyModifiers == Qt::NoModifier) {
@@ -2360,8 +2390,13 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                   this->mousePressX,
                                   this->mousePressY,
                                   m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                   me->globalPosition().x(),
                                   me->globalPosition().y(),
+#else
+                                  me->globalPos().x(),
+                                  me->globalPos().y(),
+#endif
                                   this->mouseNewDraggingStartedFlag);
             
             if (keyModifiers == Qt::NoModifier) {
@@ -2387,8 +2422,13 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                                                     this->mousePressX,
                                                     this->mousePressY,
                                                     m_mouseHistoryXY,
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
                                                     me->globalPosition().x(),
                                                     me->globalPosition().y(),
+#else
+                                                    me->globalPos().x(),
+                                                    me->globalPos().y(),
+#endif
                                                     this->mouseNewDraggingStartedFlag));
         
         inputProcessor->setMousePosition(m_mousePositionEvent,
