@@ -112,6 +112,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsFramesPerSecond.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -2686,6 +2687,10 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             switch (drawingType) {
                 case SurfaceDrawingTypeEnum::DRAW_HIDE:
                     break;
+                case SurfaceDrawingTypeEnum::DRAW_AS_CUT_EDGES:
+                    drawSurfaceCutEdges(surface,
+                                        nodeColoringRGBA);
+                    break;
                 case SurfaceDrawingTypeEnum::DRAW_AS_LINKS:
                     /*
                      * Draw first as triangles without coloring which uses
@@ -3379,6 +3384,46 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
     }
 }
 
+/**
+ * Draw a surface triangles with vertex arrays.
+ * @param surface
+ *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the edges.
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceCutEdges(Surface* surface,
+                                              const float* nodeColoringRGBA)
+{
+    CaretAssert(surface);
+    const CaretPointer<TopologyHelper> th(surface->getTopologyHelper());
+    CaretAssert(th);
+    
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
+    const std::vector<TopologyEdgeInfo>& edgeInfo(th->getEdgeInfo());
+    const int32_t numEdges(static_cast<int32_t>(edgeInfo.size()));
+    for (int32_t i = 0; i < numEdges; i++) {
+        CaretAssertVectorIndex(edgeInfo, i);
+        if (edgeInfo[i].numTiles == 1) {
+            const int32_t n1(edgeInfo[i].node1);
+            const int32_t n2(edgeInfo[i].node2);
+            const float* xyzOne(surface->getCoordinate(n1));
+            const float* xyzTwo(surface->getCoordinate(n2));
+            CaretAssert(xyzOne);
+            CaretAssert(xyzTwo);
+            
+            primitive->addVertex(xyzOne,
+                                 &nodeColoringRGBA[n1 * 4]);
+            primitive->addVertex(xyzTwo,
+                                 &nodeColoringRGBA[n2 * 4]);
+        }
+    }
+
+    if (primitive->getNumberOfVertices() > 1) {
+        primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 4.0);
+        GraphicsEngineDataOpenGL::draw(primitive.get());
+    }
+}
 
 /**
  * Draw a surface triangles with vertex arrays.

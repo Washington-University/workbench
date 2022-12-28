@@ -96,6 +96,7 @@ m_mode(mode)
             createPalettePixmapInterpolateOn(palette,
                                       pixmapWidth,
                                       pixmapHeight);
+            break;
         case Mode::INTERPOLATE_ON_LINES_AT_SCALARS:
             createPalettePixmapInterpolateOn(palette,
                                              pixmapWidth,

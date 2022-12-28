@@ -232,6 +232,9 @@ namespace caret {
         void drawSurfaceNodes(Surface* surface,
                               const float* nodeColoringRGBA);
         
+        void drawSurfaceCutEdges(Surface* surface,
+                                 const float* nodeColoringRGBA);
+        
         void drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
                                                   const float* nodeColoringRGBA);
         

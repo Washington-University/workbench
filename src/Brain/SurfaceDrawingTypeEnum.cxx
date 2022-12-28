@@ -78,9 +78,13 @@ SurfaceDrawingTypeEnum::initialize()
                                               "DRAW_HIDE",
                                               "Hide"));
     
+    enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_CUT_EDGES,
+                                              "DRAW_AS_CUT_EDGES",
+                                              "Cut Edges"));
+
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_LINKS,
                                     "DRAW_AS_LINKS", 
-                                    "Links (Edges)"));
+                                    "Links"));
     
     enumData.push_back(SurfaceDrawingTypeEnum(DRAW_AS_LINKS_TRANSPARENT,
                                               "DRAW_AS_LINKS_TRANSPARENT",

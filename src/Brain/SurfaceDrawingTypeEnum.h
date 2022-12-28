@@ -37,6 +37,8 @@ public:
     enum Enum {
         /** Do not draw the surface */
         DRAW_HIDE,
+        /** Draw flat surface cut edges only */
+        DRAW_AS_CUT_EDGES,
         /** Draw as links (edges) */
         DRAW_AS_LINKS,
         /** Draw as links (edges) */
