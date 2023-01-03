@@ -1021,9 +1021,17 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     
     brainOpenGL.reset(createBrainOpenGL());
     
-    CaretLogFine(brainOpenGL->getOpenGLInformation()
+    CaretLogConfig(brainOpenGL->getOpenGLInformation()
                  + "\n"
                  + inputs.m_offscreenRenderer->toString());
+    
+    /**
+     * Test for the required OpenGL version is available.
+     */
+    AString requiredOpenGLMessage;
+    if ( ! BrainOpenGL::testForRequiredOpenGLVersion(requiredOpenGLMessage)) {
+        CaretLogSevere(requiredOpenGLMessage);
+    }
     
     int windowViewport[4] = { 0, 0, imageWidth, imageHeight };
     const int windowBeforeAspectLockingViewport[4] = { 0, 0, imageWidth, imageHeight };

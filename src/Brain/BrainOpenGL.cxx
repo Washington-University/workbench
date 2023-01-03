@@ -619,7 +619,7 @@ BrainOpenGL::testForVersionOfOpenGLSupported(const AString& versionOfOpenGL)
 bool
 BrainOpenGL::testForRequiredOpenGLVersion(AString& errorMessageOut)
 {
-    const AString minimumOpenGLVersion("1.5");
+    const AString minimumOpenGLVersion("2.1");
     if ( ! BrainOpenGL::testForVersionOfOpenGLSupported(minimumOpenGLVersion)) {
         const AString msg("OpenGL Version "
                           + minimumOpenGLVersion
