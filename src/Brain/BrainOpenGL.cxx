@@ -640,7 +640,22 @@ BrainOpenGL::testForRequiredOpenGLVersion(AString& errorMessageOut)
 AString
 BrainOpenGL::getOpenGLVersion()
 {
-    return QLatin1String(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
+    QString versionStr;
+    
+    const GLubyte* versionPtr(glGetString(GL_VERSION));
+    if (versionPtr != NULL) {
+        versionStr = QLatin1String(reinterpret_cast<const char*>(versionPtr));
+        if (versionStr.isEmpty()) {
+            /*
+             * Note: version may be empty in 1.1
+             */
+            versionStr = "1.1  (Unknown/Empty)";
+        }
+    }
+    else {
+        versionStr = "1.1  Error (pointer == 0)";
+    }
+    return versionStr;
 }
 
 
@@ -688,10 +703,7 @@ void
 BrainOpenGL::initializeOpenGL()
 {
 
-    s_runtimeLibraryVersionOfOpenGL = QLatin1String(reinterpret_cast<const char*>(glGetString(GL_VERSION)));
-    if (s_runtimeLibraryVersionOfOpenGL.isEmpty()) {
-        s_runtimeLibraryVersionOfOpenGL = "1.1";
-    }
+    s_runtimeLibraryVersionOfOpenGL = getOpenGLVersion();
     getOpenGLMajorMinorVersions(s_runtimeLibraryVersionOfOpenGL,
                                 s_runtimeLibraryMajorVersionOfOpenGL,
                                 s_runtimeLibraryMinorVersionOfOpenGL);
