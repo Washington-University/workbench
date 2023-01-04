@@ -1028,9 +1028,11 @@ OperationShowSceneTwo::renderWindowToImage(Inputs& inputs)
     /**
      * Test for the required OpenGL version is available.
      */
+    const bool guiFlag(false);
     AString requiredOpenGLMessage;
-    if ( ! BrainOpenGL::testForRequiredOpenGLVersion(requiredOpenGLMessage)) {
-        CaretLogSevere(requiredOpenGLMessage);
+    if ( ! BrainOpenGL::testForRequiredOpenGLVersion(guiFlag,
+                                                     requiredOpenGLMessage)) {
+        throw OperationException(requiredOpenGLMessage);
     }
     
     int windowViewport[4] = { 0, 0, imageWidth, imageHeight };

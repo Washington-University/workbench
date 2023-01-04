@@ -368,8 +368,10 @@ main(int argc, char* argv[])
         /**
          * Test for the required OpenGL version is available.
          */
+        const bool guiFlag(true);
         AString requiredOpenGLMessage;
-        if ( ! BrainOpenGL::testForRequiredOpenGLVersion(requiredOpenGLMessage)) {
+        if ( ! BrainOpenGL::testForRequiredOpenGLVersion(guiFlag,
+                                                         requiredOpenGLMessage)) {
             app.processEvents();
             if ( ! WuQMessageBox::warningAcceptReject(NULL,
                                                       requiredOpenGLMessage,

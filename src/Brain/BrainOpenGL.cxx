@@ -610,22 +610,26 @@ BrainOpenGL::testForVersionOfOpenGLSupported(const AString& versionOfOpenGL)
 
 /**
  * Test for the required version of OpenGL Workbench needs.
- *
+ * @param guiFlag
+ *    True if in GUI
  * @param errorMessageOut
  *     Output with error message if required version is not available.
  * @return 
  *     True if required version available, else false.
  */
 bool
-BrainOpenGL::testForRequiredOpenGLVersion(AString& errorMessageOut)
+BrainOpenGL::testForRequiredOpenGLVersion(const bool guiFlag,
+                                          AString& errorMessageOut)
 {
     const AString minimumOpenGLVersion("2.1");
     if ( ! BrainOpenGL::testForVersionOfOpenGLSupported(minimumOpenGLVersion)) {
-        const AString msg("OpenGL Version "
+        AString msg("OpenGL Version "
                           + minimumOpenGLVersion
                           + " or later is required.  This computer has version "
-                          + BrainOpenGL::getOpenGLVersion()
-                          + "\nYou may continue but the software may crash.");
+                          + BrainOpenGL::getOpenGLVersion());
+        if (guiFlag) {
+            msg += ("\nYou may continue but the software may crash.");
+        }                          
         errorMessageOut = msg;
         return false;
     }
