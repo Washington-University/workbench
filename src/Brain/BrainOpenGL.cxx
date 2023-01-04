@@ -629,7 +629,15 @@ BrainOpenGL::testForRequiredOpenGLVersion(const bool guiFlag,
                           + BrainOpenGL::getOpenGLVersion());
         if (guiFlag) {
             msg += ("\nYou may continue but the software may crash.");
-        }                          
+        }
+        else {
+            msg += ("\nIf Virtual GL is running, it will intercept OpenGL function "
+                    "\ncalls and prevent the correct OpenGL libraries from being "
+                    "\nused resulting in an invalid OpenGL version number.  "
+                    "\nYou will need to disable Virtual GL.  If the environment "
+                    "\nvariable LD_PRELOAD contains 'faker' libraries, unsetting "
+                    "\nthis environment variable may disable Virtual GL.");
+        }
         errorMessageOut = msg;
         return false;
     }
