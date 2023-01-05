@@ -326,7 +326,10 @@ SceneBasePathWidget::isValid(AString& errorMessageOut) const
             FileInformation fileInfo(basePath);
             if (fileInfo.exists()
                 && fileInfo.isDirectory()) {
-                /* Valid directory */
+                /*
+                 * Base path may not be in the scene file so update it
+                 */
+                m_sceneFile->setBalsaCustomBaseDirectory(basePath);
             }
             else {
                 errorMessageOut = "CUSTOM base path is not a valid directory";
