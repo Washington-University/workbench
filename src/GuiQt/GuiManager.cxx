@@ -1092,7 +1092,21 @@ GuiManager::exitProgram(BrainBrowserWindow* parent)
                                         "\n\n"
                                         " * When sharing data sets with others to provide a particular "
                                         "view of a surface/volume with desired data (overlay and feature) "
-                                        "selections.");
+                                        "selections.\n\n"
+                                        "Try following these steps:\n"
+                                        " * From the Window Menu, select Scenes to display the Scene dialog.\n"
+                                        " * In the Scene Dialog’s top row, click New to create a new scene file.\n"
+                                        " * In the Scene Dialog’s right column, click Add...\n"
+                                        " * In the Create New Scene dialog, Enter a name for your scene and click the OK button.\n"
+                                        " * In the Scene Dialog’s second row, click the Save As button.  Select a directory for your scene file and enter a name for your scene file; click Save.\n"
+                                        " * Close the Scene dialog and Exit Workbench.\n"
+                                        " * Start Workbench.\n"
+                                        " * A dialog containing recently opened files should appear containing the name of your Scene File.\n"
+                                        " * Click the name of your scene file to highlight it and click the Open button.\n"
+                                        " * Workbench will start and Open the Scenes window.\n"
+                                        " * Click the name of your scene and click the Show button in the right column.\n"
+                                        " * Workbench will load files and Workbench should appear the same as when the scene was created.\n"
+                                        " * Additional scenes can be added to your scene file.");
             quitDialog.setInformativeText(infoTextMsg);
             quitDialog.setDetailedText(detailTextMsg);
         }
