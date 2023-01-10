@@ -481,22 +481,16 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
             }
         }
     }
+        
+    HistologySlice* histSlice(findHistologySliceForHistologyCoordinate(histologyCoordinate));
+    if (histSlice != NULL) {
+        histSlice->getIdentificationText(tabIndex,
+                                         histologyCoordinate,
+                                         columnOneText,
+                                         columnTwoText,
+                                         toolTipText);
+    }
     
-    std::vector<int32_t> frameIndicesVector { 0 };
-    const MediaFile* mediaFile(findMediaFileWithName(histologyCoordinate.getHistologyMediaFileName()));
-    if (mediaFile != NULL) {
-        mediaFile->getPixelPlaneIdentificationTextForHistology(tabIndex,
-                                                            frameIndicesVector,
-                                                            histologyCoordinate.getPlaneXYZ(),
-                                                            columnOneText,
-                                                            columnTwoText,
-                                                            toolTipText);
-    }
-    else {
-        CaretLogWarning("Unable to find media file with name "
-                        + histologyCoordinate.getHistologyMediaFileName()
-                        + " for generating identification text");
-    }
     const int32_t numColOne(columnOneText.size());
     const int32_t numColTwo(columnTwoText.size());
     const int32_t maxNum(std::max(numColOne, numColTwo));
@@ -517,6 +511,30 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     
     toolTipTextOut = toolTipText;
 }
+
+/**
+ * Find the histology slice containing the media file with the given name
+ * @param mediaFileName
+ *    Name of media file
+ * @return
+ *    Media file with the given name or NULL if not found
+ */
+HistologySlice*
+HistologySlicesFile::findHistologySliceForHistologyCoordinate(const HistologyCoordinate& histologyCoordinate) const
+{
+    if (histologyCoordinate.isHistologyMediaFileNameValid()) {
+        const AString mediaFileName(histologyCoordinate.getHistologyMediaFileName());
+        for (auto& hs : m_histologySlices) {
+            MediaFile* mf(hs->findMediaFileWithName(mediaFileName));
+            if (mf != NULL) {
+                return hs.get();
+            }
+        }
+    }
+
+    return NULL;
+}
+
 
 /**
  * Find the media file in the histology slices

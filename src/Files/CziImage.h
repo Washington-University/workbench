@@ -42,7 +42,6 @@ class QImage;
 namespace caret {
     class CziImageFile;
     class CziImageLoaderMultiResolution;
-    class CziImageMaskingFile;
     class GraphicsPrimitiveV3fT2f;
     class PixelIndex;
     class RectangleTransform;
@@ -75,9 +74,9 @@ namespace caret {
         
         QRectF getFullResolutionLogicalRect() const;
         
-        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing(const CziImageMaskingFile* maskingFile) const;
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForMediaDrawing() const;
         
-        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing(const CziImageMaskingFile* maskingFile) const;
+        GraphicsPrimitiveV3fT2f* getGraphicsPrimitiveForPlaneXyzDrawing() const;
         
         bool isPixelIndexValid(const PixelIndex& pixelIndex) const;
 
@@ -128,15 +127,7 @@ namespace caret {
             Q_IMAGE
         };
         
-        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode,
-                                                         const CziImageMaskingFile* maskingFile) const;
-        
-        void setAlphaFromMaskingFile(const CziImageMaskingFile* maskingFile,
-                                     const QRectF          imageDataLogicalRect,
-                                     const int32_t         imageWidth,
-                                     const int32_t         imageHeight,
-                                     const GraphicsTextureSettings::PixelFormatType pixelFormatType,
-                                     uint8_t*              imageBytesPointer) const;
+        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum mediaDisplayCoordMode) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

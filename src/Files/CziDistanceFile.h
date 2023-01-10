@@ -1,5 +1,5 @@
-#ifndef __CZI_IMAGE_MASKING_FILE_H__
-#define __CZI_IMAGE_MASKING_FILE_H__
+#ifndef __CZI_DISTANCE_FILE_H__
+#define __CZI_DISTANCE_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -32,7 +32,7 @@ namespace caret {
     class Matrix4x4;
     class VolumeFile;
     
-    class CziImageMaskingFile : public CaretObject {
+    class CziDistanceFile : public CaretObject {
         
     public:
         enum class Status {
@@ -41,16 +41,16 @@ namespace caret {
             VALID
         };
         
-        CziImageMaskingFile(const AString& filename);
+        CziDistanceFile(const AString& filename);
         
-        virtual ~CziImageMaskingFile();
+        virtual ~CziDistanceFile();
         
-        CziImageMaskingFile(const CziImageMaskingFile& obj) = delete;
+        CziDistanceFile(const CziDistanceFile& obj) = delete;
 
-        CziImageMaskingFile& operator=(const CziImageMaskingFile& obj) = delete;
+        CziDistanceFile& operator=(const CziDistanceFile& obj) = delete;
 
-        float getMaskingValue(const Vector3D& planeXYZ,
-                              const float defaultValue) const;
+        bool getDistanceValue(const Vector3D& planeXYZ,
+                              float& distanceValueOut) const;
         
         Status getStatus() const;
         
@@ -61,7 +61,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void copyHelperCziImageMaskingFile(const CziImageMaskingFile& obj);
+        void copyHelperCziDistanceFile(const CziDistanceFile& obj);
 
         void load(const AString& filename) const;
         
@@ -84,9 +84,9 @@ namespace caret {
 
     };
     
-#ifdef __CZI_IMAGE_MASKING_FILE_H_DECLARE__
+#ifdef __CZI_DISTANCE_FILE_H_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CZI_IMAGE_MASKING_FILE_H_DECLARE__
+#endif // __CZI_DISTANCE_FILE_H_DECLARE__
 
 } // namespace
-#endif  //__CZI_IMAGE_MASKING_FILE_H__
+#endif  //__CZI_DISTANCE_FILE_H__

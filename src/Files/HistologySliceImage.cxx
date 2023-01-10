@@ -25,9 +25,11 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CziDistanceFile.h"
 #include "CziImageFile.h"
 #include "DataFileException.h"
 #include "EventManager.h"
+#include "HistologyCoordinate.h"
 #include "ImageFile.h"
 #include "MediaFile.h"
 #include "SceneClass.h"
@@ -171,7 +173,7 @@ HistologySliceImage::getMediaFilePrivate() const
     switch (dataFileType) {
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             try {
-                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile(m_distanceFileName));
+                std::unique_ptr<CziImageFile> cziImageFile(new CziImageFile());
                 cziImageFile->readFile(m_mediaFileName);
                 m_mediaFile.reset(cziImageFile.release());
             }
@@ -356,3 +358,47 @@ HistologySliceImage::restoreFromScene(const SceneAttributes* sceneAttributes,
     
 }
 
+/**
+ * Get the distance info for the given histology coordinate
+ * @param histologyCoordinate
+ *    The histology coordinate
+ * @param depthInfoOut
+ *    Output containing depth info
+ */
+void
+HistologySliceImage::getDistanceInfo(const HistologyCoordinate& histologyCoordinate,
+                                     AString& depthInfoOut) const
+{
+    const MediaFile* mediaFile(getMediaFile());
+    if (mediaFile == NULL) {
+        return;
+    }
+    
+    Vector3D stereoXYZ;
+    bool stereoValidFlag(false);
+    if (histologyCoordinate.isStereotaxicNoNonLinearXYZValid()) {
+        stereoXYZ = histologyCoordinate.getStereotaxicNoNonLinearXYZ();
+        stereoValidFlag = true;
+    }
+    else if (histologyCoordinate.isStereotaxicXYZValid()) {
+        stereoXYZ = histologyCoordinate.getStereotaxicXYZ();
+        stereoValidFlag = true;
+    }
+    
+    if (stereoValidFlag) {
+        Vector3D planeXYZ;
+        if (stereotaxicXyzToPlaneXyz(stereoXYZ, planeXYZ)) {
+            if ( ! m_distanceFile) {
+                m_distanceFile.reset(new CziDistanceFile(m_distanceFileName));
+            }
+            
+            float distanceValue(0.0);
+            if (m_distanceFile->getDistanceValue(planeXYZ,
+                                                 distanceValue)) {
+                depthInfoOut.appendWithNewLine("Distance="
+                                               + AString::number(distanceValue)
+                                               + mediaFile->getFileName());
+            }
+        }
+    }
+}

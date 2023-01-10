@@ -75,11 +75,11 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
+CziDistanceFile.h
 CziImage.h
 CziImageFile.h
 CziImageLoaderBase.h
 CziImageLoaderMultiResolution.h
-CziImageMaskingFile.h
 CziImageResolutionChangeModeEnum.h
 CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
@@ -240,11 +240,11 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
+CziDistanceFile.cxx
 CziImage.cxx
 CziImageFile.cxx
 CziImageLoaderBase.cxx
 CziImageLoaderMultiResolution.cxx
-CziImageMaskingFile.cxx
 CziImageResolutionChangeModeEnum.cxx
 CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx

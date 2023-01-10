@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __CZI_IMAGE_MASKING_FILE_H_DECLARE__
-#include "CziImageMaskingFile.h"
-#undef __CZI_IMAGE_MASKING_FILE_H_DECLARE__
+#define __CZI_DISTANCE_FILE_H_DECLARE__
+#include "CziDistanceFile.h"
+#undef __CZI_DISTANCE_FILE_H_DECLARE__
 
 
 #include "CaretAssert.h"
@@ -34,8 +34,8 @@
 using namespace caret;
 
 /**
- * \class caret::CziImageMaskingFile
- * \brief Loads and uses a NIFTI file containing masking data for image
+ * \class caret::CziDistanceFile
+ * \brief Loads and uses a NIFTI file containing distance data for image
  * \ingroup Files
  */
 
@@ -44,7 +44,7 @@ using namespace caret;
  * @param filename
  *    Name of file
  */
-CziImageMaskingFile::CziImageMaskingFile(const AString& filename)
+CziDistanceFile::CziDistanceFile(const AString& filename)
 : CaretObject(),
 m_filename(filename)
 {
@@ -54,15 +54,15 @@ m_filename(filename)
 /**
  * Destructor.
  */
-CziImageMaskingFile::~CziImageMaskingFile()
+CziDistanceFile::~CziDistanceFile()
 {
 }
 
 /**
  * @return Status of the transform
  */
-CziImageMaskingFile::Status
-CziImageMaskingFile::getStatus() const
+CziDistanceFile::Status
+CziDistanceFile::getStatus() const
 {
     return m_status;
 }
@@ -71,7 +71,7 @@ CziImageMaskingFile::getStatus() const
  * @return Name of file used by this non-linear transform
  */
 AString
-CziImageMaskingFile::getFilename() const
+CziDistanceFile::getFilename() const
 {
     return m_filename;
 }
@@ -82,7 +82,7 @@ CziImageMaskingFile::getFilename() const
  *    Name of NIFTI file
  */
 void
-CziImageMaskingFile::load(const AString& filename) const
+CziDistanceFile::load(const AString& filename) const
 {
     switch (m_status) {
         case Status::INVALID:
@@ -112,9 +112,6 @@ CziImageMaskingFile::load(const AString& filename) const
             throw DataFileException("4th dimension should be 1 but is "
                                     + AString::number(dims[3]));
         }
-//        m_dimensionX   = dims[0];
-//        m_dimensionY   = dims[1];
-//        m_numberOfMaps = dims[3];
         
         std::vector<std::vector<float>> sform(m_niftiFile->getSform());
         m_sformMatrix.reset(new Matrix4x4(sform));
@@ -129,6 +126,19 @@ CziImageMaskingFile::load(const AString& filename) const
         }
 
         m_status = Status::VALID;
+        
+        std::cout << getFilename() << std::endl;
+        std::cout << "   Distance File W=" << dims[0] << ", H=" << dims[1] << std::endl;
+        
+        
+        Vector3D planeTopLeft(0.0, 0.0, 0.0);
+        m_sformMatrix->multiplyPoint3(planeTopLeft);
+        std::cout << "   Plane top left: " << planeTopLeft.toString(5) << std::endl;
+        
+        Vector3D planeBottomRight(dims[0], dims[1], 0.0);
+        m_sformMatrix->multiplyPoint3(planeBottomRight);
+        std::cout << "   Plane bottom right: " << planeBottomRight.toString(5) << std::endl;
+        
     }
     catch (const DataFileException& dfe) {
         CaretLogWarning("Failed to read "
@@ -141,17 +151,17 @@ CziImageMaskingFile::load(const AString& filename) const
 }
 
 /**
- * @return The masking value for the given plane coordinate
  * @param planeXYZ
  *    The plane coordinate
- * @param defaultValue
- *    Value returned if a masking value is unavailable for the given plane coordinate
+ * @param distanceValueOut
+ *    The output distance value
+ * @return True if output distance value is valid, else false.
  */
-float
-CziImageMaskingFile::getMaskingValue(const Vector3D& planeXYZ,
-                                     const float defaultValue) const
+bool
+CziDistanceFile::getDistanceValue(const Vector3D& planeXYZ,
+                                  float& distanceValueOut) const
 {
-    float maskingValue(defaultValue);
+    distanceValueOut = 0.0;
     
     if (m_status == Status::UNREAD) {
         load(m_filename);
@@ -162,7 +172,6 @@ CziImageMaskingFile::getMaskingValue(const Vector3D& planeXYZ,
         m_inverseSformMatrix->multiplyPoint3(indexIJK);
         const int64_t niftiI(static_cast<int64_t>(indexIJK[0]));
         const int64_t niftiJ(static_cast<int64_t>(indexIJK[1]));
-//        const int64_t indexK(static_cast<int64_t>(indexIJK[2]));
         if (m_debugFlag) {
             std::cout << "TO millimeters Index: " << niftiI << ", " << niftiJ << std::endl;
         }
@@ -172,20 +181,12 @@ CziImageMaskingFile::getMaskingValue(const Vector3D& planeXYZ,
             /*
              * Use pixel index to obtain non-linearity from NIFTI data
              */
-            maskingValue = m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
-        }
-        else {
-            CaretLogWarning("("
-                            + AString::number(niftiI)
-                            + ", "
-                            + AString::number(niftiJ)
-                            + ", "
-                            + AString::number(niftiK)
-                            + ") is not a valid NIFTI index");
+            distanceValueOut = m_niftiFile->getValue(niftiI, niftiJ, niftiK, 0);
+            return true;
         }
     }
     
-    return maskingValue;
+    return false;
 }
 
 
@@ -194,8 +195,8 @@ CziImageMaskingFile::getMaskingValue(const Vector3D& planeXYZ,
  * @return String describing this object's content.
  */
 AString 
-CziImageMaskingFile::toString() const
+CziDistanceFile::toString() const
 {
-    return "CziImageMaskingFile";
+    return "CziDistanceFile";
 }
 

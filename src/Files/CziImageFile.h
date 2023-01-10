@@ -53,7 +53,6 @@ namespace caret {
     class CziImage;
     class CziImageLoaderBase;
     class CziImageLoaderMultiResolution;
-    class CziImageMaskingFile;
     class GraphicsObjectToWindowTransform;
     class Matrix4x4;
     class RectangleTransform;
@@ -61,11 +60,8 @@ namespace caret {
     
     class CziImageFile : public MediaFile, public EventListenerInterface {
         
-        class DistanceFileInfo {
-            
-        };
     public:        
-        CziImageFile(const AString& maskingFileName);
+        CziImageFile();
         
         virtual ~CziImageFile();
         
@@ -352,8 +348,6 @@ namespace caret {
             Q_IMAGE
         };
         
-        const AString m_maskingFileName;
-        
         PixelCoordinate getPixelSizeInMillimeters() const;
         
         CziImage* getImageForTabOverlay(const int32_t tabIndex,
@@ -442,8 +436,6 @@ namespace caret {
         CziSceneInfo m_allFramesPyramidInfo;
         
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;
-        
-        std::unique_ptr<CziImageMaskingFile> m_maskingFile;
         
         float m_pixelSizeMmX = 1.0f;
         

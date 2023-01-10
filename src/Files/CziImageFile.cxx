@@ -37,7 +37,6 @@
 #include "CaretPreferences.h"
 #include "CziImage.h"
 #include "CziImageLoaderMultiResolution.h"
-#include "CziImageMaskingFile.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -73,12 +72,9 @@ static bool cziDebugFlag(false);
 
 /**
  * Constructor.
- * @param maskingFileName
- *    Name of masking file
  */
-CziImageFile::CziImageFile(const AString& maskingFileName)
-: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE),
-m_maskingFileName(maskingFileName)
+CziImageFile::CziImageFile()
+: MediaFile(DataFileTypeEnum::CZI_IMAGE_FILE)
 {
     for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
         for (int32_t iOverlay = 0; iOverlay < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; iOverlay++) {
@@ -95,10 +91,6 @@ m_maskingFileName(maskingFileName)
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_RESET_VIEW);
-    
-    if ( ! m_maskingFileName.isEmpty()) {
-        m_maskingFile.reset(new CziImageMaskingFile(m_maskingFileName));
-    }
 }
 
 /**
@@ -1933,7 +1925,7 @@ CziImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
         return NULL;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing(m_maskingFile.get()));
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForMediaDrawing());
     return primitive;
 }
 
@@ -1954,7 +1946,7 @@ CziImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
         return NULL;
     }
     
-    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForPlaneXyzDrawing(m_maskingFile.get()));
+    GraphicsPrimitiveV3fT2f* primitive(cziImage->getGraphicsPrimitiveForPlaneXyzDrawing());
     return primitive;
 }
 

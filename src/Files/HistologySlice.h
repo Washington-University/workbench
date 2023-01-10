@@ -29,6 +29,7 @@
 #include "BoundingBox.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "HistologyCoordinate.h"
 #include "Matrix4x4.h"
 #include "Plane.h"
 #include "SceneableInterface.h"
@@ -74,10 +75,6 @@ namespace caret {
 
         float getMillimetersToPlaneFactor() const;
         
-//        Matrix4x4 getPlaneToMillimetersMatrix() const;
-        
-//        bool isPlaneToMillimetersMatrixValid() const;
-
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         
         virtual BoundingBox getPlaneXyzBoundingBox() const;
@@ -109,6 +106,12 @@ namespace caret {
         const Plane& getStereotaxicPlane() const;
         
         const Plane& getPlaneXyzPlane() const;
+        
+        void getIdentificationText(const int32_t tabIndex,
+                                   const HistologyCoordinate& histologyCoordinate,
+                                   std::vector<AString>& columnOneTextOut,
+                                   std::vector<AString>& columnTwoTextOut,
+                                   std::vector<AString>& toolTipTextOut) const;
         
         virtual std::vector<AString> getChildDataFilePathNames() const;
         
@@ -144,6 +147,8 @@ namespace caret {
     private:
         void copyHelperHistologySlice(const HistologySlice& obj);
 
+        void idDevelopment(const HistologyCoordinate& histologyCoordinate) const;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::shared_ptr<CziNonLinearTransform> m_toStereotaxicNonLinearTransform;
@@ -169,10 +174,6 @@ namespace caret {
         mutable BoundingBox m_planeXyzBoundingBox;
         
         mutable bool m_planeXyzBoundingBoxValidFlag = false;
-        
-//        Matrix4x4 m_millimetersToPlaneMatrix;
-//
-//        bool m_millimetersToPlaneMatrixValidFlag = false;
         
         std::vector<std::unique_ptr<HistologySliceImage>> m_histologySliceImages;
 

@@ -359,10 +359,7 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             caretDataFile = new CiftiScalarDataSeriesFile();
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
-        {
-            const AString& distanceFileName("");
-            caretDataFile = new CziImageFile(distanceFileName);
-        }
+            caretDataFile = new CziImageFile();
             break;
         case DataFileTypeEnum::FOCI:
             caretDataFile = new FociFile();

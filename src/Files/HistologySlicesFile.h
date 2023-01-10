@@ -112,6 +112,8 @@ namespace caret {
 
         float getSliceSpacing() const;
         
+        HistologySlice* findHistologySliceForHistologyCoordinate(const HistologyCoordinate& histologyCoordinate) const;
+        
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                           SceneClass* sceneClass) override;
@@ -161,7 +163,7 @@ namespace caret {
     };
     
 #ifdef __HISTOLOGY_SLICES_FILE_DECLARE__
-    bool HistologySlicesFile::s_overlapTestingEnabled = false;
+    bool HistologySlicesFile::s_overlapTestingEnabled = true;
 #endif // __HISTOLOGY_SLICES_FILE_DECLARE__
 
 } // namespace

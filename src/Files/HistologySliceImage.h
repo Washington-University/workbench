@@ -33,7 +33,9 @@
 
 
 namespace caret {
+    class CziDistanceFile;
     class CziNonLinearTransform;
+    class HistologyCoordinate;
     class MediaFile;
     class SceneClassAssistant;
 
@@ -56,9 +58,6 @@ namespace caret {
         
         const MediaFile* getMediaFile() const;
         
-//        virtual bool planeXyzToStereotaxicXyz(const Vector3D& planeXyz,
-//                                              Vector3D& stereotaxicXyzOut) const;
-        
         virtual bool stereotaxicXyzToPlaneXyz(const Vector3D& stereotaxicXyz,
                                               Vector3D& planeXyzOut) const;
         
@@ -71,6 +70,9 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        void getDistanceInfo(const HistologyCoordinate& histologyCoordinate,
+                             AString& depthInfoOut) const;
+        
         virtual AString toString() const;
         
         virtual void receiveEvent(Event* event);
@@ -125,6 +127,8 @@ namespace caret {
         
         mutable bool m_attemptedToReadMediaFileFlag = false;
 
+        mutable std::unique_ptr<CziDistanceFile> m_distanceFile;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -26,11 +26,14 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventManager.h"
 #include "HistologySliceImage.h"
 #include "CziNonLinearTransform.h"
 #include "DataFileContentInformation.h"
 #include "GraphicsRegionSelectionBox.h"
+#include "HistologyCoordinate.h"
+#include "HistologySlicesFile.h"
 #include "MediaFile.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -544,6 +547,87 @@ HistologySlice::findMediaFileWithName(const AString& mediaFileName) const
     }
     
     return NULL;
+}
+
+/**
+ * Get the identification text for the given histology coordinate.
+ * @param tabIndex
+ *    Index of the tab in which identification took place
+ * @param histologyCoordinate
+ *    The histology coordinate
+ * @param columnOneTextOut
+ *    Text for column one that is displayed to user.
+ * @param columnTwoTextOut
+ *    Text for column two that is displayed to user.
+ * @param toolTipTextOut
+ *    Text for tooltip
+ */
+void
+HistologySlice::getIdentificationText(const int32_t tabIndex,
+                                      const HistologyCoordinate& histologyCoordinate,
+                                      std::vector<AString>& columnOneTextOut,
+                                      std::vector<AString>& columnTwoTextOut,
+                                      std::vector<AString>& toolTipTextOut) const
+{
+    std::vector<AString> columnOneText, columnTwoText, toolTipText;
+
+    std::vector<int32_t> frameIndicesVector { 0 };
+    const MediaFile* mediaFile(findMediaFileWithName(histologyCoordinate.getHistologyMediaFileName()));
+    if (mediaFile != NULL) {
+        mediaFile->getPixelPlaneIdentificationTextForHistology(tabIndex,
+                                                               frameIndicesVector,
+                                                               histologyCoordinate.getPlaneXYZ(),
+                                                               columnOneText,
+                                                               columnTwoText,
+                                                               toolTipText);
+    }
+    else {
+        CaretLogWarning("Unable to find media file with name "
+                        + histologyCoordinate.getHistologyMediaFileName()
+                        + " for generating identification text");
+    }
+
+    const int32_t numColOne(columnOneText.size());
+    const int32_t numColTwo(columnTwoText.size());
+    const int32_t maxNum(std::max(numColOne, numColTwo));
+    for (int32_t i = 0; i < maxNum; i++) {
+        AString colOne;
+        AString colTwo;
+        if (i < numColOne) {
+            CaretAssertVectorIndex(columnOneText, i);
+            colOne = columnOneText[i];
+        }
+        if (i < numColTwo) {
+            CaretAssertVectorIndex(columnTwoText, i);
+            colTwo = columnTwoText[i];
+        }
+        columnOneTextOut.push_back(colOne);
+        columnTwoTextOut.push_back(colTwo);
+    }
+    
+    toolTipTextOut = toolTipText;
+    
+    if (HistologySlicesFile::isOverlapTestingEnabled()) {
+        idDevelopment(histologyCoordinate);
+    }
+}
+
+void
+HistologySlice::idDevelopment(const HistologyCoordinate& histologyCoordinate) const
+{
+    bool firstFlag(true);
+    for (const auto& hsi : m_histologySliceImages) {
+        AString distanceInfo;
+        hsi->getDistanceInfo(histologyCoordinate,
+                             distanceInfo);
+        if ( ! distanceInfo.isEmpty()) {
+            if (firstFlag) {
+                firstFlag = false;
+                std::cout << std::endl;
+            }
+            std::cout << distanceInfo << std::endl << std::flush;
+        }
+    }
 }
 
 /**

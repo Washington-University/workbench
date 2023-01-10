@@ -28,6 +28,7 @@
 #include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QWhatsThis>
 
 #include "Brain.h"
 #include "BrowserTabContent.h"
@@ -187,7 +188,7 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked);
     
     m_overlapCheckBox = new QCheckBox("Overlap");
-    m_overlapCheckBox->setEnabled(false);
+    //m_overlapCheckBox->setEnabled(false);
     QObject::connect(m_overlapCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked);
     

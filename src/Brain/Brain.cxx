@@ -2090,8 +2090,7 @@ Brain::addReadOrReloadCziImageFile(const FileModeAddReadReload fileMode,
         CaretAssert(cziImageFile);
     }
     else {
-        const AString& distanceFileName("");
-        cziImageFile = new CziImageFile(distanceFileName);
+        cziImageFile = new CziImageFile();
     }
     
     bool addFlag  = false;
