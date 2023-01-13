@@ -29,6 +29,7 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "DataFileContentInformation.h"
+#include "ElapsedTimer.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -603,6 +604,8 @@ HistologySlicesFile::readFile(const AString& filename)
         }
         addFileWarningsForMissingChildFiles();
         
+        createOverlapMaskingTextures();
+        
         clearModified();
     }
     catch (const DataFileException& dfe) {
@@ -836,4 +839,39 @@ HistologySlicesFile::setOverlapTestingEnabled(const bool enabled)
 {
     s_overlapTestingEnabled = enabled;
 }
+
+/**
+ * Create the overlapping masking textures
+ */
+void
+HistologySlicesFile::createOverlapMaskingTextures()
+{
+    ElapsedTimer timer;
+    timer.start();
+    
+    AString allMessages;
+    const int32_t numSlices(getNumberOfHistologySlices());
+    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
+        HistologySlice* slice(getHistologySliceByIndex(iSlice));
+        CaretAssert(slice);
+        AString msg;
+        if ( ! slice->createOverlapMaskingTextures(msg)) {
+            allMessages.appendWithNewLine("Slice number "
+                                          + AString::number(slice->getSliceNumber())
+                                          + " has error creating overlap masks: "
+                                          + msg);
+        }
+    }
+    
+    if ( ! allMessages.isEmpty()) {
+        CaretLogWarning(getFileName() + "\n"
+                        + allMessages);
+    }
+    
+    CaretLogInfo(getFileName()
+                 + " time to create overlap masking textures "
+                 + AString::number(timer.getElapsedTimeSeconds())
+                 + " seconds.");
+}
+
 

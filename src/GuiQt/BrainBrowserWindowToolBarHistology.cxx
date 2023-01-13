@@ -188,7 +188,6 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked);
     
     m_overlapCheckBox = new QCheckBox("Overlap");
-    //m_overlapCheckBox->setEnabled(false);
     QObject::connect(m_overlapCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked);
     

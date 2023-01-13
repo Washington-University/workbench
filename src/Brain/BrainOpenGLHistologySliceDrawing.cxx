@@ -442,16 +442,11 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
              * region where the image is drawn to prevent overlapping of
              * other images.
              */
-            if (drawingData.m_histologySlice != NULL) {
-                AString textureErrorMessage;
-                if ( ! drawingData.m_histologySlice->createOverlapMaskingTextures(textureErrorMessage)) {
-                    CaretLogWarning("HISTOLOGY MASK ERROR: "
-                                    + textureErrorMessage);
-                }
-            }
             GraphicsPrimitiveV3fT2f* stencilMaskingPrimitive(NULL);
-            if (drawingData.m_histologySliceImage != NULL) {
-                stencilMaskingPrimitive = drawingData.m_histologySliceImage->getStencilMaskingImagePrimitive();
+            if (HistologySlicesFile::isOverlapTestingEnabled()) {
+                if (drawingData.m_histologySliceImage != NULL) {
+                    stencilMaskingPrimitive = drawingData.m_histologySliceImage->getStencilMaskingImagePrimitive();
+                }
             }
 
             glPushMatrix();

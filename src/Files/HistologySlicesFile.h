@@ -114,6 +114,8 @@ namespace caret {
         
         HistologySlice* findHistologySliceForHistologyCoordinate(const HistologyCoordinate& histologyCoordinate) const;
         
+        void createOverlapMaskingTextures();
+        
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                           SceneClass* sceneClass) override;
