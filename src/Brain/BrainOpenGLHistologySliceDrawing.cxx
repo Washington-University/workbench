@@ -51,6 +51,7 @@
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "HistologySlicesFile.h"
+#include "HistologySliceImage.h"
 #include "ImageFile.h"
 #include "ModelHistology.h"
 #include "HistologyOverlaySet.h"
@@ -61,8 +62,6 @@
 
 using namespace caret;
 
-const bool debugFlag(false);
-    
 /**
  * \class caret::BrainOpenGLHistologySliceDrawing
  * \brief Draw histology slice data
@@ -276,7 +275,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     if ( ! getOrthoBounds(orthoLeft, orthoRight, orthoBottom, orthoTop)) {
         return;
     }
-    if (debugFlag) {
+    if (s_debugFlag) {
         std::cout << "Ortho L=" << orthoLeft << ", R=" << orthoRight
         << ", B=" << orthoBottom << ", T=" << orthoTop << std::endl;
     }
@@ -437,12 +436,118 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
         GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(drawingData.m_tabIndex,
                                                                                              drawingData.m_overlayIndex));
         if (primitive != NULL) {
+            
+            /*
+             * Get stencil masking image.  It contains a mask that limits the
+             * region where the image is drawn to prevent overlapping of
+             * other images.
+             */
+            if (drawingData.m_histologySlice != NULL) {
+                AString textureErrorMessage;
+                if ( ! drawingData.m_histologySlice->createOverlapMaskingTextures(textureErrorMessage)) {
+                    CaretLogWarning("HISTOLOGY MASK ERROR: "
+                                    + textureErrorMessage);
+                }
+            }
+            GraphicsPrimitiveV3fT2f* stencilMaskingPrimitive(NULL);
+            if (drawingData.m_histologySliceImage != NULL) {
+                stencilMaskingPrimitive = drawingData.m_histologySliceImage->getStencilMaskingImagePrimitive();
+            }
 
             glPushMatrix();
             
+            glPushAttrib(GL_COLOR_BUFFER_BIT
+                         | GL_STENCIL_BUFFER_BIT);
+            
+            if (stencilMaskingPrimitive != NULL) {
+                /*
+                 * For debugging
+                 * AString errorMessage;
+                 * stencilMaskingPrimitive->exportTextureToImageFile("DrawingStencil.png", errorMessage);
+                 */
+                
+                /*
+                 * Enable the stencil buffer
+                 */
+                glEnable(GL_STENCIL_TEST);
+                
+                /*
+                 * Enable drawing INTO the stencil buffer.
+                 * Stencil buffer will receive 'stencilValue' for pixels
+                 * drawn by the mask
+                 */
+                const GLint stencilValue(1);
+                const GLuint enableStencilBufferUpdateMask(0xff);
+                glStencilFunc(GL_ALWAYS, stencilValue, enableStencilBufferUpdateMask);
+                glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+                glStencilMask(enableStencilBufferUpdateMask);
+                
+                /*
+                 * Disable updates to the color buffer
+                 */
+                glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+                
+                /*
+                 * Clear the stencil buffer
+                 */
+                glClearStencil(0x00);
+                glClear(GL_STENCIL_BUFFER_BIT);
+                
+                /*
+                 * Use alpha test so that only texels with non-zero
+                 * alpha values are placed into the stencil buffer.
+                 * Using the alpha test IS ABSOLUTELY NECESSARY !!!
+                 */
+                glPushAttrib(GL_COLOR_BUFFER_BIT);
+                glAlphaFunc(GL_NOTEQUAL, 0.0);
+                glEnable(GL_ALPHA_TEST);
+                
+                /*
+                 * Draw the stencil masking primitive to update
+                 * the stencil buffer.
+                 */
+                GraphicsEngineDataOpenGL::draw(stencilMaskingPrimitive);
+                
+                /*
+                 * Restore changes that were made for alpha test
+                 */
+                glPopAttrib();
+
+                /*
+                 * Re-enable updates to color buffer components
+                 */
+                glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+                
+                /*
+                 * Only allow drawing image data where the stencil buffer
+                 * contains 'stencilValue'
+                 */
+                glStencilFunc(GL_EQUAL, stencilValue, enableStencilBufferUpdateMask);
+                
+                /*
+                 * GL_KEEP prevents changes to the stencil buffer
+                 * as we don't want the image data to change the
+                 * stencil buffer
+                 */
+                glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+                
+                /*
+                 * Using a stencil mask of 0 should also prevent
+                 * image data from updating the stencil buffer
+                 * Probably do not need both this and GL_KEEP.
+                 */
+                const GLuint disableStencilBufferUpdateMask(0x00);
+                glStencilMask(disableStencilBufferUpdateMask);
+                
+                /*
+                 * This code may read the content of the stencil buffer if
+                 * needed for debugging.
+                 * GLuint mypixels[width*height];
+                 * glReadPixels(0, 0, width, height, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, mypixels);
+                 */
+            }
             CaretAssert(primitive->isValid());
             
-            glPushAttrib(GL_COLOR_BUFFER_BIT);
             if ( ! selectImageFlag) {
                 /*
                  * Allow blending.  Images may have a border color with alpha of zero
@@ -458,6 +563,10 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
             primitive->setTextureMagnificationFilter(s_textureMagnificationFilter);
             
             GraphicsEngineDataOpenGL::draw(primitive);
+            
+            /*
+             * Color and stencil
+             */
             glPopAttrib();
             
             if (selectImageFlag) {
@@ -580,6 +689,15 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
             
             const float mouseX(this->m_fixedPipelineDrawing->mouseX);
             const float mouseY(this->m_fixedPipelineDrawing->mouseY);
+            
+            if (s_debugFlag) {
+                int32_t stencilData[100];
+                glReadPixels(this->m_fixedPipelineDrawing->mouseX,
+                             this->m_fixedPipelineDrawing->mouseY,
+                             1, 1,
+                             GL_STENCIL_INDEX, GL_INT, static_cast<GLvoid*>(stencilData));
+                std::cout << "Stencil: " << stencilData[0] << std::endl;
+            }
             
             /*
              * The window Z-coordinate is the value in the depth buffer.
@@ -709,7 +827,7 @@ BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& ort
     
     const Vector3D centerXYZ(histologyCoordinate.getPlaneXYZ());
     const float z(0.0);
-    if (debugFlag) {
+    if (s_debugFlag) {
         std::cout << "Selected histology plane: " << AString::fromNumbers(histologyCoordinate.getPlaneXYZ()) << std::endl;
         std::cout << "             stereotaxic: " << AString::fromNumbers(histologyCoordinate.getStereotaxicXYZ()) << std::endl;
     }

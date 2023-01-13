@@ -29,6 +29,7 @@
 #include "CaretLogger.h"
 #include "EventManager.h"
 #include "HistologySliceImage.h"
+#include "CziDistanceFile.h"
 #include "CziNonLinearTransform.h"
 #include "DataFileContentInformation.h"
 #include "GraphicsRegionSelectionBox.h"
@@ -550,6 +551,28 @@ HistologySlice::findMediaFileWithName(const AString& mediaFileName) const
 }
 
 /**
+ * @return Index of media file in the images for this slice
+ * @param mediaFileName
+ *    Name of the media file
+ */
+int32_t
+HistologySlice::getIndexOfMediaFileWithName(const AString& mediaFileName) const
+{
+    const int numImages(m_histologySliceImages.size());
+    for (int32_t i = 0; i < numImages; i++) {
+        CaretAssertVectorIndex(m_histologySliceImages, i);
+        CaretAssert(m_histologySliceImages[i]);
+        const MediaFile* mf(m_histologySliceImages[i]->getMediaFile());
+        if (mf != NULL) {
+            if (mf->getFileName() == mediaFileName) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
+/**
  * Get the identification text for the given histology coordinate.
  * @param tabIndex
  *    Index of the tab in which identification took place
@@ -607,7 +630,7 @@ HistologySlice::getIdentificationText(const int32_t tabIndex,
     
     toolTipTextOut = toolTipText;
     
-    if (HistologySlicesFile::isOverlapTestingEnabled()) {
+    if (s_debugFlag) {
         idDevelopment(histologyCoordinate);
     }
 }
@@ -629,6 +652,58 @@ HistologySlice::idDevelopment(const HistologyCoordinate& histologyCoordinate) co
         }
     }
 }
+
+/**
+ * Create the texture images for making overlap
+ * @param errorMessageOut
+ *    Contains error information if failure to create masking textures
+ * @return
+ *    True if successful, else false.
+ */
+bool
+HistologySlice::createOverlapMaskingTextures(AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if (m_maskingTexturesCreatedFlag) {
+        return true;
+    }
+    m_maskingTexturesCreatedFlag = true;
+    
+    std::vector<const CziDistanceFile*> distanceFiles;
+    
+    const int32_t numSliceImages(m_histologySliceImages.size());
+    for (int32_t iImage = 0; iImage < numSliceImages; iImage++) {
+        CaretAssertVectorIndex(m_histologySliceImages, iImage);
+        CaretAssert(m_histologySliceImages[iImage]);
+        const CziDistanceFile* df(m_histologySliceImages[iImage]->getDistanceFile());
+        if (df != NULL) {
+            distanceFiles.push_back(df);
+        }
+    }
+    
+    if (distanceFiles.size() != m_histologySliceImages.size()) {
+        errorMessageOut = "Not all images in slice have distance files";
+        return false;
+    }
+
+    std::vector<GraphicsPrimitiveV3fT2f*> primitives;
+    const bool resultFlag(CziDistanceFile::createMaskingPrimitives(distanceFiles,
+                                                                   primitives,
+                                                                   errorMessageOut));
+    if (resultFlag) {
+        if (primitives.size() == m_histologySliceImages.size()) {
+            for (int32_t iImage = 0; iImage < numSliceImages; iImage++) {
+                CaretAssertVectorIndex(m_histologySliceImages, iImage);
+                CaretAssert(m_histologySliceImages[iImage]);
+                CaretAssertVectorIndex(primitives, iImage);
+                m_histologySliceImages[iImage]->setStencilMaskingImagePrimitive(primitives[iImage]);
+            }
+        }
+    }
+    return resultFlag;
+}
+
 
 /**
  * Get a description of this object's content.

@@ -62,6 +62,9 @@ namespace caret {
 
         virtual GraphicsPrimitive* clone() const;
         
+        bool exportTextureToImageFile(const AString& imageFileName,
+                                      AString& errorMessageOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

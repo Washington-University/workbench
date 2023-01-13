@@ -29,6 +29,7 @@
 #include "Vector3D.h"
 
 namespace caret {
+    class GraphicsPrimitiveV3fT2f;
     class Matrix4x4;
     class VolumeFile;
     
@@ -41,6 +42,10 @@ namespace caret {
             VALID
         };
         
+        static bool createMaskingPrimitives(const std::vector<const CziDistanceFile*>& distanceFiles,
+                                            std::vector<GraphicsPrimitiveV3fT2f*>& maskingPrimitivesOut,
+                                            AString& errorMessageOut);
+        
         CziDistanceFile(const AString& filename);
         
         virtual ~CziDistanceFile();
@@ -49,12 +54,19 @@ namespace caret {
 
         CziDistanceFile& operator=(const CziDistanceFile& obj) = delete;
 
+        bool match(const CziDistanceFile& rhs,
+                   AString& errorMessageOut) const;
+        
+        const float* getDataPointer(int64_t& dataLengthOut) const;
+        
         bool getDistanceValue(const Vector3D& planeXYZ,
                               float& distanceValueOut) const;
         
         Status getStatus() const;
         
         AString getFilename() const;
+        
+        void load() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -63,14 +75,12 @@ namespace caret {
     private:
         void copyHelperCziDistanceFile(const CziDistanceFile& obj);
 
-        void load(const AString& filename) const;
-        
         void getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
                                              Vector3D& offsetXyzOut);
 
         const AString m_filename;
         
-        mutable std::unique_ptr<VolumeFile> m_niftiFile;
+        mutable std::unique_ptr<VolumeFile> m_volumeFile;
         
         mutable std::unique_ptr<Matrix4x4> m_sformMatrix;
         
@@ -78,7 +88,7 @@ namespace caret {
         
         mutable Status m_status = Status::UNREAD;
                         
-        static constexpr bool m_debugFlag = false;
+        static constexpr bool s_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

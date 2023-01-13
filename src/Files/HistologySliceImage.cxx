@@ -29,6 +29,7 @@
 #include "CziImageFile.h"
 #include "DataFileException.h"
 #include "EventManager.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "HistologyCoordinate.h"
 #include "ImageFile.h"
 #include "MediaFile.h"
@@ -359,6 +360,20 @@ HistologySliceImage::restoreFromScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
+ * @return Pointer to the distance file
+ */
+const CziDistanceFile*
+HistologySliceImage::getDistanceFile() const
+{
+    if ( ! m_distanceFile) {
+        m_distanceFile.reset(new CziDistanceFile(m_distanceFileName));
+        m_distanceFile->load();
+    }
+    return m_distanceFile.get();
+}
+
+
+/**
  * Get the distance info for the given histology coordinate
  * @param histologyCoordinate
  *    The histology coordinate
@@ -388,9 +403,8 @@ HistologySliceImage::getDistanceInfo(const HistologyCoordinate& histologyCoordin
     if (stereoValidFlag) {
         Vector3D planeXYZ;
         if (stereotaxicXyzToPlaneXyz(stereoXYZ, planeXYZ)) {
-            if ( ! m_distanceFile) {
-                m_distanceFile.reset(new CziDistanceFile(m_distanceFileName));
-            }
+            const CziDistanceFile* distanceFile(getDistanceFile());
+            CaretAssert(distanceFile);
             
             float distanceValue(0.0);
             if (m_distanceFile->getDistanceValue(planeXYZ,
@@ -402,3 +416,26 @@ HistologySliceImage::getDistanceInfo(const HistologyCoordinate& histologyCoordin
         }
     }
 }
+
+/**
+ * Set the graphics primitve for use as a stencil mask to limit region of image that is drawn
+ * to prevent overlapping other images.
+ * @param primitive
+ *    The primitive
+ */
+void
+HistologySliceImage::setStencilMaskingImagePrimitive(GraphicsPrimitiveV3fT2f* primitive) const
+{
+    m_stencilMaskingImagePrimitive.reset(primitive);
+}
+
+/**
+ * @return Primitive  for use as a stencil mask to limit region of image that is drawn.
+ * May be NULL if not valid
+ */
+GraphicsPrimitiveV3fT2f*
+HistologySliceImage::getStencilMaskingImagePrimitive() const 
+{
+    return m_stencilMaskingImagePrimitive.get();
+}
+

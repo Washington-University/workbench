@@ -35,6 +35,7 @@
 namespace caret {
     class CziDistanceFile;
     class CziNonLinearTransform;
+    class GraphicsPrimitiveV3fT2f;
     class HistologyCoordinate;
     class MediaFile;
     class SceneClassAssistant;
@@ -70,8 +71,14 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
+        const CziDistanceFile* getDistanceFile() const;
+        
         void getDistanceInfo(const HistologyCoordinate& histologyCoordinate,
                              AString& depthInfoOut) const;
+        
+        void setStencilMaskingImagePrimitive(GraphicsPrimitiveV3fT2f* primitive) const;
+        
+        GraphicsPrimitiveV3fT2f* getStencilMaskingImagePrimitive() const;
         
         virtual AString toString() const;
         
@@ -128,6 +135,8 @@ namespace caret {
         mutable bool m_attemptedToReadMediaFileFlag = false;
 
         mutable std::unique_ptr<CziDistanceFile> m_distanceFile;
+        
+        mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_stencilMaskingImagePrimitive;
         
         // ADD_NEW_MEMBERS_HERE
 

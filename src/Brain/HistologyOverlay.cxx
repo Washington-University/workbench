@@ -258,6 +258,8 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
                         DrawingData dd(m_tabIndex,
                                        m_overlayIndex,
                                        selectionData.m_selectedFile,
+                                       slice,
+                                       sliceImage,
                                        mediaFile,
                                        selectedSliceIndex,
                                        m_selectedFile->getSliceNumberBySliceIndex(selectedSliceIndex),

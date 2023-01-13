@@ -96,6 +96,9 @@ namespace caret {
         
         static GraphicsTextureMagnificationFilterEnum::Enum s_textureMagnificationFilter;
         static GraphicsTextureMinificationFilterEnum::Enum  s_textureMinificationFilter;
+        
+        static constexpr bool s_debugFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

@@ -1175,7 +1175,7 @@ MediaFile::getPixelPlaneIdentificationTextForFrames(const int32_t tabIndex,
                                                 pixelLogicalIndex,
                                                 rgba);
         if (rgbaValidFlag) {
-            leftRgbaText.push_back("Scene "
+            leftRgbaText.push_back("Frame "
                                    + AString::number(frameIndex + 1));
             rightRgbaText.push_back("RGBA ("
                                     + (rgbaValidFlag
@@ -1298,7 +1298,7 @@ MediaFile::getPixelPlaneIdentificationTextForHistology(const int32_t tabIndex,
                                                 pixelLogicalIndex,
                                                 rgba);
         if (rgbaValidFlag) {
-            leftRgbaText.push_back("Scene "
+            leftRgbaText.push_back("Frame "
                                    + AString::number(frameIndex + 1));
             rightRgbaText.push_back("RGBA ("
                                     + (rgbaValidFlag

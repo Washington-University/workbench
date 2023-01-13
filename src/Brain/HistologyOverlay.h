@@ -33,7 +33,9 @@
 
 namespace caret {
     class CziImageFile;
+    class HistologySlice;
     class HistologySlicesFile;
+    class HistologySliceImage;
     class MediaFile;
     class SceneClassAssistant;
     
@@ -74,6 +76,8 @@ namespace caret {
             DrawingData(const int32_t tabIndex,
                         const int32_t overlayIndex,
                         HistologySlicesFile* selectedFile,
+                        HistologySlice* histologySlice,
+                        HistologySliceImage* histologySliceImage,
                         MediaFile* mediaFile,
                         const int32_t selectedSliceIndex,
                         const int32_t selectedSliceNumber,
@@ -83,6 +87,8 @@ namespace caret {
             m_tabIndex(tabIndex),
             m_overlayIndex(overlayIndex),
             m_selectedFile(selectedFile),
+            m_histologySlice(histologySlice),
+            m_histologySliceImage(histologySliceImage),
             m_mediaFile(mediaFile),
             m_selectedSliceIndex(selectedSliceIndex),
             m_selectedSliceNumber(selectedSliceNumber),
@@ -92,6 +98,8 @@ namespace caret {
             int32_t m_tabIndex = -1;
             int32_t m_overlayIndex = -1;
             HistologySlicesFile* m_selectedFile = NULL;
+            HistologySlice* m_histologySlice = NULL;
+            HistologySliceImage* m_histologySliceImage = NULL;
             MediaFile* m_mediaFile = NULL;
             int32_t m_selectedSliceIndex = 0;
             int32_t m_selectedSliceNumber = 0;

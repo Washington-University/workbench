@@ -23,7 +23,12 @@
 #include "GraphicsPrimitiveV3fT2f.h"
 #undef __GRAPHICS_PRIMITIVE_V3F_T2F_DECLARE__
 
+#include <QImage>
+#include <QImageWriter>
+
 #include "CaretAssert.h"
+#include "FileInformation.h"
+
 using namespace caret;
 
 
@@ -178,5 +183,70 @@ GraphicsPrimitiveV3fT2f::clone() const
 {
     GraphicsPrimitiveV3fT2f* obj = new GraphicsPrimitiveV3fT2f(*this);
     return obj;
+}
+
+/**
+ * Export the texture to an image file
+ */
+bool
+GraphicsPrimitiveV3fT2f::exportTextureToImageFile(const AString& imageFileName,
+                                                  AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    const GraphicsTextureSettings& textureSettings(getTextureSettings());
+    
+    QImage::Format qtFormat(QImage::Format_Invalid);
+    switch (textureSettings.getPixelFormatType()) {
+        case GraphicsTextureSettings::PixelFormatType::NONE:
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGR:
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRA:
+            break;
+        case GraphicsTextureSettings::PixelFormatType::BGRX:
+            break;
+        case GraphicsTextureSettings::PixelFormatType::RGB:
+            break;
+        case GraphicsTextureSettings::PixelFormatType::RGBA:
+            qtFormat = QImage::Format_RGBA8888;
+            break;
+    }
+    
+    if (qtFormat == QImage::Format_Invalid) {
+        errorMessageOut = "Invalid image format for writing to Qt.";
+    }
+    
+    const int32_t imageWidth(textureSettings.getImageWidth());
+    const int32_t imageHeight(textureSettings.getImageHeight());
+    
+    switch (textureSettings.getPixelOrigin()) {
+        case GraphicsTextureSettings::PixelOrigin::NONE:
+            break;
+        case GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT:
+            break;
+        case GraphicsTextureSettings::PixelOrigin::TOP_LEFT:
+            break;
+    }
+    
+    const uint8_t* dataPtr(textureSettings.getImageBytesPointer());
+    CaretAssert(dataPtr);
+    
+    QImage image(dataPtr,
+                 imageWidth,
+                 imageHeight,
+                 qtFormat);
+    FileInformation fileInfo(imageFileName);
+    const QString writeToFileName(fileInfo.getAbsoluteFilePath());
+    QImageWriter writer(writeToFileName);
+    if ( ! writer.write(image)) {
+        errorMessageOut = ("Error writing mask image file: "
+                           + writeToFileName
+                           + "\n"
+                           + writer.errorString());
+        return false;
+    }
+    
+    return true;
 }
 

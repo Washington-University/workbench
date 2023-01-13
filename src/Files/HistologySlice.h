@@ -73,6 +73,8 @@ namespace caret {
          
         MediaFile* findMediaFileWithName(const AString& mediaFileName) const;
 
+        int32_t getIndexOfMediaFileWithName(const AString& mediaFileName) const;
+        
         float getMillimetersToPlaneFactor() const;
         
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
@@ -114,6 +116,8 @@ namespace caret {
                                    std::vector<AString>& toolTipTextOut) const;
         
         virtual std::vector<AString> getChildDataFilePathNames() const;
+        
+        bool createOverlapMaskingTextures(AString& errorMessageOut);
         
         // ADD_NEW_METHODS_HERE
 
@@ -187,7 +191,9 @@ namespace caret {
         
         mutable float m_MillimetersToPlaneFactor = -1.0;
         
-        static constexpr bool m_debugFlag = false;
+        bool m_maskingTexturesCreatedFlag = false;
+        
+        static constexpr bool s_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

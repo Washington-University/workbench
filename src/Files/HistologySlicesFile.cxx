@@ -491,6 +491,16 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
                                          toolTipText);
     }
     
+    const AString mediaFileName(histologyCoordinate.getHistologyMediaFileName());
+    if ( ! mediaFileName.isEmpty()) {
+        columnOneText.push_back("Image "
+                                + AString::number(histSlice->getIndexOfMediaFileWithName(mediaFileName) + 1)
+                                + " of "
+                                + AString::number(histSlice->getNumberOfHistologySliceImages())
+                                + " in slice");
+        columnTwoText.push_back("");
+    }
+    
     const int32_t numColOne(columnOneText.size());
     const int32_t numColTwo(columnTwoText.size());
     const int32_t maxNum(std::max(numColOne, numColTwo));
