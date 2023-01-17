@@ -525,7 +525,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
         
         GraphicsTextureSettings textureSettings;
         
-        uint8_t* imageBytesPointer(NULL);
         switch (m_imageStorageFormat) {
             case ImageStorageFormat::INVALID:
                 CaretAssert(0);
@@ -545,7 +544,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                                                           GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                           GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                           textureBorderColorRGBA);
-                imageBytesPointer = ptrBytesRGBA;
                 break;
             case ImageStorageFormat::Q_IMAGE:
                 textureSettings = GraphicsTextureSettings(m_qimageData->constBits(),
@@ -561,7 +559,6 @@ CziImage::createGraphicsPrimitive(const MediaDisplayCoordinateModeEnum::Enum med
                                                           GraphicsTextureMagnificationFilterEnum::LINEAR,
                                                           GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
                                                           textureBorderColorRGBA);
-                imageBytesPointer = m_qimageData->bits();
                 break;
                 
         }
