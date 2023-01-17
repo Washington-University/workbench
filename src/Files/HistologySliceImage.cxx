@@ -404,14 +404,14 @@ HistologySliceImage::getDistanceInfo(const HistologyCoordinate& histologyCoordin
         Vector3D planeXYZ;
         if (stereotaxicXyzToPlaneXyz(stereoXYZ, planeXYZ)) {
             const CziDistanceFile* distanceFile(getDistanceFile());
-            CaretAssert(distanceFile);
-            
-            float distanceValue(0.0);
-            if (m_distanceFile->getDistanceValue(planeXYZ,
-                                                 distanceValue)) {
-                depthInfoOut.appendWithNewLine("Distance="
-                                               + AString::number(distanceValue)
-                                               + mediaFile->getFileName());
+            if (distanceFile != NULL) {
+                float distanceValue(0.0);
+                if (distanceFile->getDistanceValue(planeXYZ,
+                                                   distanceValue)) {
+                    depthInfoOut.appendWithNewLine("Distance="
+                                                   + AString::number(distanceValue)
+                                                   + mediaFile->getFileName());
+                }
             }
         }
     }
