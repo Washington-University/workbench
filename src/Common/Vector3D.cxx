@@ -244,7 +244,7 @@ Vector3D::toString(const int32_t precision) const
                    + AString::fromNumbers(m_vec,
                                           3,    /* number of elements */
                                           ", ", /* separator */
-                                          'g',  /* format */
+                                          'f',  /* format */
                                           precision)
                    + ")");
 
