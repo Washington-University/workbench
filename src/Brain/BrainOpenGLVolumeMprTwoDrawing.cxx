@@ -72,9 +72,6 @@
 
 using namespace caret;
 
-static bool debugFlag(false);
-static bool debug2Flag(false);
-
 /**
  * \class caret::BrainOpenGLVolumeMprTwoDrawing
  * \brief Multiplanar Reconstruction volume drawing
@@ -446,209 +443,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
 }
 
 /**
- * Draw montage slices.
- *
- * @param viewportContent
- *   Content of viewport
- * @param sliceDrawingType
- *    Type of slice drawing (montage, single)
- * @param sliceProjectionType
- *    Type of projection for the slice drawing (oblique, orthogonal)
- * @param sliceViewPlane
- *    The plane for slice drawing.
- * @param viewport
- *    The viewport (region of graphics area) for drawing slices.
- */
-void
-BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGLViewportContent* viewportContent,
-                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
-                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                               const GraphicsViewport& viewport)
-{
-    const int32_t numRows = m_browserTabContent->getVolumeMontageNumberOfRows();
-    CaretAssert(numRows > 0);
-    const int32_t numCols = m_browserTabContent->getVolumeMontageNumberOfColumns();
-    CaretAssert(numCols > 0);
-    
-    const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
-    
-    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
-    
-    const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
-    
-    int32_t vpSizeY        = 0;
-    int32_t verticalMargin = 0;
-    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport.getHeight(),
-                                                           gapsAndMargins->getVolumeMontageVerticalGapForWindow(windowIndex),
-                                                           -1,
-                                                           numRows,
-                                                           vpSizeY,
-                                                           verticalMargin);
-    
-    int32_t vpSizeX          = 0;
-    int32_t horizontalMargin = 0;
-    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport.getWidth(),
-                                                           gapsAndMargins->getVolumeMontageHorizontalGapForWindow(windowIndex),
-                                                           -1,
-                                                           numCols,
-                                                           vpSizeX,
-                                                           horizontalMargin);
-    
-    /*
-     * Voxel sizes for underlay volume
-     */
-    float originX, originY, originZ;
-    float x1, y1, z1;
-    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
-    const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
-    CaretAssert(underlayVolume);
-    underlayVolume->indexToSpace(0, 0, 0, originX, originY, originZ);
-    underlayVolume->indexToSpace(1, 1, 1, x1, y1, z1);
-    float sliceThickness = 0.0;
-    float sliceOrigin    = 0.0;
-    
-    AString axisLetter = "";
-    
-    Vector3D sliceCoordinates {
-        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
-        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
-        m_browserTabContent->getVolumeSliceCoordinateAxial()
-    };
-    
-    int32_t sliceIndex = -1;
-    int32_t maximumSliceIndex = -1;
-    int64_t dimI, dimJ, dimK, numMaps, numComponents;
-    underlayVolume->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-    const int32_t sliceStep = m_browserTabContent->getVolumeMontageSliceSpacing();
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            sliceIndex = -1;
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceIndex = m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume);
-            maximumSliceIndex = dimK;
-            sliceThickness = z1 - originZ;
-            sliceOrigin = originZ;
-            axisLetter = "Z";
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceIndex = m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume);
-            maximumSliceIndex = dimJ;
-            sliceThickness = y1 - originY;
-            sliceOrigin = originY;
-            axisLetter = "Y";
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceIndex = m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume);
-            maximumSliceIndex = dimI;
-            sliceThickness = x1 - originX;
-            sliceOrigin = originX;
-            axisLetter = "X";
-            break;
-    }
-    
-    /*
-     * Foreground color for slice coordinate text
-     */
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
-    foregroundRGBA[3] = 255;
-    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
-    uint8_t backgroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
-    backgroundRGBA[3] = 255;
-    
-    /*
-     * Determine a slice offset to selected slices is in
-     * the center of the montage
-     */
-    const int32_t numSlicesViewed = (numCols * numRows);
-    const int32_t sliceOffset = ((numSlicesViewed / 2)
-                                 * sliceStep);
-    
-    sliceIndex += sliceOffset;
-    
-    /*
-     * Find first valid slice for montage
-     */
-    while (sliceIndex >= 0) {
-        if (sliceIndex < maximumSliceIndex) {
-            break;
-        }
-        sliceIndex -= sliceStep;
-    }
-    
-    if (sliceIndex >= 0) {
-        for (int32_t i = 0; i < numRows; i++) {
-            for (int32_t j = 0; j < numCols; j++) {
-                if ((sliceIndex >= 0)
-                    && (sliceIndex < maximumSliceIndex)) {
-                    const int32_t vpX = (j * (vpSizeX + horizontalMargin));
-                    const int32_t vpY = ((numRows - i - 1) * (vpSizeY + verticalMargin));
-                    int32_t vp[4] = {
-                        viewport.getX() + vpX,
-                        viewport.getY() + vpY,
-                        vpSizeX,
-                        vpSizeY
-                    };
-                    
-                    if ((vp[2] <= 0)
-                        || (vp[3] <= 0)) {
-                        continue;
-                    }
-                    
-                    const float sliceCoord = (sliceOrigin
-                                              + sliceThickness * sliceIndex);
-                    switch (sliceViewPlane) {
-                        case VolumeSliceViewPlaneEnum::ALL:
-                            break;
-                        case VolumeSliceViewPlaneEnum::AXIAL:
-                            sliceCoordinates[2] = sliceCoord;
-                            break;
-                        case VolumeSliceViewPlaneEnum::CORONAL:
-                            sliceCoordinates[1] = sliceCoord;
-                            break;
-                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            sliceCoordinates[0] = sliceCoord;
-                            break;
-                    }
-                    
-                    drawVolumeSliceViewProjection(viewportContent,
-                                                  sliceProjectionType,
-                                                  sliceDrawingType,
-                                                  sliceViewPlane,
-                                                  sliceIndex,
-                                                  sliceCoordinates,
-                                                  vp);
-                    
-                    if (showCoordinates) {
-                        const AString coordText = (axisLetter
-                                                   + "="
-                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision));
-                        
-                        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontPercentViewportSize(10.0f);
-                        annotationText.setTextColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomTextColor(foregroundRGBA);
-                        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomBackgroundColor(backgroundRGBA);
-                        annotationText.setText(coordText);
-                        m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
-                                                                         5,
-                                                                         annotationText);
-                    }
-                }
-                sliceIndex -= sliceStep;
-            }
-        }
-    }
-}
-
-/**
  * Draw a slice for either projection mode (oblique, orthogonal)
  * @param viewportContent
  *    Content of viewport
@@ -1012,13 +806,13 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
      */
     Vector3D planeNormalVector;
     
-    bool radiologicalFlag(false);
+    sliceInfo.m_radiologicalOrientationFlag = false;
     switch (m_orientationMode) {
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            radiologicalFlag = false;
+            sliceInfo.m_radiologicalOrientationFlag = false;
             break;
         case VolumeMprOrientationModeEnum::RADIOLOGICAL:
-            radiologicalFlag = true;
+            sliceInfo.m_radiologicalOrientationFlag = true;
             break;
     }
     
@@ -1037,7 +831,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             sliceInfo.m_upVector[1] = 1.0;
             orthogonalVector[0]  = 1.0;
             
-            if (radiologicalFlag) {
+            if (sliceInfo.m_radiologicalOrientationFlag) {
                 planeNormalVector[2] = -1.0;
             }
             break;
@@ -1046,7 +840,7 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
             sliceInfo.m_upVector[2] =  1.0;
             orthogonalVector[0]  =  1.0;
             
-            if (radiologicalFlag) {
+            if (sliceInfo.m_radiologicalOrientationFlag) {
                 planeNormalVector[1] = 1.0;
             }
             break;
@@ -1077,10 +871,10 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     
     boundingBox.getCenter(sliceInfo.m_centerXYZ);
     
-    const float leftX(radiologicalFlag
+    const float leftX(sliceInfo.m_radiologicalOrientationFlag
                       ? posX
                       : negX);
-    const float rightX(radiologicalFlag
+    const float rightX(sliceInfo.m_radiologicalOrientationFlag
                       ? negX
                       : posX);
     switch (sliceViewPlane) {
@@ -2084,7 +1878,7 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     glm::vec3 lookAt(lookAtCenterXYZ[0], lookAtCenterXYZ[1], lookAtCenterXYZ[2]);
     glm::mat4 lookAtMatrix = glm::lookAt(eye, lookAt, up);
     
-    if (debugFlag) {
+    if (m_debugFlag) {
         if (sliceViewPlane == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
             glm::vec3 vec = lookAt - eye;
             glm::vec3 n = glm::normalize(vec);
@@ -2100,7 +1894,7 @@ BrainOpenGLVolumeMprTwoDrawing::setViewingTransformation(const VolumeSliceViewPl
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(lookAtMatrix));
     
-    if (debugFlag) {
+    if (m_debugFlag) {
         float m16[16];
         glGetFloatv(GL_MODELVIEW_MATRIX, m16);
         Matrix4x4 m;
@@ -2199,7 +1993,7 @@ BrainOpenGLVolumeMprTwoDrawing::getVolumeSideIntersection(const VolumeMappableIn
         }
         
         if (insideFlag) {
-            if (debug2Flag) {
+            if (m_debugFlag) {
                 std::cout << "Intersection " << sideName << ": ("
                 << AString::fromNumbers(aXYZ) << ") ("
                 << AString::fromNumbers(bXYZ) << ") ("
@@ -2405,7 +2199,7 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
                     CaretAssertVectorIndex(rayVolumeIntersections, 1);
                     const Vector3D p1(rayVolumeIntersections[0]);
                     const Vector3D p2(rayVolumeIntersections[1]);
-                    if (debugFlag) {
+                    if (m_debugFlag) {
                         std::cout << "P1, P2: "
                         << AString::fromNumbers(p1)
                         << "   " << AString::fromNumbers(p2)
@@ -2418,7 +2212,7 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
                                                         sliceCoordinates,
                                                         pointOnLineXYZ,
                                                         distanceToLine);
-                    if (debugFlag) {
+                    if (m_debugFlag) {
                         std::cout << "Point on line, distance: "
                         << AString::fromNumbers(pointOnLineXYZ)
                         << ",  "
@@ -2429,7 +2223,7 @@ BrainOpenGLVolumeMprTwoDrawing::applySliceThicknessToIntersections(const VolumeS
                     const Vector3D rayOffset(rayDirection * halfThickness);
                     const Vector3D newP1(pointOnLineXYZ - rayOffset);
                     const Vector3D newP2(pointOnLineXYZ + rayOffset);
-                    if (debugFlag) {
+                    if (m_debugFlag) {
                         std::cout << "P1, P2: "
                         << AString::fromNumbers(newP1)
                         << "   " << AString::fromNumbers(newP2)
@@ -2568,7 +2362,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                + " for intensity projection 2D");
                 return;
             }
-            if (debugFlag) {
+            if (m_debugFlag) {
                 std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
             }
             
@@ -2591,7 +2385,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
                                                               volumeFile,
                                                               sliceViewPlane,
                                                               sliceCoords));
-                if (debugFlag) {
+                if (m_debugFlag) {
                     if (iStep == 0) {
                         std::cout << "First slice: " << std::endl;
                         std::cout << stepSliceInfo.toString("   ") << std::endl;
@@ -2986,7 +2780,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
     }
 
     bool drawViewportBoxFlag(false);
-    if (debugFlag
+    if (m_debugFlag
         || drawViewportBoxFlag) {
         glPushAttrib(GL_COLOR_BUFFER_BIT);
         glDisable(GL_DEPTH_TEST);
@@ -3209,7 +3003,7 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
     mouseNormX = (swapNormXValueFlag
                   ? (1.0 - mouseNormX)
                   : mouseNormX);
-    if (debugFlag) {
+    if (m_debugFlag) {
         std::cout << "   Mouse Norm X/Y: " << mouseNormX << ", " << mouseNormY << std::endl << std::flush;
     }
     
@@ -3659,7 +3453,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                       p1ToP2Vector[2] * voxelSize);
             const float stepSize(voxelSize / 2.0);
             const float numSteps = distance / stepSize;
-            if (debugFlag) {
+            if (m_debugFlag) {
                 std::cout << "Num Steps: " << numSteps << " Step Vector: " << AString::fromNumbers(stepVector) << std::endl;
             }
             
@@ -3942,3 +3736,224 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
     }
 }
 
+
+/**
+ * Draw montage slices.
+ *
+ * @param viewportContent
+ *   Content of viewport
+ * @param sliceDrawingType
+ *    Type of slice drawing (montage, single)
+ * @param sliceProjectionType
+ *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceViewPlane
+ *    The plane for slice drawing.
+ * @param viewport
+ *    The viewport (region of graphics area) for drawing slices.
+ */
+void
+BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGLViewportContent* viewportContent,
+                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
+                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                               const GraphicsViewport& viewport)
+{
+    const int32_t numRows = m_browserTabContent->getVolumeMontageNumberOfRows();
+    CaretAssert(numRows > 0);
+    const int32_t numCols = m_browserTabContent->getVolumeMontageNumberOfColumns();
+    CaretAssert(numCols > 0);
+    
+    const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
+    
+    const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
+    
+    const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
+    
+    int32_t vpSizeY        = 0;
+    int32_t verticalMargin = 0;
+    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport.getHeight(),
+                                                           gapsAndMargins->getVolumeMontageVerticalGapForWindow(windowIndex),
+                                                           -1,
+                                                           numRows,
+                                                           vpSizeY,
+                                                           verticalMargin);
+    
+    int32_t vpSizeX          = 0;
+    int32_t horizontalMargin = 0;
+    BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport.getWidth(),
+                                                           gapsAndMargins->getVolumeMontageHorizontalGapForWindow(windowIndex),
+                                                           -1,
+                                                           numCols,
+                                                           vpSizeX,
+                                                           horizontalMargin);
+    
+    /*
+     * Voxel sizes for underlay volume
+     */
+    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+    const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
+    CaretAssert(underlayVolume);
+    float spacingX(0.0), spacingY(0.0), spacingZ(0.0);
+    underlayVolume->getVoxelSpacing(spacingX, spacingY, spacingZ);
+    float sliceThickness = std::min(spacingX, std::min(spacingY, spacingZ));
+    if (sliceThickness <= 0.0) {
+        CaretLogSevere("Invalid spacing for underlay volume in MPR drawing");
+        return;
+    }
+    
+    AString axisLetter = "";
+    
+    const int32_t sliceIndexStep = m_browserTabContent->getVolumeMontageSliceSpacing();
+    
+    /*
+     * Foreground color for slice coordinate text
+     */
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
+    foregroundRGBA[3] = 255;
+    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
+    uint8_t backgroundRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
+    backgroundRGBA[3] = 255;
+    
+    /*
+     * Determine a slice offset to selected slices is in
+     * the center of the montage
+     */
+    const int32_t numberOfSlicesInMontageGrid = (numCols * numRows);
+    
+    const Vector3D selectedXYZ {
+        m_browserTabContent->getVolumeSliceCoordinateParasagittal(),
+        m_browserTabContent->getVolumeSliceCoordinateCoronal(),
+        m_browserTabContent->getVolumeSliceCoordinateAxial()
+    };
+    
+    const SliceInfo sliceInfo(createSliceInfo(m_browserTabContent,
+                                              underlayVolume,
+                                              sliceViewPlane,
+                                              selectedXYZ));
+    /*
+     * coordinate step to move ONE slice in coordinates
+     */
+    const Vector3D singleSliceCoordStepXYZ(sliceInfo.m_normalVector * sliceThickness);
+    if (m_debugFlag) std::cout << "Single slice step XYZ: " << singleSliceCoordStepXYZ.toString() << std::endl;
+    
+    /*
+     * Coordinate step to move between adjacent montage slices
+     */
+    const Vector3D sliceCoordStepXYZ(singleSliceCoordStepXYZ * sliceIndexStep);
+    if (m_debugFlag) std::cout << "   Montage slice step XYZ: " << sliceCoordStepXYZ.toString() << std::endl;
+    
+    /*
+     * Offset (in slice indices) of first slice (top left) in montage grid
+     * from the selected slice indices
+     */
+    const float firstSliceIndexOffset((numberOfSlicesInMontageGrid - 1.0) / 2.0);
+    
+    /*
+     * XYZ offset of first slice (top left) in montage grid from the selected
+     * slice coordinates (XYZ in toolbar)
+     */
+    const Vector3D firstSliceOffsetXYZ(sliceCoordStepXYZ * firstSliceIndexOffset);
+    
+    /*
+     * XYZ of first slice (top left) in montage grid
+     */
+    Vector3D sliceXYZ(selectedXYZ
+                      + (sliceInfo.m_radiologicalOrientationFlag
+                         ? -firstSliceOffsetXYZ
+                         : firstSliceOffsetXYZ));
+    
+    /*
+     * "Middle" slice that is used to set object to window transform
+     * in 'drawVolumeSliceViewProjection()'.
+     */
+    const int32_t middleColumn((numCols - 1) / 2);
+    const int32_t middleRow((numRows - 1) / 2);
+    if (m_debugFlag) std::cout << "Middle row/col: " << middleRow << ", " << middleColumn << std::endl;
+    
+    for (int32_t i = 0; i < numRows; i++) {
+        for (int32_t j = 0; j < numCols; j++) {
+            const int32_t vpX = (j * (vpSizeX + horizontalMargin));
+            const int32_t vpY = ((numRows - i - 1) * (vpSizeY + verticalMargin));
+            int32_t vp[4] = {
+                viewport.getX() + vpX,
+                viewport.getY() + vpY,
+                vpSizeX,
+                vpSizeY
+            };
+            
+            if ((vp[2] <= 0)
+                || (vp[3] <= 0)) {
+                continue;
+            }
+            
+            bool viewAngleFixFlag(true);
+            if (viewAngleFixFlag) {
+                if (m_debugFlag) std::cout << "   First montage slice coords: " << sliceXYZ.toString() << std::endl;
+                int64_t voxelIJK[3];
+                underlayVolume->enclosingVoxel(sliceXYZ[0], sliceXYZ[1], sliceXYZ[2],
+                                               voxelIJK[0], voxelIJK[1], voxelIJK[2]);
+                if (m_debugFlag) std::cout << "   Slice indices: " << voxelIJK[0] << ", "
+                << voxelIJK[1] << ", " << voxelIJK[2] << std::endl;
+                if (underlayVolume->indexValid(voxelIJK[0], voxelIJK[1], voxelIJK[2])) {
+                    int64_t viewAngleSliceIndex(-1);
+                    switch (sliceViewPlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            viewAngleSliceIndex = voxelIJK[2];
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            viewAngleSliceIndex = voxelIJK[1];
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            viewAngleSliceIndex = voxelIJK[0];
+                            break;
+                    }
+                    drawVolumeSliceViewProjection(viewportContent,
+                                                  sliceProjectionType,
+                                                  sliceDrawingType,
+                                                  sliceViewPlane,
+                                                  viewAngleSliceIndex,
+                                                  sliceXYZ,
+                                                  vp);
+                }
+            }
+            
+            if (showCoordinates) {
+                const float offsetDistance(sliceInfo.m_plane.signedDistanceToPlane(sliceXYZ));
+                const AString plusSignText((offsetDistance > 0.0) ? "+" : "");
+                AString coordText = (plusSignText
+                                           + AString::number(offsetDistance, 'f', montageCoordPrecision));
+                
+                const bool showXyzFlag(false);
+                if (showXyzFlag) {
+                    coordText = sliceXYZ.toString(montageCoordPrecision);
+                }
+                AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+                annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+                annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+                if (showXyzFlag) {
+                    annotationText.setFontPercentViewportSize(8.0f);
+                }
+                else {
+                    annotationText.setFontPercentViewportSize(10.0f);
+                }
+                annotationText.setTextColor(CaretColorEnum::CUSTOM);
+                annotationText.setCustomTextColor(foregroundRGBA);
+                annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+                annotationText.setCustomBackgroundColor(backgroundRGBA);
+                annotationText.setText(coordText);
+                m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
+                                                                 5,
+                                                                 annotationText);
+            }
+            
+            sliceXYZ += (sliceInfo.m_radiologicalOrientationFlag
+                         ? sliceCoordStepXYZ
+                         : -sliceCoordStepXYZ);
+        }
+    }
+}

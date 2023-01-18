@@ -66,6 +66,7 @@ namespace caret {
             Vector3D m_upVector;
             Vector3D m_normalVector;
             Plane m_plane;
+            bool m_radiologicalOrientationFlag = false;
             
             AString toString(const AString& indentation = "") const;
         };
@@ -274,6 +275,8 @@ namespace caret {
         static float s_idNumRows;
         
         static float s_idNumCols;
+        
+        static constexpr bool m_debugFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
