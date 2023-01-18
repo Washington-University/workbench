@@ -3926,7 +3926,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                 const float offsetDistance(sliceInfo.m_plane.signedDistanceToPlane(sliceXYZ));
                 const AString plusSignText((offsetDistance > 0.0) ? "+" : "");
                 AString coordText = (plusSignText
-                                           + AString::number(offsetDistance, 'f', montageCoordPrecision));
+                                     + AString::number(offsetDistance, 'f', montageCoordPrecision)
+                                     + "mm");
                 
                 const bool showXyzFlag(false);
                 if (showXyzFlag) {
@@ -3935,12 +3936,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                 AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
                 annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
                 annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                if (showXyzFlag) {
-                    annotationText.setFontPercentViewportSize(8.0f);
-                }
-                else {
-                    annotationText.setFontPercentViewportSize(10.0f);
-                }
+                annotationText.setFontPercentViewportSize(8.0f);
                 annotationText.setTextColor(CaretColorEnum::CUSTOM);
                 annotationText.setCustomTextColor(foregroundRGBA);
                 annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
