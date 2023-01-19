@@ -2993,6 +2993,7 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
      */
     glfmt.setSamples(0); //6);
     glfmt.setStereo(false);
+    glfmt.setStencilBufferSize(8);
     glfmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
     
     glfmt.setMajorVersion(2);
@@ -3011,7 +3012,8 @@ BrainOpenGLWidget::initializeDefaultGLFormat()
     glfmt.setProfile(QGLFormat::CompatibilityProfile);
     glfmt.setVersion(2, 1);
     glfmt.setSampleBuffers(true);
-    glfmt.setStencil(false);
+    glfmt.setStencil(true);
+    glfmt.setStencilBufferSize(8);
     glfmt.setStereo(false);
     
     glfmt.setRgba(true);

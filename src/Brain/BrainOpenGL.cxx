@@ -964,6 +964,15 @@ BrainOpenGL::getOpenGLInformation()
                  + AString::number(blueBits) + ", "
                  + AString::number(alphaBits) + ")");
     
+    GLint depthBits;
+    glGetIntegerv(GL_DEPTH_BITS, &depthBits);
+    lineInfo += ("\nDepth Bits: "
+                 + AString::number(depthBits));
+    GLint stencilBits;
+    glGetIntegerv(GL_STENCIL_BITS, &stencilBits);
+    lineInfo += ("\nStencil Bits: "
+                 + AString::number(stencilBits));
+    
     lineInfo += ("\n\nBest Drawing Mode: "
                  + BrainOpenGL::getBestDrawingModeName());
     lineInfo += ("\nDisplay Lists Supported: "

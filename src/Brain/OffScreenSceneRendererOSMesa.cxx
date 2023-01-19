@@ -130,7 +130,7 @@ OffScreenSceneRendererOSMesa::initialize(const int32_t imageWidth,
      * Create the Mesa Context
      */
     const int depthBits = 16;
-    const int stencilBits = 0;
+    const int stencilBits = 8;
     const int accumBits = 0;
     m_mesaContext = OSMesaCreateContextExt(OSMESA_RGBA,
                                            depthBits,
