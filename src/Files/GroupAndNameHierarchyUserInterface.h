@@ -23,15 +23,9 @@
 
 
 
-#include <memory>
-
-#include "CaretObject.h"
-
-
-
 namespace caret {
 
-    class GroupAndNameHierarchyUserInterface : public CaretObject {
+    class GroupAndNameHierarchyUserInterface {
         
     public:
         GroupAndNameHierarchyUserInterface() { }
@@ -40,6 +34,9 @@ namespace caret {
         
         GroupAndNameHierarchyUserInterface(const GroupAndNameHierarchyUserInterface& /*obj*/) { }
 
+        /**
+         * Gets called when an item is turned on/off for display
+         */
         virtual void groupAndNameHierarchyItemStatusChanged() = 0;
         
     };
