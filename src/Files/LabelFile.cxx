@@ -34,7 +34,8 @@ using namespace caret;
  * Constructor.
  */
 LabelFile::LabelFile()
-: GiftiTypeFile(DataFileTypeEnum::LABEL)
+: GiftiTypeFile(DataFileTypeEnum::LABEL),
+GroupAndNameHierarchyUserInterface()
 {
     m_classNameHierarchy = NULL;
     this->initializeMembersLabelFile();
@@ -47,7 +48,8 @@ LabelFile::LabelFile()
  *     Surface file that is copied.
  */
 LabelFile::LabelFile(const LabelFile& sf)
-: GiftiTypeFile(sf)
+: GiftiTypeFile(sf),
+GroupAndNameHierarchyUserInterface(sf)
 {
     m_classNameHierarchy = NULL;
     this->copyHelperLabelFile(sf);

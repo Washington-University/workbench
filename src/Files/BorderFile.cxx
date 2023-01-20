@@ -69,7 +69,8 @@ using namespace std;
  * Constructor.
  */
 BorderFile::BorderFile()
-: CaretDataFile(DataFileTypeEnum::BORDER)
+: CaretDataFile(DataFileTypeEnum::BORDER),
+GroupAndNameHierarchyUserInterface()
 {
     initializeBorderFile();
 }
@@ -114,7 +115,8 @@ BorderFile::initializeBorderFile()
  *    Object that is copied.
  */
 BorderFile::BorderFile(const BorderFile& obj)
-: CaretDataFile(obj)
+: CaretDataFile(obj),
+GroupAndNameHierarchyUserInterface(obj)
 {
     initializeBorderFile();
 

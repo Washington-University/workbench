@@ -58,7 +58,8 @@ using namespace caret;
  * Constructor.
  */
 FociFile::FociFile()
-: CaretDataFile(DataFileTypeEnum::FOCI)
+: CaretDataFile(DataFileTypeEnum::FOCI),
+GroupAndNameHierarchyUserInterface()
 {
     initializeFociFile();
 }
@@ -88,7 +89,8 @@ FociFile::~FociFile()
  *    Object that is copied.
  */
 FociFile::FociFile(const FociFile& obj)
-: CaretDataFile(obj)
+: CaretDataFile(obj),
+GroupAndNameHierarchyUserInterface(obj)
 {
     initializeFociFile();
     copyHelperFociFile(obj);

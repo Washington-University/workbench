@@ -83,7 +83,10 @@ using namespace caret;
  *    Type of data file.
  */
 CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
-: CaretMappableDataFile(dataFileType)
+: CaretMappableDataFile(dataFileType),
+EventListenerInterface(),
+GroupAndNameHierarchyUserInterface(),
+VolumeMappableInterface()
 {
     m_ciftiFile.grabNew(NULL);
     m_voxelIndicesToOffsetForDataReading.grabNew(NULL);

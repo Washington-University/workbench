@@ -84,7 +84,10 @@ VolumeFile::setVoxelColoringEnabled(const bool enabled)
 
 /** protected, used by dynamic volume file */
 VolumeFile::VolumeFile(const DataFileTypeEnum::Enum dataFileType)
-: VolumeBase(), CaretMappableDataFile(dataFileType)
+: VolumeBase(),
+CaretMappableDataFile(dataFileType),
+ChartableLineSeriesBrainordinateInterface(),
+GroupAndNameHierarchyUserInterface()
 {//CaretPointers initialize to NULL, and this isn't an operator=
     CaretAssert((dataFileType == DataFileTypeEnum::VOLUME)
                 || (dataFileType == DataFileTypeEnum::VOLUME_DYNAMIC));
@@ -102,7 +105,10 @@ VolumeFile::VolumeFile(const DataFileTypeEnum::Enum dataFileType)
 
 
 VolumeFile::VolumeFile()
-: VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
+: VolumeBase(),
+CaretMappableDataFile(DataFileTypeEnum::VOLUME),
+ChartableLineSeriesBrainordinateInterface(),
+GroupAndNameHierarchyUserInterface()
 {//CaretPointers initialize to NULL, and this isn't an operator=
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -118,7 +124,10 @@ VolumeFile::VolumeFile()
 
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents,
                        SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
-: VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
+: VolumeBase(dimensionsIn, indexToSpace, numComponents),
+CaretMappableDataFile(DataFileTypeEnum::VOLUME),
+ChartableLineSeriesBrainordinateInterface(),
+GroupAndNameHierarchyUserInterface()
 {//CaretPointers initialize to NULL, and this isn't an operator=
     m_forceUpdateOfGroupAndNameHierarchy = true;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
