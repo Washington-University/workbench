@@ -30,7 +30,8 @@ namespace caret {
     
     class GroupAndNameHierarchyGroup : public GroupAndNameHierarchyItem {
     public:
-        GroupAndNameHierarchyGroup(const AString& name,
+        GroupAndNameHierarchyGroup(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface,
+                                   const AString& name,
                                    const int32_t idNumber);
         
         virtual ~GroupAndNameHierarchyGroup();

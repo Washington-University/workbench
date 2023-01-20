@@ -39,16 +39,20 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param groupAndNameHierarchyUserInterface
+ *    Interface for files that use group and name hierarchy
  * @param name
  *    The name.
  * @param idNumber
  *    ID number assigned to the name.
  */
-GroupAndNameHierarchyName::GroupAndNameHierarchyName(const AString& name,
+GroupAndNameHierarchyName::GroupAndNameHierarchyName(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface,
+                                                     const AString& name,
                                                      const int32_t idNumber)
-: GroupAndNameHierarchyItem(GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
-                           name,
-                           idNumber)
+: GroupAndNameHierarchyItem(groupAndNameHierarchyUserInterface,
+                            GroupAndNameHierarchyItem::ITEM_TYPE_NAME,
+                            name,
+                            idNumber)
 {
 }
 

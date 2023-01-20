@@ -116,6 +116,7 @@ GroupAndNameHierarchyGroup.h
 GroupAndNameHierarchyItem.h
 GroupAndNameHierarchyModel.h
 GroupAndNameHierarchyName.h
+GroupAndNameHierarchyUserInterface.h
 HistologyCoordinate.h
 HistologySlice.h
 HistologySliceImage.h

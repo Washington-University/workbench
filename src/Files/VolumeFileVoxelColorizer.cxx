@@ -89,9 +89,14 @@ VolumeFileVoxelColorizer::~VolumeFileVoxelColorizer()
  *     Index of map.
  */
 void
-VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex)
+VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
+    
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if ( ! m_mapColoringValid[mapIndex]) {
+        clearVoxelColoringForMap(mapIndex);
+    }
     
     ElapsedTimer timer;
     timer.start();
@@ -291,6 +296,11 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     CaretAssert(sliceIndex >= 0);
     CaretAssert(rgbaOut);
     
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if ( ! m_mapColoringValid[mapIndex]) {
+        assignVoxelColorsForMap(mapIndex);
+    }
+    
     int64_t iStart = 0;
     int64_t iEnd   = m_dimI - 1;
     int64_t jStart = 0;
@@ -413,6 +423,11 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const int32_t tabIndex,
                                     uint8_t* rgbaOut) const
 {
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if ( ! m_mapColoringValid[mapIndex]) {
+        assignVoxelColorsForMap(mapIndex);
+    }
+
     /*
      * Pointer to maps RGBA values
      */
@@ -522,6 +537,11 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     CaretAssert(sliceIndex >= 0);
     CaretAssert(rgbaOut);
     
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if ( ! m_mapColoringValid[mapIndex]) {
+        assignVoxelColorsForMap(mapIndex);
+    }
+
     VolumeSpace::OrientTypes orient[3];
     m_volumeFile->getOrientation(orient);
     int orient2dim[3];
@@ -674,6 +694,11 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
                                              const int32_t tabIndex,
                                              uint8_t rgbaOut[4]) const
 {
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if ( ! m_mapColoringValid[mapIndex]) {
+        assignVoxelColorsForMap(mapIndex);
+    }
+    
     /*
      * Pointer to maps RGBA values
      */
@@ -720,7 +745,7 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
  *    Index of map.
  */
 void
-VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex)
+VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
     uint8_t* mapRGBA = m_mapRGBA[mapIndex];

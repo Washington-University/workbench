@@ -317,7 +317,7 @@ LabelFile::initializeMembersLabelFile()
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     m_forceUpdateOfGroupAndNameHierarchy = true;
 }
 
@@ -333,7 +333,7 @@ LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     m_forceUpdateOfGroupAndNameHierarchy = true;
     
     this->validateDataArraysAfterReading();
@@ -569,4 +569,11 @@ LabelFile::getUniqueLabelKeysUsedInMap(const int32_t mapIndex) const
     return keyVector;
 }
 
-
+/**
+ * Called when a group and name hierarchy item has attribute/status changed
+ */
+void
+LabelFile::groupAndNameHierarchyItemStatusChanged()
+{
+    
+}

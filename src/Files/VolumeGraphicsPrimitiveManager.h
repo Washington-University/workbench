@@ -48,6 +48,8 @@ namespace caret {
         
         void clear();
         
+        void invalidateAllColoring();
+        
         void invalidateColoringForMap(const int32_t mapIndex);
         
         GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitiveForMap(const int32_t mapIndex,

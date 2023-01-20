@@ -101,7 +101,7 @@ BorderFile::initializeBorderFile()
 {
     m_classColorTable = new GiftiLabelTable();
     m_nameColorTable = new GiftiLabelTable();
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     m_metadata = new GiftiMetaData();
     m_forceUpdateOfGroupAndNameHierarchy = true;
     m_structure = StructureEnum::ALL;
@@ -152,7 +152,7 @@ BorderFile::copyHelperBorderFile(const BorderFile& obj)
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     *m_metadata = *obj.m_metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
@@ -2477,3 +2477,12 @@ int BorderMultiPartHelper::fromNumberOrName(const AString& ident) const
         return -1;
     }
 }   
+
+/**
+ * Called when a group and name hierarchy item has attribute/status changed
+ */
+void
+BorderFile::groupAndNameHierarchyItemStatusChanged()
+{
+    
+}

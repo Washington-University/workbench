@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyName.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -46,6 +47,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param groupAndNameHierarchyUserInterface;
+ *    Interface for files that use group and name hierarchy
  * @param itemType
  *    Type of this item.
  * @param name
@@ -53,10 +56,12 @@ using namespace caret;
  * @param idNumber
  *    Id number for the item.
  */
-GroupAndNameHierarchyItem::GroupAndNameHierarchyItem(const ItemType itemType,
-                                                   const AString& name,
-                                                   const int32_t idNumber)
+GroupAndNameHierarchyItem::GroupAndNameHierarchyItem(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface,
+                                                     const ItemType itemType,
+                                                     const AString& name,
+                                                     const int32_t idNumber)
 : CaretObject(),
+m_groupAndNameHierarchyUserInterface(groupAndNameHierarchyUserInterface),
 m_itemType(itemType),
 m_name(name),
 m_idNumber(idNumber),
@@ -349,7 +354,6 @@ GroupAndNameHierarchyItem::addChildPrivate(GroupAndNameHierarchyItem* child)
 
 /**
  * Add a child with the given name and id number.
- *
  * @param itemType
  *     Type of the item.
  * @param name
@@ -362,8 +366,8 @@ GroupAndNameHierarchyItem::addChildPrivate(GroupAndNameHierarchyItem* child)
  */
 GroupAndNameHierarchyItem*
 GroupAndNameHierarchyItem::addChild(const ItemType itemType,
-                                   const AString& name,
-                                   const int32_t idNumber)
+                                    const AString& name,
+                                    const int32_t idNumber)
 {
     GroupAndNameHierarchyItem* child = getChildWithNameAndIdNumber(name,
                                                                   idNumber);
@@ -374,11 +378,13 @@ GroupAndNameHierarchyItem::addChild(const ItemType itemType,
     
     switch (itemType) {
         case ITEM_TYPE_GROUP:
-            child = new GroupAndNameHierarchyGroup(name,
-                                                  idNumber);
+            child = new GroupAndNameHierarchyGroup(m_groupAndNameHierarchyUserInterface,
+                                                   name,
+                                                   idNumber);
             break;
         case ITEM_TYPE_NAME:
-            child = new GroupAndNameHierarchyName(name,
+            child = new GroupAndNameHierarchyName(m_groupAndNameHierarchyUserInterface,
+                                                  name,
                                                   idNumber);
             break;
         case ITEM_TYPE_MODEL:
@@ -530,6 +536,10 @@ GroupAndNameHierarchyItem::setSelected(const DisplayGroupEnum::Enum displayGroup
     else {
         m_selectedInDisplayGroup[displayIndex] = status;
     }
+    
+    if (m_groupAndNameHierarchyUserInterface != NULL) {
+        m_groupAndNameHierarchyUserInterface->groupAndNameHierarchyItemStatusChanged();
+    }
 }
 
 /**
@@ -645,6 +655,10 @@ GroupAndNameHierarchyItem::setIconColorRGBA(const float rgba[4])
     m_iconRGBA[1] = rgba[1];
     m_iconRGBA[2] = rgba[2];
     m_iconRGBA[3] = rgba[3];
+
+    if (m_groupAndNameHierarchyUserInterface != NULL) {
+        m_groupAndNameHierarchyUserInterface->groupAndNameHierarchyItemStatusChanged();
+    }
 }
 
 /**

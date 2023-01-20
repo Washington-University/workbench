@@ -37,7 +37,7 @@ namespace caret {
         
         virtual ~VolumeFileVoxelColorizer();
         
-        void assignVoxelColorsForMap(const int32_t mapIndex);
+        void assignVoxelColorsForMap(const int32_t mapIndex) const;
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                             const int64_t firstVoxelIJK[3],
@@ -74,7 +74,7 @@ namespace caret {
                                 const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;
         
-        void clearVoxelColoringForMap(const int64_t mapIndex);
+        void clearVoxelColoringForMap(const int64_t mapIndex) const;
         
         void invalidateColoring();
         
@@ -114,8 +114,8 @@ namespace caret {
         int64_t m_mapCount;
         int64_t m_mapRGBACount;
         
-        std::vector<bool> m_mapColoringValid;
-        std::vector<uint8_t*> m_mapRGBA;
+        mutable std::vector<bool> m_mapColoringValid;
+        mutable std::vector<uint8_t*> m_mapRGBA;
     };
     
 #ifdef __VOLUME_FILE_VOXEL_COLORIZER_DECLARE__

@@ -74,11 +74,14 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param groupAndNameHierarchyUserInterface
+ *    Interface for files that use group and name hierarchy
  */
-GroupAndNameHierarchyModel::GroupAndNameHierarchyModel()
-: GroupAndNameHierarchyItem(GroupAndNameHierarchyItem::ITEM_TYPE_MODEL,
-                           "",
-                           -1)
+GroupAndNameHierarchyModel::GroupAndNameHierarchyModel(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface)
+: GroupAndNameHierarchyItem(groupAndNameHierarchyUserInterface,
+                            GroupAndNameHierarchyItem::ITEM_TYPE_MODEL,
+                            "",
+                            -1)
 {
     this->clearModelPrivate();
 }
@@ -163,6 +166,8 @@ void
 GroupAndNameHierarchyModel::update(BorderFile* borderFile,
                                    const bool forceUpdate)
 {
+    m_caretMappableDataFile = NULL;
+    
     bool needToGenerateKeys = forceUpdate;
     
     setName(borderFile->getFileNameNoPath());
@@ -287,6 +292,8 @@ void
 GroupAndNameHierarchyModel::update(LabelFile* labelFile,
                                    const bool forceUpdate)
 {
+    m_caretMappableDataFile = labelFile;
+    
     bool needToGenerateKeys = forceUpdate;
 
     setName(labelFile->getFileNameNoPath());
@@ -465,6 +472,8 @@ void
 GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
                                    const bool forceUpdate)
 {
+    m_caretMappableDataFile = NULL;
+    
     /*
      * If it is not a label file, there is nothing to do.
      */
@@ -472,6 +481,8 @@ GroupAndNameHierarchyModel::update(CiftiMappableDataFile* ciftiMappableDataFile,
         this->clear();
         return;
     }
+    
+    m_caretMappableDataFile = ciftiMappableDataFile;
     
     /*
      * Names for missing group names or foci names.
@@ -669,6 +680,8 @@ void
 GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
                                    const bool forceUpdate)
 {
+    m_caretMappableDataFile = NULL;
+    
     /*
      * If it is not a label file, there is nothing to do.
      */
@@ -676,6 +689,8 @@ GroupAndNameHierarchyModel::update(VolumeFile* volumeFile,
         this->clear();
         return;
     }
+    
+    m_caretMappableDataFile = volumeFile;
     
     /*
      * Names for missing group names or foci names.
@@ -873,6 +888,8 @@ void
 GroupAndNameHierarchyModel::update(FociFile* fociFile,
                                    const bool forceUpdate)
 {
+    m_caretMappableDataFile = NULL;
+    
     bool needToGenerateKeys = forceUpdate;
     
     setName(fociFile->getFileNameNoPath());

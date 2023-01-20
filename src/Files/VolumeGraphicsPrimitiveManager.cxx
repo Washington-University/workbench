@@ -78,6 +78,19 @@ VolumeGraphicsPrimitiveManager::clear()
  *    Index of the map
  */
 void
+VolumeGraphicsPrimitiveManager::invalidateAllColoring()
+{
+    for (auto& p : m_mapGraphicsPrimitives) {
+        p.reset();
+    }
+}
+
+/**
+ * Invalidate primitive for the given map
+ * @param mapIndex
+ *    Index of the map
+ */
+void
 VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
 {
     if ((mapIndex >= 0)

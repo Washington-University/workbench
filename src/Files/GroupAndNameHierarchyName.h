@@ -27,7 +27,8 @@ namespace caret {
 
     class GroupAndNameHierarchyName : public GroupAndNameHierarchyItem {
     public:
-        GroupAndNameHierarchyName(const AString& name,
+        GroupAndNameHierarchyName(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface,
+                                  const AString& name,
                                   const int32_t idNumber);
         
         ~GroupAndNameHierarchyName();

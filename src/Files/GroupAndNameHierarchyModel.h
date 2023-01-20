@@ -30,6 +30,7 @@
 namespace caret {
 
     class BorderFile;
+    class CaretMappableDataFile;
     class CiftiMappableDataFile;
     class FociFile;
     class LabelFile;
@@ -37,7 +38,7 @@ namespace caret {
     
     class GroupAndNameHierarchyModel : public GroupAndNameHierarchyItem {
     public:
-        GroupAndNameHierarchyModel();
+        GroupAndNameHierarchyModel(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface);
         
         virtual ~GroupAndNameHierarchyModel();
         
@@ -87,6 +88,8 @@ namespace caret {
          * Contains label keys and names from previous update with CIFTI label file.
          */
         std::vector<std::map<int32_t, AString> > m_previousCiftiLabelFileMapKeysAndNames;
+        
+        CaretMappableDataFile* m_caretMappableDataFile = NULL;
         
         /**
          * Update needed status of DISPLAY GROUP in EACH TAB.

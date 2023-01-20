@@ -863,7 +863,7 @@ void VolumeFile::validateMembers()
         m_voxelColorizer.grabNew(new VolumeFileVoxelColorizer(this));
     }
     if (m_classNameHierarchy == NULL) {
-        m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
+        m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel(this));
     }
     m_classNameHierarchy->clear();
     m_forceUpdateOfGroupAndNameHierarchy = true;
@@ -1644,7 +1644,7 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
     
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_voxelColorizer);
-    
+
     m_voxelColorizer->assignVoxelColorsForMap(mapIndex);
 
     m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
@@ -2832,5 +2832,14 @@ VolumeFile::getPaletteColorMappingModifiedStatus() const
     }
     
     return modStatus;
+}
+
+/**
+ * Called when a group and name hierarchy item has attribute/status changed
+ */
+void
+VolumeFile::groupAndNameHierarchyItemStatusChanged()
+{
+    m_graphicsPrimitiveManager->invalidateAllColoring();
 }
 

@@ -30,6 +30,7 @@
 #include "CaretMutex.h"
 #include "CaretVolumeExtension.h"
 #include "ChartableLineSeriesBrainordinateInterface.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 #include "StructureEnum.h"
 #include "GiftiMetaData.h"
 #include "BoundingBox.h"
@@ -46,7 +47,7 @@ namespace caret {
     class VolumeGraphicsPrimitiveManager;
     class VolumeSpline;
     
-    class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableLineSeriesBrainordinateInterface
+    class VolumeFile : public VolumeBase, public CaretMappableDataFile, public ChartableLineSeriesBrainordinateInterface, public GroupAndNameHierarchyUserInterface
     {
         VolumeFile(const VolumeFile&);
         
@@ -424,6 +425,8 @@ namespace caret {
         
         virtual PaletteModifiedStatusEnum::Enum getPaletteColorMappingModifiedStatus() const override;
         
+        virtual void groupAndNameHierarchyItemStatusChanged() override;
+
     };
 
 }

@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class GroupAndNameHierarchyUserInterface;
     class SceneClassAssistant;
     
     class GroupAndNameHierarchyItem : public CaretObject, SceneableInterface {
@@ -48,9 +49,10 @@ namespace caret {
         };
         
     protected:
-        GroupAndNameHierarchyItem(const ItemType itemType,
-                                 const AString& name,
-                                 const int32_t idNumber);
+        GroupAndNameHierarchyItem(GroupAndNameHierarchyUserInterface* groupAndNameHierarchyUserInterface,
+                                  const ItemType itemType,
+                                  const AString& name,
+                                  const int32_t idNumber);
     public:
         virtual ~GroupAndNameHierarchyItem();
         
@@ -76,8 +78,8 @@ namespace caret {
         std::vector<GroupAndNameHierarchyItem*> getDescendants() const;
         
         GroupAndNameHierarchyItem* addChild(const ItemType itemType,
-                                           const AString& name,
-                                           const int32_t idNumber);
+                                            const AString& name,
+                                            const int32_t idNumber);
         
         void addChild(GroupAndNameHierarchyItem* child);
         
@@ -178,27 +180,14 @@ namespace caret {
                     if (m_name < childMapKey.m_name) {
                         return true;
                     }
-//                    else if (m_name == childMapKey.m_name) {
-//                        return 0;
-//                    }
                 }
-//                return 1;
                 return false;
             }
         };
 
-//        bool operator<(const ChildMapKey& a,
-//                       const ChildMapKey& b) {
-//            if (a.m_idNumber < b.m_idNumber) {
-//                return true;
-//            }
-//            else if (a.m_idNumber == b.m_idNumber) {
-//                if (a.m_name < b.m_name) {
-//                    return true;
-//                }
-//            }
-//            return false;
-//        }
+        /** Interface for files that use group and name hierarchy */
+        GroupAndNameHierarchyUserInterface* m_groupAndNameHierarchyUserInterface = NULL;
+        
         /** Type of item */
         const ItemType m_itemType;
         

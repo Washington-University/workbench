@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include "GiftiTypeFile.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 
 namespace caret {
 
@@ -36,7 +37,7 @@ namespace caret {
     /**
      * \brief A Label data file.
      */
-    class LabelFile : public GiftiTypeFile {
+    class LabelFile : public GiftiTypeFile, public GroupAndNameHierarchyUserInterface {
         
     public:
         LabelFile();
@@ -89,6 +90,8 @@ namespace caret {
         //override writeFile in order to check filename against type of file
         virtual void writeFile(const AString& filename);
         
+        virtual void groupAndNameHierarchyItemStatusChanged() override;
+
     protected:
         /**
          * Validate the contents of the file after it

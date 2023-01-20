@@ -25,6 +25,7 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DisplayGroupEnum.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 
 #include <map>
 #include <vector>
@@ -42,7 +43,7 @@ namespace caret {
     class SurfaceFile;
     class SurfaceProjectedItem;
     
-    class BorderFile : public CaretDataFile {
+    class BorderFile : public CaretDataFile, public GroupAndNameHierarchyUserInterface {
         
     public:
         BorderFile();
@@ -193,6 +194,8 @@ namespace caret {
         
         void invalidateAllAssignedColors();
         
+        virtual void groupAndNameHierarchyItemStatusChanged() override;
+
     private:
         void copyHelperBorderFile(const BorderFile& obj);
         

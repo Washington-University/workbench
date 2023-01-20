@@ -277,7 +277,7 @@ CiftiMappableDataFile::CiftiMappableDataFile(const DataFileTypeEnum::Enum dataFi
 
     setupCiftiReadingMappingDirection();
     
-    m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel());
+    m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel(this));
     
     m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
 
@@ -8593,4 +8593,15 @@ const CiftiXML CiftiMappableDataFile::getCiftiXML() const
         return m_ciftiFile->getCiftiXML();
     }
     return CiftiXML();//this is why the function doesn't return a reference: must return something even when it doesn't have a CiftiXML allocated - could make it a pointer and return NULL
+}
+
+/**
+ * Called when a group and name hierarchy item has attribute/status changed
+ */
+void
+CiftiMappableDataFile::groupAndNameHierarchyItemStatusChanged()
+{
+    if (isMappedWithLabelTable()) {
+        invalidateColoringInAllMaps();
+    }
 }

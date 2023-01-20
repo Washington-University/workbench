@@ -30,6 +30,7 @@
 #include "CiftiXMLElements.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 #include "VolumeMappableInterface.h"
 
 #include <memory>
@@ -56,6 +57,7 @@ namespace caret {
     class CiftiMappableDataFile :
     public CaretMappableDataFile,
     public EventListenerInterface,
+    public GroupAndNameHierarchyUserInterface,
     public VolumeMappableInterface {
         
     protected:
@@ -522,6 +524,8 @@ namespace caret {
         
         virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const override;
         
+        virtual void groupAndNameHierarchyItemStatusChanged() override;
+
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);

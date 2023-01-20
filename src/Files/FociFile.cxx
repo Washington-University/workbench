@@ -117,7 +117,7 @@ FociFile::initializeFociFile()
 {
     m_classColorTable = new GiftiLabelTable();
     m_nameColorTable  = new GiftiLabelTable();
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     m_metadata = new GiftiMetaData();
     m_forceUpdateOfGroupAndNameHierarchy = true;
 }
@@ -136,7 +136,7 @@ FociFile::copyHelperFociFile(const FociFile& ff)
     if (m_classNameHierarchy != NULL) {
         delete m_classNameHierarchy;
     }
-    m_classNameHierarchy = new GroupAndNameHierarchyModel();
+    m_classNameHierarchy = new GroupAndNameHierarchyModel(this);
     
     *m_metadata = *ff.m_metadata;
     
@@ -738,4 +738,11 @@ FociFile::addToDataFileContentInformation(DataFileContentInformation& dataFileIn
     }
 }
 
-
+/**
+ * Called when a group and name hierarchy item has attribute/status changed
+ */
+void
+FociFile::groupAndNameHierarchyItemStatusChanged()
+{
+    
+}

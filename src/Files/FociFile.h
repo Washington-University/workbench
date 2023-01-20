@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretDataFile.h"
+#include "GroupAndNameHierarchyUserInterface.h"
 
 namespace caret {
 
@@ -30,7 +31,7 @@ namespace caret {
     class GiftiLabelTable;
     class GiftiMetaData;
     
-    class FociFile : public CaretDataFile {
+    class FociFile : public CaretDataFile, public GroupAndNameHierarchyUserInterface {
         
     public:
         FociFile();
@@ -91,6 +92,8 @@ namespace caret {
         
         virtual void clearModified();
         
+        virtual void groupAndNameHierarchyItemStatusChanged() override;
+
         static int32_t getFileVersion();
         
         static AString getFileVersionAsString();
