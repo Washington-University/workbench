@@ -935,8 +935,6 @@ MediaFile::getPlaneCoordinatesPlane() const
          */
         m_planeCoordinatesPlane.reset();
         m_planeCoordinatesPlaneInvalidFlag = true;
-        CaretLogSevere(getFileNameNoPath()
-                       + "Failed to create plnae coordinates plane, computation of plane failed.");
     }
 
     return NULL;
