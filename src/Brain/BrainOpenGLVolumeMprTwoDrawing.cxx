@@ -4028,11 +4028,8 @@ BrainOpenGLVolumeMprTwoDrawing::getSignedSliceThickness(const VolumeMappableInte
      */
     float x1, y1, z1;
     float x2, y2, z2;
-    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
-    const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
-    CaretAssert(underlayVolume);
-    underlayVolume->indexToSpace(0, 0, 0, x1, y1, z1);
-    underlayVolume->indexToSpace(1, 1, 1, x2, y2, z2);
+    volumeInterface->indexToSpace(0, 0, 0, x1, y1, z1);
+    volumeInterface->indexToSpace(1, 1, 1, x2, y2, z2);
     
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
