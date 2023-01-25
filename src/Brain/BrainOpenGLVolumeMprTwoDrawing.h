@@ -66,6 +66,7 @@ namespace caret {
             Vector3D m_upVector;
             Vector3D m_normalVector;
             Plane m_plane;
+            Plane m_sliceCoordIncreasingDirectionPlane;
             bool m_radiologicalOrientationFlag = false;
             
             AString toString(const AString& indentation = "") const;
@@ -219,6 +220,9 @@ namespace caret {
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport);
 
+        float getSignedSliceThickness(const VolumeMappableInterface* volumeInterface,
+                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
+        
         std::vector<Vector3D> getVolumeRayIntersections(VolumeMappableInterface* volume,
                                                         const Vector3D& rayOrigin,
                                                         const Vector3D& rayVector) const;

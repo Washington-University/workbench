@@ -1063,6 +1063,65 @@ BrainOpenGLVolumeMprTwoDrawing::createSliceInfo(const BrowserTabContent* browser
     const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
     sliceInfo.m_upVector = bottomToTop.normal();
     
+    /*
+     * Does increasing slice coordinate direction face to the
+     * user or away from the user
+     */
+    bool sameDirectionFlag(false);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            /*
+             * In an axial view, the viewing vector that points to user
+             * is inferior to superior and so is increasing Z if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (sliceInfo.m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            /*
+             * In coronal view, the viewing vector that points to user
+             * is posterior to anterior and so is DECREASING Y if in
+             * neurological orientation
+             */
+            sameDirectionFlag = false;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (sliceInfo.m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            /*
+             * In parasagittal view, viewing vector that points to user
+             * is right to left and so is INCREASING X if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            break;
+    }
+    if (sameDirectionFlag) {
+        sliceInfo.m_sliceCoordIncreasingDirectionPlane = Plane(sliceInfo.m_topLeftXYZ,
+                                                               sliceInfo.m_bottomLeftXYZ,
+                                                               sliceInfo.m_bottomRightXYZ);
+    }
+    else {
+        sliceInfo.m_sliceCoordIncreasingDirectionPlane = Plane(sliceInfo.m_bottomRightXYZ,
+                                                               sliceInfo.m_bottomLeftXYZ,
+                                                               sliceInfo.m_topLeftXYZ);
+    }
+
     return sliceInfo;
 }
 
@@ -2632,7 +2691,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                 }
               
                 GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingPrimitive(vdi.mapIndex,
-                                                                                              m_displayGroup, //DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                                              m_displayGroup,
                                                                                               m_tabIndex));
                 
                 if (primitive != NULL) {
@@ -3475,7 +3534,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
                 
                 GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingPrimitive(mapIndex,
-                                                                                               m_displayGroup, //DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                                               m_displayGroup,
                                                                                                m_tabIndex));
                 
                 if (primitive != NULL) {
@@ -3794,14 +3853,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
     const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
     CaretAssert(underlayVolume);
     float spacingX(0.0), spacingY(0.0), spacingZ(0.0);
+    /* Returned spacing always positive */
     underlayVolume->getVoxelSpacing(spacingX, spacingY, spacingZ);
     float sliceThickness = std::min(spacingX, std::min(spacingY, spacingZ));
     if (sliceThickness <= 0.0) {
         CaretLogSevere("Invalid spacing for underlay volume in MPR drawing");
         return;
     }
-    
-    AString axisLetter = "";
     
     const int32_t sliceIndexStep = m_browserTabContent->getVolumeMontageSliceSpacing();
     
@@ -3833,17 +3891,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                                               underlayVolume,
                                               sliceViewPlane,
                                               selectedXYZ));
+    
     /*
-     * coordinate step to move ONE slice in coordinates
+     * coordinate step to move between adjacent slices
      */
-    const Vector3D singleSliceCoordStepXYZ(sliceInfo.m_normalVector * sliceThickness);
+    Vector3D sliceCoordIncreaseDirectionVector;
+    sliceInfo.m_sliceCoordIncreasingDirectionPlane.getNormalVector(sliceCoordIncreaseDirectionVector);
+    const Vector3D singleSliceCoordStepXYZ(sliceCoordIncreaseDirectionVector * sliceThickness);
     if (m_debugFlag) std::cout << "Single slice step XYZ: " << singleSliceCoordStepXYZ.toString() << std::endl;
     
     /*
-     * Coordinate step to move between adjacent montage slices
+     * Coordinate step to move between adjacent MONTAGE slices
      */
-    const Vector3D sliceCoordStepXYZ(singleSliceCoordStepXYZ * sliceIndexStep);
-    if (m_debugFlag) std::cout << "   Montage slice step XYZ: " << sliceCoordStepXYZ.toString() << std::endl;
+    const Vector3D montageSliceCoordStepXYZ(singleSliceCoordStepXYZ * sliceIndexStep);
+    if (m_debugFlag) std::cout << "   Montage slice step XYZ: " << montageSliceCoordStepXYZ.toString() << std::endl;
     
     /*
      * Offset (in slice indices) of first slice (top left) in montage grid
@@ -3855,15 +3916,12 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
      * XYZ offset of first slice (top left) in montage grid from the selected
      * slice coordinates (XYZ in toolbar)
      */
-    const Vector3D firstSliceOffsetXYZ(sliceCoordStepXYZ * firstSliceIndexOffset);
+    const Vector3D firstSliceOffsetXYZ(montageSliceCoordStepXYZ * firstSliceIndexOffset);
     
     /*
      * XYZ of first slice (top left) in montage grid
      */
-    Vector3D sliceXYZ(selectedXYZ
-                      + (sliceInfo.m_radiologicalOrientationFlag
-                         ? -firstSliceOffsetXYZ
-                         : firstSliceOffsetXYZ));
+    Vector3D sliceXYZ(selectedXYZ + firstSliceOffsetXYZ);
     
     /*
      * "Middle" slice that is used to set object to window transform
@@ -3923,7 +3981,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
             }
             
             if (showCoordinates) {
-                const float offsetDistance(sliceInfo.m_plane.signedDistanceToPlane(sliceXYZ));
+                const float offsetDistance(sliceInfo.m_sliceCoordIncreasingDirectionPlane.signedDistanceToPlane(sliceXYZ));
                 const AString plusSignText((offsetDistance > 0.0) ? "+" : "");
                 AString coordText = (plusSignText
                                      + AString::number(offsetDistance, 'f', montageCoordPrecision)
@@ -3946,10 +4004,49 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                                                                  5,
                                                                  annotationText);
             }
-            
-            sliceXYZ += (sliceInfo.m_radiologicalOrientationFlag
-                         ? sliceCoordStepXYZ
-                         : -sliceCoordStepXYZ);
+
+            /*
+             * Move 'down' along axis
+             */
+            sliceXYZ -= montageSliceCoordStepXYZ;
         }
     }
+}
+
+/**
+ * @return Signed thickness of slice for the given slice plane
+ */
+float
+BrainOpenGLVolumeMprTwoDrawing::getSignedSliceThickness(const VolumeMappableInterface* volumeInterface,
+                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const
+{
+    CaretAssert(volumeInterface);
+    float thickness(1.0);
+    
+    /*
+     * Voxel sizes for underlay volume
+     */
+    float x1, y1, z1;
+    float x2, y2, z2;
+    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+    const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
+    CaretAssert(underlayVolume);
+    underlayVolume->indexToSpace(0, 0, 0, x1, y1, z1);
+    underlayVolume->indexToSpace(1, 1, 1, x2, y2, z2);
+    
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            thickness = z2 - z1;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            thickness = y2 - y1;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            thickness = x2 - x1;
+            break;
+    }
+
+    return thickness;
 }
