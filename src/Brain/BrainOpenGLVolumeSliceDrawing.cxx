@@ -491,8 +491,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
     const int32_t numCols = m_browserTabContent->getVolumeMontageNumberOfColumns();
     CaretAssert(numCols > 0);
     
-    const int32_t montageCoordPrecision = m_browserTabContent->getVolumeMontageCoordinatePrecision();
-    
     const GapsAndMargins* gapsAndMargins = m_brain->getGapsAndMargins();
     
     const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;

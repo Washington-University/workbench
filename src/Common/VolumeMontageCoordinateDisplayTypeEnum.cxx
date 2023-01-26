@@ -111,9 +111,8 @@ VolumeMontageCoordinateDisplayTypeEnum::initialize()
                                                               "Offset"));
     
     enumData.push_back(VolumeMontageCoordinateDisplayTypeEnum(XYZ,
-                                    "XYZ", 
-                                    "Xyz"));
-    
+                                                              "XYZ",
+                                                              "XYZ"));
 }
 
 /**
