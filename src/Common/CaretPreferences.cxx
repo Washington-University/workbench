@@ -174,6 +174,12 @@ CaretPreferences::CaretPreferences()
                                                                  CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                  false));
     
+    m_volumeMontageCoordinateDisplayType.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                            "m_volumeMontageCoordinateDisplayType",
+                                                                            CaretPreferenceDataValue::DataType::STRING,
+                                                                            CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                            VolumeMontageCoordinateDisplayTypeEnum::toName(VolumeMontageCoordinateDisplayTypeEnum::OFFSET)));
+    
     m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
 }
 
@@ -1824,6 +1830,31 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
     this->setBoolean(CaretPreferences::NAME_VOLUME_AXES_LABELS, 
                      this->displayVolumeAxesLabels);
     this->qSettings->sync();
+}
+
+/**
+ * @return Type of coordinate displayed on volume montage slices
+ */
+VolumeMontageCoordinateDisplayTypeEnum::Enum
+CaretPreferences::getVolumeMontageCoordinatesDislayType() const
+{
+    QString stringValue(m_volumeMontageCoordinateDisplayType->getValue().toString());
+    bool validFlag(false);
+    const VolumeMontageCoordinateDisplayTypeEnum::Enum enumValue =
+       VolumeMontageCoordinateDisplayTypeEnum::fromName(stringValue, &validFlag);
+    return enumValue;
+}
+
+/**
+ * Set the type of coordinate displayed on volume montage slices
+ * @param displayType
+ *    Type to display
+ */
+void
+CaretPreferences::setVolumeMontageCoordinateDisplayType(const VolumeMontageCoordinateDisplayTypeEnum::Enum displayType)
+{
+    const QString stringValue = VolumeMontageCoordinateDisplayTypeEnum::toName(displayType);
+    m_volumeMontageCoordinateDisplayType->setValue(stringValue);
 }
 
 

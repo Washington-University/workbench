@@ -566,18 +566,6 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
     }
     
     /*
-     * Foreground color for slice coordinate text
-     */
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
-    foregroundRGBA[3] = 255;
-    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
-    uint8_t backgroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
-    backgroundRGBA[3] = 255;
-    
-    /*
      * Determine a slice offset to selected slices is in
      * the center of the montage
      */
@@ -639,24 +627,14 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
                                                   sliceCoordinates,
                                                   vp);
                     
-                    if (showCoordinates) {
-                        const AString coordText = (axisLetter
-                                                   + "="
-                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision));
-                        
-                        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontPercentViewportSize(10.0f);
-                        annotationText.setTextColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomTextColor(foregroundRGBA);
-                        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomBackgroundColor(backgroundRGBA);
-                        annotationText.setText(coordText);
-                        m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
-                                                                         5,
-                                                                         annotationText);
-                    }
+                    const float textVpX(vpSizeX - 5);
+                    const float textVpY(5);
+                    BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
+                                                                               m_browserTabContent,
+                                                                               sliceViewPlane,
+                                                                               textVpX, textVpY,
+                                                                               sliceCoordinates,
+                                                                               sliceCoord);
                 }
                 sliceIndex -= sliceStep;
             }
@@ -5076,3 +5054,108 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
     glShadeModel(GL_SMOOTH);
 }
 
+/**
+ * Draw slice coordinates on a montage slice
+ * @param fixedPipelineDrawing,
+ *    The fixed pipeline drawing
+ * @param browserTabContent,
+ *    Content of the browser tab
+ * @param sliceViewPlane
+ *    Slice view plane
+ * @param viewportTextX,
+ *    Viewport X for text
+ * @param viewportTextY,
+ *    Viewport Y for text
+ * @param sliceXYZ,
+ *    The slice 3D coordinate
+ * @param sliceOffset
+ *    The slice offset
+ */
+void
+BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                           const BrowserTabContent* browserTabContent,
+                                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                           const float viewportTextX,
+                                                           const float viewportTextY,
+                                                           const Vector3D sliceXYZ,
+                                                           const float sliceOffset)
+{
+    if ( ! browserTabContent->isVolumeMontageAxesCoordinatesDisplayed()) {
+        return;
+    }
+    
+    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
+    foregroundRGBA[3] = 255;
+    const VolumeMontageCoordinateDisplayTypeEnum::Enum coordDisplayType(browserTabContent->getVolumeMontageCoordinatesDislayType());
+    uint8_t backgroundRGBA[4];
+    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
+    backgroundRGBA[3] = 255;
+    const int32_t precision(browserTabContent->getVolumeMontageCoordinatePrecision());
+    
+    AString coordText;
+    switch (coordDisplayType) {
+        case VolumeMontageCoordinateDisplayTypeEnum::OFF:
+            break;
+        case VolumeMontageCoordinateDisplayTypeEnum::OFFSET:
+        {
+            switch (browserTabContent->getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                {
+                    const AString plusSignText((sliceOffset > 0.0) ? "+" : "");
+                    coordText = (plusSignText
+                                 + AString::number(sliceOffset, 'f', precision)
+                                 + "mm");
+                }
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                {
+                    AString axisLetter;
+                    switch (sliceViewPlane) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            CaretAssert(0);
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            axisLetter = "Z";
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            axisLetter = "Y";
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            axisLetter = "X";
+                            break;
+                    }
+                    coordText = (axisLetter
+                                 + "="
+                                 + AString::number(sliceOffset, 'f', precision));
+                }
+                    break;
+            }
+        }
+            break;
+        case VolumeMontageCoordinateDisplayTypeEnum::XYZ:
+            coordText = (AString::number(sliceXYZ[0], 'f', precision)
+                         + ", "
+                         + AString::number(sliceXYZ[1], 'f', precision)
+                         + ", "
+                         + AString::number(sliceXYZ[2], 'f', precision));
+            break;
+    }
+    
+    if ( ! coordText.isEmpty()) {
+        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+        annotationText.setFontPercentViewportSize(10.0f);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomTextColor(foregroundRGBA);
+        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomBackgroundColor(backgroundRGBA);
+        annotationText.setText(coordText);
+        fixedPipelineDrawing->drawTextAtViewportCoords(viewportTextX,
+                                                       viewportTextY,
+                                                       annotationText);
+    }
+}

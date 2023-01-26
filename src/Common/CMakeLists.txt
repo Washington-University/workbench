@@ -198,6 +198,7 @@ TriStateSelectionStatusEnum.h
 UnitsConversion.h
 Vector3D.h
 VectorOperation.h
+VolumeMontageCoordinateDisplayTypeEnum.h
 VolumeSliceViewAllPlanesLayoutEnum.h
 VoxelIJK.h
 WorkbenchQtMessageHandler.h
@@ -352,6 +353,7 @@ TriStateSelectionStatusEnum.cxx
 UnitsConversion.cxx
 Vector3D.cxx
 VectorOperation.cxx
+VolumeMontageCoordinateDisplayTypeEnum.cxx
 VolumeSliceViewAllPlanesLayoutEnum.cxx
 WorkbenchQtMessageHandler.cxx
 WorkbenchSpecialVersionEnum.cxx

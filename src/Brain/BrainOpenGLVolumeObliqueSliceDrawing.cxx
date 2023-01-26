@@ -568,18 +568,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
     }
     
     /*
-     * Foreground color for slice coordinate text
-     */
-    const CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    uint8_t foregroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorForegroundVolumeView(foregroundRGBA);
-    foregroundRGBA[3] = 255;
-    uint8_t backgroundRGBA[4];
-    prefs->getBackgroundAndForegroundColors()->getColorBackgroundVolumeView(backgroundRGBA);
-    backgroundRGBA[3] = 255;
-    const bool showCoordinates = m_browserTabContent->isVolumeMontageAxesCoordinatesDisplayed();
-    
-    /*
      * Determine a slice offset to selected slices is in
      * the center of the montage
      */
@@ -641,25 +629,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
                                                   sliceCoordinates,
                                                   vp);
                     
-                    if (showCoordinates) {
-                        const AString coordText = (axisLetter
-                                                   + "="
-                                                   + AString::number(sliceCoord, 'f', montageCoordPrecision));
-                        
-                        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-                        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-                        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-                        annotationText.setFontPercentViewportSize(10.0f);
-                        annotationText.setLineColor(CaretColorEnum::NONE);
-                        annotationText.setTextColor(CaretColorEnum::CUSTOM);
-                        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-                        annotationText.setCustomTextColor(foregroundRGBA);
-                        annotationText.setCustomBackgroundColor(backgroundRGBA);
-                        annotationText.setText(coordText);
-                        m_fixedPipelineDrawing->drawTextAtViewportCoords((vpSizeX - 5),
-                                                                         5.0,
-                                                                         annotationText);
-                    }
+                    const float textVpX(vpSizeX - 5);
+                    const float textVpY(5);
+                    BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
+                                                                               m_browserTabContent,
+                                                                               sliceViewPlane,
+                                                                               textVpX, textVpY,
+                                                                               sliceCoordinates,
+                                                                               sliceCoord);
                 }
                 sliceIndex -= sliceStep;
             }

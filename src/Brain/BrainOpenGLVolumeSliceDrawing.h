@@ -88,6 +88,14 @@ namespace caret {
                                               const Plane& plane,
                                               const float sliceThickness);
         
+        static void drawMontageSliceCoordinates(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                const BrowserTabContent* browserTabContent,
+                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                const float viewportTextX,
+                                                const float viewportTextY,
+                                                const Vector3D sliceXYZ,
+                                                const float sliceOffset);
+        
         // ADD_NEW_METHODS_HERE
         
     private:

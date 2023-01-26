@@ -99,6 +99,7 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "ScenePrimitive.h"
 #include "SessionManager.h"
 #include "Surface.h"
 #include "SurfaceMontageConfigurationCerebellar.h"
@@ -160,6 +161,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
     m_displayVolumeAxesCrosshairLabels = prefs->isVolumeAxesLabelsDisplayed();
     m_displayVolumeMontageAxesCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
+    m_volumeMontageCoordinateDisplayType = prefs->getVolumeMontageCoordinatesDislayType();
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
 
     m_scaleBar.reset(new AnnotationScaleBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
@@ -267,6 +269,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_displayVolumeAxesCrosshairLabels);
     m_sceneClassAssistant->add("m_displayVolumeMontageAxesCoordinates",
                                &m_displayVolumeMontageAxesCoordinates);
+    m_sceneClassAssistant->add<VolumeMontageCoordinateDisplayTypeEnum, VolumeMontageCoordinateDisplayTypeEnum::Enum>("m_volumeMontageCoordinateDisplayType",
+                                                                                                                     &m_volumeMontageCoordinateDisplayType);
     m_sceneClassAssistant->add("m_volumeMontageCoordinatePrecision",
                                &m_volumeMontageCoordinatePrecision);
 
@@ -5713,6 +5717,16 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         }
     }
 
+    /*
+     * Coordinate display type on volume montages slices
+     * from bool to enum on 25 jan 2023.  If not found,
+     * default it to 'offset'.
+     */
+    const SceneObject* volumeMontageCoordinateDisplayTypeObject(sceneClass->getObjectWithName("m_volumeMontageCoordinateDisplayType"));
+    if ( ! volumeMontageCoordinateDisplayTypeObject) {
+        m_volumeMontageCoordinateDisplayType = VolumeMontageCoordinateDisplayTypeEnum::OFFSET;
+    }
+
     testForRestoreSceneWarnings(sceneAttributes,
                                 sceneClass->getVersionNumber());
 }
@@ -6503,6 +6517,27 @@ BrowserTabContent::setVolumeMontageAxesCoordinatesDisplayed(const bool displayed
 }
 
 /**
+ * @return Type of coordinate displayed on volume montage slices
+ */
+VolumeMontageCoordinateDisplayTypeEnum::Enum
+BrowserTabContent::getVolumeMontageCoordinatesDislayType() const
+{
+    return m_volumeMontageCoordinateDisplayType;
+}
+
+/**
+ * Set the type of coordinate displayed on volume montage slices
+ * @param displayType
+ *    Type to display
+ */
+void
+BrowserTabContent::setVolumeMontageCoordinateDisplayType(const VolumeMontageCoordinateDisplayTypeEnum::Enum displayType)
+{
+    m_volumeMontageCoordinateDisplayType = displayType;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
  * @return Digits right of decimal for montage coordinates
  */
 int32_t
@@ -7075,6 +7110,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_displayVolumeAxesCrosshairs = btc->m_displayVolumeAxesCrosshairs;
                 m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
                 m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
+                m_volumeMontageCoordinateDisplayType = btc->m_volumeMontageCoordinateDisplayType;
                 m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
                 m_mprRotationX = btc->m_mprRotationX;
                 m_mprRotationY = btc->m_mprRotationY;
@@ -7218,6 +7254,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_displayVolumeAxesCrosshairs = m_displayVolumeAxesCrosshairs;
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
+                btc->m_volumeMontageCoordinateDisplayType = m_volumeMontageCoordinateDisplayType;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
                 btc->m_mprRotationX = m_mprRotationX;
                 btc->m_mprRotationY = m_mprRotationY;

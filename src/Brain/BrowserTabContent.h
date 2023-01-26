@@ -48,6 +48,7 @@
 #include "VolumeMprViewModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
+#include "VolumeMontageCoordinateDisplayTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -560,6 +561,10 @@ namespace caret {
         
         void setVolumeMontageAxesCoordinatesDisplayed(const bool displayed);
 
+        VolumeMontageCoordinateDisplayTypeEnum::Enum getVolumeMontageCoordinatesDislayType() const;
+        
+        void setVolumeMontageCoordinateDisplayType(const VolumeMontageCoordinateDisplayTypeEnum::Enum displayType);
+        
         int32_t getVolumeMontageCoordinatePrecision() const;
         
         void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
@@ -850,6 +855,9 @@ namespace caret {
         
         /** display crosshair labels on volume slices */
         bool m_displayVolumeAxesCrosshairLabels;
+        
+        /** type of coordinates displayed on montage slices */
+        VolumeMontageCoordinateDisplayTypeEnum::Enum m_volumeMontageCoordinateDisplayType = VolumeMontageCoordinateDisplayTypeEnum::OFFSET;
         
         /** display coordinates on montage */
         bool m_displayVolumeMontageAxesCoordinates;

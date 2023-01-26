@@ -38,6 +38,7 @@
 #include "RecentSceneInfoContainer.h"
 #include "SpecFileDialogViewFilesTypeEnum.h"
 #include "ToolBarWidthModeEnum.h"
+#include "VolumeMontageCoordinateDisplayTypeEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 class QSettings;
@@ -151,6 +152,10 @@ namespace caret {
         bool isVolumeAxesLabelsDisplayed() const;
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
+        
+        VolumeMontageCoordinateDisplayTypeEnum::Enum getVolumeMontageCoordinatesDislayType() const;
+        
+        void setVolumeMontageCoordinateDisplayType(const VolumeMontageCoordinateDisplayTypeEnum::Enum displayType);
         
         bool isVolumeMontageAxesCoordinatesDisplayed() const;
         
@@ -431,6 +436,8 @@ namespace caret {
         bool displayVolumeAxesLabels;
         
         bool displayVolumeAxesCoordinates;
+        
+        std::unique_ptr<CaretPreferenceDataValue> m_volumeMontageCoordinateDisplayType;
         
         int32_t volumeMontageGap;
         

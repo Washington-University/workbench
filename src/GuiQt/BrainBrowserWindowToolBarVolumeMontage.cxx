@@ -27,6 +27,7 @@
 #include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QSpinBox>
 #include <QToolButton>
 
@@ -105,10 +106,26 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox,
                                                          "Set volume montage spacing");
     
+    m_sliceCoordinateTypeMenu = new QMenu();
+    std::vector<VolumeMontageCoordinateDisplayTypeEnum::Enum> coordTypes;
+    VolumeMontageCoordinateDisplayTypeEnum::getAllEnums(coordTypes);
+    for (auto& ct : coordTypes) {
+        QAction* action(new QAction(VolumeMontageCoordinateDisplayTypeEnum::toGuiName(ct)));
+        action->setData(VolumeMontageCoordinateDisplayTypeEnum::toIntegerCode(ct));
+        action->setCheckable(true);
+        m_sliceCoordinateTypeMenu->addAction(action);
+    }
+    QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow);
+    QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::triggered,
+                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuTriggered);
+    
     m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
     m_showSliceCoordinateAction->setCheckable(true);
-    m_showSliceCoordinateAction->setToolTip("Show coordinates on slices");
+    m_showSliceCoordinateAction->setToolTip("<html>Click button to show/hide coordinates on slices; "
+                                            "click arrow for options</html>");
+    m_showSliceCoordinateAction->setMenu(m_sliceCoordinateTypeMenu);
     QObject::connect(m_showSliceCoordinateAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarVolumeMontage::showSliceCoordinateToolButtonClicked);
     m_showSliceCoordinateAction->setObjectName(objectNamePrefix
@@ -159,8 +176,8 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_montageSpacingSpinBox, 2, 1);
     gridLayout->addWidget(decimalsLabel, 3, 0);
     gridLayout->addWidget(m_sliceCoordinatePrecisionSpinBox, 3, 1);
-    gridLayout->addWidget(showSliceCoordToolButton, 4, 0);
-    gridLayout->addWidget(montageEnabledToolButton, 4, 1);
+    gridLayout->addWidget(showSliceCoordToolButton, 4, 0, Qt::AlignLeft);
+    gridLayout->addWidget(montageEnabledToolButton, 4, 1, Qt::AlignRight);
     
     m_volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeMontageWidgetGroup->add(m_montageRowsSpinBox);
@@ -281,6 +298,50 @@ BrainBrowserWindowToolBarVolumeMontage::showSliceCoordinateToolButtonClicked(boo
     this->updateGraphicsWindowAndYokedWindows();
 }
 
+/**
+ * Called when slice coordinate type menu is about to show
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow()
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const VolumeMontageCoordinateDisplayTypeEnum::Enum coordType(btc->getVolumeMontageCoordinatesDislayType());
+    const int32_t coordTypeInt(VolumeMontageCoordinateDisplayTypeEnum::toIntegerCode(coordType));
+    QList<QAction*> menuActions(m_sliceCoordinateTypeMenu->actions());
+    const int32_t numActions(menuActions.size());
+    for (int32_t i = 0; i < numActions; i++) {
+        QAction* a(menuActions[i]);
+        CaretAssert(a);
+        if (a->data().toInt() == coordTypeInt) {
+            a->setChecked(true);
+        }
+        else {
+            a->setChecked(false);
+        }
+    }
+}
+
+/**
+ * Called when item on slice coordinate type menu is selected
+ *
+ * @param action
+ *     Action that was selected
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuTriggered(QAction* action)
+{
+    if (action != NULL) {
+        const int32_t coordTypeInt(action->data().toInt());
+        bool validFlag(false);
+        const VolumeMontageCoordinateDisplayTypeEnum::Enum coordType(VolumeMontageCoordinateDisplayTypeEnum::fromIntegerCode(coordTypeInt,
+                                                                                                                             &validFlag));
+        if (validFlag) {
+            BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+            btc->setVolumeMontageCoordinateDisplayType(coordType);
+            this->updateGraphicsWindowAndYokedWindows();
+        }
+    }
+}
 
 /**
  * Called when montage slice precision spin box value is changed.

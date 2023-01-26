@@ -26,6 +26,7 @@
 
 class QAction;
 class QCheckBox;
+class QMenu;
 class QSpinBox;
 
 namespace caret {
@@ -52,6 +53,8 @@ namespace caret {
         void montageEnabledActionToggled(bool);
         
         void showSliceCoordinateToolButtonClicked(bool);
+        void sliceCoordinateTypeMenuAboutToShow();
+        void sliceCoordinateTypeMenuTriggered(QAction* action);
         void slicePrecisionSpinBoxValueChanged(int);
         
     private:
@@ -66,6 +69,7 @@ namespace caret {
         QSpinBox* m_montageSpacingSpinBox;
         
         QAction* m_showSliceCoordinateAction;
+        QMenu*    m_sliceCoordinateTypeMenu;
         QSpinBox* m_sliceCoordinatePrecisionSpinBox;
         
         QAction* m_montageEnabledAction;
