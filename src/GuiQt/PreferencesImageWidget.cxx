@@ -44,6 +44,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "ImageFile.h"
 #include "PreferencesDialog.h"
+#include "WuQMessageBox.h"
 #include "WuQTrueFalseComboBox.h"
 #include "WuQtUtilities.h"
 
@@ -59,7 +60,7 @@ PreferencesImageWidget::PreferencesImageWidget(QWidget* parent)
     gridLayout->setColumnStretch(2, 100);
 
     /*
-     * Dimension combo box
+     * CZI Dimension combo box
      */
     const QString dimTT("Preferred dimension for loading higher-resolution CZI Images.  "
                         "Larger size will take longer to load but will reduce the "
@@ -83,6 +84,15 @@ PreferencesImageWidget::PreferencesImageWidget(QWidget* parent)
     
     dimensionLabel->setToolTip(dimensionToolTip);
 
+    const AString cziDimNote("CZI Dimension: A larger dimension will take longer to load but the frequency of loading "
+                             "will be reduced.  If the dimension is too small, higher resolution images "
+                             "may not fill the display, especially on high-resolution displays.  Any files in memory "
+                             "MUST be reloaded if this value is changed.");
+    QLabel* cziDimNoteLabel(new QLabel(cziDimNote));
+    cziDimNoteLabel->setWordWrap(true);
+//    PreferencesDialog::addWidgetToLayout(gridLayout, cziDimNote, NULL);
+    gridLayout->addWidget(cziDimNoteLabel, gridLayout->rowCount(), 0, 1, 2);
+    
     /*
      * Texture compression
      */
@@ -205,6 +215,8 @@ PreferencesImageWidget::cziDimensionChanged(int index)
     CaretAssert(m_preferences);
     m_preferences->setCziDimension(dimension);
     updateGraphicsAndUserInterface();
+    
+    WuQMessageBox::informationOk(this, "CZI files must be reloaded or wb_view restarted after changing this value.");
 }
 
 /**
