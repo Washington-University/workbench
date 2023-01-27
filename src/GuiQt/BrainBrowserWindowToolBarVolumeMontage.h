@@ -26,6 +26,7 @@
 
 class QAction;
 class QCheckBox;
+class QDoubleSpinBox;
 class QMenu;
 class QSpinBox;
 
@@ -56,6 +57,7 @@ namespace caret {
         void sliceCoordinateTypeMenuAboutToShow();
         void sliceCoordinateTypeMenuTriggered(QAction* action);
         void slicePrecisionSpinBoxValueChanged(int);
+        void sliceCoordinateFontHeightValueChanged(double);
         
     private:
         BrainBrowserWindowToolBarVolumeMontage(const BrainBrowserWindowToolBarVolumeMontage&);
@@ -71,6 +73,7 @@ namespace caret {
         QAction* m_showSliceCoordinateAction;
         QMenu*    m_sliceCoordinateTypeMenu;
         QSpinBox* m_sliceCoordinatePrecisionSpinBox;
+        QDoubleSpinBox* m_sliceCoordinateFontHeightSpinBox;
         
         QAction* m_montageEnabledAction;
         

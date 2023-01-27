@@ -5146,7 +5146,7 @@ BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipel
         AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        annotationText.setFontPercentViewportSize(10.0f);
+        annotationText.setFontPercentViewportSize(browserTabContent->getVolumeMontageCoordinateFontHeight());
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
         annotationText.setCustomTextColor(foregroundRGBA);
         annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);

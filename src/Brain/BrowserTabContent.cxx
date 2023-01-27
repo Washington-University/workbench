@@ -163,6 +163,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_displayVolumeMontageAxesCoordinates = prefs->isVolumeMontageAxesCoordinatesDisplayed();
     m_volumeMontageCoordinateDisplayType = prefs->getVolumeMontageCoordinatesDislayType();
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
+    m_volumeMontageCoordinateFontHeight = 10.0;
 
     m_scaleBar.reset(new AnnotationScaleBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
     initializeScaleBar();
@@ -273,6 +274,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                                                                                                      &m_volumeMontageCoordinateDisplayType);
     m_sceneClassAssistant->add("m_volumeMontageCoordinatePrecision",
                                &m_volumeMontageCoordinatePrecision);
+    m_sceneClassAssistant->add("m_volumeMontageCoordinateFontHeight",
+                               &m_volumeMontageCoordinateFontHeight);
 
     m_sceneClassAssistant->add("m_lightingEnabled",
                                &m_lightingEnabled);
@@ -442,6 +445,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_displayVolumeAxesCrosshairLabels = tabToClone->m_displayVolumeAxesCrosshairLabels;
     m_displayVolumeMontageAxesCoordinates = tabToClone->m_displayVolumeMontageAxesCoordinates;
     m_volumeMontageCoordinatePrecision = tabToClone->m_volumeMontageCoordinatePrecision;
+    m_volumeMontageCoordinateFontHeight = tabToClone->m_volumeMontageCoordinateFontHeight;
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
@@ -6560,6 +6564,29 @@ BrowserTabContent::setVolumeMontageCoordinatePrecision(const int32_t volumeMonta
 }
 
 /**
+ * @return Font height for montage coordinates
+ */
+float
+BrowserTabContent::getVolumeMontageCoordinateFontHeight() const
+{
+    return m_volumeMontageCoordinateFontHeight;
+}
+
+/**
+ * Set font height for montage coordinates
+ *
+ * @param volumeMontageCoordinateFontHeight
+ *     New font height
+ */
+void
+BrowserTabContent::setVolumeMontageCoordinateFontHeight(const float volumeMontageCoordinateFontHeight)
+{
+    m_volumeMontageCoordinateFontHeight = volumeMontageCoordinateFontHeight;
+    updateBrainModelYokedBrowserTabs();
+}
+
+
+/**
  * If true, selected histology slices in tab move to location
  * of the identification operation.
  */
@@ -7112,6 +7139,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_displayVolumeMontageAxesCoordinates = btc->m_displayVolumeMontageAxesCoordinates;
                 m_volumeMontageCoordinateDisplayType = btc->m_volumeMontageCoordinateDisplayType;
                 m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
+                m_volumeMontageCoordinateFontHeight = btc->m_volumeMontageCoordinateFontHeight;
                 m_mprRotationX = btc->m_mprRotationX;
                 m_mprRotationY = btc->m_mprRotationY;
                 m_mprRotationZ = btc->m_mprRotationZ;
@@ -7256,6 +7284,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;
                 btc->m_volumeMontageCoordinateDisplayType = m_volumeMontageCoordinateDisplayType;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
+                btc->m_volumeMontageCoordinateFontHeight = m_volumeMontageCoordinateFontHeight;
                 btc->m_mprRotationX = m_mprRotationX;
                 btc->m_mprRotationY = m_mprRotationY;
                 btc->m_mprRotationZ = m_mprRotationZ;

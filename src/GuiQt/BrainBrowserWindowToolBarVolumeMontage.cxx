@@ -25,11 +25,13 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QMenu>
 #include <QSpinBox>
 #include <QToolButton>
+#include <QWidgetAction>
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -106,6 +108,22 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox,
                                                          "Set volume montage spacing");
     
+    m_sliceCoordinateFontHeightSpinBox = new QDoubleSpinBox();
+    m_sliceCoordinateFontHeightSpinBox->setMinimum(0.1);
+    m_sliceCoordinateFontHeightSpinBox->setMaximum(100.0);
+    m_sliceCoordinateFontHeightSpinBox->setSingleStep(0.1);
+    m_sliceCoordinateFontHeightSpinBox->setSuffix("%");
+    QObject::connect(m_sliceCoordinateFontHeightSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateFontHeightValueChanged);
+    QWidget* fontHeightWidget(new QWidget());
+    QHBoxLayout* fontHeightLayout(new QHBoxLayout(fontHeightWidget));
+    fontHeightLayout->setContentsMargins(5, 0, 5, 0);
+    fontHeightLayout->addWidget(new QLabel("Font Height: "));
+    fontHeightLayout->addWidget(m_sliceCoordinateFontHeightSpinBox);
+    fontHeightWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QWidgetAction* fontHeightWidgetAction(new QWidgetAction(this));
+    fontHeightWidgetAction->setDefaultWidget(fontHeightWidget);
+
     m_sliceCoordinateTypeMenu = new QMenu();
     std::vector<VolumeMontageCoordinateDisplayTypeEnum::Enum> coordTypes;
     VolumeMontageCoordinateDisplayTypeEnum::getAllEnums(coordTypes);
@@ -115,10 +133,14 @@ m_parentToolBar(parentToolBar)
         action->setCheckable(true);
         m_sliceCoordinateTypeMenu->addAction(action);
     }
+    m_sliceCoordinateTypeMenu->addSeparator();
+    m_sliceCoordinateTypeMenu->addAction(fontHeightWidgetAction);
+    
     QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::aboutToShow,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow);
     QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::triggered,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuTriggered);
+    
     
     m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
@@ -319,6 +341,9 @@ BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow()
             a->setChecked(false);
         }
     }
+    
+    QSignalBlocker fontHeightBlocker(m_sliceCoordinateFontHeightSpinBox);
+    m_sliceCoordinateFontHeightSpinBox->setValue(btc->getVolumeMontageCoordinateFontHeight());
 }
 
 /**
@@ -359,3 +384,18 @@ BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged(int va
     this->updateGraphicsWindowAndYokedWindows();
 }
 
+/**
+ * Called when montage coordinate font height is changed
+ *
+ * @param value
+ *     New value
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateFontHeightValueChanged(double value)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    
+    btc->setVolumeMontageCoordinateFontHeight(value);
+    
+    this->updateGraphicsWindowAndYokedWindows();
+}

@@ -569,6 +569,10 @@ namespace caret {
         
         void setVolumeMontageCoordinatePrecision(const int32_t volumeMontageCoordinatePrecision);
         
+        float getVolumeMontageCoordinateFontHeight() const;
+        
+        void setVolumeMontageCoordinateFontHeight(const float volumeMontageCoordinateFontHeight);
+        
         HistologyCoordinate getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
         void setHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile,
@@ -864,6 +868,9 @@ namespace caret {
         
         /** precision for coordinate on montage */
         int32_t m_volumeMontageCoordinatePrecision;
+        
+        /** percentage height for font for coordinate text*/
+        float m_volumeMontageCoordinateFontHeight = 10.0;
         
         /** enable lighting (shading) added 29 March 2018 */
         bool m_lightingEnabled;
