@@ -160,88 +160,106 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
 {
     QString buttonText;
     AString buttonToolTip;
-    QWidget* colorSwatchWidget = new QWidget();
+    QWidget* userColorSwatchWidget(new QWidget());
+    QWidget* sceneColorSwatchWidget(new QWidget());
+    sceneColorSwatchWidget->setFixedWidth(50);
     
     switch (prefColor) {
         case PREF_COLOR_BACKGROUND_ALL:
             buttonText = "All Background";
             buttonToolTip = "Color for background in All Display";
-            m_backgroundColorAllWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorAllWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorAllWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_CHART:
             buttonText = "Chart Background";
             buttonToolTip = "Color for background in Chart Display";
-            m_backgroundColorChartWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorChartWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorChartWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_SURFACE:
             buttonText = "Surface Background";
             buttonToolTip = "Color for background in Surface Display";
-            m_backgroundColorSurfaceWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorSurfaceWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorSurfaceWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_VOLUME:
             buttonText = "Volume Background";
             buttonToolTip = "Color for background in Volume Display";
-            m_backgroundColorVolumeWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorVolumeWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorVolumeWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_ALL:
             buttonText = "All Foreground";
             buttonToolTip = "Color for foreground (text) in All Display";
-            m_foregroundColorAllWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorAllWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorAllWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_CHART:
             buttonText = "Chart Foreground";
             buttonToolTip = "Color for foreground (text) in Chart Display";
-            m_foregroundColorChartWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorChartWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorChartWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_SURFACE:
             buttonText = "Surface Foreground";
             buttonToolTip = "Color for foreground (text) in Surface Display";
-            m_foregroundColorSurfaceWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorSurfaceWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorSurfaceWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_VOLUME:
             buttonText = "Volume Foreground";
             buttonToolTip = "Color for foreground (text) in Volume Display";
-            m_foregroundColorVolumeWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorVolumeWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorVolumeWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_CHART_MATRIX_GRID_LINES:
             buttonText = "Chart Grid Lines";
             buttonToolTip = "Color for grid lines in a Chart Matrix Display";
-            m_chartMatrixGridLinesColorWidget = colorSwatchWidget;
+            m_userPrefsColors.m_chartMatrixGridLinesColorWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_chartMatrixGridLinesColorWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_CHART_THRESHOLD:
             buttonText = "Chart Threshold";
             buttonToolTip = "Color for thresholded regions in Chart Histogram Display";
-            m_chartHistogramThresholdColorWidget = colorSwatchWidget;
+            m_userPrefsColors.m_chartHistogramThresholdColorWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_chartHistogramThresholdColorWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_WINDOW:
             buttonToolTip = "Color for background in Window";
             buttonText = "Window Background";
-            m_backgroundColorWindowWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorWindowWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorWindowWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_WINDOW:
             buttonToolTip = "Color for foreground (text) in Window Display";
             buttonText = "Window Foreground";
-            m_foregroundColorWindowWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorWindowWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorWindowWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_HISTOLOGY:
             buttonToolTip = "Color for background in Histology Display";
             buttonText    = "Histology Background";
-            m_backgroundColorHistologyWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorHistologyWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorHistologyWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_HISTOLOGY:
             buttonToolTip = "Color for foreground (text) in Histology Display";
             buttonText    = "Histology Foreground";
-            m_foregroundColorHistologyWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorHistologyWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorHistologyWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_BACKGROUND_MEDIA:
             buttonToolTip = "Color for background in Media Display";
             buttonText    = "Media Background";
-            m_backgroundColorMediaWidget = colorSwatchWidget;
+            m_userPrefsColors.m_backgroundColorMediaWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_backgroundColorMediaWidget = sceneColorSwatchWidget;
             break;
         case PREF_COLOR_FOREGROUND_MEDIA:
             buttonToolTip = "Color for foreground (text) in Media Display";
             buttonText    = "Media Foreground";
-            m_foregroundColorMediaWidget = colorSwatchWidget;
+            m_userPrefsColors.m_foregroundColorMediaWidget = userColorSwatchWidget;
+            m_scenePrefsColors.m_foregroundColorMediaWidget = sceneColorSwatchWidget;
             break;
         case NUMBER_OF_PREF_COLORS:
             CaretAssert(0);
@@ -261,7 +279,8 @@ PreferencesDialog::addColorButtonAndSwatch(QGridLayout* gridLayout,
     
     addWidgetsToLayout(gridLayout,
                        colorPushButton,
-                       colorSwatchWidget);
+                       userColorSwatchWidget,
+                       sceneColorSwatchWidget);
 }
 
 
@@ -274,7 +293,12 @@ PreferencesDialog::createColorsWidget()
     QSignalMapper* colorSignalMapper = new QSignalMapper(this);
     
     QGridLayout* gridLayout = new QGridLayout();
-    
+    gridLayout->addWidget(new QLabel("User Colors"), 0, 1, Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("(Editable)"), 1, 1, Qt::AlignHCenter);
+
+    gridLayout->addWidget(new QLabel("From"), 0, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(new QLabel("Scene"), 1, 2, Qt::AlignHCenter);
+
     addColorButtonAndSwatch(gridLayout,
                             PREF_COLOR_FOREGROUND_WINDOW,
                             colorSignalMapper);
@@ -326,7 +350,9 @@ PreferencesDialog::createColorsWidget()
                             PREF_COLOR_BACKGROUND_VOLUME,
                             colorSignalMapper);
     
-    
+    m_sceneColorsActiveCheckBox = new QCheckBox("Scene Colors Active (this can only be turned off)");
+    QObject::connect(m_sceneColorsActiveCheckBox, &QCheckBox::clicked,
+                     this, &PreferencesDialog::sceneColorsActiveCheckBoxClicked);
     
 #if QT_VERSION >= 0x060000
     QObject::connect(colorSignalMapper, &QSignalMapper::mappedInt,
@@ -340,6 +366,7 @@ PreferencesDialog::createColorsWidget()
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(gridLayout);
+    layout->addWidget(m_sceneColorsActiveCheckBox);
     layout->addStretch();
     return widget;
 }
@@ -348,13 +375,17 @@ PreferencesDialog::createColorsWidget()
  * Update the color widget's items.
  *
  * @param prefs
- *     The Caret preferences.
+ *     The preferences
+ * @param colors
+ *     The colors
+ * @param colorWidgets
+ *     The widgets for displaying the colors
  */
 void
-PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
+PreferencesDialog::updateColorWidget(CaretPreferences* prefs,
+                                     const BackgroundAndForegroundColors& colors,
+                                     ColorWidgets& colorWidgets)
 {
-    const BackgroundAndForegroundColors colors = prefs->getUserBackgroundAndForegroundColors();
-    
     for (int32_t i = 0; i < NUMBER_OF_PREF_COLORS; i++) {
         const PREF_COLOR prefColor = (PREF_COLOR)i;
         
@@ -364,67 +395,67 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
         switch (prefColor) {
             case PREF_COLOR_BACKGROUND_ALL:
                 colors.getColorBackgroundAllView(rgb);
-                colorSwatchWidget = m_backgroundColorAllWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorAllWidget;
                 break;
             case PREF_COLOR_BACKGROUND_CHART:
                 colors.getColorBackgroundChartView(rgb);
-                colorSwatchWidget = m_backgroundColorChartWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorChartWidget;
                 break;
             case PREF_COLOR_BACKGROUND_SURFACE:
                 colors.getColorBackgroundSurfaceView(rgb);
-                colorSwatchWidget = m_backgroundColorSurfaceWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorSurfaceWidget;
                 break;
             case PREF_COLOR_BACKGROUND_VOLUME:
                 colors.getColorBackgroundVolumeView(rgb);
-                colorSwatchWidget = m_backgroundColorVolumeWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorVolumeWidget;
                 break;
             case PREF_COLOR_FOREGROUND_ALL:
                 colors.getColorForegroundAllView(rgb);
-                colorSwatchWidget = m_foregroundColorAllWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorAllWidget;
                 break;
             case PREF_COLOR_FOREGROUND_CHART:
                 colors.getColorForegroundChartView(rgb);
-                colorSwatchWidget = m_foregroundColorChartWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorChartWidget;
                 break;
             case PREF_COLOR_FOREGROUND_SURFACE:
                 colors.getColorForegroundSurfaceView(rgb);
-                colorSwatchWidget = m_foregroundColorSurfaceWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorSurfaceWidget;
                 break;
             case PREF_COLOR_FOREGROUND_VOLUME:
                 colors.getColorForegroundVolumeView(rgb);
-                colorSwatchWidget = m_foregroundColorVolumeWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorVolumeWidget;
                 break;
             case PREF_COLOR_CHART_MATRIX_GRID_LINES:
                 colors.getColorChartMatrixGridLines(rgb);
-                colorSwatchWidget = m_chartMatrixGridLinesColorWidget;
+                colorSwatchWidget = colorWidgets.m_chartMatrixGridLinesColorWidget;
                 break;
             case PREF_COLOR_CHART_THRESHOLD:
                 colors.getColorChartHistogramThreshold(rgb);
-                colorSwatchWidget = m_chartHistogramThresholdColorWidget;
+                colorSwatchWidget = colorWidgets.m_chartHistogramThresholdColorWidget;
                 break;
             case PREF_COLOR_BACKGROUND_WINDOW:
                 colors.getColorBackgroundWindow(rgb);
-                colorSwatchWidget = m_backgroundColorWindowWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorWindowWidget;
                 break;
             case PREF_COLOR_FOREGROUND_WINDOW:
                 colors.getColorForegroundWindow(rgb);
-                colorSwatchWidget = m_foregroundColorWindowWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorWindowWidget;
                 break;
             case PREF_COLOR_FOREGROUND_HISTOLOGY:
                 colors.getColorForegroundHistologyView(rgb);
-                colorSwatchWidget = m_foregroundColorHistologyWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorHistologyWidget;
                 break;
             case PREF_COLOR_BACKGROUND_HISTOLOGY:
                 colors.getColorBackgroundHistologyView(rgb);
-                colorSwatchWidget = m_backgroundColorHistologyWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorHistologyWidget;
                 break;
             case PREF_COLOR_FOREGROUND_MEDIA:
                 colors.getColorForegroundMediaView(rgb);
-                colorSwatchWidget = m_foregroundColorMediaWidget;
+                colorSwatchWidget = colorWidgets.m_foregroundColorMediaWidget;
                 break;
             case PREF_COLOR_BACKGROUND_MEDIA:
                 colors.getColorBackgroundMediaView(rgb);
-                colorSwatchWidget = m_backgroundColorMediaWidget;
+                colorSwatchWidget = colorWidgets.m_backgroundColorMediaWidget;
                 break;
             case NUMBER_OF_PREF_COLORS:
                 CaretAssert(0);
@@ -439,6 +470,35 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs)
                                          + ", " + AString::number(rgb[2])
                                          + ");");
     }
+    
+    switch (prefs->getBackgroundAndForegroundColorsMode()) {
+        case BackgroundAndForegroundColorsModeEnum::SCENE:
+            m_sceneColorsActiveCheckBox->setChecked(true);
+            m_sceneColorsActiveCheckBox->setEnabled(true);
+            break;
+        case BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES:
+            m_sceneColorsActiveCheckBox->setChecked(false);
+            m_sceneColorsActiveCheckBox->setEnabled(false);
+            break;
+    }
+}
+
+/**
+ * Called when scene colors active checkbox is clicked
+ */
+void
+PreferencesDialog::sceneColorsActiveCheckBoxClicked(bool checked)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    if (checked) {
+        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::SCENE);
+    }
+    else {
+        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        m_sceneColorsActiveCheckBox->setEnabled(false);
+    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -997,7 +1057,8 @@ PreferencesDialog::addWidgetToLayout(QGridLayout* gridLayout,
 /**
  * Add widgets to the layout.  If rightWidget is NULL,
  * leftItem spans both columns.
- *
+ * @param gridLayout
+ *    The grid layout
  * @param leftWidget
  *    Widget for left column.
  * @param rightWidget
@@ -1019,6 +1080,33 @@ PreferencesDialog::addWidgetsToLayout(QGridLayout* gridLayout,
 }
 
 /**
+ * Add widgets to the layout.
+ * @param gridLayout
+ *    The grid layout
+ * @param leftWidget
+ *    Widget for left column.
+ * @param rightWidget
+ *    Widget for right column.
+ * @param farRightWidget
+ *    Widget for far right column.
+ */
+void
+PreferencesDialog::addWidgetsToLayout(QGridLayout* gridLayout,
+                                      QWidget* leftWidget,
+                                      QWidget* rightWidget,
+                                      QWidget* farRightWidget)
+{
+    CaretAssert(gridLayout);
+    CaretAssert(leftWidget);
+    CaretAssert(rightWidget);
+    CaretAssert(farRightWidget);
+    int row = gridLayout->rowCount();
+    gridLayout->addWidget(leftWidget, row, 0);
+    gridLayout->addWidget(rightWidget, row, 1);
+    gridLayout->addWidget(farRightWidget, row, 2);
+}
+
+/**
  * Called when changes are made to recent files
  */
 void
@@ -1036,7 +1124,13 @@ PreferencesDialog::updateDialog()
     m_allWidgets->blockAllSignals(true);
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    updateColorWidget(prefs);
+    updateColorWidget(prefs,
+                      prefs->getUserBackgroundAndForegroundColors(),
+                      m_userPrefsColors);
+    updateColorWidget(prefs,
+                      prefs->getSceneBackgroundAndForegroundColors(),
+                      m_scenePrefsColors);
+    
     updateMiscellaneousWidget(prefs);
     updateIdentificationWidget(prefs);
     updateOpenGLWidget(prefs);
@@ -1063,70 +1157,88 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
     const BackgroundAndForegroundColors colors = prefs->getUserBackgroundAndForegroundColors();
     
     uint8_t rgb[3] = { 0, 0, 0 };
+    uint8_t otherRGB[3] = { 0, 0, 0 };
+    bool otherValidFlag(true);
     AString prefColorName;
     switch (prefColor) {
         case PREF_COLOR_BACKGROUND_ALL:
             colors.getColorBackgroundAllView(rgb);
+            colors.getColorForegroundAllView(otherRGB);
             prefColorName = "Background - All";
             break;
         case PREF_COLOR_BACKGROUND_CHART:
             colors.getColorBackgroundChartView(rgb);
+            colors.getColorForegroundChartView(otherRGB);
             prefColorName = "Background - Chart";
             break;
         case PREF_COLOR_BACKGROUND_SURFACE:
             colors.getColorBackgroundSurfaceView(rgb);
+            colors.getColorForegroundSurfaceView(otherRGB);
             prefColorName = "Background - Surface";
             break;
         case PREF_COLOR_BACKGROUND_VOLUME:
             colors.getColorBackgroundVolumeView(rgb);
+            colors.getColorForegroundVolumeView(otherRGB);
             prefColorName = "Background - Volume";
             break;
         case PREF_COLOR_FOREGROUND_ALL:
             colors.getColorForegroundAllView(rgb);
+            colors.getColorBackgroundAllView(otherRGB);
             prefColorName = "Foreground - All";
             break;
         case PREF_COLOR_FOREGROUND_CHART:
             colors.getColorForegroundChartView(rgb);
+            colors.getColorBackgroundChartView(otherRGB);
             prefColorName = "Foreground - Chart";
             break;
         case PREF_COLOR_FOREGROUND_SURFACE:
             colors.getColorForegroundSurfaceView(rgb);
+            colors.getColorBackgroundSurfaceView(otherRGB);
             prefColorName = "Foreground - Surface";
             break;
         case PREF_COLOR_FOREGROUND_VOLUME:
             colors.getColorForegroundVolumeView(rgb);
+            colors.getColorBackgroundVolumeView(otherRGB);
             prefColorName = "Foreground - Volume";
             break;
         case PREF_COLOR_CHART_MATRIX_GRID_LINES:
             colors.getColorChartMatrixGridLines(rgb);
             prefColorName = "Chart Matrix Grid Lines";
+            otherValidFlag = false;
             break;
         case PREF_COLOR_CHART_THRESHOLD:
             colors.getColorChartHistogramThreshold(rgb);
             prefColorName = "Chart Histogram Threshold";
+            otherValidFlag = false;
             break;
         case PREF_COLOR_BACKGROUND_WINDOW:
             colors.getColorBackgroundWindow(rgb);
+            colors.getColorForegroundWindow(otherRGB);
             prefColorName = "Background - Window";
             break;
         case PREF_COLOR_FOREGROUND_WINDOW:
             colors.getColorForegroundWindow(rgb);
+            colors.getColorBackgroundWindow(otherRGB);
             prefColorName = "Foreground - Window";
             break;
         case PREF_COLOR_BACKGROUND_HISTOLOGY:
             colors.getColorBackgroundHistologyView(rgb);
+            colors.getColorForegroundHistologyView(otherRGB);
             prefColorName = "Background - Histology";
             break;
         case PREF_COLOR_FOREGROUND_HISTOLOGY:
             colors.getColorForegroundHistologyView(rgb);
+            colors.getColorBackgroundHistologyView(otherRGB);
             prefColorName = "Foreground - Histology";
             break;
         case PREF_COLOR_BACKGROUND_MEDIA:
             colors.getColorBackgroundMediaView(rgb);
+            colors.getColorForegroundMediaView(otherRGB);
             prefColorName = "Background - Media";
             break;
         case PREF_COLOR_FOREGROUND_MEDIA:
             colors.getColorForegroundMediaView(rgb);
+            colors.getColorBackgroundMediaView(otherRGB);
             prefColorName = "Foreground - Media";
             break;
         case NUMBER_OF_PREF_COLORS:
@@ -1148,6 +1260,17 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         rgb[0] = newColor.red();
         rgb[1] = newColor.green();
         rgb[2] = newColor.blue();
+        
+        if (otherValidFlag) {
+            if ((rgb[0] == otherRGB[0])
+                && (rgb[1] == otherRGB[1])
+                && (rgb[2] == otherRGB[2])) {
+                const AString msg("Background and Foreground Colors are the same.  Continue?");
+                if ( ! WuQMessageBox::warningYesNo(this, msg)) {
+                    return;
+                }
+            }
+        }
         
         BackgroundAndForegroundColors colors = prefs->getUserBackgroundAndForegroundColors();
         
@@ -1208,7 +1331,9 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         prefs->setUserBackgroundAndForegroundColors(colors);
         prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
         
-        updateColorWidget(prefs);
+        updateColorWidget(prefs,
+                          prefs->getUserBackgroundAndForegroundColors(),
+                          m_userPrefsColors);
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

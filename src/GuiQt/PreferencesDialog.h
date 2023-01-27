@@ -34,6 +34,7 @@ class QSpinBox;
 
 namespace caret {
     
+    class BackgroundAndForegroundColors;
     class CaretPreferences;
     class EnumComboBoxTemplate;
     class PreferencesDevelopOptionsWidget;
@@ -85,6 +86,9 @@ namespace caret {
         void identificationStereotaxicDistanceValueChanged(double value);
         
         void recentFilesChanged();
+        
+        void sceneColorsActiveCheckBoxClicked(bool checked);
+        
     private:
         enum PREF_COLOR {
             PREF_COLOR_BACKGROUND_ALL          = 0,
@@ -106,13 +110,35 @@ namespace caret {
             NUMBER_OF_PREF_COLORS              = 16
         };
         
+        class ColorWidgets {
+        public:
+            QWidget* m_foregroundColorWindowWidget;
+            QWidget* m_foregroundColorAllWidget;
+            QWidget* m_foregroundColorChartWidget;
+            QWidget* m_foregroundColorSurfaceWidget;
+            QWidget* m_foregroundColorVolumeWidget;
+            QWidget* m_foregroundColorHistologyWidget;
+            QWidget* m_foregroundColorMediaWidget;
+            QWidget* m_backgroundColorWindowWidget;
+            QWidget* m_backgroundColorAllWidget;
+            QWidget* m_backgroundColorChartWidget;
+            QWidget* m_backgroundColorSurfaceWidget;
+            QWidget* m_backgroundColorVolumeWidget;
+            QWidget* m_backgroundColorHistologyWidget;
+            QWidget* m_backgroundColorMediaWidget;
+            QWidget* m_chartMatrixGridLinesColorWidget;
+            QWidget* m_chartHistogramThresholdColorWidget;
+        };
+        
         QWidget* createColorsWidget();
         QWidget* createIdentificationSymbolWidget();
         QWidget* createMiscellaneousWidget();
         QWidget* createOpenGLWidget();
         QWidget* createTabDefaltsWidget();
         
-        void updateColorWidget(CaretPreferences* prefs);
+        void updateColorWidget(CaretPreferences* prefs,
+                               const BackgroundAndForegroundColors& colors,
+                               ColorWidgets& colorWidgets);
         void updateIdentificationWidget(CaretPreferences* prefs);
         void updateMiscellaneousWidget(CaretPreferences* prefs);
         void updateOpenGLWidget(CaretPreferences* prefs);
@@ -128,6 +154,11 @@ namespace caret {
                                        QWidget* leftWidget,
                                        QWidget* rightWidget);
 
+        static void addWidgetsToLayout(QGridLayout* gridLayout,
+                                       QWidget* leftWidget,
+                                       QWidget* rightWidget,
+                                       QWidget* farRightWidget);
+        
         void addColorButtonAndSwatch(QGridLayout* gridLayout,
                                      const PREF_COLOR prefColor,
                                      QSignalMapper* colorSignalMapper);
@@ -136,22 +167,10 @@ namespace caret {
 
         PreferencesDialog& operator=(const PreferencesDialog&);
         
-        QWidget* m_foregroundColorWindowWidget;
-        QWidget* m_foregroundColorAllWidget;
-        QWidget* m_foregroundColorChartWidget;
-        QWidget* m_foregroundColorSurfaceWidget;
-        QWidget* m_foregroundColorVolumeWidget;
-        QWidget* m_foregroundColorHistologyWidget;
-        QWidget* m_foregroundColorMediaWidget;
-        QWidget* m_backgroundColorWindowWidget;
-        QWidget* m_backgroundColorAllWidget;
-        QWidget* m_backgroundColorChartWidget;
-        QWidget* m_backgroundColorSurfaceWidget;
-        QWidget* m_backgroundColorVolumeWidget;
-        QWidget* m_backgroundColorHistologyWidget;
-        QWidget* m_backgroundColorMediaWidget;
-        QWidget* m_chartMatrixGridLinesColorWidget;
-        QWidget* m_chartHistogramThresholdColorWidget;
+        
+        ColorWidgets m_userPrefsColors;
+        ColorWidgets m_scenePrefsColors;
+        QCheckBox* m_sceneColorsActiveCheckBox;
 
         WuQTrueFalseComboBox* m_miscDevelopMenuEnabledComboBox;
         QComboBox* m_miscLoggingLevelComboBox;

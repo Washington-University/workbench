@@ -68,6 +68,8 @@ namespace caret {
         
         BackgroundAndForegroundColorsModeEnum::Enum getBackgroundAndForegroundColorsMode() const;
         
+        BackgroundAndForegroundColors getSceneBackgroundAndForegroundColors();
+        
         void setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
         void setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode);

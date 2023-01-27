@@ -1104,6 +1104,17 @@ CaretPreferences::setUserBackgroundAndForegroundColors(const BackgroundAndForegr
 }
 
 /**
+ * @return The SCENES'S preferred background and foreground colors.
+ *    This method is used only by the PreferencesDialog to
+ *    show the scene's preferred colors.
+ */
+BackgroundAndForegroundColors
+CaretPreferences::getSceneBackgroundAndForegroundColors()
+{
+    return this->sceneColors;
+}
+
+/**
  * Set the SCENE background and foreground colors.
  *    This method is called when scenes are restored.
  */
