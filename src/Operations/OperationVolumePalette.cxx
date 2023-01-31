@@ -20,6 +20,8 @@
 
 #include "OperationVolumePalette.h"
 #include "OperationException.h"
+
+#include "CaretLogger.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
@@ -149,6 +151,13 @@ void OperationVolumePalette::useParameters(OperationParameters* myParams, Progre
         {
             throw OperationException("invalid column specified");
         }
+    }
+    if (myVolume.getType() == SubvolumeAttributes::LABEL)
+    {
+        //label-type volumes have a null pointer for palette
+        //so reset to anatomy, because that is the command's existing behavior when there is no caret extension
+        CaretLogWarning("-volume-palette run on label-type volume '" + myVolumeName + "', resetting to anatomy type");
+        myVolume.setType(SubvolumeAttributes::ANATOMY);
     }
     PaletteColorMapping myMapping = *(myVolume.getMapPaletteColorMapping(0));//create the mapping, then use operator= to set for all requested columns, take defaults from first map
     myMapping.setScaleMode(myMode);
