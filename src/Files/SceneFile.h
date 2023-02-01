@@ -102,6 +102,8 @@ namespace caret {
         
         Scene* getSceneWithName(const AString& sceneName);
         
+        Scene* getSceneWithSceneID(const AString& sceneID);
+        
         void moveScene(Scene* scene,
                        const int32_t indexDelta);
         

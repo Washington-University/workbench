@@ -72,6 +72,13 @@ namespace caret {
         bool updateSceneIDs(SceneFile* sceneFile,
                             AString& errorMessageOut);
         
+        bool checkSceneIDs(SceneFile* sceneFile,
+                           AString& errorMessageOut);
+        
+        bool processCheckSceneIdResponse(SceneFile* sceneFile,
+                                         const AString& responseContent,
+                                         AString& errorMessageOut);
+        
         bool uploadZippedSceneFile(SceneFile* sceneFile,
                                    const AString& zipFileName,
                                    const AString& extractToDirectoryName,

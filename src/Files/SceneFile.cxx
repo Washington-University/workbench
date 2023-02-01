@@ -275,6 +275,28 @@ SceneFile::getSceneWithName(const AString& sceneName)
 }
 
 /**
+ * Get the scene with the given scene ID.
+ * @param sceneID
+ *    ID of scene.
+ * @return
+ *    Scene with given ID or NULL if no scene with
+ *    the given ID.
+ */
+Scene*
+SceneFile::getSceneWithSceneID(const AString& sceneID)
+{
+    const int32_t numScenes = getNumberOfScenes();
+    for (int32_t i = 0; i < numScenes; i++) {
+        Scene* scene = getSceneAtIndex(i);
+        if (scene->getSceneInfo()->getBalsaSceneID() == sceneID) {
+            return scene;
+        }
+    }
+    return NULL;
+}
+
+
+/**
  * Remove the given scene.
  * @param scene
  *    Scene that should be removed.
