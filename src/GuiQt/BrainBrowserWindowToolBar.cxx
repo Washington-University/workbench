@@ -153,6 +153,7 @@
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQHyperlinkToolTip.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBox.h"
 #include "WuQTabBar.h"
@@ -307,6 +308,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      * Scene button action
      */
     QAction* sceneButtonAction = new QAction(this);
+    sceneButtonAction->setToolTip("<html>Show the scene window;"
+                                  "<br>Click arrow to load recent scenes"
+                                  "<br><a href=\"help://Scenes_Window\">More Info</a></html>");
     sceneButtonAction->setText("");
     sceneButtonAction->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneButtonAction->setMenu(new RecentSceneMenu(m_parentBrainBrowserWindow));
@@ -318,6 +322,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      */
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setDefaultAction(sceneButtonAction);
+    WuQHyperlinkToolTip::add(sceneDialogToolButton);
 
     /*
      * Movie button

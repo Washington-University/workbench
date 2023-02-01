@@ -25,6 +25,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QDesktopServices>
 #include <QMenu>
 #include <QPainter>
 #include <QPen>
@@ -136,6 +137,7 @@
 #include "VolumeDynamicConnectivityFile.h"
 #include "VolumeMappableInterface.h"
 #include "VolumePropertiesEditorDialog.h"
+#include "WuQHyperlinkToolTip.h"
 #include "WbMacroCustomOperationManager.h"
 #include "WbMacroHelper.h"
 #include "WuQMessageBox.h"
@@ -377,6 +379,9 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SHOW_FILE_DATA_READ_WARNING_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_INFORMATION_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    
+    QObject::connect(WuQHyperlinkToolTip::instance(), &WuQHyperlinkToolTip::hyperlinkClicked,
+                     this, &GuiManager::toolTipHyperlinkClicked);
 }
 
 /**
@@ -4150,4 +4155,28 @@ GuiManager::getScreensInfo()
     }
     
     return infoOut;
+}
+
+/**
+ * Process display of help information from a WuQHyperlinkToolTip.
+ * @param hyperlink
+ *    Text of hyperlink
+ */
+void
+GuiManager::toolTipHyperlinkClicked(const QString& hyperlink)
+{
+    if (hyperlink.startsWith("help://")){
+        const QString helpPage(hyperlink.mid(7));
+        
+        EventHelpViewerDisplay helpViewerEvent(NULL,
+                                               helpPage);
+        EventManager::get()->sendEvent(helpViewerEvent.getPointer());
+    }
+    else if (hyperlink.startsWith("http://")) {
+        QDesktopServices::openUrl(hyperlink);
+    }
+    else {
+        CaretLogSevere("Unrecognized hyperlink from WuQHyperlinkToolTip: "
+                       + hyperlink);
+    }
 }

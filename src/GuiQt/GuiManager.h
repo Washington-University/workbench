@@ -239,6 +239,7 @@ namespace caret {
         void sceneDialogWasClosed();
         void identifyBrainordinateDialogWasClosed();
         void dataToolTipsActionTriggered(bool);
+        void toolTipHyperlinkClicked(const QString& hyperlink);
         
     private:
         GuiManager(QObject* parent = 0);

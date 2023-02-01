@@ -258,6 +258,7 @@ ELSE()
         WuQEventBlockingFilter.h
         WuQGridLayoutGroup.h
         WuQGroupBoxExclusiveWidget.h
+	WuQHyperlinkToolTip.h
         WuQImageLabel.h
         WuQListWidget.h
 	WuQMacroCommandParameterWidget.h
@@ -597,6 +598,7 @@ WuQEventBlockingFilter.h
 WuQFactory.h
 WuQGridLayoutGroup.h
 WuQGroupBoxExclusiveWidget.h
+WuQHyperlinkToolTip.h
 WuQImageLabel.h
 WuQListWidget.h
 WuQMacroCommandParameterWidget.h
@@ -926,6 +928,7 @@ WuQEventBlockingFilter.cxx
 WuQFactory.cxx
 WuQGridLayoutGroup.cxx
 WuQGroupBoxExclusiveWidget.cxx
+WuQHyperlinkToolTip.cxx
 WuQImageLabel.cxx
 WuQListWidget.cxx
 WuQMacroCommandParameterWidget.cxx
