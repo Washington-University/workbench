@@ -131,7 +131,8 @@ namespace caret {
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const int32_t sliceIndex,
                                            const Vector3D& sliceCoordinates,
-                                           const GraphicsViewport& viewport);
+                                           const GraphicsViewport& viewport,
+                                           const bool updateGraphicsObjectToWindowTransformFlag);
         
         void setOrthographicProjection(const GraphicsViewport& viewport);
         

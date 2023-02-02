@@ -340,6 +340,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
      */
     const int32_t invalidSliceIndex(-1);
     
+    const bool updateGraphicsObjectToWindowTransformFlag(false);
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
         case VolumeMprViewModeEnum::MAXIMUM_INTENSITY_PROJECTION:
@@ -357,7 +358,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::AXIAL,
                                               invalidSliceIndex,
                                               sliceCoordinates,
-                                              viewport);
+                                              viewport,
+                                              updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
             
@@ -369,7 +371,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::CORONAL,
                                               invalidSliceIndex,
                                               sliceCoordinates,
-                                              viewport);
+                                              viewport,
+                                              updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
             
@@ -381,7 +384,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                               invalidSliceIndex,
                                               sliceCoordinates,
-                                              viewport);
+                                              viewport,
+                                              updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
             break;
@@ -428,13 +432,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
                 m_browserTabContent->getVolumeSliceCoordinateCoronal(),
                 m_browserTabContent->getVolumeSliceCoordinateAxial()
             };
+            const bool updateGraphicsObjectToWindowTransformFlag(true);
             drawVolumeSliceViewProjection(viewportContent,
                                           sliceProjectionType,
                                           sliceDrawingType,
                                           sliceViewPlane,
                                           sliceIndex,
                                           sliceCoordinates,
-                                          viewport);
+                                          viewport,
+                                          updateGraphicsObjectToWindowTransformFlag);
         }
             break;
     }
@@ -456,6 +462,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
  *    Coordinates of the selected slice.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
+ * @param updateGraphicsObjectToWindowTransformFlag
+ *    If true, update the graphics opbject to window transform
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLViewportContent* viewportContent,
@@ -464,7 +472,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                               const int32_t sliceIndex,
                                                               const Vector3D& sliceCoordinates,
-                                                              const GraphicsViewport& viewport)
+                                                              const GraphicsViewport& viewport,
+                                                              const bool updateGraphicsObjectToWindowTransformFlag)
 {
     
     glMatrixMode(GL_MODELVIEW);
@@ -642,28 +651,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         }
 
         if (m_brainModelMode == BrainModelMode::VOLUME_2D) {
-            bool updateFlag(false);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume)) {
-                        updateFlag = true;
-                    }
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume)) {
-                        updateFlag = true;
-                    }
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    if (sliceIndex == m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume)) {
-                        updateFlag = true;
-                    }
-                    break;
-            }
-            
-            if (updateFlag) {
+            if (updateGraphicsObjectToWindowTransformFlag) {
                 std::array<float, 4> orthoLRBT {
                     static_cast<float>(viewport.getLeft()),
                     static_cast<float>(viewport.getRight()),
@@ -3910,13 +3898,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
     Vector3D sliceXYZ(selectedXYZ + firstSliceOffsetXYZ);
     
     /*
-     * "Middle" slice that is used to set object to window transform
-     * in 'drawVolumeSliceViewProjection()'.
+     * When "middle/center" slice is drawn, need to update
+     * the graphics object to window transform
      */
-    const int32_t middleColumn((numCols - 1) / 2);
-    const int32_t middleRow((numRows - 1) / 2);
-    if (m_debugFlag) std::cout << "Middle row/col: " << middleRow << ", " << middleColumn << std::endl;
-    
+    const int32_t numSlices(numRows * numCols);
+    const int32_t midSliceNumber((numSlices > 1)
+                                 ? (numSlices / 2)
+                                 : 1);
+    int32_t sliceCounter(1);
     for (int32_t i = 0; i < numRows; i++) {
         for (int32_t j = 0; j < numCols; j++) {
             const int32_t vpX = (j * (vpSizeX + horizontalMargin));
@@ -3956,13 +3945,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                             viewAngleSliceIndex = voxelIJK[0];
                             break;
                     }
+                    const bool updateGraphicsObjectToWindowTransformFlag(sliceCounter == midSliceNumber);
                     drawVolumeSliceViewProjection(viewportContent,
                                                   sliceProjectionType,
                                                   sliceDrawingType,
                                                   sliceViewPlane,
                                                   viewAngleSliceIndex,
                                                   sliceXYZ,
-                                                  vp);
+                                                  vp,
+                                                  updateGraphicsObjectToWindowTransformFlag);
                 }
             }
             
@@ -3983,6 +3974,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
              * Move 'down' along axis
              */
             sliceXYZ -= montageSliceCoordStepXYZ;
+            
+            ++sliceCounter;
         }
     }
 }
