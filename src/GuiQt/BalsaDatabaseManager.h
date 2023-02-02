@@ -92,6 +92,8 @@ namespace caret {
         bool isStudyEditableByUser(const AString& studyID,
                                    AString& errorMessageOut);
         
+        AString getInfoMessages() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -166,6 +168,8 @@ namespace caret {
         AString m_password;
         
         AString m_jSessionIdCookie;
+        
+        AString m_infoMessages;
         
         bool m_debugFlag;
         

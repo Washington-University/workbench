@@ -1006,6 +1006,7 @@ BalsaDatabaseManager::processCheckSceneIdResponse(SceneFile* sceneFile,
     const QJsonObject object(jsonDocument.object());
     const QStringList keys(object.keys());
 
+    AString updatedSceneNames;
     
     const QString badSceneIdsName("badSceneIds");
     const QString newSceneIdsName("newSceneIds");
@@ -1034,9 +1035,11 @@ BalsaDatabaseManager::processCheckSceneIdResponse(SceneFile* sceneFile,
                             const AString newSceneID(newSceneIdsArray.at(i).toString());
                             scene->getSceneInfo()->setBalsaSceneID(newSceneID);
                             saveSceneFileFlag = true;
+                            
+                            updatedSceneNames.appendWithNewLine("   " + scene->getName());
                         }
                         else {
-                            errorMessageOut = ("Scene not found with bad Scene ID: "
+                            errorMessageOut = ("Program Error: Scene not found with bad Scene ID: "
                                                + badSceneID);
                             return false;
                         }
@@ -1050,6 +1053,11 @@ BalsaDatabaseManager::processCheckSceneIdResponse(SceneFile* sceneFile,
         if (saveSceneFileFlag) {
             try {
                 sceneFile->writeFile(sceneFile->getFileName());
+                
+                if ( ! updatedSceneNames.isEmpty()) {
+                    m_infoMessages.appendWithNewLine("These scenes had their Scene IDs replaced (IDs used by other scenes in BALSA):");
+                    m_infoMessages.appendWithNewLine(updatedSceneNames);
+                }
             }
             catch (const DataFileException& dfe) {
                 errorMessageOut = ("Error writing scene file after replacing bad Scene IDs: "
@@ -1060,7 +1068,7 @@ BalsaDatabaseManager::processCheckSceneIdResponse(SceneFile* sceneFile,
     }
     
     if ( ! validFlag) {
-        errorMessageOut = ("Response for replacing Bad Scene IDs invalid: "
+        errorMessageOut = ("Response from BALSA for replacing Bad Scene IDs invalid: "
                            + responseContent);
     }
     
@@ -1724,6 +1732,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
                                             AString& errorMessageOut)
 {
     errorMessageOut.clear();
+    m_infoMessages.clear();
     
     /*
      * Check for errors
@@ -1984,3 +1993,11 @@ BalsaDatabaseManager::SceneFileIdentifiers::getErrorMessage() const
     return m_errorMessage;
 }
 
+/**
+ * @return Information messages from uploading
+ */
+AString
+BalsaDatabaseManager::getInfoMessages() const
+{
+    return m_infoMessages;
+}

@@ -818,7 +818,7 @@ BalsaDatabaseUploadSceneFileDialog::checkBalsaExtractionDirectoryPrefix()
             else {
                 AString msg("BALSA was unable to provide an updated \"Extraction Directory Prefix\" for Study ID \""
                             + studyID
-                            + "\".  You may continue uploading.");
+                            + "\".  This will occur the first time a scene file is uploaded.  You may continue uploading.");
                 WuQMessageBox::warningOk(this, msg);
             }
         }
@@ -1006,7 +1006,9 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     progressDialog.setValue(progressDialog.maximum());
     
     if (successFlag) {
-        WuQMessageBox::informationOk(this, "Upload was successful");
+        AString msg("Upload was successful");
+        msg.appendWithNewLine(m_balsaDatabaseManager->getInfoMessages());
+        WuQMessageBox::informationOk(this, msg);
     }
     else {
         WuQMessageBox::errorOk(this,
