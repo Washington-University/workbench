@@ -57,6 +57,10 @@ namespace caret {
         
         void numberOfMapsSpinBoxValueChanged(int);
         
+        void linkActivated(const QString& link);
+        
+        void resamplePushButtonClicked();
+        
     protected:
         virtual void okButtonClicked();
         
@@ -71,6 +75,9 @@ namespace caret {
             SubvolumeAttributes::VolumeType m_volumeType;
         };
         
+        void setupResampleSpacingSpinBox(QDoubleSpinBox* spinBox,
+                                         const QDoubleSpinBox* spacingSpinBox);
+
         QWidget* createNewVolumeFileWidget();
         
         QWidget* addMapToVolumeFileWidget();
@@ -85,25 +92,39 @@ namespace caret {
         
         std::vector<QLineEdit*> m_mapNameLineEdits;
         
-        QSpinBox* m_newDimXSpinBox;
+        QSpinBox* m_dimXSpinBox;
         
-        QSpinBox* m_newDimYSpinBox;
+        QSpinBox* m_dimYSpinBox;
         
-        QSpinBox* m_newDimZSpinBox;
+        QSpinBox* m_dimZSpinBox;
         
-        QDoubleSpinBox* m_newSpacingXSpinBox;
+        QDoubleSpinBox* m_spacingXSpinBox;
         
-        QDoubleSpinBox* m_newSpacingYSpinBox;
+        QDoubleSpinBox* m_spacingYSpinBox;
         
-        QDoubleSpinBox* m_newSpacingZSpinBox;
+        QDoubleSpinBox* m_spacingZSpinBox;
         
-        QDoubleSpinBox* m_newOriginXSpinBox;
+        QDoubleSpinBox* m_originXSpinBox;
         
-        QDoubleSpinBox* m_newOriginYSpinBox;
+        QDoubleSpinBox* m_originYSpinBox;
 
-        QDoubleSpinBox* m_newOriginZSpinBox;
+        QDoubleSpinBox* m_originZSpinBox;
+        
+//        QLabel* m_xMinimumEdgeLabel;
+//        
+//        QLabel* m_xMaximumEdgeLabel;
+//        
+//        QLabel* m_yMinimumEdgeLabel;
+//        
+//        QLabel* m_yMaximumEdgeLabel;
+//        
+//        QLabel* m_zMinimumEdgeLabel;
+//        
+//        QLabel* m_zMaximumEdgeLabel;
         
         QPushButton* m_paramFromFilePushButton;
+        
+        QPushButton* m_resamplePushButton;
         
         VolumeFile* m_volumeFile;
 
@@ -114,6 +135,10 @@ namespace caret {
         static PreviousVolumeSettings s_previousVolumeSettings;
 
         static bool s_previousVolumeSettingsValid;
+        
+        /* If changed, s_spacingSingleStep = pow(10.0, -s_spacingDecimals) */
+        static constexpr double  s_spacingSingleStep = 0.1;
+        static constexpr int32_t s_spacingDecimals = 1;
         
         // ADD_NEW_MEMBERS_HERE
 
