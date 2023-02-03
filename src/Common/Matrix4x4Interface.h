@@ -45,6 +45,12 @@ namespace caret {
         
         virtual void multiplyPoint3(float p[3]) const = 0;
 
+        virtual void setMatrix(const float m[4][4]) = 0;
+
+        virtual void getRotation(double& rotationOutX,
+                                 double& rotationOutY,
+                                 double& rotationOutZ) const = 0;
+        
         Matrix4x4Interface(const Matrix4x4Interface&) { }
 
         Matrix4x4Interface& operator=(const Matrix4x4Interface&) { return *this; }

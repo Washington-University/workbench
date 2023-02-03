@@ -77,6 +77,8 @@ namespace caret {
         
         void resetViewToolButtonClicked();
         
+        void viewTransformPushButtonClicked();
+        
     public:
 
         // ADD_NEW_METHODS_HERE
@@ -142,7 +144,7 @@ namespace caret {
         
         AString getSelectedCustomViewName();
         
-        void moveTransformToCustomView(ModelTransform& modelTransform);
+        void moveTransformValuesToModelTransform(ModelTransform& modelTransform);
         
         void updateSpinBoxSingleStepValue(QDoubleSpinBox* spinBox,
                                           const double singleStep);
@@ -196,6 +198,8 @@ namespace caret {
         QPushButton* m_newCustomViewPushButton;
         
         QPushButton* m_deleteCustomViewPushButton;
+        
+        QPushButton* m_viewTransformPushButton;
         
         WuQListWidget* m_customViewListWidget;
         

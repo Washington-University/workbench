@@ -101,10 +101,10 @@ public:
             const double y,
             const double z);
 
-    void getRotation(double& rotationOutX,
-                     double& rotationOutY,
-                     double& rotationOutZ) const;
-    
+    virtual void getRotation(double& rotationOutX,
+                             double& rotationOutY,
+                             double& rotationOutZ) const override;
+
     void setRotation(const double rotationX,
                      const double rotationY,
                      const double rotationZ);
@@ -133,7 +133,7 @@ public:
 
     void getMatrix(double m[4][4]) const;
 
-    void setMatrix(const float m[4][4]);
+    virtual void setMatrix(const float m[4][4]) override;
     
     void getMatrix(float m[4][4]) const;
     

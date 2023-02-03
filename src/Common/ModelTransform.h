@@ -26,6 +26,8 @@
 
 namespace caret {
 
+    class Matrix4x4Interface;
+    
     class ModelTransform : public CaretObject {
         
     public:
@@ -108,6 +110,8 @@ namespace caret {
                                              float& rightCortexFlatMapZoomFactor) const;
         
         AString getAsString() const;
+        
+        AString getAsPrettyString(Matrix4x4Interface& matrixForCalculations) const;
         
         bool setFromString(const AString& s);
         

@@ -1,4 +1,3 @@
-
 /*LICENSE_START*/
 /*
  *  Copyright (C) 2014  Washington University School of Medicine
@@ -56,6 +55,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQListWidget.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -288,10 +288,17 @@ CustomViewDialog::createCopyWidget()
     QObject::connect(copyToTransformPushButton, SIGNAL(clicked()),
                      this, SLOT(copyToTransformPushButtonClicked()));
     
+    m_viewTransformPushButton = new QPushButton("--> View...");
+    m_viewTransformPushButton->setToolTip("View the transformation values");
+    QObject::connect(m_viewTransformPushButton, &QPushButton::clicked,
+                     this, &CustomViewDialog::viewTransformPushButtonClicked);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(copyToCustomViewPushButton);
     layout->addWidget(copyToTransformPushButton);
+    layout->addSpacing(20);
+    layout->addWidget(m_viewTransformPushButton);
     
     widget->setSizePolicy(QSizePolicy::Fixed,
                             QSizePolicy::Fixed);
@@ -309,19 +316,19 @@ CustomViewDialog::copyToCustomViewPushButtonClicked()
     
     ModelTransform modelTransform;
     if (prefs->getCustomView(getSelectedCustomViewName(), modelTransform)) {
-        moveTransformToCustomView(modelTransform);
+        moveTransformValuesToModelTransform(modelTransform);
         prefs->addOrReplaceCustomView(modelTransform);
     }
 }
 
 /**
- * Move the transform values to the given user view.
+ * Move the transform values to the given mode transform
  *
- * @param userView
- *     User View into which transform values are moved.
+ * @param modelTransform
+ *     Model transform nto which transform values are moved.
  */
 void
-CustomViewDialog::moveTransformToCustomView(ModelTransform& modelTransform)
+CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTransform)
 {
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ, mprRotX, mprRotY, mprRotZ, flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
@@ -434,6 +441,23 @@ CustomViewDialog::copyToTransformPushButtonClicked()
         
         transformValueChanged();
     }
+}
+
+/**
+ * Called when view transforms button clicked
+ */
+void
+CustomViewDialog::viewTransformPushButtonClicked()
+{
+    ModelTransform mt;
+    moveTransformValuesToModelTransform(mt);
+    
+    Matrix4x4 matrixForCalculations;
+    WuQTextEditorDialog::runNonModal("View Transforms",
+                                     mt.getAsPrettyString(matrixForCalculations),
+                                     WuQTextEditorDialog::TextMode::PLAIN,
+                                     WuQTextEditorDialog::WrapMode::YES,
+                                     m_viewTransformPushButton);
 }
 
 /**
@@ -1396,7 +1420,7 @@ CustomViewDialog::newCustomViewPushButtonClicked()
         ModelTransform  mt;
         mt.setName(newViewName);
         mt.setComment(newViewComment);
-        moveTransformToCustomView(mt);
+        moveTransformValuesToModelTransform(mt);
         prefs->addOrReplaceCustomView(mt);
         
         loadCustomViewListWidget(newViewName);

@@ -26,6 +26,7 @@
 #include <QStringList>
 
 #include "CaretLogger.h"
+#include "Matrix4x4Interface.h"
 
 using namespace caret;
 
@@ -423,6 +424,78 @@ void
 ModelTransform::setScaling(const float scaling)
 {
     this->scaling = scaling;
+}
+
+/**
+ * @param Matrix4x4Interface& matrixForCalculations
+ *    A matrix that is used for calculations (matrix to rotation angles).  Calling function
+ *    must provide an instance of Matrix4x4.
+ * @return String with each transform values notated for human viewing
+ */
+AString
+ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations) const
+{
+    AString s;
+    
+    s.appendWithNewLine("Translation: " + AString::fromNumbers(this->translation, 3));
+    s.appendWithNewLine(" ");
+    
+    matrixForCalculations.setMatrix(this->rotation);
+    double rotXYZ[3];
+    matrixForCalculations.getRotation(rotXYZ[0], rotXYZ[1], rotXYZ[2]);
+    
+    s.appendWithNewLine("Rotation Angles: "
+                        + AString::fromNumbers(rotXYZ, 3));
+    s.appendWithNewLine(" " );
+    
+    s.appendWithNewLine("Rotation Matrix:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(this->rotation[i], 4));
+    }
+    s.appendWithNewLine(" ");
+
+    s.appendWithNewLine("Scaling: " + AString::number(this->scaling));
+    s.appendWithNewLine(" ");
+
+    matrixForCalculations.setMatrix(this->obliqueRotation);
+    matrixForCalculations.getRotation(rotXYZ[0], rotXYZ[1], rotXYZ[2]);
+    
+    s.appendWithNewLine("Oblique Rotation Angles: "
+                        + AString::fromNumbers(rotXYZ, 3));
+    s.appendWithNewLine(" " );
+    
+    s.appendWithNewLine("Oblique Rotation Matrix:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(this->obliqueRotation[i], 4));
+    }
+    s.appendWithNewLine(" ");
+
+    s.appendWithNewLine("MPR Rotation Angles: "
+                        + AString::fromNumbers(this->mprRotationAngles, 3));
+    s.appendWithNewLine(" ");
+
+    matrixForCalculations.setMatrix(this->flatRotation);
+    matrixForCalculations.getRotation(rotXYZ[0], rotXYZ[1], rotXYZ[2]);
+    
+    s.appendWithNewLine("Flat Rotation Angles: "
+                        + AString::fromNumbers(rotXYZ, 3));
+    s.appendWithNewLine(" " );
+
+    s.appendWithNewLine("Flat Rotation:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(this->flatRotation[i], 4));
+    }
+    s.appendWithNewLine(" ");
+
+    s.appendWithNewLine("Right Cortex Flat Map Offset: "
+                        + AString::fromNumbers(this->rightCortexFlatMapOffsetXY, 2));
+    s.appendWithNewLine(" ");
+
+    s.appendWithNewLine("Right Cortex Flat Map Zoom: "
+                        + AString::number(this->rightCortexFlatMapZoomFactor));
+    s.appendWithNewLine(" ");
+
+    return s;
 }
 
 /**
