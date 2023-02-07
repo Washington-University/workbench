@@ -430,10 +430,13 @@ ModelTransform::setScaling(const float scaling)
  * @param Matrix4x4Interface& matrixForCalculations
  *    A matrix that is used for calculations (matrix to rotation angles).  Calling function
  *    must provide an instance of Matrix4x4.
+ * @param leftRotationMatrix
+ *    The left rotation matrix
  * @return String with each transform values notated for human viewing
  */
 AString
-ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations) const
+ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
+                                  const float leftRotationMatrix[4][4]) const
 {
     AString s;
     
@@ -448,12 +451,18 @@ ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations) con
                         + AString::fromNumbers(rotXYZ, 3));
     s.appendWithNewLine(" " );
     
-    s.appendWithNewLine("Rotation Matrix:");
+    s.appendWithNewLine("Right Rotation Matrix:");
     for (int32_t i = 0; i < 4; i++) {
         s.appendWithNewLine(AString::fromNumbers(this->rotation[i], 4));
     }
     s.appendWithNewLine(" ");
 
+    s.appendWithNewLine("Left Rotation Matrix:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(leftRotationMatrix[i], 4));
+    }
+    s.appendWithNewLine(" ");
+    
     s.appendWithNewLine("Scaling: " + AString::number(this->scaling));
     s.appendWithNewLine(" ");
 

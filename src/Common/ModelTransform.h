@@ -111,7 +111,8 @@ namespace caret {
         
         AString getAsString() const;
         
-        AString getAsPrettyString(Matrix4x4Interface& matrixForCalculations) const;
+        AString getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
+                                  const float leftRotationMatrix[4][4]) const;
         
         bool setFromString(const AString& s);
         

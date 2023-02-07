@@ -452,9 +452,34 @@ CustomViewDialog::viewTransformPushButtonClicked()
     ModelTransform mt;
     moveTransformValuesToModelTransform(mt);
     
+    /*
+     * Get the rotation matrix (for right surface)
+     */
+    float rotationMatrixComponents[4][4];
+    mt.getRotation(rotationMatrixComponents);
+    Matrix4x4 rotationMatrix;
+    rotationMatrix.setMatrix(rotationMatrixComponents);
+
+    /*
+     * Flip-X matrix
+     */
+    Matrix4x4 flipMatrix;
+    flipMatrix.scale(-1.0, 1.0, 1.0);
+    
+    /*
+     * Left Matrix = Flip * RotMatrix * Flip
+     */
+    Matrix4x4 leftRotationMatrix(flipMatrix);
+    leftRotationMatrix.postmultiply(rotationMatrix);
+    leftRotationMatrix.postmultiply(flipMatrix);
+    
+    float leftRotationMatrixComponents[4][4];
+    leftRotationMatrix.getMatrix(leftRotationMatrixComponents);
+    
     Matrix4x4 matrixForCalculations;
     WuQTextEditorDialog::runNonModal("View Transforms",
-                                     mt.getAsPrettyString(matrixForCalculations),
+                                     mt.getAsPrettyString(matrixForCalculations,
+                                                          leftRotationMatrixComponents),
                                      WuQTextEditorDialog::TextMode::PLAIN,
                                      WuQTextEditorDialog::WrapMode::YES,
                                      m_viewTransformPushButton);
