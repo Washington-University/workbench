@@ -52,13 +52,14 @@
 #include "VolumeFileCreateDialog.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
+#include "WuQHyperlinkToolTip.h"
 #include "WuQMessageBox.h"
 #include "WuQSpinBoxOddValue.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
 
-
+static const QString& helpHyperlink("help://VoxelEditing");
     
 /**
  * \class caret::UserInputModeVolumeEditWidget 
@@ -258,6 +259,8 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                     this,
                                                                     this, SLOT(newFileActionTriggered())));
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_newFileToolButton);
+    WuQHyperlinkToolTip::addWithHyperlink(m_newFileToolButton,
+                                          helpHyperlink);
     
     m_addMapsToolButton = new QToolButton();
     m_addMapsToolButton->setDefaultAction(WuQtUtilities::createAction("Add",
@@ -266,6 +269,8 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                       this,
                                                                       this, SLOT(addMapsActionTriggered())));
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_addMapsToolButton);
+    WuQHyperlinkToolTip::addWithHyperlink(m_addMapsToolButton,
+                                          helpHyperlink);
     
     m_lockAction = WuQtUtilities::createAction("Lock",
                                                "Lock/unlock volume file to disallow/allow editing",
@@ -275,7 +280,10 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     QToolButton* lockFileToolButton = new QToolButton();
     lockFileToolButton->setDefaultAction(m_lockAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(lockFileToolButton);
-    
+    WuQHyperlinkToolTip::addWithHyperlink(lockFileToolButton,
+                                          m_lockAction,
+                                          helpHyperlink);
+
     
 
     QLabel* brushSizeLabel = new QLabel("Brush");
@@ -290,7 +298,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                      this, SLOT(xBrushSizeValueChanged(int)));
     m_xBrushSizeSpinBox->getWidget()->setToolTip("Parasagittal brush size (voxels).\n"
                                                  "Must be an odd value.");
-    
+    WuQHyperlinkToolTip::addWithHyperlink(m_xBrushSizeSpinBox->getWidget(),
+                                          helpHyperlink);
+
     QLabel* yLabel = new QLabel("C:");
     m_yBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_yBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
@@ -299,7 +309,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                      this, SLOT(yBrushSizeValueChanged(int)));
     m_yBrushSizeSpinBox->getWidget()->setToolTip("Coronal brush size (voxels).\n"
                                                  "Must be an odd value.");
-    
+    WuQHyperlinkToolTip::addWithHyperlink(m_yBrushSizeSpinBox->getWidget(),
+                                          helpHyperlink);
+
     QLabel* zLabel = new QLabel("A:");
     m_zBrushSizeSpinBox = new WuQSpinBoxOddValue(this);
     m_zBrushSizeSpinBox->setRange(MIN_BRUSH_SIZE, MAX_BRUSH_SIZE);
@@ -308,7 +320,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                      this, SLOT(zBrushSizeValueChanged(int)));
     m_zBrushSizeSpinBox->getWidget()->setToolTip("Axial brush size (voxels).\n"
                                                  "Must be an odd value.");
-    
+    WuQHyperlinkToolTip::addWithHyperlink(m_zBrushSizeSpinBox->getWidget(),
+                                          helpHyperlink);
+
     m_voxelValueLabel = new QLabel("Value");
     m_voxelFloatValueSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(-1000.0,
                                                                                          1000.0,
@@ -316,6 +330,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
                                                                                          this,
                                                                                          SLOT(voxelValueChanged(double)));
     m_voxelFloatValueSpinBox->setValue(1.0);
+    m_voxelFloatValueSpinBox->setToolTip("Set value for functional volume editing");
+    WuQHyperlinkToolTip::addWithHyperlink(m_voxelFloatValueSpinBox,
+                                          helpHyperlink);
 
     m_voxelLabelValueAction = WuQtUtilities::createAction("Label",
                                                           "Choose Label for Voxels",
@@ -324,7 +341,9 @@ UserInputModeVolumeEditWidget::createSelectionToolBar()
     m_voxelLabelValueToolButton = new QToolButton();
     m_voxelLabelValueToolButton->setDefaultAction(m_voxelLabelValueAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_voxelLabelValueToolButton);
-    
+    WuQHyperlinkToolTip::addWithHyperlink(m_voxelLabelValueToolButton,
+                                          helpHyperlink);
+
     m_voxelLabelValueToolButton->setFixedWidth(m_voxelLabelValueToolButton->sizeHint().width());
     m_voxelFloatValueSpinBox->setFixedWidth(m_voxelLabelValueToolButton->sizeHint().width());
     
@@ -382,7 +401,9 @@ UserInputModeVolumeEditWidget::createEditWidget()
                                                                  this,
                                                                  this, SLOT(undoActionTriggered())));
     WuQtUtilities::setToolButtonStyleForQt5Mac(undoToolButton);
-    
+    WuQHyperlinkToolTip::addWithHyperlink(undoToolButton,
+                                          helpHyperlink);
+
     
     QToolButton* redoToolButton = new QToolButton();
     redoToolButton->setDefaultAction(WuQtUtilities::createAction("Redo",
@@ -390,7 +411,8 @@ UserInputModeVolumeEditWidget::createEditWidget()
                                                                  this,
                                                                  this, SLOT(redoActionTriggered())));
     WuQtUtilities::setToolButtonStyleForQt5Mac(redoToolButton);
-    
+    WuQHyperlinkToolTip::addWithHyperlink(redoToolButton,
+                                          helpHyperlink);
     
     QToolButton* resetToolButton = new QToolButton();
     resetToolButton->setDefaultAction(WuQtUtilities::createAction("Reset",
@@ -398,7 +420,9 @@ UserInputModeVolumeEditWidget::createEditWidget()
                                                                   this,
                                                                   this, SLOT(resetActionTriggered())));
     WuQtUtilities::setToolButtonStyleForQt5Mac(resetToolButton);
-    
+    WuQHyperlinkToolTip::addWithHyperlink(resetToolButton,
+                                          helpHyperlink);
+
     QWidget* widget = new QWidget();
     QHBoxLayout* editLayout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(editLayout, 4, 2);
@@ -420,7 +444,10 @@ UserInputModeVolumeEditWidget::createModeRadioButton(const VolumeEditingModeEnum
 {
     QRadioButton* rb = new QRadioButton(VolumeEditingModeEnum::toGuiName(mode));
     WuQtUtilities::setWordWrappedToolTip(rb, VolumeEditingModeEnum::toToolTip(mode));
+    WuQHyperlinkToolTip::addWithHyperlink(rb,
+                                          helpHyperlink);
     
+
     return rb;
 }
 /**

@@ -23,19 +23,11 @@
 
 #include <QObject>
 
+class QAction;
 class QWidget;
 
 namespace caret {
 
-//    class WuQHyperlinkReceiver {
-//    public:
-//        WuQHyperlinkReceiver();
-//
-//        virtual ~WuQHyperlinkReceiver();
-//
-//        virtual void hyperlinkClicked(const QString& hyperlink);
-//    };
-    
     class WuQHyperlinkToolTip : public QObject {
         
         Q_OBJECT
@@ -51,7 +43,14 @@ namespace caret {
         
         static void add(QWidget* widget);
         
-//        static void setHyperlinkReceiver(WuQHyperlinkReceiver* hyperlinkReciver);
+        static void addWithHyperlink(QWidget* widget,
+                                     QAction* action,
+                                     const QString& hyperlink,
+                                     const QString& hyperlinkText = "More info...");
+        
+        static void addWithHyperlink(QWidget* widget,
+                                     const QString& hyperlink,
+                                     const QString& hyperlinkText = "More info...");
         
         // ADD_NEW_METHODS_HERE
 
@@ -64,17 +63,18 @@ namespace caret {
     private:
         WuQHyperlinkToolTip(QObject* parent);
         
+        static QString updateToolTip(const QString& tooltipIn,
+                                     const QString& hyperlink,
+                                     const QString& hyperlinkText);
+        
         static WuQHyperlinkToolTip* s_instance;
 
-//        static WuQHyperlinkReceiver* s_hyperlinkReceiver;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
     WuQHyperlinkToolTip* WuQHyperlinkToolTip::s_instance = NULL;
-//    WuQHyperlinkReceiver* WuQHyperlinkToolTip::s_hyperlinkReceiver = NULL;
 #endif // __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
 
 } // namespace

@@ -37,6 +37,8 @@
 using namespace caret;
 
 /*
+ * NOTES:
+ 
  * Follow QT coding guidelines
  * Option to turn off
  * Widgets with multiple actions?
@@ -45,6 +47,27 @@ using namespace caret;
  * Should I create a custom event
  * Warn if what this or tooltip text contains <html>
  * Method override for processing link or signal
+ * May want timer to remove What's This after X seconds
+ *
+ * May want to create a subclass of QEvent() and send it
+ * to the GuiManager() rather than connecting to a function
+ * which could cause Qt prolbems
+ *
+ * static QCoreApplication::postEvent(QObject*, QEvent*, int priority);
+ * Probably do not want sendEvent()
+ *
+ * const QEvent::Type MyEvent::MyEventType =
+ * static_cast<QEvent::Type>(QEvent::registerEventType());
+ * or static event
+ * Create subclass of QEvent()
+ * Call QEvent::registerEventType() for event type
+ * new WuQHyerlinkClickedEvent() : QEvent(MyEvent::MyEventType)
+ *
+ * Maybe just forward this QWhatsThisClickedEvent() to an object
+ * such as the GuiManager().
+ *
+ * May want interface for widgets to return tooltip for position
+ * in the widget.
  */
 
 /**
@@ -123,6 +146,90 @@ WuQHyperlinkToolTip::add(QWidget* widget)
 }
 
 /**
+ * Add a widget that uses an action (tooltip is set on action)
+ * for tooltip filtering and add a hyperlink to the tooltip.
+ * If tooltip is not html, html tags are added.
+ * @param widget
+ *    Widget that will have its tool tips filtered for hyperlinks.
+ * @param action
+ *    Action that will have its tooltip updated.
+ * @param hyperlink
+ *    The hyperlink (eg http://qt.io")
+ * @param hyperlinkText
+ *    Text that is displayed for the hyperlink
+ */
+void
+WuQHyperlinkToolTip::addWithHyperlink(QWidget* widget,
+                                      QAction* action,
+                                      const QString& hyperlink,
+                                      const QString& hyperlinkText)
+{
+    
+    action->setToolTip(updateToolTip(action->toolTip(),
+                                     hyperlink,
+                                     hyperlinkText));
+    WuQHyperlinkToolTip::add(widget);
+
+}
+
+/**
+ * Add a widget for tooltip filtering and add a hyperlink to the tooltip.
+ * If tooltip is not html, html tags are added.
+ * @param widget
+ *    Widget that will have its tool tips filtered for hyperlinks.
+ * @param hyperlink
+ *    The hyperlink (eg http://qt.io")
+ * @param hyperlinkText
+ *    Text that is displayed for the hyperlink
+ */
+void
+WuQHyperlinkToolTip::addWithHyperlink(QWidget* widget,
+                                      const QString& hyperlink,
+                                      const QString& hyperlinkText)
+{
+    widget->setToolTip(updateToolTip(widget->toolTip(),
+                                     hyperlink,
+                                     hyperlinkText));
+    WuQHyperlinkToolTip::add(widget);
+}
+
+/**
+ * Update tooltip with hyperlink.
+ * @param tooltipIn
+ *    Input tooltip
+ * @param hyperlink
+ *    The hyperlink (eg http://qt.io")
+ * @param hyperlinkText
+ *    Text that is displayed for the hyperlink
+ */
+QString
+WuQHyperlinkToolTip::updateToolTip(const QString& tooltipIn,
+                                   const QString& hyperlink,
+                                   const QString& hyperlinkText)
+{
+    const QString linkText("<br>"
+                           "<a href=\""
+                           + hyperlink
+                           + "\">"
+                           + hyperlinkText
+                           + "</a>");
+    QString tooltip(tooltipIn);
+    const int closingTagIndex(tooltip.toLower().indexOf("</html>"));
+    if (closingTagIndex > 0) {
+        tooltip.insert(closingTagIndex,
+                       linkText);
+    }
+    else {
+        tooltip = ("<html>"
+                   + tooltip
+                   + linkText
+                   + "</html>");
+    }
+    
+    return tooltip;
+}
+
+/**
  * Filters the object for ToolTip aned WhatsThisClicked events.
  * @param object
  *    The object
@@ -139,36 +246,15 @@ WuQHyperlinkToolTip::eventFilter(QObject *object, QEvent *event)
         QWhatsThisClickedEvent *whatsThisEvent = dynamic_cast<QWhatsThisClickedEvent *>(event);
         CaretAssert(whatsThisEvent);
         
-//        if (s_hyperlinkReceiver != NULL) {
-//            s_hyperlinkReceiver->hyperlinkClicked(whatsThisEvent->href());
-//        }
-        
-
-        /*
-         * May want to create a subclass of QEvent() and send it
-         * to the GuiManager() rather than connecting to a function
-         * which could cause Qt prolbems
-         *
-         * static QCoreApplication::postEvent(QObject*, QEvent*, int priority);
-         * Probably do not want sendEvent()
-         *
-         * const QEvent::Type MyEvent::MyEventType =
-         * static_cast<QEvent::Type>(QEvent::registerEventType());
-         * or static event
-         * Create subclass of QEvent()
-         * Call QEvent::registerEventType() for event type
-         * new WuQHyerlinkClickedEvent() : QEvent(MyEvent::MyEventType)
-         *
-         * Maybe just forward this QWhatsThisClickedEvent() to an object
-         * such as the GuiManager().
-         *
-         * May want interface for widgets to return tooltip for position
-         * in the widget.
-         */
         /*
          * Emit signal indicating a hyperlink has been clicked
          */
         emit hyperlinkClicked(whatsThisEvent->href());
+        
+        /*
+         * Remove "What's this" since user has clicked link
+         */
+        QWhatsThis::hideText();
         
         /*
          * Event has been filtered
@@ -181,7 +267,6 @@ WuQHyperlinkToolTip::eventFilter(QObject *object, QEvent *event)
             if (widget != NULL) {
                 const QString text(widget->toolTip());
                 if (text.toLower().contains("a href=")) {
-                    std::cout << "Show text: " << text.toStdString() << std::endl;
                     QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
                     CaretAssert(helpEvent);
                     QWhatsThis::showText(helpEvent->pos(), text, widget);
@@ -210,53 +295,3 @@ WuQHyperlinkToolTip::eventFilter(QObject *object, QEvent *event)
     return false;
 }
 
-///**
-// * Set the hyperlink receiver.  Any previous hyperlink receiver is destructed.
-// * @param hyperlinkReciver
-// *    New hyperlink receiver.  Ownership is taken and after this method is called, callers
-// *    should never reference the instance.
-// */
-//void
-//WuQHyperlinkToolTip::setHyperlinkReceiver(WuQHyperlinkReceiver* hyperlinkReciver)
-//{
-//    if (s_hyperlinkReceiver != NULL) {
-//        delete s_hyperlinkReceiver;
-//        s_hyperlinkReceiver = NULL;
-//    }
-//    s_hyperlinkReceiver = hyperlinkReciver;
-//}
-
-///**
-// * \class caret::WuQHyperLinkReceiver
-// * \brief Handles hyperlink request from WuQHyperlinkToolTip
-// * \ingroup GuiQt
-// *
-// * Handles hyperlink request from WuQHyperlinkToolTip.
-// * User should extend this class and override hyperlinkClicked()
-// * to process the hyperlink.
-// */
-//
-///**
-// * Constructor.
-// */
-//WuQHyperlinkReceiver::WuQHyperlinkReceiver()
-//{
-//}
-//
-///**
-// * Destructor.
-// */
-//WuQHyperlinkReceiver::~WuQHyperlinkReceiver()
-//{
-//}
-//
-///**
-// * Called by WuQHyperlinkToolTip when a tooltip hyperlink is clicked.
-// * @param hyperlink
-// *    Hyperlink that was clicked by user.
-// */
-//void
-//WuQHyperlinkReceiver::hyperlinkClicked(const QString& hyperlink)
-//{
-//    std::cout << "Clicked: " << hyperlink.toStdString() << std::endl;
-//}
