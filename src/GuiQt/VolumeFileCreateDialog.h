@@ -61,6 +61,8 @@ namespace caret {
         
         void resamplePushButtonClicked();
         
+        void updateVoxelEdgeLabels();
+        
     protected:
         virtual void okButtonClicked();
         
@@ -75,9 +77,6 @@ namespace caret {
             SubvolumeAttributes::VolumeType m_volumeType;
         };
         
-        void setupResampleSpacingSpinBox(QDoubleSpinBox* spinBox,
-                                         const QDoubleSpinBox* spacingSpinBox);
-
         QWidget* createNewVolumeFileWidget();
         
         QWidget* addMapToVolumeFileWidget();
@@ -110,24 +109,26 @@ namespace caret {
 
         QDoubleSpinBox* m_originZSpinBox;
         
-//        QLabel* m_xMinimumEdgeLabel;
-//        
-//        QLabel* m_xMaximumEdgeLabel;
-//        
-//        QLabel* m_yMinimumEdgeLabel;
-//        
-//        QLabel* m_yMaximumEdgeLabel;
-//        
-//        QLabel* m_zMinimumEdgeLabel;
-//        
-//        QLabel* m_zMaximumEdgeLabel;
+        QLabel* m_xFirstVoxelEdgeLabel;
         
+        QLabel* m_xLastVoxelEdgeLabel;
+        
+        QLabel* m_yFirstVoxelEdgeLabel;
+        
+        QLabel* m_yLastVoxelEdgeLabel;
+        
+        QLabel* m_zFirstVoxelEdgeLabel;
+        
+        QLabel* m_zLastVoxelEdgeLabel;
+
         QPushButton* m_paramFromFilePushButton;
         
         QPushButton* m_resamplePushButton;
         
         VolumeFile* m_volumeFile;
 
+        bool m_blockVoxelEdgeLabelUpdateFlag = true;
+        
         static int32_t s_maximumNumberOfMaps;
         
         static int32_t s_fileNameCounter;
@@ -138,7 +139,7 @@ namespace caret {
         
         /* If changed, s_spacingSingleStep = pow(10.0, -s_spacingDecimals) */
         static constexpr double  s_spacingSingleStep = 0.1;
-        static constexpr int32_t s_spacingDecimals = 1;
+        static constexpr int32_t s_spacingDecimals = 2;
         
         // ADD_NEW_MEMBERS_HERE
 

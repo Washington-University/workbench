@@ -234,6 +234,12 @@ namespace caret {
         
         void getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const override;
         
+        static void dimensionOriginSpacingXyzToVoxelEdges(const Vector3D& dimensions,
+                                                          const Vector3D& origin,
+                                                          const Vector3D& spacing,
+                                                          Vector3D& firstVoxelEdgeOut,
+                                                          Vector3D& lastVoxelEdgeOut);
+        
         virtual void getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
                                                    BoundingBox& boundingBoxOut) const override;
         

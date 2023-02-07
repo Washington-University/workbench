@@ -1588,6 +1588,35 @@ VolumeFile::getVoxelSpaceBoundingBox(BoundingBox& boundingBoxOut) const
 }
 
 /**
+ * (static method) Given dimensions, origin, and spacing, find the edges of the voxels
+ * @param dimensions
+ *    Dimensions of volume
+ * @param origin
+ *    Origin of volume
+ * @param spacing
+ *    Spacing of volume
+ * @param firstVoxelEdgeOut
+ *    Output with edge of first voxel in volume
+ * @param lastVoxelEdgeOut
+ *    Output with edge of last voxel in volume
+ */
+void
+VolumeFile::dimensionOriginSpacingXyzToVoxelEdges(const Vector3D& dimensions,
+                                                  const Vector3D& origin,
+                                                  const Vector3D& spacing,
+                                                  Vector3D& firstVoxelEdgeOut,
+                                                  Vector3D& lastVoxelEdgeOut)
+{
+    const Vector3D halfSpacing(spacing / 2.0);
+    firstVoxelEdgeOut = (origin
+                         - halfSpacing);
+    lastVoxelEdgeOut = (firstVoxelEdgeOut
+                        + Vector3D(spacing[0] * dimensions[0],
+                                   spacing[1] * dimensions[1],
+                                   spacing[2] * dimensions[2]));
+}
+
+/**
  * Get a bounding box containing the non-zero voxel coordinate ranges
  * @param mapIndex
  *    Index of map

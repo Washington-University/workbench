@@ -42,7 +42,9 @@
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
 #include "GuiManager.h"
+#include "MathFunctions.h"
 #include "VolumeFile.h"
+#include "VolumeFileResampleDialog.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
@@ -70,6 +72,8 @@ VolumeFileCreateDialog::VolumeFileCreateDialog(const VolumeMappableInterface* un
 : WuQDialogModal("Create Volume",
                  parent)
 {
+    m_blockVoxelEdgeLabelUpdateFlag = true;
+    
     if ( ! s_previousVolumeSettingsValid) {
         s_previousVolumeSettings.m_dimensions.clear();
         s_previousVolumeSettings.m_dimensions.push_back(182);
@@ -150,6 +154,9 @@ VolumeFileCreateDialog::VolumeFileCreateDialog(const VolumeMappableInterface* un
     
     setCentralWidget(widget,
                      WuQDialog::SCROLL_AREA_NEVER);
+    
+    m_blockVoxelEdgeLabelUpdateFlag = false;
+    updateVoxelEdgeLabels();
 }
 
 /**
@@ -244,40 +251,67 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
     QLabel* dimensionsLabel = new QLabel("Dimensions:");
     m_dimXSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, 100000, 1);
     m_dimXSpinBox->setToolTip("Number of voxels along X-axis");
+    m_dimXSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_dimXSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_dimXSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     m_dimYSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, 100000, 1);
     m_dimYSpinBox->setToolTip("Number of voxels along Y-axis");
+    m_dimYSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_dimYSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_dimYSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     m_dimZSpinBox = WuQFactory::newSpinBoxWithMinMaxStep(1, 100000, 1);
     m_dimZSpinBox->setToolTip("Number of voxels along Z-axis");
-    m_dimXSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
-    m_dimYSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
     m_dimZSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_dimZSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_dimZSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     
     const double bigDouble = 100000000.0;
     
     QLabel* originLabel = new QLabel("Origin (Center of Voxel):");
-    m_originXSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, 1);
+    m_originXSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, s_spacingDecimals);
     m_originXSpinBox->setToolTip("X-coordinate at CENTER of first voxel in volume");
-    m_originYSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, 1);
-    m_originYSpinBox->setToolTip("Y-coordinate at CENTER of first voxel in volume");
-    m_originZSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, 1);
-    m_originZSpinBox->setToolTip("Z-coordinate at CENTER of first voxel in volume");
     m_originXSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_originXSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_originXSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
+    m_originYSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, s_spacingDecimals);
+    m_originYSpinBox->setToolTip("Y-coordinate at CENTER of first voxel in volume");
     m_originYSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_originYSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_originYSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
+    m_originZSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, 1.0, s_spacingDecimals);
+    m_originZSpinBox->setToolTip("Z-coordinate at CENTER of first voxel in volume");
     m_originZSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_originZSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_originZSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     
     QLabel* spacingLabel = new QLabel("Spacing:");
     m_spacingXSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, s_spacingSingleStep, s_spacingDecimals);
     m_spacingXSpinBox->setToolTip("Size of voxel along X-axis");
+    m_spacingXSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_spacingXSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_spacingXSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     m_spacingYSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, s_spacingSingleStep, s_spacingDecimals);
     m_spacingYSpinBox->setToolTip("Size of voxel along Y-axis");
+    m_spacingYSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_spacingYSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_spacingYSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     m_spacingZSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimals(-bigDouble, bigDouble, s_spacingSingleStep, s_spacingDecimals);
     m_spacingZSpinBox->setToolTip("Size of voxel along Z-axis");
+    m_spacingZSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
+    m_spacingZSpinBox->setKeyboardTracking(true);
+    QObject::connect(m_spacingZSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     [=] { this->updateVoxelEdgeLabels(); } );
     m_spacingXSpinBox->setValue(1.0);
     m_spacingYSpinBox->setValue(1.0);
     m_spacingZSpinBox->setValue(1.0);
-    m_spacingXSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
-    m_spacingYSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
-    m_spacingZSpinBox->setFixedWidth(SPIN_BOX_WIDTH);
     
     QLabel* xLabel = new QLabel("X");
     QLabel* yLabel = new QLabel("Y");
@@ -286,15 +320,14 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
     QLabel* niftiLabel(new QLabel("These values follow the <a href=\"https://nifti.nimh.nih.gov\">NIFTI volume file specification</a>"));
     QObject::connect(niftiLabel, &QLabel::linkActivated,
                      this, &VolumeFileCreateDialog::linkActivated);
-//    QLabel* minEdgeLabel(new QLabel("Min Edge: "));
-//    QLabel* maxEdgeLabel(new QLabel("Max Edge: "));
-//    m_xMinimumEdgeLabel = new QLabel();
-//    m_xMaximumEdgeLabel = new QLabel();
-//    m_yMinimumEdgeLabel = new QLabel();
-//    m_yMaximumEdgeLabel = new QLabel();
-//    m_zMinimumEdgeLabel = new QLabel();
-//    m_zMaximumEdgeLabel = new QLabel();
-
+    QLabel* firstEdgeLabel(new QLabel("First Voxel Edge: "));
+    QLabel* lastEdgeLabel(new QLabel("Last Voxel Edge: "));
+    m_xFirstVoxelEdgeLabel = new QLabel();
+    m_xLastVoxelEdgeLabel  = new QLabel();
+    m_yFirstVoxelEdgeLabel = new QLabel();
+    m_yLastVoxelEdgeLabel  = new QLabel();
+    m_zFirstVoxelEdgeLabel = new QLabel();
+    m_zLastVoxelEdgeLabel  = new QLabel();
 
     m_paramFromFilePushButton = new QPushButton("Match Volume...");
     m_paramFromFilePushButton->setToolTip("Set the voxel parameters to match a volume loaded in wb_view");
@@ -340,6 +373,18 @@ VolumeFileCreateDialog::createNewVolumeFileWidget()
     paramsLayout->addWidget(m_spacingYSpinBox, paramsRow, COL_Y);
     paramsLayout->addWidget(m_spacingZSpinBox, paramsRow, COL_Z);
     paramsLayout->addWidget(m_resamplePushButton,  paramsRow, COL_LOAD);
+    paramsRow++;
+    
+    paramsLayout->addWidget(firstEdgeLabel, paramsRow, COL_LABEL);
+    paramsLayout->addWidget(m_xFirstVoxelEdgeLabel, paramsRow, COL_X, Qt::AlignRight);
+    paramsLayout->addWidget(m_yFirstVoxelEdgeLabel, paramsRow, COL_Y, Qt::AlignRight);
+    paramsLayout->addWidget(m_zFirstVoxelEdgeLabel, paramsRow, COL_Z, Qt::AlignRight);
+    paramsRow++;
+    
+    paramsLayout->addWidget(lastEdgeLabel, paramsRow, COL_LABEL);
+    paramsLayout->addWidget(m_xLastVoxelEdgeLabel, paramsRow, COL_X, Qt::AlignRight);
+    paramsLayout->addWidget(m_yLastVoxelEdgeLabel, paramsRow, COL_Y, Qt::AlignRight);
+    paramsLayout->addWidget(m_zLastVoxelEdgeLabel, paramsRow, COL_Z, Qt::AlignRight);
     paramsRow++;
     
     paramsLayout->addWidget(new QLabel(" "), paramsRow, COL_LABEL);
@@ -689,6 +734,8 @@ VolumeFileCreateDialog::loadVolumeParametersFromFilePushButtonClicked()
                     m_newFileNumberOfMapsSpinBox->setValue(numberOfMaps);
                 }
                 
+                m_blockVoxelEdgeLabelUpdateFlag = true;
+                
                 m_dimXSpinBox->setValue(dimensions[0]);
                 m_dimYSpinBox->setValue(dimensions[1]);
                 m_dimZSpinBox->setValue(dimensions[2]);
@@ -701,6 +748,8 @@ VolumeFileCreateDialog::loadVolumeParametersFromFilePushButtonClicked()
                 m_spacingXSpinBox->setValue(spacing[0]);
                 m_spacingYSpinBox->setValue(spacing[1]);
                 m_spacingZSpinBox->setValue(spacing[2]);
+                
+                m_blockVoxelEdgeLabelUpdateFlag = false;
                 
                 break;
             }
@@ -720,74 +769,83 @@ VolumeFileCreateDialog::linkActivated(const QString& link)
 }
 
 /**
- * Setup the given spacing spin box using the spacing spin box in dialog
- * @param spinBox
- *    The spin box
- * @param spacingSpinBox
- *    Get values/range from spin box
+ * Update the voxel edges as values are changed
  */
 void
-VolumeFileCreateDialog::setupResampleSpacingSpinBox(QDoubleSpinBox* spinBox,
-                                                    const QDoubleSpinBox* spacingSpinBox)
+VolumeFileCreateDialog::updateVoxelEdgeLabels()
 {
-    CaretAssert(spinBox);
-    CaretAssert(spacingSpinBox);
+    if (m_blockVoxelEdgeLabelUpdateFlag) {
+        return;
+    }
     
-    spinBox->setRange(spacingSpinBox->minimum(),
-                      spacingSpinBox->maximum());
-    
-    const int32_t decimals(spacingSpinBox->decimals());
-    spinBox->setDecimals(decimals);
-        
-    spinBox->setSingleStep(spacingSpinBox->singleStep());
+    const Vector3D dimensions(m_dimXSpinBox->value(),
+                              m_dimYSpinBox->value(),
+                              m_dimZSpinBox->value());
+    const Vector3D spacing(m_spacingXSpinBox->value(),
+                           m_spacingYSpinBox->value(),
+                           m_spacingZSpinBox->value());
+    const Vector3D origin(m_originXSpinBox->value(),
+                          m_originYSpinBox->value(),
+                          m_originZSpinBox->value());
 
-    /*
-     * Keep spacing positive or negative
-     */
-    const double value(spacingSpinBox->value());
-    if (value > 0.0) {
-        spinBox->setMinimum(s_spacingSingleStep);
-    }
-    else {
-        spinBox->setMaximum(-s_spacingSingleStep);
-    }
-    spinBox->setValue(value);
+    Vector3D firstVoxelEdge;
+    Vector3D lastVoxelEdge;
+    
+    VolumeFile::dimensionOriginSpacingXyzToVoxelEdges(dimensions,
+                                                      origin,
+                                                      spacing,
+                                                      firstVoxelEdge,
+                                                      lastVoxelEdge);
+    const int32_t decimals(3);
+    m_xFirstVoxelEdgeLabel->setText(AString::number(firstVoxelEdge[0], 'f', decimals));
+    m_yFirstVoxelEdgeLabel->setText(AString::number(firstVoxelEdge[1], 'f', decimals));
+    m_zFirstVoxelEdgeLabel->setText(AString::number(firstVoxelEdge[2], 'f', decimals));
+    m_xLastVoxelEdgeLabel->setText(AString::number(lastVoxelEdge[0], 'f', decimals));
+    m_yLastVoxelEdgeLabel->setText(AString::number(lastVoxelEdge[1], 'f', decimals));
+    m_zLastVoxelEdgeLabel->setText(AString::number(lastVoxelEdge[2], 'f', decimals));
 }
+
 /**
  * Called when the resample push button is clicked
  */
 void
 VolumeFileCreateDialog::resamplePushButtonClicked()
 {
-    WuQDataEntryDialog ded("Resample",
-                           m_resamplePushButton);
-    QDoubleSpinBox* xSpinBox = ded.addDoubleSpinBox("X Spacing", 0.0);
-    QDoubleSpinBox* ySpinBox = ded.addDoubleSpinBox("Y Spacing", 0.0);
-    QDoubleSpinBox* zSpinBox = ded.addDoubleSpinBox("Z Spacing", 0.0);
+    const Vector3D dimensions(m_dimXSpinBox->value(),
+                              m_dimYSpinBox->value(),
+                              m_dimZSpinBox->value());
+    const Vector3D spacing(m_spacingXSpinBox->value(),
+                           m_spacingYSpinBox->value(),
+                           m_spacingZSpinBox->value());
+    const Vector3D origin(m_originXSpinBox->value(),
+                          m_originYSpinBox->value(),
+                          m_originZSpinBox->value());
 
-    setupResampleSpacingSpinBox(xSpinBox, m_spacingXSpinBox);
-    setupResampleSpacingSpinBox(ySpinBox, m_spacingYSpinBox);
-    setupResampleSpacingSpinBox(zSpinBox, m_spacingZSpinBox);
-
-    if (ded.exec() == WuQDataEntryDialog::Accepted) {
-        const Vector3D oldDimensions(m_dimXSpinBox->value(),
-                                     m_dimYSpinBox->value(),
-                                     m_dimZSpinBox->value());
-        const Vector3D oldSpacing(m_spacingXSpinBox->value(),
-                                  m_spacingYSpinBox->value(),
-                                  m_spacingZSpinBox->value());
-        const Vector3D oldHalfSpacing(oldSpacing / 2.0);
-        const Vector3D oldOrigin(m_originXSpinBox->value(),
-                                 m_originYSpinBox->value(),
-                                 m_originZSpinBox->value());
-        const Vector3D firstVoxelEdge(oldOrigin
-                                      - oldHalfSpacing);
-        const Vector3D lastVoxelEdge(firstVoxelEdge
-                                     + Vector3D(oldSpacing[0] * oldDimensions[0],
-                                                oldSpacing[1] * oldDimensions[1],
-                                                oldSpacing[2] * oldDimensions[2]));
-        std::cout << "First Voxel Edge: " << firstVoxelEdge.toString() << std::endl;
-        std::cout << "Last Voxel Edge:  " << lastVoxelEdge.toString() << std::endl;
-
+    VolumeFileResampleDialog dialog(dimensions,
+                                    origin,
+                                    spacing,
+                                    s_spacingSingleStep,
+                                    s_spacingDecimals);
+    if (dialog.exec() == VolumeFileResampleDialog::Accepted) {
+        m_blockVoxelEdgeLabelUpdateFlag = true;
+        
+        const Vector3D dim(dialog.getDimensions());
+        m_dimXSpinBox->setValue(dim[0]);
+        m_dimYSpinBox->setValue(dim[1]);
+        m_dimZSpinBox->setValue(dim[2]);
+        
+        const Vector3D origin(dialog.getOrigin());
+        m_originXSpinBox->setValue(origin[0]);
+        m_originYSpinBox->setValue(origin[1]);
+        m_originZSpinBox->setValue(origin[2]);
+        
+        const Vector3D spacing(dialog.getSpacing());
+        m_spacingXSpinBox->setValue(spacing[0]);
+        m_spacingYSpinBox->setValue(spacing[1]);
+        m_spacingZSpinBox->setValue(spacing[2]);
+        
+        m_blockVoxelEdgeLabelUpdateFlag = true;
+        updateVoxelEdgeLabels();
     }
 }
+
