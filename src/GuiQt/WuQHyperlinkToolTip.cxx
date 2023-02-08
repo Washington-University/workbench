@@ -213,16 +213,21 @@ WuQHyperlinkToolTip::updateToolTip(const QString& tooltipIn,
                            + "\">"
                            + hyperlinkText
                            + "</a>");
+    
+    const QString closeText("<a href=\"" + s_closeHyperlinkText + "\">close</a>");
+    const QString spaces(QString("&nbsp;").repeated(5));
+    const QString linkAndCloseText(linkText + spaces + closeText);
+
     QString tooltip(tooltipIn);
     const int closingTagIndex(tooltip.toLower().indexOf("</html>"));
     if (closingTagIndex > 0) {
         tooltip.insert(closingTagIndex,
-                       linkText);
+                       linkAndCloseText);
     }
     else {
         tooltip = ("<html>"
                    + tooltip
-                   + linkText
+                   + linkAndCloseText
                    + "</html>");
     }
     
@@ -246,11 +251,19 @@ WuQHyperlinkToolTip::eventFilter(QObject *object, QEvent *event)
         QWhatsThisClickedEvent *whatsThisEvent = dynamic_cast<QWhatsThisClickedEvent *>(event);
         CaretAssert(whatsThisEvent);
         
-        /*
-         * Emit signal indicating a hyperlink has been clicked
-         */
-        emit hyperlinkClicked(whatsThisEvent->href());
-        
+        const QString hyperlink(whatsThisEvent->href());
+        if (hyperlink == s_closeHyperlinkText) {
+            /*
+             * User clicked close hyperlink
+             */
+        }
+        else {
+            /*
+             * Emit signal indicating a hyperlink has been clicked
+             */
+            emit hyperlinkClicked(hyperlink);
+        }
+
         /*
          * Remove "What's this" since user has clicked link
          */

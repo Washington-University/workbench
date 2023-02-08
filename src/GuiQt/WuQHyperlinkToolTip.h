@@ -69,12 +69,14 @@ namespace caret {
         
         static WuQHyperlinkToolTip* s_instance;
 
+        static const QString s_closeHyperlinkText;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
     WuQHyperlinkToolTip* WuQHyperlinkToolTip::s_instance = NULL;
+    const QString WuQHyperlinkToolTip::s_closeHyperlinkText = "CloseToolTip";
 #endif // __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
 
 } // namespace
