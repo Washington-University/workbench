@@ -1883,7 +1883,8 @@ BrainBrowserWindow::createMenuFile()
     menu->addSeparator();
     menu->addAction(m_openFileAction);
     menu->addAction(m_openRecentAction);
-    menu->addMenu(new RecentSceneMenu(this));
+    menu->addMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::FILE_MENU,
+                                      this));
     menu->addAction(m_openLocationAction);
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);

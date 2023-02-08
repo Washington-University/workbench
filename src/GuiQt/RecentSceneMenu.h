@@ -38,7 +38,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        RecentSceneMenu(BrainBrowserWindow* brainBrowserWindow,
+        enum class MenuLocation {
+            FILE_MENU,
+            TOOLBAR_SCENE_BUTTON
+        };
+        
+        RecentSceneMenu(const MenuLocation menuLocation,
+                        BrainBrowserWindow* brainBrowserWindow,
                         QWidget* parentWidget = 0);
         
         virtual ~RecentSceneMenu();
@@ -56,6 +62,8 @@ namespace caret {
         void menuAboutToShow();
         
     private:
+        const MenuLocation m_menuLocation;
+        
         BrainBrowserWindow* m_brainBrowserWindow;
         
         // ADD_NEW_MEMBERS_HERE

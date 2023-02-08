@@ -26,6 +26,7 @@
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
+#include "FileInformation.h"
 #include "SessionManager.h"
 
 using namespace caret;
@@ -38,14 +39,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param menuLocation
+ *    Location of menu
  * @param brainBrowserWindow
  *    Parent brain browser window
  * @param parent
  *    The parent widget
  */
-RecentSceneMenu::RecentSceneMenu(BrainBrowserWindow* brainBrowserWindow,
+RecentSceneMenu::RecentSceneMenu(const MenuLocation menuLocation,
+                                 BrainBrowserWindow* brainBrowserWindow,
                                  QWidget* parentWidget)
 : QMenu(parentWidget),
+m_menuLocation(menuLocation),
 m_brainBrowserWindow(brainBrowserWindow)
 {
     CaretAssert(m_brainBrowserWindow);
@@ -97,11 +102,34 @@ RecentSceneMenu::menuAboutToShow()
 {
     clear();
     
+    /*
+     * Note: On MacOS, tooltips do not work on menus
+     * in the menubar but do work in menus in tool buttons
+     * in the toolbar.
+     */
+    bool addToolTips(false);
+    switch (m_menuLocation) {
+        case MenuLocation::FILE_MENU:
+            break;
+        case MenuLocation::TOOLBAR_SCENE_BUTTON:
+            addToolTips = true;
+            break;
+    }
+    
     std::vector<RecentSceneInfoContainer> recentSceneInfo;
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     preferences->getMostRecentScenes(recentSceneInfo);
     for (auto& rsi : recentSceneInfo) {
         QAction* action(addAction(rsi.getSceneName()));
         action->setData(rsi.toQVariant());
+        
+        if (addToolTips) {
+            FileInformation fileInfo(rsi.getSceneFileName());
+            action->setToolTip("Loaded from " + fileInfo.getFileName());
+        }
+    }
+    
+    if (addToolTips) {
+        setToolTipsVisible(true);
     }
 }

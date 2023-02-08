@@ -313,7 +313,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                   "<br><a href=\"help://Scenes_Window\">More Info</a></html>");
     sceneButtonAction->setText("");
     sceneButtonAction->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
-    sceneButtonAction->setMenu(new RecentSceneMenu(m_parentBrainBrowserWindow));
+    sceneButtonAction->setMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::TOOLBAR_SCENE_BUTTON,
+                                                   m_parentBrainBrowserWindow));
     QObject::connect(sceneButtonAction, &QAction::triggered,
                      [=](bool) { sceneToolButtonClicked(); });
 
