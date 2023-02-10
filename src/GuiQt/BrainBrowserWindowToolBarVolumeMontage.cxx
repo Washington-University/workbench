@@ -157,7 +157,7 @@ m_parentToolBar(parentToolBar)
     m_showSliceCoordinateAction->setText("XYZ");
     m_showSliceCoordinateAction->setCheckable(true);
     m_showSliceCoordinateAction->setToolTip("<html>Click button to show/hide coordinates on slices; "
-                                            "click arrow for options</html>");
+                                            "Click arrow for coordinate text formatting options</html>");
     m_showSliceCoordinateAction->setMenu(m_sliceCoordinateTypeMenu);
     QObject::connect(m_showSliceCoordinateAction, &QAction::triggered,
                      this, &BrainBrowserWindowToolBarVolumeMontage::showSliceCoordinateToolButtonClicked);
