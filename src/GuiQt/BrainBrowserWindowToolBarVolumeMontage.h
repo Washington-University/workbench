@@ -56,10 +56,10 @@ namespace caret {
         
         void showSliceCoordinateToolButtonClicked(bool);
         void sliceCoordinateTypeMenuAboutToShow();
-        void sliceCoordinateTypeMenuTriggered(QAction* action);
         void slicePrecisionSpinBoxValueChanged(int);
         void sliceCoordinateFontHeightValueChanged(double);
         void sliceCoordinateTextAlignmentEnumComboBoxItemActivated();
+        void sliceCoordinateDisplayTypeEnumComboBoxItemActivated();
         
     private:
         BrainBrowserWindowToolBarVolumeMontage(const BrainBrowserWindowToolBarVolumeMontage&);
@@ -77,6 +77,7 @@ namespace caret {
         QSpinBox* m_sliceCoordinatePrecisionSpinBox;
         QDoubleSpinBox* m_sliceCoordinateFontHeightSpinBox;
         EnumComboBoxTemplate* m_sliceCoordinateTextAlignmentEnumComboBox;
+        EnumComboBoxTemplate* m_sliceCoordinateDisplayTypeEnumComboBox;
         
         QAction* m_montageEnabledAction;
         

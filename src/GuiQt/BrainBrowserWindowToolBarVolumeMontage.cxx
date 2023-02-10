@@ -122,34 +122,36 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_sliceCoordinateTextAlignmentEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTextAlignmentEnumComboBoxItemActivated);
 
+    m_sliceCoordinateDisplayTypeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_sliceCoordinateDisplayTypeEnumComboBox->setup<VolumeMontageCoordinateDisplayTypeEnum,VolumeMontageCoordinateDisplayTypeEnum::Enum>();
+    QObject::connect(m_sliceCoordinateDisplayTypeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateDisplayTypeEnumComboBoxItemActivated);
+
     QWidget* textWidget(new QWidget());
     QGridLayout* textLayout(new QGridLayout(textWidget));
     textLayout->setContentsMargins(5, 0, 5, 0);
-    textLayout->addWidget(new QLabel("Alignment: "), 0, 0);
-    textLayout->addWidget(m_sliceCoordinateTextAlignmentEnumComboBox->getWidget(), 0, 1);
-    textLayout->addWidget(new QLabel("Font Height: "), 1, 0);
-    textLayout->addWidget(m_sliceCoordinateFontHeightSpinBox, 1, 1);
+    textLayout->setVerticalSpacing(textLayout->verticalSpacing() / 2);
+    int32_t textRow(0);
+    textLayout->addWidget(new QLabel("Coordinates Format"), textRow, 0, 1, 2, Qt::AlignCenter);
+    ++textRow;
+    textLayout->addWidget(new QLabel("Alignment: "), textRow, 0);
+    textLayout->addWidget(m_sliceCoordinateTextAlignmentEnumComboBox->getWidget(), textRow, 1);
+    ++textRow;
+    textLayout->addWidget(new QLabel("Font Height: "), textRow, 0);
+    textLayout->addWidget(m_sliceCoordinateFontHeightSpinBox, textRow, 1);
+    ++textRow;
+    textLayout->addWidget(new QLabel("Show As: "), textRow, 0);
+    textLayout->addWidget(m_sliceCoordinateDisplayTypeEnumComboBox->getWidget(), textRow, 1);
+    ++textRow;
     textWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     QWidgetAction* textWidgetAction(new QWidgetAction(this));
     textWidgetAction->setDefaultWidget(textWidget);
 
     m_sliceCoordinateTypeMenu = new QMenu();
-    std::vector<VolumeMontageCoordinateDisplayTypeEnum::Enum> coordTypes;
-    VolumeMontageCoordinateDisplayTypeEnum::getAllEnums(coordTypes);
-    for (auto& ct : coordTypes) {
-        QAction* action(new QAction(VolumeMontageCoordinateDisplayTypeEnum::toGuiName(ct)));
-        action->setData(VolumeMontageCoordinateDisplayTypeEnum::toIntegerCode(ct));
-        action->setCheckable(true);
-        m_sliceCoordinateTypeMenu->addAction(action);
-    }
-    m_sliceCoordinateTypeMenu->addSeparator();
     m_sliceCoordinateTypeMenu->addAction(textWidgetAction);
     
     QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::aboutToShow,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow);
-    QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::triggered,
-                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuTriggered);
-    
     
     m_showSliceCoordinateAction = new QAction("XYZ", this);
     m_showSliceCoordinateAction->setText("XYZ");
@@ -252,9 +254,6 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
     m_showSliceCoordinateAction->setChecked(browserTabContent->isVolumeMontageAxesCoordinatesDisplayed());
     m_sliceCoordinatePrecisionSpinBox->setValue(browserTabContent->getVolumeMontageCoordinatePrecision());
     
-    const auto alignment(browserTabContent->getVolumeMontageCoordinateTextAlignment());
-    m_sliceCoordinateTextAlignmentEnumComboBox->setSelectedItem<VolumeMontageCoordinateTextAlignmentEnum,VolumeMontageCoordinateTextAlignmentEnum::Enum>(alignment);
-
     m_volumeMontageWidgetGroup->blockAllSignals(false);
 }
 
@@ -339,45 +338,15 @@ void
 BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow()
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const VolumeMontageCoordinateDisplayTypeEnum::Enum coordType(btc->getVolumeMontageCoordinatesDislayType());
-    const int32_t coordTypeInt(VolumeMontageCoordinateDisplayTypeEnum::toIntegerCode(coordType));
-    QList<QAction*> menuActions(m_sliceCoordinateTypeMenu->actions());
-    const int32_t numActions(menuActions.size());
-    for (int32_t i = 0; i < numActions; i++) {
-        QAction* a(menuActions[i]);
-        CaretAssert(a);
-        if (a->data().toInt() == coordTypeInt) {
-            a->setChecked(true);
-        }
-        else {
-            a->setChecked(false);
-        }
-    }
+    
+    const auto alignment(btc->getVolumeMontageCoordinateTextAlignment());
+    m_sliceCoordinateTextAlignmentEnumComboBox->setSelectedItem<VolumeMontageCoordinateTextAlignmentEnum,VolumeMontageCoordinateTextAlignmentEnum::Enum>(alignment);
+    
+    const auto displayType(btc->getVolumeMontageCoordinatesDislayType());
+    m_sliceCoordinateDisplayTypeEnumComboBox->setSelectedItem<VolumeMontageCoordinateDisplayTypeEnum, VolumeMontageCoordinateDisplayTypeEnum::Enum>(displayType);
     
     QSignalBlocker fontHeightBlocker(m_sliceCoordinateFontHeightSpinBox);
     m_sliceCoordinateFontHeightSpinBox->setValue(btc->getVolumeMontageCoordinateFontHeight());
-}
-
-/**
- * Called when item on slice coordinate type menu is selected
- *
- * @param action
- *     Action that was selected
- */
-void
-BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuTriggered(QAction* action)
-{
-    if (action != NULL) {
-        const int32_t coordTypeInt(action->data().toInt());
-        bool validFlag(false);
-        const VolumeMontageCoordinateDisplayTypeEnum::Enum coordType(VolumeMontageCoordinateDisplayTypeEnum::fromIntegerCode(coordTypeInt,
-                                                                                                                             &validFlag));
-        if (validFlag) {
-            BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-            btc->setVolumeMontageCoordinateDisplayType(coordType);
-            this->updateGraphicsWindowAndYokedWindows();
-        }
-    }
 }
 
 /**
@@ -423,6 +392,21 @@ BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTextAlignmentEnumComboBox
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     btc->setVolumeMontageCoordinateTextAlignment(alignment);
+    
+    this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when text display type is changed
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateDisplayTypeEnumComboBoxItemActivated()
+{
+    const auto displayType(m_sliceCoordinateDisplayTypeEnumComboBox->getSelectedItem<VolumeMontageCoordinateDisplayTypeEnum,VolumeMontageCoordinateDisplayTypeEnum::Enum>());
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    
+    btc->setVolumeMontageCoordinateDisplayType(displayType);
     
     this->updateGraphicsWindowAndYokedWindows();
 }
