@@ -164,10 +164,9 @@ WuQHyperlinkToolTip::addWithHyperlink(QWidget* widget,
                                       const QString& hyperlink,
                                       const QString& hyperlinkText)
 {
-    
-    action->setToolTip(updateToolTip(action->toolTip(),
-                                     hyperlink,
-                                     hyperlinkText));
+    action->setWhatsThis(createHyperlinkText(action->toolTip(),
+                                             hyperlink,
+                                             hyperlinkText));
     WuQHyperlinkToolTip::add(widget);
 
 }
@@ -187,25 +186,26 @@ WuQHyperlinkToolTip::addWithHyperlink(QWidget* widget,
                                       const QString& hyperlink,
                                       const QString& hyperlinkText)
 {
-    widget->setToolTip(updateToolTip(widget->toolTip(),
-                                     hyperlink,
-                                     hyperlinkText));
+    widget->setWhatsThis(createHyperlinkText(widget->toolTip(),
+                                             hyperlink,
+                                             hyperlinkText));
     WuQHyperlinkToolTip::add(widget);
 }
 
 /**
- * Update tooltip with hyperlink.
- * @param tooltipIn
- *    Input tooltip
+ * Create text with hyperlink from tooltip text.
+ * @param tooltip
+ *    Input tooltip text
  * @param hyperlink
  *    The hyperlink (eg http://qt.io")
  * @param hyperlinkText
  *    Text that is displayed for the hyperlink
+ * @return tooltip text with hyperlink added at end.
  */
 QString
-WuQHyperlinkToolTip::updateToolTip(const QString& tooltipIn,
-                                   const QString& hyperlink,
-                                   const QString& hyperlinkText)
+WuQHyperlinkToolTip::createHyperlinkText(const QString& tooltip,
+                                         const QString& hyperlink,
+                                         const QString& hyperlinkText)
 {
     const QString linkText("<br>"
                            "<a href=\""
@@ -218,20 +218,20 @@ WuQHyperlinkToolTip::updateToolTip(const QString& tooltipIn,
     const QString spaces(QString("&nbsp;").repeated(5));
     const QString linkAndCloseText(linkText + spaces + closeText);
 
-    QString tooltip(tooltipIn);
+    QString text(tooltip);
     const int closingTagIndex(tooltip.toLower().indexOf("</html>"));
     if (closingTagIndex > 0) {
-        tooltip.insert(closingTagIndex,
-                       linkAndCloseText);
+        text.insert(closingTagIndex,
+                    linkAndCloseText);
     }
     else {
-        tooltip = ("<html>"
-                   + tooltip
-                   + linkAndCloseText
-                   + "</html>");
+        text = ("<html>"
+                + tooltip
+                + linkAndCloseText
+                + "</html>");
     }
     
-    return tooltip;
+    return text;
 }
 
 /**
@@ -275,23 +275,51 @@ WuQHyperlinkToolTip::eventFilter(QObject *object, QEvent *event)
         return true;
     }
     else if (event->type() == QEvent::ToolTip) {
-        if (object->isWidgetType()) {
-            QWidget* widget(qobject_cast<QWidget*>(object));
-            if (widget != NULL) {
-                const QString text(widget->toolTip());
-                if (text.toLower().contains("a href=")) {
-                    QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
-                    CaretAssert(helpEvent);
-                    QWhatsThis::showText(helpEvent->pos(), text, widget);
-                    
-                    /*
-                     * Event has been filtered
-                     */
-                    return true;
+        bool enabledFlag(false);
+        switch (s_mode) {
+            case DISABLED:
+                break;
+            case WHATS_THIS:
+                enabledFlag = true;
+                break;
+        }
+        if (enabledFlag) {
+            if (object->isWidgetType()) {
+                QWidget* widget(qobject_cast<QWidget*>(object));
+                if (widget != NULL) {
+                    const QString text(widget->whatsThis());
+                    if ( ! text.isEmpty()) {
+                        QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+                        CaretAssert(helpEvent);
+                        QWhatsThis::showText(helpEvent->pos(), text, widget);
+                        
+                        /*
+                         * Event has been filtered
+                         */
+                        return true;
+                    }
                 }
             }
         }
     }
+//    else if (event->type() == QEvent::ToolTip) {
+//        if (object->isWidgetType()) {
+//            QWidget* widget(qobject_cast<QWidget*>(object));
+//            if (widget != NULL) {
+//                const QString text(widget->toolTip());
+//                if (text.toLower().contains("a href=")) {
+//                    QHelpEvent *helpEvent = static_cast<QHelpEvent *>(event);
+//                    CaretAssert(helpEvent);
+//                    QWhatsThis::showText(helpEvent->pos(), text, widget);
+//
+//                    /*
+//                     * Event has been filtered
+//                     */
+//                    return true;
+//                }
+//            }
+//        }
+//    }
     
     /*
      * In QObject, an example shows returning QObject::eventFilter()

@@ -309,8 +309,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      */
     QAction* sceneButtonAction = new QAction(this);
     sceneButtonAction->setToolTip("<html>Show the scene window;"
-                                  "<br>Click arrow to load recent scenes"
-                                  "<br><a href=\"help://Scenes_Window\">More Info</a></html>");
+                                  "<br>Click arrow to load recent scenes</html>");
     sceneButtonAction->setText("");
     sceneButtonAction->setIcon(GuiManager::get()->getSceneDialogDisplayAction()->icon());
     sceneButtonAction->setMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::TOOLBAR_SCENE_BUTTON,
@@ -323,7 +322,9 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
      */
     QToolButton* sceneDialogToolButton = new QToolButton();
     sceneDialogToolButton->setDefaultAction(sceneButtonAction);
-    WuQHyperlinkToolTip::add(sceneDialogToolButton);
+    WuQHyperlinkToolTip::addWithHyperlink(sceneDialogToolButton,
+                                          sceneButtonAction,
+                                          "help://Scenes_Window");
 
     /*
      * Movie button

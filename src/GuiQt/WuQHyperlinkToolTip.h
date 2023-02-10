@@ -33,6 +33,16 @@ namespace caret {
         Q_OBJECT
 
     public:
+        /**
+         * Mode for hyperlink tooltips
+         */
+        enum Mode {
+            /* Disabled, just display normal tooltips */
+            DISABLED,
+            /* Display tooltips with hyperlinks using Qt's What's This */
+            WHATS_THIS
+        };
+        
         virtual ~WuQHyperlinkToolTip();
         
         WuQHyperlinkToolTip(const WuQHyperlinkToolTip&) = delete;
@@ -63,13 +73,15 @@ namespace caret {
     private:
         WuQHyperlinkToolTip(QObject* parent);
         
-        static QString updateToolTip(const QString& tooltipIn,
-                                     const QString& hyperlink,
-                                     const QString& hyperlinkText);
-        
+        static QString createHyperlinkText(const QString& tooltip,
+                                           const QString& hyperlink,
+                                           const QString& hyperlinkText);
+
         static WuQHyperlinkToolTip* s_instance;
 
         static const QString s_closeHyperlinkText;
+        
+        static Mode s_mode;
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -77,6 +89,7 @@ namespace caret {
 #ifdef __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
     WuQHyperlinkToolTip* WuQHyperlinkToolTip::s_instance = NULL;
     const QString WuQHyperlinkToolTip::s_closeHyperlinkText = "CloseToolTip";
+    WuQHyperlinkToolTip::Mode WuQHyperlinkToolTip::s_mode = WuQHyperlinkToolTip::Mode::DISABLED;
 #endif // __WUQ_HYPERLINK_TOOL_TIP_DECLARE__
 
 } // namespace
