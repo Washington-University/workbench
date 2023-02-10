@@ -31,6 +31,7 @@ class QMenu;
 class QSpinBox;
 
 namespace caret {
+    class EnumComboBoxTemplate;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBarVolumeMontage : public BrainBrowserWindowToolBarComponent {
@@ -58,6 +59,7 @@ namespace caret {
         void sliceCoordinateTypeMenuTriggered(QAction* action);
         void slicePrecisionSpinBoxValueChanged(int);
         void sliceCoordinateFontHeightValueChanged(double);
+        void sliceCoordinateTextAlignmentEnumComboBoxItemActivated();
         
     private:
         BrainBrowserWindowToolBarVolumeMontage(const BrainBrowserWindowToolBarVolumeMontage&);
@@ -74,6 +76,7 @@ namespace caret {
         QMenu*    m_sliceCoordinateTypeMenu;
         QSpinBox* m_sliceCoordinatePrecisionSpinBox;
         QDoubleSpinBox* m_sliceCoordinateFontHeightSpinBox;
+        EnumComboBoxTemplate* m_sliceCoordinateTextAlignmentEnumComboBox;
         
         QAction* m_montageEnabledAction;
         

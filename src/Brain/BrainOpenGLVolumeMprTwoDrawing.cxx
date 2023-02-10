@@ -3960,13 +3960,11 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
             /*
              * Draw coordinates on slice
              */
-            const float textVpX(vpSizeX - 5);
-            const float textVpY(5);
             const float offsetDistance(sliceInfo.m_sliceCoordIncreasingDirectionPlane.signedDistanceToPlane(sliceXYZ));
             BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                        m_browserTabContent,
                                                                        sliceViewPlane,
-                                                                       textVpX, textVpY,
+                                                                       vp,
                                                                        sliceXYZ,
                                                                        offsetDistance);
 

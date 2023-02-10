@@ -627,12 +627,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
                                                   sliceCoordinates,
                                                   vp);
                     
-                    const float textVpX(vpSizeX - 5);
-                    const float textVpY(5);
                     BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                                m_browserTabContent,
                                                                                sliceViewPlane,
-                                                                               textVpX, textVpY,
+                                                                               vp,
                                                                                sliceCoordinates,
                                                                                sliceCoord);
                 }

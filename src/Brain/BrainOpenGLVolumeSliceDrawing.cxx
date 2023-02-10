@@ -625,12 +625,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
                                                   sliceCoordinates,
                                                   vp);
                     
-                    const float textVpX(vpSizeX - 5);
-                    const float textVpY(5);
                     BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                                m_browserTabContent,
                                                                                sliceViewPlane,
-                                                                               textVpX, textVpY,
+                                                                               vp,
                                                                                sliceCoordinates,
                                                                                sliceCoord);
                 }
@@ -5060,8 +5058,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
  *    Content of the browser tab
  * @param sliceViewPlane
  *    Slice view plane
- * @param viewportTextX,
- *    Viewport X for text
+ * @param viewport,
+ *    Montage viewport
  * @param viewportTextY,
  *    Viewport Y for text
  * @param sliceXYZ,
@@ -5073,8 +5071,7 @@ void
 BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                            const BrowserTabContent* browserTabContent,
                                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                           const float viewportTextX,
-                                                           const float viewportTextY,
+                                                           const int32_t viewport[4],
                                                            const Vector3D sliceXYZ,
                                                            const float sliceOffset)
 {
@@ -5143,8 +5140,26 @@ BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipel
     }
     
     if ( ! coordText.isEmpty()) {
+        AnnotationTextAlignHorizontalEnum::Enum alignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        int32_t viewportTextX(0);
+        int32_t viewportTextY(5);
+        const int32_t viewportWidth(viewport[2]);
+        switch (browserTabContent->getVolumeMontageCoordinateTextAlignment()) {
+            case VolumeMontageCoordinateTextAlignmentEnum::LEFT:
+                alignment     = AnnotationTextAlignHorizontalEnum::LEFT;
+                viewportTextX = 5;
+                break;
+            case VolumeMontageCoordinateTextAlignmentEnum::CENTER:
+                alignment     = AnnotationTextAlignHorizontalEnum::CENTER;
+                viewportTextX = (viewportWidth / 2);
+                break;
+            case VolumeMontageCoordinateTextAlignmentEnum::RIGHT:
+                alignment     = AnnotationTextAlignHorizontalEnum::RIGHT;
+                viewportTextX = viewportWidth - 5;
+                break;
+        }
         AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setHorizontalAlignment(alignment);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
         annotationText.setFontPercentViewportSize(browserTabContent->getVolumeMontageCoordinateFontHeight());
         annotationText.setTextColor(CaretColorEnum::CUSTOM);

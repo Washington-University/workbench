@@ -229,6 +229,7 @@ ViewingTransformationsVolume.h
 VolumeMprOrientationModeEnum.h
 VolumeMprSettings.h
 VolumeMprViewModeEnum.h
+VolumeMontageCoordinateTextAlignmentEnum.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
 VolumeSliceSettings.h
@@ -438,6 +439,7 @@ ViewingTransformationsVolume.cxx
 VolumeMprOrientationModeEnum.cxx
 VolumeMprSettings.cxx
 VolumeMprViewModeEnum.cxx
+VolumeMontageCoordinateTextAlignmentEnum.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
 VolumeSliceSettings.cxx

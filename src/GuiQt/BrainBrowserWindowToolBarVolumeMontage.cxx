@@ -35,6 +35,7 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EnumComboBoxTemplate.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQWidgetObjectGroup.h"
@@ -115,14 +116,22 @@ m_parentToolBar(parentToolBar)
     m_sliceCoordinateFontHeightSpinBox->setSuffix("%");
     QObject::connect(m_sliceCoordinateFontHeightSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateFontHeightValueChanged);
-    QWidget* fontHeightWidget(new QWidget());
-    QHBoxLayout* fontHeightLayout(new QHBoxLayout(fontHeightWidget));
-    fontHeightLayout->setContentsMargins(5, 0, 5, 0);
-    fontHeightLayout->addWidget(new QLabel("Font Height: "));
-    fontHeightLayout->addWidget(m_sliceCoordinateFontHeightSpinBox);
-    fontHeightWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    QWidgetAction* fontHeightWidgetAction(new QWidgetAction(this));
-    fontHeightWidgetAction->setDefaultWidget(fontHeightWidget);
+    
+    m_sliceCoordinateTextAlignmentEnumComboBox = new EnumComboBoxTemplate(this);
+    m_sliceCoordinateTextAlignmentEnumComboBox->setup<VolumeMontageCoordinateTextAlignmentEnum,VolumeMontageCoordinateTextAlignmentEnum::Enum>();
+    QObject::connect(m_sliceCoordinateTextAlignmentEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTextAlignmentEnumComboBoxItemActivated);
+
+    QWidget* textWidget(new QWidget());
+    QGridLayout* textLayout(new QGridLayout(textWidget));
+    textLayout->setContentsMargins(5, 0, 5, 0);
+    textLayout->addWidget(new QLabel("Alignment: "), 0, 0);
+    textLayout->addWidget(m_sliceCoordinateTextAlignmentEnumComboBox->getWidget(), 0, 1);
+    textLayout->addWidget(new QLabel("Font Height: "), 1, 0);
+    textLayout->addWidget(m_sliceCoordinateFontHeightSpinBox, 1, 1);
+    textWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QWidgetAction* textWidgetAction(new QWidgetAction(this));
+    textWidgetAction->setDefaultWidget(textWidget);
 
     m_sliceCoordinateTypeMenu = new QMenu();
     std::vector<VolumeMontageCoordinateDisplayTypeEnum::Enum> coordTypes;
@@ -134,7 +143,7 @@ m_parentToolBar(parentToolBar)
         m_sliceCoordinateTypeMenu->addAction(action);
     }
     m_sliceCoordinateTypeMenu->addSeparator();
-    m_sliceCoordinateTypeMenu->addAction(fontHeightWidgetAction);
+    m_sliceCoordinateTypeMenu->addAction(textWidgetAction);
     
     QObject::connect(m_sliceCoordinateTypeMenu, &QMenu::aboutToShow,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow);
@@ -243,6 +252,9 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
     m_showSliceCoordinateAction->setChecked(browserTabContent->isVolumeMontageAxesCoordinatesDisplayed());
     m_sliceCoordinatePrecisionSpinBox->setValue(browserTabContent->getVolumeMontageCoordinatePrecision());
     
+    const auto alignment(browserTabContent->getVolumeMontageCoordinateTextAlignment());
+    m_sliceCoordinateTextAlignmentEnumComboBox->setSelectedItem<VolumeMontageCoordinateTextAlignmentEnum,VolumeMontageCoordinateTextAlignmentEnum::Enum>(alignment);
+
     m_volumeMontageWidgetGroup->blockAllSignals(false);
 }
 
@@ -396,6 +408,21 @@ BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateFontHeightValueChanged(do
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     
     btc->setVolumeMontageCoordinateFontHeight(value);
+    
+    this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when text alignment is changed
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTextAlignmentEnumComboBoxItemActivated()
+{
+    const auto alignment(m_sliceCoordinateTextAlignmentEnumComboBox->getSelectedItem<VolumeMontageCoordinateTextAlignmentEnum,VolumeMontageCoordinateTextAlignmentEnum::Enum>());
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    
+    btc->setVolumeMontageCoordinateTextAlignment(alignment);
     
     this->updateGraphicsWindowAndYokedWindows();
 }

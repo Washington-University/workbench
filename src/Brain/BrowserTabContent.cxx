@@ -164,6 +164,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_volumeMontageCoordinateDisplayType = prefs->getVolumeMontageCoordinatesDislayType();
     m_volumeMontageCoordinatePrecision = prefs->getVolumeMontageCoordinatePrecision();
     m_volumeMontageCoordinateFontHeight = 10.0;
+    m_volumeMontageCoordinateTextAlignment = VolumeMontageCoordinateTextAlignmentEnum::RIGHT;
 
     m_scaleBar.reset(new AnnotationScaleBar(AnnotationAttributesDefaultTypeEnum::NORMAL));
     initializeScaleBar();
@@ -276,6 +277,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_volumeMontageCoordinatePrecision);
     m_sceneClassAssistant->add("m_volumeMontageCoordinateFontHeight",
                                &m_volumeMontageCoordinateFontHeight);
+    m_sceneClassAssistant->add<VolumeMontageCoordinateTextAlignmentEnum, VolumeMontageCoordinateTextAlignmentEnum::Enum>("m_volumeMontageCoordinateTextAlignment",
+                                                                                                                         &m_volumeMontageCoordinateTextAlignment);
 
     m_sceneClassAssistant->add("m_lightingEnabled",
                                &m_lightingEnabled);
@@ -446,6 +449,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_displayVolumeMontageAxesCoordinates = tabToClone->m_displayVolumeMontageAxesCoordinates;
     m_volumeMontageCoordinatePrecision = tabToClone->m_volumeMontageCoordinatePrecision;
     m_volumeMontageCoordinateFontHeight = tabToClone->m_volumeMontageCoordinateFontHeight;
+    m_volumeMontageCoordinateTextAlignment = tabToClone->m_volumeMontageCoordinateTextAlignment;
     
     m_lightingEnabled = tabToClone->m_lightingEnabled;
 
@@ -6585,6 +6589,27 @@ BrowserTabContent::setVolumeMontageCoordinateFontHeight(const float volumeMontag
     updateBrainModelYokedBrowserTabs();
 }
 
+/**
+ * @return Alignment for volume montage coordinate text
+ */
+VolumeMontageCoordinateTextAlignmentEnum::Enum
+BrowserTabContent::getVolumeMontageCoordinateTextAlignment() const
+{
+    return m_volumeMontageCoordinateTextAlignment;
+}
+
+/**
+ * Set alignment for volume montage coordinate text
+ * @param alignmnent
+ *    New text alignment
+ */
+void
+BrowserTabContent::setVolumeMontageCoordinateTextAlignment(const VolumeMontageCoordinateTextAlignmentEnum::Enum alignment)
+{
+    m_volumeMontageCoordinateTextAlignment = alignment;
+    updateBrainModelYokedBrowserTabs();
+}
+
 
 /**
  * If true, selected histology slices in tab move to location
@@ -7140,6 +7165,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_volumeMontageCoordinateDisplayType = btc->m_volumeMontageCoordinateDisplayType;
                 m_volumeMontageCoordinatePrecision = btc->m_volumeMontageCoordinatePrecision;
                 m_volumeMontageCoordinateFontHeight = btc->m_volumeMontageCoordinateFontHeight;
+                m_volumeMontageCoordinateTextAlignment = btc->m_volumeMontageCoordinateTextAlignment;
                 m_mprRotationX = btc->m_mprRotationX;
                 m_mprRotationY = btc->m_mprRotationY;
                 m_mprRotationZ = btc->m_mprRotationZ;
@@ -7285,6 +7311,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_volumeMontageCoordinateDisplayType = m_volumeMontageCoordinateDisplayType;
                 btc->m_volumeMontageCoordinatePrecision = m_volumeMontageCoordinatePrecision;
                 btc->m_volumeMontageCoordinateFontHeight = m_volumeMontageCoordinateFontHeight;
+                btc->m_volumeMontageCoordinateTextAlignment = m_volumeMontageCoordinateTextAlignment;
                 btc->m_mprRotationX = m_mprRotationX;
                 btc->m_mprRotationY = m_mprRotationY;
                 btc->m_mprRotationZ = m_mprRotationZ;

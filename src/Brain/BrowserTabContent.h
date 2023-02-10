@@ -49,6 +49,7 @@
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeMontageCoordinateDisplayTypeEnum.h"
+#include "VolumeMontageCoordinateTextAlignmentEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
@@ -573,6 +574,10 @@ namespace caret {
         
         void setVolumeMontageCoordinateFontHeight(const float volumeMontageCoordinateFontHeight);
         
+        VolumeMontageCoordinateTextAlignmentEnum::Enum getVolumeMontageCoordinateTextAlignment() const;
+        
+        void setVolumeMontageCoordinateTextAlignment(const VolumeMontageCoordinateTextAlignmentEnum::Enum alignment);
+        
         HistologyCoordinate getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
         void setHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile,
@@ -871,6 +876,9 @@ namespace caret {
         
         /** percentage height for font for coordinate text*/
         float m_volumeMontageCoordinateFontHeight = 10.0;
+        
+        /* alignment for volume montage coordinates text */
+        VolumeMontageCoordinateTextAlignmentEnum::Enum m_volumeMontageCoordinateTextAlignment = VolumeMontageCoordinateTextAlignmentEnum::RIGHT;
         
         /** enable lighting (shading) added 29 March 2018 */
         bool m_lightingEnabled;

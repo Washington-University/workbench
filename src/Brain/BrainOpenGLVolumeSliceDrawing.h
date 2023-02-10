@@ -91,8 +91,7 @@ namespace caret {
         static void drawMontageSliceCoordinates(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                 const BrowserTabContent* browserTabContent,
                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                const float viewportTextX,
-                                                const float viewportTextY,
+                                                const int32_t viewport[4],
                                                 const Vector3D sliceXYZ,
                                                 const float sliceOffset);
         
