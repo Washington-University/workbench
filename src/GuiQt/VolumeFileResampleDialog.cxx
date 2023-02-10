@@ -23,6 +23,8 @@
 #include "VolumeFileResampleDialog.h"
 #undef __VOLUME_FILE_RESAMPLE_DIALOG_DECLARE__
 
+#include <cmath>
+
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
