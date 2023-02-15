@@ -122,14 +122,12 @@ namespace caret {
                                      const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                      const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                     const int32_t sliceIndex,
                                      const GraphicsViewport& viewport);
         
         void drawVolumeSliceViewProjection(const BrainOpenGLViewportContent* viewportContent,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                           const int32_t sliceIndex,
                                            const Vector3D& sliceCoordinates,
                                            const GraphicsViewport& viewport,
                                            const bool updateGraphicsObjectToWindowTransformFlag);
@@ -208,7 +206,6 @@ namespace caret {
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
         void drawLayers(const VolumeMappableInterface* underlayVolume,
-                        const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,

@@ -395,13 +395,13 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                 break;
         }
         if (mprFlag) {
-            if (browserTabContent->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-                /*
-                 * Scroll slice if viewing a single slice plane
-                 */
-                scrollVolumeSlicesFlag = true;
-            }
-            else {
+//            if (browserTabContent->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
+//                /*
+//                 * Scroll slice if viewing a single slice plane
+//                 */
+//                scrollVolumeSlicesFlag = true;
+//            }
+//            else {
                 switch (m_mprCursorMode) {
                     case VOLUME_MPR_CURSOR_MODE::INVALID:
                         break;
@@ -437,7 +437,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                          */
                         break;
                 }
-            }
+//            }
         }
     }
     if (scrollVolumeSlicesFlag) {

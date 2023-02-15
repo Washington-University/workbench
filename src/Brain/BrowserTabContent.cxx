@@ -3320,28 +3320,6 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
     }
     
     const int32_t sliceDelta(mouseDY);
-    
-//    /*
-//     * Prevents "too fast" scrolling.
-//     * If set to a very large number, it will result in the
-//     * slice increment becoming one
-//     */
-//    int32_t slowDownIncrementer = 3;
-//
-//    int32_t sliceDelta = mouseDY;
-//    if (sliceDelta > 1) {
-//        sliceDelta /= slowDownIncrementer;
-//        if (sliceDelta == 0) {
-//            sliceDelta = 1;
-//        }
-//    }
-//    else if (sliceDelta < -1) {
-//        sliceDelta /= slowDownIncrementer;
-//        if (sliceDelta == 0) {
-//            sliceDelta = -1;
-//        }
-//    }
-    
     const int32_t tabIndex = viewportContent->getTabIndex();
     VolumeMappableInterface* underlayVolume(NULL);
     ModelVolume* volumeModel = getDisplayedVolumeModel();
@@ -3366,47 +3344,49 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
     }
     
     if (isVolumeMprDisplayed()) {
-        float sliceVector[3] = { 0.0, 0.0, 0.0 };
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                sliceVector[2] = 1.0;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                sliceVector[1] = 1.0;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                sliceVector[0] = 1.0;
-                break;
+        if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
+            float sliceVector[3] = { 0.0, 0.0, 0.0 };
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    sliceVector[2] = 1.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    sliceVector[1] = 1.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    sliceVector[0] = 1.0;
+                    break;
+            }
+            
+            const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                             sliceViewPlane);
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    
+                    rotMatrix.multiplyPoint3(sliceVector);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    rotMatrix.multiplyPoint3(sliceVector);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    rotMatrix.multiplyPoint3(sliceVector);
+                    break;
+            }
+            
+            const float axialDelta(std::round(sliceVector[2] * sliceDelta));
+            const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
+            const float paraDelta(std::round(sliceVector[0] * sliceDelta));
+            
+            setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
+            setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
+            setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
         }
-
-        const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                         sliceViewPlane);
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                
-                rotMatrix.multiplyPoint3(sliceVector);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                rotMatrix.multiplyPoint3(sliceVector);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                rotMatrix.multiplyPoint3(sliceVector);
-                break;
-        }
-        
-        const float axialDelta(std::round(sliceVector[2] * sliceDelta));
-        const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
-        const float paraDelta(std::round(sliceVector[0] * sliceDelta));
-
-        setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
-        setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
-        setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
     }
     else {
         /*
@@ -3637,6 +3617,14 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                                                                                         mousePressX,
                                                                                                         mousePressY,
                                                                                                         sliceViewport);
+                        allowRotationFlag = true;
+                    }
+                    else {
+                        /*
+                         * If true, rotation is allowed when viewing a single axis
+                         * slice view (just one of axial, coronal, parasagittal).
+                         * But user only sees crosshair
+                         */
                         allowRotationFlag = true;
                     }
                     

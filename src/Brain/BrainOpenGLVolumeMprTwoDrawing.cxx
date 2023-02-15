@@ -181,6 +181,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
                            viewport);
     }
     else if (browserTabContent->isVolumeSlicesDisplayed()) {
+        m_axialCoronalParaSliceViewFlag = true;
         drawSliceView(viewportContent,
                       browserTabContent,
                       sliceDrawingType,
@@ -222,8 +223,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
-            m_axialCoronalParaSliceViewFlag = true;
-            
             /*
              * Draw parasagittal slice
              */
@@ -237,7 +236,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                     sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                    parasagittalSliceIndex,
                                     axisVP);
             glPopMatrix();
             
@@ -253,7 +251,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                     sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::CORONAL,
-                                    coronalSliceIndex,
                                     axisVP);
             glPopMatrix();
             
@@ -269,7 +266,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                     sliceProjectionType,
                                     sliceDrawingType,
                                     VolumeSliceViewPlaneEnum::AXIAL,
-                                    axialSliceIndex,
                                     axisVP);
             glPopMatrix();
         }
@@ -297,7 +293,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                     sliceProjectionType,
                                     sliceDrawingType,
                                     sliceViewPlane,
-                                    sliceIndex,
                                     viewport);
             glPopMatrix();
         }
@@ -333,13 +328,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
         m_browserTabContent->getVolumeSliceCoordinateAxial()
     };
 
-    /*
-     * The slice index is used for setting the object to window transform
-     * that is used only for volume slice views.  Since this is the
-     * 'whole brain' view, the slice index is not needed.
-     */
-    const int32_t invalidSliceIndex(-1);
-    
     const bool updateGraphicsObjectToWindowTransformFlag(false);
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
@@ -356,7 +344,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               sliceProjectionType,
                                               sliceDrawingType,
                                               VolumeSliceViewPlaneEnum::AXIAL,
-                                              invalidSliceIndex,
                                               sliceCoordinates,
                                               viewport,
                                               updateGraphicsObjectToWindowTransformFlag);
@@ -369,7 +356,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               sliceProjectionType,
                                               sliceDrawingType,
                                               VolumeSliceViewPlaneEnum::CORONAL,
-                                              invalidSliceIndex,
                                               sliceCoordinates,
                                               viewport,
                                               updateGraphicsObjectToWindowTransformFlag);
@@ -382,7 +368,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               sliceProjectionType,
                                               sliceDrawingType,
                                               VolumeSliceViewPlaneEnum::PARASAGITTAL,
-                                              invalidSliceIndex,
                                               sliceCoordinates,
                                               viewport,
                                               updateGraphicsObjectToWindowTransformFlag);
@@ -402,8 +387,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
  *    Type of slice drawing (montage, single)
  * @param sliceViewPlane
  *    The plane for slice drawing.
- * @param sliceIndex
- *    Index of slice being drawn
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
@@ -412,7 +395,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
                                                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                         const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                        const int32_t sliceIndex,
                                                         const GraphicsViewport& viewport)
 {
     glPushAttrib(GL_ENABLE_BIT);
@@ -437,7 +419,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
                                           sliceProjectionType,
                                           sliceDrawingType,
                                           sliceViewPlane,
-                                          sliceIndex,
                                           sliceCoordinates,
                                           viewport,
                                           updateGraphicsObjectToWindowTransformFlag);
@@ -454,10 +435,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
  *    Content of viewport
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
+ * @param sliceDrawingType
+ *    The slice drawing type (montage / single)
  * @param sliceViewPlane
  *    The plane for slice drawing.
- * @param sliceIndex
- *    Index of the slice
  * @param sliceCoordinates
  *    Coordinates of the selected slice.
  * @param viewport
@@ -470,7 +451,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                               const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                              const int32_t sliceIndex,
                                                               const Vector3D& sliceCoordinates,
                                                               const GraphicsViewport& viewport,
                                                               const bool updateGraphicsObjectToWindowTransformFlag)
@@ -702,7 +682,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         
         if (slicePlane.isValidPlane()) {
             drawLayers(underlayVolume,
-                       sliceDrawingType,
                        sliceProjectionType,
                        sliceViewPlane,
                        slicePlane,
@@ -3225,8 +3204,6 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
  *
  * @param underlayVolume
  *   The underlay volume
- * @param sliceDrawingType
- *    Type of slice drawing (montage, single)
  * @param sliceProjectionType
  *    Type of projection for the slice drawing (oblique, orthogonal)
  * @param sliceViewPlane
@@ -3240,7 +3217,6 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underlayVolume,
-                                           const VolumeSliceDrawingTypeEnum::Enum /*sliceDrawingType*/,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const Plane& slicePlane,
@@ -3950,7 +3926,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                                                   sliceProjectionType,
                                                   sliceDrawingType,
                                                   sliceViewPlane,
-                                                  viewAngleSliceIndex,
                                                   sliceXYZ,
                                                   vp,
                                                   updateGraphicsObjectToWindowTransformFlag);
