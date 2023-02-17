@@ -91,6 +91,7 @@ namespace caret
         nifti_2_header m_header;//storage for header values regardless of version
         int m_version;
         bool m_isSwapped;
+        AString m_filename;//purely for warnings generated during getSForm()
         static void swapHeaderBytes(nifti_1_header &header);
         static void swapHeaderBytes(nifti_2_header &header);
         void prepareHeader(nifti_1_header& header) const;//transform internal state into ready to write header struct

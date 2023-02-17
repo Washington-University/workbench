@@ -66,6 +66,7 @@ NiftiHeader::NiftiHeader(const NiftiHeader& rhs)
     m_header = rhs.m_header;
     m_isSwapped = rhs.m_isSwapped;
     m_version = rhs.m_version;
+    m_filename = rhs.m_filename;
     m_extensions.reserve(rhs.m_extensions.size());
     for (size_t i = 0; i < rhs.m_extensions.size(); ++i)
     {
@@ -79,6 +80,7 @@ NiftiHeader& NiftiHeader::operator=(const NiftiHeader& rhs)
     m_header = rhs.m_header;
     m_isSwapped = rhs.m_isSwapped;
     m_version = rhs.m_version;
+    m_filename = rhs.m_filename;
     m_extensions.clear();
     m_extensions.reserve(rhs.m_extensions.size());
     for (size_t i = 0; i < rhs.m_extensions.size(); ++i)
@@ -220,7 +222,7 @@ bool NiftiHeader::operator==(const NiftiHeader& rhs) const
 namespace
 {
     bool sformToQform(const vector<vector<float> >& sForm, double pixdimOut[4], double quatOut[4])
-    {
+    {//NOTE: this must generate valid pixdim (including the [0] left-handed flag), even if qform fails
         Vector3D ivec, jvec, kvec;
         ivec[0] = sForm[0][0]; ivec[1] = sForm[1][0]; ivec[2] = sForm[2][0];
         jvec[0] = sForm[0][1]; jvec[1] = sForm[1][1]; jvec[2] = sForm[2][1];
@@ -261,6 +263,7 @@ namespace
 
 vector<vector<float> > NiftiHeader::getSForm() const
 {
+    //because of cifti using a nifti header, report spatial information warnings in this function, as cifti should not call this function
     FloatMatrix ret = FloatMatrix::zeros(4, 4);
     ret[3][3] = 1.0f;//force 0 0 0 1 last row
     FloatMatrix sform = ret, qform = ret;
@@ -316,7 +319,7 @@ vector<vector<float> > NiftiHeader::getSForm() const
             qform[2][3] = m_header.qoffset_z;
             qformGood = true;
         } else {
-            CaretLogWarning("found quaternion with length greater than 1 in nifti header!");
+            CaretLogWarning("found quaternion with length greater than 1 in file '" + m_filename + "'");
         }
     }
     if (sformGood)//prefer sform
@@ -327,25 +330,26 @@ vector<vector<float> > NiftiHeader::getSForm() const
         {
             ret = qform;
         } else {//fall back to analyze and complain
-            CaretLogWarning("no sform or qform code found, using ANALYZE coordinates!");
+            CaretLogWarning("no sform or qform code found, using ANALYZE coordinates for file '" + m_filename + "'");
             ret[0][0] = m_header.pixdim[1];
             ret[1][1] = m_header.pixdim[2];
             ret[2][2] = m_header.pixdim[3];
         }
     }
-    {//do sanity checks based on how we would write the new header
+    {//do sanity checks based on how we would write this header (because when we get to the writing code, we don't know about the input file headers)
         //we compare to the raw pixdim, so do this before checking units
+        //note, getSform gets called multiple times when interpreting FSL transforms, could track whether we have warned from this header instance
         double pixdimd[4], quat[4];
-        sformToQform(ret.getMatrix(), pixdimd, quat);//doesn't matter if quaternion doesn't work, FSL probably only checks the pixdim
+        sformToQform(ret.getMatrix(), pixdimd, quat);//even if sformToQform returns false, pixdim gets populated correctly, including left handed flag
         if (qformGood && ((pixdimd[0] < 0.0) != (m_header.pixdim[0] < 0.0)))//if the new qform is hand-flipped compared to the original, things are on fire, yo
         {
-            CaretLogWarning("sform and qform are flipped!");
+            CaretLogWarning("sform and qform are flipped in file '" + m_filename + "'");
         }
-        for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim
+        for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim (which is probably all they check)
         {//assume nifti-1, so convert to float before checking equality
             if (float(pixdimd[i]) != m_header.pixdim[i])
             {
-                CaretLogWarning("recomputed pixdim doesn't match the original header exactly, FSL may complain about output files");
+                CaretLogWarning("recomputed pixdim doesn't exactly match the original header in file '" + m_filename + "', FSL may complain about output file(s)");
                 break;
             }
         }
@@ -362,11 +366,11 @@ vector<vector<float> > NiftiHeader::getSForm() const
             ret[3][3] = 1.0f;
             break;
         case 0:
-            CaretLogFine("found spatial unit of '0' in nifti header, assuming millimeters");
+            CaretLogFine("found spatial unit of '0' in file '" + m_filename + "', assuming millimeters");
         case NIFTI_UNITS_MM:
             break;
         default:
-            CaretLogWarning("unrecognized spatial unit in nifti header");
+            CaretLogWarning("unrecognized spatial unit in file '" + m_filename + "'");
     }
     return ret.getMatrix();
 }
@@ -532,6 +536,7 @@ void NiftiHeader::setSForm(const vector<vector<float> >& sForm)
         CaretAssert(sForm[i].size() >= 4);//ditto
         if (sForm[i].size() < 4) throw DataFileException("internal error: setSForm matrix badly sized");
     }
+    m_filename = "";//don't blame previous file if we changed the sform
     int timeUnit = XYZT_TO_TIME(m_header.xyzt_units);
     m_header.xyzt_units = SPACE_TIME_TO_XYZT(NIFTI_UNITS_MM, timeUnit);//overwrite whatever spatial unit we read in
     for (int i = 0; i < 4; i++)
@@ -801,6 +806,7 @@ void NiftiHeader::read(CaretBinaryFile& inFile)
     }
     m_isSwapped = swapped;//now that we know there were no errors (because they throw), complete the internal state
     m_version = version;
+    m_filename = inFile.getFilename();
 }
 
 NiftiHeader::Quirks NiftiHeader::setupFrom(const nifti_1_header& header, const AString& filename)
