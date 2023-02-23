@@ -328,7 +328,6 @@ void AlgorithmVolumeROIsFromExtrema::processFrame(const float* data, vector<floa
                                 {
                                     int64_t thisIndex = mySpace.getIndex(thisVoxel);
                                     const float& thisDist = stencildist[s];
-                                    roiLists[mapCounter][thisIndex] = thisDist;
                                     if (excludeDists[thisIndex] < 0.0f)
                                     {
                                         excludeDists[thisIndex] = thisDist;
@@ -338,10 +337,10 @@ void AlgorithmVolumeROIsFromExtrema::processFrame(const float* data, vector<floa
                                         if (excludeDists[thisIndex] > thisDist)
                                         {
                                             roiLists[excludeSources[thisIndex]].erase(thisIndex);
+                                            excludeDists[thisIndex] = thisDist;
+                                            excludeSources[thisIndex] = mapCounter;
+                                            roiLists[mapCounter][thisIndex] = thisDist;
                                         }
-                                        excludeDists[thisIndex] = thisDist;
-                                        excludeSources[thisIndex] = mapCounter;
-                                        roiLists[mapCounter][thisIndex] = thisDist;
                                     }
                                 }
                             }
@@ -355,7 +354,6 @@ void AlgorithmVolumeROIsFromExtrema::processFrame(const float* data, vector<floa
                                 {
                                     int64_t thisIndex = mySpace.getIndex(thisVoxel);
                                     const float& thisDist = stencildist[s];
-                                    roiLists[mapCounter][thisIndex] = thisDist;
                                     if (excludeDists[thisIndex] < 0.0f)
                                     {
                                         excludeDists[thisIndex] = thisDist;
