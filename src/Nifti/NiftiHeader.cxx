@@ -345,12 +345,33 @@ vector<vector<float> > NiftiHeader::getSForm() const
         {
             CaretLogWarning("sform and qform are flipped in file '" + m_filename + "'");
         }
-        for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim (which is probably all they check)
-        {//assume nifti-1, so convert to float before checking equality
-            if (float(pixdimd[i]) != m_header.pixdim[i])
+        //check if oblique, and don't warn about FSL's pixdim pickiness
+        bool plumb = true;
+        for (int j = 0; plumb && j < 3; ++j)
+        {
+            int countnonzero = 0;
+            for (int i = 0; i < 3; ++i)
             {
-                CaretLogWarning("recomputed pixdim doesn't exactly match the original header in file '" + m_filename + "', FSL may complain about output file(s)");
-                break;
+                if (ret[i][j] != 0.0f)
+                {
+                    ++countnonzero;
+                    if (countnonzero > 1)
+                    {
+                        plumb = false;
+                        break;
+                    }
+                }
+            }
+        }
+        if (plumb)
+        {
+            for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim (which is probably all they check)
+            {//assume nifti-1, so convert to float before checking equality
+                if (float(pixdimd[i]) != m_header.pixdim[i])
+                {
+                    CaretLogWarning("recomputed pixdim doesn't exactly match the original header in file '" + m_filename + "', FSL may complain about output file(s)");
+                    break;
+                }
             }
         }
     }
