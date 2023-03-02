@@ -1323,14 +1323,14 @@ OperationShowSceneTwo::getExamplesOfUsage()
             "saved in the scene.  "
             "\n"
             "   " + programName
-            + " -show-scene-two myscene.scene 2 image2.jpg"
+            + " " + getCommandSwitch() + " myscene.scene 2 image2.jpg"
             + "\n"
             + "\n"
             "Generate an image of the second scene with a margin around sides of the image. "
             "Width and height of image is width and height of window saved in the scene.  "
             "\n"
             "   " + programName
-            + " -show-scene-two myscene.scene 2 image2.jpg  -margin 10"
+            + " " + getCommandSwitch() + " myscene.scene 2 image2.jpg  -margin 10"
             + "\n"
             + "\n"
             "Generate an image of the second scene that is 6 inches width with 300 pixels per inch.  The resulting "
@@ -1338,7 +1338,7 @@ OperationShowSceneTwo::getExamplesOfUsage()
             "ratio (height divided by width) of the window size saved in the scene."
             "\n"
             "   " + programName
-            + " -show-scene-two myscene.scene 2 image21.jpg \\ \n"
+            + " " + getCommandSwitch() + " myscene.scene 2 image21.jpg \\ \n"
             "   -size-width 6 -units INCHES -resolution 300 PIXELS_PER_INCH"
             + "\n"
             "\n"
@@ -1346,7 +1346,7 @@ OperationShowSceneTwo::getExamplesOfUsage()
             "(no image file is created) using a width of 4.5 centimeters. "
             "\n"
             "   " + programName
-            + " -show-scene-two myscene.scene 2 test.jpg \\ \n"
+            + " " + getCommandSwitch() + " myscene.scene 2 test.jpg \\ \n"
             "   -size-width 4.5 -units CENTIMETERS -print-image-info"
             + "\n"
             + "\n"
