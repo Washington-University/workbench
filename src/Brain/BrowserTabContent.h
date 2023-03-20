@@ -497,8 +497,6 @@ namespace caret {
         
         void setVolumeMontageSliceSpacing(const int32_t montageSliceSpacing);
         
-        void setVolumeSlicesToOrigin();
-        
         float getVolumeSliceCoordinateAxial() const;
         
         void setVolumeSliceCoordinateAxial(const float x);
@@ -590,8 +588,6 @@ namespace caret {
         
         void setLightingEnabled(const bool lightingEnabled);
         
-        void reset();
-
         void updateChartModelYokedBrowserTabs();
         
         void updateHistologyModelYokedBrowserTabs();
@@ -729,6 +725,8 @@ namespace caret {
                                                   const std::vector<const BrainOpenGLViewportContent*>& allViewportContent,
                                                   const GraphicsRegionSelectionBox* histologySelectionBounds);
 
+        void selectVolumeSlicesAtOriginPrivate();
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         

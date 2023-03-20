@@ -581,7 +581,7 @@ void
 BrainBrowserWindowToolBarSliceSelection::volumeIndicesOriginActionTriggered()
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    btc->setVolumeSlicesToOrigin();
+    btc->selectVolumeSlicesAtOrigin();
     
     updateContent(btc);
     this->updateGraphicsWindowAndYokedWindows();

@@ -83,8 +83,6 @@ namespace caret {
         
         void setMontageSliceSpacing(const int32_t montageSliceSpacing);
         
-        void setSlicesToOrigin();
-
         void getSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
                                                int64_t& parasagittalIndexOut,
                                                int64_t& coronalIndexOut,
@@ -134,15 +132,13 @@ namespace caret {
         
         void setSliceAxialEnabled(const bool sliceEnabledAxial);
         
-        void selectSlicesAtOrigin();
+        void selectSlicesAtOrigin(const VolumeMappableInterface* volumeInterface);
         
         void selectSlicesAtCoordinate(const float xyz[3]);
         
         VolumeMprSettings* getMprSettings();
         
         const VolumeMprSettings* getMprSettings() const;
-        
-        void reset();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -160,6 +156,8 @@ namespace caret {
     private:
         void copyHelperVolumeSliceSettings(const VolumeSliceSettings& obj);
 
+        void reset();
+        
         // ADD_NEW_MEMBERS_HERE
 
         /** Axis of slice being viewed */

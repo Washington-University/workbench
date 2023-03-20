@@ -1618,6 +1618,14 @@ BrowserTabContent::update(const std::vector<Model*> models)
             }
         }
     }
+    
+    /*
+     * Fixes selected slices for volume that do not
+     * contain voxel at coordinate (0, 0, 0)
+     */
+    if (previousVolumeModel == NULL) {
+        selectVolumeSlicesAtOriginPrivate();
+    }
 }
 
 /**
@@ -6372,42 +6380,29 @@ BrowserTabContent::setVolumeMontageSliceSpacing(const int32_t montageSliceSpacin
 }
 
 /**
- * Set the selected slices to the origin.
- */
-void
-BrowserTabContent::setVolumeSlicesToOrigin()
-{
-    selectVolumeSlicesAtOrigin();
-    updateBrainModelYokedBrowserTabs();
-}
-
-/**
- * Reset the slices.
- */
-void
-BrowserTabContent::reset()
-{
-    if (isVolumeSlicesDisplayed()
-        || isWholeBrainDisplayed()) {
-        m_volumeSliceSettings->reset();
-        m_obliqueVolumeRotationMatrix->identity();
-    }
-    if (isHistologyDisplayed()) {
-        m_histologySliceSettings->reset();
-    }
-    updateBrainModelYokedBrowserTabs();
-    updateHistologyModelYokedBrowserTabs();
-    updateMediaModelYokedBrowserTabs();
-}
-
-/**
- * Set the slice indices so that they are at the origin.
+ * Set the slice indices so that they are at the origin.  However, if the coordinate (0, 0, 0) is outside
+ * of the volume, select coordinate at the middle of the volume.
  */
 void
 BrowserTabContent::selectVolumeSlicesAtOrigin()
 {
-    m_volumeSliceSettings->selectSlicesAtOrigin();
+    selectVolumeSlicesAtOriginPrivate();
     updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * Set the slice indices so that they are at the origin.  However, if the coordinate (0, 0, 0) is outside
+ * of the volume, select coordinate at the middle of the volume.
+ */
+void
+BrowserTabContent::selectVolumeSlicesAtOriginPrivate()
+{
+    VolumeMappableInterface* volumeInterface(NULL);
+    if (m_volumeModel != NULL) {
+        volumeInterface = m_volumeModel->getOverlaySet(m_tabNumber)->getUnderlayVolume();
+    }
+    
+    m_volumeSliceSettings->selectSlicesAtOrigin(volumeInterface);
 }
 
 /**
