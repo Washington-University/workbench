@@ -24,6 +24,8 @@
 #undef __VOLUME_MAPPABLE_INTERFACE_DECLARE__
 
 #include "CaretAssert.h"
+#include "VolumeSpace.h"
+
 using namespace caret;
 
 
@@ -125,3 +127,66 @@ VolumeMappableInterface::limitIndicesToValidIndices(int64_t& index1,
     }
 }
 
+/**
+ * Get the dimensions for the parasagittal, coronal, and axial dimensions.
+ * If the volume is 'plumb', these dimensions will be correct for any orientation.
+ * Otherwise, if the volume is NOT plumb, parasagittal will contain first dimension,
+ * coronal the second dimension, and axial the third dimension.
+ * 
+ * @param dimParasagittalOut
+ *   Dimension for parasagittal axis
+ * @param dimCoronalOut
+ *   Dimension for coronal axis
+ * @param dimAxialOut
+ *   Dimension for axial axis
+ */
+void
+VolumeMappableInterface::getDimensionsPCA(int64_t& dimParasagittalOut,
+                                          int64_t& dimCoronalOut,
+                                          int64_t& dimAxialOut) const
+{
+    dimParasagittalOut = 0;
+    dimCoronalOut      = 0;
+    dimAxialOut        = 0;
+    
+    std::vector<int64_t> dimensions;
+    getDimensions(dimensions);
+    if (dimensions.size() < 3) {
+        return;
+    }
+    
+    const VolumeSpace& volumeSpace(getVolumeSpace());
+    
+    VolumeSpace::OrientTypes orientation[3];
+    volumeSpace.getOrientation(orientation);
+    
+    if (volumeSpace.isPlumb()) {
+        dimParasagittalOut = -1;
+        dimCoronalOut      = -1;
+        dimAxialOut        = -1;
+        for (int32_t i = 0; i < 3; i++) {
+            switch (orientation[i]) {
+                case VolumeSpace::LEFT_TO_RIGHT:
+                case VolumeSpace::RIGHT_TO_LEFT:
+                    dimParasagittalOut = dimensions[i];
+                    break;
+                case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                    dimCoronalOut = dimensions[i];
+                    break;
+                case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                    dimAxialOut = dimensions[i];
+                    break;
+            }
+        }
+        CaretAssert(dimParasagittalOut >= 0);
+        CaretAssert(dimCoronalOut      >= 0);
+        CaretAssert(dimAxialOut        >= 0);
+    }
+    else {
+        dimParasagittalOut = dimensions[0];
+        dimCoronalOut      = dimensions[1];
+        dimAxialOut        = dimensions[2];
+    }
+}

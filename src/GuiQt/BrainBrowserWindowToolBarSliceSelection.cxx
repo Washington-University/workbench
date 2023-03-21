@@ -442,19 +442,19 @@ BrainBrowserWindowToolBarSliceSelection::updateSliceIndicesAndCoordinatesRanges(
         m_volumeIndicesCoronalSpinBox->setEnabled(true);
         m_volumeIndicesParasagittalSpinBox->setEnabled(true);
         
-        std::vector<int64_t> dimensions;
-        vf->getDimensions(dimensions);
+        int64_t dimParasagittal(0), dimCoronal(0), dimAxial(0);
+        vf->getDimensionsPCA(dimParasagittal, dimCoronal, dimAxial);
         
         /*
          * Setup minimum and maximum slices for each dimension.
          * Range is unlimited when Yoked.
          */
-        int minAxialDim = 0;
-        int minCoronalDim = 0;
-        int minParasagittalDim = 0;
-        int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
-        int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
-        int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
+        const int minAxialDim = 0;
+        const int minCoronalDim = 0;
+        const int minParasagittalDim = 0;
+        const int maxAxialDim = (dimAxial > 0) ? (dimAxial - 1) : 0;
+        const int maxCoronalDim = (dimCoronal > 0) ? (dimCoronal - 1) : 0;
+        const int maxParasagittalDim = (dimParasagittal > 0) ? (dimParasagittal - 1) : 0;
         
         /*
          * BUG NOTE:
@@ -506,18 +506,14 @@ BrainBrowserWindowToolBarSliceSelection::updateSliceIndicesAndCoordinatesRanges(
         vf->indexToSpace(slicesMax,
                          sliceMaxCoords);
         
-        const double minX = std::min(sliceZeroCoords[0],
-                                    sliceMaxCoords[0]);
-        const double maxX = std::max(sliceZeroCoords[0],
-                                    sliceMaxCoords[0]);
-        const double minY = std::min(sliceZeroCoords[1],
-                                    sliceMaxCoords[1]);
-        const double maxY = std::max(sliceZeroCoords[1],
-                                    sliceMaxCoords[1]);
-        const double minZ = std::min(sliceZeroCoords[2],
-                                    sliceMaxCoords[2]);
-        const double maxZ = std::max(sliceZeroCoords[2],
-                                    sliceMaxCoords[2]);
+        BoundingBox boundingBox;
+        vf->getVoxelSpaceBoundingBox(boundingBox);
+        const double minX(boundingBox.getMinX());
+        const double maxX(boundingBox.getMaxX());
+        const double minY(boundingBox.getMinY());
+        const double maxY(boundingBox.getMaxY());
+        const double minZ(boundingBox.getMinZ());
+        const double maxZ(boundingBox.getMaxZ());
         
         /*
          * See BUG NOTE above.

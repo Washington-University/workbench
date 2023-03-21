@@ -80,6 +80,10 @@ namespace caret {
          */
         virtual void getDimensions(std::vector<int64_t>& dimsOut) const = 0;
 
+        void getDimensionsPCA(int64_t& dimParasagittalOut,
+                              int64_t& dimCoronalOut,
+                              int64_t& dimAxialOut) const;
+
         bool matchesDimensions(const int64_t dim1,
                                const int64_t dim2,
                                const int64_t dim3) const;
