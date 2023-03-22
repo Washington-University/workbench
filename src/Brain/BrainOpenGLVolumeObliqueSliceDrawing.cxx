@@ -171,7 +171,21 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     CaretAssert(m_brain);
     CaretAssert(m_modelType != ModelTypeEnum::MODEL_TYPE_INVALID);
     
-    m_volumeDrawInfo = volumeDrawInfo;
+    const bool ignoreWorkbenchRgbFilesFlag(false);
+    if (ignoreWorkbenchRgbFilesFlag) {
+        for (auto& vdi : volumeDrawInfo) {
+            if (vdi.volumeType == SubvolumeAttributes::RGB_WORKBENCH) {
+                CaretLogWarning("Drawing of RGB_WORKBENCH not supported for oblique viewing: "
+                                + vdi.mapFile->getFileNameNoPath());
+            }
+            else {
+                m_volumeDrawInfo.push_back(vdi);
+            }
+        }
+    }
+    else {
+        m_volumeDrawInfo = volumeDrawInfo;
+    }
     if (m_volumeDrawInfo.empty()) {
         return;
     }
@@ -2936,11 +2950,21 @@ m_bottomLayerFlag(bottomLayerFlag)
     }
     else if (m_mapFile->isMappedWithRGBA()) {
         if (m_volumeFile != NULL) {
-            if (m_volumeFile->getNumberOfComponents() == 4) {
-                m_dataValueType = DataValueType::VOLUME_RGBA;
+            if (m_volumeFile->getType() == SubvolumeAttributes::RGB_WORKBENCH) {
+                if (m_volumeFile->getNumberOfMaps() >= 3) {
+                    m_dataValueType = DataValueType::VOLUME_RGB_WORKBENCH;
+                }
             }
-            else if (m_volumeFile->getNumberOfComponents() == 3) {
-                m_dataValueType = DataValueType::VOLUME_RGB;
+            else if (m_volumeFile->getType() == SubvolumeAttributes::RGB) {
+                if (m_volumeFile->getNumberOfComponents() == 4) {
+                    m_dataValueType = DataValueType::VOLUME_RGBA;
+                }
+                else if (m_volumeFile->getNumberOfComponents() == 3) {
+                    m_dataValueType = DataValueType::VOLUME_RGB;
+                }
+            }
+            else {
+                CaretAssertMessage(0, "RGB volume type not recognized");
             }
         }
         else {
@@ -2962,6 +2986,9 @@ m_bottomLayerFlag(bottomLayerFlag)
             break;
         case DataValueType::VOLUME_RGB:
         case DataValueType::VOLUME_RGBA:
+            m_voxelNumberOfComponents = 4;
+            break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
             m_voxelNumberOfComponents = 4;
             break;
     }
@@ -3084,6 +3111,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::setThresholdFileAndMap()
             break;
         case DataValueType::VOLUME_RGBA:
             break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
+            break;
     }
     
     if (m_thresholdMapIndex < 0) {
@@ -3123,6 +3152,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             break;
         case DataValueType::VOLUME_RGB:
         case DataValueType::VOLUME_RGBA:
+            /*
+             * For RGBA, there are four data values per voxel
+             */
+            m_rgba.resize(m_data.size());
+            break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
             /*
              * For RGBA, there are four data values per voxel
              */
@@ -3233,11 +3268,37 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
                     m_rgba[i4] = static_cast<uint8_t>(m_data[i4]);
                     m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
                     m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
-                    if (m_dataValueType == DataValueType::VOLUME_RGB) {
+                    m_rgba[i4+3] = 255;
+                    if (m_dataValueType == DataValueType::VOLUME_RGBA) {
                         m_rgba[i4+3] = ((m_data[i4+3] > 0)
                                         ? 255
                                         : 0);
                     }
+                }
+            }
+            else {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4] * 255.0);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1] * 255.0);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2] * 255.0);
+                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3] * 255.0);
+                }
+            }
+        }
+            break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
+        {
+            const bool range255Flag(true);
+            CaretAssert(m_data.size() == m_rgba.size());
+            const int32_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
+            if (range255Flag) {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4]);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
+                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3]);
                 }
             }
             else {
@@ -3284,6 +3345,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::addOutlines()
         case DataValueType::VOLUME_RGB:
             break;
         case DataValueType::VOLUME_RGBA:
+            break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
             break;
     }
     
@@ -3341,6 +3404,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
         case DataValueType::VOLUME_PALETTE:
         case DataValueType::VOLUME_RGB:
         case DataValueType::VOLUME_RGBA:
+            break;
+        case DataValueType::VOLUME_RGB_WORKBENCH:
             break;
     }
     
@@ -3501,15 +3566,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                 case DataValueType::VOLUME_RGB:
                 case DataValueType::VOLUME_RGBA:
                 {
-                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                               &valueValidFlag,
-                                                               m_mapIndex,
-                                                               0);
+                    values[1] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            m_mapIndex,
+                                                            1);
                     if (valueValidFlag) {
-                        values[1] = m_volumeFile->getVoxelValue(voxelCenter,
-                                                                   &valueValidFlag,
-                                                                   m_mapIndex,
-                                                                   1);
+                        values[0] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                &valueValidFlag,
+                                                                m_mapIndex,
+                                                                0);
                         values[2] = m_volumeFile->getVoxelValue(voxelCenter,
                                                                    &valueValidFlag,
                                                                    m_mapIndex,
@@ -3523,6 +3588,25 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                         else {
                             values[3] = 1.0;
                         }
+                    }
+                }
+                    break;
+                case DataValueType::VOLUME_RGB_WORKBENCH:
+                {
+                    values[0] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                            &valueValidFlag,
+                                                            0,  /* map index */
+                                                            0); /* component index*/
+                    if (valueValidFlag) {
+                        values[1] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                &valueValidFlag,
+                                                                1,
+                                                                0);
+                        values[2] = m_volumeFile->getVoxelValue(voxelCenter,
+                                                                &valueValidFlag,
+                                                                2,
+                                                                0);
+                        values[3] = 255;
                     }
                 }
                     break;
@@ -3554,6 +3638,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                     break;
                 case DataValueType::VOLUME_RGB:
                 case DataValueType::VOLUME_RGBA:
+                    m_data.push_back(values[0]);
+                    m_data.push_back(values[1]);
+                    m_data.push_back(values[2]);
+                    m_data.push_back(values[3]);
+                    break;
+                case DataValueType::VOLUME_RGB_WORKBENCH:
                     m_data.push_back(values[0]);
                     m_data.push_back(values[1]);
                     m_data.push_back(values[2]);
@@ -3604,10 +3694,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
     CaretAssert((m_sliceNumberOfVoxels * m_voxelNumberOfComponents) == static_cast<int32_t>(m_data.size()));
     if (m_thresholdMapIndex >= 0) {
         CaretAssert(m_data.size() == m_thresholdData.size());
-    }
-    
-    if (m_identificationModeFlag) {
-        CaretAssert((m_data.size() * 3) == m_identificationIJK.size());
     }
 }
 

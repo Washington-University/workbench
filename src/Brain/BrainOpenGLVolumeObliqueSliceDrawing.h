@@ -90,7 +90,8 @@ namespace caret {
                 VOLUME_LABEL,
                 VOLUME_PALETTE,
                 VOLUME_RGB,
-                VOLUME_RGBA
+                VOLUME_RGBA,
+                VOLUME_RGB_WORKBENCH
             };
             
             ObliqueSlice(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
