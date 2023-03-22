@@ -54,6 +54,56 @@ VolumeMappableInterface::getVoxelSpacing(float& spacingOut1,
 }
 
 /**
+ * Get the voxel spacing for parasagittal (X), coronal (Y), and axial (Z)
+ *
+ * @param spacingParasagittalXOut
+ *    Spacing for the first dimension (typically X).
+ * @param spacingCoronalYOut
+ *    Spacing for the first dimension (typically Y).
+ * @param spacingAxialZOut
+ *    Spacing for the first dimension (typically Z).
+ */
+void
+VolumeMappableInterface::getVoxelSpacingPCA(float& spacingParasagittalXOut,
+                                            float& spacingCoronalYOut,
+                                            float& spacingAxialZOut) const
+{
+    spacingParasagittalXOut = 0.0;
+    spacingCoronalYOut      = 0.0;
+    spacingAxialZOut        = 0.0;
+    
+    Vector3D spacing;
+    getVoxelSpacing(spacing[0], spacing[1], spacing[2]);
+    
+    VolumeSpace::OrientTypes orientation[3];
+    getVolumeSpace().getOrientation(orientation);
+    
+    if (getVolumeSpace().isPlumb()) {
+        for (int32_t i = 0; i < 3; i++) {
+            switch (orientation[i]) {
+                case VolumeSpace::LEFT_TO_RIGHT:
+                case VolumeSpace::RIGHT_TO_LEFT:
+                    spacingParasagittalXOut = spacing[i];
+                    break;
+                case VolumeSpace::ANTERIOR_TO_POSTERIOR:
+                case VolumeSpace::POSTERIOR_TO_ANTERIOR:
+                    spacingCoronalYOut = spacing[i];
+                    break;
+                case VolumeSpace::INFERIOR_TO_SUPERIOR:
+                case VolumeSpace::SUPERIOR_TO_INFERIOR:
+                    spacingAxialZOut = spacing[i];
+                    break;
+            }
+        }
+    }
+    else {
+        spacingParasagittalXOut = spacing[0];
+        spacingCoronalYOut      = spacing[1];
+        spacingAxialZOut        = spacing[2];
+    }
+}
+
+/**
  * Does this volume have these spatial dimensions?
  *
  * @param dim1

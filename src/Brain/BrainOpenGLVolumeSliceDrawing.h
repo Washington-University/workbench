@@ -332,9 +332,6 @@ namespace caret {
                                                            const int32_t mapIndex,
                                                            const uint8_t sliceOpacity);
         
-        bool getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
-                                                float spacingOut[3]);
-        
         void drawIdentificationSymbols(const VolumeMappableInterface* volume,
                                        const int32_t mapIndex,
                                        const Plane& plane,

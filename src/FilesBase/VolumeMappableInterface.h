@@ -273,6 +273,20 @@ namespace caret {
                              float& spacingOut3) const;
         
         /**
+         * Get the voxel spacing for parasagittal (X), coronal (Y), and axial (Z)
+         *
+         * @param spacingParasagittalXOut
+         *    Spacing for the first dimension (typically X).
+         * @param spacingCoronalYOut
+         *    Spacing for the first dimension (typically Y).
+         * @param spacingAxialZOut
+         *    Spacing for the first dimension (typically Z).
+         */
+        void getVoxelSpacingPCA(float& spacingParasagittalXOut,
+                                float& spacingCoronalYOut,
+                                float& spacingAxialZOut) const;
+
+        /**
          * Get the voxel colors for a slice in the map.
          *
          * @param mapIndex

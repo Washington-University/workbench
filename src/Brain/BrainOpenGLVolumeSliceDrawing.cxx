@@ -819,8 +819,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
     if ( ! m_volumeDrawInfo.empty()) {
         if (m_volumeDrawInfo[0].volumeFile != NULL) {
             float spaceX = 0.0, spaceY = 0.0, spaceZ = 0.0;
-            m_volumeDrawInfo[0].volumeFile->getVoxelSpacing(spaceX, spaceY, spaceZ);
-            
+            m_volumeDrawInfo[0].volumeFile->getVoxelSpacingPCA(spaceX,
+                                                               spaceY,
+                                                               spaceZ);
+
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     CaretAssert(0);
@@ -4001,90 +4003,6 @@ BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnde
 }
 
 /**
- * Get the maximum bounds that enclose the volumes and the minimum
- * voxel spacing from the volumes.
- *
- * @param boundsOut
- *    Bounds of the volumes.
- * @param spacingOut
- *    Minimum voxel spacing from the volumes.  Always positive values (even if
- *    volumes is oriented right to left).
- *
- */
-bool
-BrainOpenGLVolumeSliceDrawing::getVoxelCoordinateBoundsAndSpacing(float boundsOut[6],
-                                                                float spacingOut[3])
-{
-    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(m_volumeDrawInfo.size());
-    if (numberOfVolumesToDraw <= 0) {
-        return false;
-    }
-    
-    /*
-     * Find maximum extent of all voxels and smallest voxel
-     * size in each dimension.
-     */
-    float minVoxelX = std::numeric_limits<float>::max();
-    float maxVoxelX = -std::numeric_limits<float>::max();
-    float minVoxelY = std::numeric_limits<float>::max();
-    float maxVoxelY = -std::numeric_limits<float>::max();
-    float minVoxelZ = std::numeric_limits<float>::max();
-    float maxVoxelZ = -std::numeric_limits<float>::max();
-    float voxelStepX = std::numeric_limits<float>::max();
-    float voxelStepY = std::numeric_limits<float>::max();
-    float voxelStepZ = std::numeric_limits<float>::max();
-    for (int32_t i = 0; i < numberOfVolumesToDraw; i++) {
-        const VolumeMappableInterface* volumeFile = m_volumeDrawInfo[i].volumeFile;
-        int64_t dimI, dimJ, dimK, numMaps, numComponents;
-        volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        
-        float originX, originY, originZ;
-        float x1, y1, z1;
-        float lastX, lastY, lastZ;
-        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
-        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
-        volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
-        const float dx = x1 - originX;
-        const float dy = y1 - originY;
-        const float dz = z1 - originZ;
-        voxelStepX = std::min(voxelStepX, std::fabs(dx));
-        voxelStepY = std::min(voxelStepY, std::fabs(dy));
-        voxelStepZ = std::min(voxelStepZ, std::fabs(dz));
-        
-        minVoxelX = std::min(minVoxelX, std::min(originX, lastX));
-        maxVoxelX = std::max(maxVoxelX, std::max(originX, lastX));
-        minVoxelY = std::min(minVoxelY, std::min(originY, lastY));
-        maxVoxelY = std::max(maxVoxelY, std::max(originY, lastY));
-        minVoxelZ = std::min(minVoxelZ, std::min(originZ, lastZ));
-        maxVoxelZ = std::max(maxVoxelZ, std::max(originZ, lastZ));
-    }
-    
-    boundsOut[0] = minVoxelX;
-    boundsOut[1] = maxVoxelX;
-    boundsOut[2] = minVoxelY;
-    boundsOut[3] = maxVoxelY;
-    boundsOut[4] = minVoxelZ;
-    boundsOut[5] = maxVoxelZ;
-    
-    spacingOut[0] = voxelStepX;
-    spacingOut[1] = voxelStepY;
-    spacingOut[2] = voxelStepZ;
-    
-    bool valid = false;
-    
-    if ((maxVoxelX > minVoxelX)
-        && (maxVoxelY > minVoxelY)
-        && (maxVoxelZ > minVoxelZ)
-        && (voxelStepX > 0.0)
-        && (voxelStepY > 0.0)
-        && (voxelStepZ > 0.0)) {
-        valid = true;
-    }
-    
-    return valid;
-}
-
-/**
  * Find portion (or all) of slice that fits inside the graphics window.
  *
  * @param sliceViewPlane
@@ -4188,9 +4106,10 @@ BrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling(const Volume
 
     {
         float spaceX, spaceY, spaceZ;
-        volumeFile->getVoxelSpacing(spaceX,
-                                    spaceY,
-                                    spaceZ);
+        volumeFile->getVoxelSpacingPCA(spaceX,
+                                       spaceY,
+                                       spaceZ);
+
         const float halfX = std::fabs(spaceX / 2.0);
         const float halfY = std::fabs(spaceY / 2.0);
         const float halfZ = std::fabs(spaceZ / 2.0);
@@ -4278,9 +4197,9 @@ BrainOpenGLVolumeSliceDrawing::getVolumeDrawingViewDependentCulling(const Volume
      * and positive may be on left or bottom
      */
     float voxelDeltaX, voxelDeltaY, voxelDeltaZ;
-    volumeFile->getVoxelSpacing(voxelDeltaX,
-                                voxelDeltaY,
-                                voxelDeltaZ);
+    volumeFile->getVoxelSpacingPCA(voxelDeltaX,
+                                   voxelDeltaY,
+                                   voxelDeltaZ);
     voxelDeltaX = std::fabs(voxelDeltaX);
     voxelDeltaY = std::fabs(voxelDeltaY);
     voxelDeltaZ = std::fabs(voxelDeltaZ);
