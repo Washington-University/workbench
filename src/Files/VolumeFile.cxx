@@ -365,6 +365,15 @@ void VolumeFile::readFile(const AString& filename)
     CaretLogFine("Total Time to read and process volume is "
                  + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds.");
+    
+    /*
+     * Temporay kludge so file gets RGB coloring
+     */
+    if (getFileNameNoPath() == "photo_recon_SLA.nii.gz") {
+        if (m_caretVolExt.m_attributes.size() > 0) {
+            m_caretVolExt.m_attributes[0]->m_type = SubvolumeAttributes::RGB_WORKBENCH;
+        }
+    }
 }
 
 /**
@@ -1403,6 +1412,9 @@ VolumeFile::isMappedWithPalette() const
         case SubvolumeAttributes::RGB:
             mapsWithPaletteFlag = false;
             break;
+        case SubvolumeAttributes::RGB_WORKBENCH:
+            mapsWithPaletteFlag = false;
+            break;
         case SubvolumeAttributes::SEGMENTATION:
             break;
         case SubvolumeAttributes::UNKNOWN:
@@ -1537,6 +1549,9 @@ VolumeFile::isMappedWithRGBA() const
         case SubvolumeAttributes::LABEL:
             break;
         case SubvolumeAttributes::RGB:
+            mapsWithRgbaFlag = true;
+            break;
+        case SubvolumeAttributes::RGB_WORKBENCH:
             mapsWithRgbaFlag = true;
             break;
         case SubvolumeAttributes::SEGMENTATION:

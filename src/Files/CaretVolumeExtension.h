@@ -51,6 +51,7 @@ namespace caret
             FUNCTIONAL,
             LABEL,
             RGB,
+            RGB_WORKBENCH,
             SEGMENTATION,
             VECTOR
         };//TODO: make this into a caret enum class?

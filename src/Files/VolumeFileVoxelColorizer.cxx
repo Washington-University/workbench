@@ -238,6 +238,27 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
             }
         }
             break;
+        case SubvolumeAttributes::RGB_WORKBENCH:
+            if (m_volumeFile->getNumberOfMaps() >= 3) {
+                /*
+                 * Use first 3 maps as RGB components
+                 */
+                const float* alphaComponents(NULL);
+                const uint8_t thresholdRGB[3] = { 5, 5, 5 };
+                NodeAndVoxelColoring::colorScalarsWithRGBA(m_volumeFile->getFrame(0),
+                                                           m_volumeFile->getFrame(1),
+                                                           m_volumeFile->getFrame(2),
+                                                           alphaComponents,
+                                                           m_voxelCountPerMap,
+                                                           thresholdRGB,
+                                                           m_mapRGBA[mapIndex]);
+                m_mapColoringValid[mapIndex] = true;
+            }
+            else {
+                CaretLogSevere("An RGB_WORKBENCH volume must contain at least 3 maps: "
+                               + m_volumeFile->getFileNameNoPath());
+            }
+            break;
         case SubvolumeAttributes::SEGMENTATION:
             break;
         case SubvolumeAttributes::VECTOR:

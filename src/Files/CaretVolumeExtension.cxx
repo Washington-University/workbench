@@ -133,6 +133,9 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
         case RGB:
             typeString = "RGB";
             break;
+        case RGB_WORKBENCH:
+            typeString = "RGB_WORKBENCH";
+            break;
         case SEGMENTATION:
             typeString = "Segmentation";
             break;
@@ -282,6 +285,8 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::LABEL;
             } else if (elemCharData == "RGB") {
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::RGB;
+            } else if (elemCharData == "RGB_WORKBENCH") {
+                m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::RGB_WORKBENCH;
             } else if (elemCharData == "Segmentation") {
                 m_toFill->m_attributes[m_viIndex]->m_type = SubvolumeAttributes::SEGMENTATION;
             } else if (elemCharData == "Vector") {

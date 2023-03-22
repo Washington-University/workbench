@@ -594,6 +594,9 @@ VolumeFileCreateDialog::okButtonClicked()
             case SubvolumeAttributes::RGB:
                 CaretAssert(0);
                 break;
+            case SubvolumeAttributes::RGB_WORKBENCH:
+                CaretAssert(0);
+                break;
             case SubvolumeAttributes::SEGMENTATION:
                 break;
             case SubvolumeAttributes::UNKNOWN:
