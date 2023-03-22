@@ -3124,7 +3124,7 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
 
     int64_t ijk[3];
     volumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
-    if (volumeInterface->indexValid(ijk[0], ijk[0], ijk[2])) {
+    if (volumeInterface->indexValid(ijk[0], ijk[1], ijk[2])) {
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isEnabledForSelection()) {
             if ( ! voxelID->isValid()) {
