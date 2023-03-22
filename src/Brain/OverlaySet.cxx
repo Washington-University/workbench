@@ -823,15 +823,17 @@ OverlaySet::findUnderlayFiles( const std::vector<StructureEnum::Enum>& matchToSt
                     }
                     if (testIt) {
                         if (vf->getNumberOfMaps() > 0) {
-                            PaletteColorMapping* pcm = vf->getMapPaletteColorMapping(0);
-                            if (pcm != NULL) {
-                                const AString paletteName = pcm->getSelectedPaletteName();
-                                if (paletteName.contains("gray")
-                                    || paletteName.contains("grey")) {
-                                    filesOut.push_back(vf);
-                                    mapIndicesOut.push_back(0);
-                                    foundAnatomyVolume = true;
-                                    break;
+                            if (vf->isMappedWithPalette()) {
+                                PaletteColorMapping* pcm = vf->getMapPaletteColorMapping(0);
+                                if (pcm != NULL) {
+                                    const AString paletteName = pcm->getSelectedPaletteName();
+                                    if (paletteName.contains("gray")
+                                        || paletteName.contains("grey")) {
+                                        filesOut.push_back(vf);
+                                        mapIndicesOut.push_back(0);
+                                        foundAnatomyVolume = true;
+                                        break;
+                                    }
                                 }
                             }
                         }
@@ -1005,7 +1007,27 @@ OverlaySet::findOverlayFiles(const std::vector<StructureEnum::Enum>& matchToStru
         const int32_t numVolumes = static_cast<int32_t>(volumeFiles.size());
         for (int32_t i = 0; i < numVolumes; i++) {
             VolumeFile* vf = volumeFiles[i];
-            if (vf->getType() == SubvolumeAttributes::LABEL) {
+            bool includeFlag(false);
+            switch (vf->getType()) {
+                case SubvolumeAttributes::ANATOMY:
+                    break;
+                case SubvolumeAttributes::FUNCTIONAL:
+                    break;
+                case SubvolumeAttributes::LABEL:
+                    includeFlag = true;
+                    break;
+                case SubvolumeAttributes::RGB:
+                    break;
+                case SubvolumeAttributes::RGB_WORKBENCH:
+                    break;
+                case SubvolumeAttributes::SEGMENTATION:
+                    break;
+                case SubvolumeAttributes::VECTOR:
+                    break;
+                case SubvolumeAttributes::UNKNOWN:
+                    break;
+            }
+            if (includeFlag) {
                 if (vf->getNumberOfMaps() > 0) {
                     filesOut.push_back(vf);
                     mapIndicesOut.push_back(0);
@@ -1155,9 +1177,32 @@ OverlaySet::initializeOverlays()
     /*
      * Disable overlays that were not initialized
      */
+    bool atLeastOneOverlayEnabledFlag(false);
     for (int32_t i = 0; i < numberOfDisplayedOverlays; i++) {
         CaretAssertVectorIndex(overlayInitializedFlag, i);
         getOverlay(i)->setEnabled(overlayInitializedFlag[i]);
+        if (overlayInitializedFlag[i]) {
+            atLeastOneOverlayEnabledFlag = true;
+        }
+    }
+    
+    /*
+     * If no overlays were enabled, enable the underlay
+     * if it contains a file.  This problem was observed
+     * if one loaded an RGB volume (no overlay was enabled).
+     */
+    if ( ! atLeastOneOverlayEnabledFlag) {
+        if (numberOfDisplayedOverlays > 0) {
+            const int32_t overlayIndex(numberOfDisplayedOverlays - 1);
+            Overlay* overlay(getOverlay(overlayIndex));
+            CaretMappableDataFile* mapFile(NULL);
+            int32_t mapIndex(0);
+            overlay->getSelectionData(mapFile, mapIndex);
+            if ((mapFile != NULL)
+                && (mapIndex >= 0)) {
+                overlay->setEnabled(true);
+            }
+        }
     }
 }
 
