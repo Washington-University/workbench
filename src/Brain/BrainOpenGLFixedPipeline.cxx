@@ -9269,8 +9269,8 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->mapIndex = mapIndex;
     this->opacity    = opacity;
     this->volumeType = SubvolumeAttributes::UNKNOWN;
-    if (volumeFile != NULL) {
-        const VolumeFile* vf(dynamic_cast<const VolumeFile*>(volumeFile));
+    const VolumeFile* vf(dynamic_cast<const VolumeFile*>(volumeFile));
+    if (vf != NULL) {
         this->volumeType = vf->getType();
     }
 }
