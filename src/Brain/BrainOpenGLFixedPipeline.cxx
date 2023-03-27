@@ -52,6 +52,7 @@
 #include "BrainOpenGLMediaCoordinateDrawing.h"
 #include "BrainOpenGLMediaDrawing.h"
 #include "BrainOpenGLPrimitiveDrawing.h"
+#include "BrainOpenGLVolumeMprThreeDrawing.h"
 #include "BrainOpenGLVolumeMprTwoDrawing.h"
 #include "BrainOpenGLVolumeObliqueSliceDrawing.h"
 #include "BrainOpenGLVolumeSliceDrawing.h"
@@ -4604,7 +4605,7 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
      * fix the problem.
      */
     bool useNewDrawingFlag = false;
-    bool useMprTwoDrawingFlag = false;
+    bool useMprDrawingFlag = false;
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
@@ -4612,18 +4613,29 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
             useNewDrawingFlag = true;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            useMprTwoDrawingFlag = true;
+            useMprDrawingFlag = true;
             break;
     }
     
-    if (useMprTwoDrawingFlag) {
+    if (useMprDrawingFlag) {
         GraphicsViewport graphicsViewport(viewport);
-        BrainOpenGLVolumeMprTwoDrawing mprDrawing;
-        mprDrawing.draw(this,
-                        viewportContent,
-                        browserTabContent,
-                        volumeDrawInfo,
-                        graphicsViewport);
+        
+        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+            mprDrawing.draw(this,
+                            viewportContent,
+                            browserTabContent,
+                            volumeDrawInfo,
+                            graphicsViewport);
+        }
+        else {
+            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+            mprDrawing.draw(this,
+                            viewportContent,
+                            browserTabContent,
+                            volumeDrawInfo,
+                            graphicsViewport);
+        }
     }
     else if (useNewDrawingFlag) {
         BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
@@ -6977,12 +6989,23 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                     {
                         GraphicsViewport graphicsViewport(viewport);
-                        BrainOpenGLVolumeMprTwoDrawing mprDrawing;
-                        mprDrawing.draw(this,
-                                        viewportContent,
-                                        browserTabContent,
-                                        volumeDrawInfo,
-                                        graphicsViewport);
+                        
+                        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+                            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+                            mprDrawing.draw(this,
+                                            viewportContent,
+                                            browserTabContent,
+                                            volumeDrawInfo,
+                                            graphicsViewport);
+                        }
+                        else {
+                            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+                            mprDrawing.draw(this,
+                                            viewportContent,
+                                            browserTabContent,
+                                            volumeDrawInfo,
+                                            graphicsViewport);
+                        }
                     }
                         break;
                 }
@@ -9269,8 +9292,8 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->mapIndex = mapIndex;
     this->opacity    = opacity;
     this->volumeType = SubvolumeAttributes::UNKNOWN;
-    const VolumeFile* vf(dynamic_cast<const VolumeFile*>(volumeFile));
-    if (vf != NULL) {
+    if (volumeFile != NULL) {
+        const VolumeFile* vf(dynamic_cast<const VolumeFile*>(volumeFile));
         this->volumeType = vf->getType();
     }
 }

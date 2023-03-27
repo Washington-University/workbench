@@ -1728,6 +1728,39 @@ BrainOpenGLViewportContent::getSliceAllViewViewport(const int32_t tabViewport[4]
  *    Output viewport (region of graphics area) for drawing slices.
  */
 VolumeSliceViewPlaneEnum::Enum
+BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(const GraphicsViewport& viewport,
+                                                                   const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                                   const Vector3D& mousePressXY,
+                                                                   GraphicsViewport& sliceViewportOut)
+{
+    int32_t sliceViewport[4];
+    const VolumeSliceViewPlaneEnum::Enum viewPlane(getSliceViewPlaneForVolumeAllSliceView(viewport.getViewport().data(),
+                                                                                          allPlanesLayout,
+                                                                                          mousePressXY[0],
+                                                                                          mousePressXY[1],
+                                                                                          sliceViewport));
+    sliceViewportOut = GraphicsViewport(sliceViewport);
+    return viewPlane;
+}
+
+
+/*
+ * @return The slice view plane for the given viewport coordinate.
+ * If ALL is returned, is indicates that the given viewport coordinate
+ * is in the bottom left region in which volume slices are not displayed.
+ *
+ * @param viewport
+ *   The viewport.
+ * @param mousePressX
+ *   X Location of the mouse press.
+ * @param mousePressY
+ *   Y Location of the mouse press.
+ * @param allPlanesLayout
+ *    The layout in ALL slices view.
+ * @param sliceViewportOut
+ *    Output viewport (region of graphics area) for drawing slices.
+ */
+VolumeSliceViewPlaneEnum::Enum
 BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(const int32_t viewport[4],
                                                                    const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
                                                                    const int32_t mousePressX,

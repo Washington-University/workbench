@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "CaretObject.h"
-
+#include "Vector3D.h"
 
 
 namespace caret {
@@ -58,6 +58,11 @@ namespace caret {
         std::array<int32_t, 4> getViewport() const;
 
         std::array<float, 4> getViewportF() const;
+        
+        bool containsWindowXY(const int32_t windowX,
+                              const int32_t windowY) const;
+        
+        bool containsWindowXY(const Vector3D& windowXY) const;
         
         /** @return X of viewport */
         int32_t getX() const { return m_viewport[0]; }

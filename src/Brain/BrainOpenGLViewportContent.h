@@ -128,6 +128,11 @@ namespace caret {
                                                                                      const int32_t mousePressY,
                                                                                      int sliceViewportOut[4]);
         
+        static VolumeSliceViewPlaneEnum::Enum getSliceViewPlaneForVolumeAllSliceView(const GraphicsViewport& viewport,
+                                                                                     const VolumeSliceViewAllPlanesLayoutEnum::Enum allPlanesLayout,
+                                                                                     const Vector3D& mousePressXY,
+                                                                                     GraphicsViewport& sliceViewportOut);
+        
         std::pair<GraphicsViewport,
                   VolumeSliceViewPlaneEnum::Enum> getVolumeSliceViewportAtMouseXY(const int32_t mouseX,
                                                                                   const int32_t mouseY) const;

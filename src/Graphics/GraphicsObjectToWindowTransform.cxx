@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventTypeEnum.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 
@@ -460,6 +461,15 @@ GraphicsObjectToWindowTransform::setup(const SpaceType spaceType,
     }
     
     m_validFlag = true;
+    
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            if (MathFunctions::isNaN(m_transformMatrix.getMatrixElement(i, j))) {
+                m_validFlag = false;
+                break;
+            }
+        }
+    }
 }
 
 /**

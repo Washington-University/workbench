@@ -307,7 +307,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_mprRotationY);
     m_sceneClassAssistant->add("m_mprRotationZ",
                                &m_mprRotationZ);
-
+    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
     EventManager::get()->addEventListener(this,
@@ -458,6 +458,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
     m_mprRotationZ = tabToClone->m_mprRotationZ;
+    m_mprRotationQuaternion = tabToClone->m_mprRotationQuaternion;
 
     Model* model = getModelForDisplay();
     
@@ -3065,7 +3066,29 @@ BrowserTabContent::resetMprRotations()
     m_mprRotationX = 0.0;
     m_mprRotationY = 0.0;
     m_mprRotationZ = 0.0;
+    m_mprRotationQuaternion = QQuaternion();
 }
+
+/**
+ * @return The MPR rotation quaternion
+ */
+QQuaternion
+BrowserTabContent::getMprRotationQuaternion() const
+{
+    return m_mprRotationQuaternion;
+}
+
+/**
+ * Set the MPR rotation quaternion
+ * @param rotationQuaternion
+ *    New rotation quaternion
+ */
+void
+BrowserTabContent::setMprRotationQuaternion(const QQuaternion& rotationQuaternion)
+{
+    m_mprRotationQuaternion = rotationQuaternion;
+}
+
 
 /**
  * @return Matrix for the given slice plane for MPR rotation
@@ -3691,62 +3714,12 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-                                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_ROTATE_ABOUT_NORMAL_VECTOR)) {
-                                    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
-                                    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
-                                        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                                                        getVolumeSlicePlanesAllViewLayout(),
-                                                                                                                        mousePressX,
-                                                                                                                        mousePressY,
-                                                                                                                        sliceViewport);
-                                    }
-                                    float sliceVector[3] = { 0.0, 0.0, 0.0 };
-                                    switch (sliceViewPlane) {
-                                        case VolumeSliceViewPlaneEnum::ALL:
-                                            CaretAssert(0);
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::AXIAL:
-                                            sliceVector[2] = (radiologicalFlag ? -1.0 : 1.0); /* inferior : superior */
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::CORONAL:
-                                            sliceVector[1] = (radiologicalFlag ? -1.0 : 1.0); /* posterior : anterior */
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                            sliceVector[0] = 1.0;
-                                            break;
-                                    }
-                                    
-                                    const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                                                     sliceViewPlane);
-                                    switch (sliceViewPlane) {
-                                        case VolumeSliceViewPlaneEnum::ALL:
-                                            CaretAssert(0);
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::AXIAL:
-                                            
-                                            rotMatrix.multiplyPoint3(sliceVector);
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::CORONAL:
-                                            rotMatrix.multiplyPoint3(sliceVector);
-                                            break;
-                                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                            rotMatrix.multiplyPoint3(sliceVector);
-                                            break;
-                                    }
-                                    
-                                    const float mprRot(isClockwise
-                                                        ? -mouseDelta
-                                                        : mouseDelta);
-                                    
-                                    Matrix4x4 m;
-                                    m.rotate(mprRot, sliceVector[0], sliceVector[1], sliceVector[2]);
-
-                                    double rx(0.0), ry(0.0), rz(0.0);
-                                    m.getRotation(rx, ry, rz);
-                                    
-                                    m_mprRotationX += rx;
-                                    m_mprRotationY += ry;
-                                    m_mprRotationZ += rz;
+                                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+                                    applyMouseRotationMprThree(viewportContent,
+                                                               viewport,
+                                                               Vector3D(mousePressX, mousePressY, 0.0),
+                                                               Vector3D(mouseX, mouseY, 0.0),
+                                                               Vector3D(previousMouseX, previousMouseY, 0.0));
                                 }
                                 else {
                                     switch (slicePlane) {
@@ -4151,6 +4124,196 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
         }
     }
     updateYokedModelBrowserTabs();
+}
+
+/**
+ * Get the angle of the mouse movement from a triangle formed by
+ * rotationCenterXY, previousMouseXY, and mouseXY.
+ * Angle is in degrees.
+ *
+ * @param rotationCenterXY
+ *    Point rotating around (coordinate of the selected slices)
+ * @param mouseXY
+ *    Current XY of mouse
+ * @param previousMouseXY
+ *    Previous XY of mouse
+ */
+
+float
+BrowserTabContent::getMouseMovementAngle(const Vector3D& rotationCenterXY,
+                                         const Vector3D& mouseXY,
+                                         const Vector3D& previousMouseXY) const
+{
+    /*
+     * Compute normal vector from viewport center to
+     * old mouse position to new mouse position.
+     * If normal-Z is positive, mouse has been moved
+     * in a counter clockwise motion relative to center.
+     * If normal-Z is negative, mouse has moved clockwise.
+     */
+    Vector3D normalDirection;
+    MathFunctions::normalVectorDirection(rotationCenterXY,
+                                         previousMouseXY,
+                                         mouseXY,
+                                         normalDirection);
+    bool isClockwise = false;
+    bool isCounterClockwise = false;
+    if (normalDirection[2] > 0.0) {
+        isCounterClockwise = true;
+    }
+    else if (normalDirection[2] < 0.0) {
+        isClockwise = true;
+    }
+    
+    /*
+     * Heron (Hero) of Alexandria Angles
+     * https://www.mathsisfun.com/geometry/herons-formula.html
+     */
+    const float a((rotationCenterXY - mouseXY).length());
+    const float b((rotationCenterXY - previousMouseXY).length());
+    const float c((mouseXY - previousMouseXY).length());
+    const float denominator(2 * a * b);
+    float angleOut(0.0);
+    if (denominator != 0.0) {
+        const float numerator(a*a + b*b - c*c);
+        float value(numerator / denominator);
+        
+        /*
+         * Prevent NaN for when value is slightly out of range (ie 1.0000001).
+         */
+        if (value > 1.0) {
+            value = 1.0;
+        }
+        if (value < -1.0) {
+            value = -1.0;
+        }
+        const float angle(std::acos(value));
+        angleOut = MathFunctions::toDegrees(angle);
+    }
+
+    if (isClockwise) {
+        angleOut = -angleOut;
+    }
+    
+    if (MathFunctions::isNaN(angleOut)) {
+        CaretAssertMessage(0, "Mouse rotation angle is NaN in getMouseMovementAngle()");
+        angleOut = 0.0;
+    }
+    
+    return angleOut;
+}
+
+/**
+ * Process MPR volume slice rotation
+ * @param viewportContent
+ *    Content of the viewport
+ * @param viewport
+ *    The viewport
+ * @param mousePressXY
+ *    XY where mouse was pressed when first dragging
+ * @param mouseXY
+ *    Current XY of mouse
+ * @param previousMouseXY
+ *    Previous XY of mouse
+ */
+void
+BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
+                                              const GraphicsViewport& viewport,
+                                              const Vector3D& mousePressXY,
+                                              const Vector3D& mouseXY,
+                                              const Vector3D& previousMouseXY)
+{
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
+    GraphicsViewport sliceViewport;
+    if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
+        sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                            getVolumeSlicePlanesAllViewLayout(),
+                                                                                            mousePressXY,
+                                                                                            sliceViewport);
+    }
+
+    /*
+     * Transform selected slice coordinates to a window coordinate
+     */
+    const GraphicsObjectToWindowTransform* transform(viewportContent->getVolumeGraphicsObjectToWindowTransform(sliceViewPlane));
+    if (transform == NULL) {
+        return;
+    }
+    else if ( ! transform->isValid()) {
+        CaretLogWarning("GraphicsObjectToWindowTransform invalid");
+        return;
+    }
+    
+    const Vector3D sliceXYZ(getVolumeSliceCoordinates());
+    Vector3D windowXYZ;
+    transform->transformPoint(sliceXYZ, windowXYZ);
+    
+    /*
+     * We want to rotate around the intersection of the selected slices
+     * in the viewport containing the mouse.
+     */
+    const Vector3D rotationCenterXYZ(windowXYZ - Vector3D(viewport.getXF(),
+                                                          viewport.getYF(),
+                                                          0.0));
+    
+    bool radiologicalFlag(false);
+    switch (getVolumeMprOrientationMode()) {
+        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+            radiologicalFlag = true;
+            break;
+        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+            radiologicalFlag = false;
+            break;
+    }
+    
+    float sliceVector[3] = { 0.0, 0.0, 0.0 };
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            sliceVector[2] = (radiologicalFlag ? 1.0 : -1.0); /* inferior : superior */
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            sliceVector[1] = (radiologicalFlag ? -1.0 : 1.0); /* posterior : anterior */
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            sliceVector[0] = 1.0;
+            break;
+    }
+    
+    const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                     sliceViewPlane);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            rotMatrix.multiplyPoint3(sliceVector);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            rotMatrix.multiplyPoint3(sliceVector);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            rotMatrix.multiplyPoint3(sliceVector);
+            break;
+    }
+    
+    const float rotationAngle(getMouseMovementAngle(rotationCenterXYZ,
+                                                      mouseXY,
+                                                      previousMouseXY));
+    if (MathFunctions::isNaN(rotationAngle)) {
+        CaretAssertMessage(0, "Mouse rotation angle is NaN");
+        return;
+    }
+    
+    
+    CaretAssert(!m_mprRotationQuaternion.isNull());
+    m_mprRotationQuaternion *= QQuaternion::fromAxisAndAngle(sliceVector[0],
+                                                             sliceVector[1],
+                                                             sliceVector[2],
+                                                             rotationAngle);
+    CaretAssert(!m_mprRotationQuaternion.isNull());
 }
 
 /**
@@ -5237,9 +5400,15 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
 
-    const float mprRotationAngles[3] {
+    float mprRotationAngles[3] {
         m_mprRotationX, m_mprRotationY, m_mprRotationZ
     };
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        const QVector3D angles(m_mprRotationQuaternion.toEulerAngles());
+        mprRotationAngles[0] = angles[0];
+        mprRotationAngles[1] = angles[1];
+        mprRotationAngles[2] = angles[2];
+    }
     modelTransform.setMprRotationAngles(mprRotationAngles);
     
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
@@ -5287,9 +5456,16 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
-    m_mprRotationX = mprRotationAngles[0];
-    m_mprRotationY = mprRotationAngles[1];
-    m_mprRotationZ = mprRotationAngles[2];
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        m_mprRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
+                                                               mprRotationAngles[1],
+                                                               mprRotationAngles[2]);
+    }
+    else {
+        m_mprRotationX = mprRotationAngles[0];
+        m_mprRotationY = mprRotationAngles[1];
+        m_mprRotationZ = mprRotationAngles[2];
+    }
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);
@@ -5354,6 +5530,14 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
                                       "m_clippingPlaneGroup");
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
+    
+    const float quatValues[4] {
+        m_mprRotationQuaternion.x(),
+        m_mprRotationQuaternion.y(),
+        m_mprRotationQuaternion.z(),
+        m_mprRotationQuaternion.scalar()
+    };
+    sceneClass->addFloatArray("m_mprRotationQuaternion", quatValues, 4);
     
     return sceneClass;
 }
@@ -5731,8 +5915,16 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_volumeMontageCoordinateDisplayType = VolumeMontageCoordinateDisplayTypeEnum::OFFSET;
     }
 
-    testForRestoreSceneWarnings(sceneAttributes,
-                                sceneClass->getVersionNumber());
+    m_mprRotationQuaternion = QQuaternion();
+    const SceneObject* quatArrayObject(sceneClass->getObjectWithName("m_mprRotationQuaternion"));
+    if (quatArrayObject != NULL) {
+        float quatValues[4] { 0.0, 0.0, 0.0, 0.0 };
+        sceneClass->getFloatArrayValue("m_mprRotationQuaternion", quatValues, 4);
+        testForRestoreSceneWarnings(sceneAttributes,
+                                    sceneClass->getVersionNumber());
+        m_mprRotationQuaternion.setVector(quatValues[0], quatValues[1], quatValues[2]);
+        m_mprRotationQuaternion.setScalar(quatValues[3]);
+    }
 }
 
 /**
@@ -6822,6 +7014,17 @@ BrowserTabContent::setVolumeSliceCoordinateParasagittal(const float x)
 }
 
 /**
+ * @return The slice coordinates
+ */
+Vector3D
+BrowserTabContent::getVolumeSliceCoordinates() const
+{
+    return Vector3D(getVolumeSliceCoordinateParasagittal(),
+                    getVolumeSliceCoordinateCoronal(),
+                    getVolumeSliceCoordinateAxial());
+}
+
+/**
  * Is the parasagittal slice enabled?
  * @return
  *    Enabled status of parasagittal slice.
@@ -7152,6 +7355,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprRotationX = btc->m_mprRotationX;
                 m_mprRotationY = btc->m_mprRotationY;
                 m_mprRotationZ = btc->m_mprRotationZ;
+                m_mprRotationQuaternion = btc->m_mprRotationQuaternion;
                 /**
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
@@ -7298,6 +7502,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprRotationX = m_mprRotationX;
                 btc->m_mprRotationY = m_mprRotationY;
                 btc->m_mprRotationZ = m_mprRotationZ;
+                btc->m_mprRotationQuaternion = m_mprRotationQuaternion;
 
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 

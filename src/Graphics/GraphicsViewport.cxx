@@ -69,6 +69,7 @@ GraphicsViewport::GraphicsViewport(const std::array<int32_t, 4>& viewport)
         m_viewport[i] = viewport[i];
     }
 }
+
 /**
  * Constructor.
  * @param viewport
@@ -223,4 +224,39 @@ GraphicsViewport::isValid() const
     }
     return false;
 }
+
+/**
+ * @return True if the viewport contains the given window X & Y
+ * @param windowX
+ *    Window X coordinate
+ * @param windowY
+ *    Window Y coordinate
+ */
+bool
+GraphicsViewport::containsWindowXY(const int32_t windowX,
+                                   const int32_t windowY) const
+{
+    if (isValid()) {
+        if ((windowX >= m_viewport[0])
+            && (windowX < (m_viewport[0] + m_viewport[2]))
+            && (windowY >= m_viewport[1])
+            && (windowY < (m_viewport[1] + m_viewport[3]))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @return True if the viewport contains the given window X & Y
+ * @param windowXY
+ *    Window XY coordinate (Z ignored)
+ */
+bool
+GraphicsViewport::containsWindowXY(const Vector3D& windowXY) const
+{
+    return containsWindowXY(windowXY[0],
+                            windowXY[1]);
+}
+
 

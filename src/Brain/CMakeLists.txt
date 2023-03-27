@@ -54,6 +54,7 @@ BrainOpenGLShapeRing.h
 BrainOpenGLShapeSphere.h
 BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
+BrainOpenGLVolumeMprThreeDrawing.h
 BrainOpenGLVolumeMprTwoDrawing.h
 BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
@@ -266,6 +267,7 @@ BrainOpenGLShapeRing.cxx
 BrainOpenGLShapeSphere.cxx
 BrainOpenGLTextRenderInterface.cxx
 BrainOpenGLViewportContent.cxx
+BrainOpenGLVolumeMprThreeDrawing.cxx
 BrainOpenGLVolumeMprTwoDrawing.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx

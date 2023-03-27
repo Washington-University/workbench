@@ -1067,47 +1067,95 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
         if (btc != NULL) {
             Model* model = btc->getModelForDisplay();
             if (model != NULL) {
-                const float* panning = btc->getTranslation();
-                const Matrix4x4 rotationMatrix = btc->getRotationMatrix();
-                const float zooming = btc->getScaling();
-                const Matrix4x4 obliqueRotationMatrix = btc->getObliqueVolumeRotationMatrix();
+                ModelTransform modelTransform;
+                btc->getTransformationsInModelTransform(modelTransform);
+                
+                float panX, panY, panZ, rotationMatrixArray[4][4],
+                mprRotationAngles[3],
+                obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
+                rightFlatX, rightFlatY, rightFlatZoom;
+                modelTransform.getPanningRotationMatrixAndZoom(panX,
+                                                               panY,
+                                                               panZ,
+                                                               rotationMatrixArray,
+                                                               obliqueRotationMatrixArray,
+                                                               mprRotationAngles,
+                                                               flatRotationMatrixArray,
+                                                               zoom,
+                                                               rightFlatX,
+                                                               rightFlatY,
+                                                               rightFlatZoom);
+                
+                Matrix4x4 rotationMatrix;
+                rotationMatrix.setMatrix(rotationMatrixArray);
                 
                 double rotX, rotY, rotZ;
                 rotationMatrix.getRotation(rotX, rotY, rotZ);
                 
+                Matrix4x4 obliqueRotationMatrix;
+                obliqueRotationMatrix.setMatrix(obliqueRotationMatrixArray);
+                
                 double obRotX, obRotY, obRotZ;
                 obliqueRotationMatrix.getRotation(obRotX, obRotY, obRotZ);
                 
-                Matrix4x4 flatRotationMatrix = btc->getFlatRotationMatrix();
+                Matrix4x4 flatRotationMatrix;
+                flatRotationMatrix.setMatrix(flatRotationMatrixArray);
                 double flatRotX, flatRotY, flatRotZ;
                 flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
                 
-                float rightFlatX, rightFlatY;
-                btc->getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+                const double mprRotX = mprRotationAngles[0];
+                const double mprRotY = mprRotationAngles[1];
+                const double mprRotZ = mprRotationAngles[2];
                 
-                const float rightFlatZoom = btc->getRightCortexFlatMapZoomFactor();
-                
-                const float mprRotX(btc->getMprRotationX());
-                const float mprRotY(btc->getMprRotationY());
-                const float mprRotZ(btc->getMprRotationZ());
-
-                setTransformationControlValues(panning[0],
-                                               panning[1],
-                                               panning[2],
-                                               rotX,
-                                               rotY,
-                                               rotZ,
-                                               obRotX,
-                                               obRotY,
-                                               obRotZ,
+                setTransformationControlValues(panX, panY, panZ,
+                                               rotX, rotY, rotZ,
+                                               obRotX, obRotY, obRotZ,
                                                mprRotX,
                                                mprRotY,
                                                mprRotZ,
-                                               flatRotZ,
-                                               zooming,
-                                               rightFlatX,
-                                               rightFlatY,
-                                               rightFlatZoom);
+                                               flatRotZ, zoom,
+                                               rightFlatX, rightFlatY, rightFlatZoom);
+//                const float* panning = btc->getTranslation();
+//                const Matrix4x4 rotationMatrix = btc->getRotationMatrix();
+//                const float zooming = btc->getScaling();
+//                const Matrix4x4 obliqueRotationMatrix = btc->getObliqueVolumeRotationMatrix();
+//
+//                double rotX, rotY, rotZ;
+//                rotationMatrix.getRotation(rotX, rotY, rotZ);
+//
+//                double obRotX, obRotY, obRotZ;
+//                obliqueRotationMatrix.getRotation(obRotX, obRotY, obRotZ);
+//
+//                Matrix4x4 flatRotationMatrix = btc->getFlatRotationMatrix();
+//                double flatRotX, flatRotY, flatRotZ;
+//                flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
+//
+//                float rightFlatX, rightFlatY;
+//                btc->getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
+//
+//                const float rightFlatZoom = btc->getRightCortexFlatMapZoomFactor();
+//
+//                const float mprRotX(btc->getMprRotationX());
+//                const float mprRotY(btc->getMprRotationY());
+//                const float mprRotZ(btc->getMprRotationZ());
+
+//                setTransformationControlValues(panning[0],
+//                                               panning[1],
+//                                               panning[2],
+//                                               rotX,
+//                                               rotY,
+//                                               rotZ,
+//                                               obRotX,
+//                                               obRotY,
+//                                               obRotZ,
+//                                               mprRotX,
+//                                               mprRotY,
+//                                               mprRotZ,
+//                                               flatRotZ,
+//                                               zooming,
+//                                               rightFlatX,
+//                                               rightFlatY,
+//                                               rightFlatZoom);
                 
                 const BrainOpenGLViewportContent* vpc(bbw->getViewportContentForSelectedTab());
                 float stepValue(1.0);

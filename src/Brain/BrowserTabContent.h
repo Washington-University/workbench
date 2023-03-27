@@ -44,6 +44,7 @@
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "TabContentBase.h"
+#include "Vector3D.h"
 #include "VolumeMprOrientationModeEnum.h"
 #include "VolumeMprViewModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
@@ -70,6 +71,7 @@ namespace caret {
     class ClippingPlaneGroup;
     class EventCaretMappableDataFilesAndMapsInDisplayedOverlays;
     class GraphicsRegionSelectionBox;
+    class GraphicsViewport;
     class HistologyOverlaySet;
     class HistologySliceSettings;
     class HistologySlicesFile;
@@ -328,6 +330,10 @@ namespace caret {
         
         float getMprRotationZ() const;
         
+        QQuaternion getMprRotationQuaternion() const;
+        
+        void setMprRotationQuaternion(const QQuaternion& rotationQuaternion);
+        
         Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
@@ -369,7 +375,7 @@ namespace caret {
                                 const int32_t mouseY,
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
-        
+
         void applyHistologyMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                         const int32_t mousePressX,
                                         const int32_t mousePressY,
@@ -508,6 +514,8 @@ namespace caret {
         float getVolumeSliceCoordinateParasagittal() const;
         
         void setVolumeSliceCoordinateParasagittal(const float z);
+        
+        Vector3D getVolumeSliceCoordinates() const;
         
         int64_t getVolumeSliceIndexAxial(const VolumeMappableInterface* volumeFile) const;
         
@@ -727,6 +735,16 @@ namespace caret {
 
         void selectVolumeSlicesAtOriginPrivate();
         
+        void applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
+                                        const GraphicsViewport& viewport,
+                                        const Vector3D& mousePressXY,
+                                        const Vector3D& mouseXY,
+                                        const Vector3D& previousMouseXY);
+
+        float getMouseMovementAngle(const Vector3D& rotationXY,
+                                    const Vector3D& mouseXY,
+                                    const Vector3D& previousMouseXY) const;
+
         /** Number of this tab */
         int32_t m_tabNumber;
         
@@ -838,6 +856,8 @@ namespace caret {
         float m_mprRotationY = 0.0;
         
         float m_mprRotationZ = 0.0;
+        
+        QQuaternion m_mprRotationQuaternion;
         
         /** aspect ratio */
         float m_aspectRatio;
