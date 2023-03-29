@@ -69,6 +69,7 @@
 #include "SelectionManager.h"
 #include "SessionManager.h"
 #include "VolumeFile.h"
+#include "VolumeTextureCoordinateMapper.h"
 
 using namespace caret;
 
@@ -2661,16 +2662,13 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                                                                                               m_displayGroup,
                                                                                               m_tabIndex));
                 
+                VolumeTextureCoordinateMapper mapper(volumeInterface);
+                
                 if (primitive != NULL) {
-                    Vector3D maxStr = { 1.0, 1.0, 1.0 };
-                    Vector3D textureBottomLeft;
-                    getTextureCoordinates(volumeInterface, sliceInfo.m_bottomLeftXYZ, maxStr, textureBottomLeft);
-                    Vector3D textureBottomRight;
-                    getTextureCoordinates(volumeInterface, sliceInfo.m_bottomRightXYZ, maxStr, textureBottomRight);
-                    Vector3D textureTopLeft;
-                    getTextureCoordinates(volumeInterface, sliceInfo.m_topLeftXYZ, maxStr, textureTopLeft);
-                    Vector3D textureTopRight;
-                    getTextureCoordinates(volumeInterface, sliceInfo.m_topRightXYZ, maxStr, textureTopRight);
+                    const Vector3D textureBottomLeft(mapper.mapXyzToStr(sliceInfo.m_bottomLeftXYZ));
+                    const Vector3D textureBottomRight(mapper.mapXyzToStr(sliceInfo.m_bottomRightXYZ));
+                    const Vector3D textureTopLeft(mapper.mapXyzToStr(sliceInfo.m_topLeftXYZ));
+                    const Vector3D textureTopRight(mapper.mapXyzToStr(sliceInfo.m_topRightXYZ));
                     
                     primitive->replaceVertexFloatXYZ(0, sliceInfo.m_bottomLeftXYZ);
                     primitive->replaceVertexFloatXYZ(1, sliceInfo.m_bottomRightXYZ);
@@ -2882,52 +2880,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
         
         glPopAttrib();
     }
-}
-
-/**
- * Get the texture coordinates for an XYZ-coordinate
- *
- * @param volumeMappableInterface
- *     The volume file
- * @param xyz
- *     The XYZ coordinate
- * @param maxStr
- *     The maximum texture str coordinate
- * @param strOut
- *     Output texture str coordinate
- * @return
- *     True if output coordinate is valid, else false.
- */
-bool
-BrainOpenGLVolumeMprTwoDrawing::getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
-                                                      const Vector3D& xyz,
-                                                      const Vector3D& maxStr,
-                                                      Vector3D& strOut)
-{
-    std::vector<int64_t> dims(5);
-    volumeMappableInterface->getDimensions(dims);
-    
-    
-    {
-        const VolumeSpace& volumeSpace = volumeMappableInterface->getVolumeSpace();
-        Vector3D ijk;
-        volumeSpace.spaceToIndex(xyz, ijk);
-        
-        const Vector3D normalizedIJK {
-            (ijk[0] / dims[0]),
-            (ijk[1] / dims[1]),
-            (ijk[2] / dims[2])
-        };
-        Vector3D str {
-            (normalizedIJK[0] * maxStr[0]),
-            (normalizedIJK[1] * maxStr[1]),
-            (normalizedIJK[2] * maxStr[2])
-        };
-        
-        strOut = str;
-    }
-    
-    return true;
 }
 
 /**
@@ -3496,6 +3448,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
             
             setupIntensityModeBlending(numSteps);
 
+            VolumeTextureCoordinateMapper mapper(volumeFile);
+
             for (int32_t iStep = 0; iStep < numSteps; iStep++) {
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
@@ -3505,15 +3459,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                                                                                                m_tabIndex));
                 
                 if (primitive != NULL) {
-                    Vector3D maxStr = { 1.0, 1.0, 1.0 };
-                    Vector3D textureBottomLeft;
-                    getTextureCoordinates(volumeFile, sliceInfo.m_bottomLeftXYZ + sliceOffset, maxStr, textureBottomLeft);
-                    Vector3D textureBottomRight;
-                    getTextureCoordinates(volumeFile, sliceInfo.m_bottomRightXYZ + sliceOffset, maxStr, textureBottomRight);
-                    Vector3D textureTopLeft;
-                    getTextureCoordinates(volumeFile, sliceInfo.m_topLeftXYZ + sliceOffset, maxStr, textureTopLeft);
-                    Vector3D textureTopRight;
-                    getTextureCoordinates(volumeFile, sliceInfo.m_topRightXYZ + sliceOffset, maxStr, textureTopRight);
+                    const Vector3D textureBottomLeft(mapper.mapXyzToStr(sliceInfo.m_bottomLeftXYZ + sliceOffset));
+                    const Vector3D textureBottomRight(mapper.mapXyzToStr(sliceInfo.m_bottomRightXYZ + sliceOffset));
+                    const Vector3D textureTopLeft(mapper.mapXyzToStr(sliceInfo.m_topLeftXYZ + sliceOffset));
+                    const Vector3D textureTopRight(mapper.mapXyzToStr(sliceInfo.m_topRightXYZ + sliceOffset));
                     
                     primitive->replaceVertexFloatXYZ(0, sliceInfo.m_bottomLeftXYZ + sliceOffset);
                     primitive->replaceVertexFloatXYZ(1, sliceInfo.m_bottomRightXYZ + sliceOffset);

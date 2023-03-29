@@ -155,11 +155,6 @@ namespace caret {
                                     const bool drawAttributesFlag,
                                     const bool drawIntensitySliceBackgroundFlag);
         
-        static bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
-                                          const Vector3D& xyz,
-                                          const Vector3D& maxStr,
-                                          Vector3D& strOut);
-
         void performPlaneIdentification(const SliceInfo& sliceInfo,
                                         VolumeMappableInterface* volumeInterface,
                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,

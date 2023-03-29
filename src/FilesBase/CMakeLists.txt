@@ -32,6 +32,7 @@ VolumeBase.h
 VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
 VolumeSpace.h
+VolumeTextureCoordinateMapper.h
 
 GiftiLabel.cxx
 GiftiLabelTable.cxx
@@ -40,6 +41,7 @@ VolumeBase.cxx
 VolumeMappableInterface.cxx
 VolumeSliceViewPlaneEnum.cxx
 VolumeSpace.cxx
+VolumeTextureCoordinateMapper.cxx
 )
 
 TARGET_LINK_LIBRARIES(FilesBase ${CARET_QT5_LINK})

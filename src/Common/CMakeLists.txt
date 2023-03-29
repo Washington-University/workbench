@@ -141,6 +141,7 @@ IdentificationDisplayModeEnum.h
 ImageCaptureMethodEnum.h
 InfoItem.h
 JsonHelper.h
+LinearEquationTransform.h
 Logger.h
 LogHandler.h
 LogHandlerStandardError.h
@@ -303,6 +304,7 @@ IdentificationDisplayModeEnum.cxx
 ImageCaptureMethodEnum.cxx
 InfoItem.cxx
 JsonHelper.cxx
+LinearEquationTransform.cxx
 Logger.cxx
 LogHandler.cxx
 LogHandlerStandardError.cxx

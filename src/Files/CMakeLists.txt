@@ -131,7 +131,6 @@ ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
-LinearEquationTransform.h
 MapYokingGroupEnum.h
 MediaDisplayCoordinateModeEnum.h
 MediaFile.h
@@ -296,7 +295,6 @@ ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
-LinearEquationTransform.cxx
 MapYokingGroupEnum.cxx
 MediaDisplayCoordinateModeEnum.cxx
 MediaFile.cxx
