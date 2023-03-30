@@ -781,8 +781,6 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
          *            imageBytesRGBA);   // pointer to image data
          * glGenerateMipmap(GL_TEXTURE_2D);
          */
-        
-        CaretLogWarning("Generate 3D mip maps has not been tested");
         const int errorCode = gluBuild3DMipmaps(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_3D
                                                 GL_RGBA,           // internal format
                                                 imageWidth,        // width of image

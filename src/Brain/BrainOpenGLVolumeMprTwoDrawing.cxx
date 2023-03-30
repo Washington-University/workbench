@@ -2762,7 +2762,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     }
                     else if (magSmoothFlag) {
                         /* Use Linear for both Minification and Magnification */
-                        primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                        switch (primitive->getTextureSettings().getMipMappingType()) {
+                            case GraphicsTextureSettings::MipMappingType::DISABLED:
+                                primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+                                break;
+                            case GraphicsTextureSettings::MipMappingType::ENABLED:
+                                primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR);
+                                break;
+                        }
                         primitive->setTextureMagnificationFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
                     }
                     else {

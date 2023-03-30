@@ -248,11 +248,18 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
         }
     }
 
+    const bool useMipMaps(true);
+    GraphicsTextureSettings::MipMappingType mipMap(GraphicsTextureSettings::MipMappingType::DISABLED);
     GraphicsTextureMagnificationFilterEnum::Enum magFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
     GraphicsTextureMinificationFilterEnum::Enum minFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+    if (useMipMaps) {
+        mipMap    = GraphicsTextureSettings::MipMappingType::ENABLED;
+        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
+    }
     
     if (m_mapDataFile->isMappedWithRGBA()
         || m_mapDataFile->isMappedWithLabelTable()) {
+        mipMap    = GraphicsTextureSettings::MipMappingType::DISABLED;
         magFilter  = GraphicsTextureMagnificationFilterEnum::NEAREST;
         minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
     }
@@ -265,7 +272,7 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                                             GraphicsTextureSettings::PixelFormatType::RGBA,
                                             GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
                                             GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
-                                            GraphicsTextureSettings::MipMappingType::DISABLED,
+                                            mipMap,
                                             GraphicsTextureSettings::CompressionType::DISABLED,
                                             magFilter,
                                             minFilter,
