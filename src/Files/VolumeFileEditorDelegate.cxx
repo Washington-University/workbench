@@ -564,12 +564,8 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
     const int64_t halfBrushJ = editInfo.m_brushSize[1] / 2;
     const int64_t halfBrushK = editInfo.m_brushSize[2] / 2;
     
-    VolumeSpace::OrientTypes orient[3];
     float spacing[3];
-    float origin[3];
-    m_volumeFile->getVolumeSpace().getOrientAndSpacingForPlumb(orient,
-                                                               spacing,
-                                                               origin);
+    m_volumeFile->getVoxelSpacingPCA(spacing[0], spacing[1], spacing[2]);
     for (int64_t k = -halfBrushK; k <= halfBrushK; k++) {
         for (int64_t i = -halfBrushI; i <= halfBrushI; i++) {
             for (int64_t j = -halfBrushJ; j <= halfBrushJ; j++) {
@@ -589,12 +585,14 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
                 float ijkFloat[3];
                 m_volumeFile->spaceToIndex(brushXYZ, ijkFloat);
                 int64_t ijk[3] = { (int64_t)ijkFloat[0], (int64_t)ijkFloat[1], (int64_t)ijkFloat[2] };
-                modifiedVoxels->addVoxelRedoUndo(ijk,
-                                                 redoVoxelValue,
-                                                 m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
-                m_volumeFile->setValue(redoVoxelValue,
-                                       ijk,
-                                       editInfo.m_mapIndex);
+                if (m_volumeFile->indexValid(ijk)) {
+                    modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                     redoVoxelValue,
+                                                     m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
+                    m_volumeFile->setValue(redoVoxelValue,
+                                           ijk,
+                                           editInfo.m_mapIndex);
+                }
             }
         }
     }

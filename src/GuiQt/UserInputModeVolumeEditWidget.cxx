@@ -718,6 +718,20 @@ UserInputModeVolumeEditWidget::lockFileActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
     if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+        /*
+         * Warn user if unlocking and volume is not plumb
+         */
+        if ( ! m_lockAction->isChecked()) {
+            if ( ! volumeEditInfo.m_volumeFile->isPlumb()) {
+                const AString msg("Volume is not aligned to P/C/A Axes.\n"
+                                  "Editing may not function correctly.");
+                const bool result(WuQMessageBox::warningOkCancel(this, msg));
+                if ( ! result) {
+                    m_lockAction->setChecked(true);
+                    return;
+                }
+            }
+        }
         volumeEditInfo.m_volumeFileEditorDelegate->setLocked(volumeEditInfo.m_mapIndex,
                                                              m_lockAction->isChecked());
     }
