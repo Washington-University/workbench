@@ -201,7 +201,7 @@ ImageCaptureDialog::createImageOptionsSection()
     QObject::connect(m_imageMarginSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(imageMarginValueChanged(int)));
     m_imageMarginSpinBox->setMinimum(0);
-    m_imageMarginSpinBox->setMaximum(100000);
+    m_imageMarginSpinBox->setMaximum(100);
     m_imageMarginSpinBox->setSingleStep(1);
     m_imageMarginSpinBox->setMaximumWidth(100);
     
@@ -994,7 +994,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
     
     AString name = CaretFileDialog::getSaveFileNameDialog(this,
                                                   "Choose File Name",
-                                                  defaultFileName, //GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                                  defaultFileName,
                                                   filters,
                                                   &defaultFileFilter);
     if (name.isEmpty() == false) {
@@ -1090,8 +1090,6 @@ ImageCaptureDialog::applyButtonClicked()
                                                    ImageSpatialUnitsEnum::PIXELS,
                                                    ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
                                                    imageCaptureSettings->getImageResolutionInCentimeters());
-//    imageCaptureEvent.setPixelsPerResolutionUnitValue(ImageResolutionUnitsEnum::PIXELS_PER_CENTIMETER,
-//                                                      imageCaptureSettings->getImageResolutionInCentimeters());
     imageCaptureEvent.setMargin(imageCaptureSettings->getMargin());
 
     EventManager::get()->sendEvent(imageCaptureEvent.getPointer());
@@ -1118,10 +1116,9 @@ ImageCaptureDialog::applyButtonClicked()
         
         
         if (imageCaptureSettings->isCroppingEnabled()) {
-            CaretAssertToDoWarning();
-//            const int32_t marginSize = imageCaptureSettings->getCroppingMargin();
-//            imageFile.cropImageRemoveBackground(marginSize,
-//                                                backgroundColor);
+            const int32_t marginSize = imageCaptureSettings->getMargin();
+            imageFile.cropImageRemoveBackground(marginSize,
+                                                backgroundColor);
         }
         
         if (m_copyImageToClipboardCheckBox->isChecked()) {
