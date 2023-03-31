@@ -255,6 +255,12 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
     if (useMipMaps) {
         mipMap    = GraphicsTextureSettings::MipMappingType::ENABLED;
         minFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
+        
+        /*
+         * 31 March 2023 Disable mip maps until I (John H) can test on Linux and Windows
+         */
+        mipMap    = GraphicsTextureSettings::MipMappingType::DISABLED;
+        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR;
     }
     
     if (m_mapDataFile->isMappedWithRGBA()

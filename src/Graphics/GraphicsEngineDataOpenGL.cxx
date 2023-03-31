@@ -761,6 +761,33 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
             break;
     }
 
+//    /*
+//     * 31 March 2023
+//     * 3D mip maps were enabled a couple of commits ago.
+//     * However, disable 3D mip maps until I (John H) can test the functionality
+//     * on Linux and Windows.
+//     *
+//     * In addition, we map be able to use OpenGL to create the mip maps and
+//     * not the GLU toolkit (which is (probably) all software).
+//     *
+//     * These parameters to glTextParameter(i/f):
+//     *   - GL_GENERATE_MIPMAP
+//     *   - GL_TEXTURE_MIN_LOD
+//     *   - GL_TEXTURE_MAX_LOD
+//     * There is also glGenerateMipMaps in OpenGL 3.
+//     *
+//     * See: https://docs.gl/gl2/glTexParameter
+//     */
+//    {
+//        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR;
+//        mipMap = GraphicsTextureSettings::MipMappingType::DISABLED;
+//    }
+//
+//    BEST WAY TO GENERATE MIP MAPS instead of GLU functions:
+//
+//    glTexParameteri(GL_TEXTURE_3D, GL_GENERATE_MIPMAP, 1);
+    
+
     if (useMipMapFlag) {
 #ifdef CARET_OS_WINDOWS_MSVC
         CaretLogSevere("3D Mipmaps function gluBuild3DMipmaps() not available on system "
@@ -828,6 +855,32 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
                            + AString::number(imageSlices)
                            + ": "
                            + errorGL->getVerboseDescription());
+        }
+    }
+    
+    const bool showTextureFlag(true);
+    if (showTextureFlag
+        && useMipMapFlag) {
+        GLint maxLevels(-1);
+        glGetTexParameteriv(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, &maxLevels);
+        GLint maxMipMap(-1);
+        for (int32_t i = 0; i < maxLevels; i++) {
+            GLint textureWidth;
+            glGetTexLevelParameteriv(GL_TEXTURE_3D, i, GL_TEXTURE_WIDTH, &textureWidth);
+            if (textureWidth <= 0) {
+                maxMipMap = i - 1;
+                break;
+            }
+        }
+        std::cout << "Max texture levels: " << maxMipMap << std::endl;
+        
+        /*
+         * Above code might generate an OpenGL error
+         */
+        std::unique_ptr<GraphicsOpenGLError> openglError = GraphicsUtilitiesOpenGL::getOpenGLError();
+        if (openglError) {
+            CaretLogWarning("Determining mip map levels may have caused this OpenGL Error (can be ignored): "
+                            + openglError->getVerboseDescription());
         }
     }
     
