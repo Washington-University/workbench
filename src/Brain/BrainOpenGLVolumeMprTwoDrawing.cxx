@@ -2653,7 +2653,17 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     }
                     else {
                         if (allowBlendingFlag) {
-                            BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ORTHOGONAL_SLICES);
+                            if (vdi.opacity < 1.0) {
+                                /*
+                                 * This appears to work for blending layer with layer opacity.
+                                 */
+                                glBlendFuncSeparate(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA,
+                                                    GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+                                glBlendColor(0.0, 0.0, 0.0, vdi.opacity);
+                            }
+                            else {
+                                BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_ORTHOGONAL_SLICES);
+                            }
                         }
                     }
                 }
@@ -2795,6 +2805,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
             }
         }
         
+        glPopAttrib();
+
         if (drawAttributesFlag) {
             switch (m_brainModelMode) {
                 case BrainModelMode::INVALID:
@@ -2809,8 +2821,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     break;
             }
         }
-
-        glPopAttrib();
     }
 
     bool drawViewportBoxFlag(false);
