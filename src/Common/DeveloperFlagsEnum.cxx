@@ -165,7 +165,7 @@ DeveloperFlagsEnum::initialize()
                                                 "DEVELOPER_FLAG_MPR_CORRECTIONS",
                                                 "Volume: MPR Corrections (Rotate about screen normal etc.)",
                                                 CheckableEnum::YES,
-                                                true));
+                                                false));
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
