@@ -2070,10 +2070,18 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
             options.backGroundColor.g = prefBackFloatRGB[1];
             options.backGroundColor.b = prefBackFloatRGB[2];
 
-            std::shared_ptr<libCZI::IBitmapData> bitmapData = singleChannelTileAccessor->Get(pixelType,
-                                                                                             pixelRect,
-                                                                                             &coordinate,
-                                                                                             &options);
+            std::shared_ptr<libCZI::IBitmapData> bitmapData;
+            try {
+                bitmapData = singleChannelTileAccessor->Get(pixelType,
+                                                            pixelRect,
+                                                            &coordinate,
+                                                            &options);
+            }
+            catch (const std::logic_error logicError) {
+                const AString msg("When reading data from singleChannelTileAccessor: "
+                                  + QString(logicError.what()));
+                CaretLogSevere(msg);
+            }
                                                                                              
             if (bitmapData) {
                 if ((bitmapData->GetWidth() == 1)
