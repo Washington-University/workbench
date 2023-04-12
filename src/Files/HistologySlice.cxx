@@ -833,6 +833,7 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
     for (int32_t jImage = 0; jImage < numImages; jImage++) {
         const HistologySliceImage* image(getHistologySliceImage(jImage));
         const MediaFile* mediaFile(image->getMediaFile());
+        CaretAssert(mediaFile);
         dataFileInformation.addNameAndValue("Image",
                                             (mediaFile->getFileNameNoPath()
                                              + " ("
@@ -841,5 +842,16 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
         dataFileInformation.addNameAndValue("Stereotaxic Plane Equation",
                                             mediaFile->getStereotaxicImagePlane()->toString());
         const_cast<MediaFile*>(mediaFile)->addPlaneCoordsToDataFileContentInformation(dataFileInformation);
+    }
+    dataFileInformation.addNameAndValue(" ", " ");
+    dataFileInformation.addNameAndValue(" ", " ");
+    dataFileInformation.addNameAndValue(" ", " ");
+    dataFileInformation.addNameAndValue("=====", "File Info");
+    dataFileInformation.addNameAndValue(" ", " ");
+    for (int32_t jImage = 0; jImage < numImages; jImage++) {
+        const HistologySliceImage* image(getHistologySliceImage(jImage));
+        const MediaFile* mediaFile(image->getMediaFile());
+        CaretAssert(mediaFile);
+        const_cast<MediaFile*>(mediaFile)->addToDataFileContentInformation(dataFileInformation);
     }
 }
