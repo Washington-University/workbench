@@ -116,6 +116,9 @@ CziImageLoaderMultiResolution::getImage() const
  *    Mode for changing resolutiln (auto/manual)
  * @param coordinateMode
  *    Coordinate mode (pixel or plane)
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param manualPyramidLayerIndex
  *    Index of pyramid layer for manual mode
  * @param transform
@@ -127,6 +130,7 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
                                            const bool allFramesFlag,
                                            const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                            const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                           const int32_t channelIndex,
                                            const int32_t manualPyramidLayerIndex,
                                            const GraphicsObjectToWindowTransform* transform)
 {
@@ -221,6 +225,7 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
                                                     transform,
                                                     resolutionChangeMode,
                                                     coordinateMode,
+                                                    channelIndex,
                                                     zoomLayerIndex));
         if (newImage != NULL) {
             if (newImage != m_cziImage.get()) {
@@ -743,6 +748,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                         const GraphicsObjectToWindowTransform* transform,
                                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                                         const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                                        const int32_t channelIndex,
                                                         const int32_t pyramidLayerIndexIn)
 {
     CziImage* cziImageOut(NULL);
@@ -752,6 +758,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                                  cziSceneInfo,
                                                                  transform,
                                                                  resolutionChangeMode,
+                                                                 channelIndex,
                                                                  pyramidLayerIndexIn);
             break;
         case MediaDisplayCoordinateModeEnum::PLANE:
@@ -759,6 +766,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
                                                                  cziSceneInfo,
                                                                  transform,
                                                                  resolutionChangeMode,
+                                                                 channelIndex,
                                                                  pyramidLayerIndexIn);
             break;
     }
@@ -776,6 +784,9 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayer(const CziImage* oldCziIm
  *    Transform from the tab where image is drawn
  * @param resolutionChangeMode
  *       The resolution change mode
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param pyramidLayerIndexIn
  *    Index of the pyramid layer
  */
@@ -784,6 +795,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
                                                                       const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                                       const GraphicsObjectToWindowTransform* transform,
                                                                       const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                                      const int32_t channelIndex,
                                                                       const int32_t pyramidLayerIndexIn)
 {
     const auto& allPyramidLayers(cziSceneInfo.m_pyramidLayers);
@@ -903,6 +915,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
     AString errorMessage;
     CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
+                                                                 channelIndex,
                                                                  rectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),
@@ -939,6 +952,9 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
  *    Transform from the tab where image is drawn
  * @param resolutionChangeMode
  *       The resolution change mode
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param pyramidLayerIndexIn
  *    Index of the pyramid layer
  */
@@ -947,6 +963,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
                                                                       const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                                       const GraphicsObjectToWindowTransform* transform,
                                                                       const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                                      const int32_t channelIndex,
                                                                       const int32_t pyramidLayerIndexIn)
 {
     const auto& allPyramidLayers(cziSceneInfo.m_pyramidLayers);
@@ -1071,6 +1088,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
     AString errorMessage;
     CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
+                                                                 channelIndex,
                                                                  logicalRectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),
@@ -1107,6 +1125,9 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
  *    Transform from the tab where image is drawn
  * @param resolutionChangeMode
  *       The resolution change mode
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param pyramidLayerIndexIn
  *    Index of the pyramid layer
  */
@@ -1115,6 +1136,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForStereotaxicCoords(cons
                                                                             const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                                             const GraphicsObjectToWindowTransform* transform,
                                                                             const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                                            const int32_t channelIndex,
                                                                             const int32_t pyramidLayerIndexIn)
 {
     const auto& allPyramidLayers(cziSceneInfo.m_pyramidLayers);
@@ -1239,6 +1261,7 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForStereotaxicCoords(cons
     AString errorMessage;
     CziImage* cziImageOut = m_cziImageFile->readFromCziImageFile(s_imageDataFormatForReading,
                                                                  cziName,
+                                                                 channelIndex,
                                                                  logicalRectToLoad,
                                                                  cziSceneInfo.m_logicalRectangle,
                                                                  m_cziImageFile->getPreferencesImageDimension(),

@@ -57,6 +57,7 @@ namespace caret {
                                  const bool allFramesFlag,
                                  const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                  const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                 const int32_t channelIndex,
                                  const int32_t manualPyramidLayerIndex,
                                  const GraphicsObjectToWindowTransform* transform) = 0;
 

@@ -413,13 +413,16 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
         if (cziImageFile != NULL) {
             const int32_t frameIndex(0);
             const bool allFramesSelectedFlag(true);
+            const int32_t channelIndex(0);
             const int32_t manualPyramidLayerIndex(0);
+            //CaretAssertToDoWarning();
             cziImageFile->updateImageForDrawingInTab(drawingData.m_tabIndex,
                                                      drawingData.m_overlayIndex,
                                                      frameIndex,
                                                      allFramesSelectedFlag,
                                                      CziImageResolutionChangeModeEnum::AUTO2,
                                                      MediaDisplayCoordinateModeEnum::PLANE,
+                                                     channelIndex,
                                                      manualPyramidLayerIndex,
                                                      transform);
         }

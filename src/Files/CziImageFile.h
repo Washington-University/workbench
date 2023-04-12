@@ -89,6 +89,10 @@ namespace caret {
 
         virtual int32_t getNumberOfFrames() const override;
         
+        virtual int32_t getNumberOfChannels() const override;
+
+        const ChannelData* getChannelData(const int32_t channelIndex) const override;
+        
         virtual bool isPixelIndexInFrameValid(const int32_t frameIndex,
                                               const PixelIndex& pixelIndexOriginAtTopLeft) const override;
         
@@ -116,14 +120,13 @@ namespace caret {
         
         int32_t getNumberOfScenes() const;
         
-        int32_t getNumberOfChannels() const;
-        
         void updateImageForDrawingInTab(const int32_t tabIndex,
                                         const int32_t overlayIndex,
                                         const int32_t frameIndex,
                                         const bool allFramesFlag,
                                         const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                         const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                        const int32_t channelIndex,
                                         const int32_t manualPyramidLayerIndex,
                                         const GraphicsObjectToWindowTransform* transform);
 
@@ -374,6 +377,7 @@ namespace caret {
 
         CziImage* readFromCziImageFile(const ImageDataFormat imageDataFormat,
                                        const AString& imageName,
+                                       const int32_t channelIndex,
                                        const QRectF& regionOfInterest,
                                        const QRectF& frameRegionOfInterest,
                                        const int64_t outputImageWidthHeightMaximum,
@@ -442,6 +446,8 @@ namespace caret {
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;
         
         int32_t m_numberOfChannels = 1;
+        
+        std::vector<ChannelData> m_channelData;
         
         float m_pixelSizeMmX = 1.0f;
         

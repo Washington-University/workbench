@@ -126,6 +126,8 @@ CziImageFile::resetPrivate()
     m_scalingTileAccessor.reset();
     m_pyramidLayerTileAccessor.reset();
     m_numberOfChannels = 1;
+    m_channelData.clear();
+    m_channelData.push_back(ChannelData("No Name"));
 
     if (m_reader) {
         m_reader->Close();
@@ -522,6 +524,32 @@ CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStati
             }
         }
     }
+    
+    if (m_numberOfChannels > 0) {
+        m_channelData.clear();
+        
+        /*
+         * Getting actual name of channel requires modifying
+         * CCziDisplaySettings::CreateFromXml in the CZI library.
+         */
+        for (int32_t iChan = 0; iChan < m_numberOfChannels; iChan++) {
+            AString name("Chan " + AString::number(iChan));
+            if (m_displaySettings != NULL) {
+                const auto channelSettings(m_displaySettings->GetChannelDisplaySettings(iChan));
+                libCZI::Rgb8Color rgbColor;
+                if (channelSettings->TryGetTintingColorRgb8(&rgbColor)) {
+                    QString r(QString("%1").arg((int)rgbColor.r, 2, 16, QLatin1Char('0')));
+                    QString g(QString("%1").arg((int)rgbColor.g, 2, 16, QLatin1Char('0')));
+                    QString b(QString("%1").arg((int)rgbColor.b, 2, 16, QLatin1Char('0')));
+                    name = ("#" + r + g + b);
+                }
+            }
+            
+            m_channelData.push_back(ChannelData(name));
+        }
+    }
+    
+    CaretAssert(m_numberOfChannels == static_cast<int32_t>(m_channelData.size()));
 }
 
 /**
@@ -815,6 +843,9 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
  *     Format of image data QImage or CZI Bitmap data
  * @param imageName
  *     Name of image that may be used when debugging
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param regionOfInterest
  *    Region of interest to read from file.  Origin is in top left.
  * @param frameRegionOfInterest
@@ -829,6 +860,7 @@ CziImageFile::zoomToMatchPixelDimension(const QRectF& regionOfInterestToRead,
 CziImage*
 CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
                                    const AString& imageName,
+                                   const int32_t channelIndex,
                                    const QRectF& regionOfInterestIn,
                                    const QRectF& frameRegionOfInterest,
                                    const int64_t outputImageWidthHeightMaximum,
@@ -1384,6 +1416,22 @@ CziImageFile::getNumberOfChannels() const
 }
 
 /**
+ * @return Data (info) about channel with the given index
+ * @param channelIndex
+ *    Index of the channel
+ */
+const MediaFile::ChannelData*
+CziImageFile::getChannelData(const int32_t channelIndex) const
+{
+    if ((channelIndex >= 0)
+        && (channelIndex < m_numberOfChannels)) {
+        return &m_channelData[channelIndex];
+    }
+    CaretAssert(0);
+    return NULL;
+}
+
+/**
  * Get the identification text for the pixel at the given pixel index with origin at bottom left.
  * @param tabIndex
  *    Index of the tab in which identification took place
@@ -1931,6 +1979,9 @@ CziImageFile::getImageForTabOverlay(const int32_t tabIndex,
  *    Mode for changing resolutiln (auto/manual)
  * @param coordinateMode
  *    Coordinate mode (pixel or plane)
+ * @param channelIndex
+ *    Index of channel.  Use Zero for all channels.  This parameter is ignored if there
+ *    is only one channel in the file.
  * @param manualPyramidLayerIndex
  *    Index of pyramid layer for manual mode
  * @param transform
@@ -1943,6 +1994,7 @@ CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
                                          const bool allFramesFlag,
                                          const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                          const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                         const int32_t channelIndex,
                                          const int32_t manualPyramidLayerIndex,
                                          const GraphicsObjectToWindowTransform* transform)
 {
@@ -1972,6 +2024,7 @@ CziImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
                                  allFramesFlag,
                                  resolutionChangeMode,
                                  coordinateMode,
+                                 channelIndex,
                                  manualPyramidLayerIndex,
                                  transform);
 }
@@ -2327,9 +2380,11 @@ CziImageFile::testReadingSmallImage(AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
+    const int32_t channelIndex(0);
     const int32_t imageDimensionWidthHeight(512);
     std::unique_ptr<CziImage> cziImage(readFromCziImageFile(CziImageFile::ImageDataFormat::CZI_BITMAP,
                                                             "Test Image File Reading",
+                                                            channelIndex,
                                                             m_fullResolutionLogicalRect,
                                                             m_fullResolutionLogicalRect,
                                                             imageDimensionWidthHeight,
@@ -2420,9 +2475,10 @@ CziImageFile::exportToImageFile(const QString& imageFileName,
         return false;
     }
     
-    
+    const int32_t channelIndex(0);
     std::unique_ptr<CziImage> cziImage(readFromCziImageFile(CziImageFile::ImageDataFormat::Q_IMAGE,
                                                             "cziImageName",
+                                                            channelIndex,
                                                             m_fullResolutionLogicalRect,
                                                             m_fullResolutionLogicalRect,
                                                             maximumWidthHeight,

@@ -61,6 +61,26 @@ namespace caret {
             IMAGE_DATA_ORIGIN_AT_TOP
         };
         
+        /**
+         * Stores data about a channel
+         */
+        class ChannelData {
+        public:
+            /**
+             * Constructor with channel name
+             */
+            ChannelData(const AString& name)
+            : m_name(name) { }
+            
+            /**
+             * @return Name of channel
+             */
+            AString getName() const { return m_name; }
+            
+        private:
+            AString m_name;
+        };
+        
         virtual ~MediaFile();
         
         MediaFile(const MediaFile& mediaFile);
@@ -119,7 +139,10 @@ namespace caret {
         virtual void getFrameIntervalStartAndStep(float& firstFrameUnitsValueOut,
                                                   float& frameIntervalStepValueOut) const;
         
+        virtual int32_t getNumberOfChannels() const;
 
+        virtual const ChannelData* getChannelData(const int32_t channelIndex) const;
+        
         MediaFile* castToMediaFile();
         
         const MediaFile* castToMediaFile() const;
@@ -382,6 +405,8 @@ namespace caret {
         mutable bool m_planeCoordinatesPlaneInvalidFlag = false;
         
         bool m_scaledToPlaneMatrixValidFlag     = false;
+        
+        mutable std::unique_ptr<ChannelData> m_channelData;
         
         friend class CziImage;
     };

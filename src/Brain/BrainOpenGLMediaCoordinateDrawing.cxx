@@ -353,12 +353,15 @@ BrainOpenGLMediaCoordinateDrawing::drawModelLayers(const BrainOpenGLViewportCont
         ImageFile* imageFile(mediaFile->castToImageFile());
 
         if (cziImageFile != NULL) {
+            const int32_t channelIndex(0);
+            //CaretAssertToDoWarning();
             cziImageFile->updateImageForDrawingInTab(selectionData.m_tabIndex,
                                                      selectionData.m_overlayIndex,
                                                      selectionData.m_selectedFrameIndex,
                                                      selectionData.m_allFramesSelectedFlag,
                                                      selectionData.m_cziResolutionChangeMode,
                                                      MediaDisplayCoordinateModeEnum::PLANE,
+                                                     channelIndex,
                                                      selectionData.m_cziManualPyramidLayerIndex,
                                                      transform);
         }

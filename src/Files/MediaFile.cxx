@@ -137,6 +137,30 @@ MediaFile::getFrameIntervalStartAndStep(float& firstFrameUnitsValueOut,
 }
 
 /**
+ * @return Number of channels.
+ */
+int32_t
+MediaFile::getNumberOfChannels() const
+{
+    return 1;
+}
+
+/**
+ * @return Pointer to data for a channel.
+ * @param channelIndex
+ *    Index of the channel
+ */
+const MediaFile::ChannelData*
+MediaFile::getChannelData(const int32_t /*channelIndex*/) const
+{
+    if ( ! m_channelData) {
+        m_channelData.reset(new ChannelData("Chan 1"));
+    }
+    CaretAssert(m_channelData.get());
+    return m_channelData.get();
+}
+
+/**
  * @return The structure for this file.
  */
 StructureEnum::Enum

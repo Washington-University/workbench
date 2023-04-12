@@ -346,12 +346,15 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     mediaHeight = imageFile->getHeight();
                 }
                 else  if (cziImageFile != NULL) {
+                    const int32_t channelIndex(0);
+                    //CaretAssertToDoWarning();
                     cziImageFile->updateImageForDrawingInTab(tabIndex,
                                                              iOverlay,
                                                              selectionData.m_selectedFrameIndex,
                                                              selectionData.m_allFramesSelectedFlag,
                                                              selectionData.m_cziResolutionChangeMode,
                                                              MediaDisplayCoordinateModeEnum::PIXEL,
+                                                             channelIndex,
                                                              selectionData.m_cziManualPyramidLayerIndex,
                                                              transform);
                     

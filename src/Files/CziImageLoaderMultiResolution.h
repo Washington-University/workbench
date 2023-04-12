@@ -47,6 +47,7 @@ namespace caret {
                                  const bool allFramesFlag,
                                  const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                  const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                 const int32_t channelIndex,
                                  const int32_t manualPyramidLayerIndex,
                                  const GraphicsObjectToWindowTransform* transform) override;
 
@@ -78,24 +79,28 @@ namespace caret {
                                            const GraphicsObjectToWindowTransform* transform,
                                            const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
                                            const MediaDisplayCoordinateModeEnum::Enum coordinateMode,
+                                           const int32_t channelIndex,
                                            const int32_t pyramidLayerIndex);
 
         CziImage* loadImageForPyrmaidLayerForPixelCoords(const CziImage* oldCziImage,
                                                          const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                          const GraphicsObjectToWindowTransform* transform,
                                                          const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                         const int32_t channelIndex,
                                                          const int32_t pyramidLayerIndex);
 
         CziImage* loadImageForPyrmaidLayerForPlaneCoords(const CziImage* oldCziImage,
                                                          const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                          const GraphicsObjectToWindowTransform* transform,
                                                          const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                         const int32_t channelIndex,
                                                          const int32_t pyramidLayerIndex);
         
         CziImage* loadImageForPyrmaidLayerForStereotaxicCoords(const CziImage* oldCziImage,
                                                                const CziImageFile::CziSceneInfo& cziSceneInfo,
                                                                const GraphicsObjectToWindowTransform* transform,
                                                                const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode,
+                                                               const int32_t channelIndex,
                                                                const int32_t pyramidLayerIndex);
 
         QRectF getViewportLogicalCoordinates(const GraphicsObjectToWindowTransform* transform,

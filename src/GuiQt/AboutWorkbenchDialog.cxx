@@ -38,6 +38,7 @@
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "GuiManager.h"
+#include "libCZI.h"
 #include "ImageFile.h"
 #include "InfoItem.h"
 #include "WuQDataEntryDialog.h"
@@ -175,6 +176,13 @@ AboutWorkbenchDialog::displayMoreInformation()
     ApplicationInformation appInfo;
     std::vector<AString> informationData;
     appInfo.getAllInformation(informationData);
+    
+    int32_t cziMajorVersion(-1), cziMinorVersion(-1);
+    libCZI::GetLibCZIVersion(&cziMajorVersion, &cziMinorVersion);
+    informationData.push_back("libCZI Version: "
+                              + AString::number(cziMajorVersion)
+                              + "."
+                              + AString::number(cziMinorVersion));
     
     QString styleName("Undefined");
     QStyle* appStyle = QApplication::style();
