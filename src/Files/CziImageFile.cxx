@@ -125,6 +125,7 @@ CziImageFile::resetPrivate()
     m_cziScenePyramidInfos.clear();
     m_scalingTileAccessor.reset();
     m_pyramidLayerTileAccessor.reset();
+    m_numberOfChannels = 1;
 
     if (m_reader) {
         m_reader->Close();
@@ -393,6 +394,11 @@ CziImageFile::readFile(const AString& filename)
         readMetaData();
         
         /*
+         * Read 'dimensions'
+         */
+        readFileDimensions(subBlockStatistics);
+        
+        /*
          * Create pyramid info for all frames
          */
         createAllFramesPyramidInfo(subBlockStatistics);
@@ -490,6 +496,32 @@ CziImageFile::getPixelSizeInMillimeters() const
     return PixelCoordinate(m_pixelSizeMmX,
                            m_pixelSizeMmY,
                            m_pixelSizeMmZ);
+}
+
+/**
+ * Read the different dimensions from the file
+ */
+void
+CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStatistics)
+{
+    const libCZI::CDimBounds& dimBounds(subBlockStatistics.dimBounds);
+
+    const uint8_t dimMin(static_cast<uint8_t>(libCZI::DimensionIndex::MinDim));
+    const uint8_t dimMax(static_cast<uint8_t>(libCZI::DimensionIndex::MaxDim));
+    for (uint8_t i = dimMin; i <= dimMax; i++) {
+        const libCZI::DimensionIndex dimIndex(static_cast<libCZI::DimensionIndex>(i));
+        
+        int32_t indexStart(-1), indexSize(-1);
+        if (dimBounds.TryGetInterval(dimIndex, &indexStart, &indexSize)) {
+            if (dimIndex == libCZI::DimensionIndex::C) {
+                m_numberOfChannels = indexSize;
+            }
+            if (cziDebugFlag) {
+                const char dimChar(libCZI::Utils::DimensionToChar(dimIndex));
+                std::cout << "Dim " << dimChar << " start=" << indexStart << " size=" << indexSize << std::endl;
+            }
+        }
+    }
 }
 
 /**
@@ -874,19 +906,18 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
      * the display settings). Those bitmaps are then fed into a function which will produce the
      * multi-channel-composite (according to the display settings).
      */
-    const bool applyTintingFlag(false);
+    const bool applyTintingFlag(m_numberOfChannels > 1);
     if (applyTintingFlag) {
         /*
          * Code copied from <czi documentation>/html/using_naczirlib.html in CZI documentation
          * get the display-setting from the document's metadata
          * Replaced 'auto' with actual data types to know what they are
          */
-
         /* get the tile-composite for all channels (which are marked 'active' in the display-settings) */
         std::vector<std::shared_ptr<libCZI::IBitmapData>> actvChBms;
         int index = 0;  /* index counting only the active channels */
         std::map<int, int> activeChNoToChIdx;   /* we need to keep track which 'active channels" corresponds to which channel index */
-
+        
         libCZI::CDisplaySettingsHelper::EnumEnabledChannels(m_displaySettings.get(),
                                                             [&](int chIdx)->bool
                                                             {
@@ -907,13 +938,41 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
         dsplHlp.Initialize(m_displaySettings.get(),
                            [&](int chIdx)->libCZI::PixelType { return actvChBms[activeChNoToChIdx[chIdx]]->GetPixelType(); });
 
-        /*
-         * pass the tile-composites we just created (and the display-settings for the those active
-         * channels) into the multi-channel-composor-function
-         */
-        bitmapDataRead = libCZI::Compositors::ComposeMultiChannel_Bgr24(dsplHlp.GetActiveChannelsCount(),
-                                                                          std::begin(actvChBms),
-                                                                          dsplHlp.GetChannelInfosArray());
+        const bool allChannelsFlag(true);
+        if (allChannelsFlag) {
+            /*
+             * pass the tile-composites we just created (and the display-settings for the those active
+             * channels) into the multi-channel-composor-function
+             */
+            bitmapDataRead = libCZI::Compositors::ComposeMultiChannel_Bgr24(dsplHlp.GetActiveChannelsCount(),
+                                                                            std::begin(actvChBms),
+                                                                            dsplHlp.GetChannelInfosArray());
+        }
+        else {
+            /*
+             * View ONE of the channels
+             */
+            const int32_t channelNumber(4);
+            if ((channelNumber >= 0)
+                && (channelNumber <= m_numberOfChannels)) {
+                const int32_t channelIndex(channelNumber - 1);
+                
+                std::vector<libCZI::Compositors::ChannelInfo> channelInfos;
+                channelInfos.push_back(dsplHlp.GetActiveChannel(channelIndex));
+                
+                const int32_t channelCount(1);
+                bitmapDataRead = libCZI::Compositors::ComposeMultiChannel_Bgr24(channelCount,
+                                                                                (std::begin(actvChBms) + channelIndex),
+                                                                                &channelInfos[0]);
+            }
+            else {
+                errorMessageOut = ("Invalid channel number="
+                                   + AString::number(channelNumber)
+                                   + ", Valid range is 1 to "
+                                   + AString::number(m_numberOfChannels));
+                return NULL;
+            }
+        }
     }
     else {
         bitmapDataRead = m_scalingTileAccessor->Get(pixelType,
@@ -1313,6 +1372,15 @@ int32_t
 CziImageFile::getNumberOfScenes() const
 {
     return m_cziScenePyramidInfos.size();
+}
+
+/**
+ * @return Number of channels in the file
+ */
+int32_t
+CziImageFile::getNumberOfChannels() const
+{
+    return m_numberOfChannels;
 }
 
 /**
@@ -1734,7 +1802,7 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
     
     addPlaneCoordsToDataFileContentInformation(dataFileInformation);
     
-
+    dataFileInformation.addNameAndValue("Number of Channels", getNumberOfChannels());
     m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Scenes");
     
     const int32_t numScenes = getNumberOfScenes();
@@ -2060,29 +2128,31 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
 
     const bool readFromFileFlag(true);
     if (readFromFileFlag) {
-        auto singleChannelTileAccessor = m_reader->CreateSingleChannelTileAccessor();
-        if (singleChannelTileAccessor) {
+        bool useScalingTileAccessorFlag(true);
+        bool useSingleChannelAccessorFlag(false); /* fails if type is Gray16 */
+        if (useScalingTileAccessorFlag) {
             const std::array<float, 3> prefBackFloatRGB = getPreferencesImageBackgroundFloatRGB();
-
-            libCZI::ISingleChannelTileAccessor::Options options;
+            libCZI::ISingleChannelScalingTileAccessor::Options options;
             options.Clear();
             options.backGroundColor.r = prefBackFloatRGB[0];
             options.backGroundColor.g = prefBackFloatRGB[1];
             options.backGroundColor.b = prefBackFloatRGB[2];
+            CziImageFile* nonConstThis(const_cast<CziImageFile*>(this));
+            CaretAssert(nonConstThis);
+            
+            libCZI::CDimCoordinate coordinate;
+            coordinate.Set(libCZI::DimensionIndex::C, 0);
 
             std::shared_ptr<libCZI::IBitmapData> bitmapData;
             try {
-                bitmapData = singleChannelTileAccessor->Get(pixelType,
-                                                            pixelRect,
-                                                            &coordinate,
-                                                            &options);
+                bitmapData = m_scalingTileAccessor->Get(pixelType, pixelRect, &coordinate, 1.0f, &options);
             }
             catch (const std::logic_error logicError) {
                 const AString msg("When reading data from singleChannelTileAccessor: "
                                   + QString(logicError.what()));
                 CaretLogSevere(msg);
             }
-                                                                                             
+
             if (bitmapData) {
                 if ((bitmapData->GetWidth() == 1)
                     && (bitmapData->GetHeight() == 1)
@@ -2121,17 +2191,86 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
                                + getFileNameNoPath());
             }
         }
+        else if (useSingleChannelAccessorFlag) {
+            /*
+             * NOTE: This reader fails if the image Gray16 as it will not convert
+             * Gray16 to Bgr24.
+             */
+            auto singleChannelTileAccessor = m_reader->CreateSingleChannelTileAccessor();
+            if (singleChannelTileAccessor) {
+                const std::array<float, 3> prefBackFloatRGB = getPreferencesImageBackgroundFloatRGB();
+                
+                libCZI::ISingleChannelTileAccessor::Options options;
+                options.Clear();
+                options.backGroundColor.r = prefBackFloatRGB[0];
+                options.backGroundColor.g = prefBackFloatRGB[1];
+                options.backGroundColor.b = prefBackFloatRGB[2];
+                
+                std::shared_ptr<libCZI::IBitmapData> bitmapData;
+                try {
+                    bitmapData = singleChannelTileAccessor->Get(pixelType,
+                                                                pixelRect,
+                                                                &coordinate,
+                                                                &options);
+                }
+                catch (const std::logic_error logicError) {
+                    const AString msg("When reading data from singleChannelTileAccessor: "
+                                      + QString(logicError.what()));
+                    CaretLogSevere(msg);
+                }
+                
+                if (bitmapData) {
+                    if ((bitmapData->GetWidth() == 1)
+                        && (bitmapData->GetHeight() == 1)
+                        && (bitmapData->GetPixelType() == pixelType)) {
+                        libCZI::BitmapLockInfo bitMapInfo = bitmapData->Lock();
+                        unsigned char* cziPtr8 = (unsigned char*)bitMapInfo.ptrDataRoi;
+                        pixelRGBAOut[0] = cziPtr8[2];
+                        pixelRGBAOut[1] = cziPtr8[1];
+                        pixelRGBAOut[2] = cziPtr8[0];
+                        pixelRGBAOut[3] = 255;
+                        bitmapData->Unlock();
+                        
+                        const std::array<uint8_t, 3> prefBackByteRGB = getPreferencesImageBackgroundByteRGB();
+                        if ((prefBackByteRGB[0] == pixelRGBAOut[0])
+                            && (prefBackByteRGB[1] == pixelRGBAOut[1])
+                            && (prefBackByteRGB[2] == pixelRGBAOut[2])) {
+                            /*
+                             * If pixel color is background, then return invalid status
+                             */
+                            return false;
+                        }
+                        
+                        return true;
+                    }
+                    else {
+                        CaretLogSevere("Single Channel Data read is incorrect size width="
+                                       + AString::number(bitmapData->GetWidth())
+                                       + ", height="
+                                       + AString::number(bitmapData->GetHeight()));
+                    }
+                }
+                else {
+                    CaretLogSevere("Single Channel Failed to read RGBA pixel "
+                                   + pixelLogicalIndex.toString()
+                                   + " from file "
+                                   + getFileNameNoPath());
+                }
+            }
+        }
     }
-    
+
     /*
      * If pixel identification above failed, try to access from image data
      */
     const CziImage* cziImage = getImageForTabOverlay(tabIndex,
                                                      overlayIndex);
     CaretAssert(cziImage);
-    if (cziImage->getImageDataPixelRGBA(pixelLogicalIndex,
-                                        pixelRGBAOut)) {
-        return true;
+    if (cziImage != NULL) {
+        if (cziImage->getImageDataPixelRGBA(pixelLogicalIndex,
+                                            pixelRGBAOut)) {
+            return true;
+        }
     }
 
     return false;

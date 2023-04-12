@@ -116,6 +116,8 @@ namespace caret {
         
         int32_t getNumberOfScenes() const;
         
+        int32_t getNumberOfChannels() const;
+        
         void updateImageForDrawingInTab(const int32_t tabIndex,
                                         const int32_t overlayIndex,
                                         const int32_t frameIndex,
@@ -390,6 +392,8 @@ namespace caret {
         
         void readMetaData();
         
+        void readFileDimensions(const libCZI::SubBlockStatistics& subBlockStatistics);
+        
         void createAllFramesPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
         
         void readPyramidInfo(const libCZI::SubBlockStatistics& subBlockStatistics);
@@ -436,6 +440,8 @@ namespace caret {
         CziSceneInfo m_allFramesPyramidInfo;
         
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;
+        
+        int32_t m_numberOfChannels = 1;
         
         float m_pixelSizeMmX = 1.0f;
         
