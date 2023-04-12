@@ -58,6 +58,22 @@ DataFileContentInformation::~DataFileContentInformation()
 
 /**
  * Add a name and value pair.
+ *
+ * @param name
+ *    The name.
+ * @param value
+ *    The value.
+ */
+void
+DataFileContentInformation::addNameAndValue(const AString& name,
+                                            const char* value)
+{
+    CaretAssert(value);
+    addNameAndValue(name, AString(value));
+}
+
+/**
+ * Add a name and value pair.
  * 
  * @param name
  *    The name.

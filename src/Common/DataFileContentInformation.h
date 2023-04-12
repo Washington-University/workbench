@@ -54,6 +54,9 @@ namespace caret {
         virtual ~DataFileContentInformation();
         
         void addNameAndValue(const AString& name,
+                             const char* value);
+        
+        void addNameAndValue(const AString& name,
                              const AString& value);
         
         void addNameAndValue(const AString& name,
