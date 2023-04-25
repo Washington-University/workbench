@@ -53,6 +53,7 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"
+#include "MediaFileChannelInfo.h"
 #include "Plane.h"
 #include "RectangleTransform.h"
 #include "SceneClass.h"
@@ -125,9 +126,6 @@ CziImageFile::resetPrivate()
     m_cziScenePyramidInfos.clear();
     m_scalingTileAccessor.reset();
     m_pyramidLayerTileAccessor.reset();
-    m_numberOfChannels = 1;
-    m_channelData.clear();
-    m_channelData.push_back(ChannelData("No Name"));
 
     if (m_reader) {
         m_reader->Close();
@@ -508,6 +506,7 @@ CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStati
 {
     const libCZI::CDimBounds& dimBounds(subBlockStatistics.dimBounds);
 
+    int32_t numberOfChannels(0);
     const uint8_t dimMin(static_cast<uint8_t>(libCZI::DimensionIndex::MinDim));
     const uint8_t dimMax(static_cast<uint8_t>(libCZI::DimensionIndex::MaxDim));
     for (uint8_t i = dimMin; i <= dimMax; i++) {
@@ -516,7 +515,7 @@ CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStati
         int32_t indexStart(-1), indexSize(-1);
         if (dimBounds.TryGetInterval(dimIndex, &indexStart, &indexSize)) {
             if (dimIndex == libCZI::DimensionIndex::C) {
-                m_numberOfChannels = indexSize;
+                numberOfChannels = indexSize;
             }
             if (cziDebugFlag) {
                 const char dimChar(libCZI::Utils::DimensionToChar(dimIndex));
@@ -525,14 +524,16 @@ CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStati
         }
     }
     
-    if (m_numberOfChannels > 0) {
-        m_channelData.clear();
-        
+    if (numberOfChannels > 1) {
+        const bool allChannelsSelectionSupportedFlag(true);
+        const bool singleChannelSelectionSupportedFlag(true);
+        MediaFileChannelInfo channelInfo(allChannelsSelectionSupportedFlag,
+                                         singleChannelSelectionSupportedFlag);
         /*
          * Getting actual name of channel requires modifying
          * CCziDisplaySettings::CreateFromXml in the CZI library.
          */
-        for (int32_t iChan = 0; iChan < m_numberOfChannels; iChan++) {
+        for (int32_t iChan = 0; iChan < numberOfChannels; iChan++) {
             AString name("Chan " + AString::number(iChan));
             if (m_displaySettings != NULL) {
                 const auto channelSettings(m_displaySettings->GetChannelDisplaySettings(iChan));
@@ -542,14 +543,13 @@ CziImageFile::readFileDimensions(const libCZI::SubBlockStatistics& subBlockStati
                     QString g(QString("%1").arg((int)rgbColor.g, 2, 16, QLatin1Char('0')));
                     QString b(QString("%1").arg((int)rgbColor.b, 2, 16, QLatin1Char('0')));
                     name = ("#" + r + g + b);
+                    channelInfo.addChannel(name);
                 }
             }
-            
-            m_channelData.push_back(ChannelData(name));
         }
+        
+        replaceMediaFileChannelInfo(channelInfo);
     }
-    
-    CaretAssert(m_numberOfChannels == static_cast<int32_t>(m_channelData.size()));
 }
 
 /**
@@ -938,7 +938,8 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
      * the display settings). Those bitmaps are then fed into a function which will produce the
      * multi-channel-composite (according to the display settings).
      */
-    const bool applyTintingFlag(m_numberOfChannels > 1);
+    const int32_t numberOfChannels(getMediaFileChannelInfo()->getNumberOfChannels());
+    const bool applyTintingFlag(numberOfChannels > 1);
     if (applyTintingFlag) {
         /*
          * Code copied from <czi documentation>/html/using_naczirlib.html in CZI documentation
@@ -970,7 +971,7 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
         dsplHlp.Initialize(m_displaySettings.get(),
                            [&](int chIdx)->libCZI::PixelType { return actvChBms[activeChNoToChIdx[chIdx]]->GetPixelType(); });
 
-        const bool allChannelsFlag(true);
+        const bool allChannelsFlag(channelIndex < 0);
         if (allChannelsFlag) {
             /*
              * pass the tile-composites we just created (and the display-settings for the those active
@@ -984,11 +985,8 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
             /*
              * View ONE of the channels
              */
-            const int32_t channelNumber(4);
-            if ((channelNumber >= 0)
-                && (channelNumber <= m_numberOfChannels)) {
-                const int32_t channelIndex(channelNumber - 1);
-                
+            if ((channelIndex >= 0)
+                && (channelIndex <= numberOfChannels)) {
                 std::vector<libCZI::Compositors::ChannelInfo> channelInfos;
                 channelInfos.push_back(dsplHlp.GetActiveChannel(channelIndex));
                 
@@ -998,10 +996,10 @@ CziImageFile::readFromCziImageFile(const ImageDataFormat imageDataFormat,
                                                                                 &channelInfos[0]);
             }
             else {
-                errorMessageOut = ("Invalid channel number="
-                                   + AString::number(channelNumber)
-                                   + ", Valid range is 1 to "
-                                   + AString::number(m_numberOfChannels));
+                errorMessageOut = ("Invalid channel index="
+                                   + AString::number(channelIndex)
+                                   + ", Valid range is 0 to "
+                                   + AString::number(numberOfChannels - 1));
                 return NULL;
             }
         }
@@ -1404,31 +1402,6 @@ int32_t
 CziImageFile::getNumberOfScenes() const
 {
     return m_cziScenePyramidInfos.size();
-}
-
-/**
- * @return Number of channels in the file
- */
-int32_t
-CziImageFile::getNumberOfChannels() const
-{
-    return m_numberOfChannels;
-}
-
-/**
- * @return Data (info) about channel with the given index
- * @param channelIndex
- *    Index of the channel
- */
-const MediaFile::ChannelData*
-CziImageFile::getChannelData(const int32_t channelIndex) const
-{
-    if ((channelIndex >= 0)
-        && (channelIndex < m_numberOfChannels)) {
-        return &m_channelData[channelIndex];
-    }
-    CaretAssert(0);
-    return NULL;
 }
 
 /**
@@ -1850,7 +1823,6 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
     
     addPlaneCoordsToDataFileContentInformation(dataFileInformation);
     
-    dataFileInformation.addNameAndValue("Number of Channels", getNumberOfChannels());
     m_allFramesPyramidInfo.addToDataFileContentInformation(dataFileInformation, "All Scenes");
     
     const int32_t numScenes = getNumberOfScenes();
@@ -1861,6 +1833,8 @@ CziImageFile::addToDataFileContentInformation(DataFileContentInformation& dataFi
                                                      ("Scene "
                                                       + AString::number(cziSceneInfo.m_sceneIndex)));
     }
+    
+    getMediaFileChannelInfo()->addToDataFileContentInformation(dataFileInformation);
 }
 
 /**

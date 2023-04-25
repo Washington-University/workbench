@@ -81,6 +81,8 @@ namespace caret {
                           const bool fileSupportsAllFramesFlag,
                           const bool allFramesSelectedFlag,
                           const bool supportsYokingFlag,
+                          const bool allChannelsSelectedFlag,
+                          const int32_t selectedChannelIndex,
                           const CziImageResolutionChangeModeEnum::Enum cziResolutionChangeMode,
                           const int32_t cziManualPyramidLayerIndex,
                           const int32_t cziManualPyramidLayerMinimumValue,
@@ -90,12 +92,15 @@ namespace caret {
             m_overlayIndex(overlayIndex),
             m_mediaFiles(mediaFiles),
             m_selectedMediaFile(selectedMediaFile),
+            m_constSelectedMediaFile(selectedMediaFile),
             m_selectedCziImageFile(selectedCziImageFile),
             m_selectedFrameIndex(selectedFrameIndex),
             m_selectedFrameName(selectedFrameName),
             m_fileSupportsAllFramesFlag(fileSupportsAllFramesFlag),
             m_allFramesSelectedFlag(allFramesSelectedFlag),
             m_supportsYokingFlag(supportsYokingFlag),
+            m_allChannelsSelectedFlag(allChannelsSelectedFlag),
+            m_selectedChannelIndex(selectedChannelIndex),
             m_cziResolutionChangeMode(cziResolutionChangeMode),
             m_cziManualPyramidLayerIndex(cziManualPyramidLayerIndex),
             m_cziManualPyramidLayerMinimumValue(cziManualPyramidLayerMinimumValue),
@@ -110,12 +115,15 @@ namespace caret {
             int32_t m_overlayIndex = -1;
             std::vector<MediaFile*> m_mediaFiles;
             MediaFile* m_selectedMediaFile = NULL;
+            const MediaFile* m_constSelectedMediaFile = NULL;
             CziImageFile* m_selectedCziImageFile = NULL;
             int32_t m_selectedFrameIndex = 0;
             AString m_selectedFrameName;
             bool m_fileSupportsAllFramesFlag = false;
             bool m_allFramesSelectedFlag = false;
             bool m_supportsYokingFlag = false;
+            bool m_allChannelsSelectedFlag = false;
+            int32_t m_selectedChannelIndex = -1;
             
             CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
             int32_t m_cziManualPyramidLayerIndex = 0;
@@ -138,6 +146,14 @@ namespace caret {
         
         void setCziAllScenesSelected(const bool selectAll);
 
+        int32_t getSelectedChannelIndex() const;
+        
+        bool isAllChannelsSelected() const;
+        
+        void setSelectedChannelIndex(const int32_t channelIndex);
+        
+        void setAllChannelsSelected(const bool status);
+        
         void setCziResolutionChangeMode(const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -175,6 +191,10 @@ namespace caret {
         int32_t m_selectedFrameIndex;
 
         bool m_allFramesSelectedFlag = true;
+        
+        int32_t m_selectedChannelIndex = 1;
+        
+        bool m_allChannelsSelectedFlag = true;
         
         CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
 

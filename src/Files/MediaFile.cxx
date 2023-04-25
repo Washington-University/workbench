@@ -27,6 +27,7 @@
 #include "CaretLogger.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
+#include "MediaFileChannelInfo.h"
 #include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -76,6 +77,9 @@ MediaFile::MediaFile(const MediaFile& mediaFile)
 : CaretDataFile(mediaFile)
 {
     initializeMembersMediaFile();
+    if (mediaFile.m_mediaFileChannelInfo) {
+        m_mediaFileChannelInfo.reset(new MediaFileChannelInfo(*mediaFile.m_mediaFileChannelInfo.get()));
+    }
 }
 
 /**
@@ -92,6 +96,7 @@ void
 MediaFile::initializeMembersMediaFile()
 {
     resetMatricesPrivate();
+    m_mediaFileChannelInfo.reset(new MediaFileChannelInfo());
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
 
@@ -137,27 +142,41 @@ MediaFile::getFrameIntervalStartAndStep(float& firstFrameUnitsValueOut,
 }
 
 /**
- * @return Number of channels.
+ * @return Pointer to channel information
  */
-int32_t
-MediaFile::getNumberOfChannels() const
+const MediaFileChannelInfo*
+MediaFile::getMediaFileChannelInfo() const
 {
-    return 1;
+    if ( ! m_mediaFileChannelInfo) {
+        m_mediaFileChannelInfo.reset(new MediaFileChannelInfo());
+    }
+    CaretAssert(m_mediaFileChannelInfo.get());
+    return m_mediaFileChannelInfo.get();
 }
 
 /**
- * @return Pointer to data for a channel.
- * @param channelIndex
- *    Index of the channel
+ * @return Pointer to channel information
  */
-const MediaFile::ChannelData*
-MediaFile::getChannelData(const int32_t /*channelIndex*/) const
+MediaFileChannelInfo*
+MediaFile::getMediaFileChannelInfo()
 {
-    if ( ! m_channelData) {
-        m_channelData.reset(new ChannelData("Chan 1"));
+    if ( ! m_mediaFileChannelInfo) {
+        m_mediaFileChannelInfo.reset(new MediaFileChannelInfo());
     }
-    CaretAssert(m_channelData.get());
-    return m_channelData.get();
+    CaretAssert(m_mediaFileChannelInfo.get());
+    return m_mediaFileChannelInfo.get();
+}
+
+/**
+ * Replace the media file channel information.  This method should be called by subclasses
+ * that support channels.
+ * @param mediaFileChannelInfo
+ *    The new channel information.  This class will COPY the data.
+ */
+void
+MediaFile::replaceMediaFileChannelInfo(const MediaFileChannelInfo& mediaFileChannelInfo)
+{
+    m_mediaFileChannelInfo.reset(new MediaFileChannelInfo(mediaFileChannelInfo));
 }
 
 /**

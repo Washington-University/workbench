@@ -63,6 +63,8 @@ m_overlayIndex(overlayIndex)
     m_selectedFile  = NULL;
     m_selectedFrameIndex = -1;
     m_allFramesSelectedFlag = true;
+    m_selectedChannelIndex = 0;
+    m_allChannelsSelectedFlag = true;
     m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
     m_cziManualPyramidLayerIndex = 1;
     m_name = "Overlay ";
@@ -73,6 +75,8 @@ m_overlayIndex(overlayIndex)
     m_sceneAssistant->add("m_enabled", &m_enabled);
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup", &m_mapYokingGroup);
     m_sceneAssistant->add("m_allFramesSelectedFlag", &m_allFramesSelectedFlag);
+    m_sceneAssistant->add("m_allChannelsSelectedFlag", &m_allChannelsSelectedFlag);
+    m_sceneAssistant->add("m_selectedChannelIndex", &m_selectedChannelIndex);
     m_sceneAssistant->add<CziImageResolutionChangeModeEnum,CziImageResolutionChangeModeEnum::Enum>("m_cziResolutionChangeMode", &m_cziResolutionChangeMode);
     m_sceneAssistant->add("m_cziManualPyramidLayerIndex", &m_cziManualPyramidLayerIndex);
     
@@ -165,6 +169,46 @@ MediaOverlay::setCziAllScenesSelected(const bool selectAll)
 }
 
 /**
+ * @return The selected channel index
+ */
+int32_t
+MediaOverlay::getSelectedChannelIndex() const
+{
+    return m_selectedChannelIndex;
+}
+
+/**
+ * @return True if all channels are selected
+ */
+bool
+MediaOverlay::isAllChannelsSelected() const
+{
+    return m_allChannelsSelectedFlag;
+}
+
+/**
+ * Set the selected channel index
+ * @param channelIndex
+ *    New  channel index
+ */
+void
+MediaOverlay::setSelectedChannelIndex(const int32_t channelIndex)
+{
+    m_selectedChannelIndex = channelIndex;
+}
+
+/**
+ * Set all channels selected
+ * @param status
+ *    New status of all channels selected
+ */
+void
+MediaOverlay::setAllChannelsSelected(const bool status)
+{
+    m_allChannelsSelectedFlag = status;
+}
+
+/**
  * Set the CZI resolution change mode
  * @param resolutionChangeMode
  *    New change mode
@@ -208,6 +252,10 @@ MediaOverlay::getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) co
                                        + AString::number(selectionData.m_selectedFrameIndex + 1));
                 descriptionOut.addLine("All Frames: "
                                        + AString::fromBool(selectionData.m_allFramesSelectedFlag));
+                descriptionOut.addLine("Channel Index: "
+                                       + AString::number(selectionData.m_selectedChannelIndex + 1));
+                descriptionOut.addLine("All Channels: "
+                                       + AString::fromBool(selectionData.m_allChannelsSelectedFlag));
             }
         }
     }
@@ -256,6 +304,8 @@ MediaOverlay::copyData(const MediaOverlay* overlay)
     m_selectedFile               = overlay->m_selectedFile;
     m_selectedFrameIndex         = overlay->m_selectedFrameIndex;
     m_allFramesSelectedFlag      = overlay->m_allFramesSelectedFlag;
+    m_selectedChannelIndex       = overlay->m_selectedChannelIndex;
+    m_allChannelsSelectedFlag    = overlay->m_allChannelsSelectedFlag;
     m_cziResolutionChangeMode    = overlay->m_cziResolutionChangeMode;
     m_cziManualPyramidLayerIndex = overlay->m_cziManualPyramidLayerIndex;
 }
@@ -385,6 +435,33 @@ MediaOverlay::getSelectionData()
                                                    cziManualPyramidLayerMaximumValue);
     }
     
+    bool allChannelsSelectedFlag(false);
+    int32_t selectedChannelIndex(-1);
+    if (m_selectedFile != NULL) {
+        const MediaFileChannelInfo* channelInfo(const_cast<const MediaFile*>(m_selectedFile)->getMediaFileChannelInfo());
+        CaretAssert(channelInfo);
+        if (channelInfo->isChannelsSupported()) {
+            if (channelInfo->isAllChannelsSelectionSupported()) {
+                allChannelsSelectedFlag = m_allChannelsSelectedFlag;
+            }
+            if (channelInfo->isSingleChannelSelectionSupported()) {
+                selectedChannelIndex = m_selectedChannelIndex;
+            }
+            
+            /*
+             * If no channel selected, pref all channels to single channel
+             */
+            if (( ! allChannelsSelectedFlag)
+                && (selectedChannelIndex < 0)) {
+                if (channelInfo->isAllChannelsSelectionSupported()) {
+                    allChannelsSelectedFlag = true;
+                }
+                else if (channelInfo->isSingleChannelSelectionSupported()) {
+                    selectedChannelIndex = 0;
+                }
+            }
+        }
+    }
     SelectionData selectionDataOut(m_tabIndex,
                                    m_overlayIndex,
                                    allFiles,
@@ -395,6 +472,8 @@ MediaOverlay::getSelectionData()
                                    fileSupportsAllFramesFlag,
                                    m_allFramesSelectedFlag,
                                    supportsYokingFlag,
+                                   allChannelsSelectedFlag,
+                                   selectedChannelIndex,
                                    m_cziResolutionChangeMode,
                                    m_cziManualPyramidLayerIndex,
                                    cziManualPyramidLayerMinimumValue,

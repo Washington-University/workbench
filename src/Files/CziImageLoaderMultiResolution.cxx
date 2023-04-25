@@ -153,6 +153,12 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
         m_reloadImageFlag = true;
         if (cziDebugFlag) std::cout << "Reload image due to resolution/pyramid change" << std::endl;
     }
+    if (channelIndex != m_previousChannelIndex) {
+        if (m_cziImageFile->getMediaFileChannelInfo()->isChannelsSupported()) {
+            m_reloadImageFlag = true;
+            if (cziDebugFlag) std::cout << "Reload image due to channel change" << std::endl;
+        }
+    }
     
     if (m_forceImageReloadFlag) {
         m_reloadImageFlag = true;
@@ -236,11 +242,13 @@ CziImageLoaderMultiResolution::updateImage(const CziImage* cziImage,
             m_cziImage.reset();
         }
     }
+    
     m_previousFrameIndex              = frameIndex;
     m_previousAllFramesFlag           = allFramesFlag;
     m_previousResolutionChangeMode    = resolutionChangeMode;
     m_previousCoordinateMode          = coordinateMode;
     m_previousManualPyramidLayerIndex = manualPyramidLayerIndex;
+    m_previousChannelIndex            = channelIndex;
     m_reloadImageFlag                 = false;
     m_frameChangedFlag                = false;
     m_forceImageReloadFlag            = false;
@@ -890,6 +898,12 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPixelCoords(const CziI
             break;
     }
     
+    if (m_cziImageFile->getMediaFileChannelInfo()->isChannelsSupported()) {
+        if (channelIndex != m_previousChannelIndex) {
+            forceReloadFlag = true;
+        }
+    }
+    
     if (forceReloadFlag) {
         /* nothing */
     }
@@ -1061,7 +1075,13 @@ CziImageLoaderMultiResolution::loadImageForPyrmaidLayerForPlaneCoords(const CziI
         case CziImageResolutionChangeModeEnum::AUTO2:
             break;
     }
-    
+
+    if (m_cziImageFile->getMediaFileChannelInfo()->isChannelsSupported()) {
+        if (channelIndex != m_previousChannelIndex) {
+            forceReloadFlag = true;
+        }
+    }
+
     if (forceReloadFlag) {
         /* nothing */
     }

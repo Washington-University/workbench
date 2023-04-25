@@ -27,11 +27,11 @@
 
 #include <QMenu>
 
+class QCheckBox;
 class QSpinBox;
 
 
 namespace caret {
-
     class EnumComboBoxTemplate;
     class MediaOverlay;
     
@@ -59,6 +59,10 @@ namespace caret {
         
         void pyramidLayerChanged(int value);
         
+        void allChannelsSelectedCheckBoxClicked(bool clicked);
+        
+        void selectedChannelSpinBoxValueChanged(int value);
+        
     private:
         void updateContent();
         
@@ -69,6 +73,10 @@ namespace caret {
         QSpinBox* m_cziPyramidLayerIndexSpinBox;
         
         QAction* m_reloadAction;
+        
+        QCheckBox* m_allChannelsSelectedCheckBox;
+        
+        QSpinBox* m_selectedChannelSpinBox;
         
         // ADD_NEW_MEMBERS_HERE
 

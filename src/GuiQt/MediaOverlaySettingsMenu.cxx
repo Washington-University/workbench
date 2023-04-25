@@ -23,10 +23,12 @@
 #include "MediaOverlaySettingsMenu.h"
 #undef __MEDIA_OVERLAY_SETTINGS_MENU_DECLARE__
 
+#include <QCheckBox>
 #include <QLabel>
 #include <QSpinBox>
 #include <QToolButton>
 #include <QVBoxLayout>
+#include <QWidgetAction>
 
 #include "CaretAssert.h"
 #include "CziImageFile.h"
@@ -121,20 +123,51 @@ m_mediaOverlay(mediaOverlay)
     WuQMacroManager::instance()->addMacroSupportToObject(m_reloadAction,
                                                          "Reload CZI Image");
     
-    
     QToolButton* reloadToolButton = new QToolButton();
     reloadToolButton->setDefaultAction(m_reloadAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(reloadToolButton);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    QWidget* pyramidLayerWidget(new QWidget());
+    QVBoxLayout* pyramidLayerLayout = new QVBoxLayout(pyramidLayerWidget);
+    pyramidLayerLayout->addWidget(pyramidLayerLabel);
+    pyramidLayerLayout->addWidget(m_cziResolutionChangeModeComboBox->getWidget());
+    pyramidLayerLayout->addWidget(m_cziPyramidLayerIndexSpinBox);
+    pyramidLayerLayout->addWidget(reloadToolButton);
+
+    m_allChannelsSelectedCheckBox = new QCheckBox("Show All Channels");
+    QObject::connect(m_allChannelsSelectedCheckBox, &QCheckBox::clicked,
+                     this, &MediaOverlaySettingsMenu::allChannelsSelectedCheckBoxClicked);
+    
+    QLabel* channelLabel = new QLabel("Channel");
+    m_selectedChannelSpinBox = new QSpinBox();
+    m_selectedChannelSpinBox->setSingleStep(1);
+    QObject::connect(m_selectedChannelSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &MediaOverlaySettingsMenu::selectedChannelSpinBoxValueChanged);
+    QSignalBlocker channelBlocker(m_selectedChannelSpinBox);
+    m_selectedChannelSpinBox->setRange(1, 1000); /* set range and fixed size, sets size of widget */
+    m_selectedChannelSpinBox->setFixedSize(m_selectedChannelSpinBox->sizeHint());
+    
+    QWidget* channelWidget(new QWidget());
+    QGridLayout* channelLayout(new QGridLayout(channelWidget));
+    channelLayout->addWidget(m_allChannelsSelectedCheckBox, 0, 0, 1, 2, Qt::AlignLeft);
+    channelLayout->addWidget(channelLabel, 1, 0);
+    channelLayout->addWidget(m_selectedChannelSpinBox, 1, 1, Qt::AlignLeft);
+    
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
-    layout->addWidget(pyramidLayerLabel);
-    layout->addWidget(m_cziResolutionChangeModeComboBox->getWidget());
-    layout->addWidget(m_cziPyramidLayerIndexSpinBox);
-    layout->addWidget(reloadToolButton);
+    layout->addWidget(pyramidLayerWidget);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addWidget(channelWidget);
     layout->addStretch();
     
-    updateContent();
+    QWidgetAction* widgetAction(new QWidgetAction(this));
+    widgetAction->setDefaultWidget(widget);
+    
+    addAction(widgetAction);
+    
+    QObject::connect(this, &QMenu::aboutToShow,
+                     this, &MediaOverlaySettingsMenu::updateContent);
 }
 
 /**
@@ -159,6 +192,25 @@ MediaOverlaySettingsMenu::updateContent()
     m_cziPyramidLayerIndexSpinBox->setValue(selectionData.m_cziManualPyramidLayerIndex);
     
     m_cziResolutionChangeModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(selectionData.m_cziResolutionChangeMode);
+    
+    m_allChannelsSelectedCheckBox->setEnabled(false);
+    m_selectedChannelSpinBox->setEnabled(false);
+    if (selectionData.m_selectedMediaFile != NULL) {
+        const MediaFileChannelInfo* channelInfo(selectionData.m_constSelectedMediaFile->getMediaFileChannelInfo());
+        CaretAssert(channelInfo);
+        if (channelInfo->isChannelsSupported()) {
+            if (channelInfo->isAllChannelsSelectionSupported()) {
+                m_allChannelsSelectedCheckBox->setChecked(selectionData.m_allChannelsSelectedFlag);
+                m_allChannelsSelectedCheckBox->setEnabled(true);
+            }
+            if (channelInfo->isSingleChannelSelectionSupported()) {
+                QSignalBlocker blocker(m_selectedChannelSpinBox);
+                m_selectedChannelSpinBox->setRange(0, channelInfo->getNumberOfChannels() - 1);
+                m_selectedChannelSpinBox->setValue(selectionData.m_selectedChannelIndex);
+                m_selectedChannelSpinBox->setEnabled(true);
+            }
+        }
+    }
 }
 
 
@@ -216,4 +268,34 @@ MediaOverlaySettingsMenu::resolutionModeComboBoxActivated()
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             break;
     }
+}
+
+/**
+ * Called when all channels check box clicked
+ * @param clicked
+ *    New status
+ */
+void
+MediaOverlaySettingsMenu::allChannelsSelectedCheckBoxClicked(bool clicked)
+{
+    m_mediaOverlay->setAllChannelsSelected(clicked);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when all channels spin box value changed
+ * @param value
+ *    New  channel
+ */
+void
+MediaOverlaySettingsMenu::selectedChannelSpinBoxValueChanged(int value)
+{
+    /*
+     * Disabling spin box prevents multiple signals from being
+     * issued when user clicks once on up or down arrow on MacOS.
+     */
+    m_selectedChannelSpinBox->setEnabled(false);
+    m_mediaOverlay->setSelectedChannelIndex(value);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    m_selectedChannelSpinBox->setEnabled(true);
 }

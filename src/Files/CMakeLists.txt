@@ -134,6 +134,7 @@ LabelFile.h
 MapYokingGroupEnum.h
 MediaDisplayCoordinateModeEnum.h
 MediaFile.h
+MediaFileChannelInfo.h
 MediaFileTransforms.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
@@ -298,6 +299,7 @@ LabelFile.cxx
 MapYokingGroupEnum.cxx
 MediaDisplayCoordinateModeEnum.cxx
 MediaFile.cxx
+MediaFileChannelInfo.cxx
 MediaFileTransforms.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx

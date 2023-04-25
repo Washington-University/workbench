@@ -34,6 +34,7 @@
 #include "SingleChannelPyramidLevelTileAccessor.h"
 #include "Matrix4x4.h"
 #include "MediaFile.h"
+#include "MediaFileChannelInfo.h"
 #include "PixelIndex.h"
 #include "Plane.h"
 #include "VolumeFile.h"
@@ -88,10 +89,6 @@ namespace caret {
         virtual int32_t getHeight() const override;
 
         virtual int32_t getNumberOfFrames() const override;
-        
-        virtual int32_t getNumberOfChannels() const override;
-
-        const ChannelData* getChannelData(const int32_t channelIndex) const override;
         
         virtual bool isPixelIndexInFrameValid(const int32_t frameIndex,
                                               const PixelIndex& pixelIndexOriginAtTopLeft) const override;
@@ -444,10 +441,6 @@ namespace caret {
         CziSceneInfo m_allFramesPyramidInfo;
         
         std::vector<CziSceneInfo> m_cziScenePyramidInfos;
-        
-        int32_t m_numberOfChannels = 1;
-        
-        std::vector<ChannelData> m_channelData;
         
         float m_pixelSizeMmX = 1.0f;
         

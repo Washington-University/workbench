@@ -136,6 +136,8 @@ namespace caret {
 
         int32_t m_previousZoomLayerIndex = -1;
         
+        int32_t m_previousChannelIndex = -2;
+        
         bool m_forceImageReloadFlag = false;
         
         bool m_reloadImageFlag = false;

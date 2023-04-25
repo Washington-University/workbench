@@ -45,6 +45,7 @@ namespace caret {
     class BoundingBox;
     class CziNonLinearTransform;
     class GraphicsPrimitiveV3fT2f;
+    class MediaFileChannelInfo;
     class Plane;
     class VolumeSpace;
 
@@ -60,27 +61,7 @@ namespace caret {
             /** Origin at top (most image formats have origin at top) */
             IMAGE_DATA_ORIGIN_AT_TOP
         };
-        
-        /**
-         * Stores data about a channel
-         */
-        class ChannelData {
-        public:
-            /**
-             * Constructor with channel name
-             */
-            ChannelData(const AString& name)
-            : m_name(name) { }
-            
-            /**
-             * @return Name of channel
-             */
-            AString getName() const { return m_name; }
-            
-        private:
-            AString m_name;
-        };
-        
+                
         virtual ~MediaFile();
         
         MediaFile(const MediaFile& mediaFile);
@@ -139,9 +120,7 @@ namespace caret {
         virtual void getFrameIntervalStartAndStep(float& firstFrameUnitsValueOut,
                                                   float& frameIntervalStepValueOut) const;
         
-        virtual int32_t getNumberOfChannels() const;
-
-        virtual const ChannelData* getChannelData(const int32_t channelIndex) const;
+        const MediaFileChannelInfo* getMediaFileChannelInfo() const;
         
         MediaFile* castToMediaFile();
         
@@ -331,6 +310,10 @@ namespace caret {
          */
         static QString getMetaDataNamePlaneToMillimetersMatrix() { return "WorkbenchPlaneToMillimetersMatrix"; }
 
+        MediaFileChannelInfo* getMediaFileChannelInfo();
+        
+        void replaceMediaFileChannelInfo(const MediaFileChannelInfo& mediaFileChannelInfo);
+
     private:
         void indexToPlaneTest(const Matrix4x4& scaledToPlane,
                               const Matrix4x4& shiftMat,
@@ -406,7 +389,7 @@ namespace caret {
         
         bool m_scaledToPlaneMatrixValidFlag     = false;
         
-        mutable std::unique_ptr<ChannelData> m_channelData;
+        mutable std::unique_ptr<MediaFileChannelInfo> m_mediaFileChannelInfo;
         
         friend class CziImage;
     };
