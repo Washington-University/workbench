@@ -119,6 +119,15 @@ IF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
 ENDIF (${CMAKE_CXX_COMPILER} MATCHES "^.*clang2\\+\\+.*")
 IF (CLANG_FLAG)
     ADD_DEFINITIONS("-W -Wall -Werror=return-type -Werror=switch -Wunused-parameter -Wno-deprecated-declarations")
+
+    execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+                        OUTPUT_VARIABLE CLANG_VERSION)
+    message("clang version is: " ${CLANG_VERSION})
+    # clang 14.0.3 on Mac outputs many many
+    # "Implicit conversion loses integer precision warnings"
+    if(${CLANG_VERSION} VERSION_GREATER "14.0.2")
+        ADD_DEFINITIONS(-Wno-shorten-64-to-32)
+    endif()
 ENDIF (CLANG_FLAG)
 
 
