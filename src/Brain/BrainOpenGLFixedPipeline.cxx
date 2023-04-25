@@ -4837,7 +4837,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             glDisable(GL_LIGHTING);
         }
         
-        int64_t count(0);
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -4904,7 +4903,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                         break;
                                 }
                                 glPopMatrix();
-                                count++;
                             }
                         }
                     }
@@ -5255,7 +5253,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
         /*
          * Loop through the voxels
          */
-        int64_t count(0);
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -5376,7 +5373,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
                             || drawMaxYFlag
                             || drawMinZFlag
                             || drawMaxZFlag) {
-                            count++;
                         }
                         const float minX(x - halfAbsX);
                         const float maxX(x + halfAbsX);

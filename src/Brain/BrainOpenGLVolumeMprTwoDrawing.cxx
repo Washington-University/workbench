@@ -275,20 +275,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
         case VolumeSliceViewPlaneEnum::CORONAL:
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
         {
-            int32_t sliceIndex(-1);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    sliceIndex = axialSliceIndex;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    sliceIndex = coronalSliceIndex;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    sliceIndex = parasagittalSliceIndex;
-                    break;
-            }
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
                                     sliceProjectionType,
@@ -3876,20 +3862,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                 if (m_debugFlag) std::cout << "   Slice indices: " << voxelIJK[0] << ", "
                 << voxelIJK[1] << ", " << voxelIJK[2] << std::endl;
                 if (underlayVolume->indexValid(voxelIJK[0], voxelIJK[1], voxelIJK[2])) {
-                    int64_t viewAngleSliceIndex(-1);
-                    switch (sliceViewPlane) {
-                        case VolumeSliceViewPlaneEnum::ALL:
-                            break;
-                        case VolumeSliceViewPlaneEnum::AXIAL:
-                            viewAngleSliceIndex = voxelIJK[2];
-                            break;
-                        case VolumeSliceViewPlaneEnum::CORONAL:
-                            viewAngleSliceIndex = voxelIJK[1];
-                            break;
-                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                            viewAngleSliceIndex = voxelIJK[0];
-                            break;
-                    }
                     const bool updateGraphicsObjectToWindowTransformFlag(sliceCounter == midSliceNumber);
                     drawVolumeSliceViewProjection(viewportContent,
                                                   sliceProjectionType,

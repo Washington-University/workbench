@@ -966,7 +966,6 @@ CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const
     std::vector<int64_t> fiberIndices;
     std::vector<FiberFractions> fiberFractions;
     
-    int ctr = 0;
     for (std::vector<const FiberOrientationTrajectory*>::const_iterator iter = trajectories.begin();
          iter != trajectories.end();
          iter++) {
@@ -990,8 +989,6 @@ CiftiFiberTrajectoryFile::writeLoadedDataToFile(const AString& filename) const
 //                std::cout << "Fiber " << ctr << vec[i] << std::endl;
 //            }
 //        }
-        
-        ctr++;
     }
     
     /*

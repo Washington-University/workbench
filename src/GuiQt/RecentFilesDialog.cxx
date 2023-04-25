@@ -125,13 +125,10 @@ m_runMode(runMode)
     dialogLayout->setVerticalSpacing(0);
     dialogLayout->setRowStretch(2, 100);
     dialogLayout->setColumnStretch(1, 100);
-    int row(0);
     dialogLayout->addWidget(internetButtonsWidget, 0, 0, 2, 1);
     dialogLayout->addWidget(filesFilteringWidget, 0, 1);
-    row++;
     dialogLayout->addWidget(fileTypeButtonsWidget, 2, 0);
     dialogLayout->addWidget(m_recentFilesTableWidget, 1, 1, 2, 1);
-    row++;
     dialogLayout->addWidget(dialogButtonWidget, 3, 1);
 
     m_openPushButton->setAutoDefault(true);

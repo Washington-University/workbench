@@ -555,7 +555,6 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
     /*
      * Loop through map files in memory loaded by scene
      */
-    bool mapPalettesUpdatedFlag(false);
     for (auto& mapFile : allDataFiles) {
         if (mapFile->getFileName().endsWith(copyMapOneDataFileName)) {
             if (mapFile->isMappedWithPalette()) {
@@ -574,7 +573,6 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
                                                                 MatchNameMode::MATCH_END_OF_NAME));
                     if (updateCount > 0) {
                         filesUpdatedCounter += updateCount;
-                        mapPalettesUpdatedFlag = true;
                     }
                     else {
                         addToErrorMessages("Failed to copy map one palettes: "
