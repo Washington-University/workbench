@@ -134,10 +134,6 @@ m_mediaOverlay(mediaOverlay)
     pyramidLayerLayout->addWidget(m_cziPyramidLayerIndexSpinBox);
     pyramidLayerLayout->addWidget(reloadToolButton);
 
-    m_allChannelsSelectedCheckBox = new QCheckBox("Show All Channels");
-    QObject::connect(m_allChannelsSelectedCheckBox, &QCheckBox::clicked,
-                     this, &MediaOverlaySettingsMenu::allChannelsSelectedCheckBoxClicked);
-    
     QLabel* channelLabel = new QLabel("Channel");
     m_selectedChannelSpinBox = new QSpinBox();
     m_selectedChannelSpinBox->setSingleStep(1);
@@ -149,7 +145,6 @@ m_mediaOverlay(mediaOverlay)
     
     QWidget* channelWidget(new QWidget());
     QGridLayout* channelLayout(new QGridLayout(channelWidget));
-    channelLayout->addWidget(m_allChannelsSelectedCheckBox, 0, 0, 1, 2, Qt::AlignLeft);
     channelLayout->addWidget(channelLabel, 1, 0);
     channelLayout->addWidget(m_selectedChannelSpinBox, 1, 1, Qt::AlignLeft);
     
@@ -193,22 +188,30 @@ MediaOverlaySettingsMenu::updateContent()
     
     m_cziResolutionChangeModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(selectionData.m_cziResolutionChangeMode);
     
-    m_allChannelsSelectedCheckBox->setEnabled(false);
     m_selectedChannelSpinBox->setEnabled(false);
     if (selectionData.m_selectedMediaFile != NULL) {
         const MediaFileChannelInfo* channelInfo(selectionData.m_constSelectedMediaFile->getMediaFileChannelInfo());
         CaretAssert(channelInfo);
         if (channelInfo->isChannelsSupported()) {
-            if (channelInfo->isAllChannelsSelectionSupported()) {
-                m_allChannelsSelectedCheckBox->setChecked(selectionData.m_allChannelsSelectedFlag);
-                m_allChannelsSelectedCheckBox->setEnabled(true);
-            }
+            QSignalBlocker blocker(m_selectedChannelSpinBox);
+            
             if (channelInfo->isSingleChannelSelectionSupported()) {
-                QSignalBlocker blocker(m_selectedChannelSpinBox);
                 m_selectedChannelSpinBox->setRange(0, channelInfo->getNumberOfChannels() - 1);
-                m_selectedChannelSpinBox->setValue(selectionData.m_selectedChannelIndex);
-                m_selectedChannelSpinBox->setEnabled(true);
             }
+            
+            if (channelInfo->isAllChannelsSelectionSupported()) {
+                CaretAssert(MediaOverlay::getAllChannelsSelectedIndexValue() == -1);
+                if (channelInfo->isSingleChannelSelectionSupported()) {
+                    m_selectedChannelSpinBox->setMinimum(-1); /* Minimum value is used for special value text */
+                }
+                else {
+                    m_selectedChannelSpinBox->setRange(-1, -1);
+                }
+                m_selectedChannelSpinBox->setSpecialValueText("All");
+            }
+            
+            m_selectedChannelSpinBox->setValue(selectionData.m_selectedChannelIndex);
+            m_selectedChannelSpinBox->setEnabled(true);
         }
     }
 }
@@ -268,18 +271,6 @@ MediaOverlaySettingsMenu::resolutionModeComboBoxActivated()
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             break;
     }
-}
-
-/**
- * Called when all channels check box clicked
- * @param clicked
- *    New status
- */
-void
-MediaOverlaySettingsMenu::allChannelsSelectedCheckBoxClicked(bool clicked)
-{
-    m_mediaOverlay->setAllChannelsSelected(clicked);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

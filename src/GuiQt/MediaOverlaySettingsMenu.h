@@ -59,8 +59,6 @@ namespace caret {
         
         void pyramidLayerChanged(int value);
         
-        void allChannelsSelectedCheckBoxClicked(bool clicked);
-        
         void selectedChannelSpinBoxValueChanged(int value);
         
     private:
@@ -73,8 +71,6 @@ namespace caret {
         QSpinBox* m_cziPyramidLayerIndexSpinBox;
         
         QAction* m_reloadAction;
-        
-        QCheckBox* m_allChannelsSelectedCheckBox;
         
         QSpinBox* m_selectedChannelSpinBox;
         

@@ -81,7 +81,6 @@ namespace caret {
                           const bool fileSupportsAllFramesFlag,
                           const bool allFramesSelectedFlag,
                           const bool supportsYokingFlag,
-                          const bool allChannelsSelectedFlag,
                           const int32_t selectedChannelIndex,
                           const CziImageResolutionChangeModeEnum::Enum cziResolutionChangeMode,
                           const int32_t cziManualPyramidLayerIndex,
@@ -99,7 +98,6 @@ namespace caret {
             m_fileSupportsAllFramesFlag(fileSupportsAllFramesFlag),
             m_allFramesSelectedFlag(allFramesSelectedFlag),
             m_supportsYokingFlag(supportsYokingFlag),
-            m_allChannelsSelectedFlag(allChannelsSelectedFlag),
             m_selectedChannelIndex(selectedChannelIndex),
             m_cziResolutionChangeMode(cziResolutionChangeMode),
             m_cziManualPyramidLayerIndex(cziManualPyramidLayerIndex),
@@ -122,7 +120,6 @@ namespace caret {
             bool m_fileSupportsAllFramesFlag = false;
             bool m_allFramesSelectedFlag = false;
             bool m_supportsYokingFlag = false;
-            bool m_allChannelsSelectedFlag = false;
             int32_t m_selectedChannelIndex = -1;
             
             CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
@@ -146,13 +143,11 @@ namespace caret {
         
         void setCziAllScenesSelected(const bool selectAll);
 
+        static int32_t getAllChannelsSelectedIndexValue();
+        
         int32_t getSelectedChannelIndex() const;
         
-        bool isAllChannelsSelected() const;
-        
         void setSelectedChannelIndex(const int32_t channelIndex);
-        
-        void setAllChannelsSelected(const bool status);
         
         void setCziResolutionChangeMode(const CziImageResolutionChangeModeEnum::Enum resolutionChangeMode);
         
@@ -192,9 +187,7 @@ namespace caret {
 
         bool m_allFramesSelectedFlag = true;
         
-        int32_t m_selectedChannelIndex = 1;
-        
-        bool m_allChannelsSelectedFlag = true;
+        int32_t m_selectedChannelIndex = -1;
         
         CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
 
@@ -204,6 +197,11 @@ namespace caret {
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;
+        
+        /*
+         * When m_selectedChannelIndex is -1, ALL Channels are selected.
+         */
+        static constexpr int32_t s_ALL_CHANNELS_INDEX = -1;
         
         friend class MediaOverlaySettingsMenu;
     };
