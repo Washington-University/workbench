@@ -284,11 +284,13 @@ void
 MediaOverlaySettingsMenu::selectedChannelSpinBoxValueChanged(int value)
 {
     /*
-     * Disabling spin box prevents multiple signals from being
+     * NOTE: Disabling spin box prevents multiple signals from being
      * issued when user clicks once on up or down arrow on MacOS.
+     * BUT it causes focus to be lost so need to regain focus.
      */
     m_selectedChannelSpinBox->setEnabled(false);
     m_mediaOverlay->setSelectedChannelIndex(value);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     m_selectedChannelSpinBox->setEnabled(true);
+    m_selectedChannelSpinBox->setFocus();
 }
