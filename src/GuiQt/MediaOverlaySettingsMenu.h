@@ -29,6 +29,7 @@
 
 class QCheckBox;
 class QSpinBox;
+class QWidget;
 
 
 namespace caret {
@@ -71,6 +72,8 @@ namespace caret {
         QSpinBox* m_cziPyramidLayerIndexSpinBox;
         
         QAction* m_reloadAction;
+        
+        QWidget* m_channelWidget;
         
         QSpinBox* m_selectedChannelSpinBox;
         

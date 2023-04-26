@@ -143,8 +143,8 @@ m_mediaOverlay(mediaOverlay)
     m_selectedChannelSpinBox->setRange(1, 1000); /* set range and fixed size, sets size of widget */
     m_selectedChannelSpinBox->setFixedSize(m_selectedChannelSpinBox->sizeHint());
     
-    QWidget* channelWidget(new QWidget());
-    QGridLayout* channelLayout(new QGridLayout(channelWidget));
+    m_channelWidget = new QWidget();
+    QGridLayout* channelLayout(new QGridLayout(m_channelWidget));
     channelLayout->addWidget(channelLabel, 1, 0);
     channelLayout->addWidget(m_selectedChannelSpinBox, 1, 1, Qt::AlignLeft);
     
@@ -153,7 +153,7 @@ m_mediaOverlay(mediaOverlay)
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 5);
     layout->addWidget(pyramidLayerWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addWidget(channelWidget);
+    layout->addWidget(m_channelWidget);
     layout->addStretch();
     
     QWidgetAction* widgetAction(new QWidgetAction(this));
@@ -188,6 +188,7 @@ MediaOverlaySettingsMenu::updateContent()
     
     m_cziResolutionChangeModeComboBox->setSelectedItem<CziImageResolutionChangeModeEnum, CziImageResolutionChangeModeEnum::Enum>(selectionData.m_cziResolutionChangeMode);
     
+    m_channelWidget->setEnabled(false);
     m_selectedChannelSpinBox->setEnabled(false);
     if (selectionData.m_selectedMediaFile != NULL) {
         const MediaFileChannelInfo* channelInfo(selectionData.m_constSelectedMediaFile->getMediaFileChannelInfo());
@@ -212,6 +213,7 @@ MediaOverlaySettingsMenu::updateContent()
             
             m_selectedChannelSpinBox->setValue(selectionData.m_selectedChannelIndex);
             m_selectedChannelSpinBox->setEnabled(true);
+            m_channelWidget->setEnabled(true);
         }
     }
 }
