@@ -213,9 +213,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_surfaceModelSelector",
                                "ModelSurfaceSelector",
                                m_surfaceModelSelector);
-    m_sceneClassAssistant->add("m_volumeSurfaceOutlineSetModel",
-                               "VolumeSurfaceOutlineSetModel",
-                               m_volumeSurfaceOutlineSetModel);
     
     m_sceneClassAssistant->add("m_cerebellumViewingTransformation",
                                "ViewingTransformations",
@@ -5531,6 +5528,12 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
     
+    /*
+     * volume surface outline is restored in part 2 of scene restoration
+     */
+    sceneClass->addChild(m_volumeSurfaceOutlineSetModel->saveToScene(sceneAttributes,
+                                                                     "m_volumeSurfaceOutlineSetModel"));
+
     const float quatValues[4] {
         m_mprRotationQuaternion.x(),
         m_mprRotationQuaternion.y(),
@@ -5925,6 +5928,31 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_mprRotationQuaternion.setVector(quatValues[0], quatValues[1], quatValues[2]);
         m_mprRotationQuaternion.setScalar(quatValues[3]);
     }
+}
+
+/**
+ * Part TWO Restore the state of an instance of a class.
+ * Some members may refer to other tabs so these members must be
+ * restored AFTER ALL OTHER TABS have been restored.
+ *
+ * @param sceneAttributes
+ *    Attributes for the scene.  Scenes may be of different types
+ *    (full, generic, etc) and the attributes should be checked when
+ *    restoring the scene.
+ *
+ * @param sceneClass
+ *     sceneClass for the instance of a class that implements
+ *     this interface.  May be NULL for some types of scenes.
+ */
+void
+BrowserTabContent::restoreFromScenePartTwo(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
+{
+    if (sceneClass == NULL) {
+        return;
+    }
+    m_volumeSurfaceOutlineSetModel->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_volumeSurfaceOutlineSetModel"));
 }
 
 /**

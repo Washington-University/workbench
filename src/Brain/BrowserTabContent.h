@@ -660,6 +660,9 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
+        void restoreFromScenePartTwo(const SceneAttributes* sceneAttributes,
+                                     const SceneClass* sceneClass);
+        
         void setClosedStatusFromSessionManager(const bool closedStatus);
         
         void setClosedTabWindowTabBarPositionIndex(const int32_t tabBarPosition);

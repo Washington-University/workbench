@@ -1072,6 +1072,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Restore tabs
      */
+    std::map<BrowserTabContent*, const SceneClass*> browserTabsAndScenes;
     const SceneClassArray* browserTabArray = sceneClass->getClassArray("m_browserTabs");
     const int32_t numBrowserTabClasses = browserTabArray->getNumberOfArrayElements();
     for (int32_t i = 0; i < numBrowserTabClasses; i++) {
@@ -1109,6 +1110,22 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
                 break;
         }
+        
+        browserTabsAndScenes.insert(std::make_pair(tab, browserTabClass));
+    }
+    
+    /*
+     * Part two of browser tab restoration for
+     * members that must be restored after all browser
+     * tabs are restored.
+     */
+    for (auto& tabAndScene : browserTabsAndScenes) {
+        BrowserTabContent* btc(tabAndScene.first);
+        const SceneClass* sceneClass(tabAndScene.second);
+        CaretAssert(btc);
+        CaretAssert(sceneClass);
+        btc->restoreFromScenePartTwo(sceneAttributes,
+                                     sceneClass);
     }
     
     /*
