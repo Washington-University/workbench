@@ -5523,8 +5523,8 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addClass(geometryHelper.saveToScene(sceneAttributes,
                                                     "m_manualLayoutTabGeometry"));
 
-    m_clippingPlaneGroup->saveToScene(sceneAttributes,
-                                      "m_clippingPlaneGroup");
+    sceneClass->addChild(m_clippingPlaneGroup->saveToScene(sceneAttributes,
+                                                           "m_clippingPlaneGroup"));
     m_sceneClassAssistant->saveMembers(sceneAttributes,
                                        sceneClass);
     
