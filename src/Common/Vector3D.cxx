@@ -233,6 +233,65 @@ void Vector3D::set(const float x, const float y, const float z)
 }
 
 /**
+ * Compute the signed angle between 'this' and 'right'.
+ * Both 'this' and 'right' must lie in the plane with the normal vector 'normal'
+ * @param right
+ *    Vector that has angle computed between 'this'
+ * @param normal
+ *    Normal vector of plane in which both vector lie
+ * @return
+ *    The signed angle between 'this' and 'right'
+ *
+ * NOTE: Code is adapted from vtkMath::SignedAngleBetweenVectors()
+ * https://vtk.org/doc/nightly/html/classvtkMath.html
+ *
+ *  =========================================================================
+ *
+ *  Program:   Visualization Toolkit
+ *  Module:    vtkMath.h
+ *
+ *  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+ *  All rights reserved.
+ *  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+ *
+ *  This software is distributed WITHOUT ANY WARRANTY; without even
+ *  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ *  PURPOSE.  See the above copyright notice for more information.
+ *
+ *  =========================================================================
+ *  Copyright 2011 Sandia Corporation.
+ *  Under the terms of Contract DE-AC04-94AL85000, there is a non-exclusive
+ *  license for use of this work by or on behalf of the
+ *  U.S. Government. Redistribution and use in source and binary forms, with
+ *  or without modification, are permitted provided that this Notice and any
+ *  statement of authorship are reproduced on all copies.
+ *
+ *  Contact: pppebay@sandia.gov,dcthomp@sandia.gov
+ *
+ * =========================================================================
+ *
+ */
+float
+Vector3D::signedAngleRadians(const Vector3D& right,
+                             const Vector3D& normal) const
+{
+    /*
+     * Code from vtkMath::SignedAngleBetweenVectors()
+     *
+     * double cross[3];
+     * vtkMath::Cross(v1, v2, cross);
+     * double angle = atan2(vtkMath::Norm(cross), vtkMath::Dot(v1, v2));
+     * return vtkMath::Dot(cross, vn) >= 0 ? angle : -angle;
+     */
+    
+    Vector3D cross(this->cross(right));
+    double angle(std::atan2(cross.length(),
+                            this->dot(right)));
+    angle = (cross.dot(normal) >= 0) ? angle : -angle;
+    return angle;
+}
+
+/**
  * @return vector as a string separated by commas and enclosed in parenthesis
  * @param precision
  *    Digits right of decimal

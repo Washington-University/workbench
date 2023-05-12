@@ -41,6 +41,8 @@ namespace caret {
         void fill(const float value);
         void set(const float x, const float y, const float z);
         AString toString(const int32_t precision = 3) const;
+        float signedAngleRadians(const Vector3D& right,
+                                 const Vector3D& normal) const;
         //constructors
         Vector3D();
         Vector3D(const float& x, const float& y, const float& z);
