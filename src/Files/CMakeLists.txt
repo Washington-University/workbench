@@ -184,6 +184,7 @@ VolumeFileVoxelColorizer.h
 VolumeGraphicsPrimitiveManager.h
 VolumeMapUndoCommand.h
 VolumePaddingHelper.h
+VolumePlaneIntersection.h
 VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
 VoxelInterpolationTypeEnum.h
@@ -349,6 +350,7 @@ VolumeFileVoxelColorizer.cxx
 VolumeGraphicsPrimitiveManager.cxx
 VolumeMapUndoCommand.cxx
 VolumePaddingHelper.cxx
+VolumePlaneIntersection.cxx
 VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
 VoxelInterpolationTypeEnum.cxx

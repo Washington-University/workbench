@@ -2654,7 +2654,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     }
                 }
               
-                GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingPrimitive(vdi.mapIndex,
+                GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTriangleStripPrimitive(vdi.mapIndex,
                                                                                               m_displayGroup,
                                                                                               m_tabIndex));
                 
@@ -3457,7 +3457,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
                 
-                GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingPrimitive(mapIndex,
+                GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTriangleStripPrimitive(mapIndex,
                                                                                                m_displayGroup,
                                                                                                m_tabIndex));
                 

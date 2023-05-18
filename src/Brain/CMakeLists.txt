@@ -171,6 +171,7 @@ MovieRecorderCaptureRegionTypeEnum.h
 MovieRecorderModeEnum.h
 MovieRecorderVideoFormatTypeEnum.h
 MovieRecorderVideoResolutionTypeEnum.h
+MprVirtualSliceView.h
 OffScreenSceneRendererBase.h
 OffScreenSceneRendererOSMesa.h
 OffScreenSceneRendererOpenGLWindow.h
@@ -382,6 +383,7 @@ MovieRecorderCaptureRegionTypeEnum.cxx
 MovieRecorderModeEnum.cxx
 MovieRecorderVideoFormatTypeEnum.cxx
 MovieRecorderVideoResolutionTypeEnum.cxx
+MprVirtualSliceView.cxx
 OffScreenSceneRendererBase.cxx
 OffScreenSceneRendererOSMesa.cxx
 OffScreenSceneRendererOpenGLWindow.cxx

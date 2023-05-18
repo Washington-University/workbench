@@ -36,6 +36,12 @@ namespace caret {
     class VolumeGraphicsPrimitiveManager : public CaretObject {
         
     public:
+        enum class PrimitiveShape {
+            TRIANGLE_FAN,
+            TRIANGLE_STRIP,
+            TRIANGLES
+        };
+        
         VolumeGraphicsPrimitiveManager(CaretMappableDataFile* mapDataFile,
                                        VolumeMappableInterface* volumeInterface);
         
@@ -52,7 +58,8 @@ namespace caret {
         
         void invalidateColoringForMap(const int32_t mapIndex);
         
-        GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitiveForMap(const int32_t mapIndex,
+        GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitiveForMap(const PrimitiveShape drawingType,
+                                                                 const int32_t mapIndex,
                                                                  const DisplayGroupEnum::Enum displayGroup,
                                                                  const int32_t tabIndex) const;
 
@@ -62,7 +69,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        GraphicsPrimitiveV3fT3f* createPrimitive(const int32_t mapIndex,
+        GraphicsPrimitiveV3fT3f* createPrimitive(const PrimitiveShape drawingType,
+                                                 const int32_t mapIndex,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex,
                                                  AString& errorMessageOut) const;
@@ -71,8 +79,12 @@ namespace caret {
         
         VolumeMappableInterface* m_volumeInterface;
         
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsPrimitives;
+        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleFanPrimitives;
 
+        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
+        
+        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

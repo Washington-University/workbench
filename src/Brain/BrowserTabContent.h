@@ -24,7 +24,11 @@
 #include <memory>
 #include <set>
 
+#define _ROTATE_MPR_THREE_WITH_QQUATERNION_
+#undef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
 #include <QQuaternion>
+#endif
 
 #include "BoundingBox.h"
 #include "CaretObject.h"
@@ -330,9 +334,7 @@ namespace caret {
         
         float getMprRotationZ() const;
         
-        QQuaternion getMprRotationQuaternion() const;
-        
-        void setMprRotationQuaternion(const QQuaternion& rotationQuaternion);
+        Matrix4x4 getMprThreeRotationMatrix() const;
         
         Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
@@ -744,9 +746,9 @@ namespace caret {
                                         const Vector3D& mouseXY,
                                         const Vector3D& previousMouseXY);
 
-        float getMouseMovementAngle(const Vector3D& rotationXY,
-                                    const Vector3D& mouseXY,
-                                    const Vector3D& previousMouseXY) const;
+        float getMouseMovementAngleCCW(const Vector3D& rotationXY,
+                                       const Vector3D& mouseXY,
+                                       const Vector3D& previousMouseXY) const;
 
         /** Number of this tab */
         int32_t m_tabNumber;
@@ -860,8 +862,12 @@ namespace caret {
         
         float m_mprRotationZ = 0.0;
         
-        QQuaternion m_mprRotationQuaternion;
-        
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+        QQuaternion m_mprThreeRotationQuaternion;
+#else
+        Matrix4x4 m_mprThreeRotationMatrix;
+#endif
+
         /** aspect ratio */
         float m_aspectRatio;
         

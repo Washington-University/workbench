@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "DisplayGroupEnum.h"
+#include "Vector3D.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSpace.h"
 
@@ -184,6 +185,22 @@ namespace caret {
                                   float* coordOut) const = 0;
         
         /**
+         * Convert an index to space (coordinates).
+         *
+         * @param indexIn1
+         *     First dimension (i).
+         * @param indexIn2
+         *     Second dimension (j).
+         * @param indexIn3
+         *     Third dimension (k).
+         * @return coordOut
+         *     The XYZ coordinate.
+         */
+        Vector3D indexToSpace(const float& indexIn1,
+                              const float& indexIn2,
+                              const float& indexIn3) const;
+
+       /**
          * Convert an index to space (coordinates).
          *
          * @param indexIn
@@ -407,10 +424,18 @@ namespace caret {
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
         
-        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitive(const int32_t mapIndex,
-                                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                                   const int32_t tabIndex) const = 0;
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex) const = 0;
         
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
+                                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                                      const int32_t tabIndex) const = 0;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
+                                                                            const DisplayGroupEnum::Enum displayGroup,
+                                                                            const int32_t tabIndex) const = 0;
+
         /**
          * Get the volume space object, so we have access to all functions associated with volume spaces
          */

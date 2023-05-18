@@ -1902,15 +1902,67 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
-VolumeFile::getVolumeDrawingPrimitive(const int32_t mapIndex,
-                                      const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t tabIndex) const
+VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
+                                              const DisplayGroupEnum::Enum displayGroup,
+                                              const int32_t tabIndex) const
 {
-    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(mapIndex,
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
+                                                                       mapIndex,
                                                                        displayGroup,
                                                                        tabIndex);
 }
 
+/**
+ * Get the graphics primitive for drawing this volume using a FAN graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+VolumeFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
+                                      const DisplayGroupEnum::Enum displayGroup,
+                                      const int32_t tabIndex) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
+                                                                       mapIndex,
+                                                                       displayGroup,
+                                                                       tabIndex);
+}
+
+/**
+ * Get the graphics primitive for drawing this volume using a TRIANGLES graphics primitive
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param rgbaOut
+ *    Output containing the rgba values (must have been allocated
+ *    by caller to sufficient count of elements in the slice).
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT3f*
+VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
+                                               const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex) const
+{
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLES,
+                                                                       mapIndex,
+                                                                       displayGroup,
+                                                                       tabIndex);
+}
 /**
  * Get the voxel values for a slice in a map.
  *

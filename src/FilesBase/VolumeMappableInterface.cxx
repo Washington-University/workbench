@@ -240,3 +240,29 @@ VolumeMappableInterface::getDimensionsPCA(int64_t& dimParasagittalOut,
         dimAxialOut        = dimensions[2];
     }
 }
+
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @return coordOut
+ *     The XYZ coordinate.
+ */
+Vector3D
+VolumeMappableInterface::indexToSpace(const float& indexIn1,
+                                      const float& indexIn2,
+                                      const float& indexIn3) const
+{
+    Vector3D xyz;
+    
+    indexToSpace(indexIn1,
+                 indexIn2,
+                 indexIn3,
+                 xyz);
+    return xyz;
+}

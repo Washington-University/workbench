@@ -69,7 +69,9 @@ VolumeGraphicsPrimitiveManager::~VolumeGraphicsPrimitiveManager()
 void
 VolumeGraphicsPrimitiveManager::clear()
 {
-    m_mapGraphicsPrimitives.clear();
+    m_mapGraphicsTriangleFanPrimitives.clear();
+    m_mapGraphicsTriangleStripPrimitives.clear();
+    m_mapGraphicsTrianglesPrimitives.clear();
 }
 
 /**
@@ -80,7 +82,13 @@ VolumeGraphicsPrimitiveManager::clear()
 void
 VolumeGraphicsPrimitiveManager::invalidateAllColoring()
 {
-    for (auto& p : m_mapGraphicsPrimitives) {
+    for (auto& p : m_mapGraphicsTriangleFanPrimitives) {
+        p.reset();
+    }
+    for (auto& p : m_mapGraphicsTriangleStripPrimitives) {
+        p.reset();
+    }
+    for (auto& p : m_mapGraphicsTrianglesPrimitives) {
         p.reset();
     }
 }
@@ -94,14 +102,24 @@ void
 VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
 {
     if ((mapIndex >= 0)
-        && (mapIndex < static_cast<int32_t>(m_mapGraphicsPrimitives.size()))) {
-        m_mapGraphicsPrimitives[mapIndex].reset();
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size()))) {
+        m_mapGraphicsTriangleFanPrimitives[mapIndex].reset();
+    }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTriangleStripPrimitives.size()))) {
+        m_mapGraphicsTriangleStripPrimitives[mapIndex].reset();
+    }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size()))) {
+        m_mapGraphicsTrianglesPrimitives[mapIndex].reset();
     }
 }
 
 /**
  * Get the graphics primitive for drawing a volume's map
  *
+ * @param primitiveShape
+ *    Shape for primitive drawing
  * @param mapIndex
  *    Index of the map.
  * @param displayGroup
@@ -112,26 +130,59 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
-VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const int32_t mapIndex,
+VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveShape primitiveShape,
+                                                                const int32_t mapIndex,
                                                                 const DisplayGroupEnum::Enum displayGroup,
                                                                 const int32_t tabIndex) const
 {
-    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsPrimitives.size())) {
-        m_mapGraphicsPrimitives.resize(mapIndex + 1);
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size())) {
+        m_mapGraphicsTriangleFanPrimitives.resize(mapIndex + 1);
     }
-    
-    CaretAssertVectorIndex(m_mapGraphicsPrimitives, mapIndex);
-    GraphicsPrimitiveV3fT3f* primitiveOut(m_mapGraphicsPrimitives[mapIndex].get());
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleStripPrimitives.size())) {
+        m_mapGraphicsTriangleStripPrimitives.resize(mapIndex + 1);
+    }
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size())) {
+        m_mapGraphicsTrianglesPrimitives.resize(mapIndex + 1);
+    }
+
+    GraphicsPrimitiveV3fT3f* primitiveOut(NULL);
+    switch (primitiveShape) {
+        case PrimitiveShape::TRIANGLE_FAN:
+            CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTriangleFanPrimitives[mapIndex].get();
+            break;
+        case PrimitiveShape::TRIANGLE_STRIP:
+            CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTriangleStripPrimitives[mapIndex].get();
+            break;
+        case PrimitiveShape::TRIANGLES:
+            CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTrianglesPrimitives[mapIndex].get();
+            break;
+    }
     
     if (primitiveOut == NULL) {
         AString errorMessage;
-        primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitive(mapIndex,
+        primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitive(primitiveShape,
+                                                                       mapIndex,
                                                                        displayGroup,
                                                                        tabIndex,
                                                                        errorMessage);
         if (primitiveOut != NULL) {
-            CaretAssertVectorIndex(m_mapGraphicsPrimitives, mapIndex);
-            m_mapGraphicsPrimitives[mapIndex].reset(primitiveOut);
+            switch (primitiveShape) {
+                case PrimitiveShape::TRIANGLE_FAN:
+                    CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
+                    m_mapGraphicsTriangleFanPrimitives[mapIndex].reset(primitiveOut);
+                    break;
+                case PrimitiveShape::TRIANGLE_STRIP:
+                    CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
+                    m_mapGraphicsTriangleStripPrimitives[mapIndex].reset(primitiveOut);
+                    break;
+                case PrimitiveShape::TRIANGLES:
+                    CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
+                    m_mapGraphicsTrianglesPrimitives[mapIndex].reset(primitiveOut);
+                    break;
+            }
         }
         else {
             CaretLogSevere(m_mapDataFile->getFileNameNoPath()
@@ -154,6 +205,8 @@ VolumeGraphicsPrimitiveManager::toString() const
 
 /**
  * Generate a graphics primitive for drawing the volumes as RGBA or as identification
+ * @param primitiveShape
+ *    Shape for primitive drawing
  * @param mapIndex
  *    Map index for creating the primitive
  * @param displayGroup
@@ -166,7 +219,8 @@ VolumeGraphicsPrimitiveManager::toString() const
  *    Pointer to graphics primitive or NULL if failure
  */
 GraphicsPrimitiveV3fT3f*
-VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
+VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveShape,
+                                                const int32_t mapIndex,
                                                 const DisplayGroupEnum::Enum displayGroup,
                                                 const int32_t tabIndex,
                                                 AString& errorMessageOut) const
@@ -283,7 +337,25 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                                             magFilter,
                                             minFilter,
                                             backgroundColor);
-    GraphicsPrimitiveV3fT3f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+    
+    GraphicsPrimitive::PrimitiveType primType(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP);
+    int32_t numVertices(0);
+    switch (primitiveShape) {
+        case PrimitiveShape::TRIANGLE_FAN:
+            primType = GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_FAN;
+            numVertices = 8;
+            break;
+        case PrimitiveShape::TRIANGLE_STRIP:
+            primType = GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP;
+            numVertices = 4;
+            break;
+        case PrimitiveShape::TRIANGLES:
+            primType = GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES;
+            numVertices = 18;
+            break;
+    }
+
+    GraphicsPrimitiveV3fT3f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT3f(primType,
                                                                                 textureSettings));
     CaretAssert(primitiveOut);
     
@@ -293,10 +365,9 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
      */
     const float xyz[3] { 0.0, 0.0, 0.0 };
     const float str[3] { 0.0, 0.0, 0.0 };
-    primitiveOut->addVertex(xyz, str);
-    primitiveOut->addVertex(xyz, str);
-    primitiveOut->addVertex(xyz, str);
-    primitiveOut->addVertex(xyz, str);
+    for (int32_t i = 0; i < numVertices; i++) {
+        primitiveOut->addVertex(xyz, str);
+    }
 
     return primitiveOut;
 }

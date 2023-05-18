@@ -27,6 +27,7 @@
 
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
+#include "MprVirtualSliceView.h"
 #include "Plane.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "Vector3D.h"
@@ -68,6 +69,8 @@ namespace caret {
             Plane m_plane;
             Plane m_sliceCoordIncreasingDirectionPlane;
             bool m_radiologicalOrientationFlag = false;
+            
+            MprVirtualSliceView m_MprSliceView;
             
             AString toString(const AString& indentation = "") const;
         };
@@ -134,8 +137,10 @@ namespace caret {
         
         void setOrthographicProjection(const GraphicsViewport& viewport);
         
-        void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                      const SliceInfo& sliceInfo);
+        void setViewingTransformation(const VolumeMappableInterface* volume,
+                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                      const SliceInfo& sliceInfo,
+                                      const Vector3D& selectedSliceXYZ);
 
         void drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -155,18 +160,14 @@ namespace caret {
                                     const bool drawAttributesFlag,
                                     const bool drawIntensitySliceBackgroundFlag);
         
-        static bool getTextureCoordinates(const VolumeMappableInterface* volumeMappableInterface,
-                                          const Vector3D& xyz,
-                                          const Vector3D& maxStr,
-                                          Vector3D& strOut);
+        void performTriangleIdentification(const GraphicsPrimitive* slicePrimitive,
+                                           const SliceInfo& sliceInfo,
+                                           VolumeMappableInterface* volumeInterface,
+                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const GraphicsViewport& viewport,
+                                           const float mouseX,
+                                           const float mouseY);
 
-        void performPlaneIdentification(const SliceInfo& sliceInfo,
-                                        VolumeMappableInterface* volumeInterface,
-                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                        const GraphicsViewport& viewport,
-                                        const float mouseX,
-                                        const float mouseY);
-        
         void getMouseViewportXY(const GraphicsViewport& viewport,
                                 const float mouseX,
                                 const float mouseY,
@@ -253,6 +254,13 @@ namespace caret {
         void drawAllViewRotationAxes(const BrowserTabContent* browserTabContent,
                                      const VolumeMappableInterface* underlayVolume,
                                      const int32_t viewport[4]);
+
+        std::vector<Vector3D> getVolumeCorners(const VolumeMappableInterface* volume) const;
+
+        bool setPrimtiveCoordinates(const SliceInfo& sliceInfo,
+                                    const VolumeMappableInterface* volume,
+                                    const Vector3D& sliceOffset,
+                                    GraphicsPrimitiveV3fT3f* primitive);
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 

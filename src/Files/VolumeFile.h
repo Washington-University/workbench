@@ -361,10 +361,18 @@ namespace caret {
                                                     const int32_t tabIndex,
                                                     uint8_t* rgbaOut) const override;
         
-        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitive(const int32_t mapIndex,
-                                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                                   const int32_t tabIndex) const override;
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex) const override;
         
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
+                                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                                      const int32_t tabIndex) const override;
+        
+        virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
+                                                                            const DisplayGroupEnum::Enum displayGroup,
+                                                                            const int32_t tabIndex) const override;
+
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,

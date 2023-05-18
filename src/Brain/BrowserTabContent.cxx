@@ -26,6 +26,7 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include <QMatrix4x4>
 #include "AnnotationBrowserTab.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
@@ -93,6 +94,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "MouseEvent.h"
+#include "MprVirtualSliceView.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteColorMapping.h"
@@ -455,7 +457,11 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprRotationX = tabToClone->m_mprRotationX;
     m_mprRotationY = tabToClone->m_mprRotationY;
     m_mprRotationZ = tabToClone->m_mprRotationZ;
-    m_mprRotationQuaternion = tabToClone->m_mprRotationQuaternion;
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    m_mprThreeRotationQuaternion = tabToClone->m_mprThreeRotationQuaternion;
+#else
+    m_mprThreeRotationMatrix = tabToClone->m_mprThreeRotationMatrix;
+#endif
 
     Model* model = getModelForDisplay();
     
@@ -3063,29 +3069,33 @@ BrowserTabContent::resetMprRotations()
     m_mprRotationX = 0.0;
     m_mprRotationY = 0.0;
     m_mprRotationZ = 0.0;
-    m_mprRotationQuaternion = QQuaternion();
+
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    m_mprThreeRotationQuaternion = QQuaternion();
+#else
+    m_mprThreeRotationMatrix.identity();
+#endif
 }
 
 /**
- * @return The MPR rotation quaternion
+ * @return The MPR rotation quaternion in a matrix
  */
-QQuaternion
-BrowserTabContent::getMprRotationQuaternion() const
+Matrix4x4
+BrowserTabContent::getMprThreeRotationMatrix() const
 {
-    return m_mprRotationQuaternion;
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    QMatrix3x3 mat33(m_mprThreeRotationQuaternion.toRotationMatrix());
+    Matrix4x4 matrix;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            matrix.setMatrixElement(i, j, mat33(i, j));
+        }
+    }
+    return matrix;
+#else
+    return m_mprThreeRotationMatrix;
+#endif
 }
-
-/**
- * Set the MPR rotation quaternion
- * @param rotationQuaternion
- *    New rotation quaternion
- */
-void
-BrowserTabContent::setMprRotationQuaternion(const QQuaternion& rotationQuaternion)
-{
-    m_mprRotationQuaternion = rotationQuaternion;
-}
-
 
 /**
  * @return Matrix for the given slice plane for MPR rotation
@@ -3096,6 +3106,10 @@ Matrix4x4
 BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                         const VolumeSliceViewPlaneEnum::Enum slicePlane) const
 {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        CaretLogSevere("Shold not be called with MPR three");
+    }
+    
     /*
      * Correct rotation of volume so that it matches crosshairs
      * Crosshairs and volume were rotating opposite direction
@@ -3388,9 +3402,16 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                     sliceVector[0] = 1.0;
                     break;
             }
+
+            Matrix4x4 rotMatrix;
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+                rotMatrix = getMprThreeRotationMatrix();
+            }
+            else {
+                rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                 sliceViewPlane);
+            }
             
-            const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                             sliceViewPlane);
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     CaretAssert(0);
@@ -4124,9 +4145,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
 }
 
 /**
- * Get the angle of the mouse movement from a triangle formed by
+ * @return the angle of the mouse movement from a triangle formed by
  * rotationCenterXY, previousMouseXY, and mouseXY.
- * Angle is in degrees.
+ * Angle is in degrees with POSITIVE COUNTER-CLOCKWISE
  *
  * @param rotationCenterXY
  *    Point rotating around (coordinate of the selected slices)
@@ -4137,9 +4158,9 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
  */
 
 float
-BrowserTabContent::getMouseMovementAngle(const Vector3D& rotationCenterXY,
-                                         const Vector3D& mouseXY,
-                                         const Vector3D& previousMouseXY) const
+BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
+                                            const Vector3D& mouseXY,
+                                            const Vector3D& previousMouseXY) const
 {
     /*
      * Compute normal vector from viewport center to
@@ -4188,12 +4209,16 @@ BrowserTabContent::getMouseMovementAngle(const Vector3D& rotationCenterXY,
         angleOut = MathFunctions::toDegrees(angle);
     }
 
+    /*
+     * angle from std::acos() is always positive
+     * but clockwise needs to be negative
+     */
     if (isClockwise) {
         angleOut = -angleOut;
     }
     
     if (MathFunctions::isNaN(angleOut)) {
-        CaretAssertMessage(0, "Mouse rotation angle is NaN in getMouseMovementAngle()");
+        CaretAssertMessage(0, "Mouse rotation angle is NaN in getMouseMovementAngleCCW()");
         angleOut = 0.0;
     }
     
@@ -4253,64 +4278,110 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           viewport.getYF(),
                                                           0.0));
     
+    bool neurologicalFlag(false);
     bool radiologicalFlag(false);
     switch (getVolumeMprOrientationMode()) {
         case VolumeMprOrientationModeEnum::RADIOLOGICAL:
             radiologicalFlag = true;
             break;
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            radiologicalFlag = false;
+            neurologicalFlag = true;
             break;
     }
     
-    float sliceVector[3] = { 0.0, 0.0, 0.0 };
+    Vector3D sliceVector(0.0, 0.0, 0.0);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceVector[2] = (radiologicalFlag ? 1.0 : -1.0); /* inferior : superior */
+            sliceVector[2] = (radiologicalFlag ? -1.0 : 1.0); /* inferior : superior */
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceVector[1] = (radiologicalFlag ? -1.0 : 1.0); /* posterior : anterior */
+            sliceVector[1] = (radiologicalFlag ? 1.0 : -1.0); /* anterior : posterior */
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceVector[0] = 1.0;
+            sliceVector[0] = -1.0;
             break;
     }
+        
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    const QVector3D rotVector(m_mprThreeRotationQuaternion.rotatedVector(QVector3D(sliceVector[0],
+                                                                              sliceVector[1],
+                                                                              sliceVector[2])));
+    sliceVector[0] = rotVector[0];
+    sliceVector[1] = rotVector[1];
+    sliceVector[2] = rotVector[2];
+#else
+    m_mprThreeRotationMatrix.multiplyPoint3(sliceVector);
+#endif
     
-    const Matrix4x4 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                     sliceViewPlane);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            rotMatrix.multiplyPoint3(sliceVector);
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            rotMatrix.multiplyPoint3(sliceVector);
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            rotMatrix.multiplyPoint3(sliceVector);
-            break;
-    }
-    
-    const float rotationAngle(getMouseMovementAngle(rotationCenterXYZ,
-                                                      mouseXY,
-                                                      previousMouseXY));
-    if (MathFunctions::isNaN(rotationAngle)) {
+    float rotationAngleCCW(getMouseMovementAngleCCW(rotationCenterXYZ,
+                                              mouseXY,
+                                              previousMouseXY));
+    if (MathFunctions::isNaN(rotationAngleCCW)) {
         CaretAssertMessage(0, "Mouse rotation angle is NaN");
         return;
     }
     
-    
-    CaretAssert(!m_mprRotationQuaternion.isNull());
-    m_mprRotationQuaternion *= QQuaternion::fromAxisAndAngle(sliceVector[0],
-                                                             sliceVector[1],
-                                                             sliceVector[2],
-                                                             rotationAngle);
-    CaretAssert(!m_mprRotationQuaternion.isNull());
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    /*
+     * From https://www.mathworks.com/help/fusion/ug/rotations-orientation-and-quaternions.html
+     * "The quaternion class, and this example, use the "right-hand
+     * rule" convention to define rotations. That is, positive
+     * rotations are clockwise around the axis of rotation when
+     * viewed from the origin (looking from negative axis to
+     * positive axis).
+     *
+     * Neurological convention views the brain from the back of
+     * the head (left side of the brain is on the left side of the
+     * screen).
+     *
+     * Radiological convention views the brain from the front of
+     * the head (right side of the brain is on the left side of
+     * the screen).
+     *
+     *       Neurological  Screen Screen        Looking    Positive
+     * Axis  Radiological  Left   Right Up Down From       Rotation
+     *  P       N/A         +Y     -Y   +Z  -Z  Left         CW
+     *  C        N          -X     +X   +Z  -Z  Posterior    CW
+     *  C        R          +X     -Y   +Z  -Z  Anterior     CCW
+     *  A        N          -X     +X   +Z  -Z  Superior     CCW
+     *  A        R          +X     -X   +Z  -Z  Inferior     CW
+     *
+     * Other references:
+     * - https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
+     * - https://danceswithcode.net/engineeringnotes/rotations_in_3d/rotations_in_3d_part1.html
+     */
+
+    QMatrix4x4 rotMatrix;
+    rotMatrix.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
+    QMatrix3x3 m33;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            m33(i, j) = rotMatrix(i, j);
+        }
+    }
+    QQuaternion rotationQuaternion(QQuaternion::fromRotationMatrix(m33));
+//    QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(sliceVector[0],
+//                                                                 sliceVector[1],
+//                                                                 sliceVector[2],
+//                                                                 rotationAngleCCW));
+    CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
+    m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
+    CaretAssert(!m_mprThreeRotationQuaternion.isNull());
+#else
+    switch (MprVirtualSliceView::getViewType()) {
+        case MprVirtualSliceView::ROTATE_CAMERA:
+            sliceVector = -sliceVector;
+            break;
+        case MprVirtualSliceView::ROTATE_VOLUME:
+            break;
+    }
+    Matrix4x4 m;
+    m.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
+    m_mprThreeRotationMatrix.postmultiply(m);
+#endif
 }
 
 /**
@@ -5401,10 +5472,18 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
         m_mprRotationX, m_mprRotationY, m_mprRotationZ
     };
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        const QVector3D angles(m_mprRotationQuaternion.toEulerAngles());
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+        const QVector3D angles(m_mprThreeRotationQuaternion.toEulerAngles());
         mprRotationAngles[0] = angles[0];
         mprRotationAngles[1] = angles[1];
         mprRotationAngles[2] = angles[2];
+#else
+        double rotX(0.0), rotY(0.0), rotZ(0.0);
+        m_mprThreeRotationMatrix.getRotation(rotX, rotY, rotZ);
+        mprRotationAngles[0] = rotX;
+        mprRotationAngles[1] = rotY;
+        mprRotationAngles[2] = rotZ;
+#endif
     }
     modelTransform.setMprRotationAngles(mprRotationAngles);
     
@@ -5454,9 +5533,16 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        m_mprRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+        m_mprThreeRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
                                                                mprRotationAngles[1],
                                                                mprRotationAngles[2]);
+#else
+        m_mprThreeRotationMatrix.identity();
+        m_mprThreeRotationMatrix.setRotation(mprRotationAngles[0],
+                                             mprRotationAngles[1],
+                                             mprRotationAngles[2]);
+#endif
     }
     else {
         m_mprRotationX = mprRotationAngles[0];
@@ -5534,13 +5620,18 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     sceneClass->addChild(m_volumeSurfaceOutlineSetModel->saveToScene(sceneAttributes,
                                                                      "m_volumeSurfaceOutlineSetModel"));
 
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     const float quatValues[4] {
-        m_mprRotationQuaternion.x(),
-        m_mprRotationQuaternion.y(),
-        m_mprRotationQuaternion.z(),
-        m_mprRotationQuaternion.scalar()
+        m_mprThreeRotationQuaternion.x(),
+        m_mprThreeRotationQuaternion.y(),
+        m_mprThreeRotationQuaternion.z(),
+        m_mprThreeRotationQuaternion.scalar()
     };
-    sceneClass->addFloatArray("m_mprRotationQuaternion", quatValues, 4);
+    sceneClass->addFloatArray("m_mprThreeRotationQuaternion", quatValues, 4);
+#else
+    const AString str(m_mprThreeRotationMatrix.getMatrixInRowMajorOrderString());
+    sceneClass->addString("m_mprThreeRotationMatrix", str);
+#endif
     
     return sceneClass;
 }
@@ -5918,16 +6009,24 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_volumeMontageCoordinateDisplayType = VolumeMontageCoordinateDisplayTypeEnum::OFFSET;
     }
 
-    m_mprRotationQuaternion = QQuaternion();
-    const SceneObject* quatArrayObject(sceneClass->getObjectWithName("m_mprRotationQuaternion"));
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    m_mprThreeRotationQuaternion = QQuaternion();
+    const SceneObject* quatArrayObject(sceneClass->getObjectWithName("m_mprThreeRotationQuaternion"));
     if (quatArrayObject != NULL) {
         float quatValues[4] { 0.0, 0.0, 0.0, 0.0 };
-        sceneClass->getFloatArrayValue("m_mprRotationQuaternion", quatValues, 4);
+        sceneClass->getFloatArrayValue("m_mprThreeRotationQuaternion", quatValues, 4);
         testForRestoreSceneWarnings(sceneAttributes,
                                     sceneClass->getVersionNumber());
-        m_mprRotationQuaternion.setVector(quatValues[0], quatValues[1], quatValues[2]);
-        m_mprRotationQuaternion.setScalar(quatValues[3]);
+        m_mprThreeRotationQuaternion.setVector(quatValues[0], quatValues[1], quatValues[2]);
+        m_mprThreeRotationQuaternion.setScalar(quatValues[3]);
     }
+#else
+    m_mprThreeRotationMatrix.identity();
+    const AString str(sceneClass->getStringValue("m_mprThreeRotationMatrix", ""));
+    if ( ! str.isEmpty()) {
+        m_mprThreeRotationMatrix.setMatrixFromRowMajorOrderString(str);
+    }
+#endif
 }
 
 /**
@@ -7383,7 +7482,11 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprRotationX = btc->m_mprRotationX;
                 m_mprRotationY = btc->m_mprRotationY;
                 m_mprRotationZ = btc->m_mprRotationZ;
-                m_mprRotationQuaternion = btc->m_mprRotationQuaternion;
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+                m_mprThreeRotationQuaternion = btc->m_mprThreeRotationQuaternion;
+#else
+                m_mprThreeRotationMatrix = btc->m_mprThreeRotationMatrix;
+#endif
                 /**
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
@@ -7530,8 +7633,11 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprRotationX = m_mprRotationX;
                 btc->m_mprRotationY = m_mprRotationY;
                 btc->m_mprRotationZ = m_mprRotationZ;
-                btc->m_mprRotationQuaternion = m_mprRotationQuaternion;
-
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+                btc->m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion;
+#else
+                btc->m_mprThreeRotationMatrix = m_mprThreeRotationMatrix;
+#endif
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 
                  * *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;
