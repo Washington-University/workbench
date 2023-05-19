@@ -348,9 +348,15 @@ VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum:
     switch (m_sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             /*
-             * Switch to ALL view for MPR
+             * Switch to ALL view for MPR if NOT in MONTAGE
              */
-            setSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
+            switch (m_sliceDrawingType) {
+                case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                    break;
+                case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                    setSliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
+                    break;
+            }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;
