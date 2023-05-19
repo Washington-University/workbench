@@ -611,6 +611,27 @@ MprVirtualSliceView::getCameraUpVector() const
 }
 
 /**
+ * @return Plane for the virtual slice
+ */
+Plane
+MprVirtualSliceView::getPlane() const
+{
+    return m_virtualSlicePlane;
+}
+
+/**
+ * @return Normal vector of virtual slice
+ */
+Vector3D
+MprVirtualSliceView::getNormalVector() const
+{
+    Vector3D n;
+    m_virtualSlicePlane.getNormalVector(n);
+    return n;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

@@ -325,6 +325,16 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
 {
     CaretAssert(browserTabContent);
     CaretAssert(underlayVolume);
+    
+    /*
+     * Set the modeling transformation
+     */
+    Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
+    if ( ! matrix.invert()) {
+        CaretLogSevere("Failed to invert MPR Rotation Matrix for Axis Drawing");
+        return;
+    }
+
     const bool drawCylindersFlag(true);
     const bool drawLabelsFlag(true);
     
@@ -397,13 +407,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
                   centerX, centerY, centerZ,
                   upX, upY, upZ);
         
-        /*
-         * Set the modeling transformation
-         */
-        const Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
         double rotationMatrix[16];
         matrix.getMatrixForOpenGL(rotationMatrix);
         glMultMatrixd(rotationMatrix);
+
         
         /*
          * Disable depth buffer.  Otherwise, when volume slices are drawn
@@ -453,20 +460,42 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
             axesCrosshairRadius = percentageRadius * viewportHeight;
         }
         
-        if (drawCylindersFlag) {
-            m_fixedPipelineDrawing->drawCylinder(blue,
-                                                 axialPlaneMin,
-                                                 axialPlaneMax,
-                                                 axesCrosshairRadius * 0.5f);
-        }
         
+        const std::array<uint8_t, 4> backgroundRGBA = {
+            m_fixedPipelineDrawing->m_backgroundColorByte[0],
+            m_fixedPipelineDrawing->m_backgroundColorByte[1],
+            m_fixedPipelineDrawing->m_backgroundColorByte[2],
+            m_fixedPipelineDrawing->m_backgroundColorByte[3]
+        };
+
         AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
         annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
         annotationText.setFontPercentViewportSize(5.0f);
         annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         annotationText.setTextColor(CaretColorEnum::CUSTOM);
+        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomBackgroundColor(backgroundRGBA.data());
         
+        if (drawCylindersFlag) {
+            m_fixedPipelineDrawing->drawCylinder(blue,
+                                                 axialPlaneMin,
+                                                 axialPlaneMax,
+                                                 axesCrosshairRadius * 0.5f);
+            m_fixedPipelineDrawing->drawCylinder(green,
+                                                 coronalPlaneMin,
+                                                 coronalPlaneMax,
+                                                 axesCrosshairRadius * 0.5f);
+            m_fixedPipelineDrawing->drawCylinder(red,
+                                                 paraPlaneMin,
+                                                 paraPlaneMax,
+                                                 axesCrosshairRadius * 0.5f);
+        }
+
+        /*
+         * Draw axes labels after cyclinder (axes lines) so that
+         * the text background will obscure the cyclinders.
+         */
         if (drawLabelsFlag) {
             annotationText.setCustomTextColor(blue);
             annotationText.setText("I");
@@ -475,17 +504,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
             annotationText.setText("S");
             m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMax,
                                                           annotationText);
-        }
-        
-        
-        if (drawCylindersFlag) {
-            m_fixedPipelineDrawing->drawCylinder(green,
-                                                 coronalPlaneMin,
-                                                 coronalPlaneMax,
-                                                 axesCrosshairRadius * 0.5f);
-        }
-        
-        if (drawLabelsFlag) {
+
             annotationText.setCustomTextColor(green);
             annotationText.setText("L");
             m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMin,
@@ -493,17 +512,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
             annotationText.setText("R");
             m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMax,
                                                           annotationText);
-        }
-        
-        
-        if (drawCylindersFlag) {
-            m_fixedPipelineDrawing->drawCylinder(red,
-                                                 paraPlaneMin,
-                                                 paraPlaneMax,
-                                                 axesCrosshairRadius * 0.5f);
-        }
-        
-        if (drawLabelsFlag) {
+
             annotationText.setCustomTextColor(red);
             annotationText.setText("P");
             m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMin,
@@ -736,7 +745,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                         sliceViewPlane,
                                         sliceCoordinates));
 
-    if ( ! sliceInfo.m_plane.isValidPlane()) {
+    if ( ! sliceInfo.m_MprSliceView.getPlane().isValidPlane()) {
         return;
     }
 
@@ -896,12 +905,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                          m_browserTabContent,
                                                                          m_volumeDrawInfo[0].volumeFile,
                                                                          m_volumeDrawInfo[0].mapIndex,
-                                                                         sliceInfo.m_plane,
+                                                                         sliceInfo.m_MprSliceView.getPlane(),
                                                                          sliceThickness);
             }
         }
         
-        const Plane slicePlane(sliceInfo.m_plane);
+        const Plane slicePlane(sliceInfo.m_MprSliceView.getPlane());
         
         if (slicePlane.isValidPlane()) {
             drawLayers(underlayVolume,
@@ -2600,9 +2609,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const SliceInfo
             continue;
         }
         
+        const MprVirtualSliceView& mprSliceView(sliceInfo.m_MprSliceView);
         std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
-                                                                         sliceInfo.m_centerXYZ,
-                                                                         sliceInfo.m_normalVector));
+                                                                         mprSliceView.getCameraLookAtXYZ(),
+                                                                         mprSliceView.getNormalVector()));
+//                                                                         sliceInfo.m_centerXYZ,
+//                                                                         sliceInfo.m_normalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
@@ -3568,6 +3580,12 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo3D() const
 void
 BrainOpenGLVolumeMprThreeDrawing::drawIntensityBackgroundSlice(const GraphicsPrimitive* volumePrimitive) const
 {
+    CaretAssert(volumePrimitive);
+    const int32_t numVertices(volumePrimitive->getNumberOfVertices());
+    if (numVertices < 3) {
+        return;
+    }
+    
     float backgroundRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
     switch (m_mprViewMode) {
         case VolumeMprViewModeEnum::AVERAGE_INTENSITY_PROJECTION:
@@ -3602,14 +3620,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawIntensityBackgroundSlice(const GraphicsPri
     /*
      * New primitive that copies vertices from volume primitive and uses constant color
      */
-    GraphicsPrimitive::PrimitiveType primitiveType(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP);
+    GraphicsPrimitive::PrimitiveType primitiveType(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
     CaretAssert(volumePrimitive->getPrimitiveType() == primitiveType);
-    const int32_t numVertices(4);
-    CaretAssert(volumePrimitive->getNumberOfVertices() == numVertices);
     std::unique_ptr<GraphicsPrimitiveV3f> backgroundPrimitive(GraphicsPrimitive::newPrimitiveV3f(primitiveType,
                                                                                                  backgroundRGBA));
     const std::vector<float>& verticesXYZ(volumePrimitive->getFloatXYZ());
-    CaretAssert(verticesXYZ.size() == (numVertices * 3));
+    CaretAssert(static_cast<int32_t>(verticesXYZ.size()) == (numVertices * 3));
     backgroundPrimitive->addVertices(&verticesXYZ[0],
                                      numVertices);
     

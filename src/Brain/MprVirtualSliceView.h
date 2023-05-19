@@ -74,6 +74,10 @@ namespace caret {
         
         Vector3D getCameraUpVector() const;
 
+        Plane getPlane() const;
+        
+        Vector3D getNormalVector() const;
+        
         bool getTriangleFanCoordinates(const VolumeMappableInterface* volume,
                                        std::vector<Vector3D>& stereotaxicXyzOut,
                                        std::vector<Vector3D>& primtiveVertexXyzOut,
