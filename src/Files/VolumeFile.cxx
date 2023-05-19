@@ -1906,7 +1906,7 @@ VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
                                               const DisplayGroupEnum::Enum displayGroup,
                                               const int32_t tabIndex) const
 {
-    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
+    return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_STRIP,
                                                                        mapIndex,
                                                                        displayGroup,
                                                                        tabIndex);
