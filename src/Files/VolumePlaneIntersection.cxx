@@ -191,11 +191,15 @@ VolumePlaneIntersection::intersectWithPlane(const Plane& plane,
                            centerOut,
                            intersectionPointsOut);
     
+    orientIntersectionPoints(plane,
+                             centerOut,
+                             intersectionPointsOut);
+    
     return true;
 }
 
 /**
- * Sort the intersection points so that they are in a counter-clockwise order
+ * Sort the intersection points around the center
  * @param plane
  *    The plane
  * @param centerOut
@@ -249,6 +253,72 @@ VolumePlaneIntersection::sortIntersectionPoints(const Plane& plane,
     CaretAssert(numPoints == static_cast<int32_t>(intersectionPoints.size()));
 }
 
+/**
+ * Orient the intersection points so that they are in a counter-clockwise order
+ * about the center
+ * @param plane
+ *    The plane
+ * @param centerOut
+ *    Center of gravity of the intersection points
+ * @param intersectionPoints
+ *    Input/output Intersection points that are oriented counter-clockwise
+ */
+void
+VolumePlaneIntersection::orientIntersectionPoints(const Plane& plane,
+                                                  const Vector3D& center,
+                                                  std::vector<Vector3D>& intersectionPoints) const
+{
+    const int32_t numPoints(intersectionPoints.size());
+    if (numPoints < 2) {
+        return;
+    }
+    
+    CaretAssertVectorIndex(intersectionPoints, 1);
+    const Vector3D p1(intersectionPoints[0]);
+    const Vector3D p2(intersectionPoints[1]);
+
+    Vector3D triangleNormalVector;
+    MathFunctions::normalVector(center, p1, p2, triangleNormalVector);
+
+    Vector3D planeNormalVector;
+    plane.getNormalVector(planeNormalVector);
+    
+    float dotProduct(triangleNormalVector.dot(planeNormalVector));
+    
+    /*
+     * The plane vector and vector from first triangle
+     * should either be the same (1.0) or opposite (-1.0).
+     * If not, something weird has happened.
+     */
+    const float nearOne(0.9);
+    if (dotProduct > nearOne) {
+        /* OK, vectors are aligned */
+    }
+    else if (dotProduct < -nearOne) {
+        /* Vectors are opposite; triangle orientation needs to be flipped */
+        std::reverse(intersectionPoints.begin(),
+                     intersectionPoints.end());
+        CaretLogWarning("FYI, Reorienting triangles (OK !)");
+    }
+    else {
+        AString pointsStr;
+        for (const auto& v : intersectionPoints) {
+            pointsStr.append(" " + v.toString());
+        }
+        const AString msg("Invalid normal vectors when orientation triangles.  Dot="
+                          + AString::number(dotProduct)
+                          + " plane normal="
+                          + planeNormalVector.toString()
+                          + " triangle normal="
+                          + triangleNormalVector.toString()
+                          + " Center="
+                          + center.toString()
+                          + " Intersections="
+                          + pointsStr);
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+    }
+}
 
 
 

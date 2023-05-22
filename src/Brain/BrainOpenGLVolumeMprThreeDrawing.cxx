@@ -745,7 +745,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                         sliceViewPlane,
                                         sliceCoordinates));
 
-    if ( ! sliceInfo.m_MprSliceView.getPlane().isValidPlane()) {
+    if ( ! sliceInfo.m_mprSliceView.getPlane().isValidPlane()) {
         return;
     }
 
@@ -760,7 +760,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
              */
             setViewingTransformation(underlayVolume,
                                      sliceViewPlane,
-                                     sliceInfo,
+                                     sliceInfo.m_mprSliceView,
                                      sliceCoordinates);
             break;
     }
@@ -843,7 +843,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
 
         bool drawIdentificationSymbolsFlag(false);
         if (intensityModeFlag) {
-            drawSliceIntensityProjection2D(sliceInfo,
+            drawSliceIntensityProjection2D(sliceInfo.m_mprSliceView,
                                            sliceViewPlane,
                                            sliceCoordinates,
                                            viewport);
@@ -852,7 +852,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             const bool enableBlendingFlag(true);
             const bool drawAttributesFlag(true);
             const bool drawIntensitySliceBackgroundFlag(false);
-            drawSliceWithPrimitive(sliceInfo,
+            drawSliceWithPrimitive(sliceInfo.m_mprSliceView,
                                    sliceViewPlane,
                                    sliceCoordinates,
                                    viewport,
@@ -905,12 +905,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                          m_browserTabContent,
                                                                          m_volumeDrawInfo[0].volumeFile,
                                                                          m_volumeDrawInfo[0].mapIndex,
-                                                                         sliceInfo.m_MprSliceView.getPlane(),
+                                                                         sliceInfo.m_mprSliceView.getPlane(),
                                                                          sliceThickness);
             }
         }
         
-        const Plane slicePlane(sliceInfo.m_MprSliceView.getPlane());
+        const Plane slicePlane(sliceInfo.m_mprSliceView.getPlane());
         
         if (slicePlane.isValidPlane()) {
             drawLayers(underlayVolume,
@@ -1021,156 +1021,10 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const BrowserTabContent* brows
 {
     SliceInfo sliceInfo;
     
-    /*
-     * Normal vector of the plane
-     */
-    Vector3D planeNormalVector;
-    
-    sliceInfo.m_radiologicalOrientationFlag = false;
-    switch (m_orientationMode) {
-        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            sliceInfo.m_radiologicalOrientationFlag = false;
-            break;
-        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
-            sliceInfo.m_radiologicalOrientationFlag = true;
-            break;
-    }
-    
-    /*
-     * Vector orthogonal to normal and up vectors.
-     * It is in the plane
-     */
-    Vector3D orthogonalVector;
-    
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            planeNormalVector[2] = 1.0;
-            sliceInfo.m_upVector[1] = 1.0;
-            orthogonalVector[0]  = 1.0;
-            
-            if (sliceInfo.m_radiologicalOrientationFlag) {
-                planeNormalVector[2] = -1.0;
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            planeNormalVector[1] = -1.0;
-            sliceInfo.m_upVector[2] =  1.0;
-            orthogonalVector[0]  =  1.0;
-            
-            if (sliceInfo.m_radiologicalOrientationFlag) {
-                planeNormalVector[1] = 1.0;
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            planeNormalVector[0] = -1.0;
-            sliceInfo.m_upVector[2] =  1.0;
-            orthogonalVector[1]  = -1.0;
-            break;
-    }
-    
     CaretAssert(underlayVolume);
     BoundingBox boundingBox;
     underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
-    
-    /*
-     * Might want to expand these so that slice is extra big and does not get clipped
-     */
-    const float posX(boundingBox.getMaxX());
-    const float negX(boundingBox.getMinX());
-    const float posY(boundingBox.getMaxY());
-    const float negY(boundingBox.getMinY());
-    const float posZ(boundingBox.getMaxZ());
-    const float negZ(boundingBox.getMinZ());
-    
-    const float sliceX(sliceCoordinates[0]);
-    const float sliceY(sliceCoordinates[1]);
-    const float sliceZ(sliceCoordinates[2]);
-    
-    boundingBox.getCenter(sliceInfo.m_centerXYZ);
-    
-    const float leftX(sliceInfo.m_radiologicalOrientationFlag
-                      ? posX
-                      : negX);
-    const float rightX(sliceInfo.m_radiologicalOrientationFlag
-                       ? negX
-                       : posX);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * Axial slice is in plane orthogonal to Z-axis
-             */
-            sliceInfo.m_bottomLeftXYZ[0] = leftX;
-            sliceInfo.m_bottomLeftXYZ[1] = negY;
-            sliceInfo.m_bottomLeftXYZ[2] = sliceZ;
-            
-            sliceInfo.m_bottomRightXYZ[0] = rightX;
-            sliceInfo.m_bottomRightXYZ[1] = negY;
-            sliceInfo.m_bottomRightXYZ[2] = sliceZ;
-            
-            sliceInfo.m_topLeftXYZ[0]  = leftX;
-            sliceInfo.m_topLeftXYZ[1]  = posY;
-            sliceInfo.m_topLeftXYZ[2] = sliceZ;
-            
-            sliceInfo.m_topRightXYZ[0] = rightX;
-            sliceInfo.m_topRightXYZ[1] = posY;
-            sliceInfo.m_topRightXYZ[2] = sliceZ;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * Coronal slice is in plane orthogonal to Y-axis
-             */
-            sliceInfo.m_bottomLeftXYZ[0] = leftX;
-            sliceInfo.m_bottomLeftXYZ[1] = sliceY;
-            sliceInfo.m_bottomLeftXYZ[2] = negZ;
-            
-            sliceInfo.m_bottomRightXYZ[0] = rightX;
-            sliceInfo.m_bottomRightXYZ[1] = sliceY;
-            sliceInfo.m_bottomRightXYZ[2] = negZ;
-            
-            sliceInfo.m_topLeftXYZ[0]  = leftX;
-            sliceInfo.m_topLeftXYZ[1]  = sliceY;
-            sliceInfo.m_topLeftXYZ[2] = posZ;
-            
-            sliceInfo.m_topRightXYZ[0] = rightX;
-            sliceInfo.m_topRightXYZ[1] = sliceY;
-            sliceInfo.m_topRightXYZ[2] = posZ;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * Parasgittal slice is in plane orthogonal to X-axis
-             */
-            sliceInfo.m_bottomLeftXYZ[0] = sliceX;
-            sliceInfo.m_bottomLeftXYZ[1] = posY;
-            sliceInfo.m_bottomLeftXYZ[2] = negZ;
-            
-            sliceInfo.m_bottomRightXYZ[0] = sliceX;
-            sliceInfo.m_bottomRightXYZ[1] = negY;
-            sliceInfo.m_bottomRightXYZ[2] = negZ;
-            
-            sliceInfo.m_topLeftXYZ[0]  = sliceX;
-            sliceInfo.m_topLeftXYZ[1]  = posY;
-            sliceInfo.m_topLeftXYZ[2] = posZ;
-            
-            sliceInfo.m_topRightXYZ[0] = sliceX;
-            sliceInfo.m_topRightXYZ[1] = negY;
-            sliceInfo.m_topRightXYZ[2] = posZ;
-            break;
-    }
-    
-    const float expandPercentage(2.0); /* 2.0 = 200% */
-    MathFunctions::expandBoxPercentage3D(sliceInfo.m_bottomLeftXYZ,
-                                         sliceInfo.m_bottomRightXYZ,
-                                         sliceInfo.m_topRightXYZ,
-                                         sliceInfo.m_topLeftXYZ,
-                                         expandPercentage);
-    
-    
+        
     /*
      * Set the modeling transformation
      */
@@ -1178,172 +1032,13 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const BrowserTabContent* brows
     
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
-    
-    multiplyPoint(rotationMatrix, volumeCenterXYZ, sliceCoordinates,
-                  sliceInfo.m_bottomLeftXYZ);
-    multiplyPoint(rotationMatrix, volumeCenterXYZ, sliceCoordinates,
-                  sliceInfo.m_bottomRightXYZ);
-    multiplyPoint(rotationMatrix, volumeCenterXYZ, sliceCoordinates,
-                  sliceInfo.m_topRightXYZ);
-    multiplyPoint(rotationMatrix, volumeCenterXYZ, sliceCoordinates,
-                  sliceInfo.m_topLeftXYZ);
-    
-    {
-        Vector3D v(0,0,0);
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                v[1] = 1.0;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                v[2] = 1.0;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                v[2] = 1.0;
-                break;
-        }
-    }
-
-    /*
-     * Apply user panning (translation) by shifting the slice
-     * in the screen horizontally and vertically
-     */
-    switch (m_brainModelMode) {
-        case BrainModelMode::INVALID:
-            CaretAssert(0);
-            break;
-        case BrainModelMode::ALL_3D:
-            break;
-        case BrainModelMode::VOLUME_2D:
-        {
-            /*
-             * Vector from left to right side of the screen in model coordinates
-             */
-            const Vector3D leftToRight(sliceInfo.m_topRightXYZ - sliceInfo.m_topLeftXYZ);
-            const Vector3D leftToRightVector(leftToRight.normal());
-            
-            /*
-             * Vector from bottom to top of screen in model coordinates
-             */
-            const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
-            const Vector3D bottomToTopVector(bottomToTop.normal());
-            
-            /*
-             * Set the offset horizontally and vertically
-             * of the slice using the user's translation
-             */
-            Vector3D offsetHoriz;
-            Vector3D offsetVert;
-            Vector3D translation;
-            browserTabContent->getTranslation(translation);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    offsetHoriz = leftToRightVector * (-translation[0]);
-                    offsetVert  = bottomToTopVector * (-translation[1]);
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    offsetHoriz = leftToRightVector * (-translation[0]);
-                    offsetVert  = bottomToTopVector * (-translation[2]);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    offsetHoriz = leftToRightVector * (-translation[1]);
-                    offsetVert  = bottomToTopVector * (-translation[2]);
-                    break;
-            }
-            
-            /*
-             * Shift the slice
-             */
-            sliceInfo.m_bottomLeftXYZ  += (offsetHoriz + offsetVert);
-            sliceInfo.m_bottomRightXYZ += (offsetHoriz + offsetVert);
-            sliceInfo.m_topLeftXYZ     += (offsetHoriz + offsetVert);
-            sliceInfo.m_topRightXYZ    += (offsetHoriz + offsetVert);
-            sliceInfo.m_centerXYZ      += (offsetHoriz + offsetVert);
-        }
-            break;
-    }
-
-    sliceInfo.m_plane = Plane(sliceInfo.m_topLeftXYZ,
-                              sliceInfo.m_bottomLeftXYZ,
-                              sliceInfo.m_bottomRightXYZ);
-    CaretAssert(sliceInfo.m_plane.isValidPlane());
-    
-    sliceInfo.m_plane.getNormalVector(sliceInfo.m_normalVector);
-
-    /*
-     * "Up" vector points from bottom of slice to top
-     */
-    const Vector3D bottomToTop(sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ);
-    sliceInfo.m_upVector = bottomToTop.normal();
-    
-    /*
-     * Does increasing slice coordinate direction face to the
-     * user or away from the user
-     */
-    bool sameDirectionFlag(false);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * In an axial view, the viewing vector that points to user
-             * is inferior to superior and so is increasing Z if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (sliceInfo.m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * In coronal view, the viewing vector that points to user
-             * is posterior to anterior and so is DECREASING Y if in
-             * neurological orientation
-             */
-            sameDirectionFlag = false;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (sliceInfo.m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * In parasagittal view, viewing vector that points to user
-             * is right to left and so is INCREASING X if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            break;
-    }
-    if (sameDirectionFlag) {
-        sliceInfo.m_sliceCoordIncreasingDirectionPlane = Plane(sliceInfo.m_topLeftXYZ,
-                                                               sliceInfo.m_bottomLeftXYZ,
-                                                               sliceInfo.m_bottomRightXYZ);
-    }
-    else {
-        sliceInfo.m_sliceCoordIncreasingDirectionPlane = Plane(sliceInfo.m_bottomRightXYZ,
-                                                               sliceInfo.m_bottomLeftXYZ,
-                                                               sliceInfo.m_topLeftXYZ);
-    }
-    
-    sliceInfo.m_MprSliceView = MprVirtualSliceView(volumeCenterXYZ,
-                                            sliceCoordinates,
-                                            boundingBox.getMaximumDifferenceOfXYZ(),
-                                            sliceViewPlane,
-                                            rotationMatrix);
+       
+    sliceInfo.m_mprSliceView = MprVirtualSliceView(volumeCenterXYZ,
+                                                   sliceCoordinates,
+                                                   boundingBox.getMaximumDifferenceOfXYZ(),
+                                                   sliceViewPlane,
+                                                   m_orientationMode,
+                                                   rotationMatrix);
 
     return sliceInfo;
 }
@@ -2129,17 +1824,19 @@ BrainOpenGLVolumeMprThreeDrawing::setOrthographicProjection(const GraphicsViewpo
 /**
  * Set the viewing transformation
  *
+ * @param volume
+ *    Volume being drawn
  * @param sliceViewPlane
  *    View plane that is displayed.
- * @param plane
- *    Plane equation of selected slice.
+ * @param mprSliceView
+ *    Info about virtual slice.
  * @param selectedSliceXYZ
  *    Selected slice coordiantes
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableInterface* volume,
                                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                           const SliceInfo& sliceInfo,
+                                                           const MprVirtualSliceView& mprSliceView,
                                                            const Vector3D& selectedSliceXYZ)
 {
     /*
@@ -2151,9 +1848,51 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableI
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    const Vector3D cameraXYZ(sliceInfo.m_MprSliceView.getCameraXYZ());
-    const Vector3D cameraLookAtXYZ(sliceInfo.m_MprSliceView.getCameraLookAtXYZ());
-    const Vector3D cameraUpVector(sliceInfo.m_MprSliceView.getCameraUpVector());
+    Vector3D translation;
+    m_browserTabContent->getTranslation(translation);
+    float tx(0.0), ty(0.0), tz(0.0);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            tx = translation[0];
+            ty = translation[1];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            tx = translation[0];
+            ty = translation[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            tx = translation[1];
+            ty = translation[2];
+            break;
+    }
+    glTranslatef(tx, ty, tz);
+
+/*
+ *
+ switch (sliceViewPlane) {
+ case VolumeSliceViewPlaneEnum::ALL:
+ CaretAssert(0);
+ break;
+ case VolumeSliceViewPlaneEnum::AXIAL:
+ offsetHoriz = leftToRightVector * (-translation[0]);
+ offsetVert  = bottomToTopVector * (-translation[1]);
+ break;
+ case VolumeSliceViewPlaneEnum::CORONAL:
+ offsetHoriz = leftToRightVector * (-translation[0]);
+ offsetVert  = bottomToTopVector * (-translation[2]);
+ break;
+ case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+ offsetHoriz = leftToRightVector * (-translation[1]);
+ offsetVert  = bottomToTopVector * (-translation[2]);
+ break;
+ }
+
+ */
+    const Vector3D cameraXYZ(mprSliceView.getCameraXYZ());
+    const Vector3D cameraLookAtXYZ(mprSliceView.getCameraLookAtXYZ());
+    const Vector3D cameraUpVector(mprSliceView.getCameraUpVector());
     gluLookAt(cameraXYZ[0],
               cameraXYZ[1],
               cameraXYZ[2],
@@ -2164,22 +1903,22 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableI
               cameraUpVector[1],
               cameraUpVector[2]);
     
-    Vector3D translation;
-    m_browserTabContent->getTranslation(translation);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            translation[2] = 0.0;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            translation[1] = 0.0;
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            translation[0] = 0.0;
-            break;
-    }
-    glTranslatef(translation[0], translation[1], translation[2]);
+//    Vector3D translation;
+//    m_browserTabContent->getTranslation(translation);
+//    switch (sliceViewPlane) {
+//        case VolumeSliceViewPlaneEnum::ALL:
+//            break;
+//        case VolumeSliceViewPlaneEnum::AXIAL:
+//            translation[2] = 0.0;
+//            break;
+//        case VolumeSliceViewPlaneEnum::CORONAL:
+//            translation[1] = 0.0;
+//            break;
+//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//            translation[0] = 0.0;
+//            break;
+//    }
+//    glTranslatef(translation[0], translation[1], translation[2]);
 }
 
 /**
@@ -2557,7 +2296,7 @@ BrainOpenGLVolumeMprThreeDrawing::applySliceThicknessToIntersections(const Volum
 
 /**
  * Draw the intensity slices
- * @param sliceInfo
+ * @param mprSliceView
  *    Information for drawing slice
  * @param sliceViewPlane
  *    The plane for slice drawing.
@@ -2567,10 +2306,10 @@ BrainOpenGLVolumeMprThreeDrawing::applySliceThicknessToIntersections(const Volum
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
-                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                               const Vector3D& sliceCoordinates,
-                                                               const GraphicsViewport& viewport)
+BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const MprVirtualSliceView& mprSliceView,
+                                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                 const Vector3D& sliceCoordinates,
+                                                                 const GraphicsViewport& viewport)
 {
     std::vector<std::pair<VolumeMappableInterface*,int32_t>> intensityVolumeFiles(getIntensityVolumeFilesAndMapIndices());
     if (intensityVolumeFiles.empty()) {
@@ -2604,17 +2343,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const SliceInfo
         VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
         CaretAssert(volumeFile);
         if (idModeFlag) {
-            performIntensityIdentification(sliceInfo,
+            performIntensityIdentification(mprSliceView,
                                            volumeFile);
             continue;
         }
         
-        const MprVirtualSliceView& mprSliceView(sliceInfo.m_MprSliceView);
         std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
-                                                                         mprSliceView.getCameraLookAtXYZ(),
+                                                                         mprSliceView.getVolumeCenterXYZ(),
+                                                                         //mprSliceView.getCameraLookAtXYZ(),
                                                                          mprSliceView.getNormalVector()));
-//                                                                         sliceInfo.m_centerXYZ,
-//                                                                         sliceInfo.m_normalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
@@ -2681,7 +2418,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const SliceInfo
                 const bool enableBlendingFlag(false);
                 const bool drawAttributesFlag(false);
                 const bool drawIntensitySliceBackgroundFlag(iStep == 0);
-                drawSliceWithPrimitive(stepSliceInfo,
+                drawSliceWithPrimitive(stepSliceInfo.m_mprSliceView,
                                        sliceViewPlane,
                                        sliceCoords,
                                        viewport,
@@ -2795,7 +2532,7 @@ BrainOpenGLVolumeMprThreeDrawing::setupIntensityModeBlending(const int32_t numSl
 
 /**
  * Draw the slice
- * @param sliceInfo
+ * @param mprSliceView
  *    Information for drawing slice
  * @param sliceViewPlane
  *    The plane for slice drawing.
@@ -2811,7 +2548,7 @@ BrainOpenGLVolumeMprThreeDrawing::setupIntensityModeBlending(const int32_t numSl
  *    Draw the background for intensity mode
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInfo,
+BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const MprVirtualSliceView& mprSliceView,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                        const Vector3D& sliceCoordinates,
                                                        const GraphicsViewport& viewport,
@@ -2892,7 +2629,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const SliceInfo& sliceI
                                                                                                    m_tabIndex));
             if (primitive != NULL) {
                 const Vector3D sliceOffset(0.0, 0.0, 0.0);
-                const bool validPrimitiveFlag(setPrimtiveCoordinates(sliceInfo,
+                const bool validPrimitiveFlag(setPrimtiveCoordinates(mprSliceView,
                                                                      volumeInterface,
                                                                      sliceOffset,
                                                                      primitive));
@@ -2990,7 +2727,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const SliceInfo& sliceI
                     if (drawAttributesFlag
                         && m_identificationModeFlag) {
                         performTriangleIdentification(primitive,
-                                                      sliceInfo,
+                                                      mprSliceView,
                                                       volumeInterface,
                                                       sliceViewPlane,
                                                       viewport,
@@ -3161,7 +2898,7 @@ BrainOpenGLVolumeMprThreeDrawing::getMouseViewportNormalizedXY(const GraphicsVie
  * Perform voxel identification using triangles in the primitive
  * @param slicePrimitive
  *    Primitve used to draw virtual slice
- * @param sliceInfo
+ * @param mprSliceView
  *    Info about the slice being drawan
  * @param volumeInterface
  *    The volume
@@ -3176,7 +2913,7 @@ BrainOpenGLVolumeMprThreeDrawing::getMouseViewportNormalizedXY(const GraphicsVie
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPrimitive* slicePrimitive,
-                                                                const SliceInfo& sliceInfo,
+                                                                const MprVirtualSliceView& mprSliceView,
                                                                 VolumeMappableInterface* volume,
                                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                 const GraphicsViewport& viewport,
@@ -3239,10 +2976,10 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
     {
         std::vector<Vector3D> vertexXYZ;
         std::vector<Vector3D> textureStr;
-        sliceInfo.m_MprSliceView.getTrianglesCoordinates(volume,
-                                                           stereotaxicXYZ,
-                                                           vertexXYZ,
-                                                           textureStr);
+        mprSliceView.getTrianglesCoordinates(volume,
+                                             stereotaxicXYZ,
+                                             vertexXYZ,
+                                             textureStr);
     }
     const int32_t numStereotaxicCoords(stereotaxicXYZ.size());
     const int32_t numStereotaxicTriangles(stereotaxicXYZ.size() / 3);
@@ -3546,26 +3283,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo3D() const
     
     GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
     
+    CaretAssertToDoFatal();
     SliceInfo sliceInfo;
-    transformEvent.inverseTransformPoint(viewport.getLeft(), viewport.getBottom(), 0.0,
-                                         sliceInfo.m_bottomLeftXYZ);
-    transformEvent.inverseTransformPoint(viewport.getRight(), viewport.getBottom(), 0.0,
-                                         sliceInfo.m_bottomRightXYZ);
-    transformEvent.inverseTransformPoint(viewport.getRight(), viewport.getTop(), 0.0,
-                                         sliceInfo.m_topRightXYZ);
-    transformEvent.inverseTransformPoint(viewport.getLeft(), viewport.getTop(), 0.0,
-                                         sliceInfo.m_topLeftXYZ);
-    transformEvent.inverseTransformPoint(viewport.getCenterX(), viewport.getCenterY(), 0.0,
-                                         sliceInfo.m_centerXYZ);
-    
-    sliceInfo.m_upVector = (sliceInfo.m_topLeftXYZ - sliceInfo.m_bottomLeftXYZ).normal();
-    
-    sliceInfo.m_plane = Plane(sliceInfo.m_topLeftXYZ,
-                              sliceInfo.m_bottomLeftXYZ,
-                              sliceInfo.m_bottomRightXYZ);
-    CaretAssert(sliceInfo.m_plane.isValidPlane());
-    
-    sliceInfo.m_plane.getNormalVector(sliceInfo.m_normalVector);
     
     return sliceInfo;
 }
@@ -3687,15 +3406,20 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
         VolumeMappableInterface* volumeFile(volumeFileAndMapIndex.first);
         const int32_t mapIndex(volumeFileAndMapIndex.second);
         
-        const SliceInfo sliceInfo(createSliceInfo3D());
+        CaretAssertToDoWarning(); // Does 2D slice info work for 3D ?
+        const SliceInfo sliceInfo(createSliceInfo(m_browserTabContent,
+                                                  volumeFile,
+                                                  sliceViewPlane,
+                                                  sliceCoordinates));
+//        const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
-            performIntensityIdentification(sliceInfo,
+            performIntensityIdentification(sliceInfo.m_mprSliceView,
                                            volumeFile);
             continue;
         }
         std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
-                                                                               sliceInfo.m_centerXYZ,
-                                                                               sliceInfo.m_normalVector));
+                                                                         sliceInfo.m_mprSliceView.getVolumeCenterXYZ(),
+                                                                         sliceInfo.m_mprSliceView.getNormalVector()));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
@@ -3738,14 +3462,14 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
 
             for (int32_t iStep = 0; iStep < numSteps; iStep++) {
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
-                const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
+                const Vector3D sliceOffset(sliceCoords - sliceInfo.m_mprSliceView.getVolumeCenterXYZ());
                 
                 GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTriangleStripPrimitive(mapIndex,
                                                                                                  m_displayGroup,
                                                                                                  m_tabIndex));
                 
                 if (primitive != NULL) {
-                    setPrimtiveCoordinates(sliceInfo,
+                    setPrimtiveCoordinates(sliceInfo.m_mprSliceView,
                                            volumeFile,
                                            sliceOffset,
                                            primitive);
@@ -3813,16 +3537,7 @@ AString
 BrainOpenGLVolumeMprThreeDrawing::SliceInfo::toString(const AString& indentation) const
 {
     AString txt;
-    
-    txt.appendWithNewLine(indentation + "Center:        " + AString::fromNumbers(m_centerXYZ));
-    txt.appendWithNewLine(indentation + "Bottom Left:   " + AString::fromNumbers(m_bottomLeftXYZ));
-    txt.appendWithNewLine(indentation + "Bottom Right:  " + AString::fromNumbers(m_bottomRightXYZ));
-    txt.appendWithNewLine(indentation + "Top Right:     " + AString::fromNumbers(m_topRightXYZ));
-    txt.appendWithNewLine(indentation + "Top Left:      " + AString::fromNumbers(m_topLeftXYZ));
-    txt.appendWithNewLine(indentation + "Up Vector:     " + AString::fromNumbers(m_upVector));
-    txt.appendWithNewLine(indentation + "Normal Vector: " + AString::fromNumbers(m_normalVector));
-    txt.appendWithNewLine(indentation + "Plane:         " + m_plane.toString());
-    
+        
     return txt;
 }
 
@@ -3840,14 +3555,14 @@ BrainOpenGLVolumeMprThreeDrawing::getVoxelSize(const VolumeMappableInterface* vo
 
 /**
  * Perform identification operation on 2D or 3D Maximum or Minimum Intensity Projection
- * @param sliceInfo
+ * @param mprSliceView
  *    Info for drawing slices
  * @param volume
  *    Volume being drawn
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const SliceInfo& sliceInfo,
-                                                               VolumeMappableInterface* volume)
+BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const MprVirtualSliceView& mprSliceView,
+                                                                 VolumeMappableInterface* volume)
 {
     GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
     const int32_t mouseVpX(m_fixedPipelineDrawing->mouseX - viewport.getX());
@@ -3893,7 +3608,7 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const SliceInfo
      */
     const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volume,
                                                                            modelXYZ,
-                                                                           sliceInfo.m_normalVector));
+                                                                           mprSliceView.getNormalVector()));
     const int32_t numIntersections(allIntersections.size());
     
     if (numIntersections == 2) {
@@ -4074,7 +3789,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
      * coordinate step to move between adjacent slices
      */
     Vector3D sliceCoordIncreaseDirectionVector;
-    sliceInfo.m_sliceCoordIncreasingDirectionPlane.getNormalVector(sliceCoordIncreaseDirectionVector);
+    sliceInfo.m_mprSliceView.getMontageIncreasingDirectionPlane().getNormalVector(sliceCoordIncreaseDirectionVector);
     const Vector3D singleSliceCoordStepXYZ(sliceCoordIncreaseDirectionVector * sliceThickness);
     if (m_debugFlag) std::cout << "Single slice step XYZ: " << singleSliceCoordStepXYZ.toString() << std::endl;
     
@@ -4149,7 +3864,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
             /*
              * Draw coordinates on slice
              */
-            const float offsetDistance(sliceInfo.m_sliceCoordIncreasingDirectionPlane.signedDistanceToPlane(sliceXYZ));
+            const float offsetDistance(sliceInfo.m_mprSliceView.getMontageIncreasingDirectionPlane().signedDistanceToPlane(sliceXYZ));
             BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                        m_browserTabContent,
                                                                        sliceViewPlane,
@@ -4204,7 +3919,7 @@ BrainOpenGLVolumeMprThreeDrawing::getSignedSliceThickness(const VolumeMappableIn
 
 /**
  * Set the stereotaxic and texture coordinates for the given primitive
- * @param sliceInfo
+ * @param mprSliceView
  *    Info about the slice
  * @param volume
  *    The volume
@@ -4216,7 +3931,7 @@ BrainOpenGLVolumeMprThreeDrawing::getSignedSliceThickness(const VolumeMappableIn
  *    True if the primitive is valid for drawing
  */
 bool
-BrainOpenGLVolumeMprThreeDrawing::setPrimtiveCoordinates(const SliceInfo& sliceInfo,
+BrainOpenGLVolumeMprThreeDrawing::setPrimtiveCoordinates(const MprVirtualSliceView& mprSliceView,
                                                          const VolumeMappableInterface* volume,
                                                          const Vector3D& sliceOffset,
                                                          GraphicsPrimitiveV3fT3f* primitive)
@@ -4235,16 +3950,16 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimtiveCoordinates(const SliceInfo& sliceI
             std::vector<Vector3D> vertexXYZ;
             std::vector<Vector3D> textureStr;
             if (primitive->getNumberOfVertices() == 8) {
-                validFlag = sliceInfo.m_MprSliceView.getTriangleFanCoordinates(volume,
-                                                                               stereotaxicXYZ,
-                                                                               vertexXYZ,
-                                                                               textureStr);
+                validFlag = mprSliceView.getTriangleFanCoordinates(volume,
+                                                                   stereotaxicXYZ,
+                                                                   vertexXYZ,
+                                                                   textureStr);
             }
             else if (primitive->getNumberOfVertices() == 18) {
-                validFlag = sliceInfo.m_MprSliceView.getTrianglesCoordinates(volume,
-                                                                             stereotaxicXYZ,
-                                                                             vertexXYZ,
-                                                                             textureStr);
+                validFlag = mprSliceView.getTrianglesCoordinates(volume,
+                                                                 stereotaxicXYZ,
+                                                                 vertexXYZ,
+                                                                 textureStr);
             }
             else {
                 CaretAssert(0);

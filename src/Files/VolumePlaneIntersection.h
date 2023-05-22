@@ -54,6 +54,10 @@ namespace caret {
                                 std::vector<Vector3D>& intersectionPointsOut,
                                 AString& errorMessageOut) const;
         
+        void orientIntersectionPoints(const Plane& plane,
+                                      const Vector3D& centerOut,
+                                      std::vector<Vector3D>& intersectionPointsInOut) const;
+        
         void sortIntersectionPoints(const Plane& plane,
                                     Vector3D& centerOut,
                                     std::vector<Vector3D>& intersectionPointsInOut) const;

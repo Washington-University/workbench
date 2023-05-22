@@ -30,6 +30,7 @@
 #include "Plane.h"
 #include "SceneableInterface.h"
 #include "Vector3D.h"
+#include "VolumeMprOrientationModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
@@ -57,10 +58,11 @@ namespace caret {
         MprVirtualSliceView();
         
         MprVirtualSliceView(const Vector3D& volumeCenterXYZ,
-                     const Vector3D& selectedSlicesXYZ,
-                     const float sliceWidthHeight,
-                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                     const Matrix4x4& rotationMatrix);
+                            const Vector3D& selectedSlicesXYZ,
+                            const float sliceWidthHeight,
+                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                            const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
+                            const Matrix4x4& rotationMatrix);
 
         virtual ~MprVirtualSliceView();
         
@@ -76,7 +78,11 @@ namespace caret {
 
         Plane getPlane() const;
         
+        Plane getMontageIncreasingDirectionPlane() const;
+        
         Vector3D getNormalVector() const;
+        
+        Vector3D getVolumeCenterXYZ() const;
         
         bool getTriangleFanCoordinates(const VolumeMappableInterface* volume,
                                        std::vector<Vector3D>& stereotaxicXyzOut,
@@ -135,6 +141,8 @@ namespace caret {
 
         VolumeSliceViewPlaneEnum::Enum m_sliceViewPlane;
         
+        VolumeMprOrientationModeEnum::Enum m_mprOrientationMode;
+
         Matrix4x4 m_rotationMatrix;
         
         Matrix4x4 m_transformationMatrix;
@@ -150,6 +158,12 @@ namespace caret {
         Vector3D m_planeUpVector;
         
         Plane m_virtualSlicePlane;
+        
+        Plane m_montageVirutalSliceIncreasingDirectionPlane;
+
+        bool m_radiologicalOrientationFlag = false;
+        
+        bool m_neurologicalOrientationFlag = false;
         
         static const ViewType s_viewType;
         

@@ -59,18 +59,7 @@ namespace caret {
         public:
             SliceInfo() { }
             
-            Vector3D m_centerXYZ;
-            Vector3D m_bottomLeftXYZ;
-            Vector3D m_bottomRightXYZ;
-            Vector3D m_topRightXYZ;
-            Vector3D m_topLeftXYZ;
-            Vector3D m_upVector;
-            Vector3D m_normalVector;
-            Plane m_plane;
-            Plane m_sliceCoordIncreasingDirectionPlane;
-            bool m_radiologicalOrientationFlag = false;
-            
-            MprVirtualSliceView m_MprSliceView;
+            MprVirtualSliceView m_mprSliceView;
             
             AString toString(const AString& indentation = "") const;
         };
@@ -139,10 +128,10 @@ namespace caret {
         
         void setViewingTransformation(const VolumeMappableInterface* volume,
                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                      const SliceInfo& sliceInfo,
+                                      const MprVirtualSliceView& mprSliceView,
                                       const Vector3D& selectedSliceXYZ);
 
-        void drawSliceIntensityProjection2D(const SliceInfo& sliceInfo,
+        void drawSliceIntensityProjection2D(const MprVirtualSliceView& mprSliceView,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const Vector3D& sliceCoordinates,
                                             const GraphicsViewport& viewport);
@@ -152,7 +141,7 @@ namespace caret {
                                             const GraphicsViewport& viewport);
 
 
-        void drawSliceWithPrimitive(const SliceInfo& sliceInfo,
+        void drawSliceWithPrimitive(const MprVirtualSliceView& mprSliceView,
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                     const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
@@ -161,7 +150,7 @@ namespace caret {
                                     const bool drawIntensitySliceBackgroundFlag);
         
         void performTriangleIdentification(const GraphicsPrimitive* slicePrimitive,
-                                           const SliceInfo& sliceInfo,
+                                           const MprVirtualSliceView& mprSliceView,
                                            VolumeMappableInterface* volumeInterface,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const GraphicsViewport& viewport,
@@ -240,7 +229,7 @@ namespace caret {
         
         std::vector<std::pair<VolumeMappableInterface*,int32_t>> getIntensityVolumeFilesAndMapIndices() const;
         
-        void performIntensityIdentification(const SliceInfo& sliceInfo,
+        void performIntensityIdentification(const MprVirtualSliceView& mprSliceView,
                                             VolumeMappableInterface* volume);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
@@ -257,7 +246,7 @@ namespace caret {
 
         std::vector<Vector3D> getVolumeCorners(const VolumeMappableInterface* volume) const;
 
-        bool setPrimtiveCoordinates(const SliceInfo& sliceInfo,
+        bool setPrimtiveCoordinates(const MprVirtualSliceView& mprSliceView,
                                     const VolumeMappableInterface* volume,
                                     const Vector3D& sliceOffset,
                                     GraphicsPrimitiveV3fT3f* primitive);

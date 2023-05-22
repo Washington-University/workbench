@@ -69,19 +69,23 @@ MprVirtualSliceView::MprVirtualSliceView()
  *    Max coordinates dimension of volume
  * @param sliceViewPlane
  *    The slice plane selected (axial, coronal, parasagittal)
+ * @param mprOrientationMode
+ *    Orientation (neurological or radiological)
  * @param rotationMatrix
  *    The current rotation matrix
  */
 MprVirtualSliceView::MprVirtualSliceView(const Vector3D& volumeCenterXYZ,
-                           const Vector3D& selectedSlicesXYZ,
-                           const float sliceWidthHeight,
-                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                           const Matrix4x4& rotationMatrix)
+                                         const Vector3D& selectedSlicesXYZ,
+                                         const float sliceWidthHeight,
+                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                         const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
+                                         const Matrix4x4& rotationMatrix)
 : CaretObject(),
 m_volumeCenterXYZ(volumeCenterXYZ),
 m_selectedSlicesXYZ(selectedSlicesXYZ),
 m_sliceWidthHeight(sliceWidthHeight),
 m_sliceViewPlane(sliceViewPlane),
+m_mprOrientationMode(mprOrientationMode),
 m_rotationMatrix(rotationMatrix)
 {
     const float cameraOffsetDistance(sliceWidthHeight * 2.0);
@@ -92,6 +96,17 @@ m_rotationMatrix(rotationMatrix)
     m_planeUpVector.set(0.0, 0.0, 0.0);
     m_planeRightVector.set(0.0, 0.0, 0.0);
     
+    switch (m_mprOrientationMode) {
+        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+            m_neurologicalOrientationFlag = true;
+            m_radiologicalOrientationFlag = false;
+            break;
+        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+            m_neurologicalOrientationFlag = false;
+            m_radiologicalOrientationFlag = true;
+            break;
+    }
+    
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             break;
@@ -100,6 +115,9 @@ m_rotationMatrix(rotationMatrix)
             m_cameraUpVector[1] = 1.0;
             
             m_planeRightVector[0] = 1.0;
+            if (m_radiologicalOrientationFlag) {
+                m_planeRightVector[0] = -1.0;
+            }
             m_planeUpVector[1] = 1.0;
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
@@ -107,6 +125,9 @@ m_rotationMatrix(rotationMatrix)
             m_cameraUpVector[2] = 1.0;
             
             m_planeRightVector[0] = 1.0;
+            if (m_radiologicalOrientationFlag) {
+                m_planeRightVector[0] = -1.0;
+            }
             m_planeUpVector[2] = 1.0;
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
@@ -160,6 +181,67 @@ m_rotationMatrix(rotationMatrix)
      */
     m_virtualSlicePlane.projectPointToPlane(volumeCenterXYZ,
                                             m_cameraLookAtXYZ);
+    
+    /*
+     * Does increasing slice coordinate direction face to the
+     * user or away from the user
+     */
+    bool sameDirectionFlag(false);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            /*
+             * In an axial view, the viewing vector that points to user
+             * is inferior to superior and so is increasing Z if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            /*
+             * In coronal view, the viewing vector that points to user
+             * is posterior to anterior and so is DECREASING Y if in
+             * neurological orientation
+             */
+            sameDirectionFlag = false;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            /*
+             * In parasagittal view, viewing vector that points to user
+             * is right to left and so is INCREASING X if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            break;
+    }
+    
+    if (m_radiologicalOrientationFlag) {
+        /*
+         * Need to flip sign of normal vector
+         */
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
+                                                              selectedSlicesXYZ);
+    }
+    else {
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
+                                                              selectedSlicesXYZ);
+    }
     
     /*
      * Camera is offset from the 'look at' on the virtual slice
@@ -566,6 +648,8 @@ MprVirtualSliceView::copyHelperMprVirtualSliceView(const MprVirtualSliceView& ob
     
     m_sliceViewPlane = obj.m_sliceViewPlane;
     
+    m_mprOrientationMode = obj.m_mprOrientationMode;
+    
     m_rotationMatrix = obj.m_rotationMatrix;
     
     m_transformationMatrix = obj.m_transformationMatrix;
@@ -581,6 +665,12 @@ MprVirtualSliceView::copyHelperMprVirtualSliceView(const MprVirtualSliceView& ob
     m_planeUpVector = obj.m_planeUpVector;
     
     m_virtualSlicePlane = obj.m_virtualSlicePlane;
+    
+    m_montageVirutalSliceIncreasingDirectionPlane = obj.m_montageVirutalSliceIncreasingDirectionPlane;
+    
+    m_neurologicalOrientationFlag = obj.m_neurologicalOrientationFlag;
+    
+    m_radiologicalOrientationFlag = obj.m_radiologicalOrientationFlag;
 }
 
 /**
@@ -620,6 +710,16 @@ MprVirtualSliceView::getPlane() const
 }
 
 /**
+ * @return Plane for using when increasing slices coordinates
+ * in montage view
+ */
+Plane
+MprVirtualSliceView::getMontageIncreasingDirectionPlane() const
+{
+    return m_montageVirutalSliceIncreasingDirectionPlane;
+}
+
+/**
  * @return Normal vector of virtual slice
  */
 Vector3D
@@ -628,6 +728,15 @@ MprVirtualSliceView::getNormalVector() const
     Vector3D n;
     m_virtualSlicePlane.getNormalVector(n);
     return n;
+}
+
+/**
+ * @return Center of volume
+ */
+Vector3D
+MprVirtualSliceView::getVolumeCenterXYZ() const
+{
+    return m_volumeCenterXYZ;;
 }
 
 
