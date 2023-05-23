@@ -181,7 +181,12 @@ m_rotationMatrix(rotationMatrix)
      */
     m_virtualSlicePlane.projectPointToPlane(volumeCenterXYZ,
                                             m_cameraLookAtXYZ);
-    
+    const bool rotationCorrectionFlag(true);
+    if (rotationCorrectionFlag) {
+        m_virtualSlicePlane.projectPointToPlane(selectedSlicesXYZ,
+                                                m_cameraLookAtXYZ);
+    }
+
     /*
      * Does increasing slice coordinate direction face to the
      * user or away from the user
@@ -248,6 +253,76 @@ m_rotationMatrix(rotationMatrix)
      */
     m_cameraXYZ = (m_cameraLookAtXYZ
                    + virtualSlicePlaneVector * cameraOffsetDistance);
+    
+    
+    m_preLookAtTranslation.fill(0.0);
+    m_postLookAtTranslation.fill(0.0);
+    if (rotationCorrectionFlag) {
+        Vector3D offsetOne(selectedSlicesXYZ - volumeCenterXYZ);
+        /*
+         * Allows user to rotate about the selected slices
+         * and NOT center of volume
+         */
+        Vector3D sliceXYZ;
+        m_virtualSlicePlane.projectPointToPlane(selectedSlicesXYZ,
+                                                sliceXYZ);
+        Vector3D centerXYZ;
+        m_virtualSlicePlane.projectPointToPlane(volumeCenterXYZ,
+                                                centerXYZ);
+        Vector3D offsetXYZ(sliceXYZ - centerXYZ);
+        std::cout << VolumeSliceViewPlaneEnum::toName(sliceViewPlane);
+        std::cout << " Offset 1: " << offsetOne.toString();
+        std::cout << "   Offset 2: " << offsetXYZ.toString() << std::endl;
+        std::cout << "   Selected XYZ: " << selectedSlicesXYZ.toString()
+        << " Projected: " << sliceXYZ.toString() << std::endl;
+        std::cout << "   Center XYZ: " << volumeCenterXYZ.toString()
+        << " Projected: " << centerXYZ.toString() << std::endl;
+//        m_postLookAtTranslation = offsetXYZ;
+        
+        
+        /*
+         * "+" is good "-" is bad
+         *
+         * Notes: Setting m_postLookAtTranslation to offsetXYZ
+         * - Selected point moves while rotating
+         * + Selected point selection stays at same position in slices
+         *
+         * Setting pre-look at X/Y
+         * + Rotation is about selected point
+         * + Slices remain in position when selected point is change if NO rotation
+         * - Slices move if selected point is changed and there is rotation
+         */
+//        Matrix4x4 m;
+//        m.translate(-offsetXYZ);
+//        m.postmultiply(m_rotationMatrix);
+////        m.translate(-offsetXYZ);
+//        m_rotationMatrix = m;
+        
+        Vector3D preOffset(offsetOne);
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_preLookAtTranslation[0] = preOffset[0];
+                m_preLookAtTranslation[1] = preOffset[1];
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_preLookAtTranslation[0] = preOffset[0];
+                m_preLookAtTranslation[1] = preOffset[2];
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_preLookAtTranslation[0] = -preOffset[1];
+                m_preLookAtTranslation[1] =  preOffset[2];
+                break;
+        }
+
+        m_rotationMatrix.multiplyPoint3(offsetOne);
+        m_rotationMatrix.multiplyPoint3(offsetXYZ);
+        std::cout << " Rotated Offset 1: " << offsetOne.toString();
+        std::cout << "   Offset 2: " << offsetXYZ.toString() << std::endl;
+
+    }
+
     //m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
 
@@ -664,6 +739,10 @@ MprVirtualSliceView::copyHelperMprVirtualSliceView(const MprVirtualSliceView& ob
     
     m_planeUpVector = obj.m_planeUpVector;
     
+    m_preLookAtTranslation = obj.m_preLookAtTranslation;
+    
+    m_postLookAtTranslation = obj.m_postLookAtTranslation;
+    
     m_virtualSlicePlane = obj.m_virtualSlicePlane;
     
     m_montageVirutalSliceIncreasingDirectionPlane = obj.m_montageVirutalSliceIncreasingDirectionPlane;
@@ -737,6 +816,24 @@ Vector3D
 MprVirtualSliceView::getVolumeCenterXYZ() const
 {
     return m_volumeCenterXYZ;;
+}
+
+/**
+ * @return Translation after look at view is set
+ */
+Vector3D
+MprVirtualSliceView::getPostLookAtTranslation() const
+{
+    return m_postLookAtTranslation;
+}
+
+/**
+ * @return Translation before look at view is set
+ */
+Vector3D
+MprVirtualSliceView::getPreLookAtTranslation() const
+{
+    return m_preLookAtTranslation;
 }
 
 

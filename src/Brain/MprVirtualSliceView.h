@@ -84,6 +84,10 @@ namespace caret {
         
         Vector3D getVolumeCenterXYZ() const;
         
+        Vector3D getPreLookAtTranslation() const;
+        
+        Vector3D getPostLookAtTranslation() const;
+        
         bool getTriangleFanCoordinates(const VolumeMappableInterface* volume,
                                        std::vector<Vector3D>& stereotaxicXyzOut,
                                        std::vector<Vector3D>& primtiveVertexXyzOut,
@@ -156,6 +160,10 @@ namespace caret {
         Vector3D m_planeRightVector;
         
         Vector3D m_planeUpVector;
+        
+        Vector3D m_preLookAtTranslation;
+        
+        Vector3D m_postLookAtTranslation;
         
         Plane m_virtualSlicePlane;
         

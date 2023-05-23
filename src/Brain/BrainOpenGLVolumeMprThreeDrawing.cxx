@@ -1848,6 +1848,9 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableI
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
+    /*
+     * Panning performed by user.  Apply before settting view.
+     */
     Vector3D translation;
     m_browserTabContent->getTranslation(translation);
     float tx(0.0), ty(0.0), tz(0.0);
@@ -1869,27 +1872,12 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableI
     }
     glTranslatef(tx, ty, tz);
 
-/*
- *
- switch (sliceViewPlane) {
- case VolumeSliceViewPlaneEnum::ALL:
- CaretAssert(0);
- break;
- case VolumeSliceViewPlaneEnum::AXIAL:
- offsetHoriz = leftToRightVector * (-translation[0]);
- offsetVert  = bottomToTopVector * (-translation[1]);
- break;
- case VolumeSliceViewPlaneEnum::CORONAL:
- offsetHoriz = leftToRightVector * (-translation[0]);
- offsetVert  = bottomToTopVector * (-translation[2]);
- break;
- case VolumeSliceViewPlaneEnum::PARASAGITTAL:
- offsetHoriz = leftToRightVector * (-translation[1]);
- offsetVert  = bottomToTopVector * (-translation[2]);
- break;
- }
+    /*
+     * Permits rotation around selected coordinate
+     */
+    const Vector3D prelt(mprSliceView.getPreLookAtTranslation());
+    glTranslatef(prelt[0], prelt[1], prelt[2]);
 
- */
     const Vector3D cameraXYZ(mprSliceView.getCameraXYZ());
     const Vector3D cameraLookAtXYZ(mprSliceView.getCameraLookAtXYZ());
     const Vector3D cameraUpVector(mprSliceView.getCameraUpVector());
@@ -1903,22 +1891,11 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeMappableI
               cameraUpVector[1],
               cameraUpVector[2]);
     
-//    Vector3D translation;
-//    m_browserTabContent->getTranslation(translation);
-//    switch (sliceViewPlane) {
-//        case VolumeSliceViewPlaneEnum::ALL:
-//            break;
-//        case VolumeSliceViewPlaneEnum::AXIAL:
-//            translation[2] = 0.0;
-//            break;
-//        case VolumeSliceViewPlaneEnum::CORONAL:
-//            translation[1] = 0.0;
-//            break;
-//        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//            translation[0] = 0.0;
-//            break;
-//    }
-//    glTranslatef(translation[0], translation[1], translation[2]);
+    /*
+     * Permits rotation around selected coordinate
+     */
+    const Vector3D plt(mprSliceView.getPostLookAtTranslation());
+    glTranslatef(plt[0], plt[1], plt[2]);
 }
 
 /**
