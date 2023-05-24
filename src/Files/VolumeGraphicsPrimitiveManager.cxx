@@ -234,12 +234,12 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const int32_t mapIndex,
                                                      tabIndex,
                                                      &rgbaSlice[0]);
         
-        for (int32_t j = 0; j < numberOfRows; j++) {
-            for (int32_t i = 0; i < numberOfColumns; i++) {
-                const int32_t sliceOffset = ((j * numberOfColumns) + i) * 4;
-                const int32_t textureOffset = ((k * numberOfColumns * numberOfRows)
+        for (int64_t j = 0; j < numberOfRows; j++) {
+            for (int64_t i = 0; i < numberOfColumns; i++) {
+                const int64_t sliceOffset = ((j * numberOfColumns) + i) * 4;
+                const int64_t textureOffset = ((k * numberOfColumns * numberOfRows)
                                                + (j * numberOfColumns) + i) * 4;
-                for (int32_t m = 0; m < 4; m++) {
+                for (int64_t m = 0; m < 4; m++) {
                     CaretAssertArrayIndex(imageRgbaPtr, numberOfTextureBytes, (textureOffset + m));
                     CaretAssertVectorIndex(rgbaSlice, sliceOffset + m);
                     imageRgbaPtr[textureOffset + m] = rgbaSlice[sliceOffset + m];
