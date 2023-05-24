@@ -356,6 +356,13 @@ main(int argc, char* argv[])
 
         
         BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+        if (myWindow == NULL) {
+            std::cerr << "Unable to create a window.  This may result if you are trying to run "
+            << "wb_view from a remote login to a computer.  You must use the display directly "
+            << "attached to the computer or use some sort of 'Remote Desktop' system." << std::endl;
+            return -1;
+        }
+        
         if ( ! myWindow->hasValidOpenGL()) {
             app.processEvents();
             WuQMessageBox::errorOk(NULL,
