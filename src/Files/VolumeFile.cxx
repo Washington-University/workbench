@@ -1662,7 +1662,39 @@ VolumeFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
     int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
     getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
     
+    const int64_t BIG_DIMS(400 * 400 * 400);
+    const int64_t volDim3(dimI * dimJ * dimK);
+    if (volDim3 > BIG_DIMS) {
+        /*
+         * Computation below can be very slow for LARGE
+         * VOLUMES.  Until that code can be improved
+         * just use coordinate bounds for entire volume.
+         * In almost every instance the non-zero volume
+         * data fills the volume.
+         */
+        getVoxelSpaceBoundingBox(boundingBoxOut);
+        return;
+    }
+    
     CaretAssert((mapIndex >= 0) && (mapIndex < getNumberOfMaps()));
+    
+    /*
+     * Note: Adding "collapse(4)" was faster but results were
+     * incorrect.  Adding "collapse(3) was not faster than
+     * without it but results were correct.
+     *
+     * For a 1000x1000x1000 volume using OpenMP reduces
+     * computation time from 915 second to 247 seconds
+     * on a MacBook Air with M1 processor.
+     *
+     * Optimization suggestion for a 'plumb' volume.
+     * Start at each face of volume
+     * and move one slice at a time until a non-zero voxel is
+     * encountered.  In other words, start with axial slice 0,
+     * then slice 1, etc.  Then start with last axial slice,
+     * next to last axial slice, etc. and same for other axis.
+     */
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int32_t i = 0; i < dimI; i++) {
         for (int32_t j = 0; j < dimJ; j++) {
             for (int32_t k = 0; k < dimK; k++) {
@@ -1670,14 +1702,16 @@ VolumeFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
                     if (getValue(i, j, k, mapIndex, m) != 0.0) {
                         float xyz[3];
                         indexToSpace(i, j, k, xyz);
-                        m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex]->update(xyz);
+#pragma omp critical
+                        {
+                            m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex]->update(xyz);
+                        }
                         break;
                     }
                 }
             }
         }
     }
-    
     boundingBoxOut = *m_nonZeroVoxelCoordinateBoundingBoxes[mapIndex];
 }
 
