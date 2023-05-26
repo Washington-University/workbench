@@ -409,10 +409,10 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
 
         const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
         
-        const int32_t imageWidth  = textureSettings.getImageWidth();
-        const int32_t imageHeight = textureSettings.getImageHeight();
-        const int32_t numBytesPerPixel = primitive->getTexturePixelFormatBytesPerPixel();
-        const int32_t imageNumberOfBytes = imageWidth * imageHeight * numBytesPerPixel;
+        const int64_t imageWidth  = textureSettings.getImageWidth();
+        const int64_t imageHeight = textureSettings.getImageHeight();
+        const int64_t numBytesPerPixel = primitive->getTexturePixelFormatBytesPerPixel();
+        const int64_t imageNumberOfBytes = imageWidth * imageHeight * numBytesPerPixel;
         if (imageNumberOfBytes <= 0) {
             CaretLogWarning("Invalid texture (empty data) for drawing primitive with 2D texture");
             return;
@@ -658,11 +658,11 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
 {
     const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
     
-    const int32_t imageWidth(textureSettings.getImageWidth());
-    const int32_t imageHeight(textureSettings.getImageHeight());
-    const int32_t imageSlices(textureSettings.getImageSlices());
-    const int32_t imageBytesPerPixel(primitive->getTexturePixelFormatBytesPerPixel());
-    const int32_t imageNumberOfBytes = imageWidth * imageHeight * imageSlices * imageBytesPerPixel;
+    const int64_t imageWidth(textureSettings.getImageWidth());
+    const int64_t imageHeight(textureSettings.getImageHeight());
+    const int64_t imageSlices(textureSettings.getImageSlices());
+    const int64_t imageBytesPerPixel(primitive->getTexturePixelFormatBytesPerPixel());
+    const int64_t imageNumberOfBytes = imageWidth * imageHeight * imageSlices * imageBytesPerPixel;
     if (imageNumberOfBytes <= 0) {
         CaretLogWarning("Invalid texture (empty data) for drawing primitive with 3D texture");
         return;

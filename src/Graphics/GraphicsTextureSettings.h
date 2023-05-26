@@ -112,17 +112,17 @@ namespace caret {
             ENABLED
         };
         
-        static std::shared_ptr<uint8_t> allocateImageRgbaData(const int32_t imageWidth,
-                                                              const int32_t imageHeight,
-                                                              const int32_t imageSlices,
+        static std::shared_ptr<uint8_t> allocateImageRgbaData(const int64_t imageWidth,
+                                                              const int64_t imageHeight,
+                                                              const int64_t imageSlices,
                                                               int64_t* optionalNumberOfBytesOut = NULL);
 
         GraphicsTextureSettings();
 
         GraphicsTextureSettings(std::shared_ptr<uint8_t>& imageRgbaData,
-                                const int32_t         imageWidth,
-                                const int32_t         imageHeight,
-                                const int32_t         imageSlices,
+                                const int64_t         imageWidth,
+                                const int64_t         imageHeight,
+                                const int64_t         imageSlices,
                                 const DimensionType   dimensionType,
                                 const PixelFormatType pixelFormatType,
                                 const PixelOrigin     pixelOrigin,
@@ -134,9 +134,9 @@ namespace caret {
                                 const std::array<float, 4>& borderColor);
         
         GraphicsTextureSettings(const uint8_t*        imageBytesPointer,
-                                const int32_t         imageWidth,
-                                const int32_t         imageHeight,
-                                const int32_t         imageSlices,
+                                const int64_t         imageWidth,
+                                const int64_t         imageHeight,
+                                const int64_t         imageSlices,
                                 const DimensionType   dimensionType,
                                 const PixelFormatType pixelFormatType,
                                 const PixelOrigin     pixelOrigin,
@@ -155,11 +155,11 @@ namespace caret {
         
         const uint8_t* getImageBytesPointer() const;
         
-        int32_t getImageWidth() const;
+        int64_t getImageWidth() const;
         
-        int32_t getImageHeight() const;
+        int64_t getImageHeight() const;
         
-        int32_t getImageSlices() const;
+        int64_t getImageSlices() const;
         
         DimensionType  getDimensionType() const;
         
@@ -206,11 +206,11 @@ namespace caret {
         
         uint8_t* m_imageBytesPointer = 0;
         
-        int32_t m_imageWidth = 0;
+        int64_t m_imageWidth = 0;
         
-        int32_t m_imageHeight = 0;
+        int64_t m_imageHeight = 0;
         
-        int32_t m_imageSlices = 0;
+        int64_t m_imageSlices = 0;
         
         DimensionType  m_dimensionType = DimensionType::NONE;
         

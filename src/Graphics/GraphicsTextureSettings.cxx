@@ -52,9 +52,9 @@ using namespace caret;
  *    Shared point containing memory for loading of rgba color components
  */
 std::shared_ptr<uint8_t>
-GraphicsTextureSettings::allocateImageRgbaData(const int32_t imageWidth,
-                                               const int32_t imageHeight,
-                                               const int32_t imageSlices,
+GraphicsTextureSettings::allocateImageRgbaData(const int64_t imageWidth,
+                                               const int64_t imageHeight,
+                                               const int64_t imageSlices,
                                                int64_t* optionalNumberOfBytesOut)
 {
     CaretAssert(imageWidth > 0);
@@ -120,9 +120,9 @@ m_imageBytesPointer(NULL)
  *    Color for texture border (used where there is no texture data)
  */
 GraphicsTextureSettings::GraphicsTextureSettings(std::shared_ptr<uint8_t>& imageRgbaData,
-                                                 const int32_t         imageWidth,
-                                                 const int32_t         imageHeight,
-                                                 const int32_t         imageSlices,
+                                                 const int64_t         imageWidth,
+                                                 const int64_t         imageHeight,
+                                                 const int64_t         imageSlices,
                                                  const DimensionType   dimensionType,
                                                  const PixelFormatType pixelFormatType,
                                                  const PixelOrigin     pixelOrigin,
@@ -217,9 +217,9 @@ m_borderColor(borderColor)
  *    Color for texture border (used where there is no texture data)
  */
 GraphicsTextureSettings::GraphicsTextureSettings(const uint8_t*        imageBytesPointer,
-                                                 const int32_t         imageWidth,
-                                                 const int32_t         imageHeight,
-                                                 const int32_t         imageSlices,
+                                                 const int64_t         imageWidth,
+                                                 const int64_t         imageHeight,
+                                                 const int64_t         imageSlices,
                                                  const DimensionType   dimensionType,
                                                  const PixelFormatType pixelFormatType,
                                                  const PixelOrigin     pixelOrigin,
@@ -372,7 +372,7 @@ GraphicsTextureSettings::getImageBytesPointer() const
 /**
  * @return The widget of the image
  */
-int32_t
+int64_t
 GraphicsTextureSettings::getImageWidth() const
 {
     return m_imageWidth;
@@ -381,7 +381,7 @@ GraphicsTextureSettings::getImageWidth() const
 /**
  * @return The height of the image
  */
-int32_t
+int64_t
 GraphicsTextureSettings::getImageHeight() const
 {
     return m_imageHeight;
@@ -390,7 +390,7 @@ GraphicsTextureSettings::getImageHeight() const
 /**
  * @return The number of slices in the image (2D is 1)
  */
-int32_t
+int64_t
 GraphicsTextureSettings::getImageSlices() const
 {
     return m_imageSlices;
