@@ -742,7 +742,6 @@ GroupAndNameHierarchyItem::copySelections(const int32_t sourceTabIndex,
             indent = "   ";
             break;
         case ITEM_TYPE_MODEL:
-            std::cout << std::endl;
             break;
         case ITEM_TYPE_NAME:
             indent = "      ";
