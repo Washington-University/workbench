@@ -20,7 +20,7 @@
 
 #include "MathFunctions.h"
 #include "Plane.h"
-
+#include "Vector3D.h"
 
 using namespace caret;
 
@@ -406,6 +406,21 @@ Plane::projectPointToPlane(const float pointIn[3],
     pointProjectedOut[0] = pointIn[0] - (t * m_normalVector[0]);
     pointProjectedOut[1] = pointIn[1] - (t * m_normalVector[1]);
     pointProjectedOut[2] = pointIn[2] - (t * m_normalVector[2]);
+}
+
+/**
+ * Project the given point to the plane.
+ * @param pointIn
+ *   Point that will be projected.
+ * @return
+ *   Coordinates of point after projection to the plane.
+ */
+Vector3D
+Plane::projectPointToPlane(const float pointIn[3]) const
+{
+    Vector3D pOut;
+    projectPointToPlane(pointIn, pOut);
+    return pOut;
 }
 
 /**

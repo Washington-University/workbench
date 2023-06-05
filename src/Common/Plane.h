@@ -27,6 +27,8 @@
 
 namespace caret {
 
+    class Vector3D;
+    
 ///Operations on a plane.
     class Plane : public CaretObject {
         
@@ -66,6 +68,8 @@ namespace caret {
         
         void projectPointToPlane(const float pointIn[3],
                                  float pointProjectedOut[3]) const;
+        
+        Vector3D projectPointToPlane(const float pointIn[3]) const;
         
         void getPlane(double& aOut,
                       double& bOut,
