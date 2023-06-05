@@ -27,7 +27,7 @@
 
 #include "Event.h"
 #include "Matrix4x4.h"
-
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -56,6 +56,8 @@ namespace caret {
         
         bool inverseTransformPoint(const float windowXYZ[3],
                                    float objectXYZOut[3]) const;
+        
+        Vector3D inverseTransformPoint(const float windowXYZ[3]) const;
         
         bool inverseTransformPoint(const float windowX,
                                    const float windowY,

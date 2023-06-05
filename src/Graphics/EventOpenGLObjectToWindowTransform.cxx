@@ -157,6 +157,22 @@ EventOpenGLObjectToWindowTransform::inverseTransformPoint(const float windowXYZ[
 }
 
 /**
+ * @return Window coordinate transformed to model coordinate
+ * @param windowXYZ
+ *    The window coordinate
+ * If the inverse transform is invalid, a message is logged.
+ */
+Vector3D
+EventOpenGLObjectToWindowTransform::inverseTransformPoint(const float windowXYZ[3]) const
+{
+    Vector3D modelXYZ(windowXYZ);
+    if ( ! inverseTransformPoint(windowXYZ, modelXYZ)) {
+        CaretLogSevere("Inverse transform failed");
+    }
+    return modelXYZ;
+}
+
+/**
  * Transform an object coordinate to a window coordinate.
  *
  * @param objectXYZ
