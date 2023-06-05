@@ -679,7 +679,7 @@ GraphicsOpenGLPolylineTriangles::createTrianglesFromWindowVertices(const int32_t
         0.0f
     };
     const float lineLength = MathFunctions::normalizeVector(startToEndVector);
-    if (lineLength < 0.001f) {
+    if (lineLength < 0.0000000001f) {
         const AString msg("This should not happen: Failure to filter coincident points with indices="
                           + AString::number(windowVertexOneIndex)
                           + ", "
