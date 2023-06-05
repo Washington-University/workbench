@@ -125,7 +125,42 @@ namespace caret {
         /** @return Y-Center  of viewport as float */
         float getCenterYF() const { return ((getBottomF() + getTopF()) / 2.0); }
         
+        /**
+         * @return Bottom left corner of viewport
+         */
+        Vector3D getBottomLeft() const {
+            return Vector3D(m_viewport[0],
+                            m_viewport[1],
+                            0.0);
+        }
 
+        /**
+         * @return Bottom right corner of viewport
+         */
+        Vector3D getBottomRight() const {
+            return Vector3D(m_viewport[0] + m_viewport[2],
+                            m_viewport[1],
+                            0.0);
+        }
+        
+        /**
+         * @return Top right corner of viewport
+         */
+        Vector3D getTopRight() const {
+            return Vector3D(m_viewport[0] + m_viewport[2],
+                            m_viewport[1] + m_viewport[3],
+                            0.0);
+        }
+        
+        /**
+         * @return Top left corner of viewport
+         */
+        Vector3D getTopLeft() const {
+            return Vector3D(m_viewport[0],
+                            m_viewport[1] + m_viewport[3],
+                            0.0);
+        }
+        
         bool isValid() const;
         
        // ADD_NEW_METHODS_HERE
