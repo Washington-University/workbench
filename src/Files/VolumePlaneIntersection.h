@@ -27,12 +27,12 @@
 
 #include "CaretObject.h"
 #include "Matrix4x4.h"
+#include "Plane.h"
 #include "Vector3D.h"
 
 namespace caret {
 
     class Matrix4x4;
-    class Plane;
     class VolumeMappableInterface;
     
     class VolumePlaneIntersection : public CaretObject {
@@ -54,17 +54,38 @@ namespace caret {
                                 std::vector<Vector3D>& intersectionPointsOut,
                                 AString& errorMessageOut) const;
         
-        void orientIntersectionPoints(const Plane& plane,
-                                      const Vector3D& centerOut,
-                                      std::vector<Vector3D>& intersectionPointsInOut) const;
-        
-        void sortIntersectionPoints(const Plane& plane,
-                                    Vector3D& centerOut,
-                                    std::vector<Vector3D>& intersectionPointsInOut) const;
-        
+        bool intersectWithRay(const Vector3D& rayOriginXYZ,
+                              const Vector3D& rayDirectionVector,
+                              std::vector<Vector3D>& intersectionPointsOut,
+                              AString& errorMessageOut) const;
+
         // ADD_NEW_METHODS_HERE
 
     private:
+        class Face {
+        public:
+            Face(const Vector3D& v1,
+                 const Vector3D& v2,
+                 const Vector3D& v3,
+                 const Vector3D& v4)
+            : m_v1(v1),
+            m_v2(v2),
+            m_v3(v3),
+            m_v4(v4) {
+                m_plane = Plane(m_v1, m_v2, m_v3);
+            }
+            
+            Plane m_plane;
+            
+            Vector3D m_v1;
+            
+            Vector3D m_v2;
+            
+            Vector3D m_v3;
+            
+            Vector3D m_v4;
+        };
+        
         class LineSegment {
         public:
             LineSegment(const Vector3D& v1,
@@ -82,20 +103,46 @@ namespace caret {
             Vector3D m_v2;
         };
         
+        void orientIntersectionPoints(const Plane& plane,
+                                      const Vector3D& centerOut,
+                                      std::vector<Vector3D>& intersectionPointsInOut) const;
+        
+        void sortIntersectionPoints(const Plane& plane,
+                                    Vector3D& centerOut,
+                                    std::vector<Vector3D>& intersectionPointsInOut) const;
+        
+        void createFaces() const;
+        
         const VolumeMappableInterface* m_volume;
         
         const Matrix4x4 m_matrix;
         
         std::vector<LineSegment> m_edges;
         
-        AString m_constructorErrorMessage;
+        mutable std::vector<Face> m_faces;
+        
+        mutable bool m_facesValidFlag = false;
+        
+        bool m_validFlag = false;
+        
+        Vector3D m_xyz000;
+        Vector3D m_xyzI00;
+        Vector3D m_xyzIJ0;
+        Vector3D m_xyz0J0;
+        
+        Vector3D m_xyz00K;
+        Vector3D m_xyzI0K;
+        Vector3D m_xyzIJK;
+        Vector3D m_xyz0JK;
+
+        static bool s_debugFlag;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __VOLUME_PLANE_INTERSECTION_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool VolumePlaneIntersection::s_debugFlag = false;
 #endif // __VOLUME_PLANE_INTERSECTION_DECLARE__
 
 } // namespace

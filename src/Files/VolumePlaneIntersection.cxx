@@ -69,20 +69,22 @@ m_matrix(matrix)
 
     CaretAssert(volume);
     if (volume == NULL) {
-        m_constructorErrorMessage = "Volume is invalid (NULL)";
+        CaretLogSevere("Volume is invalid (NULL)");
         return;
     }
     
     std::vector<int64_t> dims;
     m_volume->getDimensions(dims);
     if (dims.size() < 3) {
-        m_constructorErrorMessage = "Volume dimensions are less than three";
+        CaretLogSevere("Volume dimensions are less than three");
         return;
     }
     if ((dims[0] < 2) || (dims[1] < 2) || (dims[2] < 2)) {
-        m_constructorErrorMessage = "At least one dimension is less than two";
+        CaretLogSevere("At least one dimension is less than two");
         return;
     }
+    
+    m_validFlag = true;
     
     const float maxI(dims[0] - 1);
     const float maxJ(dims[1] - 1);
@@ -91,50 +93,92 @@ m_matrix(matrix)
     /*
      * Coordinates at volume's 8 corners
      */
-    Vector3D xyz000(m_volume->indexToSpace( 0.0,  0.0, 0.0));
-    Vector3D xyzI00(m_volume->indexToSpace(maxI,  0.0, 0.0));
-    Vector3D xyzIJ0(m_volume->indexToSpace(maxI, maxJ, 0.0));
-    Vector3D xyz0J0(m_volume->indexToSpace( 0.0, maxJ, 0.0));
+    m_xyz000 = m_volume->indexToSpace( 0.0,  0.0, 0.0);
+    m_xyzI00 = m_volume->indexToSpace(maxI,  0.0, 0.0);
+    m_xyzIJ0 = m_volume->indexToSpace(maxI, maxJ, 0.0);
+    m_xyz0J0 = m_volume->indexToSpace( 0.0, maxJ, 0.0);
     
-    Vector3D xyz00K(m_volume->indexToSpace( 0.0,  0.0, maxK));
-    Vector3D xyzI0K(m_volume->indexToSpace(maxI,  0.0, maxK));
-    Vector3D xyzIJK(m_volume->indexToSpace(maxI, maxJ, maxK));
-    Vector3D xyz0JK(m_volume->indexToSpace( 0.0, maxJ, maxK));
+    m_xyz00K = m_volume->indexToSpace( 0.0,  0.0, maxK);
+    m_xyzI0K = m_volume->indexToSpace(maxI,  0.0, maxK);
+    m_xyzIJK = m_volume->indexToSpace(maxI, maxJ, maxK);
+    m_xyz0JK = m_volume->indexToSpace( 0.0, maxJ, maxK);
     
     /*
      * Transform the coordinates at the volume's corners
      */
-    matrix.multiplyPoint3(xyz000);
-    matrix.multiplyPoint3(xyzI00);
-    matrix.multiplyPoint3(xyzIJ0);
-    matrix.multiplyPoint3(xyz0J0);
+    matrix.multiplyPoint3(m_xyz000);
+    matrix.multiplyPoint3(m_xyzI00);
+    matrix.multiplyPoint3(m_xyzIJ0);
+    matrix.multiplyPoint3(m_xyz0J0);
     
-    matrix.multiplyPoint3(xyz00K);
-    matrix.multiplyPoint3(xyzI0K);
-    matrix.multiplyPoint3(xyzIJK);
-    matrix.multiplyPoint3(xyz0JK);
+    matrix.multiplyPoint3(m_xyz00K);
+    matrix.multiplyPoint3(m_xyzI0K);
+    matrix.multiplyPoint3(m_xyzIJK);
+    matrix.multiplyPoint3(m_xyz0JK);
     
     /*
      * Line segments for the 12 edges
      */
-    m_edges.emplace_back(xyz000, xyzI00);
-    m_edges.emplace_back(xyzI00, xyzIJ0);
-    m_edges.emplace_back(xyzIJ0, xyz0J0);
-    m_edges.emplace_back(xyz0J0, xyz000);
+    m_edges.emplace_back(m_xyz000, m_xyzI00);
+    m_edges.emplace_back(m_xyzI00, m_xyzIJ0);
+    m_edges.emplace_back(m_xyzIJ0, m_xyz0J0);
+    m_edges.emplace_back(m_xyz0J0, m_xyz000);
     
-    m_edges.emplace_back(xyz00K, xyzI0K);
-    m_edges.emplace_back(xyzI0K, xyzIJK);
-    m_edges.emplace_back(xyzIJK, xyz0JK);
-    m_edges.emplace_back(xyz0JK, xyz00K);
+    m_edges.emplace_back(m_xyz00K, m_xyzI0K);
+    m_edges.emplace_back(m_xyzI0K, m_xyzIJK);
+    m_edges.emplace_back(m_xyzIJK, m_xyz0JK);
+    m_edges.emplace_back(m_xyz0JK, m_xyz00K);
     
-    m_edges.emplace_back(xyz000, xyz00K);
-    m_edges.emplace_back(xyzI00, xyzI0K);
-    m_edges.emplace_back(xyzIJ0, xyzIJK);
-    m_edges.emplace_back(xyz0J0, xyz0JK);
+    m_edges.emplace_back(m_xyz000, m_xyz00K);
+    m_edges.emplace_back(m_xyzI00, m_xyzI0K);
+    m_edges.emplace_back(m_xyzIJ0, m_xyzIJK);
+    m_edges.emplace_back(m_xyz0J0, m_xyz0JK);
     
     CaretAssert(m_edges.size() == 12);
 }
 
+/**
+ * Create the faces of the volume
+ */
+void
+VolumePlaneIntersection::createFaces() const
+{
+    if (m_facesValidFlag) {
+        return;
+    }
+    m_facesValidFlag = true;
+        
+    /* Bottom */
+    m_faces.emplace_back(m_xyz000, m_xyzI00, m_xyzIJ0, m_xyz0J0);
+    
+    /* Top */
+    m_faces.emplace_back(m_xyz00K, m_xyzI0K, m_xyzIJK, m_xyz0JK);
+    
+    /* Left */
+    m_faces.emplace_back(m_xyz000, m_xyz00K, m_xyz0JK, m_xyz0J0);
+    
+    /* Right */
+    m_faces.emplace_back(m_xyzI00, m_xyzI0K, m_xyzIJK, m_xyzIJ0);
+    
+    /* Near */
+    m_faces.emplace_back(m_xyz000, m_xyzI00, m_xyzI0K, m_xyz00K);
+    
+    /* Far */
+    m_faces.emplace_back(m_xyz0J0, m_xyzIJ0, m_xyzIJK, m_xyz0JK);
+    
+    if (s_debugFlag) {
+        for (auto& f : m_faces) {
+            std::cout << "Face: " << f.m_v1.toString() << std::endl;
+            std::cout << "      " << f.m_v2.toString() << std::endl;
+            std::cout << "      " << f.m_v3.toString() << std::endl;
+            std::cout << "      " << f.m_v4.toString() << std::endl;
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
+    }
+
+    CaretAssert(m_faces.size() == 6);
+}
 /**
  * Destructor.
  */
@@ -164,8 +208,7 @@ VolumePlaneIntersection::intersectWithPlane(const Plane& plane,
     intersectionPointsOut.clear();
     errorMessageOut.clear();
 
-    if ( ! m_constructorErrorMessage.isEmpty()) {
-        errorMessageOut = m_constructorErrorMessage;
+    if ( ! m_validFlag) {
         return false;
     }
     
@@ -320,5 +363,102 @@ VolumePlaneIntersection::orientIntersectionPoints(const Plane& plane,
     }
 }
 
+/**
+ * Intersect a ray with the volume
+ * @param rayOrigin
+ *    Origin of the ray
+ * @param rayDirectionVector
+ *    Direction vector of the ray
+ * @param centerOut
+ *    Contains point around which points were sorted (can be used for OpenGL Triangle Fan)
+ * @param intersectionPointsOut
+ *    Contains all intersection points that were found.  These points are ordered by
+ *    nearest distance to farest distance from the ray's origin.
+ * @param errorMessageOut
+ *    Contains message if error
+ * @return True if intersection is successful, else false.
+ */
+bool
+VolumePlaneIntersection::intersectWithRay(const Vector3D& rayOriginXYZ,
+                                          const Vector3D& rayDirectionVector,
+                                          std::vector<Vector3D>& intersectionPointsOut,
+                                          AString& errorMessageOut) const
+{
+    intersectionPointsOut.clear();
+    errorMessageOut.clear();
+
+    if ( ! m_validFlag) {
+        return false;
+    }
+
+    createFaces();
+    
+    /*
+     * Map that sorts intersection by distance from
+     * the ray's origin
+     */
+    std::map<float, Vector3D> distanceIntersectionXYZ;
+    
+    for (const auto& face : m_faces) {
+        Vector3D intersectionXYZ;
+        float distanceFromRayOrigin(0.0);
+        if (face.m_plane.rayIntersection(rayOriginXYZ,
+                                         rayDirectionVector,
+                                         intersectionXYZ,
+                                         distanceFromRayOrigin)) {
+            const float degenerateTolerance(0.0001);
+            bool insideFlag(false);
+            
+            /*
+             * Is point in triangle (half of side)?
+             * Use barycentric areas.  Orientation of triangle is unknown so if point
+             * is inside triangle all areas will be either negative or positive.
+             */
+            const float area1 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v1, face.m_v2, intersectionXYZ);
+            const float area2 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v2, face.m_v3, intersectionXYZ);
+            const float area3 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v3, face.m_v1, intersectionXYZ);
+            if ((area1 > -degenerateTolerance)
+                && (area2 > -degenerateTolerance)
+                && (area3 > -degenerateTolerance)) {
+                insideFlag = true;
+            }
+            if ((area1 < degenerateTolerance)
+                && (area2 < degenerateTolerance)
+                && (area3 < degenerateTolerance)) {
+                insideFlag = true;
+            }
+            if (insideFlag) {
+                distanceIntersectionXYZ.insert(std::make_pair(distanceFromRayOrigin,
+                                                              intersectionXYZ));
+            }
+            
+            if ( ! insideFlag) {
+                const float area4 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v1, face.m_v3, intersectionXYZ);
+                const float area5 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v3, face.m_v4, intersectionXYZ);
+                const float area6 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v4, face.m_v1, intersectionXYZ);
+                if ((area4 > -degenerateTolerance)
+                    && (area5 > -degenerateTolerance)
+                    && (area6 > -degenerateTolerance)) {
+                    insideFlag = true;
+                }
+                if ((area4 < degenerateTolerance)
+                    && (area5 < degenerateTolerance)
+                    && (area6 < degenerateTolerance)) {
+                    insideFlag = true;
+                }
+                if (insideFlag) {
+                    distanceIntersectionXYZ.insert(std::make_pair(distanceFromRayOrigin,
+                                                                  intersectionXYZ));
+                }
+            }
+        }
+    }
+    
+    for (auto& distXYZ: distanceIntersectionXYZ) {
+        intersectionPointsOut.push_back(distXYZ.second);
+    }
+    
+    return ( ! intersectionPointsOut.empty());
+}
 
 
