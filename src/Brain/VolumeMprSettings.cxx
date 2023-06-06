@@ -117,10 +117,10 @@ VolumeMprSettings::reset()
     m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
     m_viewMode        = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
     m_sliceThickness  = 20.0;
-    m_allViewThicknessEnabled           = false;
-    m_axialSliceThicknessEnabled        = false;
-    m_coronalSliceThicknessEnabled      = false;
-    m_parasagittalSliceThicknessEnabled = false;
+    m_allViewThicknessEnabled           = true;
+    m_axialSliceThicknessEnabled        = true;
+    m_coronalSliceThicknessEnabled      = true;
+    m_parasagittalSliceThicknessEnabled = true;
 }
 
 /**

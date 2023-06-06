@@ -1,5 +1,5 @@
-#ifndef __MPR_VIRTUAL_SLICE_VIEW_H__
-#define __MPR_VIRTUAL_SLICE_VIEW_H__
+#ifndef __VOLUME_MPR_VIRTUAL_SLICE_VIEW_H__
+#define __VOLUME_MPR_VIRTUAL_SLICE_VIEW_H__
 
 /*LICENSE_START*/
 /*
@@ -37,15 +37,22 @@ namespace caret {
     class SceneClassAssistant;
     class VolumeMappableInterface;
 
-    class MprVirtualSliceView : public CaretObject, public SceneableInterface {
+    class VolumeMprVirtualSliceView : public CaretObject, public SceneableInterface {
         
     public:
-        enum ViewType {
+        enum class ViewType {
             /*
              * Volume does not get transformed;
-             * Camera position is transformed
+             * Camera position is transformed with
+             * volume plane intersection
              */
-            ROTATE_CAMERA,
+            ROTATE_CAMERA_INTERSECTION,
+            /*
+             * Like rotate camera intersection but
+             * corners of viewport are projected to
+             * the rotated slice planes
+             */
+            ROTATE_SLICE_PLANES,
             /*
              * Volume is transformed;
              * Camera is not transformed
@@ -55,20 +62,20 @@ namespace caret {
         
         static ViewType getViewType();
         
-        MprVirtualSliceView();
+        VolumeMprVirtualSliceView();
         
-        MprVirtualSliceView(const Vector3D& volumeCenterXYZ,
+        VolumeMprVirtualSliceView(const Vector3D& volumeCenterXYZ,
                             const Vector3D& selectedSlicesXYZ,
                             const float sliceWidthHeight,
                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
                             const Matrix4x4& rotationMatrix);
 
-        virtual ~MprVirtualSliceView();
+        virtual ~VolumeMprVirtualSliceView();
         
-        MprVirtualSliceView(const MprVirtualSliceView& obj);
+        VolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj);
 
-        MprVirtualSliceView& operator=(const MprVirtualSliceView& obj);
+        VolumeMprVirtualSliceView& operator=(const VolumeMprVirtualSliceView& obj);
 
         Vector3D getCameraXYZ() const;
         
@@ -76,6 +83,8 @@ namespace caret {
         
         Vector3D getCameraUpVector() const;
 
+        Plane getLayersDrawingPlane() const;
+        
         Plane getPlane() const;
         
         Plane getMontageIncreasingDirectionPlane() const;
@@ -98,6 +107,9 @@ namespace caret {
                                      std::vector<Vector3D>& primtiveVertexXyzOut,
                                      std::vector<Vector3D>& primitiveTextureStrOut) const;
         
+        std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,
+                                                    const std::vector<Vector3D>& vertexXyz) const;
+
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -124,18 +136,21 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void copyHelperMprVirtualSliceView(const MprVirtualSliceView& obj);
+        void copyHelperVolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj);
 
+        void initializeModeRotatedCamera();
+        
+        void initializeModeRotatedSlices();
+        
+        void initializeModeRotatedVolume();
+        
         std::vector<Vector3D> createVirtualSliceTriangleFan(const VolumeMappableInterface* volume) const;
         
         std::vector<Vector3D> createVirtualSliceTriangles(const VolumeMappableInterface* volume) const;
-        
-        std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,
-                                                    const std::vector<Vector3D>& vertexXyz) const;
-        
+                
         std::vector<Vector3D> mapBackToStereotaxicCoordinates(const std::vector<Vector3D>& intersectionXyz) const;
         
-        //std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Vector3D m_volumeCenterXYZ;
         
@@ -167,22 +182,20 @@ namespace caret {
         
         Plane m_virtualSlicePlane;
         
+        Plane m_layersDrawingPlane;
+        
         Plane m_montageVirutalSliceIncreasingDirectionPlane;
 
         bool m_radiologicalOrientationFlag = false;
         
         bool m_neurologicalOrientationFlag = false;
         
-        static const ViewType s_viewType;
-        
-
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __MPR_VIRTUAL_SLICE_VIEW_DECLARE__
-    const MprVirtualSliceView::ViewType MprVirtualSliceView::s_viewType = MprVirtualSliceView::ViewType::ROTATE_CAMERA;
-#endif // __MPR_VIRTUAL_SLICE_VIEW_DECLARE__
+#ifdef __VOLUME_MPR_VIRTUAL_SLICE_VIEW_DECLARE__
+#endif // __VOLUME_MPR_VIRTUAL_SLICE_VIEW_DECLARE__
 
 } // namespace
-#endif  //__MPR_VIRTUAL_SLICE_VIEW_H__
+#endif  //__VOLUME_MPR_VIRTUAL_SLICE_VIEW_H__

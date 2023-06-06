@@ -171,7 +171,6 @@ MovieRecorderCaptureRegionTypeEnum.h
 MovieRecorderModeEnum.h
 MovieRecorderVideoFormatTypeEnum.h
 MovieRecorderVideoResolutionTypeEnum.h
-MprVirtualSliceView.h
 OffScreenSceneRendererBase.h
 OffScreenSceneRendererOSMesa.h
 OffScreenSceneRendererOpenGLWindow.h
@@ -231,6 +230,8 @@ ViewingTransformationsVolume.h
 VolumeMprOrientationModeEnum.h
 VolumeMprSettings.h
 VolumeMprViewModeEnum.h
+VolumeMprViewportSlice.h
+VolumeMprVirtualSliceView.h
 VolumeMontageCoordinateTextAlignmentEnum.h
 VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
@@ -383,7 +384,6 @@ MovieRecorderCaptureRegionTypeEnum.cxx
 MovieRecorderModeEnum.cxx
 MovieRecorderVideoFormatTypeEnum.cxx
 MovieRecorderVideoResolutionTypeEnum.cxx
-MprVirtualSliceView.cxx
 OffScreenSceneRendererBase.cxx
 OffScreenSceneRendererOSMesa.cxx
 OffScreenSceneRendererOpenGLWindow.cxx
@@ -443,6 +443,8 @@ ViewingTransformationsVolume.cxx
 VolumeMprOrientationModeEnum.cxx
 VolumeMprSettings.cxx
 VolumeMprViewModeEnum.cxx
+VolumeMprViewportSlice.cxx
+VolumeMprVirtualSliceView.cxx
 VolumeMontageCoordinateTextAlignmentEnum.cxx
 VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx

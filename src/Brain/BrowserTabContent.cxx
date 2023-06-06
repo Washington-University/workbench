@@ -94,7 +94,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "MouseEvent.h"
-#include "MprVirtualSliceView.h"
+#include "VolumeMprVirtualSliceView.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteColorMapping.h"
@@ -4313,7 +4313,23 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     sliceVector[1] = rotVector[1];
     sliceVector[2] = rotVector[2];
 #else
-    m_mprThreeRotationMatrix.multiplyPoint3(sliceVector);
+    switch (VolumeMprVirtualSliceView::getViewType()) {
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
+            /*
+             * Need to rotate about vector that points to
+             * the camera
+             */
+            m_mprThreeRotationMatrix.multiplyPoint3(sliceVector);
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
+            /*
+             * Camera is fixed to rotate about the
+             * selected axis (parasagittal, coronal,
+             * or Axial) normal vector
+             */
+            break;
+    }
 #endif
     
     float rotationAngleCCW(getMouseMovementAngleCCW(rotationCenterXYZ,
@@ -4371,16 +4387,52 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
 #else
-    switch (MprVirtualSliceView::getViewType()) {
-        case MprVirtualSliceView::ROTATE_CAMERA:
+    switch (VolumeMprVirtualSliceView::getViewType()) {
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             sliceVector = -sliceVector;
             break;
-        case MprVirtualSliceView::ROTATE_VOLUME:
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
             break;
     }
     Matrix4x4 m;
     m.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
     m_mprThreeRotationMatrix.postmultiply(m);
+//    m_mprThreeRotationMatrix.premultiply(m);
+
+    const bool printMatrixFlag(false);
+    if (printMatrixFlag) {
+        QMatrix4x4 rotMatrix;
+        rotMatrix.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
+        std::cout << "Q4x4:";
+        for (int32_t i = 0; i < 4; i++) {
+            std::cout << "[";
+            for (int32_t j = 0; j < 4; j++) {
+                if (j > 0) {
+                    std::cout << ", ";
+                }
+                std::cout << rotMatrix(i, j);
+            }
+            std::cout << "]";
+        }
+        std::cout << std::endl;
+        
+        std::cout << "WB 4x4:";
+        for (int32_t i = 0; i < 4; i++) {
+            std::cout << "[";
+            for (int32_t j = 0; j < 4; j++) {
+                if (j > 0) {
+                    std::cout << ", ";
+                }
+                std::cout << m.getMatrixElement(i, j);
+            }
+            std::cout << "]";
+        }
+        std::cout << std::endl;
+
+        std::cout << "Rotate " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
+        << " Vector: " << sliceVector.toString() << std::endl;
+    }
 #endif
 }
 
