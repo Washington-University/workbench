@@ -4175,11 +4175,7 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
                                          mouseXY,
                                          normalDirection);
     bool isClockwise = false;
-    bool isCounterClockwise = false;
-    if (normalDirection[2] > 0.0) {
-        isCounterClockwise = true;
-    }
-    else if (normalDirection[2] < 0.0) {
+    if (normalDirection[2] < 0.0) {
         isClockwise = true;
     }
     
@@ -4231,26 +4227,26 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
  *    Content of the viewport
  * @param viewport
  *    The viewport
- * @param mousePressXY
- *    XY where mouse was pressed when first dragging
- * @param mouseXY
- *    Current XY of mouse
+ * @param mousePressWindowXY
+ *    XY where mouse was pressed when first dragging in window coordinates
+ * @param mouseWindowXY
+ *    Current XY of mouse in window coordinate
  * @param previousMouseXY
- *    Previous XY of mouse
+ *    Previous XY of mouse in window coordinates
  */
 void
 BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
                                               const GraphicsViewport& viewport,
-                                              const Vector3D& mousePressXY,
-                                              const Vector3D& mouseXY,
-                                              const Vector3D& previousMouseXY)
+                                              const Vector3D& mousePressWindowXY,
+                                              const Vector3D& mouseWindowXY,
+                                              const Vector3D& previousMouseWindowXY)
 {
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
     GraphicsViewport sliceViewport;
     if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
         sliceViewPlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
                                                                                             getVolumeSlicePlanesAllViewLayout(),
-                                                                                            mousePressXY,
+                                                                                            mousePressWindowXY,
                                                                                             sliceViewport);
     }
 
@@ -4278,14 +4274,12 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           viewport.getYF(),
                                                           0.0));
     
-    bool neurologicalFlag(false);
     bool radiologicalFlag(false);
     switch (getVolumeMprOrientationMode()) {
         case VolumeMprOrientationModeEnum::RADIOLOGICAL:
             radiologicalFlag = true;
             break;
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            neurologicalFlag = true;
             break;
     }
     
@@ -4313,7 +4307,7 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     sliceVector[1] = rotVector[1];
     sliceVector[2] = rotVector[2];
 #else
-    switch (VolumeMprVirtualSliceView::getViewType()) {
+    switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
         case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
         case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             /*
@@ -4329,12 +4323,16 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
              * or Axial) normal vector
              */
             break;
+        case VolumeMprVirtualSliceView::ViewType::SLICES:
+            break;
     }
 #endif
     
-    float rotationAngleCCW(getMouseMovementAngleCCW(rotationCenterXYZ,
-                                              mouseXY,
-                                              previousMouseXY));
+    const Vector3D mouseViewportXY(mouseWindowXY - viewport.getBottomLeft());
+    const Vector3D previousMouseViewportXY(previousMouseWindowXY - viewport.getBottomLeft());
+    const float rotationAngleCCW(getMouseMovementAngleCCW(rotationCenterXYZ,
+                                                          mouseViewportXY,
+                                                          previousMouseViewportXY));
     if (MathFunctions::isNaN(rotationAngleCCW)) {
         CaretAssertMessage(0, "Mouse rotation angle is NaN");
         return;
@@ -4387,18 +4385,19 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
 #else
-    switch (VolumeMprVirtualSliceView::getViewType()) {
+    switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
         case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
         case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             sliceVector = -sliceVector;
             break;
         case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
             break;
+        case VolumeMprVirtualSliceView::ViewType::SLICES:
+            break;
     }
     Matrix4x4 m;
     m.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
     m_mprThreeRotationMatrix.postmultiply(m);
-//    m_mprThreeRotationMatrix.premultiply(m);
 
     const bool printMatrixFlag(false);
     if (printMatrixFlag) {

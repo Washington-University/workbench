@@ -57,19 +57,27 @@ namespace caret {
              * Volume is transformed;
              * Camera is not transformed
              */
-            ROTATE_VOLUME
+            ROTATE_VOLUME,
+            /*
+             * Creates slices with MPR rotation applied
+             * Look at, camara, etc are not used
+             */
+            SLICES
         };
         
-        static ViewType getViewType();
+        static ViewType getViewTypeForVolumeSliceView();
+        
+        static ViewType getViewTypeForAllView();
         
         VolumeMprVirtualSliceView();
         
-        VolumeMprVirtualSliceView(const Vector3D& volumeCenterXYZ,
-                            const Vector3D& selectedSlicesXYZ,
-                            const float sliceWidthHeight,
-                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                            const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
-                            const Matrix4x4& rotationMatrix);
+        VolumeMprVirtualSliceView(const ViewType viewType,
+                                  const Vector3D& volumeCenterXYZ,
+                                  const Vector3D& selectedSlicesXYZ,
+                                  const float sliceWidthHeight,
+                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                  const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
+                                  const Matrix4x4& rotationMatrix);
 
         virtual ~VolumeMprVirtualSliceView();
         
@@ -77,6 +85,8 @@ namespace caret {
 
         VolumeMprVirtualSliceView& operator=(const VolumeMprVirtualSliceView& obj);
 
+        ViewType getViewType() const;
+        
         Vector3D getCameraXYZ() const;
         
         Vector3D getCameraLookAtXYZ() const;
@@ -144,6 +154,8 @@ namespace caret {
         
         void initializeModeRotatedVolume();
         
+        void initializeModeSlices();
+        
         std::vector<Vector3D> createVirtualSliceTriangleFan(const VolumeMappableInterface* volume) const;
         
         std::vector<Vector3D> createVirtualSliceTriangles(const VolumeMappableInterface* volume) const;
@@ -152,6 +164,8 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
+        ViewType m_viewType;
+        
         Vector3D m_volumeCenterXYZ;
         
         Vector3D m_selectedSlicesXYZ;

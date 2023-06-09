@@ -85,13 +85,10 @@ namespace caret {
             VOLUME_2D
         };
         
-        VolumeMprVirtualSliceView createSliceInfo(const BrowserTabContent* browserTabContent,
-                                                  const VolumeMappableInterface* underlayVolume,
+        VolumeMprVirtualSliceView createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const Vector3D& sliceCoordinates) const;
 
-        VolumeMprVirtualSliceView createSliceInfo3D() const;
-        
         void drawSliceView(const BrainOpenGLViewportContent* viewportContent,
                            BrowserTabContent* browserTabContent,
                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
@@ -119,10 +116,8 @@ namespace caret {
         
         void setOrthographicProjection(const GraphicsViewport& viewport);
         
-        void setViewingTransformation(const VolumeMappableInterface* volume,
-                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                      const VolumeMprVirtualSliceView& mprSliceView,
-                                      const Vector3D& selectedSliceXYZ);
+        void setViewingTransformation(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                      const VolumeMprVirtualSliceView& mprSliceView);
 
         void drawSliceIntensityProjection2D(const VolumeMprVirtualSliceView& mprSliceView,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -151,11 +146,7 @@ namespace caret {
                                            const float mouseY);
 
         void performViewportSliceIdentification(const VolumeMprViewportSlice& mprViewportSlice,
-                                                const GraphicsPrimitive* slicePrimitive,
-                                                const VolumeMprVirtualSliceView& mprSliceView,
                                                 VolumeMappableInterface* volumeInterface,
-                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                const GraphicsViewport& viewport,
                                                 const float mouseX,
                                                 const float mouseY);
         
@@ -197,7 +188,8 @@ namespace caret {
 
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
         
-        void drawLayers(const VolumeMappableInterface* underlayVolume,
+        void drawLayers(const VolumeMprVirtualSliceView& mprSliceView,
+                        const VolumeMappableInterface* underlayVolume,
                         const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                         const Plane& slicePlane,
@@ -210,9 +202,6 @@ namespace caret {
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                             const GraphicsViewport& viewport);
 
-        float getSignedSliceThickness(const VolumeMappableInterface* volumeInterface,
-                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;
-        
         std::vector<Vector3D> getVolumeRayIntersections(VolumeMappableInterface* volume,
                                                         const Vector3D& rayOrigin,
                                                         const Vector3D& rayVector) const;
@@ -251,7 +240,6 @@ namespace caret {
 
         bool setPrimitiveCoordinates(const VolumeMprVirtualSliceView& mprSliceView,
                                      const VolumeMappableInterface* volume,
-                                     const Vector3D& sliceOffset,
                                      const std::vector<Vector3D>& triangleStripCoordinates,
                                      GraphicsPrimitiveV3fT3f* primitive);
         

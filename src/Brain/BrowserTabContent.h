@@ -742,9 +742,9 @@ namespace caret {
         
         void applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
                                         const GraphicsViewport& viewport,
-                                        const Vector3D& mousePressXY,
-                                        const Vector3D& mouseXY,
-                                        const Vector3D& previousMouseXY);
+                                        const Vector3D& mousePressWindowXY,
+                                        const Vector3D& mouseWindowXY,
+                                        const Vector3D& previousMouseWindowXY);
 
         float getMouseMovementAngleCCW(const Vector3D& rotationXY,
                                        const Vector3D& mouseXY,
