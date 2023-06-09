@@ -3039,6 +3039,9 @@ BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
 float
 BrowserTabContent::getMprRotationX() const
 {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        CaretLogSevere("Shold not be called with MPR three");
+    }
     return m_mprRotationX;
 }
 
@@ -3048,6 +3051,9 @@ BrowserTabContent::getMprRotationX() const
 float
 BrowserTabContent::getMprRotationY() const
 {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        CaretLogSevere("Shold not be called with MPR three");
+    }
     return m_mprRotationY;
 }
 
@@ -3057,6 +3063,9 @@ BrowserTabContent::getMprRotationY() const
 float
 BrowserTabContent::getMprRotationZ() const
 {
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+        CaretLogSevere("Shold not be called with MPR three");
+    }
     return m_mprRotationZ;
 }
 

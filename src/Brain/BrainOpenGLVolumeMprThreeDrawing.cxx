@@ -1388,27 +1388,31 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPla
     glPushMatrix();    
     glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
 
+    const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
+    double rotX, rotY, rotZ;
+    rotMat.getRotation(rotX, rotY, rotZ);
+                           
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             if (radiologicalFlag) {
-                glRotatef(-m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+                glRotatef(rotZ, 0.0, 0.0, 1.0);
             }
             else {
-                glRotatef(m_browserTabContent->getMprRotationZ(), 0.0, 0.0, 1.0);
+                glRotatef(-rotZ, 0.0, 0.0, 1.0);
             }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             if (radiologicalFlag) {
-                glRotatef(-m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
+                glRotatef(-rotY, 0.0, 0.0, 1.0);
             }
             else {
-                glRotatef(m_browserTabContent->getMprRotationY(), 0.0, 0.0, 1.0);
+                glRotatef(rotY, 0.0, 0.0, 1.0);
             }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            glRotatef(m_browserTabContent->getMprRotationX(), 0.0, 0.0, 1.0);
+            glRotatef(rotX, 0.0, 0.0, 1.0);
             break;
     }
 
