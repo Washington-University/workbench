@@ -2125,6 +2125,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
                                                 StructureEnum::ALL);
     
     float sliceThickness(-1.0);
+    bool sliceThicknessValidFlag(false);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             CaretAssert(0);
@@ -2132,16 +2133,19 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         case VolumeSliceViewPlaneEnum::AXIAL:
             if (m_browserTabContent->isVolumeMprAxialSliceThicknessEnabled()) {
                 sliceThickness = m_browserTabContent->getVolumeMprSliceThickness();
+                sliceThicknessValidFlag = true;
             }
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             if (m_browserTabContent->isVolumeMprCoronalSliceThicknessEnabled()) {
                 sliceThickness = m_browserTabContent->getVolumeMprSliceThickness();
+                sliceThicknessValidFlag = true;
             }
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             if (m_browserTabContent->isVolumeMprParasagittalSliceThicknessEnabled()) {
                 sliceThickness = m_browserTabContent->getVolumeMprSliceThickness();
+                sliceThicknessValidFlag = true;
             }
             break;
     }
@@ -2186,21 +2190,35 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
             Vector3D startXYZ(furthestIntersectionXYZ);
             Vector3D endXYZ(nearestIntersectionXYZ);
             
-            if (sliceThickness > 0.0) {
-                const float halfThickness(sliceThickness / 2.0);
-                if ((sliceCenterXYZ - startXYZ).length() > halfThickness) {
-                    startXYZ = (sliceCenterXYZ
-                                + (nearToFarVector * halfThickness));
+            if (sliceThicknessValidFlag) {
+                if (sliceThickness > 0.0) {
+                    const float halfThickness(sliceThickness / 2.0);
+                    
+                    /*
+                     * If the 'half thickness' distance is within the volume
+                     * adjust the start to the 'half thickness'
+                     */
+                    if ((sliceCenterXYZ - startXYZ).length() > halfThickness) {
+                        startXYZ = (sliceCenterXYZ
+                                    + (nearToFarVector * halfThickness));
+                    }
+                    
+                    /*
+                     * If the 'half thickness' distance is within the volume
+                     * adjust the end to the 'half thickness'
+                     */
+                    if ((sliceCenterXYZ - endXYZ).length() > halfThickness) {
+                        endXYZ = (sliceCenterXYZ
+                                  - (nearToFarVector * halfThickness));
+                    }
                 }
-                
-                if ((sliceCenterXYZ - endXYZ).length() > halfThickness) {
-                    endXYZ = (sliceCenterXYZ
-                                - (nearToFarVector * halfThickness));
+                else {
+                    /*
+                     * For zero thickness, just use the single slice
+                     */
+                    startXYZ = sliceCenterXYZ;
+                    endXYZ   = sliceCenterXYZ;
                 }
-            }
-            else {
-                startXYZ = sliceCenterXYZ;
-                endXYZ   = sliceCenterXYZ;
             }
             
             if (m_debugFlag) {
@@ -2217,9 +2235,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
             
             const float distance = (endXYZ - startXYZ).length();
             const Vector3D stepXYZ(farToNearVector * voxelSize);
-            float numSteps = distance / voxelSize;
+            int32_t numSteps = static_cast<int32_t>(distance / voxelSize);
             if (numSteps < 1) {
-                numSteps = 1; /* single slice*/
+                numSteps = 1;
+            }
+            if (numSteps == 1) {
+                startXYZ = sliceCenterXYZ;
             }
             if (m_debugFlag) {
                 std::cout << "Num Steps: " << numSteps << " Step XYZ: " << AString::fromNumbers(stepXYZ) << std::endl;
