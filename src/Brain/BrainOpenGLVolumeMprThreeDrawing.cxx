@@ -1861,24 +1861,26 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
      */
     Vector3D translation;
     m_browserTabContent->getTranslation(translation);
-    float tx(0.0), ty(0.0), tz(0.0);
+    float userTransX(0.0), userTransY(0.0), userTransZ(0.0);
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
-            tx = translation[0];
-            ty = translation[1];
+            userTransX = translation[0];
+            userTransY = translation[1];
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
-            tx = translation[0];
-            ty = translation[2];
+            userTransX = translation[0];
+            userTransY = translation[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            tx = translation[1];
-            ty = translation[2];
+            userTransX = translation[1];
+            userTransY = translation[2];
             break;
     }
-    glTranslatef(tx, ty, tz);
+    if (mprSliceView.getViewType() != VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES) {
+        glTranslatef(userTransX, userTransY, userTransZ);
+    }
 
     /*
      * Permits rotation around selected coordinate
@@ -1899,6 +1901,46 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
               cameraUpVector[1],
               cameraUpVector[2]);
     
+    if (mprSliceView.getViewType() == VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES) {
+        const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
+        Vector3D selectedOnSliceXYZ;
+        mprSliceView.getPlane().projectPointToPlane(selectedXYZ, selectedOnSliceXYZ);
+        
+        const Vector3D volumeCenterXYZ(mprSliceView.getVolumeCenterXYZ());
+        Vector3D volumeCenterOnSliceXYZ;
+        mprSliceView.getPlane().projectPointToPlane(volumeCenterXYZ, volumeCenterOnSliceXYZ);
+        
+        GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
+        
+        /*
+         * Get the translation that keeps the volume center
+         * at the center of the viewport.  This requires drawing
+         * a slice to move between model and window coordinates.
+         * The translation must be performed before setting the
+         * 'look at' so we need to set the 'look at' a
+         * second time.
+         */
+        Vector3D newTrans;
+        getPreTranslation(mprSliceView,
+                          newTrans);
+        
+        glLoadIdentity();
+        
+        glTranslatef(userTransX, userTransY, userTransZ);
+        
+        glTranslatef(newTrans[0], newTrans[1], newTrans[2]);
+        
+        gluLookAt(cameraXYZ[0],
+                  cameraXYZ[1],
+                  cameraXYZ[2],
+                  cameraLookAtXYZ[0],
+                  cameraLookAtXYZ[1],
+                  cameraLookAtXYZ[2],
+                  cameraUpVector[0],
+                  cameraUpVector[1],
+                  cameraUpVector[2]);
+    }
+
     /*
      * Permits rotation around selected coordinate
      */
@@ -1906,6 +1948,127 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
     glTranslatef(plt[0], plt[1], plt[2]);
 }
 
+/**
+ * Get the translation to keep volume centered
+ * @param mprSliceView
+ *   The MPR slice view
+ * @param translationOut
+ *    Output with translation
+ * @return
+ *    True if successful, else false.
+ */
+bool
+BrainOpenGLVolumeMprThreeDrawing::getPreTranslation(const VolumeMprVirtualSliceView& mprSliceView,
+                                                    Vector3D& translationOut) const
+{
+    translationOut.set(0.0, 0.0, 0.0);
+    
+    const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
+    Vector3D selectedOnSliceXYZ;
+    mprSliceView.getPlane().projectPointToPlane(selectedXYZ, selectedOnSliceXYZ);
+    const Vector3D volumeCenterXYZ(mprSliceView.getVolumeCenterXYZ());
+    Vector3D volumeCenterOnSliceXYZ;
+    mprSliceView.getPlane().projectPointToPlane(volumeCenterXYZ, volumeCenterOnSliceXYZ);
+    
+    Vector3D volumeCenterWindowXYZ;
+    Vector3D selectedSliceWindowXYZ;
+    
+    GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
+    Vector3D windowTLXYZ(viewport.getTopLeft() + Vector3D(1, -1, 0));
+    Vector3D windowTRXYZ(viewport.getTopRight() + Vector3D(-1, -1, 0));
+    Vector3D windowBLXYZ(viewport.getBottomLeft() + Vector3D(1, 1, 0));
+    Vector3D windowBRXYZ(viewport.getBottomRight() + Vector3D(-1, +1, 0));
+    Vector3D windowCenterXYZ(viewport.getCenterX(), viewport.getCenterY(), 0);
+    
+    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+    CaretAssert(m_volumeDrawInfo[0].volumeFile);
+    
+    const float bigValue(10000.0);
+    const Vector3D rightOffset(mprSliceView.getPlaneRightVector() * bigValue);
+    const Vector3D upOffset(mprSliceView.getPlaneUpVector() * bigValue);
+    float rgba[4] { 0.0, 0.0, 1.0, 1.0 };
+    std::unique_ptr<GraphicsPrimitiveV3f> p(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP, rgba));
+    p->addVertex(selectedOnSliceXYZ - rightOffset - upOffset);  /* BL */
+    p->addVertex(selectedOnSliceXYZ + rightOffset - upOffset);  /* BR */
+    p->addVertex(selectedOnSliceXYZ - rightOffset + upOffset);  /* TL */
+    p->addVertex(selectedOnSliceXYZ + rightOffset + upOffset);  /* TR */
+    if (m_debugFlag) {
+        std::cout << "Offset Right: " << rightOffset.toString() << " Up: " << upOffset.toString() << std::endl;
+        const int32_t numVert(p->getNumberOfVertices());
+        for (int32_t i = 0; i < numVert; i++) {
+            Vector3D xyz;
+            p->getVertexFloatXYZ(i, xyz);
+            std::cout << "V: " << xyz.toString() << std::endl;
+        }
+    }
+
+    
+    /*
+     * Draw the slice so that project window to model works
+     */
+    glPushAttrib(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    GraphicsEngineDataOpenGL::draw(p.get());
+
+    /*
+     * Now that 'slice' has been drawn, get the depth values for the viewport corners
+     */
+    GLfloat tlDepth(0.0), trDepth(0.0), blDepth(0.0), brDepth(0.0), centerDepth(0.0);
+    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowTLXYZ[0], windowTLXYZ[1], tlDepth, rgba);
+    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowBLXYZ[0], windowBLXYZ[1], blDepth, rgba);
+    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowBRXYZ[0], windowBRXYZ[1], brDepth, rgba);
+    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowTRXYZ[0], windowTRXYZ[1], trDepth, rgba);
+    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowCenterXYZ[0], windowCenterXYZ[1], centerDepth, rgba);
+
+    glPopAttrib();
+
+    windowTLXYZ[2] = tlDepth;
+    windowTRXYZ[2] = trDepth;
+    windowBLXYZ[2] = blDepth;
+    windowBRXYZ[2] = brDepth;
+    
+    EventOpenGLObjectToWindowTransform xformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+    EventManager::get()->sendEvent(xformEvent.getPointer());
+    
+    Vector3D modelTLXYZ, modelTRXYZ, modelBLXYZ, modelBRXYZ;
+    if (xformEvent.inverseTransformPoint(windowTLXYZ, modelTLXYZ)
+        && xformEvent.inverseTransformPoint(windowTRXYZ, modelTRXYZ)
+        && xformEvent.inverseTransformPoint(windowBLXYZ, modelBLXYZ)
+        && xformEvent.inverseTransformPoint(windowBRXYZ, modelBRXYZ)
+        && xformEvent.transformPoint(volumeCenterOnSliceXYZ, volumeCenterWindowXYZ)
+        && xformEvent.transformPoint(selectedOnSliceXYZ, selectedSliceWindowXYZ)) {
+        const Vector3D modelProjTLXYZ(mprSliceView.getPlane().projectPointToPlane(modelTLXYZ));
+        const Vector3D modelProjBLXYZ(mprSliceView.getPlane().projectPointToPlane(modelBLXYZ));
+        if (m_debugFlag) {
+            std::cout << "Window TL: " << windowTLXYZ.toString() << " Model TL: " << modelTLXYZ.toString() << " Proj: " << modelProjTLXYZ.toString() << std::endl;
+            std::cout << "Window BL: " << windowBLXYZ.toString() << " Model BL: " << modelBLXYZ.toString() << " Proj: " << modelProjBLXYZ.toString() << std::endl;
+            std::cout << "Window BR: " << windowBRXYZ.toString() << " Model BR: " << modelBRXYZ.toString() << std::endl;
+            std::cout << "Window TR: " << windowTRXYZ.toString() << " Model TR: " << modelTRXYZ.toString() << std::endl;
+            std::cout << "Volume Center Window XYZ: " << volumeCenterWindowXYZ.toString() << std::endl;
+            std::cout << "Selected Slices Window XYZ: " << selectedSliceWindowXYZ.toString() << std::endl;
+        }
+        
+        const float winWidth((windowTRXYZ - windowTLXYZ).length());
+        const float winHeight((windowTLXYZ - windowBLXYZ).length());
+        const float modelWidth((modelTRXYZ - modelTLXYZ).length());
+        const float modelHeight((modelTLXYZ - modelBLXYZ).length());
+        const float scaleX(modelWidth / winWidth);
+        const float scaleY(modelHeight / winHeight);
+        
+        const Vector3D offsetOne(selectedSliceWindowXYZ - volumeCenterWindowXYZ);
+        const Vector3D offsetTwo(offsetOne[0] * scaleX,
+                                 offsetOne[1] * scaleY,
+                                 0.0);
+        translationOut = offsetTwo;
+
+        return true;
+    }
+    else {
+        return false;
+    }
+
+    return false;
+}
 /**
  * @return All intersections of ray with the the volume
  * @param volume
@@ -2630,17 +2793,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                             drawIntensityBackgroundSlice(primitive);
                         }
                         GraphicsEngineDataOpenGL::draw(primitive);
-                        
-//                        if (primitive->getNumberOfVertices() > 3) {
-//                            std::cout << "Draw: " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane) << std::endl;
-//                            Vector3D xyz;
-//                            primitive->getVertexFloatXYZ(0, xyz);
-//                            std::cout << "   v1=" << xyz.toString() << std::endl;
-//                            primitive->getVertexFloatXYZ(1, xyz);
-//                            std::cout << "   v2=" << xyz.toString() << std::endl;
-//                            primitive->getVertexFloatXYZ(2, xyz);
-//                            std::cout << "   v3=" << xyz.toString() << std::endl;
-//                        }
                     }
                 }
             }

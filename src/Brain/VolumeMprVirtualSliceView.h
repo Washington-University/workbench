@@ -97,6 +97,10 @@ namespace caret {
         
         Plane getPlane() const;
         
+        Vector3D getPlaneRightVector() const;
+        
+        Vector3D getPlaneUpVector() const;
+        
         Plane getMontageIncreasingDirectionPlane() const;
         
         Vector3D getNormalVector() const;

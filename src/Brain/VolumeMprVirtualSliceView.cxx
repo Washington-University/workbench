@@ -42,37 +42,6 @@ using namespace caret;
  * \ingroup Brain
  */
 
-//VolumeMprVirtualSliceView::ViewType
-//VolumeMprVirtualSliceView::getViewType()
-//{
-//    /*
-//     * Transform camera for slice and intersects a plane with the volume.
-//     * Using this method
-//     * DOES NOT change the volume's stereotaxic
-//     * coordinates.
-//     * Radiological mode DOES NOT WORK (backwards)
-//     * return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
-//     */
-//    //return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
-//    
-//    /*
-//     * Transforms camera and finds coordinates of plane at
-//     * the viewport's corners.
-//     *
-//     * return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES
-//     */
-//    return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES;
-//    
-//    /*
-//     * The problem with rotating the volume is that it
-//     * transforms the volume's stereotaxic coordinates.
-//     * Volume is intersected with a plane.
-//     * DO NOT USE
-//     *
-//     * return VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME;
-//     */
-//}
-
 /**
  * @return View type for drawing volume slices in VOLUME view
  */
@@ -87,7 +56,6 @@ VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()
      * Radiological mode DOES NOT WORK (backwards)
      * return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
      */
-    //return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
     
     /*
      * Transforms camera and finds coordinates of plane at
@@ -686,6 +654,13 @@ VolumeMprVirtualSliceView::initializeModeRotatedSlices()
                 m_preLookAtTranslation[1] =  offsetOne[2];
                 break;
         }
+        
+        /*
+         * Disable as this is now calculated when the
+         * slices are drawn.  The values set here will
+         * not work if there is any rotation.
+         */
+        m_preLookAtTranslation.set(0, 0, 0);
     }
 }
 
@@ -1514,6 +1489,24 @@ Plane
 VolumeMprVirtualSliceView::getPlane() const
 {
     return m_virtualSlicePlane;
+}
+
+/**
+ * @return The plane's right vector
+ */
+Vector3D
+VolumeMprVirtualSliceView::getPlaneRightVector() const
+{
+    return m_planeRightVector;
+}
+
+/**
+ * @return The plane's up vector
+ */
+Vector3D
+VolumeMprVirtualSliceView::getPlaneUpVector() const
+{
+    return m_planeUpVector;
 }
 
 /**
