@@ -7521,10 +7521,10 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
 /**
  * Get the depth and RGBA value at the given pixel position.
  *
- * @param pixelX
- *     The pixel X-coordinate
- * @param pixelY
- *     The pixel Y-coordinate
+ * @param windowX
+ *     The window X-coordinate
+ * @param Window Y
+ *     The window Y-coordinate
  * @param depthOut
  *     Output containing depth at pixel.
  * @param rgbaOut
@@ -7535,8 +7535,8 @@ BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* model,
  *
  */
 bool
-BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
-                                               const int32_t pixelY,
+BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t windowX,
+                                               const int32_t windowY,
                                                float& depthOut,
                                                float rgbaOut[4])
 {
@@ -7549,10 +7549,10 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT,
                   viewport);
-    if ((pixelX >= viewport[0])
-        && (pixelX < viewport[2])
-        && (pixelY >= viewport[1])
-        && (pixelY < viewport[3])) {
+    if ((windowX >= viewport[0])
+        && (windowX < (viewport[0] + viewport[2]))
+        && (windowY >= viewport[1])
+        && (windowY < (viewport[1] + viewport[3]))) {
         /* OK */
     }
     else {
@@ -7581,8 +7581,8 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
     glPixelStorei(GL_PACK_SKIP_ROWS, 0);
     glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float is 4 bytes */
-    glReadPixels(pixelX,
-                 pixelY,
+    glReadPixels(windowX,
+                 windowY,
                  1,
                  1,
                  GL_RGBA,
@@ -7592,8 +7592,8 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t pixelX,
     /*
      * Get depth from depth buffer
      */
-    glReadPixels(pixelX,
-                 pixelY,
+    glReadPixels(windowX,
+                 windowY,
                  1,
                  1,
                  GL_DEPTH_COMPONENT,

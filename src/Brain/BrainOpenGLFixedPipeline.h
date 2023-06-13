@@ -387,8 +387,8 @@ namespace caret {
         
         void disableLineAntiAliasing();
         
-        bool getPixelDepthAndRGBA(const int32_t pixelX,
-                                  const int32_t pixelY,
+        bool getPixelDepthAndRGBA(const int32_t windowX,
+                                  const int32_t windowY,
                                   float& depthOut,
                                   float rgbaOut[4]);
         
