@@ -29,6 +29,7 @@
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
 #include "NodeAndVoxelColoring.h"
+#include "Palette.h"
 #include "VolumeFile.h"
 
 #include <cmath>
@@ -102,13 +103,13 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
     timer.start();
     
     /*
-     * Pointer to map's data 
+     * Pointer to map's data
      */
     const float* mapDataPointer = m_volumeFile->getFrame(mapIndex);
     
     VolumeFile* thresholdVolume = NULL;
     int32_t thresholdVolumeMapIndex   = -1;
-
+    
     if (m_volumeFile->isMappedWithPalette()) {
         switch (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getThresholdType()) {
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
@@ -170,7 +171,31 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
         }
     }
     
-    switch (m_volumeFile->getType()) {
+    SubvolumeAttributes::VolumeType volumeType(m_volumeFile->getType());
+    
+    /*
+     * Test palette name to see if it is the special palette name for mapping
+     * first first three maps using RGB coloring
+     */
+    switch (volumeType) {
+        case SubvolumeAttributes::UNKNOWN:
+        case SubvolumeAttributes::ANATOMY:
+        case SubvolumeAttributes::FUNCTIONAL:
+            if (m_volumeFile->getNumberOfMaps() >= 3) {
+                if (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getSelectedPaletteName() == Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME) {
+                    volumeType = SubvolumeAttributes::RGB_WORKBENCH;
+                }
+            }
+            break;
+        case SubvolumeAttributes::LABEL:
+        case SubvolumeAttributes::RGB:
+        case SubvolumeAttributes::RGB_WORKBENCH:
+        case SubvolumeAttributes::SEGMENTATION:
+        case SubvolumeAttributes::VECTOR:
+            break;
+    }
+    
+    switch (volumeType) {
         case SubvolumeAttributes::UNKNOWN:
         case SubvolumeAttributes::ANATOMY:
         case SubvolumeAttributes::FUNCTIONAL:

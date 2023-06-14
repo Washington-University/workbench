@@ -1683,6 +1683,29 @@ PaletteFile::addDefaultPalettes()
         addPalette(posNeg);
     }
     
+    /*
+     * Special palette name that actually maps the
+     * volume's first three maps an RGB volume
+     */
+    if (this->getPaletteByName(Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME) == NULL) {
+        Palette rgbVolumePalette;
+        rgbVolumePalette.setName(Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME);
+        
+        const AString redName("RGB_Volume_RED");
+        const AString greenName("RGB_Volume_GREEN");
+        const AString blueName("RGB_Volume_BLUE");
+        
+        this->addColor(redName,  255,   0,   0);
+        this->addColor(greenName,  0, 255,   0);
+        this->addColor(blueName,   0,   0, 255);
+        
+        rgbVolumePalette.addScalarAndColor(1.0f,    blueName);
+        rgbVolumePalette.addScalarAndColor(0.333f,  greenName);
+        rgbVolumePalette.addScalarAndColor(-0.333f, redName);
+        
+        addPalette(rgbVolumePalette);
+    }
+    
     if (modifiedStatus == false) {
         this->clearModified();//this clears modified status on all members, to match our status
     }

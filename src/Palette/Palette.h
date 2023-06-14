@@ -124,6 +124,9 @@ namespace caret {
         /** "ROY-BIG-BL" palette */
         static const AString ROY_BIG_BL_PALETTE_NAME;
         
+        /** Special  palette name that is used but the file's three maps are mapped to red, green, blue*/
+        static const AString SPECIAL_RGB_VOLUME_PALETTE_NAME;
+        
     private:
         Palette* createSignSeparateInvertedPalette() const;
         
@@ -152,6 +155,7 @@ namespace caret {
     const AString Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME = "Gray_Interp_Positive";
     //const AString Palette::NONE_COLOR_NAME = "none";
     const AString Palette::ROY_BIG_BL_PALETTE_NAME = "ROY-BIG-BL";
+    const AString Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME = "Special-RGB-Volume";
 #endif // __PALETTE_DEFINE__
 } // namespace
 
