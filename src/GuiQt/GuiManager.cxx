@@ -999,8 +999,13 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
                      iter != modifiedDataFiles.end();
                      iter++) {
                     const CaretDataFile* cdf = *iter;
+                    AString name(cdf->getFileName());
+                    if (name.isEmpty()) {
+                        name = ("Unnamed "
+                                + DataFileTypeEnum::toGuiName(cdf->getDataFileType()));
+                    }
                     infoTextMsg.appendWithNewLine("<li> "
-                                                  + cdf->getFileNameNoPath());
+                                                  + name);
                 }
             }
             
@@ -1013,8 +1018,13 @@ GuiManager::testForModifiedFiles(const TestModifiedMode testModifiedMode,
                  iter != paletteModifiedDataFiles.end();
                  iter++) {
                 const CaretDataFile* cdf = *iter;
+                AString name(cdf->getFileName());
+                if (name.isEmpty()) {
+                    name = ("Unnamed "
+                            + DataFileTypeEnum::toGuiName(cdf->getDataFileType()));
+                }
                 infoTextMsg.appendWithNewLine("<li> "
-                                              + cdf->getFileNameNoPath());
+                                              + name);
             }
             infoTextMsg.appendWithNewLine("</ul>");
         }
