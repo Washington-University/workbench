@@ -7540,6 +7540,14 @@ BrainOpenGLFixedPipeline::getPixelDepthAndRGBA(const int32_t windowX,
                                                float& depthOut,
                                                float rgbaOut[4])
 {
+    GLboolean depthTestFlag(GL_FALSE);
+    glGetBooleanv(GL_DEPTH_TEST,
+                  &depthTestFlag);
+    if ( ! depthTestFlag) {
+        CaretLogSevere("This method has been called with OpenGL depth testing disabled so depth "
+                       "value returned will be invalid.");
+    }
+    
     depthOut   = -1.0;
     rgbaOut[0] =  0.0;
     rgbaOut[1] =  0.0;
