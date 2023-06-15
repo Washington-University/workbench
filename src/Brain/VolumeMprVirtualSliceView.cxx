@@ -56,14 +56,13 @@ VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()
      * Radiological mode DOES NOT WORK (backwards)
      * return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
      */
-    
     /*
      * Transforms camera and finds coordinates of plane at
      * the viewport's corners.
      *
      * return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES
      */
-    return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES;
+//    return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES;
     
     /*
      * The problem with rotating the volume is that it
@@ -73,6 +72,9 @@ VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()
      *
      * return VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME;
      */
+    
+    return VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA;
+    
 }
 
 /**
@@ -148,6 +150,9 @@ m_rotationMatrix(rotationMatrix)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            initializeModeFixedCamera();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
             initializeModeRotatedCamera();
             break;
@@ -239,6 +244,9 @@ VolumeMprVirtualSliceView::initializeModeRotatedCamera()
                                   origin);
     
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            CaretAssertToDoFatal();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
 
@@ -480,6 +488,9 @@ VolumeMprVirtualSliceView::initializeModeRotatedSlices()
                                   origin);
     
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            CaretAssertToDoFatal();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
         {
@@ -736,6 +747,9 @@ VolumeMprVirtualSliceView::initializeModeRotatedVolume()
     }
     
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            CaretAssertToDoFatal();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
             CaretAssert(0);
@@ -908,6 +922,9 @@ VolumeMprVirtualSliceView::initializeModeSlices()
     Vector3D vUp(m_volumeCenterXYZ + m_planeUpVector);
 
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            CaretAssertToDoFatal();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
             break;
@@ -994,6 +1011,222 @@ VolumeMprVirtualSliceView::initializeModeSlices()
     }
 }
 
+
+void
+VolumeMprVirtualSliceView::initializeModeFixedCamera()
+{
+    const float cameraOffsetDistance(m_sliceWidthHeight * 2.0);
+    
+    m_cameraXYZ.set(0.0, 0.0, 0.0);
+    m_cameraUpVector.set(0.0, 0.0, 0.0);
+    
+    m_planeUpVector.set(0.0, 0.0, 0.0);
+    m_planeRightVector.set(0.0, 0.0, 0.0);
+    
+    switch (m_sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            /*
+             * Neurological:
+             *   Looking towards negative Z axis from positive Z
+             *   Right is +X
+             *   Up    is +Y
+             * Radiological:
+             */
+            m_cameraUpVector.set(0.0, 1.0, 0.0);
+            
+            if (m_radiologicalOrientationFlag) {
+                m_planeRightVector.set(-1.0, 0.0, 0.0);
+            }
+            else {
+                m_planeRightVector.set(1.0, 0.0, 0.0);
+            }
+            m_planeUpVector.set(0.0, 1.0, 0.0);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            /*
+             * Neurological:
+             *   Looking towards positive Y from negative Y
+             *   Right is +X
+             *   Up    is +Z
+             * Radiological:
+             */
+            m_cameraUpVector.set(0.0, 0.0, 1.0);
+            
+            if (m_radiologicalOrientationFlag) {
+                m_planeRightVector.set(-1.0, 0.0, 0.0);
+            }
+            else {
+                m_planeRightVector.set(1.0, 0.0, 0.0);
+            }
+            m_planeUpVector.set(0.0, 0.0, 1.0);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            /*
+             * Neurological:
+             *   Looking towards positive X from negative X
+             *   Right is -Y
+             *   Up    is +Z
+             * Radiological:
+             *   None
+             */
+            m_cameraUpVector.set(0.0, 0.0, 1.0);
+            
+            m_planeRightVector.set(0.0, -1.0, 0.0);
+            m_planeUpVector.set(0.0, 0.0, 1.0);
+            break;
+    }
+    
+//    switch (getViewType()) {
+//        case ViewType::FIXED_CAMERA:
+//            /* OK */
+//            break;
+//        case ViewType::ROTATE_CAMERA_INTERSECTION:
+//        case ViewType::ROTATE_SLICE_PLANES:
+//            CaretAssert(0);
+//            break;
+//        case ViewType::ROTATE_VOLUME:
+//            CaretAssert(0);
+//        {
+//            const bool useTransformFlag(true);
+//            if (useTransformFlag) {
+//                Vector3D offset(m_selectedSlicesXYZ);
+//
+//                Matrix4x4 m1;
+//                m1.translate(offset);
+//
+//                Matrix4x4 m2(m_rotationMatrix);
+//
+//                Matrix4x4 m3;
+//                m3.translate(-offset);
+//
+//                m_transformationMatrix = m1;
+//                m_transformationMatrix.postmultiply(m2);
+//                m_transformationMatrix.postmultiply(m3);
+//            }
+//            else {
+//                m_transformationMatrix = m_rotationMatrix;
+//            }
+//        }
+//            break;
+//        case ViewType::SLICES:
+//            CaretAssert(0);
+//            break;
+//    }
+    
+    /*
+     * Set transformation matrix
+     */
+    const Vector3D transXYZ(m_selectedSlicesXYZ);
+    
+//    Matrix4x4 m1;
+//    m1.translate(offset);
+//
+//    Matrix4x4 m2(m_rotationMatrix);
+//
+//    Matrix4x4 m3;
+//    m3.translate(-offset);
+    
+    m_transformationMatrix.translate(-transXYZ);
+    m_transformationMatrix.postmultiply(m_rotationMatrix);
+    m_transformationMatrix.translate(transXYZ);
+
+    
+    const Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
+    
+    /*
+     * Virtual slice plane is placed at the selected slice coordinates
+     */
+    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
+                                m_selectedSlicesXYZ);
+    CaretAssert(m_virtualSlicePlane.isValidPlane());
+    
+    /*
+     * Camera "look at" is always center of the volume
+     */
+    m_cameraLookAtXYZ = m_volumeCenterXYZ;
+    
+    /*
+     * Set camera position
+     */
+    m_cameraXYZ = (m_cameraLookAtXYZ
+                   + (virtualSlicePlaneVector * cameraOffsetDistance));
+    
+    /*
+     * This may need to be translated and rotated
+     */
+    Vector3D layersDrawingVector(virtualSlicePlaneVector);
+    m_rotationMatrix.multiplyPoint3(layersDrawingVector);
+    m_layersDrawingPlane = Plane(layersDrawingVector,
+                                 m_selectedSlicesXYZ);
+//    m_layersDrawingPlane = m_virtualSlicePlane;
+    
+    /*
+     * Does increasing slice coordinate direction face to the
+     * user or away from the user
+     */
+    bool sameDirectionFlag(false);
+    switch (m_sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            /*
+             * In an axial view, the viewing vector that points to user
+             * is inferior to superior and so is increasing Z if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            /*
+             * In coronal view, the viewing vector that points to user
+             * is posterior to anterior and so is DECREASING Y if in
+             * neurological orientation
+             */
+            sameDirectionFlag = false;
+            
+            /*
+             * Radiological orientation flips viewing vector
+             */
+            if (m_radiologicalOrientationFlag) {
+                sameDirectionFlag = ( ! sameDirectionFlag);
+            }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            /*
+             * In parasagittal view, viewing vector that points to user
+             * is right to left and so is INCREASING X if in
+             * neurological orientation
+             */
+            sameDirectionFlag = true;
+            break;
+    }
+    
+    if (m_radiologicalOrientationFlag) {
+        /*
+         * Need to flip sign of normal vector
+         */
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
+                                                              m_selectedSlicesXYZ);
+    }
+    else {
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
+                                                              m_selectedSlicesXYZ);
+    }
+    
+    m_preLookAtTranslation.fill(0.0);
+    m_postLookAtTranslation.fill(0.0);
+}
+
 /**
  * Destructor.
  */
@@ -1068,6 +1301,9 @@ VolumeMprVirtualSliceView::getTrianglesCoordinates(const VolumeMappableInterface
     primtiveVertexXyzOut = createVirtualSliceTriangles(volume);
     
     switch (m_viewType) {
+        case ViewType::FIXED_CAMERA:
+            stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
             stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
             break;
@@ -1133,6 +1369,11 @@ VolumeMprVirtualSliceView::mapBackToStereotaxicCoordinates(const std::vector<Vec
     for (auto& volXYZ : intersectionXyz) {
         Vector3D xyz(volXYZ);
         switch (getViewType()) {
+            case ViewType::FIXED_CAMERA:
+                if (invMatrixValidFlag) {
+                    invM.multiplyPoint3(xyz);
+                }
+                break;
             case ViewType::ROTATE_CAMERA_INTERSECTION:
             case ViewType::ROTATE_SLICE_PLANES:
                 break;
@@ -1175,6 +1416,9 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangleFan(const VolumeMappableInt
 
     Matrix4x4 rotationMatrix;
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            CaretAssertToDoFatal();
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
             break;
@@ -1262,6 +1506,9 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
     
     Matrix4x4 rotationMatrix;
     switch (getViewType()) {
+        case ViewType::FIXED_CAMERA:
+            rotationMatrix = m_transformationMatrix;
+            break;
         case ViewType::ROTATE_CAMERA_INTERSECTION:
         case ViewType::ROTATE_SLICE_PLANES:
             rotationMatrix = m_transformationMatrix;
@@ -1416,6 +1663,8 @@ VolumeMprVirtualSliceView::operator=(const VolumeMprVirtualSliceView& obj)
 void 
 VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj)
 {
+    m_viewType = obj.m_viewType;
+    
     m_volumeCenterXYZ = obj.m_volumeCenterXYZ;
     
     m_selectedSlicesXYZ = obj.m_selectedSlicesXYZ;
@@ -1555,6 +1804,15 @@ Vector3D
 VolumeMprVirtualSliceView::getPostLookAtTranslation() const
 {
     return m_postLookAtTranslation;
+}
+
+/**
+ * @return The transformation matrix
+ */
+Matrix4x4
+VolumeMprVirtualSliceView::getTransformationMatrix() const
+{
+    return m_transformationMatrix;
 }
 
 /**

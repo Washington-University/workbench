@@ -342,6 +342,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
     Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
     
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
+        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            break;
         case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
         case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             if ( ! matrix.invert()) {
@@ -1156,6 +1158,8 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
 /**
  * Draw the panning crosshairs for slice
  *
+ * @param mprSliceView
+ *    The virtual slice info
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param crossHairXYZ
@@ -1164,7 +1168,8 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                       const Vector3D& crossHairXYZ,
                                                       const GraphicsViewport& viewport)
 {
@@ -1388,10 +1393,25 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPla
     glPushMatrix();    
     glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
 
-    const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
+    Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
+    switch (mprSliceView.getViewType()) {
+        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            if ( ! rotMat.invert()) {
+                CaretLogSevere("Failed to invert matrix for crosshair drawing");
+            }
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::SLICES:
+            break;
+    }
     double rotX, rotY, rotZ;
     rotMat.getRotation(rotX, rotY, rotZ);
-                           
+                   
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
             break;
@@ -1489,6 +1509,8 @@ BrainOpenGLVolumeMprThreeDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::E
 /**
  * Draw crosshairs for slice
  *
+ * @param mprSliceView
+ *    The virtual slice info
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -1497,7 +1519,8 @@ BrainOpenGLVolumeMprThreeDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::E
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                const Vector3D& sliceCoordinates,
                                                const GraphicsViewport& viewport)
 {
@@ -1540,7 +1563,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeSliceViewPlaneEnum:
     glLoadIdentity();
     
     /* start */
-    drawPanningCrosshairs(sliceViewPlane,
+    drawPanningCrosshairs(mprSliceView,
+                          sliceViewPlane,
                           crossHairXYZ,
                           viewport);
     
@@ -2489,7 +2513,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         case BrainModelMode::ALL_3D:
             break;
         case BrainModelMode::VOLUME_2D:
-            drawCrosshairs(sliceViewPlane,
+            drawCrosshairs(mprSliceView,
+                           sliceViewPlane,
                            sliceCoordinates,
                            viewport);
             break;
@@ -2661,6 +2686,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
             
             bool planesFlag(false);
             switch (mprSliceView.getViewType()) {
+                case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+                    break;
                 case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
                     break;
                 case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
@@ -2783,10 +2810,48 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     
                     if (drawAttributesFlag
                         && m_identificationModeFlag) {
-                        performViewportSliceIdentification(mprViewportSlice,
-                                                           volumeInterface,
-                                                           m_fixedPipelineDrawing->mouseX,
-                                                           m_fixedPipelineDrawing->mouseY);
+                        /*
+                         * To get correct depth values, slice must be drawn with
+                         * depth testing enabled.
+                         */
+                        glPushAttrib(GL_DEPTH_BUFFER_BIT);
+                        glEnable(GL_DEPTH_TEST);
+                        if (drawIntensitySliceBackgroundFlag) {
+                            drawIntensityBackgroundSlice(primitive);
+                        }
+                        GraphicsEngineDataOpenGL::draw(primitive);
+                        
+                        bool useTriangleIdentFlag(true);
+                        switch (mprSliceView.getViewType()) {
+                            case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+                                useTriangleIdentFlag = true;
+                                break;
+                            case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
+                                break;
+                            case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
+                                break;
+                            case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
+                                break;
+                            case VolumeMprVirtualSliceView::ViewType::SLICES:
+                                break;
+                        }
+                        if (useTriangleIdentFlag) {
+                            performTriangleIdentification(primitive,
+                                                          mprSliceView,
+                                                          volumeInterface,
+                                                          sliceViewPlane,
+                                                          viewport,
+                                                          m_fixedPipelineDrawing->mouseX,
+                                                          m_fixedPipelineDrawing->mouseY);
+                        }
+                        else {
+                            performViewportSliceIdentification(mprViewportSlice,
+                                                               volumeInterface,
+                                                               m_fixedPipelineDrawing->mouseX,
+                                                               m_fixedPipelineDrawing->mouseY);
+                        }
+                        
+                        glPopAttrib();
                     }
                     else {
                         if (drawIntensitySliceBackgroundFlag) {
@@ -2807,7 +2872,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
             case BrainModelMode::ALL_3D:
                 break;
             case BrainModelMode::VOLUME_2D:
-                drawCrosshairs(sliceViewPlane,
+                drawCrosshairs(mprSliceView,
+                               sliceViewPlane,
                                sliceCoordinates,
                                viewport);
                 break;
@@ -2969,12 +3035,21 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
         return;
     }
         
+    float depthValue(0.0);
+    float rgbaValues[4];
+    float mouseZ(0.0);
+    if (m_fixedPipelineDrawing->getPixelDepthAndRGBA(mouseX, mouseY,
+                                                     depthValue, rgbaValues)) {
+        std::cout << "Depth: " << depthValue << std::endl;
+        mouseZ = depthValue;
+    }
+
     /*
      * Project mouse coordinate to slice plane
      */
     const Vector3D mouseXYZ(mouseX,
                             mouseY,
-                            0.0);
+                            mouseZ);
     const Vector3D& slicePlaneXYZ(mprViewportSlice.mapWindowXyzToSliceXYZ(mouseXYZ));
     
     int64_t ijk[3];
@@ -2984,6 +3059,7 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isEnabledForSelection()) {
             if ( ! voxelID->isValid()) {
+                std::cout << "Viewport selection: " << slicePlaneXYZ.toString() << std::endl;
                 /*
                  * Get depth from depth buffer
                  */
@@ -3394,6 +3470,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
         glPushMatrix();
         
         switch (mprSliceView.getViewType()) {
+            case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            {
+                //Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
+                Matrix4x4 rotMat(mprSliceView.getTransformationMatrix());
+                GLfloat m[16];
+                rotMat.getMatrixForOpenGL(m);
+                glMultMatrixf(m);
+            }
+                break;
             case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
             case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
                 break;
@@ -3693,9 +3778,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
         case BrainModelMode::ALL_3D:
             break;
         case BrainModelMode::VOLUME_2D:
-            drawCrosshairs(sliceViewPlane,
+            CaretAssertToDoFatal();
+            /* Finish
+            drawCrosshairs(mprSliceView,
+                           sliceViewPlane,
                            sliceCoordinates,
                            viewport);
+            */
             break;
     }
 }

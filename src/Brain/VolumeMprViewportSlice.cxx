@@ -166,6 +166,7 @@ VolumeMprViewportSlice::mapToSlicePlane(const EventOpenGLObjectToWindowTransform
 {
     const Vector3D modelXYZ(transformEvent.inverseTransformPoint(windowXYZ));
     const Vector3D slicePlaneXYZ(m_plane.projectPointToPlane(modelXYZ));
+//    std::cout << "Window: " << windowXYZ.toString() << " Model: " << modelXYZ.toString() << " on plane: " << slicePlaneXYZ.toString() << std::endl;
     return slicePlaneXYZ;
 }
 

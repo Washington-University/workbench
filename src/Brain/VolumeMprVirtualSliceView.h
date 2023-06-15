@@ -42,6 +42,10 @@ namespace caret {
     public:
         enum class ViewType {
             /*
+             * Cameras are fixed, volume coordinates are transformed
+             */
+            FIXED_CAMERA,
+            /*
              * Volume does not get transformed;
              * Camera position is transformed with
              * volume plane intersection
@@ -111,6 +115,8 @@ namespace caret {
         
         Vector3D getPostLookAtTranslation() const;
         
+        Matrix4x4 getTransformationMatrix() const;
+        
         bool getTriangleFanCoordinates(const VolumeMappableInterface* volume,
                                        std::vector<Vector3D>& stereotaxicXyzOut,
                                        std::vector<Vector3D>& primtiveVertexXyzOut,
@@ -159,6 +165,8 @@ namespace caret {
         void initializeModeRotatedVolume();
         
         void initializeModeSlices();
+        
+        void initializeModeFixedCamera();
         
         std::vector<Vector3D> createVirtualSliceTriangleFan(const VolumeMappableInterface* volume) const;
         

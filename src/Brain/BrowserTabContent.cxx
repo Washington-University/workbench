@@ -4317,6 +4317,8 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     sliceVector[2] = rotVector[2];
 #else
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
+        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            break;
         case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
         case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             /*
@@ -4395,6 +4397,8 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
 #else
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
+        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            break;
         case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
         case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
             sliceVector = -sliceVector;

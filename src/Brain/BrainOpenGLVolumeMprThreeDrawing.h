@@ -175,11 +175,13 @@ namespace caret {
                                  const SelectionItemVolumeMprCrosshair::Axis sliceAxisID,
                                  const SelectionItemVolumeMprCrosshair::Axis rotationAxisID);
 
-        void drawCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
-        void drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawPanningCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                    const Vector3D& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         
