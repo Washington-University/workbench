@@ -554,6 +554,23 @@ float ReductionOperation::reduceWeightedExcludeDev(const float* data, const floa
     return reduceWeighted(excluded.data(), exweights.data(), excluded.size(), type);
 }
 
+bool ReductionOperation::isLengthOneReasonable(const ReductionEnum::Enum& type)
+{
+    switch(type)
+    {
+        case ReductionEnum::MAX:
+        case ReductionEnum::MIN:
+        case ReductionEnum::MEAN:
+        case ReductionEnum::SUM:
+        case ReductionEnum::L2NORM:
+        case ReductionEnum::PRODUCT:
+        case ReductionEnum::MEDIAN:
+            return true;
+        default:
+            return false;
+    }
+}
+
 AString ReductionOperation::getHelpInfo()
 {
     AString ret;

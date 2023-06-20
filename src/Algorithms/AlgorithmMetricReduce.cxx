@@ -86,7 +86,7 @@ AlgorithmMetricReduce::AlgorithmMetricReduce(ProgressObject* myProgObj, const Me
     int numNodes = metricIn->getNumberOfNodes();
     int numCols = metricIn->getNumberOfColumns();
     if (numCols < 1 || numNodes < 1) throw AlgorithmException("input must have at least 1 column and 1 vertex");
-    if (numCols == 1 && myReduce != ReductionEnum::ReductionEnum::MEAN && myReduce != ReductionEnum::ReductionEnum::SUM)
+    if (numCols == 1 && ! ReductionOperation::isLengthOneReasonable(myReduce))
     {
         CaretLogWarning("-metric-reduce is being used for a length=1 reduction on file '" + metricIn->getFileName() + "'");
     }

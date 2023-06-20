@@ -37,6 +37,7 @@ namespace caret {
         static float reduceWeighted(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type);
         static float reduceWeightedExcludeDev(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type, const float& numDevBelow, const float& numDevAbove);
         static float reduceWeightedOnlyNumeric(const float* data, const float* weights, const int64_t& numElems, const ReductionEnum::Enum& type);
+        static bool isLengthOneReasonable(const ReductionEnum::Enum& type);
         static AString getHelpInfo();
     };
     
