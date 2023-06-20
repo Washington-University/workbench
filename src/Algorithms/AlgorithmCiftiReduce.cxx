@@ -108,7 +108,7 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
     vector<int64_t> inDims = inputXML.getDimensions();
     if (direction == CiftiXML::ALONG_ROW)
     {
-        if (inDims[0] == 1)
+        if (inDims[0] == 1 && myReduce != ReductionEnum::ReductionEnum::MEAN && myReduce != ReductionEnum::ReductionEnum::SUM)
         {
             CaretLogWarning("-cifti-reduce is being used for a length=1 reduction on file '" + ciftiIn->getFileName() + "'");
         }
@@ -126,7 +126,7 @@ AlgorithmCiftiReduce::AlgorithmCiftiReduce(ProgressObject* myProgObj, const Cift
             ciftiOut->setRow(&result, *iter);//if reducing along row, length of output row is 1
         }
     } else {
-        if (inDims[direction] == 1)
+        if (inDims[direction] == 1 && myReduce != ReductionEnum::ReductionEnum::MEAN && myReduce != ReductionEnum::ReductionEnum::SUM)
         {
             CaretLogWarning("-cifti-reduce is being used for a length=1 reduction on file '" + ciftiIn->getFileName() + "'");
         }
