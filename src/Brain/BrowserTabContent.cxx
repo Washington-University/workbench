@@ -461,6 +461,9 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprThreeRotationQuaternion = tabToClone->m_mprThreeRotationQuaternion;
 #else
     m_mprThreeRotationMatrix = tabToClone->m_mprThreeRotationMatrix;
+    m_mprThreeAxialInverseRotationMatrix = tabToClone->m_mprThreeAxialInverseRotationMatrix;
+    m_mprThreeCoronalInverseRotationMatrix = tabToClone->m_mprThreeCoronalInverseRotationMatrix;
+    m_mprThreeParasagittalInverseRotationMatrix = tabToClone->m_mprThreeParasagittalInverseRotationMatrix;
 #endif
 
     Model* model = getModelForDisplay();
@@ -3083,6 +3086,9 @@ BrowserTabContent::resetMprRotations()
     m_mprThreeRotationQuaternion = QQuaternion();
 #else
     m_mprThreeRotationMatrix.identity();
+    m_mprThreeAxialInverseRotationMatrix.identity();
+    m_mprThreeCoronalInverseRotationMatrix.identity();
+    m_mprThreeParasagittalInverseRotationMatrix.identity();
 #endif
 }
 
@@ -3104,6 +3110,33 @@ BrowserTabContent::getMprThreeRotationMatrix() const
 #else
     return m_mprThreeRotationMatrix;
 #endif
+}
+
+/**
+ * @return The MPR rotation quaternion in a matrix for the given slice plane
+ * @param slicePlane
+ *    The slice plane
+ */
+Matrix4x4
+BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
+{
+    Matrix4x4 m(m_mprThreeRotationMatrix);
+    
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m.postmultiply(m_mprThreeAxialInverseRotationMatrix);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m.postmultiply(m_mprThreeCoronalInverseRotationMatrix);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m.postmultiply(m_mprThreeParasagittalInverseRotationMatrix);
+            break;
+    }
+    
+    return  m;
 }
 
 /**
@@ -4388,10 +4421,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
         }
     }
     QQuaternion rotationQuaternion(QQuaternion::fromRotationMatrix(m33));
-//    QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(sliceVector[0],
-//                                                                 sliceVector[1],
-//                                                                 sliceVector[2],
-//                                                                 rotationAngleCCW));
     CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
     m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
@@ -4412,6 +4441,23 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     m.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
     m_mprThreeRotationMatrix.postmultiply(m);
 
+    Matrix4x4 mInvert(m);
+    if (mInvert.invert()) {
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_mprThreeAxialInverseRotationMatrix.postmultiply(mInvert);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_mprThreeCoronalInverseRotationMatrix.postmultiply(mInvert);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_mprThreeParasagittalInverseRotationMatrix.postmultiply(mInvert);
+                break;
+        }
+    }
+    
     const bool printMatrixFlag(false);
     if (printMatrixFlag) {
         QMatrix4x4 rotMatrix;
@@ -5695,6 +5741,13 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
 #else
     const AString str(m_mprThreeRotationMatrix.getMatrixInRowMajorOrderString());
     sceneClass->addString("m_mprThreeRotationMatrix", str);
+    
+    sceneClass->addString("m_mprThreeAxialInverseRotationMatrix",
+                          m_mprThreeAxialInverseRotationMatrix.getMatrixInRowMajorOrderString());
+    sceneClass->addString("m_mprThreeCoronalInverseRotationMatrix",
+                          m_mprThreeCoronalInverseRotationMatrix.getMatrixInRowMajorOrderString());
+    sceneClass->addString("m_mprThreeParasagittalInverseRotationMatrix",
+                          m_mprThreeParasagittalInverseRotationMatrix.getMatrixInRowMajorOrderString());
 #endif
     
     return sceneClass;
@@ -6086,9 +6139,27 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 #else
     m_mprThreeRotationMatrix.identity();
-    const AString str(sceneClass->getStringValue("m_mprThreeRotationMatrix", ""));
-    if ( ! str.isEmpty()) {
-        m_mprThreeRotationMatrix.setMatrixFromRowMajorOrderString(str);
+    const AString strMpr(sceneClass->getStringValue("m_mprThreeRotationMatrix", ""));
+    if ( ! strMpr.isEmpty()) {
+        m_mprThreeRotationMatrix.setMatrixFromRowMajorOrderString(strMpr);
+    }
+    
+    m_mprThreeAxialInverseRotationMatrix.identity();
+    const AString strAxial(sceneClass->getStringValue("m_mprThreeAxialInverseRotationMatrix", ""));
+    if ( ! strAxial.isEmpty()) {
+        m_mprThreeAxialInverseRotationMatrix.setMatrixFromRowMajorOrderString(strAxial);
+    }
+
+    m_mprThreeCoronalInverseRotationMatrix.identity();
+    const AString strCoronal(sceneClass->getStringValue("m_mprThreeCoronalInverseRotationMatrix", ""));
+    if ( ! strCoronal.isEmpty()) {
+        m_mprThreeCoronalInverseRotationMatrix.setMatrixFromRowMajorOrderString(strCoronal);
+    }
+
+    m_mprThreeParasagittalInverseRotationMatrix.identity();
+    const AString strPara(sceneClass->getStringValue("m_mprThreeParasagittalInverseRotationMatrix", ""));
+    if ( ! strPara.isEmpty()) {
+        m_mprThreeParasagittalInverseRotationMatrix.setMatrixFromRowMajorOrderString(strPara);
     }
 #endif
 }
@@ -7550,6 +7621,9 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprThreeRotationQuaternion = btc->m_mprThreeRotationQuaternion;
 #else
                 m_mprThreeRotationMatrix = btc->m_mprThreeRotationMatrix;
+                m_mprThreeAxialInverseRotationMatrix = btc->m_mprThreeAxialInverseRotationMatrix;
+                m_mprThreeCoronalInverseRotationMatrix = btc->m_mprThreeCoronalInverseRotationMatrix;
+                m_mprThreeParasagittalInverseRotationMatrix = btc->m_mprThreeParasagittalInverseRotationMatrix;
 #endif
                 /**
                  * lighting enabled NOT yoked 
@@ -7701,6 +7775,9 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion;
 #else
                 btc->m_mprThreeRotationMatrix = m_mprThreeRotationMatrix;
+                btc->m_mprThreeAxialInverseRotationMatrix = m_mprThreeAxialInverseRotationMatrix;
+                btc->m_mprThreeCoronalInverseRotationMatrix = m_mprThreeCoronalInverseRotationMatrix;
+                btc->m_mprThreeParasagittalInverseRotationMatrix = m_mprThreeParasagittalInverseRotationMatrix;
 #endif
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 

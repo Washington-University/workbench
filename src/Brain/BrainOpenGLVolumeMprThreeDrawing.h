@@ -234,10 +234,14 @@ namespace caret {
         
         void setupIntensityModeBlending(const int32_t numSlicesDrawn);
         
-        void drawAllViewRotationAxes(const BrowserTabContent* browserTabContent,
+        void drawAllViewRotationThreeAxes(const BrowserTabContent* browserTabContent,
                                      const VolumeMappableInterface* underlayVolume,
                                      const int32_t viewport[4]);
 
+        void drawAllViewRotationAxes(const BrowserTabContent* browserTabContent,
+                                     const VolumeMappableInterface* underlayVolume,
+                                     const int32_t viewport[4]);
+        
         std::vector<Vector3D> getVolumeCorners(const VolumeMappableInterface* volume) const;
 
         bool setPrimitiveCoordinates(const VolumeMprVirtualSliceView& mprSliceView,

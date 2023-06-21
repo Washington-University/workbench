@@ -336,6 +336,8 @@ namespace caret {
         
         Matrix4x4 getMprThreeRotationMatrix() const;
         
+        Matrix4x4 getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane);
+        
         Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
@@ -866,6 +868,9 @@ namespace caret {
         QQuaternion m_mprThreeRotationQuaternion;
 #else
         Matrix4x4 m_mprThreeRotationMatrix;
+        Matrix4x4 m_mprThreeAxialInverseRotationMatrix;
+        Matrix4x4 m_mprThreeCoronalInverseRotationMatrix;
+        Matrix4x4 m_mprThreeParasagittalInverseRotationMatrix;
 #endif
 
         /** aspect ratio */

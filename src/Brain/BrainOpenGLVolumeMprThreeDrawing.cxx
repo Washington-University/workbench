@@ -292,9 +292,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
                                                                         allPlanesLayout,
                                                                         axisVP.data());
                     glPushMatrix();
-                    drawAllViewRotationAxes(browserTabContent,
-                                            underlayVolume,
-                                            axisVP.data());
+                    const bool drawAllThreeAxesFlag(true);
+                    if (drawAllThreeAxesFlag) {
+                        drawAllViewRotationThreeAxes(browserTabContent,
+                                                     underlayVolume,
+                                                     axisVP.data());
+                    }
+                    else {
+                        drawAllViewRotationAxes(browserTabContent,
+                                                underlayVolume,
+                                                axisVP.data());
+                    }
                     glPopMatrix();
                 }
                     break;
@@ -316,6 +324,280 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
             glPopMatrix();
         }
             break;
+    }
+}
+
+/**
+ * Draw a box showing the current rotation for each axis
+ * @param browserTabContent
+ *   Content of browser tab
+ * @param underlayVolume
+ *   The underlay volume
+ * @param viewport
+ *   The viewport
+ */
+void
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const BrowserTabContent* browserTabContent,
+                                                               const VolumeMappableInterface* underlayVolume,
+                                                               const int32_t viewportIn[4])
+{
+    CaretAssert(browserTabContent);
+    CaretAssert(underlayVolume);
+    
+    /*
+     * Set the modeling transformation
+     */
+    Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
+    
+    switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
+        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
+            if ( ! matrix.invert()) {
+                CaretLogSevere("Failed to invert MPR Rotation Matrix for Axis Drawing");
+                return;
+            }
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::SLICES:
+            break;
+    }
+    
+    const GraphicsViewport fullVP(viewportIn);
+    
+    const bool drawCylindersFlag(true);
+    const bool drawLabelsFlag(true);
+    
+    for (int32_t i = 0; i < 3; i++) {
+        GraphicsViewport viewport;
+        
+        const int32_t vpHalfWidth(fullVP.getWidth() / 2);
+        const int32_t vpHalfHeight(fullVP.getHeight() / 2);
+        
+        const float eyeOffsetDistance(100);
+        Vector3D lookAtUpVector;
+        Vector3D lookAtEye;
+        switch (i) {
+            case 0:
+                /*
+                 * Parasagittal view
+                 */
+                viewport = GraphicsViewport(fullVP.getLeft(),
+                                            fullVP.getCenterY(),
+                                            vpHalfWidth,
+                                            vpHalfHeight);
+                lookAtEye.set(-eyeOffsetDistance, 0.0, 0.0);
+                lookAtUpVector.set(0.0, 0.0, 1.0);
+                break;
+            case 1:
+                /*
+                 * Coronal view
+                 */
+                viewport = GraphicsViewport(fullVP.getCenterX(),
+                                            fullVP.getCenterY(),
+                                            vpHalfWidth,
+                                            vpHalfHeight);
+                lookAtEye.set(0.0, -eyeOffsetDistance, 0.0);
+                lookAtUpVector.set(0.0, 0.0, 1.0);
+                break;
+            case 2:
+                /*
+                 * Axial view
+                 */
+                viewport = GraphicsViewport(fullVP.getCenterX(),
+                                            fullVP.getBottom(),
+                                            vpHalfWidth,
+                                            vpHalfHeight);
+                lookAtEye.set(0.0, 0.0, eyeOffsetDistance);
+                lookAtUpVector.set(0.0, 1.0, 0.0);
+                break;
+        }
+        /*
+         * Set the viewport
+         */
+        glViewport(viewport.getX(),
+                   viewport.getY(),
+                   viewport.getWidth(),
+                   viewport.getHeight());
+        const double viewportWidth  = viewport.getWidthF();
+        const double viewportHeight = viewport.getHeightF();
+        
+        /*
+         * Determine bounds for orthographic projection
+         */
+        const double maxCoord = 100.0;
+        const double minCoord = -maxCoord;
+        double left   = 0.0;
+        double right  = 0.0;
+        double top    = 0.0;
+        double bottom = 0.0;
+        const double nearDepth = -1000.0;
+        const double farDepth  =  1000.0;
+        if (viewportHeight > viewportWidth) {
+            left  = minCoord;
+            right = maxCoord;
+            const double aspectRatio = (viewportHeight
+                                        / viewportWidth);
+            top   = maxCoord * aspectRatio;
+            bottom = minCoord * aspectRatio;
+        }
+        else {
+            const double aspectRatio = (viewportWidth
+                                        / viewportHeight);
+            top   = maxCoord;
+            bottom = minCoord;
+            left  = minCoord * aspectRatio;
+            right = maxCoord * aspectRatio;
+        }
+        /*
+         * Set the orthographic projection
+         */
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(left, right,
+                bottom, top,
+                nearDepth, farDepth);
+        
+        
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        {
+            /*
+             * Set the viewing transformation, places 'eye' so that it looks
+             * at the 'model' which is, in this case, the axes
+             */
+            const double centerX = 0;
+            const double centerY = 0;
+            const double centerZ = 0;
+            gluLookAt(lookAtEye[0], lookAtEye[1], lookAtEye[2],
+                      centerX, centerY, centerZ,
+                      lookAtUpVector[0], lookAtUpVector[1], lookAtUpVector[2]);
+            
+            double rotationMatrix[16];
+            matrix.getMatrixForOpenGL(rotationMatrix);
+            glMultMatrixd(rotationMatrix);
+            
+            
+            /*
+             * Disable depth buffer.  Otherwise, when volume slices are drawn
+             * black regions of the slices may set depth buffer and the occlude
+             * the axes from display.
+             */
+            GLboolean depthBufferEnabled = false;
+            glGetBooleanv(GL_DEPTH_TEST,
+                          &depthBufferEnabled);
+            glDisable(GL_DEPTH_TEST);
+            const float red[4] = {
+                1.0, 0.0, 0.0, 1.0
+            };
+            const float green[4] = {
+                0.0, 1.0, 0.0, 1.0
+            };
+            const float blue[4] = {
+                0.0, 0.0, 1.0, 1.0
+            };
+            
+            const double axisMaxCoord = maxCoord * 0.8;
+            const double axisMinCoord = -axisMaxCoord;
+            const double textMaxCoord = maxCoord * 0.9;
+            const double textMinCoord = -textMaxCoord;
+            
+            const float axialPlaneMin[3] = { 0.0, 0.0, (float)axisMinCoord };
+            const float axialPlaneMax[3] = { 0.0, 0.0, (float)axisMaxCoord };
+            const double axialTextMin[3]  = { 0.0, 0.0, (float)textMinCoord };
+            const double axialTextMax[3]  = { 0.0, 0.0, (float)textMaxCoord };
+            
+            const float coronalPlaneMin[3] = { (float)axisMinCoord, 0.0, 0.0 };
+            const float coronalPlaneMax[3] = { (float)axisMaxCoord, 0.0, 0.0 };
+            const double coronalTextMin[3]  = { (float)textMinCoord, 0.0, 0.0 };
+            const double coronalTextMax[3]  = { (float)textMaxCoord, 0.0, 0.0 };
+            
+            const float paraPlaneMin[3] = { 0.0, (float)axisMinCoord, 0.0 };
+            const float paraPlaneMax[3] = { 0.0, (float)axisMaxCoord, 0.0 };
+            const double paraTextMin[3]  = { 0.0, (float)textMinCoord, 0.0 };
+            const double paraTextMax[3]  = { 0.0, (float)textMaxCoord, 0.0 };
+            
+            /*
+             * Set radius as percentage of viewport height
+             */
+            float axesCrosshairRadius = 1.0;
+            if (viewportHeight > 0) {
+                const float percentageRadius = 0.005f;
+                axesCrosshairRadius = percentageRadius * viewportHeight;
+            }
+            
+            
+            const std::array<uint8_t, 4> backgroundRGBA = {
+                m_fixedPipelineDrawing->m_backgroundColorByte[0],
+                m_fixedPipelineDrawing->m_backgroundColorByte[1],
+                m_fixedPipelineDrawing->m_backgroundColorByte[2],
+                m_fixedPipelineDrawing->m_backgroundColorByte[3]
+            };
+            
+            AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            annotationText.setFontPercentViewportSize(5.0f);
+            annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+            annotationText.setTextColor(CaretColorEnum::CUSTOM);
+            annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+            annotationText.setCustomBackgroundColor(backgroundRGBA.data());
+            
+            if (drawCylindersFlag) {
+                m_fixedPipelineDrawing->drawCylinder(blue,
+                                                     axialPlaneMin,
+                                                     axialPlaneMax,
+                                                     axesCrosshairRadius * 0.5f);
+                m_fixedPipelineDrawing->drawCylinder(green,
+                                                     coronalPlaneMin,
+                                                     coronalPlaneMax,
+                                                     axesCrosshairRadius * 0.5f);
+                m_fixedPipelineDrawing->drawCylinder(red,
+                                                     paraPlaneMin,
+                                                     paraPlaneMax,
+                                                     axesCrosshairRadius * 0.5f);
+            }
+            
+            /*
+             * Draw axes labels after cyclinder (axes lines) so that
+             * the text background will obscure the cyclinders.
+             */
+            if (drawLabelsFlag) {
+                annotationText.setCustomTextColor(blue);
+                annotationText.setText("I");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMin,
+                                                              annotationText);
+                annotationText.setText("S");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(axialTextMax,
+                                                              annotationText);
+                
+                annotationText.setCustomTextColor(green);
+                annotationText.setText("L");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMin,
+                                                              annotationText);
+                annotationText.setText("R");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(coronalTextMax,
+                                                              annotationText);
+                
+                annotationText.setCustomTextColor(red);
+                annotationText.setText("P");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMin,
+                                                              annotationText);
+                
+                annotationText.setText("A");
+                m_fixedPipelineDrawing->drawTextAtModelCoords(paraTextMax,
+                                                              annotationText);
+            }
+        }
+        glPopMatrix();
+        
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+        glMatrixMode(GL_MODELVIEW);
     }
 }
 
@@ -1026,8 +1308,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     /*
      * Set the modeling transformation
      */
-    const Matrix4x4 rotationMatrix(m_browserTabContent->getMprThreeRotationMatrix());
-    
+    const Matrix4x4 rotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
+
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
        
@@ -3472,7 +3754,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
         switch (mprSliceView.getViewType()) {
             case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
             {
-                //Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
                 Matrix4x4 rotMat(mprSliceView.getTransformationMatrix());
                 GLfloat m[16];
                 rotMat.getMatrixForOpenGL(m);
