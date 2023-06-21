@@ -246,11 +246,7 @@ namespace caret {
 
         bool setPrimitiveCoordinates(const VolumeMprVirtualSliceView& mprSliceView,
                                      const VolumeMappableInterface* volume,
-                                     const std::vector<Vector3D>& triangleStripCoordinates,
                                      GraphicsPrimitiveV3fT3f* primitive);
-        
-        bool getPreTranslation(const VolumeMprVirtualSliceView& mprSliceView,
-                               Vector3D& translationOut) const;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 

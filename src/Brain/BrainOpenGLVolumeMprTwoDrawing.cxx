@@ -216,9 +216,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
 {
     CaretAssertVectorIndex(m_volumeDrawInfo, 0);
     const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
-    const int32_t axialSliceIndex(m_browserTabContent->getVolumeSliceIndexAxial(underlayVolume));
-    const int32_t coronalSliceIndex(m_browserTabContent->getVolumeSliceIndexCoronal(underlayVolume));
-    const int32_t parasagittalSliceIndex(m_browserTabContent->getVolumeSliceIndexParasagittal(underlayVolume));
 
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getVolumeSliceViewPlane());
     switch (sliceViewPlane) {

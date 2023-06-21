@@ -350,18 +350,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const BrowserTabC
     Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
     
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
-        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-            if ( ! matrix.invert()) {
-                CaretLogSevere("Failed to invert MPR Rotation Matrix for Axis Drawing");
-                return;
-            }
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::SLICES:
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
     }
     
@@ -624,18 +615,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
     Matrix4x4 matrix(m_browserTabContent->getMprThreeRotationMatrix());
     
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
-        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-            if ( ! matrix.invert()) {
-                CaretLogSevere("Failed to invert MPR Rotation Matrix for Axis Drawing");
-                return;
-            }
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::SLICES:
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
     }
 
@@ -1677,18 +1659,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
 
     Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
     switch (mprSliceView.getViewType()) {
-        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             if ( ! rotMat.invert()) {
                 CaretLogSevere("Failed to invert matrix for crosshair drawing");
             }
             break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::SLICES:
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
     }
     double rotX, rotY, rotZ;
@@ -2184,9 +2160,7 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
             userTransY = translation[2];
             break;
     }
-    if (mprSliceView.getViewType() != VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES) {
-        glTranslatef(userTransX, userTransY, userTransZ);
-    }
+    glTranslatef(userTransX, userTransY, userTransZ);
 
     /*
      * Permits rotation around selected coordinate
@@ -2207,46 +2181,6 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
               cameraUpVector[1],
               cameraUpVector[2]);
     
-    if (mprSliceView.getViewType() == VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES) {
-        const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
-        Vector3D selectedOnSliceXYZ;
-        mprSliceView.getPlane().projectPointToPlane(selectedXYZ, selectedOnSliceXYZ);
-        
-        const Vector3D volumeCenterXYZ(mprSliceView.getVolumeCenterXYZ());
-        Vector3D volumeCenterOnSliceXYZ;
-        mprSliceView.getPlane().projectPointToPlane(volumeCenterXYZ, volumeCenterOnSliceXYZ);
-        
-        GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
-        
-        /*
-         * Get the translation that keeps the volume center
-         * at the center of the viewport.  This requires drawing
-         * a slice to move between model and window coordinates.
-         * The translation must be performed before setting the
-         * 'look at' so we need to set the 'look at' a
-         * second time.
-         */
-        Vector3D newTrans;
-        getPreTranslation(mprSliceView,
-                          newTrans);
-        
-        glLoadIdentity();
-        
-        glTranslatef(userTransX, userTransY, userTransZ);
-        
-        glTranslatef(newTrans[0], newTrans[1], newTrans[2]);
-        
-        gluLookAt(cameraXYZ[0],
-                  cameraXYZ[1],
-                  cameraXYZ[2],
-                  cameraLookAtXYZ[0],
-                  cameraLookAtXYZ[1],
-                  cameraLookAtXYZ[2],
-                  cameraUpVector[0],
-                  cameraUpVector[1],
-                  cameraUpVector[2]);
-    }
-
     /*
      * Permits rotation around selected coordinate
      */
@@ -2254,127 +2188,6 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
     glTranslatef(plt[0], plt[1], plt[2]);
 }
 
-/**
- * Get the translation to keep volume centered
- * @param mprSliceView
- *   The MPR slice view
- * @param translationOut
- *    Output with translation
- * @return
- *    True if successful, else false.
- */
-bool
-BrainOpenGLVolumeMprThreeDrawing::getPreTranslation(const VolumeMprVirtualSliceView& mprSliceView,
-                                                    Vector3D& translationOut) const
-{
-    translationOut.set(0.0, 0.0, 0.0);
-    
-    const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
-    Vector3D selectedOnSliceXYZ;
-    mprSliceView.getPlane().projectPointToPlane(selectedXYZ, selectedOnSliceXYZ);
-    const Vector3D volumeCenterXYZ(mprSliceView.getVolumeCenterXYZ());
-    Vector3D volumeCenterOnSliceXYZ;
-    mprSliceView.getPlane().projectPointToPlane(volumeCenterXYZ, volumeCenterOnSliceXYZ);
-    
-    Vector3D volumeCenterWindowXYZ;
-    Vector3D selectedSliceWindowXYZ;
-    
-    GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
-    Vector3D windowTLXYZ(viewport.getTopLeft() + Vector3D(1, -1, 0));
-    Vector3D windowTRXYZ(viewport.getTopRight() + Vector3D(-1, -1, 0));
-    Vector3D windowBLXYZ(viewport.getBottomLeft() + Vector3D(1, 1, 0));
-    Vector3D windowBRXYZ(viewport.getBottomRight() + Vector3D(-1, +1, 0));
-    Vector3D windowCenterXYZ(viewport.getCenterX(), viewport.getCenterY(), 0);
-    
-    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
-    CaretAssert(m_volumeDrawInfo[0].volumeFile);
-    
-    const float bigValue(10000.0);
-    const Vector3D rightOffset(mprSliceView.getPlaneRightVector() * bigValue);
-    const Vector3D upOffset(mprSliceView.getPlaneUpVector() * bigValue);
-    float rgba[4] { 0.0, 0.0, 1.0, 1.0 };
-    std::unique_ptr<GraphicsPrimitiveV3f> p(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP, rgba));
-    p->addVertex(selectedOnSliceXYZ - rightOffset - upOffset);  /* BL */
-    p->addVertex(selectedOnSliceXYZ + rightOffset - upOffset);  /* BR */
-    p->addVertex(selectedOnSliceXYZ - rightOffset + upOffset);  /* TL */
-    p->addVertex(selectedOnSliceXYZ + rightOffset + upOffset);  /* TR */
-    if (m_debugFlag) {
-        std::cout << "Offset Right: " << rightOffset.toString() << " Up: " << upOffset.toString() << std::endl;
-        const int32_t numVert(p->getNumberOfVertices());
-        for (int32_t i = 0; i < numVert; i++) {
-            Vector3D xyz;
-            p->getVertexFloatXYZ(i, xyz);
-            std::cout << "V: " << xyz.toString() << std::endl;
-        }
-    }
-
-    
-    /*
-     * Draw the slice so that project window to model works
-     */
-    glPushAttrib(GL_DEPTH_BUFFER_BIT);
-    glEnable(GL_DEPTH_TEST);
-    GraphicsEngineDataOpenGL::draw(p.get());
-
-    /*
-     * Now that 'slice' has been drawn, get the depth values for the viewport corners
-     */
-    GLfloat tlDepth(0.0), trDepth(0.0), blDepth(0.0), brDepth(0.0), centerDepth(0.0);
-    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowTLXYZ[0], windowTLXYZ[1], tlDepth, rgba);
-    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowBLXYZ[0], windowBLXYZ[1], blDepth, rgba);
-    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowBRXYZ[0], windowBRXYZ[1], brDepth, rgba);
-    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowTRXYZ[0], windowTRXYZ[1], trDepth, rgba);
-    m_fixedPipelineDrawing->getPixelDepthAndRGBA(windowCenterXYZ[0], windowCenterXYZ[1], centerDepth, rgba);
-
-    glPopAttrib();
-
-    windowTLXYZ[2] = tlDepth;
-    windowTRXYZ[2] = trDepth;
-    windowBLXYZ[2] = blDepth;
-    windowBRXYZ[2] = brDepth;
-    
-    EventOpenGLObjectToWindowTransform xformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
-    EventManager::get()->sendEvent(xformEvent.getPointer());
-    
-    Vector3D modelTLXYZ, modelTRXYZ, modelBLXYZ, modelBRXYZ;
-    if (xformEvent.inverseTransformPoint(windowTLXYZ, modelTLXYZ)
-        && xformEvent.inverseTransformPoint(windowTRXYZ, modelTRXYZ)
-        && xformEvent.inverseTransformPoint(windowBLXYZ, modelBLXYZ)
-        && xformEvent.inverseTransformPoint(windowBRXYZ, modelBRXYZ)
-        && xformEvent.transformPoint(volumeCenterOnSliceXYZ, volumeCenterWindowXYZ)
-        && xformEvent.transformPoint(selectedOnSliceXYZ, selectedSliceWindowXYZ)) {
-        const Vector3D modelProjTLXYZ(mprSliceView.getPlane().projectPointToPlane(modelTLXYZ));
-        const Vector3D modelProjBLXYZ(mprSliceView.getPlane().projectPointToPlane(modelBLXYZ));
-        if (m_debugFlag) {
-            std::cout << "Window TL: " << windowTLXYZ.toString() << " Model TL: " << modelTLXYZ.toString() << " Proj: " << modelProjTLXYZ.toString() << std::endl;
-            std::cout << "Window BL: " << windowBLXYZ.toString() << " Model BL: " << modelBLXYZ.toString() << " Proj: " << modelProjBLXYZ.toString() << std::endl;
-            std::cout << "Window BR: " << windowBRXYZ.toString() << " Model BR: " << modelBRXYZ.toString() << std::endl;
-            std::cout << "Window TR: " << windowTRXYZ.toString() << " Model TR: " << modelTRXYZ.toString() << std::endl;
-            std::cout << "Volume Center Window XYZ: " << volumeCenterWindowXYZ.toString() << std::endl;
-            std::cout << "Selected Slices Window XYZ: " << selectedSliceWindowXYZ.toString() << std::endl;
-        }
-        
-        const float winWidth((windowTRXYZ - windowTLXYZ).length());
-        const float winHeight((windowTLXYZ - windowBLXYZ).length());
-        const float modelWidth((modelTRXYZ - modelTLXYZ).length());
-        const float modelHeight((modelTLXYZ - modelBLXYZ).length());
-        const float scaleX(modelWidth / winWidth);
-        const float scaleY(modelHeight / winHeight);
-        
-        const Vector3D offsetOne(selectedSliceWindowXYZ - volumeCenterWindowXYZ);
-        const Vector3D offsetTwo(offsetOne[0] * scaleX,
-                                 offsetOne[1] * scaleY,
-                                 0.0);
-        translationOut = offsetTwo;
-
-        return true;
-    }
-    else {
-        return false;
-    }
-
-    return false;
-}
 /**
  * @return All intersections of ray with the the volume
  * @param volume
@@ -2895,9 +2708,18 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                                                        const bool drawAttributesFlag,
                                                        const bool drawIntensitySliceBackgroundFlag)
 {
-    VolumeMprViewportSlice mprViewportSlice(viewport,
-                                      mprSliceView.getPlane());
-        
+    std::unique_ptr<VolumeMprViewportSlice> mprViewportSlice;
+    bool useTriangleIdentFlag(true);
+    switch (mprSliceView.getViewType()) {
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            useTriangleIdentFlag = true;
+            break;
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
+            mprViewportSlice.reset(new VolumeMprViewportSlice(viewport,
+                                                              mprSliceView.getPlane()));
+            break;
+    }
+
     /*
      * When performing voxel identification for editing voxels,
      * we need to draw EVERY voxel since the user may click
@@ -2966,38 +2788,14 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                 }
             }
             
-            bool planesFlag(false);
-            switch (mprSliceView.getViewType()) {
-                case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
-                    break;
-                case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-                    break;
-                case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-                    planesFlag = true;
-                    break;
-                case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-                    break;
-                case VolumeMprVirtualSliceView::ViewType::SLICES:
-                    break;
-            }
-            
-            GraphicsPrimitiveV3fT3f* primitive(NULL);
-            if (planesFlag) {
-                primitive = volumeInterface->getVolumeDrawingTriangleStripPrimitive(vdi.mapIndex,
-                                                                                    m_displayGroup,
-                                                                                    m_tabIndex);
-            }
-            else {
-                primitive = volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
-                                                                                m_displayGroup,
-                                                                                m_tabIndex);
-            }
+            GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
+                                                                                                   m_displayGroup,
+                                                                                                   m_tabIndex));
             if (primitive != NULL) {
                 const Vector3D sliceOffset(0.0, 0.0, 0.0);
 
                 const bool validPrimitiveFlag(setPrimitiveCoordinates(mprSliceView,
                                                                       volumeInterface,
-                                                                      mprViewportSlice.getTriangleStripXYZ(),
                                                                       primitive));
 
                 if (validPrimitiveFlag) {
@@ -3103,20 +2901,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         }
                         GraphicsEngineDataOpenGL::draw(primitive);
                         
-                        bool useTriangleIdentFlag(true);
-                        switch (mprSliceView.getViewType()) {
-                            case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
-                                useTriangleIdentFlag = true;
-                                break;
-                            case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-                                break;
-                            case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-                                break;
-                            case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-                                break;
-                            case VolumeMprVirtualSliceView::ViewType::SLICES:
-                                break;
-                        }
                         if (useTriangleIdentFlag) {
                             performTriangleIdentification(primitive,
                                                           mprSliceView,
@@ -3127,7 +2911,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                                                           m_fixedPipelineDrawing->mouseY);
                         }
                         else {
-                            performViewportSliceIdentification(mprViewportSlice,
+                            CaretAssert(mprViewportSlice);
+                            performViewportSliceIdentification(*mprViewportSlice.get(),
                                                                volumeInterface,
                                                                m_fixedPipelineDrawing->mouseX,
                                                                m_fixedPipelineDrawing->mouseY);
@@ -3752,7 +3537,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
         glPushMatrix();
         
         switch (mprSliceView.getViewType()) {
-            case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+            case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             {
                 Matrix4x4 rotMat(mprSliceView.getTransformationMatrix());
                 GLfloat m[16];
@@ -3760,18 +3545,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                 glMultMatrixf(m);
             }
                 break;
-            case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-            case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-                break;
-            case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            {
-                Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
-                GLfloat m[16];
-                rotMat.getMatrixForOpenGL(m);
-                glMultMatrixf(m);
-            }
-                break;
-            case VolumeMprVirtualSliceView::ViewType::SLICES:
+            case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
                 break;
         }
         /*
@@ -3895,15 +3669,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawIntensityBackgroundSlice(const GraphicsPri
  *    The plane for slice drawing.
  * @param sliceCoordinates
  *    Coordinates of the selected slice.
- * @param zooming
- *    Zooming by user
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                               const Vector3D& sliceCoordinates,
-                                                               const GraphicsViewport& viewport)
+                                                                 const Vector3D& sliceCoordinates,
+                                                                 const GraphicsViewport& viewport)
 {
     std::vector<std::pair<VolumeMappableInterface*,int32_t>> intensityVolumeFiles(getIntensityVolumeFilesAndMapIndices());
     if (intensityVolumeFiles.empty()) {
@@ -3997,15 +3769,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
             setupIntensityModeBlending(numSteps);
 
             for (int32_t iStep = 0; iStep < numSteps; iStep++) {
-                GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTriangleStripPrimitive(mapIndex,
-                                                                                                 m_displayGroup,
-                                                                                                 m_tabIndex));
+                GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTrianglesPrimitive(mapIndex,
+                                                                                                  m_displayGroup,
+                                                                                                  m_tabIndex));
                 
                 if (primitive != NULL) {
-                    std::vector<Vector3D> triangleStripXYZ;
                     setPrimitiveCoordinates(mprSliceView,
                                             volumeFile,
-                                            triangleStripXYZ,
                                             primitive);
                     
                     primitive->setTextureMinificationFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
@@ -4456,8 +4226,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
  *    Info about the slice
  * @param volume
  *    The volume
- * @param triangleStripXYZ
- *    Coordinates for triangle strip
  * @param primtive
  *    The graphics primitive
  * @return
@@ -4466,7 +4234,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
 bool
 BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtualSliceView& mprSliceView,
                                                           const VolumeMappableInterface* volume,
-                                                          const std::vector<Vector3D>& triangleStripXYZ,
                                                           GraphicsPrimitiveV3fT3f* primitive)
 {
     bool validFlag(false);
@@ -4520,20 +4287,6 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
                     Vector3D zeros(0.0, 0.0, 0.0);
                     primitive->replaceVertexFloatXYZ(i, zeros);
                     primitive->replaceVertexTextureSTR(i, zeros);
-                }
-            }
-        }
-        else if (primitive->getNumberOfVertices() == 4) {
-            const int32_t numVertices(triangleStripXYZ.size());
-            if (numVertices == primitive->getNumberOfVertices()) {
-                std::vector<Vector3D> textureSTR(mprSliceView.mapTextureCoordinates(volume,
-                                                                                    triangleStripXYZ));
-                if (numVertices == static_cast<int32_t>(textureSTR.size())) {
-                    for (int32_t i = 0; i < numVertices; i++) {
-                        primitive->replaceVertexFloatXYZ(i, triangleStripXYZ[i]);
-                        primitive->replaceVertexTextureSTR(i, textureSTR[i]);
-                    }
-                    validFlag = true;
                 }
             }
         }

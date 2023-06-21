@@ -42,31 +42,14 @@ namespace caret {
     public:
         enum class ViewType {
             /*
-             * Cameras are fixed, volume coordinates are transformed
-             */
-            FIXED_CAMERA,
-            /*
-             * Volume does not get transformed;
-             * Camera position is transformed with
-             * volume plane intersection
-             */
-            ROTATE_CAMERA_INTERSECTION,
-            /*
-             * Like rotate camera intersection but
-             * corners of viewport are projected to
-             * the rotated slice planes
-             */
-            ROTATE_SLICE_PLANES,
-            /*
-             * Volume is transformed;
-             * Camera is not transformed
-             */
-            ROTATE_VOLUME,
-            /*
              * Creates slices with MPR rotation applied
              * Look at, camara, etc are not used
              */
-            SLICES
+            ALL_VIEW_SLICES,
+            /*
+             * Cameras are fixed, volume coordinates are transformed
+             */
+            VOLUME_VIEW_FIXED_CAMERA
         };
         
         static ViewType getViewTypeForVolumeSliceView();
@@ -158,15 +141,9 @@ namespace caret {
     private:
         void copyHelperVolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj);
 
-        void initializeModeRotatedCamera();
+        void initializeModeAllViewSlices();
         
-        void initializeModeRotatedSlices();
-        
-        void initializeModeRotatedVolume();
-        
-        void initializeModeSlices();
-        
-        void initializeModeFixedCamera();
+        void initializeModeVolumeViewFixedCamera();
         
         std::vector<Vector3D> createVirtualSliceTriangleFan(const VolumeMappableInterface* volume) const;
         

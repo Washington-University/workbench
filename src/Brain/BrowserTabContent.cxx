@@ -4350,24 +4350,9 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     sliceVector[2] = rotVector[2];
 #else
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
-        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-            /*
-             * Need to rotate about vector that points to
-             * the camera
-             */
-            m_mprThreeRotationMatrix.multiplyPoint3(sliceVector);
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            /*
-             * Camera is fixed to rotate about the
-             * selected axis (parasagittal, coronal,
-             * or Axial) normal vector
-             */
-            break;
-        case VolumeMprVirtualSliceView::ViewType::SLICES:
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
     }
 #endif
@@ -4426,15 +4411,9 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
 #else
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
-        case VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA:
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION:
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES:
-            sliceVector = -sliceVector;
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::SLICES:
+        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
     }
     Matrix4x4 m;

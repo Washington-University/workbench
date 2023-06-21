@@ -48,32 +48,7 @@ using namespace caret;
 VolumeMprVirtualSliceView::ViewType
 VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()
 {
-    /*
-     * Transform camera for slice and intersects a plane with the volume.
-     * Using this method
-     * DOES NOT change the volume's stereotaxic
-     * coordinates.
-     * Radiological mode DOES NOT WORK (backwards)
-     * return VolumeMprVirtualSliceView::ViewType::ROTATE_CAMERA_INTERSECTION;
-     */
-    /*
-     * Transforms camera and finds coordinates of plane at
-     * the viewport's corners.
-     *
-     * return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES
-     */
-//    return VolumeMprVirtualSliceView::ViewType::ROTATE_SLICE_PLANES;
-    
-    /*
-     * The problem with rotating the volume is that it
-     * transforms the volume's stereotaxic coordinates.
-     * Volume is intersected with a plane.
-     * DO NOT USE
-     *
-     * return VolumeMprVirtualSliceView::ViewType::ROTATE_VOLUME;
-     */
-    
-    return VolumeMprVirtualSliceView::ViewType::FIXED_CAMERA;
+    return VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA;
     
 }
 
@@ -83,7 +58,7 @@ VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()
 VolumeMprVirtualSliceView::ViewType
 VolumeMprVirtualSliceView::getViewTypeForAllView()
 {
-    return VolumeMprVirtualSliceView::ViewType::SLICES;
+    return VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES;
 }
 
 /**
@@ -150,745 +125,20 @@ m_rotationMatrix(rotationMatrix)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 
     switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
-            initializeModeFixedCamera();
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            initializeModeVolumeViewFixedCamera();
             break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-            initializeModeRotatedCamera();
-            break;
-        case ViewType::ROTATE_SLICE_PLANES:
-            initializeModeRotatedSlices();
-            break;
-        case ViewType::ROTATE_VOLUME:
-            initializeModeRotatedVolume();
-            break;
-        case ViewType::SLICES:
-            initializeModeSlices();
+        case ViewType::ALL_VIEW_SLICES:
+            initializeModeAllViewSlices();
             break;
     }
 }
 
+/**
+ * Initialize for ALL view mode slices
+ */
 void
-VolumeMprVirtualSliceView::initializeModeRotatedCamera()
-{
-    const float cameraOffsetDistance(m_sliceWidthHeight * 2.0);
-    
-    m_cameraXYZ.set(0.0, 0.0, 0.0);
-    m_cameraUpVector.set(0.0, 0.0, 0.0);
-    
-    m_planeUpVector.set(0.0, 0.0, 0.0);
-    m_planeRightVector.set(0.0, 0.0, 0.0);
-    
-    m_transformationMatrix = m_rotationMatrix;
-    
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * Neurological:
-             *   Looking towards negative Z axis from positive Z
-             *   Right is +X
-             *   Up    is +Y
-             * Radiological:
-             */
-            m_cameraUpVector.set(0.0, 1.0, 0.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 1.0, 0.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * Neurological:
-             *   Looking towards positive Y from negative Y
-             *   Right is +X
-             *   Up    is +Z
-             * Radiological:
-             */
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * Neurological:
-             *   Looking towards positive X from negative X
-             *   Right is -Y
-             *   Up    is +Z
-             * Radiological:
-             *   None
-             */
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            m_planeRightVector.set(0.0, -1.0, 0.0);
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            break;
-    }
-
-    const Vector3D defaultSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
-    const Vector3D origin(0.0, 0.0, 0.0);
-    const Plane defaultSlicePlane(defaultSlicePlaneVector,
-                                  origin);
-    
-    switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
-            CaretAssertToDoFatal();
-            break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-
-        {
-            Vector3D offset(m_selectedSlicesXYZ - m_volumeCenterXYZ);
-
-            Matrix4x4 m1;
-            m1.translate(offset);
-            
-            Matrix4x4 m2(m_rotationMatrix);
-            
-            Matrix4x4 m3;
-            m3.translate(-offset);
-            
-            m_transformationMatrix = m1;
-            m_transformationMatrix.postmultiply(m2);
-            m_transformationMatrix.postmultiply(m3);
-            
-            Matrix4x4 m = m3;
-            m.postmultiply(m2);
-            m.postmultiply(m1);
-            
-            m_transformationMatrix = m_rotationMatrix;
-            
-            m_rotationMatrix.multiplyPoint3(m_cameraUpVector);
-            m_rotationMatrix.multiplyPoint3(m_planeRightVector);
-            m_rotationMatrix.multiplyPoint3(m_planeUpVector);
-        }
-            break;
-        case ViewType::ROTATE_VOLUME:
-            CaretAssert(0);
-            break;
-        case ViewType::SLICES:
-            CaretAssert(0);
-            break;
-    }
-    
-    Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
-    
-    /*
-     * Virtual slice plane is vector from virtual slice
-     * that points to camera and contains selected slices XYZ
-     */
-    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
-                                m_selectedSlicesXYZ);
-    CaretAssert(m_virtualSlicePlane.isValidPlane());
-    
-    const bool rotateAboutSelectedSlicesFlag(true);
-    if (rotateAboutSelectedSlicesFlag) {
-        m_virtualSlicePlane.projectPointToPlane(m_selectedSlicesXYZ,
-                                                m_cameraLookAtXYZ);
-    }
-    else {
-        m_virtualSlicePlane.projectPointToPlane(m_volumeCenterXYZ,
-                                                m_cameraLookAtXYZ);
-    }
-
-    m_layersDrawingPlane = m_virtualSlicePlane;
-    
-    /*
-     * Does increasing slice coordinate direction face to the
-     * user or away from the user
-     */
-    bool sameDirectionFlag(false);
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * In an axial view, the viewing vector that points to user
-             * is inferior to superior and so is increasing Z if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * In coronal view, the viewing vector that points to user
-             * is posterior to anterior and so is DECREASING Y if in
-             * neurological orientation
-             */
-            sameDirectionFlag = false;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * In parasagittal view, viewing vector that points to user
-             * is right to left and so is INCREASING X if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            break;
-    }
-    
-    if (m_radiologicalOrientationFlag) {
-        /*
-         * Need to flip sign of normal vector
-         */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    
-    /*
-     * Camera is offset from the 'look at' on the virtual slice
-     */
-    m_cameraXYZ = (m_cameraLookAtXYZ
-                   + virtualSlicePlaneVector * cameraOffsetDistance);
-    
-
-    Vector3D inverseCamXYZ(m_cameraLookAtXYZ);
-    {
-        Matrix4x4 m(m_rotationMatrix);
-        m.invert();
-        m.multiplyPoint3(inverseCamXYZ);
-        std::cout << "Inverse camera: " << inverseCamXYZ.toString() << std::endl;
-    }
-
-    m_preLookAtTranslation.fill(0.0);
-    m_postLookAtTranslation.fill(0.0);
-    if (rotateAboutSelectedSlicesFlag) {
-        Vector3D offsetOne(m_selectedSlicesXYZ - m_volumeCenterXYZ);
-        
-        /*
-         * Using 'inverseCamXYZ' prevents slices from jumping
-         * when user IDs a voxel.  But rotation does not
-         * rotate about selected voxel.
-         */
-        switch (m_sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                m_preLookAtTranslation[0] = offsetOne[0];
-                m_preLookAtTranslation[1] = offsetOne[1];
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                m_preLookAtTranslation[0] = offsetOne[0];
-                m_preLookAtTranslation[1] = offsetOne[2];
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                m_preLookAtTranslation[0] = -offsetOne[1];
-                m_preLookAtTranslation[1] =  offsetOne[2];
-                break;
-        }
-    }
-    
-}
-
-void
-VolumeMprVirtualSliceView::initializeModeRotatedSlices()
-{
-    const float cameraOffsetDistance(m_sliceWidthHeight * 2.0);
-    
-    m_cameraXYZ.set(0.0, 0.0, 0.0);
-    m_cameraUpVector.set(0.0, 0.0, 0.0);
-    
-    m_planeUpVector.set(0.0, 0.0, 0.0);
-    m_planeRightVector.set(0.0, 0.0, 0.0);
-        
-    m_transformationMatrix = m_rotationMatrix;
-    
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * Neurological:
-             *   Looking towards negative Z axis from positive Z
-             *   Right is +X
-             *   Up    is +Y
-             * Radiological:
-             */
-            m_cameraUpVector.set(0.0, 1.0, 0.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 1.0, 0.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * Neurological:
-             *   Looking towards positive Y from negative Y
-             *   Right is +X
-             *   Up    is +Z
-             * Radiological:
-             */
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * Neurological:
-             *   Looking towards positive X from negative X
-             *   Right is -Y
-             *   Up    is +Z
-             * Radiological:
-             *   None
-             */
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            m_planeRightVector.set(0.0, -1.0, 0.0);
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            break;
-    }
-    
-    const Vector3D defaultSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
-    const Vector3D origin(0.0, 0.0, 0.0);
-    const Plane defaultSlicePlane(defaultSlicePlaneVector,
-                                  origin);
-    
-    switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
-            CaretAssertToDoFatal();
-            break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-        {
-            Vector3D offset(m_selectedSlicesXYZ - m_volumeCenterXYZ);
-            
-            Matrix4x4 m1;
-            m1.translate(offset);
-            
-            Matrix4x4 m2(m_rotationMatrix);
-            
-            Matrix4x4 m3;
-            m3.translate(-offset);
-            
-            m_transformationMatrix = m1;
-            m_transformationMatrix.postmultiply(m2);
-            m_transformationMatrix.postmultiply(m3);
-            
-            Matrix4x4 m = m3;
-            m.postmultiply(m2);
-            m.postmultiply(m1);
-            
-            m_transformationMatrix = m_rotationMatrix;
-            
-            m_rotationMatrix.multiplyPoint3(m_cameraUpVector);
-            m_rotationMatrix.multiplyPoint3(m_planeRightVector);
-            m_rotationMatrix.multiplyPoint3(m_planeUpVector);
-        }
-            break;
-        case ViewType::ROTATE_VOLUME:
-            CaretAssert(0);
-            break;
-        case ViewType::SLICES:
-            CaretAssert(0);
-            break;
-    }
-    
-    Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
-    
-    /*
-     * Virtual slice plane is vector from virtual slice
-     * that points to camera and contains selected slices XYZ
-     */
-    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
-                                m_selectedSlicesXYZ);
-    CaretAssert(m_virtualSlicePlane.isValidPlane());
-    
-    const bool rotateAboutSelectedSlicesFlag(true);
-    if (rotateAboutSelectedSlicesFlag) {
-        m_virtualSlicePlane.projectPointToPlane(m_selectedSlicesXYZ,
-                                                m_cameraLookAtXYZ);
-    }
-    else {
-        m_virtualSlicePlane.projectPointToPlane(m_volumeCenterXYZ,
-                                                m_cameraLookAtXYZ);
-    }
-    
-    m_layersDrawingPlane = m_virtualSlicePlane;
-    
-    /*
-     * Does increasing slice coordinate direction face to the
-     * user or away from the user
-     */
-    bool sameDirectionFlag(false);
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * In an axial view, the viewing vector that points to user
-             * is inferior to superior and so is increasing Z if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * In coronal view, the viewing vector that points to user
-             * is posterior to anterior and so is DECREASING Y if in
-             * neurological orientation
-             */
-            sameDirectionFlag = false;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * In parasagittal view, viewing vector that points to user
-             * is right to left and so is INCREASING X if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            break;
-    }
-    
-    if (m_radiologicalOrientationFlag) {
-        /*
-         * Need to flip sign of normal vector
-         */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    
-    /*
-     * Camera is offset from the 'look at' on the virtual slice
-     */
-    m_cameraXYZ = (m_cameraLookAtXYZ
-                   + virtualSlicePlaneVector * cameraOffsetDistance);
-    
-    m_preLookAtTranslation.fill(0.0);
-    m_postLookAtTranslation.fill(0.0);
-
-    if (rotateAboutSelectedSlicesFlag) {
-        Vector3D offsetOne(m_selectedSlicesXYZ - m_volumeCenterXYZ);
-        
-        if (m_sliceViewPlane == VolumeSliceViewPlaneEnum::AXIAL) {
-            /*
-             * Rotate selected XYZ with rotation matrix and then
-             * find intersection with unrotated plane
-             */
-            Vector3D xyz(m_selectedSlicesXYZ);
-            m_rotationMatrix.multiplyPoint3(xyz);
-            
-            Vector3D origin(0, 0, 0);
-            Vector3D slicePlaneVector(0, 0, 1);
-            float intersectionDistance[4];
-            
-            
-            Plane p(slicePlaneVector,
-                    m_selectedSlicesXYZ);
-            p.rayIntersection(xyz, slicePlaneVector, intersectionDistance);
-            Vector3D offsetXYZ(intersectionDistance[0],
-                               intersectionDistance[1],
-                               intersectionDistance[2]);
-            offsetXYZ = offsetXYZ - m_volumeCenterXYZ;
-        }
-        
-        /*
-         * Using 'inverseCamXYZ' prevents slices from jumping
-         * when user IDs a voxel.  But rotation does not
-         * rotate about selected voxel.
-         */
-        switch (m_sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                m_preLookAtTranslation[0] = offsetOne[0];
-                m_preLookAtTranslation[1] = offsetOne[1];
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                m_preLookAtTranslation[0] = offsetOne[0];
-                m_preLookAtTranslation[1] = offsetOne[2];
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                m_preLookAtTranslation[0] = -offsetOne[1];
-                m_preLookAtTranslation[1] =  offsetOne[2];
-                break;
-        }
-        
-        /*
-         * Disable as this is now calculated when the
-         * slices are drawn.  The values set here will
-         * not work if there is any rotation.
-         */
-        m_preLookAtTranslation.set(0, 0, 0);
-    }
-}
-
-void
-VolumeMprVirtualSliceView::initializeModeRotatedVolume()
-{
-    const float cameraOffsetDistance(m_sliceWidthHeight * 2.0);
-    
-    m_cameraXYZ.set(0.0, 0.0, 0.0);
-    m_cameraUpVector.set(0.0, 0.0, 0.0);
-    
-    m_planeUpVector.set(0.0, 0.0, 0.0);
-    m_planeRightVector.set(0.0, 0.0, 0.0);
-    
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * Neurological:
-             *   Looking towards negative Z axis from positive Z
-             *   Right is +X
-             *   Up    is +Y
-             * Radiological:
-             */
-            m_cameraXYZ.set(0.0, 0.0, cameraOffsetDistance);
-            m_cameraUpVector.set(0.0, 1.0, 0.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 1.0, 0.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * Neurological:
-             *   Looking towards positive Y from negative Y
-             *   Right is +X
-             *   Up    is +Z
-             * Radiological:
-             */
-            m_cameraXYZ.set(0.0, -cameraOffsetDistance, 0.0);
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
-            }
-            else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
-            }
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * Neurological:
-             *   Looking towards positive X from negative X
-             *   Right is -Y
-             *   Up    is +Z
-             * Radiological:
-             *   None
-             */
-            m_cameraXYZ.set(-cameraOffsetDistance, 0.0, 0.0);
-            m_cameraUpVector.set(0.0, 0.0, 1.0);
-            
-            m_planeRightVector.set(0.0, -1.0, 0.0);
-            m_planeUpVector.set(0.0, 0.0, 1.0);
-            break;
-    }
-    
-    switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
-            CaretAssertToDoFatal();
-            break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-            CaretAssert(0);
-            m_rotationMatrix.multiplyPoint3(m_cameraXYZ);
-            m_rotationMatrix.multiplyPoint3(m_cameraUpVector);
-            m_rotationMatrix.multiplyPoint3(m_planeRightVector);
-            m_rotationMatrix.multiplyPoint3(m_planeUpVector);
-            break;
-        case ViewType::ROTATE_VOLUME:
-        {
-            const bool useTransformFlag(true);
-            if (useTransformFlag) {
-                Vector3D offset(m_selectedSlicesXYZ);
-                
-                Matrix4x4 m1;
-                m1.translate(offset);
-                
-                Matrix4x4 m2(m_rotationMatrix);
-                
-                Matrix4x4 m3;
-                m3.translate(-offset);
-                
-                m_transformationMatrix = m1;
-                m_transformationMatrix.postmultiply(m2);
-                m_transformationMatrix.postmultiply(m3);
-            }
-            else {
-                m_transformationMatrix = m_rotationMatrix;
-            }
-        }
-            break;
-        case ViewType::SLICES:
-            CaretAssert(0);
-            break;
-    }
-    
-    Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
-    
-    /*
-     * Virtual slice plane is vector from virtual slice
-     * that points to camera and contains selected slices XYZ
-     */
-    Plane firstPlane(virtualSlicePlaneVector,
-                                m_selectedSlicesXYZ);
-    CaretAssert(firstPlane.isValidPlane());
-    
-    /*
-     * "Look at" is volume center projected to the virtual slice
-     */
-    firstPlane.projectPointToPlane(m_volumeCenterXYZ,
-                                   m_cameraLookAtXYZ);
-    /*
-     * Create virtual slice plane with camera look at on plane
-     */
-    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
-                                m_cameraLookAtXYZ);
-    
-    Vector3D layersDrawingPlaneVector(virtualSlicePlaneVector);
-    m_rotationMatrix.multiplyPoint3(layersDrawingPlaneVector);
-    m_layersDrawingPlane = Plane(layersDrawingPlaneVector,
-                                 m_selectedSlicesXYZ);
-    
-    /*
-     * Offset camera from camera look at
-     */
-    m_cameraXYZ += m_cameraLookAtXYZ;
-    
-    /*
-     * Does increasing slice coordinate direction face to the
-     * user or away from the user
-     */
-    bool sameDirectionFlag(false);
-    switch (m_sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /*
-             * In an axial view, the viewing vector that points to user
-             * is inferior to superior and so is increasing Z if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /*
-             * In coronal view, the viewing vector that points to user
-             * is posterior to anterior and so is DECREASING Y if in
-             * neurological orientation
-             */
-            sameDirectionFlag = false;
-            
-            /*
-             * Radiological orientation flips viewing vector
-             */
-            if (m_radiologicalOrientationFlag) {
-                sameDirectionFlag = ( ! sameDirectionFlag);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /*
-             * In parasagittal view, viewing vector that points to user
-             * is right to left and so is INCREASING X if in
-             * neurological orientation
-             */
-            sameDirectionFlag = true;
-            break;
-    }
-    
-    if (m_radiologicalOrientationFlag) {
-        /*
-         * Need to flip sign of normal vector
-         */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
-                                                              m_selectedSlicesXYZ);
-    }
-    
-    m_preLookAtTranslation.fill(0.0);
-    m_postLookAtTranslation.fill(0.0);
-    
-    Vector3D offsetXYZ;
-    m_virtualSlicePlane.projectPointToPlane(-m_selectedSlicesXYZ,
-                                            offsetXYZ);
-    m_preLookAtTranslation = offsetXYZ;
-}
-
-void
-VolumeMprVirtualSliceView::initializeModeSlices()
+VolumeMprVirtualSliceView::initializeModeAllViewSlices()
 {
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -922,15 +172,10 @@ VolumeMprVirtualSliceView::initializeModeSlices()
     Vector3D vUp(m_volumeCenterXYZ + m_planeUpVector);
 
     switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             CaretAssertToDoFatal();
             break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-            break;
-        case ViewType::ROTATE_VOLUME:
-            break;
-        case ViewType::SLICES:
+        case ViewType::ALL_VIEW_SLICES:
             m_rotationMatrix.multiplyPoint3(v);
             m_rotationMatrix.multiplyPoint3(vRight);
             m_rotationMatrix.multiplyPoint3(vUp);
@@ -1011,9 +256,11 @@ VolumeMprVirtualSliceView::initializeModeSlices()
     }
 }
 
-
+/**
+ * Initialize for volume view with camera in a fixed position
+ */
 void
-VolumeMprVirtualSliceView::initializeModeFixedCamera()
+VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
 {
     const float cameraOffsetDistance(m_sliceWidthHeight * 2.0);
     
@@ -1078,55 +325,11 @@ VolumeMprVirtualSliceView::initializeModeFixedCamera()
             break;
     }
     
-//    switch (getViewType()) {
-//        case ViewType::FIXED_CAMERA:
-//            /* OK */
-//            break;
-//        case ViewType::ROTATE_CAMERA_INTERSECTION:
-//        case ViewType::ROTATE_SLICE_PLANES:
-//            CaretAssert(0);
-//            break;
-//        case ViewType::ROTATE_VOLUME:
-//            CaretAssert(0);
-//        {
-//            const bool useTransformFlag(true);
-//            if (useTransformFlag) {
-//                Vector3D offset(m_selectedSlicesXYZ);
-//
-//                Matrix4x4 m1;
-//                m1.translate(offset);
-//
-//                Matrix4x4 m2(m_rotationMatrix);
-//
-//                Matrix4x4 m3;
-//                m3.translate(-offset);
-//
-//                m_transformationMatrix = m1;
-//                m_transformationMatrix.postmultiply(m2);
-//                m_transformationMatrix.postmultiply(m3);
-//            }
-//            else {
-//                m_transformationMatrix = m_rotationMatrix;
-//            }
-//        }
-//            break;
-//        case ViewType::SLICES:
-//            CaretAssert(0);
-//            break;
-//    }
     
     /*
      * Set transformation matrix
      */
     const Vector3D transXYZ(m_selectedSlicesXYZ);
-    
-//    Matrix4x4 m1;
-//    m1.translate(offset);
-//
-//    Matrix4x4 m2(m_rotationMatrix);
-//
-//    Matrix4x4 m3;
-//    m3.translate(-offset);
     
     m_transformationMatrix.translate(-transXYZ);
     m_transformationMatrix.postmultiply(m_rotationMatrix);
@@ -1301,19 +504,10 @@ VolumeMprVirtualSliceView::getTrianglesCoordinates(const VolumeMappableInterface
     primtiveVertexXyzOut = createVirtualSliceTriangles(volume);
     
     switch (m_viewType) {
-        case ViewType::FIXED_CAMERA:
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
             break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-            stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-            break;
-        case ViewType::ROTATE_SLICE_PLANES:
-            stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-            break;
-        case ViewType::ROTATE_VOLUME:
-            stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-            break;
-        case ViewType::SLICES:
+        case ViewType::ALL_VIEW_SLICES:
             stereotaxicXyzOut = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
             break;
     }
@@ -1369,26 +563,12 @@ VolumeMprVirtualSliceView::mapBackToStereotaxicCoordinates(const std::vector<Vec
     for (auto& volXYZ : intersectionXyz) {
         Vector3D xyz(volXYZ);
         switch (getViewType()) {
-            case ViewType::FIXED_CAMERA:
+            case ViewType::VOLUME_VIEW_FIXED_CAMERA:
                 if (invMatrixValidFlag) {
                     invM.multiplyPoint3(xyz);
                 }
                 break;
-            case ViewType::ROTATE_CAMERA_INTERSECTION:
-            case ViewType::ROTATE_SLICE_PLANES:
-                break;
-            case ViewType::ROTATE_VOLUME:
-                /*
-                 * The XYZ was transformed to we need to
-                 * inverse transform the XYZ to so that it is
-                 * in the original volume coordinates so that
-                 * the XYZ can be mapped to a texture coordinate
-                 */
-                if (invMatrixValidFlag) {
-                    invM.multiplyPoint3(xyz);
-                }
-                break;
-            case ViewType::SLICES:
+            case ViewType::ALL_VIEW_SLICES:
                 break;
         }
         stereotaxicCoordinatesOut.push_back(xyz);
@@ -1416,17 +596,10 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangleFan(const VolumeMappableInt
 
     Matrix4x4 rotationMatrix;
     switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             CaretAssertToDoFatal();
             break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-            break;
-        case ViewType::ROTATE_VOLUME:
-            rotationMatrix = m_rotationMatrix;
-            rotationMatrix = m_transformationMatrix;
-            break;
-        case ViewType::SLICES:
+        case ViewType::ALL_VIEW_SLICES:
             break;
     }
     VolumePlaneIntersection vpi(volume,
@@ -1506,24 +679,10 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
     
     Matrix4x4 rotationMatrix;
     switch (getViewType()) {
-        case ViewType::FIXED_CAMERA:
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             rotationMatrix = m_transformationMatrix;
             break;
-        case ViewType::ROTATE_CAMERA_INTERSECTION:
-        case ViewType::ROTATE_SLICE_PLANES:
-            rotationMatrix = m_transformationMatrix;
-            rotationMatrix = m_rotationMatrix;
-            
-            /*
-             * Prevents clipping of volume when rotated
-             */
-            rotationMatrix.identity();
-            break;
-        case ViewType::ROTATE_VOLUME:
-            rotationMatrix = m_rotationMatrix;
-            rotationMatrix = m_transformationMatrix;
-            break;
-        case ViewType::SLICES:
+        case ViewType::ALL_VIEW_SLICES:
             rotationMatrix = m_rotationMatrix;
             break;
     }
