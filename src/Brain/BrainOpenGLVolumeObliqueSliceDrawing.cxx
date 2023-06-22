@@ -1165,12 +1165,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
         glPolygonOffset(0.0, 1.0);
         
         if (drawOutlineFlag) {
+            Matrix4x4 displayTransformMatrix;
+            bool displayTransformMatrixValidFlag(false);
             BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(m_underlayVolume,
                                                                        m_modelType,
                                                                        sliceProjectionType,
                                                                        sliceViewPlane,
                                                                        sliceCoordinates,
                                                                        slicePlane,
+                                                                       displayTransformMatrix,
+                                                                       displayTransformMatrixValidFlag,
                                                                        m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                        m_fixedPipelineDrawing,
                                                                        true);

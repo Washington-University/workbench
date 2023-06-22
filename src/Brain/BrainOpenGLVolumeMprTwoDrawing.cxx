@@ -3223,12 +3223,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
                                                  sliceThickness);
         }
         if (drawOutlineFlag) {
+            Matrix4x4 displayTransformMatrix;
+            bool displayTransformMatrixValidFlag(false);
             BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
                                                                        ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                                                                        sliceProjectionType,
                                                                        sliceViewPlane,
                                                                        sliceCoordinates,
                                                                        slicePlane,
+                                                                       displayTransformMatrix,
+                                                                       displayTransformMatrixValidFlag,
                                                                        m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                        m_fixedPipelineDrawing,
                                                                        false);

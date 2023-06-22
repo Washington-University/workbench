@@ -35,6 +35,7 @@ namespace caret {
     class BrainOpenGLFixedPipeline;
     class HistologySlice;
     class GraphicsPrimitive;
+    class Matrix4x4;
     class Plane;
     class VolumeMappableInterface;
     class VolumeSurfaceOutlineModelCacheKey;
@@ -62,6 +63,8 @@ namespace caret {
                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                        const float sliceXYZ[3],
                                        const Plane& plane,
+                                       const Matrix4x4& displayTransformMatrix,
+                                       const bool displayTransformMatrixValidFlag,
                                        VolumeSurfaceOutlineSetModel* outlineSet,
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const bool useNegativePolygonOffsetFlag);
@@ -93,6 +96,8 @@ namespace caret {
 
         static void drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
                                                 const Plane& plane,
+                                                const Matrix4x4& displayTransformMatrix,
+                                                const bool displayTransformMatrixValidFlag,
                                                 VolumeSurfaceOutlineSetModel* outlineSet,
                                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                 const bool useNegativePolygonOffsetFlag);

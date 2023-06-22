@@ -1197,14 +1197,29 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             }
         }
         
-        const Plane slicePlane(mprSliceView.getPlane());
+        Plane slicePlane(mprSliceView.getPlane());
         
+        {
+            /*
+             * Need to use plane from the triangles that are drawn
+             */
+            std::vector<Vector3D> stereotaxicXYZ, primitiveXYZ, textureSTR;
+            mprSliceView.getTrianglesCoordinates(underlayVolume, stereotaxicXYZ, primitiveXYZ, textureSTR);
+            if (stereotaxicXYZ.size() >= 3) {
+                Vector3D normalVector;
+                MathFunctions::normalVector(stereotaxicXYZ[0], stereotaxicXYZ[1], stereotaxicXYZ[2], normalVector);
+
+                Plane newSlicePlane(normalVector,
+                                    stereotaxicXYZ[0]);                 
+                slicePlane = newSlicePlane;
+            }
+        }
         if (slicePlane.isValidPlane()) {
             drawLayers(mprSliceView,
                        underlayVolume,
                        sliceProjectionType,
                        sliceViewPlane,
-                       mprSliceView.getLayersDrawingPlane(),
+                       slicePlane,
                        sliceCoordinates,
                        sliceThickness);
         }
@@ -3536,18 +3551,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
 
         glPushMatrix();
         
-        switch (mprSliceView.getViewType()) {
-            case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            {
-                Matrix4x4 rotMat(mprSliceView.getTransformationMatrix());
-                GLfloat m[16];
-                rotMat.getMatrixForOpenGL(m);
-                glMultMatrixf(m);
-            }
-                break;
-            case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
-                break;
-        }
         /*
          * Use some polygon offset that will adjust the depth values of the
          * layers so that the layers depth values place the layers in front of
@@ -3566,6 +3569,19 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                                                  sliceThickness);
         }
         if (drawOutlineFlag) {
+            Matrix4x4 displayTransformMatrix;
+            bool displayTransformMatrixValidFlag(false);
+            switch (mprSliceView.getViewType()) {
+                case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
+                    break;
+                case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
+                {
+                    displayTransformMatrix = mprSliceView.getTransformationMatrix();
+                    displayTransformMatrix.setTranslation(0.0, 0.0, 0.0);
+                    displayTransformMatrixValidFlag = true;
+                }
+                    break;
+            }
             bool useNegativePolygonOffsetFlag(true);
             BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
                                                                        modelType,
@@ -3573,6 +3589,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                                                                        sliceViewPlane,
                                                                        sliceCoordinates,
                                                                        slicePlane,
+                                                                       displayTransformMatrix,
+                                                                       displayTransformMatrixValidFlag,
                                                                        m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                        m_fixedPipelineDrawing,
                                                                        useNegativePolygonOffsetFlag);

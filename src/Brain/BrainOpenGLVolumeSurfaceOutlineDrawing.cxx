@@ -136,6 +136,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
                                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                            const float sliceXYZ[3],
                                                            const Plane& plane,
+                                                           const Matrix4x4& displayTransformMatrix,
+                                                           const bool displayTransformMatrixValidFlag,
                                                            VolumeSurfaceOutlineSetModel* outlineSet,
                                                            BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                            const bool useNegativePolygonOffsetFlag)
@@ -169,6 +171,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
     else {
         drawSurfaceOutlineNotCached(modelType,
                                     plane,
+                                    displayTransformMatrix,
+                                    displayTransformMatrixValidFlag,
                                     outlineSet,
                                     fixedPipelineDrawing,
                                     useNegativePolygonOffsetFlag);
@@ -466,10 +470,12 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::projectContoursToHistologySlice(const Hi
  */
 void
 BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
-                                                           const Plane& plane,
-                                                           VolumeSurfaceOutlineSetModel* outlineSet,
-                                                           BrainOpenGLFixedPipeline* fixedPipelineDrawing,
-                                                           const bool useNegativePolygonOffsetFlag)
+                                                                    const Plane& plane,
+                                                                    const Matrix4x4& displayTransformMatrix,
+                                                                    const bool displayTransformMatrixValidFlag,
+                                                                    VolumeSurfaceOutlineSetModel* outlineSet,
+                                                                    BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                                    const bool useNegativePolygonOffsetFlag)
 {
     glPushAttrib(GL_ENABLE_BIT);
     glDisable(GL_DEPTH_TEST);
@@ -580,6 +586,16 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelT
             }
             glEnable(GL_POLYGON_OFFSET_FILL);
             
+            if (displayTransformMatrixValidFlag) {
+                const int32_t numVerts(primitive->getNumberOfVertices());
+                for (int32_t i = 0; i < numVerts; i++) {
+                    Vector3D xyz;
+                    primitive->getVertexFloatXYZ(i, xyz);
+                    displayTransformMatrix.multiplyPoint3(xyz);
+                    primitive->replaceVertexFloatXYZ(i, xyz);
+                }
+            }
+                
             GraphicsEngineDataOpenGL::draw(primitive);
             delete primitive;
             
