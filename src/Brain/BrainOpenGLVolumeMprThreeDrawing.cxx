@@ -1197,29 +1197,24 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             }
         }
         
-        Plane slicePlane(mprSliceView.getPlane());
-        
+        Plane layersDrawingPlane;
         {
             /*
              * Need to use plane from the triangles that are drawn
              */
-            std::vector<Vector3D> stereotaxicXYZ, primitiveXYZ, textureSTR;
-            mprSliceView.getTrianglesCoordinates(underlayVolume, stereotaxicXYZ, primitiveXYZ, textureSTR);
-            if (stereotaxicXYZ.size() >= 3) {
-                Vector3D normalVector;
-                MathFunctions::normalVector(stereotaxicXYZ[0], stereotaxicXYZ[1], stereotaxicXYZ[2], normalVector);
-
-                Plane newSlicePlane(normalVector,
-                                    stereotaxicXYZ[0]);                 
-                slicePlane = newSlicePlane;
-            }
+            std::vector<Vector3D> stereotaxicXYZ, textureSTR;
+            mprSliceView.getTrianglesCoordinates(underlayVolume,
+                                                 stereotaxicXYZ,
+                                                 textureSTR,
+                                                 layersDrawingPlane);
         }
-        if (slicePlane.isValidPlane()) {
+        
+        if (layersDrawingPlane.isValidPlane()) {
             drawLayers(mprSliceView,
                        underlayVolume,
                        sliceProjectionType,
                        sliceViewPlane,
-                       slicePlane,
+                       layersDrawingPlane,
                        sliceCoordinates,
                        sliceThickness);
         }
@@ -1239,7 +1234,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                  tileTabsEditModeFlag);
         const float doubleSliceThickness(sliceThickness * 2.0);
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
-                                                                                            slicePlane,
+                                                                                            layersDrawingPlane,
                                                                                             doubleSliceThickness);
         
         bool drawSelectionBoxFlag(false);
@@ -2201,6 +2196,11 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
      */
     const Vector3D plt(mprSliceView.getPostLookAtTranslation());
     glTranslatef(plt[0], plt[1], plt[2]);
+    
+    const Matrix4x4 mat(mprSliceView.getTransformationMatrix());
+    float m16[16];
+    mat.getMatrixForOpenGL(m16);
+    glMultMatrixf(m16);
 }
 
 /**
@@ -3291,12 +3291,12 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
      */
     std::vector<Vector3D> stereotaxicXYZ;
     {
-        std::vector<Vector3D> vertexXYZ;
         std::vector<Vector3D> textureStr;
+        Plane layersDrawingPlane;
         mprSliceView.getTrianglesCoordinates(volume,
                                              stereotaxicXYZ,
-                                             vertexXYZ,
-                                             textureStr);
+                                             textureStr,
+                                             layersDrawingPlane);
     }
     const int32_t numStereotaxicTriangles(stereotaxicXYZ.size() / 3);
     if (numTriangles != numStereotaxicTriangles) {
@@ -3575,11 +3575,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                 case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
                     break;
                 case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
-                {
-                    displayTransformMatrix = mprSliceView.getTransformationMatrix();
-                    displayTransformMatrix.setTranslation(0.0, 0.0, 0.0);
-                    displayTransformMatrixValidFlag = true;
-                }
                     break;
             }
             bool useNegativePolygonOffsetFlag(true);
@@ -4256,38 +4251,26 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
 {
     bool validFlag(false);
     if (primitive != NULL) {
-        if ((primitive->getNumberOfVertices() == 8)
-            || (primitive->getNumberOfVertices() == 18)) {
+        if (primitive->getNumberOfVertices() == 18) {
             /*
-             * When 8 vertices, a plane has been interesected with
-             * the volume producing a triangle fan
+             * Intersection produces 6 triangles (18 vertices)
+             * Some may be degenerate
              */
             CaretAssert(volume);
             
             std::vector<Vector3D> stereotaxicXYZ;
-            std::vector<Vector3D> vertexXYZ;
             std::vector<Vector3D> textureStr;
-            if (primitive->getNumberOfVertices() == 8) {
-                validFlag = mprSliceView.getTriangleFanCoordinates(volume,
-                                                                   stereotaxicXYZ,
-                                                                   vertexXYZ,
-                                                                   textureStr);
-            }
-            else if (primitive->getNumberOfVertices() == 18) {
-                validFlag = mprSliceView.getTrianglesCoordinates(volume,
-                                                                 stereotaxicXYZ,
-                                                                 vertexXYZ,
-                                                                 textureStr);
-            }
-            else {
-                CaretAssert(0);
-            }
+            Plane layersDrawingPlane;
+            validFlag = mprSliceView.getTrianglesCoordinates(volume,
+                                                             stereotaxicXYZ,
+                                                             textureStr,
+                                                             layersDrawingPlane);
             
             if (validFlag) {
-                const int32_t numVertices(vertexXYZ.size());
+                const int32_t numVertices(stereotaxicXYZ.size());
                 if (numVertices == primitive->getNumberOfVertices()) {
                     for (int32_t i = 0; i < numVertices; i++) {
-                        primitive->replaceVertexFloatXYZ(i, vertexXYZ[i]);
+                        primitive->replaceVertexFloatXYZ(i, stereotaxicXYZ[i]);
                         primitive->replaceVertexTextureSTR(i, textureStr[i]);
                     }
                 }
@@ -4299,7 +4282,7 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
             }
             else {
                 /*
-                 * Create degenerate triangles
+                 * No intersection, create degenerate triangles
                  */
                 for (int32_t i = 0; i < primitive->getNumberOfVertices(); i++) {
                     Vector3D zeros(0.0, 0.0, 0.0);

@@ -49,7 +49,8 @@ using namespace caret;
  */
 VolumePlaneIntersection::VolumePlaneIntersection(const VolumeMappableInterface* volume)
 : VolumePlaneIntersection(volume,
-                          Matrix4x4())
+                          Matrix4x4(),
+                          false)
 {
 }
 
@@ -62,9 +63,29 @@ VolumePlaneIntersection::VolumePlaneIntersection(const VolumeMappableInterface* 
  */
 VolumePlaneIntersection::VolumePlaneIntersection(const VolumeMappableInterface* volume,
                                                  const Matrix4x4& matrix)
+: VolumePlaneIntersection(volume,
+                          matrix,
+                          true)
+{
+    
+}
+
+/**
+ * Constructor
+ * @param volume
+ *    The volume
+ * @param matrix
+ *    Matrix that transforms the volume's coordinates
+ * @param matrixValidFlag
+ *    True if the matrix is valid.
+ */
+VolumePlaneIntersection::VolumePlaneIntersection(const VolumeMappableInterface* volume,
+                                                 const Matrix4x4& matrixx,
+                                                 const bool matrixValidFlag)
 : CaretObject(),
 m_volume(volume),
-m_matrix(matrix)
+m_matrix(matrixx),
+m_matrixValidFlag(matrixValidFlag)
 {
 
     CaretAssert(volume);
@@ -106,15 +127,17 @@ m_matrix(matrix)
     /*
      * Transform the coordinates at the volume's corners
      */
-    matrix.multiplyPoint3(m_xyz000);
-    matrix.multiplyPoint3(m_xyzI00);
-    matrix.multiplyPoint3(m_xyzIJ0);
-    matrix.multiplyPoint3(m_xyz0J0);
-    
-    matrix.multiplyPoint3(m_xyz00K);
-    matrix.multiplyPoint3(m_xyzI0K);
-    matrix.multiplyPoint3(m_xyzIJK);
-    matrix.multiplyPoint3(m_xyz0JK);
+    if (m_matrixValidFlag) {
+        m_matrix.multiplyPoint3(m_xyz000);
+        m_matrix.multiplyPoint3(m_xyzI00);
+        m_matrix.multiplyPoint3(m_xyzIJ0);
+        m_matrix.multiplyPoint3(m_xyz0J0);
+        
+        m_matrix.multiplyPoint3(m_xyz00K);
+        m_matrix.multiplyPoint3(m_xyzI0K);
+        m_matrix.multiplyPoint3(m_xyzIJK);
+        m_matrix.multiplyPoint3(m_xyz0JK);
+    }
     
     /*
      * Line segments for the 12 edges
@@ -238,6 +261,16 @@ VolumePlaneIntersection::intersectWithPlane(const Plane& plane,
                              centerOut,
                              intersectionPointsOut);
     
+    mapPointsBackToVolume(intersectionPointsOut);
+    
+    /*
+     * Also need to map center back to the volume
+     */
+    std::vector<Vector3D> centerVector { centerOut };
+    mapPointsBackToVolume(centerVector);
+    CaretAssertVectorIndex(centerVector, 0);
+    centerOut = centerVector[0];
+    
     return true;
 }
 
@@ -260,6 +293,7 @@ VolumePlaneIntersection::sortIntersectionPoints(const Plane& plane,
         return;
     }
     
+    centerOut.set(0.0, 0.0, 0.0);
     for (int32_t i = 0; i < numPoints; i++) {
         CaretAssertVectorIndex(intersectionPoints, i);
         centerOut += intersectionPoints[i];
@@ -361,7 +395,25 @@ VolumePlaneIntersection::orientIntersectionPoints(const Plane& plane,
         CaretLogSevere(msg);
         CaretAssertMessage(0, msg);
     }
+ }
+
+/**
+ * If there was a matrix used, the intersection points are in transformed space.   So, we need to
+ * map the intersection points back to the true volume space.
+ */
+void
+VolumePlaneIntersection::mapPointsBackToVolume(std::vector<Vector3D>& intersectionPointsInOut) const
+{
+    if (m_matrixValidFlag) {
+        Matrix4x4 invMat(m_matrix);
+        if (invMat.invert()) {
+            for (auto& p : intersectionPointsInOut) {
+                invMat.multiplyPoint3(p);
+            }
+        }
+    }
 }
+
 
 /**
  * Intersect a ray with the volume

@@ -103,6 +103,11 @@ namespace caret {
             Vector3D m_v2;
         };
         
+        VolumePlaneIntersection(const VolumeMappableInterface* volume,
+                                const Matrix4x4& matrix,
+                                const bool matrixValidFlag);
+        
+
         void orientIntersectionPoints(const Plane& plane,
                                       const Vector3D& centerOut,
                                       std::vector<Vector3D>& intersectionPointsInOut) const;
@@ -111,11 +116,15 @@ namespace caret {
                                     Vector3D& centerOut,
                                     std::vector<Vector3D>& intersectionPointsInOut) const;
         
+        void mapPointsBackToVolume(std::vector<Vector3D>& intersectionPointsInOut) const;
+        
         void createFaces() const;
         
         const VolumeMappableInterface* m_volume;
         
         const Matrix4x4 m_matrix;
+        
+        const bool m_matrixValidFlag;
         
         std::vector<LineSegment> m_edges;
         

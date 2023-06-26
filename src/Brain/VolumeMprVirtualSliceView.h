@@ -80,8 +80,6 @@ namespace caret {
         
         Vector3D getCameraUpVector() const;
 
-        Plane getLayersDrawingPlane() const;
-        
         Plane getPlane() const;
         
         Vector3D getPlaneRightVector() const;
@@ -100,19 +98,11 @@ namespace caret {
         
         Matrix4x4 getTransformationMatrix() const;
         
-        bool getTriangleFanCoordinates(const VolumeMappableInterface* volume,
-                                       std::vector<Vector3D>& stereotaxicXyzOut,
-                                       std::vector<Vector3D>& primtiveVertexXyzOut,
-                                       std::vector<Vector3D>& primitiveTextureStrOut) const;
-
         bool getTrianglesCoordinates(const VolumeMappableInterface* volume,
                                      std::vector<Vector3D>& stereotaxicXyzOut,
-                                     std::vector<Vector3D>& primtiveVertexXyzOut,
-                                     std::vector<Vector3D>& primitiveTextureStrOut) const;
+                                     std::vector<Vector3D>& textureStrOut,
+                                     Plane& layersDrawingPlaneOut) const;
         
-        std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,
-                                                    const std::vector<Vector3D>& vertexXyz) const;
-
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -149,7 +139,8 @@ namespace caret {
         
         std::vector<Vector3D> createVirtualSliceTriangles(const VolumeMappableInterface* volume) const;
                 
-        std::vector<Vector3D> mapBackToStereotaxicCoordinates(const std::vector<Vector3D>& intersectionXyz) const;
+        std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,
+                                                    const std::vector<Vector3D>& vertexXyz) const;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
@@ -184,8 +175,6 @@ namespace caret {
         Vector3D m_postLookAtTranslation;
         
         Plane m_virtualSlicePlane;
-        
-        Plane m_layersDrawingPlane;
         
         Plane m_montageVirutalSliceIncreasingDirectionPlane;
 

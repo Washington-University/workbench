@@ -192,8 +192,6 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
     m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
                                 m_selectedSlicesXYZ);
     
-    m_layersDrawingPlane = m_virtualSlicePlane;
-    
     /*
      * Does increasing slice coordinate direction face to the
      * user or away from the user
@@ -357,15 +355,6 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
                    + (virtualSlicePlaneVector * cameraOffsetDistance));
     
     /*
-     * This may need to be translated and rotated
-     */
-    Vector3D layersDrawingVector(virtualSlicePlaneVector);
-    m_rotationMatrix.multiplyPoint3(layersDrawingVector);
-    m_layersDrawingPlane = Plane(layersDrawingVector,
-                                 m_selectedSlicesXYZ);
-//    m_layersDrawingPlane = m_virtualSlicePlane;
-    
-    /*
      * Does increasing slice coordinate direction face to the
      * user or away from the user
      */
@@ -447,75 +436,40 @@ VolumeMprVirtualSliceView::getViewType() const
 }
 
 /**
- * Get coordinates for drawing the volume primitive with a triangle fan
- * @param volume
- *    Volume that will be drawn and has coordinates generated
- * @param stereotaxicXyzOut
- *    Actual stereotaxic coordinates of volume intersection
- * @param primtiveVertexXyzOut
- *    Coordinates for drawing the virtual slice
- * @param primitiveTextureStrOut
- *    Texture coordinates for drawing the virtual slice
- */
-bool
-VolumeMprVirtualSliceView::getTriangleFanCoordinates(const VolumeMappableInterface* volume,
-                                        std::vector<Vector3D>& stereotaxicXyzOut,
-                                        std::vector<Vector3D>& primtiveVertexXyzOut,
-                                        std::vector<Vector3D>& primitiveTextureStrOut) const
-{
-    CaretAssert(volume);
-    stereotaxicXyzOut.clear();
-    primtiveVertexXyzOut.clear();
-    primitiveTextureStrOut.clear();
-    
-    
-    primtiveVertexXyzOut = createVirtualSliceTriangleFan(volume);
-    stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-    primitiveTextureStrOut = mapTextureCoordinates(volume,
-                                                   stereotaxicXyzOut);
-    CaretAssert(primtiveVertexXyzOut.size() == primitiveTextureStrOut.size());
-    
-    return (primtiveVertexXyzOut.size() >= 3);
-}
-
-/**
  * Get coordinates for drawing the volume primitive with triangles
  * @param volume
  *    Volume that will be drawn and has coordinates generated
  * @param stereotaxicXyzOut
- *    Actual stereotaxic coordinates of volume intersection
- * @param primtiveVertexXyzOut
- *    Coordinates for drawing the virtual slice
- * @param primitiveTextureStrOut
- *    Texture coordinates for drawing the virtual slice
+ *    Output stereotaxic coordinates for drawing the virtual slice
+ * @param textureStrOut
+ *    Output texture coordinates for drawing the virtual slice
+ * @param layersDrawingPlaneOut
+ *    Output plane for drawing layers
  */
 bool
 VolumeMprVirtualSliceView::getTrianglesCoordinates(const VolumeMappableInterface* volume,
-                                      std::vector<Vector3D>& stereotaxicXyzOut,
-                                      std::vector<Vector3D>& primtiveVertexXyzOut,
-                                      std::vector<Vector3D>& primitiveTextureStrOut) const
+                                                   std::vector<Vector3D>& stereotaxicXyzOut,
+                                                   std::vector<Vector3D>& textureStrOut,
+                                                   Plane& layersDrawingPlaneOut) const
 {
     CaretAssert(volume);
     stereotaxicXyzOut.clear();
-    primtiveVertexXyzOut.clear();
-    primitiveTextureStrOut.clear();
+    textureStrOut.clear();
+    layersDrawingPlaneOut = Plane();
     
     
-    primtiveVertexXyzOut = createVirtualSliceTriangles(volume);
-    
-    switch (m_viewType) {
-        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            stereotaxicXyzOut    = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-            break;
-        case ViewType::ALL_VIEW_SLICES:
-            stereotaxicXyzOut = mapBackToStereotaxicCoordinates(primtiveVertexXyzOut);
-            break;
+    stereotaxicXyzOut = createVirtualSliceTriangles(volume);
+    textureStrOut     = mapTextureCoordinates(volume,
+                                              stereotaxicXyzOut);
+    CaretAssert(stereotaxicXyzOut.size() == textureStrOut.size());
+
+    if (stereotaxicXyzOut.size() >= 3) {
+        layersDrawingPlaneOut = Plane(stereotaxicXyzOut[0],
+                                      stereotaxicXyzOut[1],
+                                      stereotaxicXyzOut[2]);
     }
-    primitiveTextureStrOut = mapTextureCoordinates(volume,
-                                                   stereotaxicXyzOut);
-    CaretAssert(primtiveVertexXyzOut.size() == primitiveTextureStrOut.size());
     
-    return (primtiveVertexXyzOut.size() >= 3);
+    return (stereotaxicXyzOut.size() >= 3);
 }
 
 /**
@@ -542,40 +496,6 @@ VolumeMprVirtualSliceView::mapTextureCoordinates(const VolumeMappableInterface* 
     
     CaretAssert(textureStrOut.size() == stereotaxicXyz.size());
     return textureStrOut;
-}
-
-/**
- * Map coordinates from intersection viewing back to stereotaxic coordinates
- * @param intersectionXyz
- *    The intersection coordinates
- * @return
- *    Stereotaxic coordinates
- */
-std::vector<Vector3D>
-VolumeMprVirtualSliceView::mapBackToStereotaxicCoordinates(const std::vector<Vector3D>& intersectionXyz) const
-{
-    std::vector<Vector3D> stereotaxicCoordinatesOut;
-    
-    const Matrix4x4 m(m_transformationMatrix);
-    Matrix4x4 invM(m);
-    const bool invMatrixValidFlag(invM.invert());
-    
-    for (auto& volXYZ : intersectionXyz) {
-        Vector3D xyz(volXYZ);
-        switch (getViewType()) {
-            case ViewType::VOLUME_VIEW_FIXED_CAMERA:
-                if (invMatrixValidFlag) {
-                    invM.multiplyPoint3(xyz);
-                }
-                break;
-            case ViewType::ALL_VIEW_SLICES:
-                break;
-        }
-        stereotaxicCoordinatesOut.push_back(xyz);
-    }
-    
-    CaretAssert(intersectionXyz.size() == stereotaxicCoordinatesOut.size());
-    return stereotaxicCoordinatesOut;
 }
 
 /**
@@ -854,8 +774,6 @@ VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVi
     
     m_virtualSlicePlane = obj.m_virtualSlicePlane;
     
-    m_layersDrawingPlane = obj.m_layersDrawingPlane;
-    
     m_montageVirutalSliceIncreasingDirectionPlane = obj.m_montageVirutalSliceIncreasingDirectionPlane;
     
     m_neurologicalOrientationFlag = obj.m_neurologicalOrientationFlag;
@@ -915,15 +833,6 @@ Vector3D
 VolumeMprVirtualSliceView::getPlaneUpVector() const
 {
     return m_planeUpVector;
-}
-
-/**
- * @return Plane for drawing the layers
- */
-Plane
-VolumeMprVirtualSliceView::getLayersDrawingPlane() const
-{
-    return m_layersDrawingPlane;
 }
 
 /**
