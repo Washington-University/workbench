@@ -274,26 +274,18 @@ VolumeMprVirtualSliceView::computeVirtualSlicePlane()
     
     switch (getViewType()) {
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            break;
-        case ViewType::ALL_VIEW_SLICES:
         {
-            m_virtualPlane = m_originalPlane;
-//            Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
-//            m_rotationMatrix.multiplyPoint3(lookToVec);
-//            m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
-            return;
+            Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
+            Matrix4x4 invMat(m_rotationMatrix);
+            if (invMat.invert()) {
+                invMat.multiplyPoint3(lookToVec);
+                m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
+            }
         }
             break;
-    }
-
-    /*
-     * Plane of the virtual slice that is drawn
-     */
-    Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
-    Matrix4x4 invMat(m_rotationMatrix);
-    if (invMat.invert()) {
-        invMat.multiplyPoint3(lookToVec);
-        m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
+        case ViewType::ALL_VIEW_SLICES:
+            m_virtualPlane = m_originalPlane;
+            break;
     }
 }
 
@@ -509,9 +501,6 @@ VolumeMprVirtualSliceView::getTrianglesCoordinates(const VolumeMappableInterface
 
     switch (m_viewType) {
         case ViewType::ALL_VIEW_SLICES:
-//            for (auto& v : stereotaxicXyzOut) {
-//                m_rotationMatrix.multiplyPoint3(v);
-//            }
             break;
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             break;
@@ -650,13 +639,16 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
 {
     std::vector<Vector3D> trianglesVertices;
     
+    Plane plane;
     Matrix4x4 rotationMatrix;
     switch (getViewType()) {
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            plane = m_originalPlane;
             rotationMatrix = m_transformationMatrix;
             break;
         case ViewType::ALL_VIEW_SLICES:
-            rotationMatrix = m_rotationMatrix;
+            plane = m_virtualPlane;
+            rotationMatrix.identity();
             break;
     }
 
@@ -665,7 +657,7 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
     Vector3D intersectionCenterXYZ;
     std::vector<Vector3D> intersectionPoints;
     AString errorMessage;
-    if (vpi.intersectWithPlane(m_originalPlane,
+    if (vpi.intersectWithPlane(plane,
                                intersectionCenterXYZ,
                                intersectionPoints,
                                errorMessage)) {

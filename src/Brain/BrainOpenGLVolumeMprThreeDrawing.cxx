@@ -971,9 +971,41 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                               const GraphicsViewport& viewport,
                                                               const bool updateGraphicsObjectToWindowTransformFlag)
 {
+    SelectionItemAnnotation* annotationID(m_brain->getSelectionManager()->getAnnotationIdentification());
+    SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
+    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+    SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool drawVolumeSlicesFlag = true;
+    m_identificationModeFlag = false;
+    switch (m_fixedPipelineDrawing->mode) {
+        case BrainOpenGLFixedPipeline::MODE_DRAWING:
+            break;
+        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
+            if (annotationID->isEnabledForSelection()
+                || voxelID->isEnabledForSelection()
+                || crosshairID->isEnabledForSelection()
+                || voxelEditingID->isEnabledForSelection()) {
+                m_identificationModeFlag = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            }
+            else {
+                /*
+                 * Don't return.  Allow other items (such as annotations) to be drawn.
+                 */
+                drawVolumeSlicesFlag = false;
+            }
+            break;
+        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
+            return;
+            break;
+    }
+
     
     glMatrixMode(GL_MODELVIEW);
-    
     
     switch (m_brainModelMode) {
         case BrainModelMode::INVALID:
@@ -1054,41 +1086,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             break;
     }
 
-    SelectionItemAnnotation* annotationID(m_brain->getSelectionManager()->getAnnotationIdentification());
-    SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
-    SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
-    SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
-
     m_fixedPipelineDrawing->applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_VOLUME,
                                                 StructureEnum::ALL);
-
-    /*
-     * Check for a 'selection' type mode
-     */
-    bool drawVolumeSlicesFlag = true;
-    m_identificationModeFlag = false;
-    switch (m_fixedPipelineDrawing->mode) {
-        case BrainOpenGLFixedPipeline::MODE_DRAWING:
-            break;
-        case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
-            if (annotationID->isEnabledForSelection()
-                || voxelID->isEnabledForSelection()
-                || crosshairID->isEnabledForSelection()
-                || voxelEditingID->isEnabledForSelection()) {
-                m_identificationModeFlag = true;
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            }
-            else {
-                /*
-                 * Don't return.  Allow other items (such as annotations) to be drawn.
-                 */
-                drawVolumeSlicesFlag = false;
-            }
-            break;
-        case BrainOpenGLFixedPipeline::MODE_PROJECTION:
-            return;
-            break;
-    }
 
     if (drawVolumeSlicesFlag) {
         glPushMatrix();
@@ -1305,7 +1304,6 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
             break;
         case BrainModelMode::ALL_3D:
             rotationMatrix = m_browserTabContent->getMprThreeRotationMatrix();
-            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane);
             viewType = VolumeMprVirtualSliceView::getViewTypeForAllView();
             break;
         case BrainModelMode::VOLUME_2D:
