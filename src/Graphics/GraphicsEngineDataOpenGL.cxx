@@ -1021,31 +1021,37 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
         primitiveToDraw = GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(primitive,
                                                                                                  errorMessage);
         if (primitiveToDraw == NULL) {
-            const AString msg("For developer: "
-                              + errorMessage);
+            /*
+             * Empty error message can be ignored
+             */
+            if ( ! errorMessage.isEmpty()) {
+                const AString msg("For developer: "
+                                  + errorMessage);
 #ifdef NDEBUG
-            CaretLogFine(msg);
+                CaretLogFine(msg);
 #else
-            CaretLogSevere(msg);
+                CaretLogSevere(msg);
 #endif
-            return;
-        }
-        SpaceMode spaceMode = SpaceMode::WINDOW;
-        if (modelSpaceLineFlag) {
-            spaceMode = SpaceMode::MODEL;
-        }
-        else if (windowSpaceLineFlag) {
-            spaceMode = SpaceMode::WINDOW;
+            }
         }
         else {
-            CaretAssert(0);
+            SpaceMode spaceMode = SpaceMode::WINDOW;
+            if (modelSpaceLineFlag) {
+                spaceMode = SpaceMode::MODEL;
+            }
+            else if (windowSpaceLineFlag) {
+                spaceMode = SpaceMode::WINDOW;
+            }
+            else {
+                CaretAssert(0);
+            }
+            
+            lineConversionPrimitive.reset(primitiveToDraw);
+            drawModelOrWindowSpace(spaceMode,
+                                   PrivateDrawMode::DRAW_NORMAL,
+                                   primitiveToDraw,
+                                   NULL);
         }
-        
-        lineConversionPrimitive.reset(primitiveToDraw);
-        drawModelOrWindowSpace(spaceMode,
-                               PrivateDrawMode::DRAW_NORMAL,
-                               primitiveToDraw,
-                               NULL);
     }
     else {
         drawPrivate(PrivateDrawMode::DRAW_NORMAL,
