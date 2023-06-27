@@ -338,6 +338,11 @@ namespace caret {
         
         Matrix4x4 getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane);
         
+        Vector3D getMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
+        
+        void setMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                    const Vector3D& rotationVector);
+
         Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
@@ -872,6 +877,14 @@ namespace caret {
         Matrix4x4 m_mprThreeCoronalInverseRotationMatrix;
         Matrix4x4 m_mprThreeParasagittalInverseRotationMatrix;
 #endif
+
+        /*
+         * Note: these are not copied when yoked since they
+         * are set when the tab is drawn
+         */
+        Vector3D m_mprThreeAxialRotationVector;
+        Vector3D m_mprThreeCoronalRotationVector;
+        Vector3D m_mprThreeParasagittalRotationVector;
 
         /** aspect ratio */
         float m_aspectRatio;

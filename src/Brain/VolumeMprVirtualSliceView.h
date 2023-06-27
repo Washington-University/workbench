@@ -80,15 +80,15 @@ namespace caret {
         
         Vector3D getCameraUpVector() const;
 
-        Plane getPlane() const;
+        Plane getVirtualPlane() const;
+        
+        Plane getOriginalUtransformedPlane() const;
         
         Vector3D getPlaneRightVector() const;
         
         Vector3D getPlaneUpVector() const;
         
         Plane getMontageIncreasingDirectionPlane() const;
-        
-        Vector3D getNormalVector() const;
         
         Vector3D getVolumeCenterXYZ() const;
         
@@ -142,6 +142,8 @@ namespace caret {
         std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,
                                                     const std::vector<Vector3D>& vertexXyz) const;
         
+        void computeVirtualSlicePlane();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         ViewType m_viewType;
@@ -174,7 +176,11 @@ namespace caret {
         
         Vector3D m_postLookAtTranslation;
         
-        Plane m_virtualSlicePlane;
+        /* Plane prior to transformation */
+        Plane m_originalPlane;
+        
+        /* Plane after transformation that points to user */
+        Plane m_virtualPlane;
         
         Plane m_montageVirutalSliceIncreasingDirectionPlane;
 

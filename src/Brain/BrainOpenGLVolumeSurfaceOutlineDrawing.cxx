@@ -578,6 +578,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelT
          * Draw the contours.
          */
         for (auto primitive : contourPrimitives) {
+            CaretAssert(primitive);
             if (useNegativePolygonOffsetFlag) {
                 glPolygonOffset(-1.0, -1.0);
             }

@@ -181,15 +181,22 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
             m_rotationMatrix.multiplyPoint3(vUp);
             break;
     }
-    
+    /*
+     * Set transformation matrix
+     */
+    const Vector3D transXYZ(m_selectedSlicesXYZ);
+    m_transformationMatrix.translate(-transXYZ);
+    m_transformationMatrix.postmultiply(m_rotationMatrix);
+    m_transformationMatrix.translate(transXYZ);
+
     m_planeRightVector = (vRight - v).normal();
     m_planeUpVector    = (vUp - v).normal();
-    Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
+    Vector3D originalSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
     
     /*
      * Create virtual slice plane with camera look at on plane
      */
-    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
+    m_originalPlane = Plane(originalSlicePlaneVector,
                                 m_selectedSlicesXYZ);
     
     /*
@@ -241,16 +248,52 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
             break;
     }
     
+    computeVirtualSlicePlane();
+
+    Vector3D virtualSliceVector;
+    m_virtualPlane.getNormalVector(virtualSliceVector);
     if (m_radiologicalOrientationFlag) {
         /*
          * Need to flip sign of normal vector
          */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSliceVector,
                                                               m_selectedSlicesXYZ);
     }
     else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSliceVector,
                                                               m_selectedSlicesXYZ);
+    }
+}
+
+/**
+ * Compute the virtual slice plane of slice that is drawn
+ */
+void
+VolumeMprVirtualSliceView::computeVirtualSlicePlane()
+{
+    
+    switch (getViewType()) {
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            break;
+        case ViewType::ALL_VIEW_SLICES:
+        {
+            m_virtualPlane = m_originalPlane;
+//            Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
+//            m_rotationMatrix.multiplyPoint3(lookToVec);
+//            m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
+            return;
+        }
+            break;
+    }
+
+    /*
+     * Plane of the virtual slice that is drawn
+     */
+    Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
+    Matrix4x4 invMat(m_rotationMatrix);
+    if (invMat.invert()) {
+        invMat.multiplyPoint3(lookToVec);
+        m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
     }
 }
 
@@ -328,7 +371,6 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
      * Set transformation matrix
      */
     const Vector3D transXYZ(m_selectedSlicesXYZ);
-    
     m_transformationMatrix.translate(-transXYZ);
     m_transformationMatrix.postmultiply(m_rotationMatrix);
     m_transformationMatrix.translate(transXYZ);
@@ -339,9 +381,9 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
     /*
      * Virtual slice plane is placed at the selected slice coordinates
      */
-    m_virtualSlicePlane = Plane(virtualSlicePlaneVector,
+    m_originalPlane = Plane(virtualSlicePlaneVector,
                                 m_selectedSlicesXYZ);
-    CaretAssert(m_virtualSlicePlane.isValidPlane());
+    CaretAssert(m_originalPlane.isValidPlane());
     
     /*
      * Camera "look at" is always center of the volume
@@ -403,6 +445,8 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
             break;
     }
     
+    computeVirtualSlicePlane();
+    
     if (m_radiologicalOrientationFlag) {
         /*
          * Need to flip sign of normal vector
@@ -463,6 +507,15 @@ VolumeMprVirtualSliceView::getTrianglesCoordinates(const VolumeMappableInterface
                                               stereotaxicXyzOut);
     CaretAssert(stereotaxicXyzOut.size() == textureStrOut.size());
 
+    switch (m_viewType) {
+        case ViewType::ALL_VIEW_SLICES:
+//            for (auto& v : stereotaxicXyzOut) {
+//                m_rotationMatrix.multiplyPoint3(v);
+//            }
+            break;
+        case ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            break;
+    }
     if (stereotaxicXyzOut.size() >= 3) {
         layersDrawingPlaneOut = Plane(stereotaxicXyzOut[0],
                                       stereotaxicXyzOut[1],
@@ -612,7 +665,7 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
     Vector3D intersectionCenterXYZ;
     std::vector<Vector3D> intersectionPoints;
     AString errorMessage;
-    if (vpi.intersectWithPlane(m_virtualSlicePlane,
+    if (vpi.intersectWithPlane(m_originalPlane,
                                intersectionCenterXYZ,
                                intersectionPoints,
                                errorMessage)) {
@@ -772,7 +825,9 @@ VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVi
     
     m_postLookAtTranslation = obj.m_postLookAtTranslation;
     
-    m_virtualSlicePlane = obj.m_virtualSlicePlane;
+    m_originalPlane = obj.m_originalPlane;
+    
+    m_virtualPlane = obj.m_virtualPlane;
     
     m_montageVirutalSliceIncreasingDirectionPlane = obj.m_montageVirutalSliceIncreasingDirectionPlane;
     
@@ -809,12 +864,21 @@ VolumeMprVirtualSliceView::getCameraUpVector() const
 }
 
 /**
- * @return Plane for the virtual slice
+ * @return Plane after any transformation/rotation for slice that is drawn
  */
 Plane
-VolumeMprVirtualSliceView::getPlane() const
+VolumeMprVirtualSliceView::getVirtualPlane() const
 {
-    return m_virtualSlicePlane;
+    return m_virtualPlane;
+}
+
+/**
+ * @return Plane before any transformation/rotation (an orthogonal vector)
+ */
+Plane
+VolumeMprVirtualSliceView::getOriginalUtransformedPlane() const
+{
+    return m_originalPlane;
 }
 
 /**
@@ -843,17 +907,6 @@ Plane
 VolumeMprVirtualSliceView::getMontageIncreasingDirectionPlane() const
 {
     return m_montageVirutalSliceIncreasingDirectionPlane;
-}
-
-/**
- * @return Normal vector of virtual slice
- */
-Vector3D
-VolumeMprVirtualSliceView::getNormalVector() const
-{
-    Vector3D n;
-    m_virtualSlicePlane.getNormalVector(n);
-    return n;
 }
 
 /**

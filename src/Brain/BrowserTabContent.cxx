@@ -3124,6 +3124,7 @@ BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewP
     
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssertToDoFatal();
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             m.postmultiply(m_mprThreeAxialInverseRotationMatrix);
@@ -3214,6 +3215,59 @@ BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enu
             break;
     }
     return matrixOut;
+}
+
+/**
+ * @return Vector for rotating in the given slice plane
+ * @param slicePlane
+ *    The slice plane
+ */
+Vector3D
+BrowserTabContent::getMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const
+{
+    Vector3D vectorOut;
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            vectorOut = m_mprThreeAxialRotationVector;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            vectorOut = m_mprThreeCoronalRotationVector;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            vectorOut = m_mprThreeParasagittalRotationVector;
+            break;
+    }
+    return vectorOut;
+}
+
+/**
+ * Set the vector for rotating in the given slice plane
+ * @param slicePlane
+ *    The slice plane
+ * @param rotationVectoir
+ *    Vector for rotation
+ */
+void
+BrowserTabContent::setMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                          const Vector3D& rotationVector)
+{
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_mprThreeAxialRotationVector = rotationVector;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_mprThreeCoronalRotationVector = rotationVector;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_mprThreeParasagittalRotationVector = rotationVector;
+            break;
+    }
 }
 
 /**
@@ -3429,7 +3483,7 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
     
     if (isVolumeMprDisplayed()) {
         if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
-            float sliceVector[3] = { 0.0, 0.0, 0.0 };
+            Vector3D sliceVector(0.0, 0.0, 0.0);
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     CaretAssert(0);
@@ -3444,10 +3498,10 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                     sliceVector[0] = 1.0;
                     break;
             }
-
+            
             Matrix4x4 rotMatrix;
             if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-                rotMatrix = getMprThreeRotationMatrix();
+                sliceVector = getMprThreeRotationVectorForSlicePlane(sliceViewPlane);
             }
             else {
                 rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
@@ -3459,7 +3513,6 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                     CaretAssert(0);
                     break;
                 case VolumeSliceViewPlaneEnum::AXIAL:
-                    
                     rotMatrix.multiplyPoint3(sliceVector);
                     break;
                 case VolumeSliceViewPlaneEnum::CORONAL:
@@ -4325,37 +4378,9 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             break;
     }
     
-    Vector3D sliceVector(0.0, 0.0, 0.0);
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            sliceVector[2] = (radiologicalFlag ? -1.0 : 1.0); /* inferior : superior */
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            sliceVector[1] = (radiologicalFlag ? 1.0 : -1.0); /* anterior : posterior */
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            sliceVector[0] = -1.0;
-            break;
-    }
-        
-#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
-    const QVector3D rotVector(m_mprThreeRotationQuaternion.rotatedVector(QVector3D(sliceVector[0],
-                                                                              sliceVector[1],
-                                                                              sliceVector[2])));
-    sliceVector[0] = rotVector[0];
-    sliceVector[1] = rotVector[1];
-    sliceVector[2] = rotVector[2];
-#else
-    switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
-        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
-            break;
-    }
-#endif
+    const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
+//    std::cout << "Rotate " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
+//    << " about: " << rotationVector.toString() << std::endl;
     
     const Vector3D mouseViewportXY(mouseWindowXY - viewport.getBottomLeft());
     const Vector3D previousMouseViewportXY(previousMouseWindowXY - viewport.getBottomLeft());
@@ -4417,30 +4442,47 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             break;
     }
     Matrix4x4 m;
-    m.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
+    m.rotate(rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
     m_mprThreeRotationMatrix.postmultiply(m);
 
-    Matrix4x4 mInvert(m);
-    if (mInvert.invert()) {
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                m_mprThreeAxialInverseRotationMatrix.postmultiply(mInvert);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                m_mprThreeCoronalInverseRotationMatrix.postmultiply(mInvert);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                m_mprThreeParasagittalInverseRotationMatrix.postmultiply(mInvert);
-                break;
-        }
+    Matrix4x4 mOpposite;
+    mOpposite.rotate(-rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
+
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_mprThreeAxialInverseRotationMatrix.premultiply(mOpposite);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_mprThreeCoronalInverseRotationMatrix.premultiply(mOpposite);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_mprThreeParasagittalInverseRotationMatrix.premultiply(mOpposite);
+            break;
     }
+
+//    Matrix4x4 mInvert(m);
+//    if (mInvert.invert()) {
+//        switch (sliceViewPlane) {
+//            case VolumeSliceViewPlaneEnum::ALL:
+//                break;
+//            case VolumeSliceViewPlaneEnum::AXIAL:
+//                m_mprThreeAxialInverseRotationMatrix.postmultiply(mInvert);
+//                break;
+//            case VolumeSliceViewPlaneEnum::CORONAL:
+//                m_mprThreeCoronalInverseRotationMatrix.postmultiply(mInvert);
+//                break;
+//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                m_mprThreeParasagittalInverseRotationMatrix.postmultiply(mInvert);
+//                break;
+//        }
+//    }
     
     const bool printMatrixFlag(false);
     if (printMatrixFlag) {
         QMatrix4x4 rotMatrix;
-        rotMatrix.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
+        rotMatrix.rotate(rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
         std::cout << "Q4x4:";
         for (int32_t i = 0; i < 4; i++) {
             std::cout << "[";
@@ -4468,7 +4510,7 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
         std::cout << std::endl;
 
         std::cout << "Rotate " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
-        << " Vector: " << sliceVector.toString() << std::endl;
+        << " Vector: " << rotationVector.toString() << std::endl;
     }
 #endif
 }

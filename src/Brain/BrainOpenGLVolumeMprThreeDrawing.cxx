@@ -292,7 +292,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
                                                                         allPlanesLayout,
                                                                         axisVP.data());
                     glPushMatrix();
-                    const bool drawAllThreeAxesFlag(true);
+                    const bool drawAllThreeAxesFlag(false);
                     if (drawAllThreeAxesFlag) {
                         drawAllViewRotationThreeAxes(browserTabContent,
                                                      underlayVolume,
@@ -1030,7 +1030,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                            sliceViewPlane,
                                                            sliceCoordinates));
 
-    if ( ! mprSliceView.getPlane().isValidPlane()) {
+    if ( ! mprSliceView.getVirtualPlane().isValidPlane()) {
         return;
     }
 
@@ -1038,6 +1038,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
         case BrainModelMode::INVALID:
             break;
         case BrainModelMode::ALL_3D:
+        {
+            Matrix4x4 mat(mprSliceView.getTransformationMatrix());
+            float m16[16];
+            mat.getMatrixForOpenGL(m16);
+            glMultMatrixf(m16);
+        }
             break;
         case BrainModelMode::VOLUME_2D:
             /*
@@ -1192,22 +1198,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                          m_browserTabContent,
                                                                          m_volumeDrawInfo[0].volumeFile,
                                                                          m_volumeDrawInfo[0].mapIndex,
-                                                                         mprSliceView.getPlane(),
+                                                                         mprSliceView.getOriginalUtransformedPlane(),
                                                                          sliceThickness);
             }
         }
         
-        Plane layersDrawingPlane;
-        {
-            /*
-             * Need to use plane from the triangles that are drawn
-             */
-            std::vector<Vector3D> stereotaxicXYZ, textureSTR;
-            mprSliceView.getTrianglesCoordinates(underlayVolume,
-                                                 stereotaxicXYZ,
-                                                 textureSTR,
-                                                 layersDrawingPlane);
-        }
+        Plane layersDrawingPlane(mprSliceView.getVirtualPlane());
         
         if (layersDrawingPlane.isValidPlane()) {
             drawLayers(mprSliceView,
@@ -1297,10 +1293,7 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     BoundingBox boundingBox;
     underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
         
-    /*
-     * Set the modeling transformation
-     */
-    const Matrix4x4 rotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
+    Matrix4x4 rotationMatrix;
 
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
@@ -1311,9 +1304,12 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
             CaretAssert(0);
             break;
         case BrainModelMode::ALL_3D:
+            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrix();
+            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane);
             viewType = VolumeMprVirtualSliceView::getViewTypeForAllView();
             break;
         case BrainModelMode::VOLUME_2D:
+            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane);
             viewType = VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView();
             break;
     }
@@ -1325,6 +1321,11 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                            sliceViewPlane,
                                            m_orientationMode,
                                            rotationMatrix);
+    
+    Vector3D rotationVector;
+    mprSliceView.getVirtualPlane().getNormalVector(rotationVector);
+    m_browserTabContent->setMprThreeRotationVectorForSlicePlane(sliceViewPlane,
+                                                                rotationVector);
 
     return mprSliceView;
 }
@@ -1667,41 +1668,50 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
     glPushMatrix();    
     glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
 
-    Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
-    switch (mprSliceView.getViewType()) {
-        case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            if ( ! rotMat.invert()) {
-                CaretLogSevere("Failed to invert matrix for crosshair drawing");
-            }
-            break;
-        case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
-            break;
+    const bool doRotFreezeFlag(false);
+    if (doRotFreezeFlag) {
+        const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
+        float m[16];
+        rotMat.getMatrixForOpenGL(m);
+        glMultMatrixf(m);
     }
-    double rotX, rotY, rotZ;
-    rotMat.getRotation(rotX, rotY, rotZ);
-                   
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            if (radiologicalFlag) {
-                glRotatef(rotZ, 0.0, 0.0, 1.0);
-            }
-            else {
-                glRotatef(-rotZ, 0.0, 0.0, 1.0);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            if (radiologicalFlag) {
-                glRotatef(-rotY, 0.0, 0.0, 1.0);
-            }
-            else {
-                glRotatef(rotY, 0.0, 0.0, 1.0);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            glRotatef(rotX, 0.0, 0.0, 1.0);
-            break;
+    else {
+        Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
+        switch (mprSliceView.getViewType()) {
+            case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
+                if ( ! rotMat.invert()) {
+                    CaretLogSevere("Failed to invert matrix for crosshair drawing");
+                }
+                break;
+            case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
+                break;
+        }
+        double rotX, rotY, rotZ;
+        rotMat.getRotation(rotX, rotY, rotZ);
+        
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                if (radiologicalFlag) {
+                    glRotatef(rotZ, 0.0, 0.0, 1.0);
+                }
+                else {
+                    glRotatef(-rotZ, 0.0, 0.0, 1.0);
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                if (radiologicalFlag) {
+                    glRotatef(-rotY, 0.0, 0.0, 1.0);
+                }
+                else {
+                    glRotatef(rotY, 0.0, 0.0, 1.0);
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                glRotatef(rotX, 0.0, 0.0, 1.0);
+                break;
+        }
     }
 
     if (m_identificationModeFlag) {
@@ -2731,7 +2741,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
             break;
         case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             mprViewportSlice.reset(new VolumeMprViewportSlice(viewport,
-                                                              mprSliceView.getPlane()));
+                                                              mprSliceView.getVirtualPlane()));
             break;
     }
 
@@ -3292,11 +3302,11 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
     std::vector<Vector3D> stereotaxicXYZ;
     {
         std::vector<Vector3D> textureStr;
-        Plane layersDrawingPlane;
+        Plane layersDrawingPlaneUnused;
         mprSliceView.getTrianglesCoordinates(volume,
                                              stereotaxicXYZ,
                                              textureStr,
-                                             layersDrawingPlane);
+                                             layersDrawingPlaneUnused);
     }
     const int32_t numStereotaxicTriangles(stereotaxicXYZ.size() / 3);
     if (numTriangles != numStereotaxicTriangles) {
@@ -3738,9 +3748,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
                                            volumeFile);
             continue;
         }
+        
+        Vector3D sliceNormalVector;
+        mprSliceView.getVirtualPlane().getNormalVector(sliceNormalVector);
         std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
                                                                          mprSliceView.getVolumeCenterXYZ(),
-                                                                         mprSliceView.getNormalVector()));
+                                                                         sliceNormalVector));
         const int32_t numIntersections(allIntersections.size());
         
         if (numIntersections == 2) {
@@ -3927,9 +3940,11 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
      * finding the voxel with the greatest/least intensity and use this voxel as the
      * identified voxel.
      */
+    Vector3D sliceNormalVector;
+    mprSliceView.getVirtualPlane().getNormalVector(sliceNormalVector);
     const std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volume,
                                                                            modelXYZ,
-                                                                           mprSliceView.getNormalVector()));
+                                                                           sliceNormalVector));
     const int32_t numIntersections(allIntersections.size());
     
     if (numIntersections == 2) {
@@ -4260,11 +4275,11 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
             
             std::vector<Vector3D> stereotaxicXYZ;
             std::vector<Vector3D> textureStr;
-            Plane layersDrawingPlane;
+            Plane layersDrawingPlaneUnused;
             validFlag = mprSliceView.getTrianglesCoordinates(volume,
                                                              stereotaxicXYZ,
                                                              textureStr,
-                                                             layersDrawingPlane);
+                                                             layersDrawingPlaneUnused);
             
             if (validFlag) {
                 const int32_t numVertices(stereotaxicXYZ.size());
