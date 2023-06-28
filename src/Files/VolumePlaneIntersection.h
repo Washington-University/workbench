@@ -34,6 +34,7 @@ namespace caret {
 
     class Matrix4x4;
     class VolumeMappableInterface;
+    class VolumeVerticesEdgesFaces;
     
     class VolumePlaneIntersection : public CaretObject {
         
@@ -62,46 +63,6 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        class Face {
-        public:
-            Face(const Vector3D& v1,
-                 const Vector3D& v2,
-                 const Vector3D& v3,
-                 const Vector3D& v4)
-            : m_v1(v1),
-            m_v2(v2),
-            m_v3(v3),
-            m_v4(v4) {
-                m_plane = Plane(m_v1, m_v2, m_v3);
-            }
-            
-            Plane m_plane;
-            
-            Vector3D m_v1;
-            
-            Vector3D m_v2;
-            
-            Vector3D m_v3;
-            
-            Vector3D m_v4;
-        };
-        
-        class LineSegment {
-        public:
-            LineSegment(const Vector3D& v1,
-                        const Vector3D& v2)
-            : m_v1(v1),
-              m_v2(v2) {  }
-             
-            const Vector3D& v1() const { return m_v1; }
-            
-            const Vector3D& v2() const { return m_v2; }
-            
-        private:
-            Vector3D m_v1;
-            
-            Vector3D m_v2;
-        };
         
         VolumePlaneIntersection(const VolumeMappableInterface* volume,
                                 const Matrix4x4& matrix,
@@ -118,32 +79,16 @@ namespace caret {
         
         void mapPointsBackToVolume(std::vector<Vector3D>& intersectionPointsInOut) const;
         
-        void createFaces() const;
-        
         const VolumeMappableInterface* m_volume;
         
         const Matrix4x4 m_matrix;
         
         const bool m_matrixValidFlag;
         
-        std::vector<LineSegment> m_edges;
-        
-        mutable std::vector<Face> m_faces;
-        
-        mutable bool m_facesValidFlag = false;
-        
+        std::unique_ptr<VolumeVerticesEdgesFaces> m_verticesEdgesFaces;
+
         bool m_validFlag = false;
         
-        Vector3D m_xyz000;
-        Vector3D m_xyzI00;
-        Vector3D m_xyzIJ0;
-        Vector3D m_xyz0J0;
-        
-        Vector3D m_xyz00K;
-        Vector3D m_xyzI0K;
-        Vector3D m_xyzIJK;
-        Vector3D m_xyz0JK;
-
         static bool s_debugFlag;
         
         // ADD_NEW_MEMBERS_HERE

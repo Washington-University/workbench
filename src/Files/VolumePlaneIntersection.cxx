@@ -31,6 +31,7 @@
 #include "MathFunctions.h"
 #include "Plane.h"
 #include "VolumeMappableInterface.h"
+#include "VolumeVerticesEdgesFaces.h"
 
 using namespace caret;
 
@@ -105,103 +106,18 @@ m_matrixValidFlag(matrixValidFlag)
         return;
     }
     
-    m_validFlag = true;
-    
-    const float maxI(dims[0] - 1);
-    const float maxJ(dims[1] - 1);
-    const float maxK(dims[2] - 1);
-    
-    /*
-     * Coordinates at volume's 8 corners
-     */
-    m_xyz000 = m_volume->indexToSpace( 0.0,  0.0, 0.0);
-    m_xyzI00 = m_volume->indexToSpace(maxI,  0.0, 0.0);
-    m_xyzIJ0 = m_volume->indexToSpace(maxI, maxJ, 0.0);
-    m_xyz0J0 = m_volume->indexToSpace( 0.0, maxJ, 0.0);
-    
-    m_xyz00K = m_volume->indexToSpace( 0.0,  0.0, maxK);
-    m_xyzI0K = m_volume->indexToSpace(maxI,  0.0, maxK);
-    m_xyzIJK = m_volume->indexToSpace(maxI, maxJ, maxK);
-    m_xyz0JK = m_volume->indexToSpace( 0.0, maxJ, maxK);
-    
-    /*
-     * Transform the coordinates at the volume's corners
-     */
     if (m_matrixValidFlag) {
-        m_matrix.multiplyPoint3(m_xyz000);
-        m_matrix.multiplyPoint3(m_xyzI00);
-        m_matrix.multiplyPoint3(m_xyzIJ0);
-        m_matrix.multiplyPoint3(m_xyz0J0);
-        
-        m_matrix.multiplyPoint3(m_xyz00K);
-        m_matrix.multiplyPoint3(m_xyzI0K);
-        m_matrix.multiplyPoint3(m_xyzIJK);
-        m_matrix.multiplyPoint3(m_xyz0JK);
+        m_verticesEdgesFaces = VolumeVerticesEdgesFaces::newInstance(m_volume, m_matrix);
+    }
+    else {
+        m_verticesEdgesFaces = VolumeVerticesEdgesFaces::newInstance(m_volume);
     }
     
-    /*
-     * Line segments for the 12 edges
-     */
-    m_edges.emplace_back(m_xyz000, m_xyzI00);
-    m_edges.emplace_back(m_xyzI00, m_xyzIJ0);
-    m_edges.emplace_back(m_xyzIJ0, m_xyz0J0);
-    m_edges.emplace_back(m_xyz0J0, m_xyz000);
+    CaretAssert(m_verticesEdgesFaces);
     
-    m_edges.emplace_back(m_xyz00K, m_xyzI0K);
-    m_edges.emplace_back(m_xyzI0K, m_xyzIJK);
-    m_edges.emplace_back(m_xyzIJK, m_xyz0JK);
-    m_edges.emplace_back(m_xyz0JK, m_xyz00K);
-    
-    m_edges.emplace_back(m_xyz000, m_xyz00K);
-    m_edges.emplace_back(m_xyzI00, m_xyzI0K);
-    m_edges.emplace_back(m_xyzIJ0, m_xyzIJK);
-    m_edges.emplace_back(m_xyz0J0, m_xyz0JK);
-    
-    CaretAssert(m_edges.size() == 12);
+    m_validFlag = m_verticesEdgesFaces->isValid();
 }
 
-/**
- * Create the faces of the volume
- */
-void
-VolumePlaneIntersection::createFaces() const
-{
-    if (m_facesValidFlag) {
-        return;
-    }
-    m_facesValidFlag = true;
-        
-    /* Bottom */
-    m_faces.emplace_back(m_xyz000, m_xyzI00, m_xyzIJ0, m_xyz0J0);
-    
-    /* Top */
-    m_faces.emplace_back(m_xyz00K, m_xyzI0K, m_xyzIJK, m_xyz0JK);
-    
-    /* Left */
-    m_faces.emplace_back(m_xyz000, m_xyz00K, m_xyz0JK, m_xyz0J0);
-    
-    /* Right */
-    m_faces.emplace_back(m_xyzI00, m_xyzI0K, m_xyzIJK, m_xyzIJ0);
-    
-    /* Near */
-    m_faces.emplace_back(m_xyz000, m_xyzI00, m_xyzI0K, m_xyz00K);
-    
-    /* Far */
-    m_faces.emplace_back(m_xyz0J0, m_xyzIJ0, m_xyzIJK, m_xyz0JK);
-    
-    if (s_debugFlag) {
-        for (auto& f : m_faces) {
-            std::cout << "Face: " << f.m_v1.toString() << std::endl;
-            std::cout << "      " << f.m_v2.toString() << std::endl;
-            std::cout << "      " << f.m_v3.toString() << std::endl;
-            std::cout << "      " << f.m_v4.toString() << std::endl;
-        }
-        std::cout << std::endl;
-        std::cout << std::endl;
-    }
-
-    CaretAssert(m_faces.size() == 6);
-}
 /**
  * Destructor.
  */
@@ -244,10 +160,11 @@ VolumePlaneIntersection::intersectWithPlane(const Plane& plane,
      * Test for intersection of plane with each
      * of the volume's edges
      */
-    for (const auto& lineSegment : m_edges) {
+    const std::vector<VolumeVerticesEdgesFaces::Edge> edges(m_verticesEdgesFaces->getEdges());
+    for (const auto& e : edges) {
         Vector3D intersectionXYZ;
-        if (plane.lineSegmentIntersectPlane(lineSegment.v1(),
-                                            lineSegment.v2(),
+        if (plane.lineSegmentIntersectPlane(e.v1(),
+                                            e.v2(),
                                             intersectionXYZ)) {
             intersectionPointsOut.push_back(intersectionXYZ);
         }
@@ -443,18 +360,17 @@ VolumePlaneIntersection::intersectWithRay(const Vector3D& rayOriginXYZ,
         return false;
     }
 
-    createFaces();
-    
     /*
      * Map that sorts intersection by distance from
      * the ray's origin
      */
     std::map<float, Vector3D> distanceIntersectionXYZ;
     
-    for (const auto& face : m_faces) {
+    const std::vector<VolumeVerticesEdgesFaces::Face> faces(m_verticesEdgesFaces->getFaces());
+    for (const auto& face : faces) {
         Vector3D intersectionXYZ;
         float distanceFromRayOrigin(0.0);
-        if (face.m_plane.rayIntersection(rayOriginXYZ,
+        if (face.plane().rayIntersection(rayOriginXYZ,
                                          rayDirectionVector,
                                          intersectionXYZ,
                                          distanceFromRayOrigin)) {
@@ -466,9 +382,9 @@ VolumePlaneIntersection::intersectWithRay(const Vector3D& rayOriginXYZ,
              * Use barycentric areas.  Orientation of triangle is unknown so if point
              * is inside triangle all areas will be either negative or positive.
              */
-            const float area1 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v1, face.m_v2, intersectionXYZ);
-            const float area2 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v2, face.m_v3, intersectionXYZ);
-            const float area3 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v3, face.m_v1, intersectionXYZ);
+            const float area1 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v1(), face.v2(), intersectionXYZ);
+            const float area2 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v2(), face.v3(), intersectionXYZ);
+            const float area3 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v3(), face.v1(), intersectionXYZ);
             if ((area1 > -degenerateTolerance)
                 && (area2 > -degenerateTolerance)
                 && (area3 > -degenerateTolerance)) {
@@ -485,9 +401,9 @@ VolumePlaneIntersection::intersectWithRay(const Vector3D& rayOriginXYZ,
             }
             
             if ( ! insideFlag) {
-                const float area4 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v1, face.m_v3, intersectionXYZ);
-                const float area5 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v3, face.m_v4, intersectionXYZ);
-                const float area6 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.m_v4, face.m_v1, intersectionXYZ);
+                const float area4 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v1(), face.v3(), intersectionXYZ);
+                const float area5 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v3(), face.v4(), intersectionXYZ);
+                const float area6 = MathFunctions::triangleAreaSigned3D(rayDirectionVector, face.v4(), face.v1(), intersectionXYZ);
                 if ((area4 > -degenerateTolerance)
                     && (area5 > -degenerateTolerance)
                     && (area6 > -degenerateTolerance)) {

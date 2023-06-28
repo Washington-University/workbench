@@ -980,9 +980,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent
             }
         }
         
-        glPushAttrib(GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-        
         /*
          * Draw box without roation
          */
@@ -993,6 +990,11 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent
          */
         {
             glPushMatrix();
+            
+            glPushAttrib(GL_DEPTH_BUFFER_BIT);
+            glDisable(GL_DEPTH_TEST);
+            
+            m_fixedPipelineDrawing->enableLineAntiAliasing();
             
             double rotationMatrix[16];
             matrix.getMatrixForOpenGL(rotationMatrix);
@@ -1048,6 +1050,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent
             paraSpheres->addVertex(x, minY, maxZ);
             paraSpheres->addVertex(x, maxY, maxZ);
             GraphicsEngineDataOpenGL::draw(paraSpheres.get());
+            
+            m_fixedPipelineDrawing->disableLineAntiAliasing();
             
             glPopAttrib();
             
@@ -1780,7 +1784,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
     
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotatePrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
     const float rotateThicker(m_axialCoronalParaSliceViewFlag
-                              ? 2.0
+                              ? 3.0
                               : 1.0);
     const float rotateLineWidth(m_identificationModeFlag
                                 ? (percentViewportHeight * 5.0)
@@ -2042,8 +2046,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
         }
     }
     else {
+        m_fixedPipelineDrawing->enableLineAntiAliasing();
+        
         GraphicsEngineDataOpenGL::draw(sliceSelectionPrimitive.get());
         GraphicsEngineDataOpenGL::draw(rotatePrimitive.get());
+
+        m_fixedPipelineDrawing->disableLineAntiAliasing();
     }
     
     glPopMatrix();
