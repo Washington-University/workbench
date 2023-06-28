@@ -1259,10 +1259,34 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
         {
             const int32_t numberOfVertices = primitive->getNumberOfVertices();
             CaretAssertVectorIndex(primitive->m_xyz, (numberOfVertices - 1) * 3 + 1);
-            GraphicsShape::drawSpheresByteColor(&primitive->m_xyz[0],
-                                                numberOfVertices,
-                                                &primitive->m_unsignedByteRGBA[0],
-                                                sizeValue);
+            
+            switch (primitive->m_colorDataType) {
+                case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                {
+                    CaretAssertVectorIndex(primitive->m_floatRGBA, 4);
+                    const uint8_t rgba[4] = {
+                        static_cast<uint8_t>(primitive->m_floatRGBA[0] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[1] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[2] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[3] * 255.0)
+                    };
+                    GraphicsShape::drawSpheresByteColor(&primitive->m_xyz[0],
+                                                        numberOfVertices,
+                                                        rgba,
+                                                        sizeValue);
+                }
+                    break;
+                case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                    CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, 4);
+                    GraphicsShape::drawSpheresByteColor(&primitive->m_xyz[0],
+                                                        numberOfVertices,
+                                                        &primitive->m_unsignedByteRGBA[0],
+                                                        sizeValue);
+                    break;
+                case GraphicsPrimitive::ColorDataType::NONE:
+                    CaretAssert(0);
+                    break;
+            }
         }
             break;
     }
