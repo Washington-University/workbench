@@ -69,6 +69,7 @@
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
+#include "VolumeVerticesEdgesFaces.h"
 #include "VolumeFile.h"
 #include "VolumePlaneIntersection.h"
 
@@ -293,15 +294,22 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
                                                                         axisVP.data());
                     glPushMatrix();
                     const bool drawAllThreeAxesFlag(false);
+                    const bool drawSingleAxesFlag(false);
+                    const bool drawBoxAxesFlag(true);
                     if (drawAllThreeAxesFlag) {
                         drawAllViewRotationThreeAxes(browserTabContent,
                                                      underlayVolume,
                                                      axisVP.data());
                     }
-                    else {
+                    if (drawSingleAxesFlag) {
                         drawAllViewRotationAxes(browserTabContent,
                                                 underlayVolume,
                                                 axisVP.data());
+                    }
+                    if (drawBoxAxesFlag) {
+                        drawAllViewRotationBox(browserTabContent,
+                                               underlayVolume,
+                                               axisVP.data());
                     }
                     glPopMatrix();
                 }
@@ -593,7 +601,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const BrowserTabC
 }
 
 /**
- * Draw a box showing the current rotation
+ * Draw axes showing the current rotation
  * @param browserTabContent
  *   Content of browser tab
  * @param underlayVolume
@@ -816,6 +824,291 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
     glMatrixMode(GL_MODELVIEW);
 }
 
+/**
+ * Draw box showing the current rotation
+ *
+ * Rotation box designed copied from: https://castlemountain.dk/mulrecon/sprayMPR.html?folder=MRBrainT1&pixelspacing=0.625&ST=1&SS=1&slices=169&compression=1
+ *
+ * @param browserTabContent
+ *   Content of browser tab
+ * @param underlayVolume
+ *   The underlay volume
+ * @param viewportIn
+ *   The viewport
+ */
+void
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent* browserTabContent,
+                                                         const VolumeMappableInterface* underlayVolume,
+                                                         const int32_t viewportIn[4])
+{
+    CaretAssert(browserTabContent);
+    CaretAssert(underlayVolume);
+    
+    /*
+     * Set the modeling transformation
+     */
+    const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
+    Matrix4x4 rotationMatrix(m_browserTabContent->getMprThreeRotationMatrix());
+    Matrix4x4 matrix;
+    matrix.translate(-selectedXYZ);
+    matrix.postmultiply(rotationMatrix);
+    matrix.translate(selectedXYZ);
+    
+    /*
+     * Set the viewport
+     */
+    glViewport(viewportIn[0],
+               viewportIn[1],
+               viewportIn[2],
+               viewportIn[3]);
+    const GraphicsViewport viewport(viewportIn[0],
+                                    viewportIn[1],
+                                    viewportIn[2],
+                                    viewportIn[3]);
+    const double viewportWidth  = viewport.getWidth();
+    const double viewportHeight = viewport.getHeight();
+    
+    /*
+     * Determine bounds for orthographic projection
+     */
+    const float marginPercent(1.15);
+    BoundingBox boundingBox;
+    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+    const double maxCoord = boundingBox.getMaximumDifferenceOfXYZ() * marginPercent;
+    const double minCoord = -maxCoord;
+    
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+
+    Vector3D eyeOffsetXYZ(0.0, 0.0, maxCoord);
+    
+    const bool usePerspectiveProjectionFlag(true);
+    if (usePerspectiveProjectionFlag) {
+        const float nearToFarDistance(maxCoord * 1.5);
+        const float nearHeight(maxCoord);
+        const float farHeight(nearHeight * marginPercent);
+        const float middleNearFarHeight((nearHeight + farHeight) / 2.0);
+        /*
+         * Right triangle
+         *               ==
+         *             =  =
+         *           =    =
+         *       c =      =  b
+         *       =        =
+         *     =          =
+         *   =  theta     =
+         *  ===============
+         *        a
+         */
+
+        const float fov(80.0);
+        
+        const float theta(fov / 2.0);
+        const float b(middleNearFarHeight);
+        const float a(b / std::tan(MathFunctions::toRadians(theta)));
+        
+        const float middleNearFarDistance(a);
+        const float nearDistance(middleNearFarDistance - (nearToFarDistance / 2.0));
+        const float farDistance(nearDistance + nearToFarDistance);
+        
+        const double aspectRatio = (viewportWidth
+                                    / viewportHeight);
+
+        gluPerspective(fov, aspectRatio, nearDistance, farDistance);
+        
+        eyeOffsetXYZ[2] = middleNearFarDistance;
+    }
+    else {
+        double left   = 0.0;
+        double right  = 0.0;
+        double top    = 0.0;
+        double bottom = 0.0;
+        const double nearDepth = -1000.0;
+        const double farDepth  =  1000.0;
+        if (viewportHeight > viewportWidth) {
+            left  = minCoord;
+            right = maxCoord;
+            const double aspectRatio = (viewportHeight
+                                        / viewportWidth);
+            top   = maxCoord * aspectRatio;
+            bottom = minCoord * aspectRatio;
+        }
+        else {
+            const double aspectRatio = (viewportWidth
+                                        / viewportHeight);
+            top   = maxCoord;
+            bottom = minCoord;
+            left  = minCoord * aspectRatio;
+            right = maxCoord * aspectRatio;
+        }
+        /*
+         * Set the orthographic projection
+         */
+        glOrtho(left, right,
+                bottom, top,
+                nearDepth, farDepth);
+    }
+    
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    {
+        /*
+         * Set the viewing transformation, places 'eye' so that it looks
+         * at the 'model' which is, in this case, the box from dorsal view
+         */
+        Vector3D centerXYZ;
+        boundingBox.getCenter(centerXYZ);
+        const Vector3D eyeXYZ(centerXYZ + eyeOffsetXYZ);
+        const double upX = 0;
+        const double upY = 1;
+        const double upZ = 0;
+        gluLookAt(eyeXYZ[0], eyeXYZ[1], eyeXYZ[2],
+                  centerXYZ[0], centerXYZ[1], centerXYZ[2],
+                  upX, upY, upZ);
+        
+        const float gray[4] { 0.7, 0.7, 0.7, 1.0 };
+        std::unique_ptr<GraphicsPrimitiveV3f> box(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES, gray));
+        const auto verticesEdgesFaces(VolumeVerticesEdgesFaces::newInstance(underlayVolume));
+        if (verticesEdgesFaces->isValid()) {
+            const auto& edges(verticesEdgesFaces->getEdges());
+            for (const auto& e : edges) {
+                box->addVertex(e.v1());
+                box->addVertex(e.v2());
+            }
+        }
+        
+        glPushAttrib(GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        
+        /*
+         * Draw box without roation
+         */
+        GraphicsEngineDataOpenGL::draw(box.get());
+        
+        /*
+         * Draw box with rotation and slice spheres
+         */
+        {
+            glPushMatrix();
+            
+            double rotationMatrix[16];
+            matrix.getMatrixForOpenGL(rotationMatrix);
+            glMultMatrixd(rotationMatrix);
+            
+            GraphicsEngineDataOpenGL::draw(box.get());
+            
+            const float x(selectedXYZ[0]);
+            const float y(selectedXYZ[1]);
+            const float z(selectedXYZ[2]);
+            
+            const float minX(boundingBox.getMinX());
+            const float minY(boundingBox.getMinY());
+            const float maxX(boundingBox.getMaxX());
+            const float maxY(boundingBox.getMaxY());
+            const float minZ(boundingBox.getMinZ());
+            const float maxZ(boundingBox.getMaxZ());
+            
+            const float sphereSize(maxCoord * 0.05);
+            
+            /*
+             * Axial slice spheres
+             */
+            const float blue[4] { 0.0, 0.0, 1.0, 1.0 };
+            std::unique_ptr<GraphicsPrimitiveV3f> axialSpheres(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES, blue));
+            axialSpheres->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, sphereSize);
+            axialSpheres->addVertex(minX, minY, z);
+            axialSpheres->addVertex(maxX, minY, z);
+            axialSpheres->addVertex(maxX, maxY, z);
+            axialSpheres->addVertex(minX, maxY, z);
+            GraphicsEngineDataOpenGL::draw(axialSpheres.get());
+            
+            /*
+             * Coronal slice spheres
+             */
+            const float green[4] { 0.0, 1.0, 0.0, 1.0 };
+            std::unique_ptr<GraphicsPrimitiveV3f> coronalSpheres(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES, green));
+            coronalSpheres->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, sphereSize);
+            coronalSpheres->addVertex(minX, y, minZ);
+            coronalSpheres->addVertex(maxX, y, minZ);
+            coronalSpheres->addVertex(maxX, y, maxZ);
+            coronalSpheres->addVertex(minX, y, maxZ);
+            GraphicsEngineDataOpenGL::draw(coronalSpheres.get());
+            
+            /*
+             * Coronal slice spheres
+             */
+            const float red[4] { 1.0, 0.0, 0.0, 1.0 };
+            std::unique_ptr<GraphicsPrimitiveV3f> paraSpheres(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::SPHERES, red));
+            paraSpheres->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, sphereSize);
+            paraSpheres->addVertex(x, minY, minZ);
+            paraSpheres->addVertex(x, maxY, minZ);
+            paraSpheres->addVertex(x, minY, maxZ);
+            paraSpheres->addVertex(x, maxY, maxZ);
+            GraphicsEngineDataOpenGL::draw(paraSpheres.get());
+            
+            glPopAttrib();
+            
+            glPopMatrix();
+        }
+        
+        /*
+         * Draw labels at edges of viewport indicating unrotated volume orientation
+         */
+        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        annotationText.setFontPercentViewportSize(5.0f);
+        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+        annotationText.setTextColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomTextColor(m_fixedPipelineDrawing->m_foregroundColorFloat);
+        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+        annotationText.setCustomBackgroundColor(m_fixedPipelineDrawing->m_backgroundColorFloat);
+
+        AString leftLabelText("L");
+        AString rightLabelText("R");
+        AString bottomLabelText("P");
+        AString topLabelText("A");
+        
+        const double marginOffset(10.0);
+        
+        annotationText.setText(leftLabelText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getLeft() + marginOffset),
+                                                         viewport.getCenterY(),
+                                                         annotationText);
+        
+        annotationText.setText(rightLabelText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getRight() - marginOffset),
+                                                         viewport.getCenterY(),
+                                                         annotationText);
+        
+        annotationText.setText(bottomLabelText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
+                                                         (viewport.getBottom() + marginOffset),
+                                                         annotationText);
+        
+        annotationText.setText(topLabelText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
+                                                         (viewport.getTop() - marginOffset),
+                                                         annotationText);
+    }
+    
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
 /**
  * Draw the  slice view in Whole Brain (ALL)  mode
  * @param fixedPipelineDrawing
