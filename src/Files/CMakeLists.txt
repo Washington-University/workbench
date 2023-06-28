@@ -187,6 +187,7 @@ VolumePaddingHelper.h
 VolumePlaneIntersection.h
 VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
+VolumeVerticesEdgesFaces.h
 VoxelInterpolationTypeEnum.h
 VtkFileExporter.h
 WarpfieldFile.h
@@ -353,6 +354,7 @@ VolumePaddingHelper.cxx
 VolumePlaneIntersection.cxx
 VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
+VolumeVerticesEdgesFaces.cxx
 VoxelInterpolationTypeEnum.cxx
 VtkFileExporter.cxx
 WarpfieldFile.cxx
