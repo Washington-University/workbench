@@ -172,6 +172,8 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            break;
     }
     
     int64_t iHalf = brushSize[0] / 2;
@@ -220,6 +222,10 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                        errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    result = performTurnOnOrOffOblique(editInfo,
+                                                       errorMessageOut);
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                     result = performTurnOnOrOffOblique(editInfo,
                                                        errorMessageOut);
                     break;

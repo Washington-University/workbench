@@ -165,6 +165,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             CaretAssert(0);
@@ -214,9 +215,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                               const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                               const GraphicsViewport& viewport)
 {
-    CaretAssertVectorIndex(m_volumeDrawInfo, 0);
-    const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
-
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getVolumeSliceViewPlane());
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:

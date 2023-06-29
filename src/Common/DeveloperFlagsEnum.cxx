@@ -161,11 +161,6 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_CORRECTIONS,
-                                                "DEVELOPER_FLAG_MPR_CORRECTIONS",
-                                                "Volume: MPR Corrections (Rotate about screen normal etc.)",
-                                                CheckableEnum::YES,
-                                                true));
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
@@ -297,9 +292,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("For voxel cubes in ALL view, only draw \"outside faces\" "
                        "(faster but causes problem when opacity is less than one so disable "
                        "in that instance)");
-            break;
-        case DEVELOPER_FLAG_MPR_CORRECTIONS:
-            toolTip = ("Slice does not rotate while its axes are being rotated; Rotate about screen normal vector");
             break;
     }
     

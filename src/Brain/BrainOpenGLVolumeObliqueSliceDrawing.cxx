@@ -314,18 +314,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
                                                                        VolumeSliceViewPlaneEnum::ALL,
                                                                        allPlanesLayout,
                                                                        allVP);
-                
-                switch (sliceProjectionType) {
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                        drawOrientationAxes(allVP);
-                        break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                        CaretAssert(0);
-                        break;
-                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                        CaretAssert(0);
-                        break;
-                }
+                drawOrientationAxes(allVP);
             }
         }
             break;
@@ -790,27 +779,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
          */
         glDisable(GL_CULL_FACE);
         
-        switch (sliceProjectionType) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            {
-                /*
-                 * Create the oblique slice transformation matrix
-                 */
-                Matrix4x4 obliqueTransformationMatrix;
-                createObliqueTransformationMatrix(sliceCoordinates,
-                                                  obliqueTransformationMatrix);
-                
-                drawObliqueSliceWithOutlines(sliceViewPlane,
-                                             obliqueTransformationMatrix);
-            }
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                CaretAssert(0);
-                break;
-        }
+        /*
+         * Create the oblique slice transformation matrix
+         */
+        Matrix4x4 obliqueTransformationMatrix;
+        createObliqueTransformationMatrix(sliceCoordinates,
+                                          obliqueTransformationMatrix);
+        
+        drawObliqueSliceWithOutlines(sliceViewPlane,
+                                     obliqueTransformationMatrix);
 
         /*
          * Process selection
@@ -941,7 +918,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
  *    OUTPUT plane of slice after transforms.
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeObliqueSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
                                                                const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                const float sliceCoordinates[3],
                                                                Plane& planeOut)
@@ -963,27 +940,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::createSlicePlaneEquation(const VolumeSlice
             break;
     }
     
-    switch (sliceProjectionType) {
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        {
-            /*
-             * Transform the slice normal vector by the oblique rotation
-             * matrix so that the normal vector points out of the slice
-             */
-            const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
-            obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
-            MathFunctions::normalizeVector(sliceNormalVector);
-        }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            CaretAssert(0);
-            break;
-    }
-    
+    /*
+     * Transform the slice normal vector by the oblique rotation
+     * matrix so that the normal vector points out of the slice
+     */
+    const Matrix4x4 obliqueRotationMatrix = m_browserTabContent->getObliqueVolumeRotationMatrix();
+    obliqueRotationMatrix.multiplyPoint3(sliceNormalVector);
+    MathFunctions::normalizeVector(sliceNormalVector);
+
     Plane plane(sliceNormalVector,
                 sliceCoordinates);
     planeOut = plane;
@@ -1007,7 +971,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::createSlicePlaneEquation(const VolumeSlice
  *    Coordinates of the selected slices.
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeObliqueSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
                                                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                                       const Plane& plane,
                                                                                       const float sliceCoordinates[3])
@@ -1089,17 +1053,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::setVolumeSliceViewingAndModelingTransforma
      * For oblique viewing, the up vector needs to be rotated by the
      * oblique rotation matrix.
      */
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            CaretAssert(0);
-            break;
-    }
+    m_browserTabContent->getObliqueVolumeRotationMatrix().multiplyPoint3(up);
     
     /*
      * Now set the camera to look at the selected coordinate (center)
@@ -1256,7 +1210,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnu
  *    Coordinates of the selected slices.
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
                                                          const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                                          const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                          const float sliceCoordinates[3])
@@ -1271,24 +1225,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjec
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
             break;
     }
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-        {
-            glPushMatrix();
-            glLoadIdentity();
-            drawAxesCrosshairsOblique(sliceViewPlane,
-                                      sliceCoordinates,
-                                      drawCrosshairsFlag,
-                                      drawCrosshairLabelsFlag);
-            glPopMatrix();
-        }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            break;
-    }
+    
+    glPushMatrix();
+    glLoadIdentity();
+    drawAxesCrosshairsOblique(sliceViewPlane,
+                              sliceCoordinates,
+                              drawCrosshairsFlag,
+                              drawCrosshairLabelsFlag);
+    glPopMatrix();
 }
 
 /**

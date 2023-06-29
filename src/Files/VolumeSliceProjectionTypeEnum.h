@@ -40,7 +40,9 @@ public:
         /** Draw volume slice with an orthogonal projection */
         VOLUME_SLICE_PROJECTION_ORTHOGONAL,
         /** Multi-Planar Reconstruction  */
-        VOLUME_SLICE_PROJECTION_MPR
+        VOLUME_SLICE_PROJECTION_MPR,
+        /** Multi-Planar Reconstruction  Revision Three*/
+        VOLUME_SLICE_PROJECTION_MPR_THREE
     };
 
 

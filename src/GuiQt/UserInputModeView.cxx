@@ -385,6 +385,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         bool mprFlag(false);
         switch (browserTabContent->getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 mprFlag = true;
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -971,7 +972,8 @@ UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
         return mprModeOut;
     }
     
-    if (browserTabContent->isVolumeMprDisplayed()) {
+    if (browserTabContent->isVolumeMprOldDisplayed()
+        || browserTabContent->isVolumeMprThreeDisplayed()) {
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(),
                                                                                                             mouseEvent.getY()));

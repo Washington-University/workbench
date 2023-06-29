@@ -146,6 +146,7 @@ ViewingTransformationsVolume::setViewToBounds(const BrainOpenGLViewportContent* 
                                                               browserTabContent);
         switch (browserTabContent->getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 if ( ! transformFitToRegion.applyToMprVolume(m_translation,
                                                              sliceViewPlaneSelectedInTab,
                                                              sliceViewPlaneForFitToRegion,
@@ -186,6 +187,7 @@ ViewingTransformationsVolume::setViewToBounds(const BrainOpenGLViewportContent* 
     
     switch (browserTabContent->getVolumeSliceProjectionType()) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
             if ( ! transformFitToRegion.applyToMprVolume(m_translation,
                                                          sliceViewPlaneSelectedInTab,
                                                          sliceViewPlaneForFitToRegion,

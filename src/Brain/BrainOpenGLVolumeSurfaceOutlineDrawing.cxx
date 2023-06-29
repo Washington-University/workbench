@@ -152,6 +152,9 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             drawCachedFlag = false;
             break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            drawCachedFlag = false;
+            break;
     }
     /*
      * Code still here to allow comparison with
@@ -244,7 +247,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const V
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            //CaretAssert(0);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
             break;
     }
     

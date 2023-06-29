@@ -1124,15 +1124,17 @@ BrowserTabContent::isVolumeSlicesDisplayed() const
 }
 
 /**
- * @return  Is a MPR volume viewer displayed
+ * @return  Is a MPR volume viewer displayed (OLD version)
  */
 bool
-BrowserTabContent::isVolumeMprDisplayed() const
+BrowserTabContent::isVolumeMprOldDisplayed() const
 {
     if (isVolumeSlicesDisplayed()) {
         switch (getVolumeSliceProjectionType()) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 return true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
@@ -1144,6 +1146,28 @@ BrowserTabContent::isVolumeMprDisplayed() const
     return false;
 }
 
+/**
+ * @return  Is a MPR volume viewer displayed (version 3)
+ */
+bool
+BrowserTabContent::isVolumeMprThreeDisplayed() const
+{
+    if (isVolumeSlicesDisplayed()) {
+        switch (getVolumeSliceProjectionType()) {
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                return true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                break;
+        }
+    }
+    
+    return false;
+}
 
 /**
  * @return Is the displayed model the whole brain model (ALL)?
@@ -1863,6 +1887,8 @@ BrowserTabContent::receiveEvent(Event* event)
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                             break;
                         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                            break;
+                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                             break;
                     }
                     switch (m_volumeSliceSettings->getSliceDrawingType()) {
@@ -3042,9 +3068,7 @@ BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
 float
 BrowserTabContent::getMprRotationX() const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        CaretLogSevere("Shold not be called with MPR three");
-    }
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
     return m_mprRotationX;
 }
 
@@ -3054,9 +3078,7 @@ BrowserTabContent::getMprRotationX() const
 float
 BrowserTabContent::getMprRotationY() const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        CaretLogSevere("Shold not be called with MPR three");
-    }
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
     return m_mprRotationY;
 }
 
@@ -3066,9 +3088,7 @@ BrowserTabContent::getMprRotationY() const
 float
 BrowserTabContent::getMprRotationZ() const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        CaretLogSevere("Shold not be called with MPR three");
-    }
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
     return m_mprRotationZ;
 }
 
@@ -3098,6 +3118,7 @@ BrowserTabContent::resetMprRotations()
 Matrix4x4
 BrowserTabContent::getMprThreeRotationMatrix() const
 {
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     QMatrix3x3 mat33(m_mprThreeRotationQuaternion.toRotationMatrix());
     Matrix4x4 matrix;
@@ -3120,6 +3141,7 @@ BrowserTabContent::getMprThreeRotationMatrix() const
 Matrix4x4
 BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
     Matrix4x4 m(m_mprThreeRotationMatrix);
     
     switch (slicePlane) {
@@ -3149,9 +3171,7 @@ Matrix4x4
 BrowserTabContent::getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                         const VolumeSliceViewPlaneEnum::Enum slicePlane) const
 {
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-        CaretLogSevere("Shold not be called with MPR three");
-    }
+    CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
     
     /*
      * Correct rotation of volume so that it matches crosshairs
@@ -3447,6 +3467,9 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 incrementFlag = true;
                 break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                incrementFlag = true;
+                break;
         }
     }
     
@@ -3481,7 +3504,7 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                                                                                         sliceViewport);
     }
     
-    if (isVolumeMprDisplayed()) {
+    if (isVolumeMprOldDisplayed()) {
         if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
             Vector3D sliceVector(0.0, 0.0, 0.0);
             switch (sliceViewPlane) {
@@ -3499,14 +3522,8 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
                     break;
             }
             
-            Matrix4x4 rotMatrix;
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-                sliceVector = getMprThreeRotationVectorForSlicePlane(sliceViewPlane);
-            }
-            else {
-                rotMatrix = getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                 sliceViewPlane);
-            }
+            const Matrix4x4 rotMatrix(getMprRotationMatrix4x4ForSlicePlane(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                                                           sliceViewPlane));
             
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
@@ -3532,6 +3549,51 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
             setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
         }
     }
+    else if (isVolumeMprThreeDisplayed()) {
+        if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
+//            Vector3D sliceVector(0.0, 0.0, 0.0);
+//            switch (sliceViewPlane) {
+//                case VolumeSliceViewPlaneEnum::ALL:
+//                    CaretAssert(0);
+//                    break;
+//                case VolumeSliceViewPlaneEnum::AXIAL:
+//                    sliceVector[2] = 1.0;
+//                    break;
+//                case VolumeSliceViewPlaneEnum::CORONAL:
+//                    sliceVector[1] = 1.0;
+//                    break;
+//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                    sliceVector[0] = 1.0;
+//                    break;
+//            }
+            
+            const Vector3D sliceVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
+            
+//            switch (sliceViewPlane) {
+//                case VolumeSliceViewPlaneEnum::ALL:
+//                    CaretAssert(0);
+//                    break;
+//                case VolumeSliceViewPlaneEnum::AXIAL:
+//                    rotMatrix.multiplyPoint3(sliceVector);
+//                    break;
+//                case VolumeSliceViewPlaneEnum::CORONAL:
+//                    rotMatrix.multiplyPoint3(sliceVector);
+//                    break;
+//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+//                    rotMatrix.multiplyPoint3(sliceVector);
+//                    break;
+//            }
+            
+            const float axialDelta(std::round(sliceVector[2] * sliceDelta));
+            const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
+            const float paraDelta(std::round(sliceVector[0] * sliceDelta));
+            
+            setVolumeSliceCoordinateAxial(getVolumeSliceCoordinateAxial() + axialDelta);
+            setVolumeSliceCoordinateCoronal(getVolumeSliceCoordinateCoronal() + coronalDelta);
+            setVolumeSliceCoordinateParasagittal(getVolumeSliceCoordinateParasagittal() + paraDelta);
+        }
+    }
+
     else {
         /*
          * Note: Functions that set slice indices will prevent
@@ -3729,6 +3791,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 if (viewportContent != NULL) {
                     bool radiologicalFlag(false);
                     switch (getVolumeMprOrientationMode()) {
@@ -3827,7 +3890,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 float mouseDelta = std::sqrt(static_cast<float>((mouseDeltaX * mouseDeltaX)
                                                                                 + (mouseDeltaY * mouseDeltaY)));
                                 
-                                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+                                if (isVolumeMprThreeDisplayed()) {
                                     applyMouseRotationMprThree(viewportContent,
                                                                viewport,
                                                                Vector3D(mousePressX, mousePressY, 0.0),
@@ -4369,15 +4432,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           viewport.getYF(),
                                                           0.0));
     
-    bool radiologicalFlag(false);
-    switch (getVolumeMprOrientationMode()) {
-        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
-            radiologicalFlag = true;
-            break;
-        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            break;
-    }
-    
     const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
 //    std::cout << "Rotate " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
 //    << " about: " << rotationVector.toString() << std::endl;
@@ -4807,6 +4861,7 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 m_volumeSliceViewingTransformation->setViewToBounds(mouseEvent->getViewportContent(),
                                                                     sliceViewPlaneSelectedInTab,
                                                                     sliceViewPlaneForFitToRegion,
@@ -4936,6 +4991,9 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                mprFlag = true;
+                break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 mprFlag = true;
                 break;
         }
@@ -5599,23 +5657,36 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
 
-    float mprRotationAngles[3] {
-        m_mprRotationX, m_mprRotationY, m_mprRotationZ
-    };
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+    float mprRotationAngles[3] { 0.0, 0.0, 0.0 };
+    
+    switch (getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            mprRotationAngles[0] = m_mprRotationX;
+            mprRotationAngles[1] = m_mprRotationY;
+            mprRotationAngles[2] = m_mprRotationZ;
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+        {
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
-        const QVector3D angles(m_mprThreeRotationQuaternion.toEulerAngles());
-        mprRotationAngles[0] = angles[0];
-        mprRotationAngles[1] = angles[1];
-        mprRotationAngles[2] = angles[2];
+            const QVector3D angles(m_mprThreeRotationQuaternion.toEulerAngles());
+            mprRotationAngles[0] = angles[0];
+            mprRotationAngles[1] = angles[1];
+            mprRotationAngles[2] = angles[2];
 #else
-        double rotX(0.0), rotY(0.0), rotZ(0.0);
-        m_mprThreeRotationMatrix.getRotation(rotX, rotY, rotZ);
-        mprRotationAngles[0] = rotX;
-        mprRotationAngles[1] = rotY;
-        mprRotationAngles[2] = rotZ;
+            double rotX(0.0), rotY(0.0), rotZ(0.0);
+            m_mprThreeRotationMatrix.getRotation(rotX, rotY, rotZ);
+            mprRotationAngles[0] = rotX;
+            mprRotationAngles[1] = rotY;
+            mprRotationAngles[2] = rotZ;
 #endif
+        }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
     }
+
     modelTransform.setMprRotationAngles(mprRotationAngles);
     
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
@@ -5663,22 +5734,29 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
 
     float mprRotationAngles[3];
     modelTransform.getMprRotationAngles(mprRotationAngles);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
+    
+    switch (getVolumeSliceProjectionType()) {
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            m_mprRotationX = mprRotationAngles[0];
+            m_mprRotationY = mprRotationAngles[1];
+            m_mprRotationZ = mprRotationAngles[2];
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
-        m_mprThreeRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
-                                                               mprRotationAngles[1],
-                                                               mprRotationAngles[2]);
+            m_mprThreeRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
+                                                                        mprRotationAngles[1],
+                                                                        mprRotationAngles[2]);
 #else
-        m_mprThreeRotationMatrix.identity();
-        m_mprThreeRotationMatrix.setRotation(mprRotationAngles[0],
-                                             mprRotationAngles[1],
-                                             mprRotationAngles[2]);
+            m_mprThreeRotationMatrix.identity();
+            m_mprThreeRotationMatrix.setRotation(mprRotationAngles[0],
+                                                 mprRotationAngles[1],
+                                                 mprRotationAngles[2]);
 #endif
-    }
-    else {
-        m_mprRotationX = mprRotationAngles[0];
-        m_mprRotationY = mprRotationAngles[1];
-        m_mprRotationZ = mprRotationAngles[2];
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+            break;
     }
 
     float fm[4][4];
@@ -6715,6 +6793,8 @@ BrowserTabContent::getValidVolumeSliceProjectionTypes(std::vector<VolumeSlicePro
         switch (spt) {
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                 break;
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
@@ -6754,6 +6834,7 @@ BrowserTabContent::getValidVolumeSliceProjectionTypes(std::vector<VolumeSlicePro
     }
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE);
     sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR);
+    sliceProjectionTypesOut.push_back(VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
 }
 
 /**
@@ -7984,6 +8065,7 @@ BrowserTabContent::setVolumeSliceViewsToHistologyRegion(const YokingGroupEnum::E
             
             switch (btc->getVolumeSliceProjectionType()) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                     btc->m_volumeSliceViewingTransformation->setViewToBounds(vpContent,
@@ -8324,6 +8406,9 @@ BrowserTabContent::getSupportedMouseLeftDragModes() const
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             switch (getVolumeSliceProjectionType()) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    allowsRegionSelectionFlag = true;
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                     allowsRegionSelectionFlag = true;
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:

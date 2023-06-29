@@ -213,7 +213,9 @@ namespace caret {
         
         bool isVolumeSlicesDisplayed() const;
         
-        bool isVolumeMprDisplayed() const;
+        bool isVolumeMprOldDisplayed() const;
+        
+        bool isVolumeMprThreeDisplayed() const;
         
         bool isHistologyDisplayed() const;
 

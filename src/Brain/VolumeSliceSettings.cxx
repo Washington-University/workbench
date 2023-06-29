@@ -347,6 +347,7 @@ VolumeSliceSettings::setSliceProjectionType(const VolumeSliceProjectionTypeEnum:
     
     switch (m_sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
             /*
              * Switch to ALL view for MPR if NOT in MONTAGE
              */

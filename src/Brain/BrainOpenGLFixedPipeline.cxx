@@ -4604,31 +4604,38 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
      * drawing but oblique drawing probably needs a new algorithm to 
      * fix the problem.
      */
-    bool useNewDrawingFlag = false;
-    bool useMprDrawingFlag = false;
+//    bool useNewDrawingFlag = false;
+//    bool useMprDrawingFlag = false;
+//    bool useMprThreeDrawingFlag = false;
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+        {
+            BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
+            obliqueVolumeSliceDrawing.draw(this,
+                                           const_cast<BrainOpenGLViewportContent*>(viewportContent),
+                                           browserTabContent,
+                                           volumeDrawInfo,
+                                           sliceDrawingType,
+                                           sliceProjectionType,
+                                           obliqueMaskType,
+                                           viewport);
+        }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            useNewDrawingFlag = true;
+        {
+            BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+            volumeSliceDrawing.draw(this,
+                                    const_cast<BrainOpenGLViewportContent*>(viewportContent),
+                                    browserTabContent,
+                                    volumeDrawInfo,
+                                    sliceDrawingType,
+                                    sliceProjectionType,
+                                    viewport);
+        }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            useMprDrawingFlag = true;
-            break;
-    }
-    
-    if (useMprDrawingFlag) {
-        GraphicsViewport graphicsViewport(viewport);
-        
-        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
-            mprDrawing.draw(this,
-                            viewportContent,
-                            browserTabContent,
-                            volumeDrawInfo,
-                            graphicsViewport);
-        }
-        else {
+        {
+            GraphicsViewport graphicsViewport(viewport);
             BrainOpenGLVolumeMprTwoDrawing mprDrawing;
             mprDrawing.draw(this,
                             viewportContent,
@@ -4636,28 +4643,61 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
                             volumeDrawInfo,
                             graphicsViewport);
         }
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+        {
+            GraphicsViewport graphicsViewport(viewport);
+            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+            mprDrawing.draw(this,
+                            viewportContent,
+                            browserTabContent,
+                            volumeDrawInfo,
+                            graphicsViewport);
+        }
+            break;
     }
-    else if (useNewDrawingFlag) {
-        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-        volumeSliceDrawing.draw(this,
-                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
-                                browserTabContent,
-                                volumeDrawInfo,
-                                sliceDrawingType,
-                                sliceProjectionType,
-                                viewport);
-    }
-    else {
-        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
-        obliqueVolumeSliceDrawing.draw(this,
-                                       const_cast<BrainOpenGLViewportContent*>(viewportContent),
-                                       browserTabContent,
-                                       volumeDrawInfo,
-                                       sliceDrawingType,
-                                       sliceProjectionType,
-                                       obliqueMaskType,
-                                       viewport);
-    }
+    
+//    if (useMprDrawingFlag) {
+//        GraphicsViewport graphicsViewport(viewport);
+//
+//        if (useMprThreeDrawingFlag) {
+//            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+//            mprDrawing.draw(this,
+//                            viewportContent,
+//                            browserTabContent,
+//                            volumeDrawInfo,
+//                            graphicsViewport);
+//        }
+//        else {
+//            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+//            mprDrawing.draw(this,
+//                            viewportContent,
+//                            browserTabContent,
+//                            volumeDrawInfo,
+//                            graphicsViewport);
+//        }
+//    }
+//    else if (useNewDrawingFlag) {
+//        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
+//        volumeSliceDrawing.draw(this,
+//                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
+//                                browserTabContent,
+//                                volumeDrawInfo,
+//                                sliceDrawingType,
+//                                sliceProjectionType,
+//                                viewport);
+//    }
+//    else {
+//        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
+//        obliqueVolumeSliceDrawing.draw(this,
+//                                       const_cast<BrainOpenGLViewportContent*>(viewportContent),
+//                                       browserTabContent,
+//                                       volumeDrawInfo,
+//                                       sliceDrawingType,
+//                                       sliceProjectionType,
+//                                       obliqueMaskType,
+//                                       viewport);
+//    }
 }
 
 /**
@@ -6985,23 +7025,23 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                     {
                         GraphicsViewport graphicsViewport(viewport);
-                        
-                        if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_CORRECTIONS)) {
-                            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
-                            mprDrawing.draw(this,
-                                            viewportContent,
-                                            browserTabContent,
-                                            volumeDrawInfo,
-                                            graphicsViewport);
-                        }
-                        else {
-                            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
-                            mprDrawing.draw(this,
-                                            viewportContent,
-                                            browserTabContent,
-                                            volumeDrawInfo,
-                                            graphicsViewport);
-                        }
+                        BrainOpenGLVolumeMprTwoDrawing mprDrawing;
+                        mprDrawing.draw(this,
+                                        viewportContent,
+                                        browserTabContent,
+                                        volumeDrawInfo,
+                                        graphicsViewport);
+                    }
+                        break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    {
+                        GraphicsViewport graphicsViewport(viewport);
+                        BrainOpenGLVolumeMprThreeDrawing mprDrawing;
+                        mprDrawing.draw(this,
+                                        viewportContent,
+                                        browserTabContent,
+                                        volumeDrawInfo,
+                                        graphicsViewport);
                     }
                         break;
                 }

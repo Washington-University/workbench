@@ -309,6 +309,9 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewPlane(const VolumeSliceDrawing
                     case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
                         CaretAssert(0);
                         break;
+                    case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                        CaretAssert(0);
+                        break;
                 }
             }
         }
@@ -775,40 +778,30 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
         glDisable(GL_CULL_FACE);
         
         const bool cullingSliceViewFlag = true;
-        switch (sliceProjectionType) {
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                if (m_modelVolume != NULL) {
-                    if (cullingSliceViewFlag) {
-                        drawOrthogonalSliceWithCulling(sliceViewPlane,
-                                                       sliceCoordinates,
-                                                       slicePlane);
-                    }
-                    else {
-                        drawOrthogonalSlice(sliceViewPlane,
-                                            sliceCoordinates,
-                                            slicePlane);
-                    }
-                }
-                else if (m_modelWholeBrain != NULL) {
-                    const bool allOrientationsFlag = true;
-                    if (allOrientationsFlag) {
-                        drawOrthogonalSliceAllView(sliceViewPlane,
-                                                   sliceCoordinates,
-                                                   slicePlane);
-                    }
-                    else {
-                        drawOrthogonalSlice(sliceViewPlane,
-                                            sliceCoordinates,
-                                            slicePlane);
-                    }
-                }
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                CaretAssert(0);
-                break;
-            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                CaretAssert(0);
-                break;
+        if (m_modelVolume != NULL) {
+            if (cullingSliceViewFlag) {
+                drawOrthogonalSliceWithCulling(sliceViewPlane,
+                                               sliceCoordinates,
+                                               slicePlane);
+            }
+            else {
+                drawOrthogonalSlice(sliceViewPlane,
+                                    sliceCoordinates,
+                                    slicePlane);
+            }
+        }
+        else if (m_modelWholeBrain != NULL) {
+            const bool allOrientationsFlag = true;
+            if (allOrientationsFlag) {
+                drawOrthogonalSliceAllView(sliceViewPlane,
+                                           sliceCoordinates,
+                                           slicePlane);
+            }
+            else {
+                drawOrthogonalSlice(sliceViewPlane,
+                                    sliceCoordinates,
+                                    slicePlane);
+            }
         }
     }
     
@@ -2104,7 +2097,7 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
  *    OUTPUT plane of slice after transforms.
  */
 void
-BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
                                                       const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                       const float sliceCoordinates[3],
                                                       Plane& planeOut)
@@ -2125,19 +2118,7 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProject
             sliceNormalVector[0] = -1.0;
             break;
     }
-    
-    switch (sliceProjectionType) {
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            CaretAssert(0);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            CaretAssert(0);
-            break;
-    }
-    
+        
     Plane plane(sliceNormalVector,
                 sliceCoordinates);
     planeOut = plane;
@@ -2159,7 +2140,7 @@ BrainOpenGLVolumeSliceDrawing::createSlicePlaneEquation(const VolumeSliceProject
  *    Plane equation of selected slice.
  */
 void
-BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
+BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(const VolumeSliceProjectionTypeEnum::Enum /*sliceProjectionType*/,
                                                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                              const Plane& plane)
 {
@@ -2265,20 +2246,6 @@ BrainOpenGLVolumeSliceDrawing::setVolumeSliceViewingAndModelingTransformations(c
                  userTranslation[1],
                  userTranslation[2]);
     
-    /*
-     * For oblique viewing, the up vector needs to be rotated by the
-     * oblique rotation matrix.
-     */
-    switch (sliceProjectionType) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            CaretAssert(0);
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            CaretAssert(0);
-            break;
-    }
     /*
      * Apply user scaling
      */
@@ -2480,6 +2447,7 @@ BrainOpenGLVolumeSliceDrawing::drawAxesCrosshairs(const VolumeSliceProjectionTyp
         }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
             CaretAssert(0);
             break;
     }
@@ -5020,6 +4988,7 @@ BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(BrainOpenGLFixedPipel
         {
             switch (browserTabContent->getVolumeSliceProjectionType()) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 {
                     const AString plusSignText((sliceOffset > 0.0) ? "+" : "");
                     coordText = (plusSignText

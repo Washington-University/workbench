@@ -763,6 +763,7 @@ BrainBrowserWindowToolBarSliceSelection::readVolumeSliceIndicesAndUpdateSliceCoo
                 }
                 break;
             case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
                 switch (viewPlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
                         CaretAssert(0);
@@ -878,6 +879,10 @@ BrainBrowserWindowToolBarSliceSelection::updateOptionsButton()
             m_obliqueOptionsAction->setEnabled(false);
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+            m_mprOptionsAction->setEnabled(true);
+            m_obliqueOptionsAction->setEnabled(false);
+            break;
+        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
             m_mprOptionsAction->setEnabled(true);
             m_obliqueOptionsAction->setEnabled(false);
             break;
