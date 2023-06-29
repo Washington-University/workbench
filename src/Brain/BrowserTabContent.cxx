@@ -3551,39 +3551,8 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
     }
     else if (isVolumeMprThreeDisplayed()) {
         if (sliceViewPlane != VolumeSliceViewPlaneEnum::ALL) {
-//            Vector3D sliceVector(0.0, 0.0, 0.0);
-//            switch (sliceViewPlane) {
-//                case VolumeSliceViewPlaneEnum::ALL:
-//                    CaretAssert(0);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::AXIAL:
-//                    sliceVector[2] = 1.0;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::CORONAL:
-//                    sliceVector[1] = 1.0;
-//                    break;
-//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    sliceVector[0] = 1.0;
-//                    break;
-//            }
-            
             const Vector3D sliceVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
-            
-//            switch (sliceViewPlane) {
-//                case VolumeSliceViewPlaneEnum::ALL:
-//                    CaretAssert(0);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::AXIAL:
-//                    rotMatrix.multiplyPoint3(sliceVector);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::CORONAL:
-//                    rotMatrix.multiplyPoint3(sliceVector);
-//                    break;
-//                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                    rotMatrix.multiplyPoint3(sliceVector);
-//                    break;
-//            }
-            
+                
             const float axialDelta(std::round(sliceVector[2] * sliceDelta));
             const float coronalDelta(std::round(sliceVector[1] * sliceDelta));
             const float paraDelta(std::round(sliceVector[0] * sliceDelta));
@@ -4433,8 +4402,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           0.0));
     
     const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
-//    std::cout << "Rotate " << VolumeSliceViewPlaneEnum::toName(sliceViewPlane)
-//    << " about: " << rotationVector.toString() << std::endl;
     
     const Vector3D mouseViewportXY(mouseWindowXY - viewport.getBottomLeft());
     const Vector3D previousMouseViewportXY(previousMouseWindowXY - viewport.getBottomLeft());
@@ -4515,23 +4482,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             m_mprThreeParasagittalInverseRotationMatrix.premultiply(mOpposite);
             break;
     }
-
-//    Matrix4x4 mInvert(m);
-//    if (mInvert.invert()) {
-//        switch (sliceViewPlane) {
-//            case VolumeSliceViewPlaneEnum::ALL:
-//                break;
-//            case VolumeSliceViewPlaneEnum::AXIAL:
-//                m_mprThreeAxialInverseRotationMatrix.postmultiply(mInvert);
-//                break;
-//            case VolumeSliceViewPlaneEnum::CORONAL:
-//                m_mprThreeCoronalInverseRotationMatrix.postmultiply(mInvert);
-//                break;
-//            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-//                m_mprThreeParasagittalInverseRotationMatrix.postmultiply(mInvert);
-//                break;
-//        }
-//    }
     
     const bool printMatrixFlag(false);
     if (printMatrixFlag) {
@@ -6259,6 +6209,71 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     const AString strPara(sceneClass->getStringValue("m_mprThreeParasagittalInverseRotationMatrix", ""));
     if ( ! strPara.isEmpty()) {
         m_mprThreeParasagittalInverseRotationMatrix.setMatrixFromRowMajorOrderString(strPara);
+    }
+    
+    /*
+     * MPR Three rotation not available, so try to restore with MPR 2
+     */
+    if (strMpr.isEmpty()) {
+        if (m_mprRotationX != 0.0) {
+            if (m_mprRotationY != 0.0) {
+                if (m_mprRotationZ != 0.0) {
+                    /* All three rotations are set */
+                    m_mprThreeRotationMatrix.setRotation(-m_mprRotationX,
+                                                         -m_mprRotationY,
+                                                         m_mprRotationZ);
+                }
+                else {
+                    /* X and Y rotations are set, no Z rotation*/
+                    m_mprThreeRotationMatrix.setRotation(-m_mprRotationX,
+                                                         -m_mprRotationY,
+                                                         0.0);
+                    m_mprThreeParasagittalInverseRotationMatrix.setRotation(m_mprRotationX,
+                                                                            0.0,
+                                                                            0.0);
+                    m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
+                                                                       m_mprRotationY,
+                                                                       0.0);
+                }
+            }
+            else {
+                /* X rotation only */
+                m_mprThreeRotationMatrix.setRotation(-m_mprRotationX, 0.0, 0.0);
+                m_mprThreeParasagittalInverseRotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
+            }
+        }
+        else if (m_mprRotationY != 0.0) {
+            if (m_mprRotationZ != 0.0) {
+                /* Y and Z rotation set*/
+                m_mprThreeRotationMatrix.setRotation(0.0,
+                                                     -m_mprRotationY,
+                                                     m_mprRotationZ);
+                m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
+                                                                   m_mprRotationY,
+                                                                   0.0);
+                m_mprThreeAxialInverseRotationMatrix.setRotation(0.0,
+                                                                 0.0,
+                                                                 -m_mprRotationZ);
+            }
+            else {
+                /* Y  rotation only */
+                m_mprThreeRotationMatrix.setRotation(0.0,
+                                                     -m_mprRotationY,
+                                                     0.0);
+                m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
+                                                                   m_mprRotationY,
+                                                                   0.0);
+            }
+        }
+        else if (m_mprRotationZ != 0.0) {
+            /* Z rotation only */
+            m_mprThreeRotationMatrix.setRotation(0.0,
+                                                 0.0,
+                                                 m_mprRotationZ);
+            m_mprThreeAxialInverseRotationMatrix.setRotation(0.0,
+                                                             0.0,
+                                                             -m_mprRotationZ);
+        }
     }
 #endif
 }

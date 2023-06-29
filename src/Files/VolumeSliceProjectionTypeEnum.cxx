@@ -124,12 +124,12 @@ VolumeSliceProjectionTypeEnum::initialize()
     
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR,
                                                      "VOLUME_SLICE_PROJECTION_MPR",
-                                                     "MPR",
+                                                     "MPR (old)",
                                                      "Multi-Planar Reconstruction"));
     
     enumData.push_back(VolumeSliceProjectionTypeEnum(VOLUME_SLICE_PROJECTION_MPR_THREE,
                                                      "VOLUME_SLICE_PROJECTION_MPR_THREE",
-                                                     "MPR New",
+                                                     "MPR",
                                                      "Multi-Planar Reconstruction New"));
 }
 
