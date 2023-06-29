@@ -1058,53 +1058,56 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent
             glPopMatrix();
         }
         
-        /*
-         * Draw labels at edges of viewport indicating unrotated volume orientation
-         */
-        AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        annotationText.setFontPercentViewportSize(5.0f);
-        annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-        annotationText.setTextColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomTextColor(m_fixedPipelineDrawing->m_foregroundColorFloat);
-        annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-        annotationText.setCustomBackgroundColor(m_fixedPipelineDrawing->m_backgroundColorFloat);
-
-        AString leftLabelText("L");
-        AString rightLabelText("R");
-        AString bottomLabelText("P");
-        AString topLabelText("A");
-        
-        const double marginOffset(10.0);
-        
-        annotationText.setText(leftLabelText);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getLeft() + marginOffset),
-                                                         viewport.getCenterY(),
-                                                         annotationText);
-        
-        annotationText.setText(rightLabelText);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-        m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getRight() - marginOffset),
-                                                         viewport.getCenterY(),
-                                                         annotationText);
-        
-        annotationText.setText(bottomLabelText);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-        m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
-                                                         (viewport.getBottom() + marginOffset),
-                                                         annotationText);
-        
-        annotationText.setText(topLabelText);
-        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-        m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
-                                                         (viewport.getTop() - marginOffset),
-                                                         annotationText);
+        const bool showOrientationLabelsFlag(false);
+        if (showOrientationLabelsFlag) {
+            /*
+             * Draw labels at edges of viewport indicating unrotated volume orientation
+             */
+            AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            annotationText.setFontPercentViewportSize(5.0f);
+            annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+            annotationText.setTextColor(CaretColorEnum::CUSTOM);
+            annotationText.setCustomTextColor(m_fixedPipelineDrawing->m_foregroundColorFloat);
+            annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
+            annotationText.setCustomBackgroundColor(m_fixedPipelineDrawing->m_backgroundColorFloat);
+            
+            AString leftLabelText("L");
+            AString rightLabelText("R");
+            AString bottomLabelText("P");
+            AString topLabelText("A");
+            
+            const double marginOffset(10.0);
+            
+            annotationText.setText(leftLabelText);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getLeft() + marginOffset),
+                                                             viewport.getCenterY(),
+                                                             annotationText);
+            
+            annotationText.setText(rightLabelText);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+            m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getRight() - marginOffset),
+                                                             viewport.getCenterY(),
+                                                             annotationText);
+            
+            annotationText.setText(bottomLabelText);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+            m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
+                                                             (viewport.getBottom() + marginOffset),
+                                                             annotationText);
+            
+            annotationText.setText(topLabelText);
+            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+            m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
+                                                             (viewport.getTop() - marginOffset),
+                                                             annotationText);
+        }
     }
     
     glPopMatrix();
@@ -3248,7 +3251,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         if (drawIntensitySliceBackgroundFlag) {
                             drawIntensityBackgroundSlice(primitive);
                         }
+                        
+                        /*
+                         * Enabling blending prevents a while line around several
+                         * sides of the texture
+                         */
+                        glPushAttrib(GL_COLOR_BUFFER_BIT);
+                        m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_MPR_SLICES);
                         GraphicsEngineDataOpenGL::draw(primitive);
+                        glPopAttrib();
                     }
                 }
             }

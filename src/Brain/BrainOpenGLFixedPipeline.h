@@ -595,6 +595,7 @@ namespace caret {
             SURFACE_PROPERTIES_OPACITY,
             VOLUME_ALL_VIEW_CUBES,
             VOLUME_ALL_VIEW_SLICES,
+            VOLUME_MPR_SLICES,
             VOLUME_ORTHOGONAL_SLICES
         };
         

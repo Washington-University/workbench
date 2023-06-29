@@ -9128,6 +9128,9 @@ BrainOpenGLFixedPipeline::setupBlending(const BlendDataType blendDataType)
         case BlendDataType::VOLUME_ALL_VIEW_SLICES:
             separateBlendingFlag = true;
             break;
+        case BlendDataType::VOLUME_MPR_SLICES:
+            separateBlendingFlag = true;
+            break;
         case BlendDataType::VOLUME_ORTHOGONAL_SLICES:
             separateBlendingFlag = true;
             break;
