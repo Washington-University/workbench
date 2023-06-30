@@ -1967,7 +1967,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
     glPushMatrix();    
     glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
 
-    const bool doRotFreezeFlag(false);
+    const bool doRotFreezeFlag(true);
     if (doRotFreezeFlag) {
         const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
         float m[16];
