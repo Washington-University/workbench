@@ -2143,13 +2143,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView
     glPushMatrix();
     glLoadIdentity();
     
-    /* start */
     drawPanningCrosshairs(mprSliceView,
                           sliceViewPlane,
                           crossHairXYZ,
                           viewport);
     
-    drawAxisLabels(sliceViewPlane,
+    drawAxisLabels(mprSliceView,
+                   sliceViewPlane,
                    viewport);
     
     glPopMatrix();
@@ -2163,14 +2163,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView
 /**
  * Draw the axis labels for slice
  *
+ * @param mprSliceView
+ *  The virtual slice info
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                               const GraphicsViewport& viewport)
+BrainOpenGLVolumeMprThreeDrawing::drawAxisLabels(const VolumeMprVirtualSliceView& mprSliceView,
+                                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                 const GraphicsViewport& viewport)
 {
     if ( ! m_browserTabContent->isVolumeAxesCrosshairLabelsDisplayed()) {
         return;
@@ -2183,6 +2186,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum:
         m_fixedPipelineDrawing->m_backgroundColorByte[3]
     };
 
+    const std::array<uint8_t, 4> foregroundRGBA = {
+        m_fixedPipelineDrawing->m_foregroundColorByte[0],
+        m_fixedPipelineDrawing->m_foregroundColorByte[1],
+        m_fixedPipelineDrawing->m_foregroundColorByte[2],
+        m_fixedPipelineDrawing->m_foregroundColorByte[3]
+    };
+    
     std::array<uint8_t, 4> horizontalAxisRGBA = {
         0, 0, 255, 255
     };
@@ -2231,41 +2241,50 @@ BrainOpenGLVolumeMprThreeDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum:
     AString eastText;
     AString southText;
     AString westText;
-    
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            northText = "A";
-            eastText  = "R";
-            southText = "P";
-            westText  = "L";
-            horizontalAxisRGBA = coronalPlaneRGBA;
-            verticalAxisRGBA   = parasagittalPlaneRGBA;
-            if (radiologicalFlag) {
-                std::swap(eastText, westText);
-            }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            northText = "S";
-            eastText  = "P";
-            southText = "I";
-            westText  = "A";
-            horizontalAxisRGBA = axialPlaneRGBA;
-            verticalAxisRGBA   = coronalPlaneRGBA;
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            northText = "S";
-            eastText  = "R";
-            southText = "I";
-            westText  = "L";
-            horizontalAxisRGBA = axialPlaneRGBA;
-            verticalAxisRGBA   = parasagittalPlaneRGBA;
-            if (radiologicalFlag) {
-                std::swap(eastText, westText);
-            }
-            break;
+
+    const bool dynamicLabelsFlag(true);
+    if (dynamicLabelsFlag) {
+        mprSliceView.getAxisLabels(westText, eastText, southText, northText);
+
+        horizontalAxisRGBA = foregroundRGBA;
+        verticalAxisRGBA   = foregroundRGBA;
+    }
+    else {
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                northText = "A";
+                eastText  = "R";
+                southText = "P";
+                westText  = "L";
+                horizontalAxisRGBA = coronalPlaneRGBA;
+                verticalAxisRGBA   = parasagittalPlaneRGBA;
+                if (radiologicalFlag) {
+                    std::swap(eastText, westText);
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                northText = "S";
+                eastText  = "P";
+                southText = "I";
+                westText  = "A";
+                horizontalAxisRGBA = axialPlaneRGBA;
+                verticalAxisRGBA   = coronalPlaneRGBA;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                northText = "S";
+                eastText  = "R";
+                southText = "I";
+                westText  = "L";
+                horizontalAxisRGBA = axialPlaneRGBA;
+                verticalAxisRGBA   = parasagittalPlaneRGBA;
+                if (radiologicalFlag) {
+                    std::swap(eastText, westText);
+                }
+                break;
+        }
     }
     
     AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -2276,35 +2295,43 @@ BrainOpenGLVolumeMprThreeDrawing::drawAxisLabels(const VolumeSliceViewPlaneEnum:
     annotationText.setCustomTextColor(horizontalAxisRGBA.data());
     annotationText.setCustomBackgroundColor(backgroundRGBA.data());
     
-    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    annotationText.setText(westText);
-    m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
-                                                     textLeftWindowXY[1],
-                                                     annotationText);
+    if ( ! westText.isEmpty()) {
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        annotationText.setText(westText);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(textLeftWindowXY[0],
+                                                         textLeftWindowXY[1],
+                                                         annotationText);
+    }
     
-    annotationText.setText(eastText);
-    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-    m_fixedPipelineDrawing->drawTextAtViewportCoords(textRightWindowXY[0],
-                                                     textRightWindowXY[1],
-                                                     annotationText);
+    if ( ! eastText.isEmpty()) {
+        annotationText.setText(eastText);
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(textRightWindowXY[0],
+                                                         textRightWindowXY[1],
+                                                         annotationText);
+    }
     
-    annotationText.setCustomTextColor(verticalAxisRGBA.data());
+    if ( ! southText.isEmpty()) {
+        annotationText.setCustomTextColor(verticalAxisRGBA.data());
+        
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
+        annotationText.setText(southText);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
+                                                         textBottomWindowXY[1],
+                                                         annotationText);
+    }
     
-    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-    annotationText.setText(southText);
-    m_fixedPipelineDrawing->drawTextAtViewportCoords(textBottomWindowXY[0],
-                                                     textBottomWindowXY[1],
-                                                     annotationText);
-    
-    annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-    annotationText.setText(northText);
-    m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
-                                                     textTopWindowXY[1],
-                                                     annotationText);
+    if ( ! northText.isEmpty()) {
+        annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+        annotationText.setText(northText);
+        m_fixedPipelineDrawing->drawTextAtViewportCoords(textTopWindowXY[0],
+                                                         textTopWindowXY[1],
+                                                         annotationText);
+    }
 }
 
 /**

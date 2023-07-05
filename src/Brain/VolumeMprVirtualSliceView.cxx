@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -953,6 +954,101 @@ VolumeMprVirtualSliceView::toString() const
     txt.appendWithNewLine("m_cameraUpVector=" + m_cameraUpVector.toString());
 
     return txt;
+}
+
+/**
+ * Get the orientation labels for the slice view.  The rotation of the slice's axis are compared
+ * to the standard orientations to determine the text (or no text) that is displayed.
+ * @param leftScreenLabelTextOut
+ *    Label for left side
+ * @param rightScreenLabelTextOut
+ *    Label for right side
+ * @param bottomScreenLabelTextOut
+ *    Label for bottom side
+ * @param topScreenLabelTextOut
+ *    Label for top side
+ */
+void
+VolumeMprVirtualSliceView::getAxisLabels(AString& leftScreenLabelTextOut,
+                                         AString& rightScreenLabelTextOut,
+                                         AString& bottomScreenLabelTextOut,
+                                         AString& topScreenLabelTextOut) const
+{
+    leftScreenLabelTextOut   = "";
+    rightScreenLabelTextOut  = "";
+    bottomScreenLabelTextOut = "";
+    topScreenLabelTextOut    = "";
+    
+    std::vector<VectorAndLabel> vectorsAndLabels;
+    vectorsAndLabels.emplace_back("L", -1.0,  0.0,  0.0);
+    vectorsAndLabels.emplace_back("R",  1.0,  0.0,  0.0);
+    vectorsAndLabels.emplace_back("A",  0.0,  1.0,  0.0);
+    vectorsAndLabels.emplace_back("P",  0.0, -1.0,  0.0);
+    vectorsAndLabels.emplace_back("I",  0.0,  0.0, -1.0);
+    vectorsAndLabels.emplace_back("S",  0.0,  0.0,  1.0);
+    
+    std::vector<VectorAndLabel> screenVectorsAndLabels;
+    switch (m_sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            screenVectorsAndLabels.emplace_back("L", -1.0,  0.0, 0.0);
+            screenVectorsAndLabels.emplace_back("R",  1.0,  0.0, 0.0);
+            screenVectorsAndLabels.emplace_back("T",  0.0,  1.0, 0.0);
+            screenVectorsAndLabels.emplace_back("B",  0.0, -1.0, 0.0);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            screenVectorsAndLabels.emplace_back("L", -1.0,  0.0,  0.0);
+            screenVectorsAndLabels.emplace_back("R",  1.0,  0.0,  0.0);
+            screenVectorsAndLabels.emplace_back("T",  0.0,  0.0,  1.0);
+            screenVectorsAndLabels.emplace_back("B",  0.0,  0.0, -1.0);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            screenVectorsAndLabels.emplace_back("L",  0.0,  1.0,  0.0);
+            screenVectorsAndLabels.emplace_back("R",  0.0, -1.0,  0.0);
+            screenVectorsAndLabels.emplace_back("T",  0.0,  0.0,  1.0);
+            screenVectorsAndLabels.emplace_back("B",  0.0,  0.0, -1.0);
+            break;
+    }
+    
+    const int32_t numAxes(vectorsAndLabels.size());
+    const int32_t numScreenAxes(screenVectorsAndLabels.size());
+    
+    for (int32_t i = 0; i < numScreenAxes; i++) {
+        CaretAssertVectorIndex(screenVectorsAndLabels, i);
+        for (int32_t j = 0; j < numAxes; j++) {
+            CaretAssertVectorIndex(vectorsAndLabels, j);
+            
+            Vector3D rotatedAxisVector(vectorsAndLabels[j].m_vector);
+            m_rotationMatrix.multiplyPoint3(rotatedAxisVector);
+            
+            const float dotValue(screenVectorsAndLabels[i].m_vector.dot(rotatedAxisVector));
+            
+            const AString screenTemp(screenVectorsAndLabels[i].m_label);
+            AString labelTemp;
+            if (dotValue > 0.95) {
+                const AString& label(vectorsAndLabels[j].m_label);
+                
+                labelTemp = label;
+                
+                if (screenVectorsAndLabels[i].m_label == "L") {
+                    leftScreenLabelTextOut = label;
+                }
+                else if (screenVectorsAndLabels[i].m_label == "R") {
+                    rightScreenLabelTextOut = label;
+                }
+                else if (screenVectorsAndLabels[i].m_label == "T") {
+                    topScreenLabelTextOut = label;
+                }
+                else if (screenVectorsAndLabels[i].m_label == "B") {
+                    bottomScreenLabelTextOut = label;
+                }
+                else {
+                    CaretAssert(0);
+                }
+            }
+        }
+    }
 }
 
 /**

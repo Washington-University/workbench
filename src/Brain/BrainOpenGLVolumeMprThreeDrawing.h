@@ -185,7 +185,8 @@ namespace caret {
                                    const Vector3D& crossHairXYZ,
                                    const GraphicsViewport& viewport);
         
-        void drawAxisLabels(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawAxisLabels(const VolumeMprVirtualSliceView& mprSliceView,
+                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const GraphicsViewport& viewport);
 
         std::array<uint8_t, 4> getAxisColor(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const;

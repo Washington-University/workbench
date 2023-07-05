@@ -103,6 +103,11 @@ namespace caret {
                                      std::vector<Vector3D>& textureStrOut,
                                      Plane& layersDrawingPlaneOut) const;
         
+        void getAxisLabels(AString& leftScreenLabelTextOut,
+                           AString& rightScreenLabelTextOut,
+                           AString& bottomScreenLabelTextOut,
+                           AString& topScreenLabelTextOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -129,6 +134,23 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
+        class VectorAndLabel {
+        public:
+            VectorAndLabel(const AString& label,
+                           const float x,
+                           const float y,
+                           const float z)
+            : m_label(label),
+            m_vector(x, y, z)
+            
+            {
+                
+            }
+            
+            AString m_label;
+            Vector3D m_vector;
+        };
+        
         void copyHelperVolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj);
 
         void initializeModeAllViewSlices();
