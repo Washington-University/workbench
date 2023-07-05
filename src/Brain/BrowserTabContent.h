@@ -480,6 +480,10 @@ namespace caret {
         
         void setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled);
         
+        bool isVolumeMprInPlaneRotationEnabled() const;
+        
+        void setVolumeMprInPlaneRotationEnabled(const bool enabled);
+        
         VolumeSliceViewPlaneEnum::Enum getVolumeSliceViewPlane() const;
         
         void setVolumeSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);

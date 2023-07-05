@@ -3158,7 +3158,7 @@ BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewP
             m.postmultiply(m_mprThreeParasagittalInverseRotationMatrix);
             break;
     }
-    
+
     return  m;
 }
 
@@ -4466,21 +4466,23 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     m.rotate(rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
     m_mprThreeRotationMatrix.postmultiply(m);
 
-    Matrix4x4 mOpposite;
-    mOpposite.rotate(-rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
-
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            m_mprThreeAxialInverseRotationMatrix.premultiply(mOpposite);
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            m_mprThreeCoronalInverseRotationMatrix.premultiply(mOpposite);
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_mprThreeParasagittalInverseRotationMatrix.premultiply(mOpposite);
-            break;
+    if ( ! isVolumeMprInPlaneRotationEnabled()) {
+        Matrix4x4 mOpposite;
+        mOpposite.rotate(-rotationAngleCCW, rotationVector[0], rotationVector[1], rotationVector[2]);
+        
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_mprThreeAxialInverseRotationMatrix.premultiply(mOpposite);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_mprThreeCoronalInverseRotationMatrix.premultiply(mOpposite);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_mprThreeParasagittalInverseRotationMatrix.premultiply(mOpposite);
+                break;
+        }
     }
     
     const bool printMatrixFlag(false);
@@ -6689,6 +6691,8 @@ BrowserTabContent::isVolumeMprParasagittalSliceThicknessEnabled() const
 
 /**
  * Set Volume MPR slice parasagital thickness enabled
+ * @param enabled
+ *    New status
  */
 void
 BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled)
@@ -6697,6 +6701,26 @@ BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enab
     updateYokedModelBrowserTabs();
 }
 
+/**
+ * @return Is Volume MPR slice in-plane rotation enabled
+ */
+bool
+BrowserTabContent::isVolumeMprInPlaneRotationEnabled() const
+{
+    return m_volumeSliceSettings->getMprSettings()->isInPlaneRotationEnabled();
+}
+
+/**
+ * Set Volume MPR slice in-plane rotation enabled
+ * @param enabled
+ *    New status
+ */
+void
+BrowserTabContent::setVolumeMprInPlaneRotationEnabled(const bool enabled)
+{
+    m_volumeSliceSettings->getMprSettings()->setInPlaneRotationEnabled(enabled);
+    updateYokedModelBrowserTabs();
+}
 
 /**
  * @return The slice view plane.

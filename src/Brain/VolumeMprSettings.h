@@ -73,6 +73,10 @@ namespace caret {
         
         void setParasagittalSliceThicknessEnabled(const bool enabled);
         
+        bool isInPlaneRotationEnabled() const;
+        
+        void setInPlaneRotationEnabled(const bool enabled);
+        
         void reset();
         
         // ADD_NEW_METHODS_HERE
@@ -118,6 +122,8 @@ namespace caret {
         bool m_coronalSliceThicknessEnabled = false;
         
         bool m_parasagittalSliceThicknessEnabled = false;
+        
+        bool m_inPlaneRotationEnabled = false;
         
         // ADD_NEW_MEMBERS_HERE
 
