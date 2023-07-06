@@ -21,11 +21,12 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <memory>
 #include <set>
 
 #define _ROTATE_MPR_THREE_WITH_QQUATERNION_
-#undef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+//#undef _ROTATE_MPR_THREE_WITH_QQUATERNION_
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
 #include <QQuaternion>
 #endif
@@ -119,6 +120,14 @@ namespace caret {
         virtual ~BrowserTabContent();
         
         void cloneBrowserTabContent(BrowserTabContent* tabToClone);
+        
+        static QQuaternion matrixToQuaternion(const Matrix4x4& matrix);
+        
+        static Matrix4x4 quaternionToMatrix(const QQuaternion& quaternion);
+        
+        static std::array<float, 4> quaternionToArray(const QQuaternion& quaternion);
+        
+        static QQuaternion arrayToQuaternion(const std::array<float, 4>& array);
         
         virtual void receiveEvent(Event* event);
         
@@ -877,6 +886,9 @@ namespace caret {
         
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
         QQuaternion m_mprThreeRotationQuaternion;
+        QQuaternion m_mprThreeAxialInverseRotationQuaternion;
+        QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
+        QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;
 #else
         Matrix4x4 m_mprThreeRotationMatrix;
         Matrix4x4 m_mprThreeAxialInverseRotationMatrix;

@@ -54,6 +54,7 @@ VolumeMprSettings::VolumeMprSettings()
     m_sceneAssistant->add("m_axialSliceThicknessEnabled", &m_axialSliceThicknessEnabled);
     m_sceneAssistant->add("m_coronalSliceThicknessEnabled", &m_coronalSliceThicknessEnabled);
     m_sceneAssistant->add("m_parasagittalSliceThicknessEnabled", &m_parasagittalSliceThicknessEnabled);
+    m_inPlaneRotationEnabled = false;
     m_sceneAssistant->add("m_inPlaneRotationEnabled", &m_inPlaneRotationEnabled);
 }
 
@@ -344,6 +345,7 @@ VolumeMprSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    m_inPlaneRotationEnabled = false;
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     

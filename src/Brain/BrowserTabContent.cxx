@@ -459,6 +459,9 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprRotationZ = tabToClone->m_mprRotationZ;
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     m_mprThreeRotationQuaternion = tabToClone->m_mprThreeRotationQuaternion;
+    m_mprThreeAxialInverseRotationQuaternion = tabToClone->m_mprThreeAxialInverseRotationQuaternion;
+    m_mprThreeCoronalInverseRotationQuaternion = tabToClone->m_mprThreeCoronalInverseRotationQuaternion;
+    m_mprThreeParasagittalInverseRotationQuaternion = tabToClone->m_mprThreeParasagittalInverseRotationQuaternion;
 #else
     m_mprThreeRotationMatrix = tabToClone->m_mprThreeRotationMatrix;
     m_mprThreeAxialInverseRotationMatrix = tabToClone->m_mprThreeAxialInverseRotationMatrix;
@@ -3104,6 +3107,9 @@ BrowserTabContent::resetMprRotations()
 
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     m_mprThreeRotationQuaternion = QQuaternion();
+    m_mprThreeAxialInverseRotationQuaternion = QQuaternion();
+    m_mprThreeCoronalInverseRotationQuaternion = QQuaternion();
+    m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
 #else
     m_mprThreeRotationMatrix.identity();
     m_mprThreeAxialInverseRotationMatrix.identity();
@@ -3134,6 +3140,74 @@ BrowserTabContent::getMprThreeRotationMatrix() const
 }
 
 /**
+ * @return Quaterion converted from the given matrix
+ * @return matrix
+ *    The matrix
+ */
+QQuaternion
+BrowserTabContent::matrixToQuaternion(const Matrix4x4& matrix)
+{
+    QMatrix3x3 qm;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            qm(i, j) = matrix.getMatrixElement(i, j);
+        }
+    }
+    QQuaternion q(QQuaternion::fromRotationMatrix(qm));
+    return q;
+}
+
+/**
+ * @return Matrix converted from the given quaternion
+ * @param quaternion
+ */
+Matrix4x4
+BrowserTabContent::quaternionToMatrix(const QQuaternion& quaternion)
+{
+    QMatrix3x3 qm(quaternion.toRotationMatrix());
+    
+    Matrix4x4 m;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            m.setMatrixElement(i, j, qm(i, j));
+        }
+    }
+    return m;
+}
+
+/**
+ * @return a 4-element array containing the quaternion's vector and scalar.
+ * @param quaternion
+ *    the quaternion
+ */
+std::array<float, 4>
+BrowserTabContent::quaternionToArray(const QQuaternion& quaternion)
+{
+    const std::array<float, 4> a {
+        quaternion.x(),
+        quaternion.y(),
+        quaternion.z(),
+        quaternion.scalar()
+    };
+    
+    return a;
+}
+
+/**
+ * A quaternion converted from an array containing the vector and scalar.
+ * @param array
+ *   The 4-element array
+ */
+QQuaternion
+BrowserTabContent::arrayToQuaternion(const std::array<float, 4>& array)
+{
+    QQuaternion q;
+    q.setVector(array[0], array[1], array[2]);
+    q.setScalar(array[3]);
+    return q;
+}
+
+/**
  * @return The MPR rotation quaternion in a matrix for the given slice plane
  * @param slicePlane
  *    The slice plane
@@ -3142,6 +3216,24 @@ Matrix4x4
 BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+    QQuaternion q(m_mprThreeRotationQuaternion);
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssertToDoFatal();
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            q *= m_mprThreeAxialInverseRotationQuaternion;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            q *= m_mprThreeCoronalInverseRotationQuaternion;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            q *= m_mprThreeParasagittalInverseRotationQuaternion;
+            break;
+    }
+    return quaternionToMatrix(q);
+#else
     Matrix4x4 m(m_mprThreeRotationMatrix);
     
     switch (slicePlane) {
@@ -3160,6 +3252,7 @@ BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewP
     }
 
     return  m;
+#endif
 }
 
 /**
@@ -4402,6 +4495,17 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           0.0));
     
     const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
+    std::cout << "Rotate About Vector: " << rotationVector.toString() << std::endl;
+    if (sliceViewPlane == VolumeSliceViewPlaneEnum::AXIAL) {
+        {
+            Vector3D lookToVec(0.0, 0.0, 1.0);
+            Matrix4x4 invMat(getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
+            if (invMat.invert()) {
+                invMat.multiplyPoint3(lookToVec);
+                std::cout << "   Computed: " << lookToVec.toString() << std::endl;
+            }
+        }
+    }
     
     const Vector3D mouseViewportXY(mouseWindowXY - viewport.getBottomLeft());
     const Vector3D previousMouseViewportXY(previousMouseWindowXY - viewport.getBottomLeft());
@@ -4443,18 +4547,34 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
      * - https://danceswithcode.net/engineeringnotes/rotations_in_3d/rotations_in_3d_part1.html
      */
 
-    QMatrix4x4 rotMatrix;
-    rotMatrix.rotate(rotationAngleCCW, sliceVector[0], sliceVector[1], sliceVector[2]);
-    QMatrix3x3 m33;
-    for (int32_t i = 0; i < 3; i++) {
-        for (int32_t j = 0; j < 3; j++) {
-            m33(i, j) = rotMatrix(i, j);
-        }
-    }
-    QQuaternion rotationQuaternion(QQuaternion::fromRotationMatrix(m33));
+    const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                       rotationAngleCCW));
     CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
     m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
     CaretAssert(!m_mprThreeRotationQuaternion.isNull());
+
+    if ( ! isVolumeMprInPlaneRotationEnabled()) {
+        const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                   -rotationAngleCCW));
+
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
+                                                            * oppositeRotationQuaternion);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
+                                                              * oppositeRotationQuaternion);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
+                                                                   * oppositeRotationQuaternion);
+            
+                break;
+        }
+    }
 #else
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
         case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
@@ -5782,13 +5902,17 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
                                                                      "m_volumeSurfaceOutlineSetModel"));
 
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
-    const float quatValues[4] {
-        m_mprThreeRotationQuaternion.x(),
-        m_mprThreeRotationQuaternion.y(),
-        m_mprThreeRotationQuaternion.z(),
-        m_mprThreeRotationQuaternion.scalar()
-    };
-    sceneClass->addFloatArray("m_mprThreeRotationQuaternion", quatValues, 4);
+    std::array<float,4> rotQuat(quaternionToArray(m_mprThreeRotationQuaternion));
+    sceneClass->addFloatArray("m_mprThreeRotationQuaternion", rotQuat.data(), rotQuat.size());
+
+    rotQuat = quaternionToArray(m_mprThreeAxialInverseRotationQuaternion);
+    sceneClass->addFloatArray("m_mprThreeAxialInverseRotationQuaternion", rotQuat.data(), rotQuat.size());
+
+    rotQuat = quaternionToArray(m_mprThreeCoronalInverseRotationQuaternion);
+    sceneClass->addFloatArray("m_mprThreeCoronalInverseRotationQuaternion", rotQuat.data(), rotQuat.size());
+
+    rotQuat = quaternionToArray(m_mprThreeParasagittalInverseRotationQuaternion);
+    sceneClass->addFloatArray("m_mprThreeParasagittalInverseRotationQuaternion", rotQuat.data(), rotQuat.size());
 #else
     const AString str(m_mprThreeRotationMatrix.getMatrixInRowMajorOrderString());
     sceneClass->addString("m_mprThreeRotationMatrix", str);
@@ -6177,16 +6301,46 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
         m_volumeMontageCoordinateDisplayType = VolumeMontageCoordinateDisplayTypeEnum::OFFSET;
     }
 
+    bool tryToRestoreOldMprRotationsFlag(false);
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     m_mprThreeRotationQuaternion = QQuaternion();
-    const SceneObject* quatArrayObject(sceneClass->getObjectWithName("m_mprThreeRotationQuaternion"));
-    if (quatArrayObject != NULL) {
-        float quatValues[4] { 0.0, 0.0, 0.0, 0.0 };
-        sceneClass->getFloatArrayValue("m_mprThreeRotationQuaternion", quatValues, 4);
-        testForRestoreSceneWarnings(sceneAttributes,
-                                    sceneClass->getVersionNumber());
-        m_mprThreeRotationQuaternion.setVector(quatValues[0], quatValues[1], quatValues[2]);
-        m_mprThreeRotationQuaternion.setScalar(quatValues[3]);
+    m_mprThreeAxialInverseRotationQuaternion = QQuaternion();
+    m_mprThreeCoronalInverseRotationQuaternion = QQuaternion();
+    m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
+    
+    if (sceneClass->getObjectWithName("m_mprThreeRotationQuaternion")) {
+        std::array<float,4> rotValues;
+        sceneClass->getFloatArrayValue("m_mprThreeRotationQuaternion",
+                                       rotValues.data(),
+                                       rotValues.size());
+        m_mprThreeRotationQuaternion = arrayToQuaternion(rotValues);
+    }
+    else {
+        tryToRestoreOldMprRotationsFlag = true;
+    }
+
+    if (sceneClass->getObjectWithName("m_mprThreeAxialInverseRotationQuaternion")) {
+        std::array<float,4> rotValues;
+        sceneClass->getFloatArrayValue("m_mprThreeAxialInverseRotationQuaternion",
+                                       rotValues.data(),
+                                       rotValues.size());
+        m_mprThreeAxialInverseRotationQuaternion = arrayToQuaternion(rotValues);
+    }
+    
+    if (sceneClass->getObjectWithName("m_mprThreeCoronalInverseRotationQuaternion")) {
+        std::array<float,4> rotValues;
+        sceneClass->getFloatArrayValue("m_mprThreeCoronalInverseRotationQuaternion",
+                                       rotValues.data(),
+                                       rotValues.size());
+        m_mprThreeCoronalInverseRotationQuaternion = arrayToQuaternion(rotValues);
+    }
+    
+    if (sceneClass->getObjectWithName("m_mprThreeParasagittalInverseRotationQuaternion")) {
+        std::array<float,4> rotValues;
+        sceneClass->getFloatArrayValue("m_mprThreeParasagittalInverseRotationQuaternion",
+                                       rotValues.data(),
+                                       rotValues.size());
+        m_mprThreeParasagittalInverseRotationQuaternion = arrayToQuaternion(rotValues);
     }
 #else
     m_mprThreeRotationMatrix.identity();
@@ -6217,67 +6371,90 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
      * MPR Three rotation not available, so try to restore with MPR 2
      */
     if (strMpr.isEmpty()) {
+        tryToRestoreOldMprRotationsFlag = true;
+    }
+#endif
+    
+    if (tryToRestoreOldMprRotationsFlag) {
+        Matrix4x4 rotationMatrix;
+        Matrix4x4 axialInverseRotationMatrix;
+        Matrix4x4 coronalInverseRotationMatrix;
+        Matrix4x4 parasagittalInverseRotationMatrix;
+        
         if (m_mprRotationX != 0.0) {
             if (m_mprRotationY != 0.0) {
                 if (m_mprRotationZ != 0.0) {
                     /* All three rotations are set */
-                    m_mprThreeRotationMatrix.setRotation(-m_mprRotationX,
-                                                         -m_mprRotationY,
-                                                         m_mprRotationZ);
+                    rotationMatrix.setRotation(-m_mprRotationX,
+                                               -m_mprRotationY,
+                                               m_mprRotationZ);
                 }
                 else {
                     /* X and Y rotations are set, no Z rotation*/
-                    m_mprThreeRotationMatrix.setRotation(-m_mprRotationX,
-                                                         -m_mprRotationY,
-                                                         0.0);
-                    m_mprThreeParasagittalInverseRotationMatrix.setRotation(m_mprRotationX,
-                                                                            0.0,
-                                                                            0.0);
-                    m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
-                                                                       m_mprRotationY,
-                                                                       0.0);
+                    rotationMatrix.setRotation(-m_mprRotationX,
+                                               -m_mprRotationY,
+                                               0.0);
+                    parasagittalInverseRotationMatrix.setRotation(m_mprRotationX,
+                                                                  0.0,
+                                                                  0.0);
+                    coronalInverseRotationMatrix.setRotation(0.0,
+                                                             m_mprRotationY,
+                                                             0.0);
                 }
             }
             else {
                 /* X rotation only */
-                m_mprThreeRotationMatrix.setRotation(-m_mprRotationX, 0.0, 0.0);
-                m_mprThreeParasagittalInverseRotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
+                rotationMatrix.setRotation(-m_mprRotationX, 0.0, 0.0);
+                parasagittalInverseRotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
             }
         }
         else if (m_mprRotationY != 0.0) {
             if (m_mprRotationZ != 0.0) {
                 /* Y and Z rotation set*/
-                m_mprThreeRotationMatrix.setRotation(0.0,
-                                                     -m_mprRotationY,
-                                                     m_mprRotationZ);
-                m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
-                                                                   m_mprRotationY,
-                                                                   0.0);
-                m_mprThreeAxialInverseRotationMatrix.setRotation(0.0,
-                                                                 0.0,
-                                                                 -m_mprRotationZ);
+                rotationMatrix.setRotation(0.0,
+                                           -m_mprRotationY,
+                                           m_mprRotationZ);
+                coronalInverseRotationMatrix.setRotation(0.0,
+                                                         m_mprRotationY,
+                                                         0.0);
+                axialInverseRotationMatrix.setRotation(0.0,
+                                                       0.0,
+                                                       -m_mprRotationZ);
             }
             else {
                 /* Y  rotation only */
-                m_mprThreeRotationMatrix.setRotation(0.0,
-                                                     -m_mprRotationY,
-                                                     0.0);
-                m_mprThreeCoronalInverseRotationMatrix.setRotation(0.0,
-                                                                   m_mprRotationY,
-                                                                   0.0);
+                rotationMatrix.setRotation(0.0,
+                                           -m_mprRotationY,
+                                           0.0);
+                coronalInverseRotationMatrix.setRotation(0.0,
+                                                         m_mprRotationY,
+                                                         0.0);
             }
         }
         else if (m_mprRotationZ != 0.0) {
             /* Z rotation only */
-            m_mprThreeRotationMatrix.setRotation(0.0,
-                                                 0.0,
-                                                 m_mprRotationZ);
-            m_mprThreeAxialInverseRotationMatrix.setRotation(0.0,
-                                                             0.0,
-                                                             -m_mprRotationZ);
+            rotationMatrix.setRotation(0.0,
+                                       0.0,
+                                       m_mprRotationZ);
+            axialInverseRotationMatrix.setRotation(0.0,
+                                                   0.0,
+                                                   -m_mprRotationZ);
         }
-    }
+#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+        m_mprThreeRotationQuaternion = matrixToQuaternion(rotationMatrix);
+        m_mprThreeAxialInverseRotationQuaternion = matrixToQuaternion(axialInverseRotationMatrix);
+        m_mprThreeCoronalInverseRotationQuaternion = matrixToQuaternion(coronalInverseRotationMatrix);
+        m_mprThreeParasagittalInverseRotationQuaternion = matrixToQuaternion(parasagittalInverseRotationMatrix);
+#else
+        m_mprThreeRotationMatrix = rotationMatrix;
+        m_mprThreeAxialInverseRotationMatrix = axialInverseRotationMatrix;
+        m_mprThreeCoronalInverseRotationMatrix = coronalInverseRotationMatrix;
+        m_mprThreeParasagittalInverseRotationMatrix = parasagittalInverseRotationMatrix;
 #endif
+    }
+
+    testForRestoreSceneWarnings(sceneAttributes,
+                                sceneClass->getVersionNumber());
 }
 
 /**
@@ -7760,6 +7937,9 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprRotationZ = btc->m_mprRotationZ;
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
                 m_mprThreeRotationQuaternion = btc->m_mprThreeRotationQuaternion;
+                m_mprThreeAxialInverseRotationQuaternion = btc->m_mprThreeAxialInverseRotationQuaternion;
+                m_mprThreeCoronalInverseRotationQuaternion = btc->m_mprThreeCoronalInverseRotationQuaternion;
+                m_mprThreeParasagittalInverseRotationQuaternion = btc->m_mprThreeParasagittalInverseRotationQuaternion;
 #else
                 m_mprThreeRotationMatrix = btc->m_mprThreeRotationMatrix;
                 m_mprThreeAxialInverseRotationMatrix = btc->m_mprThreeAxialInverseRotationMatrix;
@@ -7914,6 +8094,9 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprRotationZ = m_mprRotationZ;
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
                 btc->m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion;
+                btc->m_mprThreeAxialInverseRotationQuaternion = m_mprThreeAxialInverseRotationQuaternion;
+                btc->m_mprThreeCoronalInverseRotationQuaternion = m_mprThreeCoronalInverseRotationQuaternion;
+                btc->m_mprThreeParasagittalInverseRotationQuaternion = m_mprThreeParasagittalInverseRotationQuaternion;
 #else
                 btc->m_mprThreeRotationMatrix = m_mprThreeRotationMatrix;
                 btc->m_mprThreeAxialInverseRotationMatrix = m_mprThreeAxialInverseRotationMatrix;
