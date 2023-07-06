@@ -1533,6 +1533,20 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                                             layersDrawingPlane,
                                                                                             doubleSliceThickness);
         
+        switch (m_brainModelMode) {
+            case BrainModelMode::INVALID:
+                CaretAssert(0);
+                break;
+            case BrainModelMode::ALL_3D:
+                break;
+            case BrainModelMode::VOLUME_2D:
+                drawCrosshairs(mprSliceView,
+                               sliceViewPlane,
+                               sliceCoordinates,
+                               viewport);
+                break;
+        }
+
         bool drawSelectionBoxFlag(false);
         switch (sliceDrawingType) {
             case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
@@ -1970,9 +1984,32 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
     const bool doRotFreezeFlag(true);
     if (doRotFreezeFlag) {
         const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
-        float m[16];
-        rotMat.getMatrixForOpenGL(m);
-        glMultMatrixf(m);
+        double rotX, rotY, rotZ;
+        rotMat.getRotation(rotX, rotY, rotZ);
+        
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                if (radiologicalFlag) {
+                    glRotatef(-rotZ, 0.0, 0.0, 1.0);
+                }
+                else {
+                    glRotatef(rotZ, 0.0, 0.0, 1.0);
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                if (radiologicalFlag) {
+                    glRotatef(rotY, 0.0, 0.0, 1.0);
+                }
+                else {
+                    glRotatef(-rotY, 0.0, 0.0, 1.0);
+                }
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                glRotatef(-rotX, 0.0, 0.0, 1.0);
+                break;
+        }
     }
     else {
         Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
@@ -3291,22 +3328,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     }
                 }
             }
-        }
-    }
-    
-    if (drawAttributesFlag) {
-        switch (m_brainModelMode) {
-            case BrainModelMode::INVALID:
-                CaretAssert(0);
-                break;
-            case BrainModelMode::ALL_3D:
-                break;
-            case BrainModelMode::VOLUME_2D:
-                drawCrosshairs(mprSliceView,
-                               sliceViewPlane,
-                               sliceCoordinates,
-                               viewport);
-                break;
         }
     }
     
