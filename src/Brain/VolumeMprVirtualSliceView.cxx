@@ -979,9 +979,29 @@ VolumeMprVirtualSliceView::getAxisLabels(AString& leftScreenLabelTextOut,
     bottomScreenLabelTextOut = "";
     topScreenLabelTextOut    = "";
     
+    bool radiologicalFlag(false);
+    switch (m_sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            radiologicalFlag = m_radiologicalOrientationFlag;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            radiologicalFlag = m_radiologicalOrientationFlag;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            break;
+    }
+
     std::vector<VectorAndLabel> vectorsAndLabels;
-    vectorsAndLabels.emplace_back("L", -1.0,  0.0,  0.0);
-    vectorsAndLabels.emplace_back("R",  1.0,  0.0,  0.0);
+    if (radiologicalFlag) {
+        vectorsAndLabels.emplace_back("L",  1.0,  0.0,  0.0);
+        vectorsAndLabels.emplace_back("R", -1.0,  0.0,  0.0);
+    }
+    else {
+        vectorsAndLabels.emplace_back("L", -1.0,  0.0,  0.0);
+        vectorsAndLabels.emplace_back("R",  1.0,  0.0,  0.0);
+    }
     vectorsAndLabels.emplace_back("A",  0.0,  1.0,  0.0);
     vectorsAndLabels.emplace_back("P",  0.0, -1.0,  0.0);
     vectorsAndLabels.emplace_back("I",  0.0,  0.0, -1.0);
