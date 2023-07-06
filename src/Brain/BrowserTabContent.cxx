@@ -4495,17 +4495,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                           0.0));
     
     const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
-    std::cout << "Rotate About Vector: " << rotationVector.toString() << std::endl;
-    if (sliceViewPlane == VolumeSliceViewPlaneEnum::AXIAL) {
-        {
-            Vector3D lookToVec(0.0, 0.0, 1.0);
-            Matrix4x4 invMat(getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
-            if (invMat.invert()) {
-                invMat.multiplyPoint3(lookToVec);
-                std::cout << "   Computed: " << lookToVec.toString() << std::endl;
-            }
-        }
-    }
     
     const Vector3D mouseViewportXY(mouseWindowXY - viewport.getBottomLeft());
     const Vector3D previousMouseViewportXY(previousMouseWindowXY - viewport.getBottomLeft());
@@ -4556,23 +4545,49 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     if ( ! isVolumeMprInPlaneRotationEnabled()) {
         const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                                    -rotationAngleCCW));
-
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
-                                                            * oppositeRotationQuaternion);
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
-                                                              * oppositeRotationQuaternion);
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
-                                                                   * oppositeRotationQuaternion);
-            
-                break;
+        
+        /*
+         * Pre-multiplying seems to result in slice remaining
+         * static (not rotating)
+         */
+        const bool preMultFlag(true);
+        if (preMultFlag) {
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    m_mprThreeAxialInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                * m_mprThreeAxialInverseRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    m_mprThreeCoronalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                  * m_mprThreeCoronalInverseRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    m_mprThreeParasagittalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                       * m_mprThreeParasagittalInverseRotationQuaternion);
+                    
+                    break;
+            }
+        }
+        else {
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
+                                                                * oppositeRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
+                                                                  * oppositeRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
+                                                                       * oppositeRotationQuaternion);
+                    
+                    break;
+            }
         }
     }
 #else
