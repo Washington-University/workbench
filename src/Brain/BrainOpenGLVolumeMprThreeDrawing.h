@@ -72,7 +72,7 @@ namespace caret {
         void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                   const BrainOpenGLViewportContent* viewportContent,
                   BrowserTabContent* browserTabContent,
-                  std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
+                  const std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfo,
                   const GraphicsViewport& viewport);
 
         // ADD_NEW_METHODS_HERE
@@ -141,6 +141,7 @@ namespace caret {
 
 
         void drawSliceWithPrimitive(const VolumeMprVirtualSliceView& mprSliceView,
+                                    
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                     const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
@@ -232,7 +233,7 @@ namespace caret {
 
         void drawIntensityBackgroundSlice(const GraphicsPrimitive* volumePrimitive) const;
         
-        std::vector<std::pair<VolumeMappableInterface*,int32_t>> getIntensityVolumeFilesAndMapIndices() const;
+        void filterVolumeDrawInfo(std::vector<BrainOpenGLFixedPipeline::VolumeDrawInfo>& volumeDrawInfoInOut) const;
         
         void performIntensityIdentification(const VolumeMprVirtualSliceView& mprSliceView,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
@@ -243,8 +244,6 @@ namespace caret {
         void applySliceThicknessToIntersections(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                 const Vector3D& sliceCoordinates,
                                                 std::vector<Vector3D>& rayVolumeIntersections) const;
-        
-        void setupIntensityModeBlending(const int32_t numSlicesDrawn);
         
         void drawAllViewRotationThreeAxes(const BrowserTabContent* browserTabContent,
                                      const VolumeMappableInterface* underlayVolume,
@@ -266,7 +265,7 @@ namespace caret {
         
         void setupMprBlending(const BlendingMode blendingMode,
                               const float alphaValue,
-                              const int32_t averageNumberOfSlices);
+                              const int32_t averageNumberOfSlices) const;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
