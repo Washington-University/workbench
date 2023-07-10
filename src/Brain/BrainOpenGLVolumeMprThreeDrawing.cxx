@@ -3164,19 +3164,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
         if (volumeInterface != NULL) {
             if (enabledBlendingFlag) {
                 if (firstFlag) {
-                    /*
-                     * Using GL_ONE prevents an edge artifact
-                     * (narrow line on texture edges).
-                     */
-                    if (allowBlendingFlag) {
-                        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-                    }
+                    setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
+                                     s_INVALID_ALPHA_VALUE,
+                                     s_INVALID_NUMBER_OF_SLICES);
                     firstFlag = false;
                 }
                 else {
-                    if (allowBlendingFlag) {
-                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                    }
+                    setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE,
+                                     vdi.opacity,
+                                     s_INVALID_NUMBER_OF_SLICES);
                 }
             }
             
@@ -3321,10 +3317,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                          * Enabling blending prevents a while line around several
                          * sides of the texture
                          */
-                        glPushAttrib(GL_COLOR_BUFFER_BIT);
-                        m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::VOLUME_MPR_SLICES);
                         GraphicsEngineDataOpenGL::draw(primitive);
-                        glPopAttrib();
                     }
                 }
             }
@@ -4673,3 +4666,197 @@ BrainOpenGLVolumeMprThreeDrawing::setPrimitiveCoordinates(const VolumeMprVirtual
     return validFlag;
 }
 
+/**
+ * Setup blending for the given blending mode and enables blending.  Alpha test
+ * may also be enabled.
+ *
+ * Note: It best to call     glPushAttrib(GL_COLOR_BUFFER_BIT) prior to calling this method
+ * and glPopAttrib() afterwards.
+ *
+ * @param blendingMode
+ *    The blending mode
+ * @param alphaValue
+ *    The alpha value.
+ * @param averageNumberOfSlices
+ *    Number of slices for average mode
+ */
+void
+BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMode,
+                                                   const float alphaValue,
+                                                   const int32_t averageNumberOfSlices)
+{
+    switch (blendingMode) {
+        case BlendingMode::AVERAGE:
+        {
+            CaretAssert(averageNumberOfSlices > 0);
+            
+            /*
+             * Each slice contributes equally
+             * From OpenGL RedBook, section "Sample Uses of Blending" bullet:
+             *
+             * To blend three different images equally, set the destination factor to GL_ONE and
+             * the source factor to GL_SRC_ALPHA.  Draw each of the images with alpha equal to
+             * 0.3333.  With this technique, each image is only one third of its original brightness,
+             * which is noticeable where the images don't overlap.
+             *
+             * Using (alpha == (1/numSlices) allows each slice to contribute
+             * equally and thus approximates "an average".
+             */
+            const float alpha(1.0 / static_cast<float>(averageNumberOfSlices));
+            glBlendColor(0.0, 0.0, 0.0, alpha);
+            
+            glBlendFuncSeparate(GL_CONSTANT_ALPHA_EXT,
+                                GL_ONE,
+                                GL_ZERO,
+                                GL_ONE);
+            glEnable(GL_BLEND);
+            
+            glDisable(GL_ALPHA_TEST);
+            glAlphaFunc(GL_ALWAYS, 1.0);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
+        case BlendingMode::BACKGROUND_INTENSITY_AVERAGE:
+        {
+            /*
+             * Prevents "white line" along some edges
+             * while still allowing blending from additional layers
+             */
+            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
+                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+                                GL_ONE,                /* source (incoming) Alpha blending factor */
+                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glEnable(GL_BLEND);
+            
+            glAlphaFunc(GL_ALWAYS, 0.0);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
+        case BlendingMode::BACKGROUND_MINIMUM_INTENSITY_SLICE:
+        {
+            //            /*
+            //             * Prevents "white line" along some edges
+            //             * while still allowing blending from additional layers
+            //             */
+            //            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
+            //                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+            //                                GL_ONE,                /* source (incoming) Alpha blending factor */
+            //                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            ////            glBlendFuncSeparate(GL_ZERO,   /* min*/        /* source (incoming) RGB blending factor */
+            ////                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+            ////                                GL_ONE,                /* source (incoming) Alpha blending factor */
+            ////                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            //         //   glEnable(GL_BLEND);
+            //
+            //            glAlphaFunc(GL_ALWAYS, 0.0);
+            //            glEnable(GL_ALPHA_TEST);
+            
+            
+            glAlphaFunc(GL_ALWAYS, 0.0);
+            glEnable(GL_ALPHA_TEST);
+            glDisable(GL_BLEND);
+            
+        }
+            break;
+        case BlendingMode::BACKGROUND_MAXIMUM_INTENSITY_SLICE:
+        {
+            /*
+             * Prevents "white line" along some edges
+             * while still allowing blending from additional layers
+             */
+            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
+                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+                                GL_ONE,                /* source (incoming) Alpha blending factor */
+                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glEnable(GL_BLEND);
+            
+            glAlphaFunc(GL_ALWAYS, 0.0);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
+        case BlendingMode::INTENSITY_MAXIMUM:
+        {
+            glBlendEquationSeparate(GL_MAX, GL_MAX);
+            
+            glBlendFunc(GL_ONE, GL_ONE);
+            glEnable(GL_BLEND);
+            
+            glAlphaFunc(GL_GEQUAL, 0.95);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
+        case BlendingMode::INTENSITY_MINIMUM:
+        {
+            //            glBlendEquationSeparate(GL_MIN, GL_MIN);
+            ////
+            ////            glBlendFunc(GL_ONE, GL_ONE);
+            ////            glEnable(GL_BLEND);
+            ////
+            ////            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
+            ////                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+            ////                                GL_ONE,                /* source (incoming) Alpha blending factor */
+            ////                                GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
+            ////
+            ////            glAlphaFunc(GL_ALWAYS, 0.0);
+            ////            glEnable(GL_ALPHA_TEST);
+            //
+            //            /** 4:10pm */
+            //            glBlendFunc(GL_ONE, GL_ONE);
+            //            glEnable(GL_BLEND);
+            ////            glDisable(GL_BLEND);
+            //
+            //            glAlphaFunc(GL_GEQUAL, 0.95);
+            //            glAlphaFunc(GL_GEQUAL, 0.01);
+            //            glEnable(GL_ALPHA_TEST);
+            
+            glBlendEquationSeparate(GL_MIN, GL_MIN);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glEnable(GL_BLEND);
+            
+            glAlphaFunc(GL_GEQUAL, 0.95);
+            glEnable(GL_ALPHA_TEST);
+            
+        }
+            break;
+        case BlendingMode::MPR_OVERLAY_SLICE:
+        {
+            CaretAssert((alphaValue >= 0.0)
+                        && (alphaValue <= 1.0));
+            
+            /*
+             * The constant alpha comes from the overlay.
+             * The layer being drawn gets (RGB * alphaValue)
+             * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+             */
+            glBlendColor(alphaValue, alphaValue, alphaValue, 1.0);
+            glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                GL_ZERO,                /* source (incoming) Alpha blending factor */
+                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glEnable(GL_BLEND);
+            
+            /*
+             * Only allow framebuffer update if the incoming alpha is greater than
+             * zero.  For a label volume, voxels have alpha equal to zero
+             * where there is no label.  This prevents an drawing of these
+             * zero alpha voxels while allowing blending.
+             */
+            glAlphaFunc(GL_GREATER, 0.0);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
+        case BlendingMode::MPR_UNDERLAY_SLICE:
+        {
+            /*
+             * Prevents "white line" along some edges
+             * while still allowing blending from additional layers
+             */
+            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
+                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
+                                GL_ZERO,                /* source (incoming) Alpha blending factor */
+                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glEnable(GL_BLEND);
+        }
+            break;
+    }
+}

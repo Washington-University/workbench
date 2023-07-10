@@ -85,6 +85,17 @@ namespace caret {
             VOLUME_2D
         };
         
+        enum class BlendingMode {
+            AVERAGE,
+            BACKGROUND_INTENSITY_AVERAGE,
+            BACKGROUND_MINIMUM_INTENSITY_SLICE,
+            BACKGROUND_MAXIMUM_INTENSITY_SLICE,
+            INTENSITY_MAXIMUM,
+            INTENSITY_MINIMUM,
+            MPR_UNDERLAY_SLICE,
+            MPR_OVERLAY_SLICE
+        };
+        
         VolumeMprVirtualSliceView createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const Vector3D& sliceCoordinates) const;
@@ -253,6 +264,10 @@ namespace caret {
                                      const VolumeMappableInterface* volume,
                                      GraphicsPrimitiveV3fT3f* primitive);
         
+        void setupMprBlending(const BlendingMode blendingMode,
+                              const float alphaValue,
+                              const int32_t averageNumberOfSlices);
+        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
 
         BrowserTabContent* m_browserTabContent = NULL;
@@ -283,6 +298,10 @@ namespace caret {
         
         static constexpr bool m_debugFlag = false;
         
+        static constexpr float s_INVALID_ALPHA_VALUE = -1.0;
+        
+        static constexpr int32_t s_INVALID_NUMBER_OF_SLICES = -1;
+
         // ADD_NEW_MEMBERS_HERE
 
     };
