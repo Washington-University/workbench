@@ -7933,9 +7933,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_volumeSliceViewingTransformation = *btc->m_volumeSliceViewingTransformation;
                 *m_histologyViewingTransformation = *btc->m_histologyViewingTransformation;
                 *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
-                const VolumeSliceViewPlaneEnum::Enum slicePlane = m_volumeSliceSettings->getSliceViewPlane();
-                *m_volumeSliceSettings = *btc->m_volumeSliceSettings;
-                m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane
+                m_volumeSliceSettings->copyToMeForYoking(*btc->m_volumeSliceSettings);
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
@@ -8090,9 +8088,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_flatSurfaceViewingTransformation = *m_flatSurfaceViewingTransformation;
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
-                const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
-                *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
-                btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane); // do not yoke the slice plane
+                btc->m_volumeSliceSettings->copyToMeForYoking(*m_volumeSliceSettings);
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
@@ -8167,12 +8163,7 @@ BrowserTabContent::moveYokedVolumeSlicesToHistologyCoordinate(const HistologyCoo
         for (auto btc : activeTabs) {
             if (btc != this) {
                 if (btc->getBrainModelYokingGroup() == m_brainModelYokingGroup) {
-                    /*
-                     * Preserve slice plane in other tabs (keep it the same)
-                     */
-                    const VolumeSliceViewPlaneEnum::Enum slicePlane = btc->m_volumeSliceSettings->getSliceViewPlane();
-                    *btc->m_volumeSliceSettings = *m_volumeSliceSettings;
-                    btc->m_volumeSliceSettings->setSliceViewPlane(slicePlane);
+                    btc->m_volumeSliceSettings->copyToMeForYoking(*m_volumeSliceSettings);
                 }
             }
         }

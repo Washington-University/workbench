@@ -51,6 +51,8 @@ namespace caret {
 
         VolumeSliceSettings& operator=(const VolumeSliceSettings& obj);
         
+        void copyToMeForYoking(const VolumeSliceSettings& volumeSliceSettings);
+        
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
         
         void setSliceViewPlane(VolumeSliceViewPlaneEnum::Enum sliceAxisMode);

@@ -149,6 +149,23 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
 }
 
 /**
+ * Copy the slice settings from the other instance for yoking.  A few members are not copied for yoking.
+ * @param volumeSliceSettings
+ *    The slice settings
+ */
+void
+VolumeSliceSettings::copyToMeForYoking(const VolumeSliceSettings& volumeSliceSettings)
+{
+    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane(m_sliceViewPlane);
+    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_sliceDrawingType;
+    
+    copyHelperVolumeSliceSettings(volumeSliceSettings);
+    
+    m_sliceViewPlane = sliceViewPlane;
+    m_sliceDrawingType = sliceDrawingType;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
