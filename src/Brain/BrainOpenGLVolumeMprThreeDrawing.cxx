@@ -123,18 +123,6 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     m_browserTabContent = browserTabContent;
     CaretAssert(m_browserTabContent);
     
-    /*
-     * Filter the volume drawing info
-     */
-    m_volumeDrawInfo = volumeDrawInfo;
-    filterVolumeDrawInfo(m_volumeDrawInfo);
-    
-    const int32_t numberOfVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
-    if (numberOfVolumes <= 0) {
-        return;
-    }
-    CaretAssert( ! m_volumeDrawInfo.empty());
-
     m_brainModelMode = BrainModelMode::INVALID;
     ModelVolume* modelVolume(browserTabContent->getDisplayedVolumeModel());
     ModelWholeBrain* modelWholeBrain(browserTabContent->getDisplayedWholeBrainModel());
@@ -154,20 +142,42 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     }
     CaretAssert(m_brain);
     CaretAssert(m_brainModelMode != BrainModelMode::INVALID);
-    
+
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
     
     m_tabIndex = m_browserTabContent->getTabNumber();
+
+    m_mprViewMode = browserTabContent->getVolumeMprViewMode();
+    m_orientationMode = browserTabContent->getVolumeMprOrientationMode();
+    
+    if (m_browserTabContent->isWholeBrainDisplayed()) {
+        /*
+         * For now, no intensity modes in 3D as drawing accumulates in the
+         * framebuffer and in 3D the slices will overlap causing problems.
+         * May be fixable by drawing each slice into an offscreen buffer and
+         * then transfering that to the framebuffer.
+         */
+        m_mprViewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
+    }
+    
+    /*
+     * Filter the volume drawing info
+     */
+    m_volumeDrawInfo = volumeDrawInfo;
+    filterVolumeDrawInfo(m_volumeDrawInfo);
+    
+    const int32_t numberOfVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
+    if (numberOfVolumes <= 0) {
+        return;
+    }
+    CaretAssert( ! m_volumeDrawInfo.empty());
 
     /*
      * No lighting for drawing slices
      */
     m_fixedPipelineDrawing->disableLighting();
 
-    m_mprViewMode = browserTabContent->getVolumeMprViewMode();
-    m_orientationMode = browserTabContent->getVolumeMprOrientationMode();
-    
     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType(m_browserTabContent->getVolumeSliceProjectionType());
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
@@ -182,22 +192,13 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getVolumeSliceDrawingType();
 
     m_axialCoronalParaSliceViewFlag = false;
-
-    if (browserTabContent->isWholeBrainDisplayed()) {
-        /*
-         * For now, no intensity modes in 3D as drawing accumulates in the
-         * framebuffer and in 3D the slices will overlap causing problems.
-         * May be fixable by drawing each slice into an offscreen buffer and
-         * then transfering that to the framebuffer.
-         */
-        m_mprViewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
-        
+    if (m_browserTabContent->isWholeBrainDisplayed()) {
         drawWholeBrainView(viewportContent,
                            sliceDrawingType,
                            sliceProjectionType,
                            viewport);
     }
-    else if (browserTabContent->isVolumeSlicesDisplayed()) {
+    else if (m_browserTabContent->isVolumeSlicesDisplayed()) {
         m_axialCoronalParaSliceViewFlag = true;
         drawSliceView(viewportContent,
                       browserTabContent,
@@ -4878,8 +4879,8 @@ BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMo
             glBlendColor(alphaValue, alphaValue, alphaValue, 1.0);
             glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
                                 GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
-                                GL_ZERO,                /* source (incoming) Alpha blending factor */
-                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+                                GL_ONE,                /* source (incoming) Alpha blending factor */
+                                GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
             glEnable(GL_BLEND);
             
             /*
@@ -4898,10 +4899,10 @@ BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMo
              * Prevents "white line" along some edges
              * while still allowing blending from additional layers
              */
-            glBlendFuncSeparate(GL_ONE,           /* source (incoming) RGB blending factor */
-                                GL_ZERO, /* destination (frame buffer) RGB blending factor */
-                                GL_ZERO,                /* source (incoming) Alpha blending factor */
-                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glBlendFuncSeparate(GL_ONE,   /* source (incoming) RGB blending factor */
+                                GL_ZERO,  /* destination (frame buffer) RGB blending factor */
+                                GL_ONE,   /* source (incoming) Alpha blending factor */
+                                GL_ONE); /* destination (frame buffer) Alpha blending factor */
             glEnable(GL_BLEND);
         }
             break;
