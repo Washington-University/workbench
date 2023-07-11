@@ -3141,14 +3141,35 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
         case VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION:
             break;
     }
-    const DisplayPropertiesVolume* dsv = m_brain->getDisplayPropertiesVolume();
-    const bool allowBlendingFlag(dsv->getOpacity() < 1.0);
     
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
-    if (allowBlendingFlag
-        && enabledBlendingFlag) {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    float allViewOpacity(1.0);
+    bool allViewBlendingFlag(false);
+    bool allViewFlag(false);
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
+            break;
+        case BrainModelMode::ALL_3D:
+        {
+            allViewFlag = true;
+            
+            const DisplayPropertiesVolume* dsv = m_brain->getDisplayPropertiesVolume();
+            allViewOpacity = dsv->getOpacity();
+            if ((allViewOpacity >= 0.0)
+                && (allViewOpacity < 1.0)) {
+                allViewBlendingFlag = true;
+            }
+        }
+            break;
+        case BrainModelMode::VOLUME_2D:
+            break;
+    }
+    
+    if (allViewFlag) {
+        glPushAttrib(GL_COLOR_BUFFER_BIT
+                     | GL_POLYGON_BIT);
+    }
+    else {
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
     }
     
     glDisable(GL_DEPTH_TEST);
@@ -3169,7 +3190,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
         const BrainOpenGLFixedPipeline::VolumeDrawInfo& vdi = m_volumeDrawInfo[iVol];
         VolumeMappableInterface* volumeInterface = vdi.volumeFile;
         if (volumeInterface != NULL) {
-            if (enabledBlendingFlag) {
+            if (allViewBlendingFlag) {
+                setupMprBlending(BlendingMode::ALL_VIEW,
+                                 allViewOpacity,
+                                 s_INVALID_NUMBER_OF_SLICES);
+            }
+            else if (enabledBlendingFlag) {
                 if (firstFlag) {
                     setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
                                      s_INVALID_ALPHA_VALUE,
@@ -3183,6 +3209,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                 }
             }
             
+            if (allViewFlag) {
+                if (iVol > 0) {
+                    /*
+                     * All view needs polygon offset when there is
+                     * more than one layer to ensure layer 'is above'
+                     * and prevents flashing
+                     */
+                    glEnable(GL_POLYGON_OFFSET_FILL);
+                    glPolygonOffset(-2.0, 2.0);
+                }
+            }
             GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
                                                                                                    m_displayGroup,
                                                                                                    m_tabIndex));
@@ -4728,6 +4765,33 @@ BrainOpenGLVolumeMprThreeDrawing::setupMprBlending(const BlendingMode blendingMo
                                                    const int32_t averageNumberOfSlices) const
 {
     switch (blendingMode) {
+        case BlendingMode::ALL_VIEW:
+        {
+            CaretAssert((alphaValue >= 0.0)
+                        && (alphaValue <= 1.0));
+            
+            /*
+             * The constant alpha comes from the overlay.
+             * The layer being drawn gets (RGB * alphaValue)
+             * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+             */
+            glBlendColor(alphaValue, alphaValue, alphaValue, 1.0);
+            glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                GL_ZERO,                /* source (incoming) Alpha blending factor */
+                                GL_ONE);                /* destination (frame buffer) Alpha blending factor */
+            glEnable(GL_BLEND);
+            
+            /*
+             * Only allow framebuffer update if the incoming alpha is greater than
+             * zero.  For a label volume, voxels have alpha equal to zero
+             * where there is no label.  This prevents an drawing of these
+             * zero alpha voxels while allowing blending.
+             */
+            glAlphaFunc(GL_GREATER, 0.0);
+            glEnable(GL_ALPHA_TEST);
+        }
+            break;
         case BlendingMode::AVERAGE:
         {
             CaretAssert(averageNumberOfSlices > 0);

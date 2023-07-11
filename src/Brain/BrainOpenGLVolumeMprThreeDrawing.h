@@ -86,6 +86,7 @@ namespace caret {
         };
         
         enum class BlendingMode {
+            ALL_VIEW,
             AVERAGE,
             BACKGROUND_INTENSITY_AVERAGE,
             BACKGROUND_MINIMUM_INTENSITY_SLICE,
@@ -93,7 +94,7 @@ namespace caret {
             INTENSITY_MAXIMUM,
             INTENSITY_MINIMUM,
             MPR_UNDERLAY_SLICE,
-            MPR_OVERLAY_SLICE
+            MPR_OVERLAY_SLICE,
         };
         
         VolumeMprVirtualSliceView createSliceInfo(const VolumeMappableInterface* underlayVolume,
