@@ -71,7 +71,8 @@ VolumeMprSettings::~VolumeMprSettings()
  *    Object that is copied.
  */
 VolumeMprSettings::VolumeMprSettings(const VolumeMprSettings& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperVolumeMprSettings(obj);
 }

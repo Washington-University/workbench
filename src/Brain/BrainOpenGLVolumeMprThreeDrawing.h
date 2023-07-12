@@ -142,9 +142,7 @@ namespace caret {
 
 
         void drawSliceWithPrimitive(const VolumeMprVirtualSliceView& mprSliceView,
-                                    
                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                    const Vector3D& sliceCoordinates,
                                     const GraphicsViewport& viewport,
                                     const bool enabledBlendingFlag,
                                     const bool drawAttributesFlag,
@@ -246,16 +244,13 @@ namespace caret {
                                                 const Vector3D& sliceCoordinates,
                                                 std::vector<Vector3D>& rayVolumeIntersections) const;
         
-        void drawAllViewRotationThreeAxes(const BrowserTabContent* browserTabContent,
-                                     const VolumeMappableInterface* underlayVolume,
-                                     const int32_t viewport[4]);
+        void drawAllViewRotationThreeAxes(const VolumeMappableInterface* underlayVolume,
+                                          const int32_t viewport[4]);
 
-        void drawAllViewRotationAxes(const BrowserTabContent* browserTabContent,
-                                     const VolumeMappableInterface* underlayVolume,
+        void drawAllViewRotationAxes(const VolumeMappableInterface* underlayVolume,
                                      const int32_t viewport[4]);
         
-        void drawAllViewRotationBox(const BrowserTabContent* browserTabContent,
-                                    const VolumeMappableInterface* underlayVolume,
+        void drawAllViewRotationBox(const VolumeMappableInterface* underlayVolume,
                                     const int32_t viewport[4]);
         
         std::vector<Vector3D> getVolumeCorners(const VolumeMappableInterface* volume) const;

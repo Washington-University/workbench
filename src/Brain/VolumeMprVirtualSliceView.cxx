@@ -758,7 +758,8 @@ VolumeMprVirtualSliceView::createVirtualSliceTriangles(const VolumeMappableInter
  *    Object that is copied.
  */
 VolumeMprVirtualSliceView::VolumeMprVirtualSliceView(const VolumeMprVirtualSliceView& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperVolumeMprVirtualSliceView(obj);
 }

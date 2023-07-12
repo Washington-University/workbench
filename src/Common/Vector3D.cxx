@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #include "MathFunctions.h"
 #include "Vector3D.h"
 
@@ -285,8 +287,8 @@ Vector3D::signedAngleRadians(const Vector3D& right,
      */
     
     Vector3D cross(this->cross(right));
-    double angle(std::atan2(cross.length(),
-                            this->dot(right)));
+    double angle(atan2(cross.length(),
+                       this->dot(right)));
     angle = (cross.dot(normal) >= 0) ? angle : -angle;
     return angle;
 }

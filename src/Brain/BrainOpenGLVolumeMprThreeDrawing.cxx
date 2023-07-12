@@ -304,18 +304,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
                     const bool drawSingleAxesFlag(false);
                     const bool drawBoxAxesFlag(true);
                     if (drawAllThreeAxesFlag) {
-                        drawAllViewRotationThreeAxes(browserTabContent,
-                                                     underlayVolume,
+                        drawAllViewRotationThreeAxes(underlayVolume,
                                                      axisVP.data());
                     }
                     if (drawSingleAxesFlag) {
-                        drawAllViewRotationAxes(browserTabContent,
-                                                underlayVolume,
+                        drawAllViewRotationAxes(underlayVolume,
                                                 axisVP.data());
                     }
                     if (drawBoxAxesFlag) {
-                        drawAllViewRotationBox(browserTabContent,
-                                               underlayVolume,
+                        drawAllViewRotationBox(underlayVolume,
                                                axisVP.data());
                     }
                     glPopMatrix();
@@ -344,19 +341,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
 
 /**
  * Draw a box showing the current rotation for each axis
- * @param browserTabContent
- *   Content of browser tab
  * @param underlayVolume
  *   The underlay volume
  * @param viewport
  *   The viewport
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const BrowserTabContent* browserTabContent,
-                                                               const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const VolumeMappableInterface* underlayVolume,
                                                                const int32_t viewportIn[4])
 {
-    CaretAssert(browserTabContent);
     CaretAssert(underlayVolume);
     
     /*
@@ -609,19 +602,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const BrowserTabC
 
 /**
  * Draw axes showing the current rotation
- * @param browserTabContent
- *   Content of browser tab
  * @param underlayVolume
  *   The underlay volume
  * @param viewport
  *   The viewport
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabContent* browserTabContent,
-                                                          const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const VolumeMappableInterface* underlayVolume,
                                                           const int32_t viewport[4])
 {
-    CaretAssert(browserTabContent);
     CaretAssert(underlayVolume);
     
     /*
@@ -836,19 +825,15 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const BrowserTabConten
  *
  * Rotation box designed copied from: https://castlemountain.dk/mulrecon/sprayMPR.html?folder=MRBrainT1&pixelspacing=0.625&ST=1&SS=1&slices=169&compression=1
  *
- * @param browserTabContent
- *   Content of browser tab
  * @param underlayVolume
  *   The underlay volume
  * @param viewportIn
  *   The viewport
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const BrowserTabContent* browserTabContent,
-                                                         const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInterface* underlayVolume,
                                                          const int32_t viewportIn[4])
 {
-    CaretAssert(browserTabContent);
     CaretAssert(underlayVolume);
     
     /*
@@ -1453,7 +1438,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             const bool drawIntensitySliceBackgroundFlag(false);
             drawSliceWithPrimitive(mprSliceView,
                                    sliceViewPlane,
-                                   sliceCoordinates,
                                    viewport,
                                    enableBlendingFlag,
                                    drawAttributesFlag,
@@ -3016,7 +3000,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
             const bool drawIntensitySliceBackgroundFlag(iStep == 0);
             drawSliceWithPrimitive(mprSliceView,
                                    sliceViewPlane,
-                                   xyz,
                                    viewport,
                                    enableBlendingFlag,
                                    drawAttributesFlag,
@@ -3072,11 +3055,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
  *    Information for drawing slice
  * @param sliceViewPlane
  *    The plane for slice drawing.
- * @param sliceCoordinates
- *    Coordinates of the selected slice.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
- * @parram enabledBlendingFlag
+ * @param enabledBlendingFlag
  *    If true, enable blending
  * @param drawAttributesFlag
  *    Draw attributes (crosshairs, etc)
@@ -3086,7 +3067,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
 void
 BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualSliceView& mprSliceView,
                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                       const Vector3D& sliceCoordinates,
                                                        const GraphicsViewport& viewport,
                                                        const bool enabledBlendingFlag,
                                                        const bool drawAttributesFlag,
