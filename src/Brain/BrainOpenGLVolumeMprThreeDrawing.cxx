@@ -304,12 +304,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
                     const bool drawSingleAxesFlag(false);
                     const bool drawBoxAxesFlag(true);
                     if (drawAllThreeAxesFlag) {
-                        drawAllViewRotationThreeAxes(underlayVolume,
-                                                     axisVP.data());
+                        drawAllViewRotationThreeAxes(axisVP.data());
                     }
                     if (drawSingleAxesFlag) {
-                        drawAllViewRotationAxes(underlayVolume,
-                                                axisVP.data());
+                        drawAllViewRotationAxes(axisVP.data());
                     }
                     if (drawBoxAxesFlag) {
                         drawAllViewRotationBox(underlayVolume,
@@ -341,17 +339,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
 
 /**
  * Draw a box showing the current rotation for each axis
- * @param underlayVolume
- *   The underlay volume
  * @param viewport
  *   The viewport
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const VolumeMappableInterface* underlayVolume,
-                                                               const int32_t viewportIn[4])
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const int32_t viewportIn[4])
 {
-    CaretAssert(underlayVolume);
-    
     /*
      * Set the modeling transformation
      */
@@ -602,17 +595,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const VolumeMappa
 
 /**
  * Draw axes showing the current rotation
- * @param underlayVolume
- *   The underlay volume
  * @param viewport
  *   The viewport
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const VolumeMappableInterface* underlayVolume,
-                                                          const int32_t viewport[4])
+BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const int32_t viewport[4])
 {
-    CaretAssert(underlayVolume);
-    
     /*
      * Set the modeling transformation
      */

@@ -244,11 +244,9 @@ namespace caret {
                                                 const Vector3D& sliceCoordinates,
                                                 std::vector<Vector3D>& rayVolumeIntersections) const;
         
-        void drawAllViewRotationThreeAxes(const VolumeMappableInterface* underlayVolume,
-                                          const int32_t viewport[4]);
+        void drawAllViewRotationThreeAxes(const int32_t viewport[4]);
 
-        void drawAllViewRotationAxes(const VolumeMappableInterface* underlayVolume,
-                                     const int32_t viewport[4]);
+        void drawAllViewRotationAxes(const int32_t viewport[4]);
         
         void drawAllViewRotationBox(const VolumeMappableInterface* underlayVolume,
                                     const int32_t viewport[4]);
