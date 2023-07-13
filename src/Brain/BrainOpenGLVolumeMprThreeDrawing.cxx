@@ -1816,8 +1816,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::POSTERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::POSTERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to top edge (+y) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1828,8 +1828,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::ANTERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ANTERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Left edge (-x) to selected coordinate */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1840,8 +1840,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::LEFT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::LEFT_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to right edge (+x) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1852,8 +1852,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::RIGHT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::RIGHT_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             /* Bottom edge (-z) to selected coordinate */
@@ -1865,8 +1865,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::INFERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::INFERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to top edge (+z) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1877,8 +1877,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SUPERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::SUPERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Left edge (-x) to selected coordinate */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1889,8 +1889,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::LEFT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::LEFT_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to right edge (+x) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1901,8 +1901,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::RIGHT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::RIGHT_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
@@ -1915,8 +1915,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::INFERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::INFERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to top edge (+z) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1927,8 +1927,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SUPERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::SUPERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Left edge (+y) to selected coordinate */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1939,8 +1939,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::ANTERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ANTERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             
             /* Selected coordinate to right edge (-y) */
             addCrosshairSection(sliceSelectionPrimitive.get(),
@@ -1951,8 +1951,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
                                 gapLengthPixels,
                                 sliceSelectionIndices,
                                 rotateSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::POSTERIOR_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::POSTERIOR_ROTATE);
+                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
             break;
     }
     

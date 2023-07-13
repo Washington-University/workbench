@@ -29,21 +29,18 @@ namespace caret {
     class SelectionItemVolumeMprCrosshair : public SelectionItem {
         
     public:
+        /**
+         * Axis of the crosshair
+         */
         enum class Axis {
+            /** invalid */
             INVALID,
-            INFERIOR_ROTATE,
-            INFERIOR_SLICE,
-            SUPERIOR_ROTATE,
-            SUPERIOR_SLICE,
-            POSTERIOR_ROTATE,
-            POSTERIOR_SLICE,
-            ANTERIOR_ROTATE,
-            ANTERIOR_SLICE,
-            LEFT_ROTATE,
-            LEFT_SLICE,
-            RIGHT_ROTATE,
-            RIGHT_SLICE,
-            RING_ROTATE
+            /** rotate only the slice plane */
+            ROTATE_SLICE,
+            /** rotate using the transform */
+            ROTATE_TRANSFORM,
+            /** select slices */
+            SELECT_SLICE
         };
         
         SelectionItemVolumeMprCrosshair();
@@ -56,9 +53,11 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        bool isRotateAxisSelected() const;
+        bool isRotateSlice() const;
         
-        bool isSliceAxisSelected() const;
+        bool isRotateTransform() const;
+        
+        bool isSliceSelection() const;
         
         Axis getAxis() const;
         

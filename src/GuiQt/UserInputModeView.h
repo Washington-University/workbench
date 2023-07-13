@@ -97,7 +97,7 @@ namespace caret {
         
         enum class VOLUME_MPR_CURSOR_MODE {
             INVALID,
-            ROTATE_SLICE,
+            ROTATE_TRANSFORM,
             SCROLL_SLICE,
             SELECT_SLICE
         };

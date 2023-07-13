@@ -169,63 +169,31 @@ SelectionItemVolumeMprCrosshair::isValid() const
     return (m_axis != Axis::INVALID);
 }
 
+/**
+ * @return True if a rotate slice is selected
+ */
 bool
-SelectionItemVolumeMprCrosshair::isRotateAxisSelected() const
+SelectionItemVolumeMprCrosshair::isRotateSlice() const
 {
-    bool rotateFlag(false);
-    switch (m_axis) {
-        case Axis::INVALID:
-            break;
-        case Axis::ANTERIOR_ROTATE:
-        case Axis::INFERIOR_ROTATE:
-        case Axis::LEFT_ROTATE:
-        case Axis::POSTERIOR_ROTATE:
-        case Axis::RIGHT_ROTATE:
-        case Axis::SUPERIOR_ROTATE:
-        case Axis::RING_ROTATE:
-            rotateFlag = true;
-            break;
-        case Axis::ANTERIOR_SLICE:
-        case Axis::INFERIOR_SLICE:
-        case Axis::LEFT_SLICE:
-        case Axis::POSTERIOR_SLICE:
-        case Axis::RIGHT_SLICE:
-        case Axis::SUPERIOR_SLICE:
-            break;
-    }
-    
-    return rotateFlag;
+    return (m_axis == Axis::ROTATE_SLICE);
 }
 
 /**
- * @return True if a slice axis is selected
+ * @return True if a rotate transform is selected
  */
 bool
-SelectionItemVolumeMprCrosshair::isSliceAxisSelected() const
+SelectionItemVolumeMprCrosshair::isRotateTransform() const
 {
-    bool sliceFlag(false);
-    switch (m_axis) {
-        case Axis::INVALID:
-            break;
-        case Axis::ANTERIOR_ROTATE:
-        case Axis::INFERIOR_ROTATE:
-        case Axis::LEFT_ROTATE:
-        case Axis::POSTERIOR_ROTATE:
-        case Axis::RIGHT_ROTATE:
-        case Axis::SUPERIOR_ROTATE:
-        case Axis::RING_ROTATE:
-            break;
-        case Axis::ANTERIOR_SLICE:
-        case Axis::INFERIOR_SLICE:
-        case Axis::LEFT_SLICE:
-        case Axis::POSTERIOR_SLICE:
-        case Axis::RIGHT_SLICE:
-        case Axis::SUPERIOR_SLICE:
-            sliceFlag = true;
-            break;
-    }
+    return (m_axis == Axis::ROTATE_TRANSFORM);
+}
 
-    return sliceFlag;
+/**
+ * @return True if select slice is selected
+ */
+bool
+SelectionItemVolumeMprCrosshair::isSliceSelection() const
+{
+    return (m_axis == Axis::SELECT_SLICE);
 }
 
 
@@ -240,47 +208,16 @@ SelectionItemVolumeMprCrosshair::axisToName(const Axis axis)
     AString name("INVALID");
     
     switch (axis) {
-        case Axis::ANTERIOR_ROTATE:
-            name = "Anterior Rotate";
-            break;
-        case Axis::ANTERIOR_SLICE:
-            name = "Anterior Slice";
-            break;
-        case Axis::INFERIOR_ROTATE:
-            name = "Inferior Rotate";
-            break;
-        case Axis::INFERIOR_SLICE:
-            name = "Inferior Slice";
-            break;
         case Axis::INVALID:
-            name = "Invalid";
             break;
-        case Axis::LEFT_ROTATE:
-            name = "Left Rotate";
+        case Axis::ROTATE_SLICE:
+            name = "Rotate Slice";
             break;
-        case Axis::LEFT_SLICE:
-            name = "Left Slice";
+        case Axis::ROTATE_TRANSFORM:
+            name = "Rotate Transform";
             break;
-        case Axis::POSTERIOR_ROTATE:
-            name = "Posterior Rotate";
-            break;
-        case Axis::POSTERIOR_SLICE:
-            name = "Posterior Slice";
-            break;
-        case Axis::RIGHT_ROTATE:
-            name = "Right Rotate";
-            break;
-        case Axis::RIGHT_SLICE:
-            name = "Right Slice";
-            break;
-        case Axis::RING_ROTATE:
-            name = "Ring Rotate";
-            break;
-        case Axis::SUPERIOR_ROTATE:
-            name = "Superior Rotate";
-            break;
-        case Axis::SUPERIOR_SLICE:
-            name = "Superior Slice";
+        case Axis::SELECT_SLICE:
+            name = "Select Slice";
             break;
     }
 

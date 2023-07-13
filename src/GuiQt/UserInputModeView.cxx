@@ -214,7 +214,7 @@ UserInputModeView::getCursor() const
         case VOLUME_MPR_CURSOR_MODE::INVALID:
             cursorOut = CursorEnum::CURSOR_DEFAULT;
             break;
-        case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+        case VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM:
             cursorOut = CursorEnum::CURSOR_ROTATION;
             break;
         case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
@@ -432,7 +432,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
                     }
                         break;
-                    case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+                    case VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM:
                         /*
                          * Will fall through to rotation
                          */
@@ -972,18 +972,41 @@ UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
         return mprModeOut;
     }
     
-    if (browserTabContent->isVolumeMprOldDisplayed()
-        || browserTabContent->isVolumeMprThreeDisplayed()) {
+    if (browserTabContent->isVolumeMprOldDisplayed()) {
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(),
                                                                                                             mouseEvent.getY()));
         CaretAssert(crosshairID);
         if (crosshairID->isValid()) {
-            if (crosshairID->isRotateAxisSelected()) {
-                mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE;
+            if (crosshairID->isRotateTransform()) {
+                mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM;
             }
-            else if (crosshairID->isSliceAxisSelected()) {
+            else if (crosshairID->isSliceSelection()) {
                 mprModeOut = VOLUME_MPR_CURSOR_MODE::SELECT_SLICE;
+            }
+        }
+        else {
+            mprModeOut = VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE;
+        }
+    }
+    else if (browserTabContent->isVolumeMprThreeDisplayed()) {
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionItemVolumeMprCrosshair* crosshairID(openGLWidget->performIdentificationVolumeMprCrosshairs(mouseEvent.getX(),
+                                                                                                            mouseEvent.getY()));
+        CaretAssert(crosshairID);
+        if (crosshairID->isValid()) {
+            switch (crosshairID->getAxis()) {
+                case SelectionItemVolumeMprCrosshair::Axis::INVALID:
+                    break;
+                case SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE:
+                    CaretAssertToDoFatal();
+                    break;
+                case SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM:
+                    mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM;
+                    break;
+                case SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE:
+                    mprModeOut = VOLUME_MPR_CURSOR_MODE::SELECT_SLICE;
+                    break;
             }
         }
         else {
