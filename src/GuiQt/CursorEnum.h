@@ -57,6 +57,8 @@ public:
         CURSOR_RESIZE_HORIZONTAL,
         /** Resize Vertical */
         CURSOR_RESIZE_VERTICAL,
+        /** Half Rotation Cursor */
+        CURSOR_HALF_ROTATION,
         /** Rotation Cursor */
         CURSOR_ROTATION,
         /** Wait, Qt::WaitCursor*/

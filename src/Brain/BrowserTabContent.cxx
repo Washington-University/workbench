@@ -3688,6 +3688,8 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
  *
  * @param viewportContent
  *    Content of viewport
+ * @param mprCrosshairAxis
+ *    The MPR crosshair that indicates the type of rotation
  * @param mousePressX
  *    X coordinate of where mouse was pressed.
  * @param mousePressY
@@ -3703,6 +3705,7 @@ BrowserTabContent::applyMouseVolumeSliceIncrement(BrainOpenGLViewportContent* vi
  */
 void
 BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
+                                      const SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis,
                                       const int32_t mousePressX,
                                       const int32_t mousePressY,
                                       const int32_t mouseX,
@@ -3954,6 +3957,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 
                                 if (isVolumeMprThreeDisplayed()) {
                                     applyMouseRotationMprThree(viewportContent,
+                                                               mprCrosshairAxis,
                                                                viewport,
                                                                Vector3D(mousePressX, mousePressY, 0.0),
                                                                Vector3D(mouseX, mouseY, 0.0),
@@ -4445,6 +4449,8 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
  * Process MPR volume slice rotation
  * @param viewportContent
  *    Content of the viewport
+ * @param mprCrosshairAxis
+ *    The MPR crosshair that indicates the type of rotation
  * @param viewport
  *    The viewport
  * @param mousePressWindowXY
@@ -4456,6 +4462,7 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
  */
 void
 BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
+                                              const SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis,
                                               const GraphicsViewport& viewport,
                                               const Vector3D& mousePressWindowXY,
                                               const Vector3D& mouseWindowXY,
@@ -4506,6 +4513,22 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
         return;
     }
     
+    bool rotateSliceFlag(false);
+    bool rotateTransformFlag(false);
+    switch (mprCrosshairAxis) {
+        case SelectionItemVolumeMprCrosshair::Axis::INVALID:
+            CaretAssert(0);
+            break;
+        case SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE:
+            rotateSliceFlag = true;
+            break;
+        case SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM:
+            rotateTransformFlag = true;
+            break;
+        case SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE:
+            CaretAssert(0);
+            break;
+    }
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
     /*
      * From https://www.mathworks.com/help/fusion/ug/rotations-orientation-and-quaternions.html
@@ -4538,20 +4561,25 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
 
     const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                        rotationAngleCCW));
-    CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
-    m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
-    CaretAssert(!m_mprThreeRotationQuaternion.isNull());
-
-    if ( ! isVolumeMprInPlaneRotationEnabled()) {
-        const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                   -rotationAngleCCW));
-        
-        /*
-         * Pre-multiplying seems to result in slice remaining
-         * static (not rotating)
-         */
-        const bool preMultFlag(true);
-        if (preMultFlag) {
+    
+    if (rotateTransformFlag) {
+        if (isVolumeMprInPlaneRotationEnabled()) {
+            CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
+            m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
+            CaretAssert(!m_mprThreeRotationQuaternion.isNull());
+        }
+        else {
+            CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
+            m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
+            CaretAssert(!m_mprThreeRotationQuaternion.isNull());
+            
+            const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                       -rotationAngleCCW));
+            
+            /*
+             * Pre-multiplying seems to result in slice remaining
+             * static (not rotating)
+             */
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
@@ -4570,24 +4598,27 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                     break;
             }
         }
-        else {
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
-                                                                * oppositeRotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
-                                                                  * oppositeRotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
-                                                                       * oppositeRotationQuaternion);
-                    
-                    break;
-            }
+    }
+    else if (rotateSliceFlag) {
+        /*
+         * Pre-multiplying seems to result in slice remaining
+         * static (not rotating)
+         */
+        switch (sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
+                                                            * rotationQuaternion);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
+                                                              * rotationQuaternion);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
+                                                                   * rotationQuaternion);
+                break;
         }
     }
 #else

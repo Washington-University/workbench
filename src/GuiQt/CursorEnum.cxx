@@ -108,6 +108,11 @@ CursorEnum::initialize()
                                   "Four Arrows Cursor",
                                   Qt::SizeAllCursor));
     
+    enumData.push_back(CursorEnum(CURSOR_HALF_ROTATION,
+                                  "CURSOR_HALF_ROTATION",
+                                  "Half Rotation Cursor",
+                                  Qt::ArrowCursor));
+    
     enumData.push_back(CursorEnum(CURSOR_POINTING_HAND,
                                     "CURSOR_POINTING_HAND", 
                                     "Pointing Hand Cursor",

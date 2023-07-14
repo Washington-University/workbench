@@ -47,6 +47,7 @@
 #include "Plane.h"
 #include "ProjectionViewTypeEnum.h"
 #include "SceneableInterface.h"
+#include "SelectionItemVolumeMprCrosshair.h"
 #include "StructureEnum.h"
 #include "TabContentBase.h"
 #include "Vector3D.h"
@@ -389,6 +390,7 @@ namespace caret {
                                             const int32_t mouseDY);
         
         void applyMouseRotation(BrainOpenGLViewportContent* viewportContent,
+                                const SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis,
                                 const int32_t mousePressX,
                                 const int32_t mousePressY,
                                 const int32_t mouseX,
@@ -763,6 +765,7 @@ namespace caret {
         void selectVolumeSlicesAtOriginPrivate();
         
         void applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
+                                        const SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis,
                                         const GraphicsViewport& viewport,
                                         const Vector3D& mousePressWindowXY,
                                         const Vector3D& mouseWindowXY,

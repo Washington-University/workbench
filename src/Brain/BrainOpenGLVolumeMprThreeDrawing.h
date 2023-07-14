@@ -173,8 +173,9 @@ namespace caret {
                                           float& outViewportNormalizedMouseX,
                                           float& outViewportNormalizedMouseY) const;
         
-        void addCrosshairSection(GraphicsPrimitiveV3fC4ub* primitiveSliceCrosshair,
-                                 GraphicsPrimitiveV3fC4ub* primitiveRotateCrosshair,
+        void addCrosshairSection(GraphicsPrimitiveV3fC4ub* primitiveSliceSelectionCrosshair,
+                                 GraphicsPrimitiveV3fC4ub* primitiveRotateSliceCrosshair,
+                                 GraphicsPrimitiveV3fC4ub* primitiveRotateTransformCrosshair,
                                  const float xStart,
                                  const float yStart,
                                  const float xEnd,
@@ -182,9 +183,11 @@ namespace caret {
                                  const std::array<uint8_t, 4>& rgba,
                                  const float gapLengthPixels,
                                  std::vector<SelectionItemVolumeMprCrosshair::Axis>& sliceSelectionIndices,
-                                 std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateSelectionIndices,
-                                 const SelectionItemVolumeMprCrosshair::Axis sliceAxisID,
-                                 const SelectionItemVolumeMprCrosshair::Axis rotationAxisID);
+                                 std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateSliceSelectionIndices,
+                                 std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateTransformSelectionIndices,
+                                 const SelectionItemVolumeMprCrosshair::Axis sliceSelectionAxisID,
+                                 const SelectionItemVolumeMprCrosshair::Axis rotationSliceAxisID,
+                                 const SelectionItemVolumeMprCrosshair::Axis rotationTransformAxisID);
 
         void drawCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,

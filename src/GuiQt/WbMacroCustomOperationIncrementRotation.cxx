@@ -211,6 +211,7 @@ WbMacroCustomOperationIncrementRotation::executeCommand(QWidget* parent,
     if (doMouseFlag) {
         BrainOpenGLViewportContent* viewportContent(NULL);
         tabContent->applyMouseRotation(viewportContent,
+                                       SelectionItemVolumeMprCrosshair::Axis::INVALID,
                                        mousePressX,
                                        mousePressY,
                                        mouseX,

@@ -54,11 +54,15 @@ namespace caret {
         
         QCursor createRotationCursor();
         
+        QCursor createRotationCursorText(const AString& textCharacter);
+        
         QCursor m_penCursor;
         
         QCursor m_fourArrowsCursor;
         
         QCursor m_rotationCursor;
+        
+        QCursor m_rotationCursor2D;
     };
     
 #ifdef __CURSOR_MANAGER_DECLARE__

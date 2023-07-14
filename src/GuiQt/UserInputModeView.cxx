@@ -214,6 +214,9 @@ UserInputModeView::getCursor() const
         case VOLUME_MPR_CURSOR_MODE::INVALID:
             cursorOut = CursorEnum::CURSOR_DEFAULT;
             break;
+        case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+            cursorOut = CursorEnum::CURSOR_HALF_ROTATION;
+            break;
         case VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM:
             cursorOut = CursorEnum::CURSOR_ROTATION;
             break;
@@ -379,6 +382,8 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
             break;
     }
     
+    SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis(SelectionItemVolumeMprCrosshair::Axis::INVALID);
+    
     bool allowRotationFlag(true);
     bool scrollVolumeSlicesFlag(false);
     if (browserTabContent->isVolumeSlicesDisplayed()) {
@@ -396,49 +401,45 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                 break;
         }
         if (mprFlag) {
-//            if (browserTabContent->getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-//                /*
-//                 * Scroll slice if viewing a single slice plane
-//                 */
-//                scrollVolumeSlicesFlag = true;
-//            }
-//            else {
-                switch (m_mprCursorMode) {
-                    case VOLUME_MPR_CURSOR_MODE::INVALID:
-                        break;
-                    case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
-                        scrollVolumeSlicesFlag = true;
-                        break;
-                    case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
-                    {
-                        SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
-                        selectionManager->setAllSelectionsEnabled(false);
-                        SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
-                        voxelID->setEnabledForSelection(true);
-                        mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
-                                                                            mouseEvent.getY(),
-                                                                            false);
-                        if (voxelID->isValid()) {
-                            double xyzDouble[3] { 0.0, 0.0, 0.0 };
-                            voxelID->getModelXYZ(xyzDouble);
-                            float xyz[3] {
-                                static_cast<float>(xyzDouble[0]),
-                                static_cast<float>(xyzDouble[1]),
-                                static_cast<float>(xyzDouble[2])
-                            };
-                            browserTabContent->selectVolumeSlicesAtCoordinate(xyz);
-                        }
-                        allowRotationFlag = false;
-                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
+            switch (m_mprCursorMode) {
+                case VOLUME_MPR_CURSOR_MODE::INVALID:
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::SCROLL_SLICE:
+                    scrollVolumeSlicesFlag = true;
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::SELECT_SLICE:
+                {
+                    SelectionManager* selectionManager(GuiManager::get()->getBrain()->getSelectionManager());
+                    selectionManager->setAllSelectionsEnabled(false);
+                    SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
+                    voxelID->setEnabledForSelection(true);
+                    mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
+                                                                        mouseEvent.getY(),
+                                                                        false);
+                    if (voxelID->isValid()) {
+                        double xyzDouble[3] { 0.0, 0.0, 0.0 };
+                        voxelID->getModelXYZ(xyzDouble);
+                        float xyz[3] {
+                            static_cast<float>(xyzDouble[0]),
+                            static_cast<float>(xyzDouble[1]),
+                            static_cast<float>(xyzDouble[2])
+                        };
+                        browserTabContent->selectVolumeSlicesAtCoordinate(xyz);
                     }
-                        break;
-                    case VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM:
-                        /*
-                         * Will fall through to rotation
-                         */
-                        break;
+                    allowRotationFlag = false;
+                    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);
                 }
-//            }
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE:
+                    mprCrosshairAxis = SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE;
+                    break;
+                case VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM:
+                    /*
+                     * Will fall through to rotation
+                     */
+                    mprCrosshairAxis = SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM;
+                    break;
+            }
         }
     }
     if (scrollVolumeSlicesFlag) {
@@ -530,6 +531,7 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
     }
     else if (allowRotationFlag) {
         browserTabContent->applyMouseRotation(viewportContent,
+                                              mprCrosshairAxis,
                                               mouseEvent.getPressedX(),
                                               mouseEvent.getPressedY(),
                                               mouseEvent.getX(),
@@ -999,7 +1001,7 @@ UserInputModeView::getVolumeMprMouseMode(const MouseEvent& mouseEvent)
                 case SelectionItemVolumeMprCrosshair::Axis::INVALID:
                     break;
                 case SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE:
-                    CaretAssertToDoFatal();
+                    mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_SLICE;
                     break;
                 case SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM:
                     mprModeOut = VOLUME_MPR_CURSOR_MODE::ROTATE_TRANSFORM;

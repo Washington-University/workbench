@@ -29,6 +29,7 @@
 #include "CursorManager.h"
 #undef __CURSOR_MANAGER_DECLARE__
 
+#include "CaretAssert.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -57,6 +58,8 @@ CursorManager::CursorManager()
                                            Qt::UpArrowCursor);
     
     m_rotationCursor = createRotationCursor();
+    
+    m_rotationCursor2D = createRotationCursorText("2");
 }
 
 /**
@@ -87,6 +90,9 @@ CursorManager::setCursorForWidget(QWidget* widget,
             break;
         case CursorEnum::CURSOR_FOUR_ARROWS:
             widget->setCursor(m_fourArrowsCursor);
+            break;
+        case CursorEnum::CURSOR_HALF_ROTATION:
+            widget->setCursor(m_rotationCursor2D);
             break;
         case CursorEnum::CURSOR_ROTATION:
             widget->setCursor(m_rotationCursor);
@@ -319,6 +325,131 @@ CursorManager::createRotationCursor()
     return cursor;
 }
 
+/**
+ * @return A rotation cursor with a text character in the center
+ * @param textCharacter;
+ */
+QCursor
+CursorManager::createRotationCursorText(const AString& textCharacter)
+{
+    CaretAssert(textCharacter.length() <= 1);
+    
+    /*
+     * Create image into which to draw
+     */
+    const int width  = 32;
+    const int height = width;
+    QImage image(width,
+                 height,
+                 QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+    
+    /*
+     * Create painter with black for filling and white for outline
+     */
+    QPainter painter(&image);
+    const QBrush defaultBrush(painter.brush());
+    const QPen defaultPen(painter.pen());
+    painter.setRenderHint(QPainter::Antialiasing,
+                          false);
+    painter.setBackgroundMode(Qt::TransparentMode);
+    QPen pen = painter.pen();
+    pen.setColor(Qt::white);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    QBrush brush(QColor(0, 0, 0),
+                 Qt::SolidPattern);
+    painter.setBrush(brush);
+    
+    /*
+     * points left to right in rotation symbol
+     */
+    const int a = 2;
+    const int b = 6;
+    const int c = width - 14;
+    const int d = width - 10;
+    const int e = width - 8;
+    const int f = width - 6;
+    const int g = width - 2;
+    
+    /*
+     * Points top to bottom in rotation symbol
+     */
+    const int h = 2;
+    const int i = 6;
+    const int j = height - 8;
+    const int k = height - 2;
+    
+    /*
+     * Points for polygon filled with black
+     */
+    QPolygon polygon;
+    polygon.push_back(QPoint(a, k));
+    polygon.push_back(QPoint(b, k));
+    polygon.push_back(QPoint(b, i));
+    polygon.push_back(QPoint(d, i));
+    polygon.push_back(QPoint(d, j));
+    polygon.push_back(QPoint(c, j));
+    polygon.push_back(QPoint(e, k));
+    polygon.push_back(QPoint(g, j));
+    polygon.push_back(QPoint(f, j));
+    polygon.push_back(QPoint(f, h));
+    polygon.push_back(QPoint(a, h));
+    
+    /*
+     * Draw filled polygon.
+     * Note that last point is connected to first point by drawPolygon().
+     */
+    painter.drawPolygon(polygon);
+    
+    /*
+     * Draw white around arrows.
+     * Note that drawPolyline() DOES NOT connect last point to first point so add first point again at end.
+     * Turn anti-aliasing on for lines
+     */
+    polygon.push_back(QPoint(a, k));
+    painter.setRenderHint(QPainter::Antialiasing,
+                          false);
+    painter.drawPolyline(polygon);
+    
+    /*
+     * Draw the text
+     */
+    if ( ! textCharacter.isEmpty()) {
+        const QBrush savedBrush(painter.brush());
+        const QPen   savedPen(painter.pen());
+        
+        QBrush brush(defaultBrush);
+        brush.setColor(Qt::black);
+        painter.setBackground(brush);
 
+        QFont font;
+        font.setPointSize(20);
+        font.setBold(true);
+        painter.setFont(font);
+        
+        /*
+         * Text is drawn twice.  First time gets the bounds
+         * rectangle that is used to draw a background before
+         * the text is drawn a second time.
+         */
+        const int m(2);
+        QRectF rectF(0, 4, width - m, height - m);
+        QRectF boundsRect;
+        painter.drawText(rectF, Qt::AlignCenter, textCharacter, &boundsRect);
+        painter.fillRect(boundsRect, Qt::SolidPattern);
+        pen.setColor(Qt::black);
+        painter.drawText(rectF, Qt::AlignCenter, textCharacter);
 
-
+        painter.setPen(savedPen);
+        painter.setBrush(savedBrush);
+    }
+    
+    /*
+     * Create the cursor
+     */
+    QPixmap cursorPixmap = QPixmap::fromImage(image);
+    QCursor cursor(cursorPixmap);
+    
+    return cursor;
+}
