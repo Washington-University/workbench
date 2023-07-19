@@ -64,7 +64,7 @@ namespace caret {
                                   const float sliceWidthHeight,
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                   const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
-                                  const Matrix4x4& rotationMatrix);
+                                  const Matrix4x4& sliceRotationMatrix);
 
         virtual ~VolumeMprVirtualSliceView();
         
@@ -83,10 +83,6 @@ namespace caret {
         Plane getVirtualPlane() const;
         
         Plane getOriginalUtransformedPlane() const;
-        
-        Vector3D getPlaneRightVector() const;
-        
-        Vector3D getPlaneUpVector() const;
         
         Plane getMontageIncreasingDirectionPlane() const;
         
@@ -180,7 +176,7 @@ namespace caret {
         
         VolumeMprOrientationModeEnum::Enum m_mprOrientationMode;
 
-        Matrix4x4 m_rotationMatrix;
+        Matrix4x4 m_sliceRotationMatrix;
         
         Matrix4x4 m_transformationMatrix;
         
@@ -189,10 +185,6 @@ namespace caret {
         Vector3D m_cameraLookAtXYZ;
         
         Vector3D m_cameraUpVector;
-        
-        Vector3D m_planeRightVector;
-        
-        Vector3D m_planeUpVector;
         
         Vector3D m_preLookAtTranslation;
         

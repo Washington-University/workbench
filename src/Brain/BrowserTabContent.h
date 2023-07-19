@@ -31,6 +31,9 @@
 #include <QQuaternion>
 #endif
 
+//#undef _ROTATE_MPR_SEPARATE_
+#define _ROTATE_MPR_SEPARATE_
+
 #include "BoundingBox.h"
 #include "CaretObject.h"
 #include "ChartTwoAxisOrientationTypeEnum.h"
@@ -888,10 +891,16 @@ namespace caret {
         float m_mprRotationZ = 0.0;
         
 #ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
+#ifdef _ROTATE_MPR_SEPARATE_
+        QQuaternion m_mprThreeAxialRotationQuaternion;
+        QQuaternion m_mprThreeCoronalRotationQuaternion;
+        QQuaternion m_mprThreeParasagittalRotationQuaternion;
+#else
         QQuaternion m_mprThreeRotationQuaternion;
         QQuaternion m_mprThreeAxialInverseRotationQuaternion;
         QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
         QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;
+#endif
 #else
         Matrix4x4 m_mprThreeRotationMatrix;
         Matrix4x4 m_mprThreeAxialInverseRotationMatrix;

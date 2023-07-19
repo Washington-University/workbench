@@ -1481,6 +1481,54 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             }
         }
         
+        const bool drawNewAxesFlag(false);
+        if (drawNewAxesFlag) {
+            const float length(100.0);
+            Vector3D axialXYZ((m_axialSliceNormalVector * length)
+                              + sliceCoordinates);
+            Vector3D coronalXYZ((m_coronalSliceNormalVector * length)
+                                + sliceCoordinates);
+            Vector3D paraXYZ((m_parasagittalSliceNormalVector * length)
+                             + sliceCoordinates);
+            axialXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(axialXYZ);
+            coronalXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(coronalXYZ);
+            paraXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(paraXYZ);
+            
+            float axialRGBA[4]   { 0.0, 0.0, 0.0, 1.0 };
+            float coronalRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
+            float paraRGBA[4]    { 0.0, 0.0, 0.0, 1.0 };
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    axialRGBA[2]   = 1.0;
+                    coronalRGBA[0] = 1.0;
+                    paraRGBA[1]    = 1.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    axialRGBA[2]   = 1.0;
+                    coronalRGBA[0] = 1.0;
+                    paraRGBA[1]    = 1.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    axialRGBA[2]   = 1.0;
+                    coronalRGBA[0] = 1.0;
+                    paraRGBA[1]    = 1.0;
+                    break;
+            }
+            
+            std::unique_ptr<GraphicsPrimitiveV3fC4f> prim(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
+            prim->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 15.0);
+            prim->addVertex(sliceCoordinates, axialRGBA);
+            prim->addVertex(axialXYZ, axialRGBA);
+            prim->addVertex(sliceCoordinates, coronalRGBA);
+            prim->addVertex(coronalXYZ, coronalRGBA);
+            prim->addVertex(sliceCoordinates, paraRGBA);
+            prim->addVertex(paraXYZ, paraRGBA);
+            GraphicsEngineDataOpenGL::draw(prim.get());
+        }
+
         Plane layersDrawingPlane(mprSliceView.getVirtualPlane());
         
         if (layersDrawingPlane.isValidPlane()) {
@@ -1510,7 +1558,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                             layersDrawingPlane,
                                                                                             doubleSliceThickness);
-        
+                
         switch (m_brainModelMode) {
             case BrainModelMode::INVALID:
                 CaretAssert(0);
@@ -1579,45 +1627,140 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
 VolumeMprVirtualSliceView
 BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const Vector3D& sliceCoordinates) const
+                                                  const Vector3D& sliceCoordinates) 
 {
     CaretAssert(underlayVolume);
     BoundingBox boundingBox;
     underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
-        
-    Matrix4x4 rotationMatrix;
-
+    
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
-       
+    
     VolumeMprVirtualSliceView::ViewType viewType(VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView());
     switch (m_brainModelMode) {
         case BrainModelMode::INVALID:
             CaretAssert(0);
             break;
         case BrainModelMode::ALL_3D:
-            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrix();
             viewType = VolumeMprVirtualSliceView::getViewTypeForAllView();
             break;
         case BrainModelMode::VOLUME_2D:
-            rotationMatrix = m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane);
             viewType = VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView();
             break;
     }
     
+    /*
+     * Compute the normal vector for each slice
+     */
+    const VolumeMprVirtualSliceView axialMprSliceView(viewType,
+                                                      volumeCenterXYZ,
+                                                      sliceCoordinates,
+                                                      boundingBox.getMaximumDifferenceOfXYZ(),
+                                                      VolumeSliceViewPlaneEnum::AXIAL,
+                                                      m_orientationMode,
+                                                      m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::AXIAL));
+    m_axialSliceNormalVector = axialMprSliceView.getVirtualPlane().getNormalVector();
+    
+    const VolumeMprVirtualSliceView coronalMprSliceView(viewType,
+                                                        volumeCenterXYZ,
+                                                        sliceCoordinates,
+                                                        boundingBox.getMaximumDifferenceOfXYZ(),
+                                                        VolumeSliceViewPlaneEnum::CORONAL,
+                                                        m_orientationMode,
+                                                        m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::CORONAL));
+    m_coronalSliceNormalVector = coronalMprSliceView.getVirtualPlane().getNormalVector();
+    
+    const VolumeMprVirtualSliceView paraMprSliceView(viewType,
+                                                     volumeCenterXYZ,
+                                                     sliceCoordinates,
+                                                     boundingBox.getMaximumDifferenceOfXYZ(),
+                                                     VolumeSliceViewPlaneEnum::PARASAGITTAL,
+                                                     m_orientationMode,
+                                                     m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::PARASAGITTAL));
+    m_parasagittalSliceNormalVector = paraMprSliceView.getVirtualPlane().getNormalVector();
+
+    Matrix4x4 sliceRotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
+    switch (m_brainModelMode) {
+        case BrainModelMode::INVALID:
+            CaretAssert(0);
+            break;
+        case BrainModelMode::ALL_3D:
+            /*
+             * Use the overall rotation for the 3D slice view
+             */
+            sliceRotationMatrix = m_browserTabContent->getMprThreeRotationMatrix();
+            break;
+        case BrainModelMode::VOLUME_2D:
+            break;
+    }
+    
+    /*
+     * Info for slice that is being drawn
+     */
     VolumeMprVirtualSliceView mprSliceView(viewType,
                                            volumeCenterXYZ,
                                            sliceCoordinates,
                                            boundingBox.getMaximumDifferenceOfXYZ(),
                                            sliceViewPlane,
                                            m_orientationMode,
-                                           rotationMatrix);
-    
+                                           sliceRotationMatrix);
+
     Vector3D rotationVector;
     mprSliceView.getVirtualPlane().getNormalVector(rotationVector);
     m_browserTabContent->setMprThreeRotationVectorForSlicePlane(sliceViewPlane,
                                                                 rotationVector);
-
+    
+    /*
+     * Normal vector for slice being drawn
+     */
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_axialSliceNormalVector = mprSliceView.getVirtualPlane().getNormalVector();
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_coronalSliceNormalVector = mprSliceView.getVirtualPlane().getNormalVector();
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_parasagittalSliceNormalVector = mprSliceView.getVirtualPlane().getNormalVector();
+            break;
+    }
+    
+    /*
+     * Verify that the slices remain orthogonal
+     */
+    const float axCorDot(m_axialSliceNormalVector.dot(m_coronalSliceNormalVector));
+    const float axParaDot(m_axialSliceNormalVector.dot(m_parasagittalSliceNormalVector));
+    const float corParaDot(m_coronalSliceNormalVector.dot(m_parasagittalSliceNormalVector));
+    
+    const float tolPos(0.001);
+    const float tolNeg(-tolPos);
+    AString msg;
+    if ((axCorDot < tolNeg)
+        || (axCorDot > tolPos)) {
+        msg.appendWithNewLine("  Axial/Coronal slices are not orthogonal.  Dot Product="
+                              + AString::number(axCorDot));
+    }
+    if ((axParaDot < tolNeg)
+        || (axParaDot > tolPos)) {
+        msg.appendWithNewLine("   Axial/Parasagittal slices are not orthogonal.  Dot Product="
+                              + AString::number(axParaDot));
+    }
+    if ((corParaDot < tolNeg)
+        || (corParaDot > tolPos)) {
+        msg.appendWithNewLine("   Coronal/Parasagittal slices are not orthogonal.  Dot Product="
+                              + AString::number(corParaDot));
+    }
+    if ( ! msg.isEmpty()) {
+        AString errMsg("Failure of MPR Rotation.");
+        errMsg.appendWithNewLine("   Axial Normal: " + m_axialSliceNormalVector.toString());
+        errMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
+        errMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
+        errMsg.appendWithNewLine(msg);
+        CaretLogSevere(errMsg);
+    }
+    
     return mprSliceView;
 }
 

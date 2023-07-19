@@ -99,7 +99,7 @@ namespace caret {
         
         VolumeMprVirtualSliceView createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const Vector3D& sliceCoordinates) const;
+                                                  const Vector3D& sliceCoordinates);
 
         void drawSliceView(const BrainOpenGLViewportContent* viewportContent,
                            BrowserTabContent* browserTabContent,
@@ -287,6 +287,12 @@ namespace caret {
         bool m_identificationModeFlag = false;
         
         bool m_axialCoronalParaSliceViewFlag = false;
+        
+        Vector3D m_axialSliceNormalVector;
+        
+        Vector3D m_coronalSliceNormalVector;
+        
+        Vector3D m_parasagittalSliceNormalVector;
         
         static float s_idNumRows;
         

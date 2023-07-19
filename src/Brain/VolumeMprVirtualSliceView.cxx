@@ -84,8 +84,8 @@ VolumeMprVirtualSliceView::VolumeMprVirtualSliceView()
  *    The slice plane selected (axial, coronal, parasagittal)
  * @param mprOrientationMode
  *    Orientation (neurological or radiological)
- * @param rotationMatrix
- *    The current rotation matrix
+ * @param sliceRotationMatrix
+ *    The current rotation matrix for the slice view (threeDimRotationMatrix with possible inverse rotation for slice view))
  */
 VolumeMprVirtualSliceView::VolumeMprVirtualSliceView(const ViewType viewType,
                                                      const Vector3D& volumeCenterXYZ,
@@ -93,7 +93,7 @@ VolumeMprVirtualSliceView::VolumeMprVirtualSliceView(const ViewType viewType,
                                                      const float sliceWidthHeight,
                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                      const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
-                                                     const Matrix4x4& rotationMatrix)
+                                                     const Matrix4x4& sliceRotationMatrix)
 : CaretObject(),
 m_viewType(viewType),
 m_volumeCenterXYZ(volumeCenterXYZ),
@@ -101,14 +101,12 @@ m_selectedSlicesXYZ(selectedSlicesXYZ),
 m_sliceWidthHeight(sliceWidthHeight),
 m_sliceViewPlane(sliceViewPlane),
 m_mprOrientationMode(mprOrientationMode),
-m_rotationMatrix(rotationMatrix)
+m_sliceRotationMatrix(sliceRotationMatrix)
 {
     m_transformationMatrix.identity();
     m_cameraXYZ.set(0.0, 0.0, 1.0);
     m_cameraLookAtXYZ.set(0.0, 0.0, 0.0);
     m_cameraUpVector.set(0.0, 1.0, 0.0);
-    m_planeRightVector.set(1.0, 0.0, 0.0);
-    m_planeUpVector.set(0.0, 1.0, 0.0);
     m_preLookAtTranslation.fill(0.0);
     m_postLookAtTranslation.fill(0.0);
 
@@ -141,45 +139,50 @@ m_rotationMatrix(rotationMatrix)
 void
 VolumeMprVirtualSliceView::initializeModeAllViewSlices()
 {
+    Vector3D planeRightVector(0.0, 0.0, 0.0);
+    
+    Vector3D planeUpVector(0.0, 0.0, 0.0);
+
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
+                planeRightVector.set(-1.0, 0.0, 0.0);
             }
             else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
+                planeRightVector.set(1.0, 0.0, 0.0);
             }
-            m_planeUpVector.set(0.0, 1.0, 0.0);
+            planeUpVector.set(0.0, 1.0, 0.0);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
+                planeRightVector.set(-1.0, 0.0, 0.0);
             }
             else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
+                planeRightVector.set(1.0, 0.0, 0.0);
             }
-            m_planeUpVector.set(0.0, 0.0, 1.0);
+            planeUpVector.set(0.0, 0.0, 1.0);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            m_planeRightVector.set(0.0, -1.0, 0.0);
-            m_planeUpVector.set(0.0, 0.0, 1.0);
+            planeRightVector.set(0.0, -1.0, 0.0);
+            planeUpVector.set(0.0, 0.0, 1.0);
             break;
     }
     
     Vector3D v(m_volumeCenterXYZ);
-    Vector3D vRight(m_volumeCenterXYZ + m_planeRightVector);
-    Vector3D vUp(m_volumeCenterXYZ + m_planeUpVector);
+    Vector3D vRight(m_volumeCenterXYZ + planeRightVector);
+    Vector3D vUp(m_volumeCenterXYZ + planeUpVector);
 
     switch (getViewType()) {
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
             CaretAssertToDoFatal();
             break;
         case ViewType::ALL_VIEW_SLICES:
-            m_rotationMatrix.multiplyPoint3(v);
-            m_rotationMatrix.multiplyPoint3(vRight);
-            m_rotationMatrix.multiplyPoint3(vUp);
+            m_sliceRotationMatrix.multiplyPoint3(v);
+            m_sliceRotationMatrix.multiplyPoint3(vRight);
+            m_sliceRotationMatrix.multiplyPoint3(vUp);
             break;
     }
     /*
@@ -187,12 +190,12 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
      */
     const Vector3D transXYZ(m_selectedSlicesXYZ);
     m_transformationMatrix.translate(-transXYZ);
-    m_transformationMatrix.postmultiply(m_rotationMatrix);
+    m_transformationMatrix.postmultiply(m_sliceRotationMatrix);
     m_transformationMatrix.translate(transXYZ);
 
-    m_planeRightVector = (vRight - v).normal();
-    m_planeUpVector    = (vUp - v).normal();
-    Vector3D originalSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
+    planeRightVector = (vRight - v).normal();
+    planeUpVector    = (vUp - v).normal();
+    Vector3D originalSlicePlaneVector(planeRightVector.cross(planeUpVector));
     
     /*
      * Create virtual slice plane with camera look at on plane
@@ -277,7 +280,7 @@ VolumeMprVirtualSliceView::computeVirtualSlicePlane()
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
         {
             Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
-            Matrix4x4 invMat(m_rotationMatrix);
+            Matrix4x4 invMat(m_sliceRotationMatrix);
             if (invMat.invert()) {
                 invMat.multiplyPoint3(lookToVec);
                 m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
@@ -301,11 +304,13 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
     m_cameraXYZ.set(0.0, 0.0, 0.0);
     m_cameraUpVector.set(0.0, 0.0, 0.0);
     
-    m_planeUpVector.set(0.0, 0.0, 0.0);
-    m_planeRightVector.set(0.0, 0.0, 0.0);
+    Vector3D planeRightVector(0.0, 0.0, 0.0);
+    
+    Vector3D planeUpVector(0.0, 0.0, 0.0);
     
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             /*
@@ -318,12 +323,12 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
             m_cameraUpVector.set(0.0, 1.0, 0.0);
             
             if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
+                planeRightVector.set(-1.0, 0.0, 0.0);
             }
             else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
+                planeRightVector.set(1.0, 0.0, 0.0);
             }
-            m_planeUpVector.set(0.0, 1.0, 0.0);
+            planeUpVector.set(0.0, 1.0, 0.0);
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             /*
@@ -336,12 +341,12 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
             m_cameraUpVector.set(0.0, 0.0, 1.0);
             
             if (m_radiologicalOrientationFlag) {
-                m_planeRightVector.set(-1.0, 0.0, 0.0);
+                planeRightVector.set(-1.0, 0.0, 0.0);
             }
             else {
-                m_planeRightVector.set(1.0, 0.0, 0.0);
+                planeRightVector.set(1.0, 0.0, 0.0);
             }
-            m_planeUpVector.set(0.0, 0.0, 1.0);
+            planeUpVector.set(0.0, 0.0, 1.0);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             /*
@@ -354,8 +359,8 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
              */
             m_cameraUpVector.set(0.0, 0.0, 1.0);
             
-            m_planeRightVector.set(0.0, -1.0, 0.0);
-            m_planeUpVector.set(0.0, 0.0, 1.0);
+            planeRightVector.set(0.0, -1.0, 0.0);
+            planeUpVector.set(0.0, 0.0, 1.0);
             break;
     }
     
@@ -365,11 +370,11 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
      */
     const Vector3D transXYZ(m_selectedSlicesXYZ);
     m_transformationMatrix.translate(-transXYZ);
-    m_transformationMatrix.postmultiply(m_rotationMatrix);
+    m_transformationMatrix.postmultiply(m_sliceRotationMatrix);
     m_transformationMatrix.translate(transXYZ);
 
     
-    const Vector3D virtualSlicePlaneVector(m_planeRightVector.cross(m_planeUpVector));
+    const Vector3D virtualSlicePlaneVector(planeRightVector.cross(planeUpVector));
     
     /*
      * Virtual slice plane is placed at the selected slice coordinates
@@ -801,7 +806,7 @@ VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVi
     
     m_mprOrientationMode = obj.m_mprOrientationMode;
     
-    m_rotationMatrix = obj.m_rotationMatrix;
+    m_sliceRotationMatrix = obj.m_sliceRotationMatrix;
     
     m_transformationMatrix = obj.m_transformationMatrix;
     
@@ -810,10 +815,6 @@ VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVi
     m_cameraLookAtXYZ = obj.m_cameraLookAtXYZ;
     
     m_cameraUpVector = obj.m_cameraUpVector;
-    
-    m_planeRightVector = obj.m_planeRightVector;
-    
-    m_planeUpVector = obj.m_planeUpVector;
     
     m_preLookAtTranslation = obj.m_preLookAtTranslation;
     
@@ -873,24 +874,6 @@ Plane
 VolumeMprVirtualSliceView::getOriginalUtransformedPlane() const
 {
     return m_originalPlane;
-}
-
-/**
- * @return The plane's right vector
- */
-Vector3D
-VolumeMprVirtualSliceView::getPlaneRightVector() const
-{
-    return m_planeRightVector;
-}
-
-/**
- * @return The plane's up vector
- */
-Vector3D
-VolumeMprVirtualSliceView::getPlaneUpVector() const
-{
-    return m_planeUpVector;
 }
 
 /**
@@ -983,6 +966,7 @@ VolumeMprVirtualSliceView::getAxisLabels(AString& leftScreenLabelTextOut,
     bool radiologicalFlag(false);
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             radiologicalFlag = m_radiologicalOrientationFlag;
@@ -1011,6 +995,7 @@ VolumeMprVirtualSliceView::getAxisLabels(AString& leftScreenLabelTextOut,
     std::vector<VectorAndLabel> screenVectorsAndLabels;
     switch (m_sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
             break;
         case VolumeSliceViewPlaneEnum::AXIAL:
             screenVectorsAndLabels.emplace_back("L", -1.0,  0.0, 0.0);
@@ -1041,7 +1026,7 @@ VolumeMprVirtualSliceView::getAxisLabels(AString& leftScreenLabelTextOut,
             CaretAssertVectorIndex(vectorsAndLabels, j);
             
             Vector3D rotatedAxisVector(vectorsAndLabels[j].m_vector);
-            m_rotationMatrix.multiplyPoint3(rotatedAxisVector);
+            m_sliceRotationMatrix.multiplyPoint3(rotatedAxisVector);
             
             const float dotValue(screenVectorsAndLabels[i].m_vector.dot(rotatedAxisVector));
             
