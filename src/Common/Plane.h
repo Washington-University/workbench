@@ -23,12 +23,10 @@
 
 
 #include "CaretObject.h"
-
+#include "Vector3D.h"
 
 namespace caret {
 
-    class Vector3D;
-    
 ///Operations on a plane.
     class Plane : public CaretObject {
         
@@ -79,6 +77,8 @@ namespace caret {
         void getNormalVector(double normalVectorOut[3]) const;
         
         void getNormalVector(float normalVectorOut[3]) const;
+        
+        Vector3D getNormalVector() const;
         
         bool rayIntersection(const float rayOrigin[3],
                              const float rayVector[3],

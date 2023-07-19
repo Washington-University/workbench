@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Plane.h"
 #include "Vector3D.h"
@@ -285,6 +286,17 @@ Plane::getNormalVector(float normalVectorOut[3]) const
     normalVectorOut[0] = m_normalVector[0];
     normalVectorOut[1] = m_normalVector[1];
     normalVectorOut[2] = m_normalVector[2];
+}
+
+/**
+ * @return The plane's normal vector.
+ */
+Vector3D
+Plane::getNormalVector() const
+{
+    float n[3];
+    getNormalVector(n);
+    return Vector3D(n);
 }
 
 /**
