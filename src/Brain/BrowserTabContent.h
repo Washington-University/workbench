@@ -25,11 +25,7 @@
 #include <memory>
 #include <set>
 
-#define _ROTATE_MPR_THREE_WITH_QQUATERNION_
-//#undef _ROTATE_MPR_THREE_WITH_QQUATERNION_
-#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
 #include <QQuaternion>
-#endif
 
 //#undef _ROTATE_MPR_SEPARATE_
 #define _ROTATE_MPR_SEPARATE_
@@ -890,7 +886,6 @@ namespace caret {
         
         float m_mprRotationZ = 0.0;
         
-#ifdef _ROTATE_MPR_THREE_WITH_QQUATERNION_
 #ifdef _ROTATE_MPR_SEPARATE_
         QQuaternion m_mprThreeAxialRotationQuaternion;
         QQuaternion m_mprThreeCoronalRotationQuaternion;
@@ -900,12 +895,6 @@ namespace caret {
         QQuaternion m_mprThreeAxialInverseRotationQuaternion;
         QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
         QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;
-#endif
-#else
-        Matrix4x4 m_mprThreeRotationMatrix;
-        Matrix4x4 m_mprThreeAxialInverseRotationMatrix;
-        Matrix4x4 m_mprThreeCoronalInverseRotationMatrix;
-        Matrix4x4 m_mprThreeParasagittalInverseRotationMatrix;
 #endif
 
         /*
