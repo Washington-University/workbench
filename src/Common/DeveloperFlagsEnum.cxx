@@ -161,6 +161,12 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES,
+                                                "DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES",
+                                                "Volume MPR Separate Rotation Matrices for Each Axis",
+                                                CheckableEnum::YES,
+                                                true));
+
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
@@ -274,6 +280,9 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_BLENDING:
             toolTip = ("Separately blend RGB and Alpha components so Alpha is always 1.0 in frame buffer"
                        " (fixes coloring problems and colors in some captured image formats)");
+            break;
+        case DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES:
+            toolTip = ("Each axis uses its own rotation matrix.  When OFF, inverse rotations are used.");
             break;
         case DEVELOPER_FLAG_CHART_OPENGL_LINES:
             toolTip = ("Draw chart lines using OpenGL lines instead of polylines "

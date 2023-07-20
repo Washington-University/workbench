@@ -27,9 +27,6 @@
 
 #include <QQuaternion>
 
-//#undef _ROTATE_MPR_SEPARATE_
-#define _ROTATE_MPR_SEPARATE_
-
 #include "BoundingBox.h"
 #include "CaretObject.h"
 #include "ChartTwoAxisOrientationTypeEnum.h"
@@ -682,12 +679,20 @@ namespace caret {
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
+        void saveQuaternionToScene(SceneClass* sceneClass,
+                                   const AString& memberName,
+                                   const QQuaternion& quaternion);
+
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
         void restoreFromScenePartTwo(const SceneAttributes* sceneAttributes,
                                      const SceneClass* sceneClass);
         
+        bool restoreQuaternion(const SceneClass* sceneClass,
+                               const AString& memberName,
+                               QQuaternion& quaternion) const;
+
         void setClosedStatusFromSessionManager(const bool closedStatus);
         
         void setClosedTabWindowTabBarPositionIndex(const int32_t tabBarPosition);
@@ -885,17 +890,18 @@ namespace caret {
         float m_mprRotationY = 0.0;
         
         float m_mprRotationZ = 0.0;
-        
-#ifdef _ROTATE_MPR_SEPARATE_
-        QQuaternion m_mprThreeAxialRotationQuaternion;
-        QQuaternion m_mprThreeCoronalRotationQuaternion;
-        QQuaternion m_mprThreeParasagittalRotationQuaternion;
-#else
+    
+        /* For separate rotation (matrix for each axis) */
+        QQuaternion m_mprThreeRotationSeparateQuaternion;
+        QQuaternion m_mprThreeAxialSeparateRotationQuaternion;
+        QQuaternion m_mprThreeCoronalSeparateRotationQuaternion;
+        QQuaternion m_mprThreeParasagittalSeparateRotationQuaternion;
+
+        /* One matrix with "inverse rotations" */
         QQuaternion m_mprThreeRotationQuaternion;
         QQuaternion m_mprThreeAxialInverseRotationQuaternion;
         QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
         QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;
-#endif
 
         /*
          * Note: these are not copied when yoked since they

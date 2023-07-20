@@ -1627,7 +1627,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
 VolumeMprVirtualSliceView
 BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                  const Vector3D& sliceCoordinates) 
+                                                  const Vector3D& sliceCoordinates)
 {
     CaretAssert(underlayVolume);
     BoundingBox boundingBox;
@@ -1730,35 +1730,20 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     /*
      * Verify that the slices remain orthogonal
      */
-    const float axCorDot(m_axialSliceNormalVector.dot(m_coronalSliceNormalVector));
-    const float axParaDot(m_axialSliceNormalVector.dot(m_parasagittalSliceNormalVector));
-    const float corParaDot(m_coronalSliceNormalVector.dot(m_parasagittalSliceNormalVector));
-    
-    const float tolPos(0.001);
-    const float tolNeg(-tolPos);
-    AString msg;
-    if ((axCorDot < tolNeg)
-        || (axCorDot > tolPos)) {
-        msg.appendWithNewLine("  Axial/Coronal slices are not orthogonal.  Dot Product="
-                              + AString::number(axCorDot));
-    }
-    if ((axParaDot < tolNeg)
-        || (axParaDot > tolPos)) {
-        msg.appendWithNewLine("   Axial/Parasagittal slices are not orthogonal.  Dot Product="
-                              + AString::number(axParaDot));
-    }
-    if ((corParaDot < tolNeg)
-        || (corParaDot > tolPos)) {
-        msg.appendWithNewLine("   Coronal/Parasagittal slices are not orthogonal.  Dot Product="
-                              + AString::number(corParaDot));
-    }
-    if ( ! msg.isEmpty()) {
-        AString errMsg("Failure of MPR Rotation.");
-        errMsg.appendWithNewLine("   Axial Normal: " + m_axialSliceNormalVector.toString());
-        errMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
-        errMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
-        errMsg.appendWithNewLine(msg);
-        CaretLogSevere(errMsg);
+    AString orthoMessage;
+    if ( ! Plane::arePlanesOrthogonal(m_parasagittalSliceNormalVector,
+                                      m_coronalSliceNormalVector,
+                                      m_axialSliceNormalVector,
+                                      &orthoMessage)) {
+        AString rotateMsg((DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)
+                                 ? "MPR Separate Rotation"
+                                 : "MPR Inverse Rotation")
+                                + AString(" failed orthogonal planes test (\"Toolbar -> Reset\" will fix this)"));
+        rotateMsg.appendWithNewLine(orthoMessage);
+        rotateMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
+        rotateMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
+        rotateMsg.appendWithNewLine("   Axial Normal: " + m_axialSliceNormalVector.toString());
+        CaretLogSevere(rotateMsg);
     }
     
     return mprSliceView;
