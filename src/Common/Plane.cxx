@@ -18,6 +18,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Plane.h"
@@ -593,6 +595,55 @@ Plane::unitTestLineIntersectPlane(std::ostream& stream,
               + sb);
         stream << sb.toStdString() << std::endl;
     }
+}
+
+/**
+ * Are the plane normal vectors orthogonal?
+ * @param normalVectorOne
+ *    Normal vector from first plane
+ * @param normalVectorTwo
+ *    Normal vector from second plane
+ * @param normalVectorThree
+ *    Normal vector from third plane
+ * @param optionalMessageOut
+ *    Optional (if not NULL) message describing non-orthogonal
+ * @return
+ *   True if planes appear to be orthogonal, else false
+ */
+bool
+Plane::arePlanesOrthogonal(const Vector3D& normalVectorOne,
+                           const Vector3D& normalVectorTwo,
+                           const Vector3D& normalVectorThree,
+                           AString* optionalMessageOut)
+{
+    const float tolZero(0.001);
+    const float tolOne(1.0 - tolZero);
+    /*
+     * Dot poduct of zero indicates 90 degree angle between vectors
+     */
+    float dotOneTwo(std::fabs(normalVectorOne.dot(normalVectorTwo)));
+    if (dotOneTwo < tolZero) {
+        const Vector3D vecOneTwo(normalVectorOne.cross(normalVectorTwo));
+        
+        const float dot(std::fabs(vecOneTwo.dot(normalVectorThree)));
+        if (dot > tolOne) {
+            return true;
+        }
+        else {
+            if (optionalMessageOut != NULL) {
+                *optionalMessageOut = ("Vector formed by cross product of first two vectors not aligned with third vector; abs dot product="
+                                       + AString::number(dot));
+            }
+        }
+    }
+    else {
+        if (optionalMessageOut != NULL) {
+            *optionalMessageOut = ("First two planes are not 90 degrees; abs dot product="
+                                   + AString::number(dotOneTwo));
+        }
+    }
+    
+    return false;
 }
 
 void

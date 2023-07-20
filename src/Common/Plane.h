@@ -46,6 +46,11 @@ namespace caret {
         
         Plane& operator=(const Plane& p);
         
+        static bool arePlanesOrthogonal(const Vector3D& normalVectorOne,
+                                        const Vector3D& normalVectorTwo,
+                                        const Vector3D& normalVectorThree,
+                                        AString* optionalMessageOut);
+        
         bool isValidPlane() const;
         
         bool triangleIntersectPlane(
