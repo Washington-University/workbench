@@ -176,12 +176,9 @@ namespace caret {
         void addCrosshairSection(GraphicsPrimitiveV3fC4ub* primitiveSliceSelectionCrosshair,
                                  GraphicsPrimitiveV3fC4ub* primitiveRotateSliceCrosshair,
                                  GraphicsPrimitiveV3fC4ub* primitiveRotateTransformCrosshair,
-                                 const float xStart,
-                                 const float yStart,
-                                 const float xEnd,
-                                 const float yEnd,
+                                 const Vector3D& startXYZ,
+                                 const Vector3D& endXYZ,
                                  const std::array<uint8_t, 4>& rgba,
-                                 const float gapLengthPixels,
                                  std::vector<SelectionItemVolumeMprCrosshair::Axis>& sliceSelectionIndices,
                                  std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateSliceSelectionIndices,
                                  std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateTransformSelectionIndices,
@@ -189,14 +186,16 @@ namespace caret {
                                  const SelectionItemVolumeMprCrosshair::Axis rotationSliceAxisID,
                                  const SelectionItemVolumeMprCrosshair::Axis rotationTransformAxisID);
 
-        void drawCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+        void drawCrosshairs(const VolumeMappableInterface* underlayVolume,
+                            const VolumeMprVirtualSliceView& mprSliceView,
                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                             const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
-        void drawPanningCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+        void drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
+                                   const VolumeMprVirtualSliceView& mprSliceView,
                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                   const Vector3D& crossHairXYZ,
+                                   const Vector3D& sliceCoordinates,
                                    const GraphicsViewport& viewport);
         
         void drawAxisLabels(const VolumeMprVirtualSliceView& mprSliceView,

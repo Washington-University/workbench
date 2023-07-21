@@ -1481,54 +1481,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             }
         }
         
-        const bool drawNewAxesFlag(false);
-        if (drawNewAxesFlag) {
-            const float length(100.0);
-            Vector3D axialXYZ((m_axialSliceNormalVector * length)
-                              + sliceCoordinates);
-            Vector3D coronalXYZ((m_coronalSliceNormalVector * length)
-                                + sliceCoordinates);
-            Vector3D paraXYZ((m_parasagittalSliceNormalVector * length)
-                             + sliceCoordinates);
-            axialXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(axialXYZ);
-            coronalXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(coronalXYZ);
-            paraXYZ = mprSliceView.getVirtualPlane().projectPointToPlane(paraXYZ);
-            
-            float axialRGBA[4]   { 0.0, 0.0, 0.0, 1.0 };
-            float coronalRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
-            float paraRGBA[4]    { 0.0, 0.0, 0.0, 1.0 };
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    axialRGBA[2]   = 1.0;
-                    coronalRGBA[0] = 1.0;
-                    paraRGBA[1]    = 1.0;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    axialRGBA[2]   = 1.0;
-                    coronalRGBA[0] = 1.0;
-                    paraRGBA[1]    = 1.0;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    axialRGBA[2]   = 1.0;
-                    coronalRGBA[0] = 1.0;
-                    paraRGBA[1]    = 1.0;
-                    break;
-            }
-            
-            std::unique_ptr<GraphicsPrimitiveV3fC4f> prim(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
-            prim->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS, 15.0);
-            prim->addVertex(sliceCoordinates, axialRGBA);
-            prim->addVertex(axialXYZ, axialRGBA);
-            prim->addVertex(sliceCoordinates, coronalRGBA);
-            prim->addVertex(coronalXYZ, coronalRGBA);
-            prim->addVertex(sliceCoordinates, paraRGBA);
-            prim->addVertex(paraXYZ, paraRGBA);
-            GraphicsEngineDataOpenGL::draw(prim.get());
-        }
-
         Plane layersDrawingPlane(mprSliceView.getVirtualPlane());
         
         if (layersDrawingPlane.isValidPlane()) {
@@ -1566,7 +1518,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             case BrainModelMode::ALL_3D:
                 break;
             case BrainModelMode::VOLUME_2D:
-                drawCrosshairs(mprSliceView,
+                drawCrosshairs(underlayVolume,
+                               mprSliceView,
                                sliceViewPlane,
                                sliceCoordinates,
                                viewport);
@@ -1757,18 +1710,12 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
  *    Primitive for drawing crosshair sections for slice rotation
  * @param primitiveRotateTransformCrosshair
  *    Primitive for drawing crosshair sections for transform rotation
- * @param xStart
- *    Starting x-coordinate at the crosshair intersection
- * @param yStart
- *    Starting y-coordinate at the crosshair intersection
- * @param xEnd
- *    Ending y-coordinate at the edge of viewport
- * @param yEnd
- *    Ending  y-coordinate at the edge of viewport
+ * @param startXYZ
+ *    Starting coordinate of crosshair
+ * @param endXYZ
+ *    Ending coordinate of crosshair
  * @param rgba
  *    Coloring for the lines
- * @param gapLengthPixels
- *    Length of crosshair gap in pixels
  * @param sliceSelectionIndices
  *    Tracks indices of slice selection indices
  * @param rotateSliceSelectionIndices
@@ -1784,12 +1731,9 @@ void
 BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* primitiveSliceSelectionCrosshair,
                                                       GraphicsPrimitiveV3fC4ub* primitiveRotateSliceCrosshair,
                                                       GraphicsPrimitiveV3fC4ub* primitiveRotateTransformCrosshair,
-                                                      const float xStart,
-                                                      const float yStart,
-                                                      const float xEnd,
-                                                      const float yEnd,
+                                                      const Vector3D& startXYZ,
+                                                      const Vector3D& endXYZ,
                                                       const std::array<uint8_t, 4>& rgba,
-                                                      const float gapLengthPixels,
                                                       std::vector<SelectionItemVolumeMprCrosshair::Axis>& sliceSelectionIndices,
                                                       std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateSliceSelectionIndices,
                                                       std::vector<SelectionItemVolumeMprCrosshair::Axis>& rotateTransformSelectionIndices,
@@ -1807,85 +1751,51 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
      * (3) start halfway between mid point and end point and extends to
      * the end point.  It rotates the transform.
      */
-    float offsetX(0.0);
-    float offsetY(0.0);
-    const float dx(xEnd - xStart);
-    const float dy(yEnd - yStart);
-    const float len(std::sqrt(dx*dx + dy*dy));
-    const float gapLen(gapLengthPixels / 2.0);
-    if (gapLen > 0.0) {
-        /*
-         * Move the starting x/y so that there is a gap at the crosshair intersection
-         */
-        if (gapLen < len) {
-            const float pct(gapLen / len);
-            offsetX = dx * pct;
-            offsetY = dy * pct;
-        }
-        else {
-            /*
-             * Gaps is longer than line
-             */
-            return;
-        }
-    }
+    const Vector3D startToEndXYZ(endXYZ - startXYZ);
+    const Vector3D midXYZ(startXYZ + (startToEndXYZ * 0.5));
+    const Vector3D midTwoXYZ(startXYZ + (startToEndXYZ * 0.75));
     
-    const float xMid((xStart + xEnd) / 2.0);
-    const float yMid((yStart + yEnd) / 2.0);
-    const float dxMid(xMid - xStart);
-    const float dyMid(yMid - yStart);
-    const float lenMid(std::sqrt(dxMid*dxMid + dyMid*dyMid));
+    sliceSelectionIndices.push_back(sliceSelectionAxisID);
+    primitiveSliceSelectionCrosshair->addVertex(startXYZ, rgba.data());
+    primitiveSliceSelectionCrosshair->addVertex(midXYZ, rgba.data());
     
-    const float xMid2((xMid + xEnd) / 2.0);
-    const float yMid2((yMid + yEnd) / 2.0);
-    const float z(0.0);
+    rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
+    primitiveRotateSliceCrosshair->addVertex(midXYZ, rgba.data());
+    primitiveRotateSliceCrosshair->addVertex(midTwoXYZ, rgba.data());
     
-    /*
-     * If distance from intersetion to gap is less than distance to mid-point
-     */
-    if (lenMid > gapLen) {
-        sliceSelectionIndices.push_back(sliceSelectionAxisID);
-        primitiveSliceSelectionCrosshair->addVertex(xStart + offsetX, yStart + offsetY, z, rgba.data());
-        primitiveSliceSelectionCrosshair->addVertex(xMid, yMid, z, rgba.data());
-        
-        rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
-        primitiveRotateSliceCrosshair->addVertex(xMid, yMid, z, rgba.data());
-        primitiveRotateSliceCrosshair->addVertex(xMid2, yMid2, z, rgba.data());
-
-        rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
-        primitiveRotateTransformCrosshair->addVertex(xMid2, yMid2, z, rgba.data());
-        primitiveRotateTransformCrosshair->addVertex(xEnd, yEnd, z, rgba.data());
-    }
-    else {
-        rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
-        primitiveRotateTransformCrosshair->addVertex(xStart + offsetX, yStart + offsetY, z, rgba.data());
-        primitiveRotateTransformCrosshair->addVertex(xEnd, yEnd, z, rgba.data());
-    }
+    rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
+    primitiveRotateTransformCrosshair->addVertex(midTwoXYZ, rgba.data());
+    primitiveRotateTransformCrosshair->addVertex(endXYZ, rgba.data());
 }
 
 
 /**
  * Draw the panning crosshairs for slice
  *
+ * @param underlayVolume
+ *    The underlay volume
  * @param mprSliceView
  *    The virtual slice info
  * @param sliceViewPlane
  *    The plane for slice drawing.
- * @param crossHairXYZ
+ * @param sliceCoordinates
  *    Intersection of crosshairs
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
+                                                        const VolumeMprVirtualSliceView& mprSliceView,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                        const Vector3D& crossHairXYZ,
+                                                        const Vector3D& sliceCoordinates,
                                                         const GraphicsViewport& viewport)
 {
+    CaretAssert(underlayVolume);
+    
     if ( ! m_browserTabContent->isVolumeAxesCrosshairsDisplayed()) {
         return;
     }
-        
+    
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
     if (m_identificationModeFlag) {
         if ( ! crosshairID->isEnabledForSelection()) {
@@ -1895,7 +1805,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
             return;
         }
     }
-
+    
     bool radiologicalFlag(false);
     switch (m_orientationMode) {
         case VolumeMprOrientationModeEnum::NEUROLOGICAL:
@@ -1906,14 +1816,62 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
             break;
     }
     
+    BoundingBox boundingBox;
+    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
+    const float maxSliceSize(boundingBox.getMaximumDifferenceOfXYZ());
+    const float crosshairLength(maxSliceSize / 2.0);
+    if (crosshairLength <= 0.0) {
+        return;
+    }
+    
+    std::array<uint8_t, 4> crosshairOneTwoRGBA;
+    std::array<uint8_t, 4> crosshairThreeFourRGBA;
+    Vector3D crosshairOneTwoVector;
+    Vector3D crosshairThreeFourVector;
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            crosshairOneTwoVector    = m_parasagittalSliceNormalVector;
+            crosshairOneTwoRGBA      = getAxisColor(VolumeSliceViewPlaneEnum::CORONAL);
+            crosshairThreeFourVector = m_coronalSliceNormalVector;
+            crosshairThreeFourRGBA   = getAxisColor(VolumeSliceViewPlaneEnum::PARASAGITTAL);
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            crosshairOneTwoVector    = m_parasagittalSliceNormalVector;
+            crosshairOneTwoRGBA      = getAxisColor(VolumeSliceViewPlaneEnum::AXIAL);
+            crosshairThreeFourVector = m_axialSliceNormalVector;
+            crosshairThreeFourRGBA   = getAxisColor(VolumeSliceViewPlaneEnum::PARASAGITTAL);
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            crosshairOneTwoVector    = m_coronalSliceNormalVector;
+            crosshairOneTwoRGBA      = getAxisColor(VolumeSliceViewPlaneEnum::AXIAL);
+            crosshairThreeFourVector = m_axialSliceNormalVector;
+            crosshairThreeFourRGBA   = getAxisColor(VolumeSliceViewPlaneEnum::CORONAL);
+            break;
+    }
     const float percentViewportHeight(0.5);
-    const float gapPercentViewportHeight = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
-    const float gapLengthPixels((gapPercentViewportHeight / 100.0)
-                                * viewport.getHeightF());
+    const float gapPercentage = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
     
-    const float crossHairX(0.0);
-    const float crossHairY(0.0);
-    
+    Vector3D crosshairOneStartXYZ(sliceCoordinates
+                                  + ((gapPercentage * crosshairLength) * crosshairOneTwoVector));
+    Vector3D crosshairOneEndXYZ(sliceCoordinates
+                                + (crosshairLength * crosshairOneTwoVector));
+    Vector3D crosshairTwoStartXYZ(sliceCoordinates
+                                  - ((gapPercentage * crosshairLength) * crosshairOneTwoVector));
+    Vector3D crosshairTwoEndXYZ(sliceCoordinates
+                                - (crosshairLength * crosshairOneTwoVector));
+    Vector3D crosshairThreeStartXYZ(sliceCoordinates
+                                    + ((gapPercentage * crosshairLength) * crosshairThreeFourVector));
+    Vector3D crosshairThreeEndXYZ(sliceCoordinates
+                                  + (crosshairLength * crosshairThreeFourVector));
+    Vector3D crosshairFourStartXYZ(sliceCoordinates
+                                   - ((gapPercentage * crosshairLength) * crosshairThreeFourVector));
+    Vector3D crosshairFourEndXYZ(sliceCoordinates
+                                 - (crosshairLength * crosshairThreeFourVector));
+
+
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> sliceSelectionPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
     const float sliceLineWidth(m_identificationModeFlag
                                ? (percentViewportHeight * 5.0)
@@ -1935,282 +1893,61 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
     rotateTransformPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                            rotateTransformLineWidth * 2);
     
-    const float circleRadius(std::min(viewport.getWidthF(), viewport.getHeightF())/ 2.0);
-    const float vpMinX( - circleRadius);
-    const float vpMaxX(circleRadius);
-    const float vpMinY(- circleRadius);
-    const float vpMaxY(circleRadius);
-
-    
-    const std::array<uint8_t, 4> axialPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::AXIAL));
-    const std::array<uint8_t, 4> coronalPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::CORONAL));
-    const std::array<uint8_t, 4> parasagittalPlaneRGBA(getAxisColor(VolumeSliceViewPlaneEnum::PARASAGITTAL));
-    
     std::vector<SelectionItemVolumeMprCrosshair::Axis> sliceSelectionIndices;
     std::vector<SelectionItemVolumeMprCrosshair::Axis> rotateSliceSelectionIndices;
     std::vector<SelectionItemVolumeMprCrosshair::Axis> rotateTransformSelectionIndices;
 
-    switch (sliceViewPlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-            /* Bottom edge (-y) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMinY,
-                                parasagittalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to top edge (+y) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMaxY,
-                                parasagittalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Left edge (-x) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMinX, crossHairY,
-                                coronalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to right edge (+x) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMaxX, crossHairY,
-                                coronalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-            /* Bottom edge (-z) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMinY,
-                                parasagittalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to top edge (+z) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMaxY,
-                                parasagittalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Left edge (-x) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMinX, crossHairY,
-                                axialPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to right edge (+x) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMaxX, crossHairY,
-                                axialPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            /* Bottom edge (-z) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMinY,
-                                coronalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to top edge (+z) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                crossHairX, vpMaxY,
-                                coronalPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Left edge (+y) to selected coordinate */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMinX, crossHairY,
-                                axialPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            
-            /* Selected coordinate to right edge (-y) */
-            addCrosshairSection(sliceSelectionPrimitive.get(),
-                                rotateSlicePrimitive.get(),
-                                rotateTransformPrimitive.get(),
-                                crossHairX, crossHairY,
-                                vpMaxX, crossHairY,
-                                axialPlaneRGBA,
-                                gapLengthPixels,
-                                sliceSelectionIndices,
-                                rotateSliceSelectionIndices,
-                                rotateTransformSelectionIndices,
-                                SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
-                                SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
-            break;
-    }
+    addCrosshairSection(sliceSelectionPrimitive.get(),
+                        rotateSlicePrimitive.get(),
+                        rotateTransformPrimitive.get(),
+                        crosshairOneStartXYZ,
+                        crosshairOneEndXYZ,
+                        crosshairOneTwoRGBA,
+                        sliceSelectionIndices,
+                        rotateSliceSelectionIndices,
+                        rotateTransformSelectionIndices,
+                        SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
     
-    glPushMatrix();    
-    glTranslatef(crossHairXYZ[0], crossHairXYZ[1], crossHairXYZ[2]);
-
-    const bool doRotFreezeFlag(true);
-    if (doRotFreezeFlag) {
-        const Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
-        double rotX, rotY, rotZ;
-        rotMat.getRotation(rotX, rotY, rotZ);
-        
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                if (radiologicalFlag) {
-                    glRotatef(-rotZ, 0.0, 0.0, 1.0);
-                }
-                else {
-                    glRotatef(rotZ, 0.0, 0.0, 1.0);
-                }
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                if (radiologicalFlag) {
-                    glRotatef(rotY, 0.0, 0.0, 1.0);
-                }
-                else {
-                    glRotatef(-rotY, 0.0, 0.0, 1.0);
-                }
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                glRotatef(-rotX, 0.0, 0.0, 1.0);
-                break;
-        }
-    }
-    else {
-        Matrix4x4 rotMat(m_browserTabContent->getMprThreeRotationMatrix());
-        switch (mprSliceView.getViewType()) {
-            case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
-                if ( ! rotMat.invert()) {
-                    CaretLogSevere("Failed to invert matrix for crosshair drawing");
-                }
-                break;
-            case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
-                break;
-        }
-        double rotX, rotY, rotZ;
-        rotMat.getRotation(rotX, rotY, rotZ);
-        
-        switch (sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                if (radiologicalFlag) {
-                    glRotatef(rotZ, 0.0, 0.0, 1.0);
-                }
-                else {
-                    glRotatef(-rotZ, 0.0, 0.0, 1.0);
-                }
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                if (radiologicalFlag) {
-                    glRotatef(-rotY, 0.0, 0.0, 1.0);
-                }
-                else {
-                    glRotatef(rotY, 0.0, 0.0, 1.0);
-                }
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                glRotatef(rotX, 0.0, 0.0, 1.0);
-                break;
-        }
-    }
+    addCrosshairSection(sliceSelectionPrimitive.get(),
+                        rotateSlicePrimitive.get(),
+                        rotateTransformPrimitive.get(),
+                        crosshairTwoStartXYZ,
+                        crosshairTwoEndXYZ,
+                        crosshairOneTwoRGBA,
+                        sliceSelectionIndices,
+                        rotateSliceSelectionIndices,
+                        rotateTransformSelectionIndices,
+                        SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
+    
+    addCrosshairSection(sliceSelectionPrimitive.get(),
+                        rotateSlicePrimitive.get(),
+                        rotateTransformPrimitive.get(),
+                        crosshairThreeStartXYZ,
+                        crosshairThreeEndXYZ,
+                        crosshairThreeFourRGBA,
+                        sliceSelectionIndices,
+                        rotateSliceSelectionIndices,
+                        rotateTransformSelectionIndices,
+                        SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
+    
+    addCrosshairSection(sliceSelectionPrimitive.get(),
+                        rotateSlicePrimitive.get(),
+                        rotateTransformPrimitive.get(),
+                        crosshairFourStartXYZ,
+                        crosshairFourEndXYZ,
+                        crosshairThreeFourRGBA,
+                        sliceSelectionIndices,
+                        rotateSliceSelectionIndices,
+                        rotateTransformSelectionIndices,
+                        SelectionItemVolumeMprCrosshair::Axis::SELECT_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE,
+                        SelectionItemVolumeMprCrosshair::Axis::ROTATE_TRANSFORM);
 
     if (m_identificationModeFlag) {
         float mouseX(0);
@@ -2263,6 +2000,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
         }
     }
     else {
+        glPushAttrib(GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
+        
         m_fixedPipelineDrawing->enableLineAntiAliasing();
         
         GraphicsEngineDataOpenGL::draw(sliceSelectionPrimitive.get());
@@ -2270,9 +2010,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMprVirtualSl
         GraphicsEngineDataOpenGL::draw(rotateTransformPrimitive.get());
 
         m_fixedPipelineDrawing->disableLineAntiAliasing();
+        
+        glPopAttrib();
     }
-    
-    glPopMatrix();
 }
 
 /**
@@ -2303,7 +2043,8 @@ BrainOpenGLVolumeMprThreeDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::E
 
 /**
  * Draw crosshairs for slice
- *
+ * @param underlayVolume
+ *    The underlay volume
  * @param mprSliceView
  *    The virtual slice info
  * @param sliceViewPlane
@@ -2314,10 +2055,11 @@ BrainOpenGLVolumeMprThreeDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::E
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView& mprSliceView,
+BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* underlayVolume,
+                                                 const VolumeMprVirtualSliceView& mprSliceView,
                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                               const Vector3D& sliceCoordinates,
-                                               const GraphicsViewport& viewport)
+                                                 const Vector3D& sliceCoordinates,
+                                                 const GraphicsViewport& viewport)
 {
     /*
      * Transform selected coordinates to viewport X/Y
@@ -2346,6 +2088,12 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView
     const float vpMinY(viewport.getBottomF());
     const float vpMaxY(viewport.getTopF());
     
+    drawPanningCrosshairs(underlayVolume,
+                          mprSliceView,
+                          sliceViewPlane,
+                          sliceCoordinates,
+                          viewport);
+    
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -2356,11 +2104,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMprVirtualSliceView
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    
-    drawPanningCrosshairs(mprSliceView,
-                          sliceViewPlane,
-                          crossHairXYZ,
-                          viewport);
     
     drawAxisLabels(mprSliceView,
                    sliceViewPlane,
@@ -3228,7 +2971,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         case BrainModelMode::ALL_3D:
             break;
         case BrainModelMode::VOLUME_2D:
-            drawCrosshairs(mprSliceView,
+            drawCrosshairs(volumeFile,
+                           mprSliceView,
                            sliceViewPlane,
                            sliceCoordinates,
                            viewport);
@@ -3696,7 +3440,6 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
     float mouseZ(0.0);
     if (m_fixedPipelineDrawing->getPixelDepthAndRGBA(mouseX, mouseY,
                                                      depthValue, rgbaValues)) {
-        std::cout << "Depth: " << depthValue << std::endl;
         mouseZ = depthValue;
     }
 
@@ -3715,7 +3458,6 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isEnabledForSelection()) {
             if ( ! voxelID->isValid()) {
-                std::cout << "Viewport selection: " << slicePlaneXYZ.toString() << std::endl;
                 /*
                  * Get depth from depth buffer
                  */
