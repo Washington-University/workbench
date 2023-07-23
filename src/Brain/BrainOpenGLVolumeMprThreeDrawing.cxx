@@ -1872,6 +1872,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
                                  - (crosshairLength * crosshairThreeFourVector));
 
 
+    if (m_debugFlag) {
+        std::cout << VolumeSliceViewPlaneEnum::toName(sliceViewPlane) << std::endl;
+        std::cout << "   P: " << m_parasagittalSliceNormalVector.toString() << std::endl;
+        std::cout << "   C: " << m_coronalSliceNormalVector.toString() << std::endl;
+        std::cout << "   A: " << m_axialSliceNormalVector.toString() << std::endl;
+    }
+    
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> sliceSelectionPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
     const float sliceLineWidth(m_identificationModeFlag
                                ? (percentViewportHeight * 5.0)

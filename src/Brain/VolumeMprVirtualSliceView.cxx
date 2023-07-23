@@ -279,11 +279,11 @@ VolumeMprVirtualSliceView::computeVirtualSlicePlane()
     switch (getViewType()) {
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
         {
-            Vector3D lookToVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
+            Vector3D lookFromVec((m_cameraXYZ - m_cameraLookAtXYZ).normal());
             Matrix4x4 invMat(m_sliceRotationMatrix);
             if (invMat.invert()) {
-                invMat.multiplyPoint3(lookToVec);
-                m_virtualPlane = Plane(lookToVec, m_selectedSlicesXYZ);
+                invMat.multiplyPoint3(lookFromVec);
+                m_virtualPlane = Plane(lookFromVec, m_selectedSlicesXYZ);
             }
         }
             break;

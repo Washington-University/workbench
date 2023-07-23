@@ -616,33 +616,75 @@ Plane::arePlanesOrthogonal(const Vector3D& normalVectorOne,
                            const Vector3D& normalVectorThree,
                            AString* optionalMessageOut)
 {
-    const float tolZero(0.001);
-    const float tolOne(1.0 - tolZero);
+    AString errorMessageOut;
+    
+    /*
+     * Note dot product for 90 degrees is -1 or 1
+     */
+    const float tolerance(0.001);
+    const float tolPosZero(tolerance);
+    const float tolNegZero(- tolerance);
+    const float tolPosOne(1.0 - tolerance);
+    const float tolNegOne(-1.0 + tolerance);
+    
     /*
      * Dot poduct of zero indicates 90 degree angle between vectors
      */
-    float dotOneTwo(std::fabs(normalVectorOne.dot(normalVectorTwo)));
-    if (dotOneTwo < tolZero) {
+    const float dotOneTwo(normalVectorOne.dot(normalVectorTwo));
+    const float dotOneThree(normalVectorOne.dot(normalVectorThree));
+    const float dotTwoThree(normalVectorTwo.dot(normalVectorThree));
+    if ((dotOneTwo < tolNegZero)
+        || (dotOneTwo > tolPosZero)) {
+        const float angleDegrees(MathFunctions::toDegrees(std::acos(MathFunctions::limitRange(dotOneTwo, -1.0f, 1.0f))));
+        errorMessageOut.appendWithNewLine("Planes one and two are not 90 degrees; dot product="
+                                          + AString::number(dotOneTwo)
+                                          + ", angle="
+                                          + AString::number(angleDegrees)
+                                          + " degrees");
+    }
+
+    if ((dotOneThree < tolNegZero)
+        || (dotOneThree > tolPosZero)) {
+        const float angleDegrees(MathFunctions::toDegrees(std::acos(MathFunctions::limitRange(dotOneThree, -1.0f, 1.0f))));
+        errorMessageOut.appendWithNewLine("Planes one and three are not 90 degrees; dot product="
+                                          + AString::number(dotOneThree)
+                                          + ", angle="
+                                          + AString::number(angleDegrees)
+                                          + " degrees");
+    }
+
+    if ((dotTwoThree < tolNegZero)
+        || (dotTwoThree > tolPosZero)) {
+        const float angleDegrees(MathFunctions::toDegrees(std::acos(MathFunctions::limitRange(dotTwoThree, -1.0f, 1.0f))));
+        errorMessageOut.appendWithNewLine("Planes two and three are not 90 degrees; dot product="
+                                          + AString::number(dotTwoThree)
+                                          + ", angle="
+                                          + AString::number(angleDegrees)
+                                          + " degrees");
+    }
+    
+    if (errorMessageOut.isEmpty()) {
         const Vector3D vecOneTwo(normalVectorOne.cross(normalVectorTwo));
         
-        const float dot(std::fabs(vecOneTwo.dot(normalVectorThree)));
-        if (dot > tolOne) {
+        const float dot(vecOneTwo.dot(normalVectorThree));
+        if ((dot > tolPosOne)
+            || (dot < tolNegOne)) {
             return true;
         }
         else {
-            if (optionalMessageOut != NULL) {
-                *optionalMessageOut = ("Vector formed by cross product of first two vectors not aligned with third vector; abs dot product="
-                                       + AString::number(dot));
-            }
+            const float angleDegrees(MathFunctions::toDegrees(std::acos(MathFunctions::limitRange(dot, -1.0f, 1.0f))));
+            errorMessageOut.appendWithNewLine("Vector formed by cross product of first two vectors not aligned with third plane, "
+                                              "should be 0 or 180; dot product="
+                                              + AString::number(dot)
+                                              +", angle="
+                                              + AString::number(angleDegrees)
+                                              + " degrees.");
         }
     }
-    else {
-        if (optionalMessageOut != NULL) {
-            *optionalMessageOut = ("First two planes are not 90 degrees; abs dot product="
-                                   + AString::number(dotOneTwo));
-        }
+
+    if (optionalMessageOut != NULL) {
+        *optionalMessageOut = errorMessageOut;
     }
-    
     return false;
 }
 
