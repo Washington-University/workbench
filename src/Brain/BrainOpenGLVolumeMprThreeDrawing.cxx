@@ -829,6 +829,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInt
      */
     const Vector3D selectedXYZ(m_browserTabContent->getVolumeSliceCoordinates());
     Matrix4x4 rotationMatrix(m_browserTabContent->getMprThreeRotationMatrix());
+    rotationMatrix.invert();
     Matrix4x4 matrix;
     matrix.translate(-selectedXYZ);
     matrix.postmultiply(rotationMatrix);
@@ -863,74 +864,40 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInt
 
     Vector3D eyeOffsetXYZ(0.0, 0.0, maxCoord);
     
-    const bool usePerspectiveProjectionFlag(true);
-    if (usePerspectiveProjectionFlag) {
-        const float nearToFarDistance(maxCoord * 1.5);
-        const float nearHeight(maxCoord);
-        const float farHeight(nearHeight * marginPercent);
-        const float middleNearFarHeight((nearHeight + farHeight) / 2.0);
-        /*
-         * Right triangle
-         *               ==
-         *             =  =
-         *           =    =
-         *       c =      =  b
-         *       =        =
-         *     =          =
-         *   =  theta     =
-         *  ===============
-         *        a
-         */
-
-        const float fov(80.0);
-        
-        const float theta(fov / 2.0);
-        const float b(middleNearFarHeight);
-        const float a(b / std::tan(MathFunctions::toRadians(theta)));
-        
-        const float middleNearFarDistance(a);
-        const float nearDistance(middleNearFarDistance - (nearToFarDistance / 2.0));
-        const float farDistance(nearDistance + nearToFarDistance);
-        
-        const double aspectRatio = (viewportWidth
-                                    / viewportHeight);
-
-        gluPerspective(fov, aspectRatio, nearDistance, farDistance);
-        
-        eyeOffsetXYZ[2] = middleNearFarDistance;
-    }
-    else {
-        double left   = 0.0;
-        double right  = 0.0;
-        double top    = 0.0;
-        double bottom = 0.0;
-        const double nearDepth = -1000.0;
-        const double farDepth  =  1000.0;
-        if (viewportHeight > viewportWidth) {
-            left  = minCoord;
-            right = maxCoord;
-            const double aspectRatio = (viewportHeight
-                                        / viewportWidth);
-            top   = maxCoord * aspectRatio;
-            bottom = minCoord * aspectRatio;
-        }
-        else {
-            const double aspectRatio = (viewportWidth
-                                        / viewportHeight);
-            top   = maxCoord;
-            bottom = minCoord;
-            left  = minCoord * aspectRatio;
-            right = maxCoord * aspectRatio;
-        }
-        /*
-         * Set the orthographic projection
-         */
-        glOrtho(left, right,
-                bottom, top,
-                nearDepth, farDepth);
-    }
+    const float nearToFarDistance(maxCoord * 1.5);
+    const float nearHeight(maxCoord);
+    const float farHeight(nearHeight * marginPercent);
+    const float middleNearFarHeight((nearHeight + farHeight) / 2.0);
+    /*
+     * Right triangle
+     *               ==
+     *             =  =
+     *           =    =
+     *       c =      =  b
+     *       =        =
+     *     =          =
+     *   =  theta     =
+     *  ===============
+     *        a
+     */
     
+    const float fov(80.0);
     
+    const float theta(fov / 2.0);
+    const float b(middleNearFarHeight);
+    const float a(b / std::tan(MathFunctions::toRadians(theta)));
+    
+    const float middleNearFarDistance(a);
+    const float nearDistance(middleNearFarDistance - (nearToFarDistance / 2.0));
+    const float farDistance(nearDistance + nearToFarDistance);
+    
+    const double aspectRatio = (viewportWidth
+                                / viewportHeight);
+    
+    gluPerspective(fov, aspectRatio, nearDistance, farDistance);
+    
+    eyeOffsetXYZ[2] = middleNearFarDistance;
+
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
@@ -1036,57 +1003,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInt
             glPopAttrib();
             
             glPopMatrix();
-        }
-        
-        const bool showOrientationLabelsFlag(false);
-        if (showOrientationLabelsFlag) {
-            /*
-             * Draw labels at edges of viewport indicating unrotated volume orientation
-             */
-            AnnotationPercentSizeText annotationText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-            annotationText.setFontPercentViewportSize(5.0f);
-            annotationText.setCoordinateSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
-            annotationText.setTextColor(CaretColorEnum::CUSTOM);
-            annotationText.setCustomTextColor(m_fixedPipelineDrawing->m_foregroundColorFloat);
-            annotationText.setBackgroundColor(CaretColorEnum::CUSTOM);
-            annotationText.setCustomBackgroundColor(m_fixedPipelineDrawing->m_backgroundColorFloat);
-            
-            AString leftLabelText("L");
-            AString rightLabelText("R");
-            AString bottomLabelText("P");
-            AString topLabelText("A");
-            
-            const double marginOffset(10.0);
-            
-            annotationText.setText(leftLabelText);
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::LEFT);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-            m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getLeft() + marginOffset),
-                                                             viewport.getCenterY(),
-                                                             annotationText);
-            
-            annotationText.setText(rightLabelText);
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::RIGHT);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
-            m_fixedPipelineDrawing->drawTextAtViewportCoords((viewport.getRight() - marginOffset),
-                                                             viewport.getCenterY(),
-                                                             annotationText);
-            
-            annotationText.setText(bottomLabelText);
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::BOTTOM);
-            m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
-                                                             (viewport.getBottom() + marginOffset),
-                                                             annotationText);
-            
-            annotationText.setText(topLabelText);
-            annotationText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-            annotationText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-            m_fixedPipelineDrawing->drawTextAtViewportCoords(viewport.getCenterX(),
-                                                             (viewport.getTop() - marginOffset),
-                                                             annotationText);
         }
     }
     
@@ -1888,7 +1804,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
     
     const float rotateThicker(m_axialCoronalParaSliceViewFlag
                               ? 3.0
-                              : 1.0);
+                              : 2.0);
     const float rotateTransformLineWidth(m_identificationModeFlag
                                          ? (percentViewportHeight * 5.0)
                                          : percentViewportHeight * rotateThicker);

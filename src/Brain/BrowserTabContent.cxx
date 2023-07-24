@@ -4538,10 +4538,10 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
      * Separate rotation matrices
      */
     {
-        const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                           rotationAngleCCW));
-        
         if (rotateTransformFlag) {
+            const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                               -rotationAngleCCW));
+
             if (isVolumeMprInPlaneRotationEnabled()) {
                 m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
                 m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
@@ -4555,7 +4555,7 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                 m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
                 
                 const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                           -rotationAngleCCW));
+                                                                                           rotationAngleCCW));
                 
                 /*
                  * Pre-multiplying seems to result in slice remaining
@@ -4577,11 +4577,9 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             }
         }
         else if (rotateSliceFlag) {
-            /*
-             * Pre-multiplying seems to result in slice remaining
-             * static (not rotating)
-             */
-            m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
+            const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                               rotationAngleCCW));
+
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
