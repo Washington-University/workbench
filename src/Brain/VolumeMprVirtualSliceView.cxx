@@ -449,11 +449,11 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
         /*
          * Need to flip sign of normal vector
          */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSlicePlaneVector,
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-m_virtualPlane.getNormalVector(),
                                                               m_selectedSlicesXYZ);
     }
     else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSlicePlaneVector,
+        m_montageVirutalSliceIncreasingDirectionPlane = Plane(m_virtualPlane.getNormalVector(),
                                                               m_selectedSlicesXYZ);
     }
     
