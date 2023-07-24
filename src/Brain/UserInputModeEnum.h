@@ -45,6 +45,8 @@ public:
         FOCI,
         /** Image */
         IMAGE,
+        /** Samples Editing */
+        SAMPLES_EDITING,
         /** Tile tabs layout editing */
         TILE_TABS_LAYOUT_EDITING,
         /** View */

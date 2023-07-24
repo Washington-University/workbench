@@ -82,6 +82,8 @@ namespace caret {
         
         void createAnnotationWidget();
         
+        void createSamplesEditingWidget();
+        
         void createTileTabsEditingWidget();
         
         QWidget* createInsertMenuToolButton();

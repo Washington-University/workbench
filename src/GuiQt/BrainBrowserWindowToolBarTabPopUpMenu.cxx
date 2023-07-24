@@ -397,6 +397,8 @@ BrainBrowserWindowToolBarTabPopUpMenu::isEnabled(const MenuItem menuItem) const
                     break;
                 case UserInputModeEnum::Enum::INVALID:
                     break;
+                case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                    break;
                 case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
                     if (m_selectedBrowserTabAnnotation != NULL) {
                         enabledFlag = true;

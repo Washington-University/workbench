@@ -554,6 +554,7 @@ UserInputModeFociWidget.h
 UserInputModeFoci.h
 UserInputModeImageWidget.h
 UserInputModeImage.h
+UserInputModeSamplesEdit.h
 UserInputModeTileTabsLayout.h
 UserInputModeTileTabsLayoutContextMenu.h
 UserInputModeView.h
@@ -886,6 +887,7 @@ UserInputModeFoci.cxx
 UserInputModeFociWidget.cxx
 UserInputModeImage.cxx
 UserInputModeImageWidget.cxx
+UserInputModeSamplesEdit.cxx
 UserInputModeTileTabsLayout.cxx
 UserInputModeTileTabsLayoutContextMenu.cxx
 UserInputModeView.cxx

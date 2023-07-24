@@ -2336,6 +2336,9 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             deselectAnnotationsForEditingInAnnotationManager();
             break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            deselectAnnotationsForEditingInAnnotationManager();
+            break;
         case UserInputModeEnum::Enum::VIEW:
             break;
         case UserInputModeEnum::Enum::VOLUME_EDIT:
@@ -2382,6 +2385,9 @@ UserInputModeAnnotations::processSelectAllAnnotations()
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            CaretAssertToDoFatal();
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
         {

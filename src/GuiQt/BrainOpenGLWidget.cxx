@@ -1808,6 +1808,7 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
@@ -1951,6 +1952,7 @@ BrainOpenGLWidget::performIdentificationHistologyPlaneCoordinate(const int x,
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
@@ -2032,6 +2034,7 @@ BrainOpenGLWidget::performIdentificationMediaLogicalCoordinate(const int x,
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
@@ -2113,6 +2116,7 @@ BrainOpenGLWidget::performIdentificationMediaPlaneCoordinate(const int x,
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;

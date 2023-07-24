@@ -93,6 +93,9 @@ m_inputModeAnnotations(inputModeAnnotations)
         case UserInputModeEnum::Enum::ANNOTATIONS:
             createAnnotationWidget();
             break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            createSamplesEditingWidget();
+            break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             createTileTabsEditingWidget();
             break;
@@ -167,6 +170,34 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
     
     updateWidget();
     
+}
+
+/**
+ * Create the samples mode widget
+ */
+void
+UserInputModeAnnotationsWidget::createSamplesEditingWidget()
+{
+//    m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
+//                                                              m_browserWindowIndex);
+        
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
+                                                                m_inputModeAnnotations->getUserInputMode(),
+                                                                m_browserWindowIndex);
+
+    QVBoxLayout* formatRedoLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(formatRedoLayout, 2, 0);
+//    formatRedoLayout->addWidget(m_formatWidget);
+    formatRedoLayout->addSpacing(12);
+    formatRedoLayout->addWidget(m_redoUndoWidget);
+    formatRedoLayout->addStretch();
+    
+    QHBoxLayout* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(2, 2, 2, 2);
+    layout->setSpacing(8);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addLayout(formatRedoLayout);
+    layout->addStretch();
 }
 
 /**

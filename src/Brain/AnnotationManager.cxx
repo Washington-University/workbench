@@ -82,6 +82,9 @@ m_brain(brain)
     m_browserTabAnnotationsRedoUndoStack.grabNew(new CaretUndoStack());
     m_browserTabAnnotationsRedoUndoStack->setUndoLimit(100);
     
+    m_samplesAnnotationsRedoUndoStack.grabNew(new CaretUndoStack());
+    m_samplesAnnotationsRedoUndoStack->setUndoLimit(100);
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_annotationBeingDrawnInWindow[i] = NULL;
         m_selectionInformation[i] = new AnnotationEditingSelectionInformation(i);
@@ -109,6 +112,7 @@ AnnotationManager::~AnnotationManager()
 
     m_annotationsExceptBrowserTabsRedoUndoStack->clear();
     m_browserTabAnnotationsRedoUndoStack->clear();
+    m_samplesAnnotationsRedoUndoStack->clear();
     
     delete m_sceneAssistant;
 }
@@ -121,6 +125,7 @@ AnnotationManager::reset()
 {
     m_annotationsExceptBrowserTabsRedoUndoStack->clear();
     m_browserTabAnnotationsRedoUndoStack->clear();
+    m_samplesAnnotationsRedoUndoStack->clear();
 }
 
 /**
@@ -1284,6 +1289,9 @@ AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInp
     switch (userInputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
             undoStackOut = m_annotationsExceptBrowserTabsRedoUndoStack;
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            undoStackOut = m_samplesAnnotationsRedoUndoStack;
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             undoStackOut = m_browserTabAnnotationsRedoUndoStack;

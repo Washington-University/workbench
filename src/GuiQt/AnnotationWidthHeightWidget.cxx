@@ -89,6 +89,10 @@ m_browserWindowIndex(browserWindowIndex)
                     break;
                 case UserInputModeEnum::Enum::INVALID:
                     break;
+                case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                    widthLabelText  = "Width:";
+                    heightLabelText = "Height:";
+                    break;
                 case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
                     widthLabelText  = "Width:";
                     heightLabelText = "Height:";

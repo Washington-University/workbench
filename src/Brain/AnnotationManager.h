@@ -244,6 +244,8 @@ namespace caret {
         CaretPointer<CaretUndoStack> m_annotationsExceptBrowserTabsRedoUndoStack;
         
         CaretPointer<CaretUndoStack> m_browserTabAnnotationsRedoUndoStack;
+        
+        CaretPointer<CaretUndoStack> m_samplesAnnotationsRedoUndoStack;
         // ADD_NEW_MEMBERS_HERE
 
     };

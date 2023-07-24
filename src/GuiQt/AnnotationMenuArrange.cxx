@@ -80,6 +80,9 @@ m_browserWindowIndex(browserWindowIndex)
         case UserInputModeEnum::Enum::ANNOTATIONS:
             m_menuMode = MenuMode::ANNOTATIONS;
             break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            CaretAssert(0);
+            break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             m_menuMode = MenuMode::TILE_TABS;
             break;

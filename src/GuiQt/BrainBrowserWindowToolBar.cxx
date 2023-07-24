@@ -144,6 +144,7 @@
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeImage.h"
 #include "UserInputModeImageWidget.h"
+#include "UserInputModeSamplesEdit.h"
 #include "UserInputModeTileTabsLayout.h"
 #include "UserInputModeView.h"
 #include "UserInputModeVolumeEdit.h"
@@ -476,6 +477,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->userInputBordersModeProcessor = new UserInputModeBorders(browserWindowIndex);
     this->userInputFociModeProcessor = new UserInputModeFoci(browserWindowIndex);
     this->userInputImageModeProcessor = new UserInputModeImage(browserWindowIndex);
+    this->userInputSamplesEditProcessor = new UserInputModeSamplesEdit(browserWindowIndex);
     this->userInputVolumeEditModeProcessor = new UserInputModeVolumeEdit(browserWindowIndex);
     this->userInputTileTabsManualLayoutProcessor = new UserInputModeTileTabsLayout(browserWindowIndex);
     this->userInputViewModeProcessor = new UserInputModeView(browserWindowIndex);
@@ -498,6 +500,11 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
                                              WIDGET_PLACEMENT_LEFT,
                                              WIDGET_PLACEMENT_TOP,
                                              0);
+    this->samplesModeWidget = createToolWidget("",
+                                               this->userInputSamplesEditProcessor->getWidgetForToolBar(),
+                                               WIDGET_PLACEMENT_LEFT,
+                                               WIDGET_PLACEMENT_TOP,
+                                               0);
     this->tileModeWidget = createToolWidget("",
                                             this->userInputTileTabsManualLayoutProcessor->getWidgetForToolBar(),
                                             WIDGET_PLACEMENT_LEFT,
@@ -560,6 +567,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->toolbarWidgetLayout->addWidget(this->fociModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->imageModeWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->samplesModeWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->tileModeWidget, 0, Qt::AlignLeft);
     
@@ -648,6 +657,7 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     delete this->userInputBordersModeProcessor;
     delete this->userInputFociModeProcessor;
     delete this->userInputImageModeProcessor;
+    delete this->userInputSamplesEditProcessor;
     delete this->userInputTileTabsManualLayoutProcessor;
     delete this->userInputVolumeEditModeProcessor;
     this->selectedUserInputProcessor = NULL; /* DO NOT DELETE since it does not own the object to which it points */
@@ -1982,6 +1992,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showBorderModeWidget(false);
     bool showFociModeWidget(false);
     bool showImageModeWidget(false);
+    bool showSamplesModeWidget(false);
     bool showTileModeWidget(false);
     bool showVolumeModeWidget(false);
     
@@ -2062,6 +2073,12 @@ BrainBrowserWindowToolBar::updateToolBar()
             showImageModeWidget     = imageCompatibleViewFlag;
             break;
         case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            if (wideFlag) {
+                showViewModeWidgetsFlag = true;
+            }
+            showSamplesModeWidget = true;
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             if (wideFlag) {
@@ -2214,6 +2231,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->bordersModeWidget->setVisible(false);
     this->fociModeWidget->setVisible(false);
     this->imageModeWidget->setVisible(false);
+    this->samplesModeWidget->setVisible(false);
     this->tileModeWidget->setVisible(false);
     this->volumeModeWidget->setVisible(false);
 
@@ -2223,6 +2241,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->bordersModeWidget->setVisible(showBorderModeWidget);
     this->fociModeWidget->setVisible(showFociModeWidget);
     this->imageModeWidget->setVisible(showImageModeWidget);
+    this->samplesModeWidget->setVisible(showSamplesModeWidget);
     this->tileModeWidget->setVisible(showTileModeWidget);
     this->volumeModeWidget->setVisible(showVolumeModeWidget);
     
@@ -2487,6 +2506,18 @@ BrainBrowserWindowToolBar::createModeWidget()
     }
     
     /*
+     * Samples Editing
+     */
+    this->modeInputModeSamplesEditRadioButton = new QRadioButton("Edit Samples");
+    this->modeInputModeSamplesEditRadioButton->setToolTip("Edit Slab/Slices Samples");
+    this->modeInputModeSamplesEditRadioButton->setObjectName(m_objectNamePrefix
+                                                             + "Mode::EditSamples");
+    
+    /* DISABLED */
+    this->modeInputModeSamplesEditRadioButton->setEnabled(false);
+    this->modeInputModeSamplesEditRadioButton->setVisible(false);
+    
+    /*
      * Tile tabs manual layout editing
      */
     const AString tileToolTip("<html>"
@@ -2540,6 +2571,7 @@ BrainBrowserWindowToolBar::createModeWidget()
         this->modeInputModeRadioButtonGroup->addButton(this->modeInputModeImageRadioButton);
     }
     this->modeInputModeRadioButtonGroup->addButton(this->modeInputModeViewRadioButton);
+    this->modeInputModeRadioButtonGroup->addButton(this->modeInputModeSamplesEditRadioButton);
     this->modeInputModeRadioButtonGroup->addButton(this->modeInputModeTileTabsManualLayoutRadioButton);
     this->modeInputModeRadioButtonGroup->addButton(this->modeInputVolumeEditRadioButton);
     QObject::connect(this->modeInputModeRadioButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
@@ -2556,6 +2588,8 @@ BrainBrowserWindowToolBar::createModeWidget()
         WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeImageRadioButton,
                                                              "Select image mode");
     }
+    WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeSamplesEditRadioButton,
+                                                         "Select Samples Editing");
     WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeTileTabsManualLayoutRadioButton,
                                                          "Select Tile Tabs Manual Layout Editing");
     WuQMacroManager::instance()->addMacroSupportToObject(this->modeInputModeViewRadioButton,
@@ -2578,6 +2612,7 @@ BrainBrowserWindowToolBar::createModeWidget()
     if (this->modeInputModeImageRadioButton != NULL) {
         layout->addWidget(this->modeInputModeImageRadioButton);
     }
+    layout->addWidget(this->modeInputModeSamplesEditRadioButton);
     layout->addWidget(this->modeInputVolumeEditRadioButton);
     
     this->modeWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -2644,6 +2679,9 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
              && (this->modeInputModeImageRadioButton != NULL)) {
         inputMode = UserInputModeEnum::Enum::IMAGE;
     }
+    else if (button == this->modeInputModeSamplesEditRadioButton) {
+        inputMode = UserInputModeEnum::Enum::SAMPLES_EDITING;
+    }
     else if (button == this->modeInputModeTileTabsManualLayoutRadioButton) {
         inputMode = UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING;
         
@@ -2708,6 +2746,9 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
                 this->modeInputModeImageRadioButton->setChecked(true);
             }
             break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            this->modeInputModeSamplesEditRadioButton->setChecked(true);
+            break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             this->modeInputModeTileTabsManualLayoutRadioButton->setChecked(true);
             break;
@@ -2729,6 +2770,7 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             break;
         case UserInputModeEnum::Enum::BORDERS:
@@ -3624,6 +3666,9 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                         break;
                     case UserInputModeEnum::Enum::IMAGE:
                         newUserInputProcessor = this->userInputImageModeProcessor;
+                        break;
+                    case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                        newUserInputProcessor = this->userInputSamplesEditProcessor;
                         break;
                     case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
                         newUserInputProcessor = this->userInputTileTabsManualLayoutProcessor;

@@ -126,6 +126,10 @@ UserInputModeEnum::initialize()
                                     "IMAGE", 
                                     "Image"));
     
+    enumData.push_back(UserInputModeEnum(Enum::SAMPLES_EDITING,
+                                         "SAMPLES_EDITING",
+                                         "Samples Editing"));
+    
     enumData.push_back(UserInputModeEnum(Enum::TILE_TABS_LAYOUT_EDITING,
                                          "TILE_TABS_LAYOUT_EDITING",
                                          "Tile Tabs Layout Editing"));

@@ -86,6 +86,7 @@ namespace caret {
     class UserInputModeBorders;
     class UserInputModeFoci;
     class UserInputModeImage;
+    class UserInputModeSamplesEdit;
     class UserInputModeTileTabsLayout;
     class UserInputModeView;
     class UserInputModeVolumeEdit;
@@ -237,6 +238,7 @@ namespace caret {
         UserInputModeBorders* userInputBordersModeProcessor;
         UserInputModeFoci* userInputFociModeProcessor;
         UserInputModeImage* userInputImageModeProcessor;
+        UserInputModeSamplesEdit* userInputSamplesEditProcessor;
         UserInputModeTileTabsLayout* userInputTileTabsManualLayoutProcessor;
         UserInputModeVolumeEdit* userInputVolumeEditModeProcessor;
         
@@ -245,6 +247,7 @@ namespace caret {
         QWidget* bordersModeWidget;
         QWidget* fociModeWidget;
         QWidget* imageModeWidget;
+        QWidget* samplesModeWidget;
         QWidget* tileModeWidget;
         QWidget* volumeModeWidget;
         
@@ -380,6 +383,7 @@ namespace caret {
         QRadioButton* modeInputModeFociRadioButton;
         QRadioButton* modeInputModeImageRadioButton;
         QRadioButton* modeInputModeViewRadioButton;
+        QRadioButton* modeInputModeSamplesEditRadioButton;
         QRadioButton* modeInputModeTileTabsManualLayoutRadioButton;
         QRadioButton* modeInputVolumeEditRadioButton;
         
