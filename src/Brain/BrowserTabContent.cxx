@@ -6364,10 +6364,13 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
 
     bool tryToRestoreOldMprRotationsFlag(false);
+    bool tryToRestoreOldMprRotationsToSeparateFlag(false);
 
-    restoreQuaternion(sceneClass,
+    if ( ! restoreQuaternion(sceneClass,
                       "m_mprThreeRotationSeparateQuaternion",
-                      m_mprThreeRotationSeparateQuaternion);
+                             m_mprThreeRotationSeparateQuaternion)) {
+        tryToRestoreOldMprRotationsToSeparateFlag = true;
+    }
     restoreQuaternion(sceneClass,
                       "m_mprThreeAxialSeparateRotationQuaternion",
                       m_mprThreeAxialSeparateRotationQuaternion);
@@ -6458,16 +6461,75 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                    0.0,
                                                    -m_mprRotationZ);
         }
-        m_mprThreeRotationSeparateQuaternion = matrixToQuaternion(rotationMatrix);
-        m_mprThreeAxialSeparateRotationQuaternion = matrixToQuaternion(rotationMatrix);
-        m_mprThreeCoronalSeparateRotationQuaternion = matrixToQuaternion(rotationMatrix);
-        m_mprThreeParasagittalSeparateRotationQuaternion = matrixToQuaternion(rotationMatrix);
-
         m_mprThreeRotationQuaternion = matrixToQuaternion(rotationMatrix);
         m_mprThreeAxialInverseRotationQuaternion = matrixToQuaternion(axialInverseRotationMatrix);
         m_mprThreeCoronalInverseRotationQuaternion = matrixToQuaternion(coronalInverseRotationMatrix);
         m_mprThreeParasagittalInverseRotationQuaternion = matrixToQuaternion(parasagittalInverseRotationMatrix);
     }
+    
+    if (tryToRestoreOldMprRotationsToSeparateFlag) {
+        Matrix4x4 rotationMatrix;
+        Matrix4x4 axialRotationMatrix;
+        Matrix4x4 coronalRotationMatrix;
+        Matrix4x4 parasagittalRotationMatrix;
+        
+        rotationMatrix.setRotation(m_mprRotationX, m_mprRotationY, -m_mprRotationZ);
+
+        if (m_mprRotationX != 0.0) {
+            if (m_mprRotationY != 0.0) {
+                if (m_mprRotationZ != 0.0) {
+                    /* All three rotations are set */
+                    rotationMatrix.setRotation(m_mprRotationX, m_mprRotationY, -m_mprRotationZ);
+                    axialRotationMatrix        = rotationMatrix;
+                    coronalRotationMatrix      = rotationMatrix;
+                    parasagittalRotationMatrix = rotationMatrix;
+                }
+                else {
+                    /* X and Y rotations are set, no Z rotation*/
+                    rotationMatrix.setRotation(m_mprRotationX, m_mprRotationY, 0.0);
+                    axialRotationMatrix        = rotationMatrix;
+                    coronalRotationMatrix      = rotationMatrix;
+                    parasagittalRotationMatrix = rotationMatrix;
+                }
+            }
+            else {
+                /* X rotation only */
+                rotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
+                axialRotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
+                coronalRotationMatrix.setRotation(m_mprRotationX, 0.0, 0.0);
+                parasagittalRotationMatrix.identity();
+            }
+        }
+        else if (m_mprRotationY != 0.0) {
+            if (m_mprRotationZ != 0.0) {
+                /* Y and Z rotation set*/
+                rotationMatrix.setRotation(0.0, m_mprRotationY, -m_mprRotationZ);
+                axialRotationMatrix        = rotationMatrix;
+                coronalRotationMatrix      = rotationMatrix;
+                parasagittalRotationMatrix = rotationMatrix;
+            }
+            else {
+                /* Y  rotation only */
+                rotationMatrix.setRotation(0.0, m_mprRotationY, 0.0);
+                axialRotationMatrix.setRotation(0.0, m_mprRotationY, 0.0);
+                coronalRotationMatrix.identity();
+                parasagittalRotationMatrix.setRotation(0.0, m_mprRotationY, 0.0);
+            }
+        }
+        else if (m_mprRotationZ != 0.0) {
+            /* Z rotation only */
+            rotationMatrix.setRotation(0.0, 0.0, -m_mprRotationZ);
+            axialRotationMatrix.identity();
+            coronalRotationMatrix.setRotation(0.0, 0.0, -m_mprRotationZ);
+            parasagittalRotationMatrix.setRotation(0.0, 0.0, -m_mprRotationZ);
+        }
+        
+        m_mprThreeRotationSeparateQuaternion = matrixToQuaternion(rotationMatrix);
+        m_mprThreeAxialSeparateRotationQuaternion = matrixToQuaternion(axialRotationMatrix);
+        m_mprThreeCoronalSeparateRotationQuaternion = matrixToQuaternion(coronalRotationMatrix);
+        m_mprThreeParasagittalSeparateRotationQuaternion = matrixToQuaternion(parasagittalRotationMatrix);
+    }
+
 
     testForRestoreSceneWarnings(sceneAttributes,
                                 sceneClass->getVersionNumber());
