@@ -153,8 +153,6 @@ namespace caret {
         
         void initializeModeVolumeViewFixedCamera();
         
-        std::vector<Vector3D> createVirtualSliceTriangleFan(const VolumeMappableInterface* volume) const;
-        
         std::vector<Vector3D> createVirtualSliceTriangles(const VolumeMappableInterface* volume) const;
                 
         std::vector<Vector3D> mapTextureCoordinates(const VolumeMappableInterface* volume,

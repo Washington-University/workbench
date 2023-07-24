@@ -1451,24 +1451,27 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                 break;
         }
         if (drawSelectionBoxFlag) {
-            GraphicsRegionSelectionBox::DrawMode drawMode(GraphicsRegionSelectionBox::DrawMode::Z_PLANE);
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    CaretAssert(0);
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    drawMode = GraphicsRegionSelectionBox::DrawMode::Z_PLANE;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    drawMode = GraphicsRegionSelectionBox::DrawMode::Y_PLANE;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    drawMode = GraphicsRegionSelectionBox::DrawMode::X_PLANE;
-                    break;
-            }
+            /*
+             * Draw selection box in viewport coordinates since
+             * volume may be rotated
+             */
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+            GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
+            glOrtho(viewport.getLeftF(), viewport.getRightF(),
+                    viewport.getBottomF(), viewport.getTopF(),
+                    -100.0, 100.0);
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
+            glLoadIdentity();
             BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
-                                                                     drawMode,
+                                                                     GraphicsRegionSelectionBox::DrawMode::VIEWPORT,
                                                                      m_fixedPipelineDrawing->m_foregroundColorFloat);
+            glPopMatrix();
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+            glMatrixMode(GL_MODELVIEW);
         }
         
         glPopMatrix();
