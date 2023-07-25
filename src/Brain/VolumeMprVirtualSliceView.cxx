@@ -128,6 +128,7 @@ m_sliceRotationMatrix(sliceRotationMatrix)
             initializeModeVolumeViewFixedCamera();
             break;
         case ViewType::ALL_VIEW_SLICES:
+            CaretAssertMessage(0, "This mode does not work for ALL view but Fixed Camera mode does.");
             initializeModeAllViewSlices();
             break;
     }

@@ -1266,12 +1266,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
         case BrainModelMode::INVALID:
             break;
         case BrainModelMode::ALL_3D:
-        {
-            Matrix4x4 mat(mprSliceView.getTransformationMatrix());
-            float m16[16];
-            mat.getMatrixForOpenGL(m16);
-            glMultMatrixf(m16);
-        }
             break;
         case BrainModelMode::VOLUME_2D:
             /*
@@ -1508,18 +1502,7 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
     
-    VolumeMprVirtualSliceView::ViewType viewType(VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView());
-    switch (m_brainModelMode) {
-        case BrainModelMode::INVALID:
-            CaretAssert(0);
-            break;
-        case BrainModelMode::ALL_3D:
-            viewType = VolumeMprVirtualSliceView::getViewTypeForAllView();
-            break;
-        case BrainModelMode::VOLUME_2D:
-            viewType = VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView();
-            break;
-    }
+    const VolumeMprVirtualSliceView::ViewType viewType(VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView());
     
     /*
      * Compute the normal vector for each slice
@@ -1551,20 +1534,7 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                      m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::PARASAGITTAL));
     m_parasagittalSliceNormalVector = paraMprSliceView.getVirtualPlane().getNormalVector();
 
-    Matrix4x4 sliceRotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
-    switch (m_brainModelMode) {
-        case BrainModelMode::INVALID:
-            CaretAssert(0);
-            break;
-        case BrainModelMode::ALL_3D:
-            /*
-             * Use the overall rotation for the 3D slice view
-             */
-            sliceRotationMatrix = m_browserTabContent->getMprThreeRotationMatrix();
-            break;
-        case BrainModelMode::VOLUME_2D:
-            break;
-    }
+    const Matrix4x4 sliceRotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
     
     /*
      * Info for slice that is being drawn
