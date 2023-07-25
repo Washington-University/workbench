@@ -193,7 +193,6 @@ namespace caret {
                             const GraphicsViewport& viewport);
         
         void drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
-                                   const VolumeMprVirtualSliceView& mprSliceView,
                                    const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                    const Vector3D& sliceCoordinates,
                                    const GraphicsViewport& viewport);

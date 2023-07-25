@@ -856,7 +856,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInt
     BoundingBox boundingBox;
     underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
     const double maxCoord = boundingBox.getMaximumDifferenceOfXYZ() * marginPercent;
-    const double minCoord = -maxCoord;
     
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
@@ -1663,8 +1662,6 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
  *
  * @param underlayVolume
  *    The underlay volume
- * @param mprSliceView
- *    The virtual slice info
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -1674,7 +1671,6 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
-                                                        const VolumeMprVirtualSliceView& mprSliceView,
                                                         const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                         const Vector3D& sliceCoordinates,
                                                         const GraphicsViewport& viewport)
@@ -1693,16 +1689,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
         if ( ! m_axialCoronalParaSliceViewFlag) {
             return;
         }
-    }
-    
-    bool radiologicalFlag(false);
-    switch (m_orientationMode) {
-        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
-            radiologicalFlag = false;
-            break;
-        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
-            radiologicalFlag = true;
-            break;
     }
     
     BoundingBox boundingBox;
@@ -1985,7 +1971,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* 
     const float vpMaxY(viewport.getTopF());
     
     drawPanningCrosshairs(underlayVolume,
-                          mprSliceView,
                           sliceViewPlane,
                           sliceCoordinates,
                           viewport);
