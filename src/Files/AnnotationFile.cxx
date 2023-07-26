@@ -68,13 +68,9 @@ using namespace caret;
  * Constructor for annotation file that saves annotations to a file.
  */
 AnnotationFile::AnnotationFile()
-: CaretDataFile(DataFileTypeEnum::ANNOTATION),
-EventListenerInterface(),
- DataFileContentCopyMoveInterface(),
- DisplayGroupAndTabItemInterface(),
-m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
+: AnnotationFile(DataFileTypeEnum::ANNOTATION,
+                 ANNOTATION_FILE_SAVE_TO_FILE)
 {
-    initializeAnnotationFile();
 }
 
 /**
@@ -88,9 +84,35 @@ m_fileSubType(ANNOTATION_FILE_SAVE_TO_FILE)
  *     Type of saving of annotations.
  */
 AnnotationFile::AnnotationFile(const AnnotationFileSubType fileSubType)
-: CaretDataFile(DataFileTypeEnum::ANNOTATION),
+: AnnotationFile(DataFileTypeEnum::ANNOTATION,
+                 fileSubType)
+{
+}
+
+/**
+ * Constructor for annotation file used by other constructors and subclasses.
+ * @param dataFileType
+ *    Type of data file
+ * @param fileSubType
+ *     Type of saving of annotations.
+ */
+AnnotationFile::AnnotationFile(const DataFileTypeEnum::Enum dataFileType,
+                               const AnnotationFileSubType fileSubType)
+: CaretDataFile(dataFileType),
+EventListenerInterface(),
+DataFileContentCopyMoveInterface(),
+DisplayGroupAndTabItemInterface(),
 m_fileSubType(fileSubType)
 {
+    switch (dataFileType) {
+        case DataFileTypeEnum::ANNOTATION:
+        case DataFileTypeEnum::SAMPLES:
+            break;
+        default:
+            CaretAssertMessage(0, "Data File Type is neither ANNOTATION nor SAMPLE");
+            break;
+    }
+    
     initializeAnnotationFile();
 }
 
@@ -136,6 +158,8 @@ AnnotationFile::clear()
         }
             break;
         case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
+            break;
+        case SAMPLES_FILE_SAVE_TO_FILE:
             break;
     }
 }
@@ -393,6 +417,8 @@ AnnotationFile::receiveEvent(Event* event)
              * No event processing for dummy file
              */
             return;
+            break;
+        case SAMPLES_FILE_SAVE_TO_FILE:
             break;
     }
     
@@ -1879,6 +1905,8 @@ AnnotationFile::saveFileDataToScene(const SceneAttributes* sceneAttributes,
             break;
         case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
             break;
+        case SAMPLES_FILE_SAVE_TO_FILE:
+            break;
     }
     
     /*
@@ -1936,6 +1964,8 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
         }
             break;
         case ANNOTATION_FILE_DUMMY_FOR_DRAWING:
+            break;
+        case SAMPLES_FILE_SAVE_TO_FILE:
             break;
     }
     

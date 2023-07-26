@@ -148,6 +148,7 @@ PixelLogicalIndex.h
 RectangleTransform.h
 RgbaFile.h
 RibbonMappingHelper.h
+SamplesFile.h
 SceneDataFileInfo.h
 SceneFile.h
 SceneFileXmlStreamBase.h
@@ -315,6 +316,7 @@ PixelLogicalIndex.cxx
 RectangleTransform.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx
+SamplesFile.cxx
 SceneDataFileInfo.cxx
 SceneFile.cxx
 SceneFileXmlStreamBase.cxx

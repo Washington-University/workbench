@@ -74,13 +74,24 @@ namespace caret {
              * some data types (color bars) are drawn as annotations
              * but are not in an annotation file
              */
-            ANNOTATION_FILE_DUMMY_FOR_DRAWING
+            ANNOTATION_FILE_DUMMY_FOR_DRAWING,
+            
+            /**
+             * Subclass of annotation file which saves its annotation
+             * to a file
+             */
+            SAMPLES_FILE_SAVE_TO_FILE
         };
         
         AnnotationFile();
         
         AnnotationFile(const AnnotationFileSubType fileSubType);
         
+    protected:
+        AnnotationFile(const DataFileTypeEnum::Enum dataFileType,
+                       const AnnotationFileSubType fileSubType);
+        
+    public:
         virtual ~AnnotationFile();
         
         AnnotationFile(const AnnotationFile& obj);

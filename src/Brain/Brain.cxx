@@ -121,6 +121,7 @@
 #include "PaletteGroupStandardPalettes.h"
 #include "PaletteGroupUserCustomPalettes.h"
 #include "RgbaFile.h"
+#include "SamplesFile.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -757,6 +758,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     
     m_fiberOrientationSamplesLoader->reset();
     
+    for (auto& sfi : m_samplesFiles) {
+        delete sfi;
+    }
+    m_samplesFiles.clear();
+    
     switch (keepSceneFiles) {
         case RESET_BRAIN_KEEP_SCENE_FILES_NO:
             for (std::vector<SceneFile*>::iterator sfi = m_sceneFiles.begin();
@@ -922,6 +928,9 @@ Brain::resetBrainKeepSceneFiles()
                 keepFileFlag = false;
                 break;
             case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SAMPLES:
+                keepFileFlag = false;
                 break;
             case DataFileTypeEnum::SCENE:
                 keepFileFlag = false;
@@ -4825,6 +4834,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                                                  true);
                 }
                     break;
+                case DataFileTypeEnum::SAMPLES:
+                {
+                    SamplesFile* file = dynamic_cast<SamplesFile*>(caretDataFile);
+                    CaretAssert(file);
+                    m_samplesFiles.push_back(file);
+                }
+                    break;
                 case DataFileTypeEnum::SCENE:
                 {
                     SceneFile* file = dynamic_cast<SceneFile*>(caretDataFile);
@@ -5114,6 +5130,117 @@ Brain::getImageFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_imageFiles, indx);
     return m_imageFiles[indx];
+}
+
+/**
+ * @return Number of samples files
+ */
+int32_t
+Brain::getNumberOfSamplesFiles() const
+{
+    return m_samplesFiles.size();
+}
+
+/**
+ * @return Samples file at the given index
+ * @param indx
+ *   Index of the samples file
+ */
+const SamplesFile*
+Brain::getSamplesFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(m_samplesFiles, indx);
+    return m_samplesFiles[indx];
+}
+
+/**
+ * @return Samples file at the given index
+ * @param indx
+ *   Index of the samples file
+ */
+SamplesFile*
+Brain::getSamplesFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(m_samplesFiles, indx);
+    return m_samplesFiles[indx];
+}
+
+/**
+ * @return All samples files
+ */
+std::vector<SamplesFile*>
+Brain::getAllSamplesFiles() const
+{
+    return m_samplesFiles;
+}
+
+/**
+ * Add, read, or reload a samples files
+ */
+SamplesFile*
+Brain::addReadOrReloadSamplesFile(const FileModeAddReadReload fileMode,
+                                  CaretDataFile* caretDataFile,
+                                  const AString& filename)
+{
+    SamplesFile* sf = NULL;
+    if (caretDataFile != NULL) {
+        sf = dynamic_cast<SamplesFile*>(caretDataFile);
+        CaretAssert(sf);
+    }
+    else {
+        sf = new SamplesFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                sf->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete sf;
+                sf = NULL;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_samplesFiles,
+                                      sf);
+        m_samplesFiles.push_back(sf);
+    }
+    
+    
+    return sf;
 }
 
 /**
@@ -5701,6 +5828,8 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::RGBA:
                 break;
+            case DataFileTypeEnum::SAMPLES:
+                break;
             case DataFileTypeEnum::SCENE:
                 break;
             case DataFileTypeEnum::SPECIFICATION:
@@ -6052,6 +6181,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                  dataFileName,
                                                  structure,
                                                  markDataFileAsModified);
+                break;
+            case DataFileTypeEnum::SAMPLES:
+                caretDataFileRead = addReadOrReloadSamplesFile(fileMode,
+                                                               caretDataFile,
+                                                               dataFileName);
                 break;
             case DataFileTypeEnum::SCENE:
                 caretDataFileRead  = addReadOrReloadSceneFile(fileMode,
@@ -7327,6 +7461,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityMatrixDenseFiles.begin(),
                            m_connectivityMatrixDenseFiles.end());
     
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_samplesFiles.begin(),
+                           m_samplesFiles.end());
+    
     /*
      * By placing the dynamic connectivity file immediately after
      * its parent data-series file, they will appear in this
@@ -7565,6 +7703,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::RGBA:
             break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
         case DataFileTypeEnum::SCENE:
         {
             /*
@@ -7662,6 +7802,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SAMPLES:
             break;
         case DataFileTypeEnum::SCENE:
             break;
@@ -7893,6 +8035,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
         if (m_paletteFile != NULL) {
             CaretLogSevere("Cannot remove PaletteFile at this time.");
         }
+    }
+    
+    std::vector<SamplesFile*>::iterator samplesIterator = std::find(m_samplesFiles.begin(),
+                                                                    m_samplesFiles.end(),
+                                                                    caretDataFile);
+    if (samplesIterator != m_samplesFiles.end()) {
+        m_samplesFiles.erase(samplesIterator);
+        return true;
     }
     
     std::vector<SceneFile*>::iterator sceneIterator = std::find(m_sceneFiles.begin(),

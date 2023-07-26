@@ -508,6 +508,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                numNodes, 
                                                                overlayRGBV);
                     break;
+                case DataFileTypeEnum::SAMPLES:
+                    break;
                 case DataFileTypeEnum::SCENE:
                     break;
                 case DataFileTypeEnum::SPECIFICATION:

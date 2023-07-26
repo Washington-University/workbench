@@ -1031,6 +1031,8 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
             break;
         case DataFileTypeEnum::RGBA:
             break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
         case DataFileTypeEnum::SCENE:
             break;
         case DataFileTypeEnum::SPECIFICATION:

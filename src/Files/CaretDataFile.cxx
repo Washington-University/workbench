@@ -128,6 +128,8 @@ SceneableInterface()
         case DataFileTypeEnum::RGBA:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
         case DataFileTypeEnum::SCENE:
             break;
         case DataFileTypeEnum::SPECIFICATION:

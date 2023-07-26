@@ -87,6 +87,8 @@ public:
         PALETTE,
         /** RGBA */
         RGBA,
+        /** Samples */
+        SAMPLES,
         /** Scene */
         SCENE,
         /** Specification */

@@ -105,6 +105,7 @@ namespace caret {
     class PaletteGroupStandardPalettes;
     class PaletteGroupUserCustomPalettes;
     class RgbaFile;
+    class SamplesFile;
     class SceneClassAssistant;
     class Scene;
     class SceneFile;
@@ -189,6 +190,14 @@ namespace caret {
         
         const PaletteFile* getPaletteFile() const;
 
+        int32_t getNumberOfSamplesFiles() const;
+        
+        const SamplesFile* getSamplesFile(const int32_t indx) const;
+        
+        SamplesFile* getSamplesFile(const int32_t indx);
+        
+        std::vector<SamplesFile*> getAllSamplesFiles() const;
+        
         int32_t getNumberOfSceneFiles() const;
         
         SceneFile* getSceneFileWithName(const AString& sceneFileName) const;
@@ -784,6 +793,10 @@ namespace caret {
                                      CaretDataFile* caretDataFile,
                                      const AString& filename);
         
+        SamplesFile* addReadOrReloadSamplesFile(const FileModeAddReadReload fileMode,
+                                                CaretDataFile* caretDataFile,
+                                                const AString& filename);
+
         SceneFile* addReadOrReloadSceneFile(const FileModeAddReadReload fileMode,
                                  CaretDataFile* caretDataFile,
                                  const AString& filename);
@@ -835,6 +848,8 @@ namespace caret {
         std::vector<FociFile*> m_fociFiles;
         
         std::vector<ImageFile*> m_imageFiles;
+        
+        std::vector<SamplesFile*> m_samplesFiles;
         
         std::vector<SceneFile*> m_sceneFiles;
         

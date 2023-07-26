@@ -346,7 +346,14 @@ DataFileTypeEnum::initialize()
                                         true,
                                         "rgba.gii"));
     
-    enumData.push_back(DataFileTypeEnum(SCENE, 
+    enumData.push_back(DataFileTypeEnum(SAMPLES,
+                                        "SAMPLES",
+                                        "Samples",
+                                        "SAMPLES",
+                                        false,
+                                        "wb_samples"));
+    
+    enumData.push_back(DataFileTypeEnum(SCENE,
                                         "SCENE", 
                                         "Scene",
                                         "SCENE",
@@ -845,6 +852,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::RGBA:
                 break;
+            case DataFileTypeEnum::SAMPLES:
+                break;
             case DataFileTypeEnum::SCENE:
                 break;
             case DataFileTypeEnum::SPECIFICATION:
@@ -1179,6 +1188,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SAMPLES:
                 break;
             case DataFileTypeEnum::SCENE:
                 break;

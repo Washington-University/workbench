@@ -1875,6 +1875,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
         case DataFileTypeEnum::RGBA:
             invalid = true;
             break;
+        case DataFileTypeEnum::SAMPLES:
+            invalid = true;
+            break;
         case DataFileTypeEnum::SCENE:
             invalid = true;
             break;

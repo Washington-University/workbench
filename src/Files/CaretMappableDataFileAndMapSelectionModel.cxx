@@ -178,6 +178,8 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::RGBA:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::SAMPLES:
+                break;
             case DataFileTypeEnum::SCENE:
                 break;
             case DataFileTypeEnum::SPECIFICATION:

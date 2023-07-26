@@ -52,6 +52,7 @@
 #include "MetricFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SamplesFile.h"
 #include "SceneFile.h"
 #include "SpecFile.h"
 #include "SurfaceFile.h"
@@ -384,6 +385,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::RGBA:
             caretDataFile = new RgbaFile();
+            break;
+        case DataFileTypeEnum::SAMPLES:
+            caretDataFile = new SamplesFile();
             break;
         case DataFileTypeEnum::SCENE:
             caretDataFile = new SceneFile();
