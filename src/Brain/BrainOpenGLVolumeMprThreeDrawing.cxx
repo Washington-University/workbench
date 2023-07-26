@@ -1631,29 +1631,30 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
 {
     /*
      * Note: There are three sections:
-     * (1) Starts at intersection (or edge of gap if there is a gap) to the
-     * midpoint of the line and is dragged to select slice indices for
+     * (1) First section is dragged to select slice indices for
      * other slice plane views.
-     * (2) Starts at mid point and extends halfway to the end point.  Is used
-     * to rotate only the current axis.
-     * (3) start halfway between mid point and end point and extends to
-     * the end point.  It rotates the transform.
+     * (2) Second section is used to rotate only the current axis.
+     * (3) Third section rotates the transform.
      */
-    const Vector3D startToEndXYZ(endXYZ - startXYZ);
-    const Vector3D midXYZ(startXYZ + (startToEndXYZ * 0.5));
-    const Vector3D midTwoXYZ(startXYZ + (startToEndXYZ * 0.75));
-    
+    const Vector3D totalLength(endXYZ - startXYZ);
+    const Vector3D sliceStartXYZ(startXYZ);
+    const Vector3D sliceEndXYZ(startXYZ + (totalLength * 0.40));
+    const Vector3D rotateSliceStartXYZ(startXYZ + (totalLength * 0.45));
+    const Vector3D rotateSliceEndXYZ(startXYZ + (totalLength * 0.70));
+    const Vector3D rotateTransformStartXYZ(startXYZ + (totalLength * 0.75));
+    const Vector3D rotateTransformEndXYZ(endXYZ);
+
     sliceSelectionIndices.push_back(sliceSelectionAxisID);
-    primitiveSliceSelectionCrosshair->addVertex(startXYZ, rgba.data());
-    primitiveSliceSelectionCrosshair->addVertex(midXYZ, rgba.data());
+    primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
+    primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
     
     rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
-    primitiveRotateSliceCrosshair->addVertex(midXYZ, rgba.data());
-    primitiveRotateSliceCrosshair->addVertex(midTwoXYZ, rgba.data());
+    primitiveRotateSliceCrosshair->addVertex(rotateSliceStartXYZ, rgba.data());
+    primitiveRotateSliceCrosshair->addVertex(rotateSliceEndXYZ, rgba.data());
     
     rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
-    primitiveRotateTransformCrosshair->addVertex(midTwoXYZ, rgba.data());
-    primitiveRotateTransformCrosshair->addVertex(endXYZ, rgba.data());
+    primitiveRotateTransformCrosshair->addVertex(rotateTransformStartXYZ, rgba.data());
+    primitiveRotateTransformCrosshair->addVertex(rotateTransformEndXYZ, rgba.data());
 }
 
 
