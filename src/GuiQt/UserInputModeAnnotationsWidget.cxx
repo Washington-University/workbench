@@ -178,25 +178,39 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 void
 UserInputModeAnnotationsWidget::createSamplesEditingWidget()
 {
-//    m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
-//                                                              m_browserWindowIndex);
-        
+    m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                             AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                             m_browserWindowIndex);
+    m_coordinatesWidget        = new AnnotationCoordinatesWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                 AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                                 m_browserWindowIndex);
+    m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                 m_browserWindowIndex);
+    
+    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
+
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
-
-    QVBoxLayout* formatRedoLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(formatRedoLayout, 2, 0);
-//    formatRedoLayout->addWidget(m_formatWidget);
-    formatRedoLayout->addSpacing(12);
-    formatRedoLayout->addWidget(m_redoUndoWidget);
-    formatRedoLayout->addStretch();
     
+    QVBoxLayout* deleteUndoRedoLayout = new QVBoxLayout();
+    WuQtUtilities::setLayoutSpacingAndMargins(deleteUndoRedoLayout, 2, 0);
+    deleteUndoRedoLayout->addWidget(m_redoUndoWidget);
+    deleteUndoRedoLayout->addSpacing(4);
+    deleteUndoRedoLayout->addWidget(m_deleteWidget, 0, Qt::AlignHCenter);
+    deleteUndoRedoLayout->addStretch();
+
+
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(8);
+    layout->addWidget(m_colorWidget);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addLayout(formatRedoLayout);
+    layout->addWidget(m_coordinatesWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addWidget(m_insertNewWidget);
+    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    layout->addLayout(deleteUndoRedoLayout);
     layout->addStretch();
 }
 
@@ -310,7 +324,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                             m_browserWindowIndex);
     
-    m_colorWidget                = new AnnotationColorWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+    m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                             AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
     
     m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
@@ -335,7 +350,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_formatWidget               = new AnnotationFormatWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
     
-    m_insertNewWidget            = new AnnotationInsertNewWidget(m_browserWindowIndex);
+    m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                 m_browserWindowIndex);
     
     m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
     

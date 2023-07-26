@@ -2514,8 +2514,8 @@ BrainBrowserWindowToolBar::createModeWidget()
                                                              + "Mode::EditSamples");
     
     /* DISABLED */
-    this->modeInputModeSamplesEditRadioButton->setEnabled(false);
-    this->modeInputModeSamplesEditRadioButton->setVisible(false);
+//    this->modeInputModeSamplesEditRadioButton->setEnabled(false);
+//    this->modeInputModeSamplesEditRadioButton->setVisible(false);
     
     /*
      * Tile tabs manual layout editing

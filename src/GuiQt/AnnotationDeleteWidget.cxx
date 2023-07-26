@@ -64,7 +64,7 @@ m_browserWindowIndex(browserWindowIndex)
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(deleteLabel);
-    layout->addWidget(m_deleteToolButton);
+    layout->addWidget(m_deleteToolButton, 0, Qt::AlignHCenter);
     layout->addStretch();
     
     setSizePolicy(QSizePolicy::Fixed,

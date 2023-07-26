@@ -26,6 +26,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "UserInputModeEnum.h"
 
 class QAbstractButton;
 class QActionGroup;
@@ -40,7 +41,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationInsertNewWidget(const int32_t browserWindowIndex,
+        AnnotationInsertNewWidget(const UserInputModeEnum::Enum userInputMode,
+                                  const int32_t browserWindowIndex,
                                   QWidget* parent = 0);
         
         virtual ~AnnotationInsertNewWidget();
@@ -75,6 +77,8 @@ namespace caret {
         QToolButton* createFileSelectionToolButton();
         
         void enableDisableSpaceActions();
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

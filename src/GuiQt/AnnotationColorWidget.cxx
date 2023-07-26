@@ -60,19 +60,51 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *    The input mode
+ * @param parentWidgetType
+ *   Type of parent widget
+ * @param browserWindowIndex
+ *    Index of browser window
  * @param parent
+
  *     Parent for this widget.
  */
-AnnotationColorWidget::AnnotationColorWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+AnnotationColorWidget::AnnotationColorWidget(const UserInputModeEnum::Enum userInputMode,
+                                             const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                              const int32_t browserWindowIndex,
                                              QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_parentWidgetType(parentWidgetType),
 m_browserWindowIndex(browserWindowIndex)
 {
+    bool showFillFlag = true;
+    switch (userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            showFillFlag = true;
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            showFillFlag = false;
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
     
-    QLabel* backFillLabel      = new QLabel("Fill");
-    QLabel* backFillColorLabel = new QLabel("Color");
+    QLabel* backFillLabel(new QLabel("Fill"));
+    QLabel* backFillColorLabel(new QLabel("Color"));
     QLabel* foreLineLabel      = new QLabel("Line");
     QLabel* foreLineColorLabel = new QLabel("Color");
     
@@ -109,7 +141,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_backgroundColorWidgetGroup->add(backFillLabel);
     m_backgroundColorWidgetGroup->add(backFillColorLabel);
     m_backgroundColorWidgetGroup->add(m_backgroundToolButton);
-    
+
     /*
      * Line color menu
      */
@@ -185,15 +217,22 @@ m_browserWindowIndex(browserWindowIndex)
             gridLayout->addWidget(m_lineToolButton,
                                   2, 1,
                                   Qt::AlignHCenter);
-            gridLayout->addWidget(backFillLabel,
-                                  0, 2,
-                                  Qt::AlignHCenter);
-            gridLayout->addWidget(backFillColorLabel,
-                                  1, 2,
-                                  Qt::AlignHCenter);
-            gridLayout->addWidget(m_backgroundToolButton,
-                                  2, 2,
-                                  Qt::AlignHCenter);
+            if (showFillFlag) {
+                gridLayout->addWidget(backFillLabel,
+                                      0, 2,
+                                      Qt::AlignHCenter);
+                gridLayout->addWidget(backFillColorLabel,
+                                      1, 2,
+                                      Qt::AlignHCenter);
+                gridLayout->addWidget(m_backgroundToolButton,
+                                      2, 2,
+                                      Qt::AlignHCenter);
+            }
+            else {
+                backFillLabel->setHidden(true);
+                backFillColorLabel->setHidden(true);
+                m_backgroundToolButton->setHidden(true);
+            }
         }
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:

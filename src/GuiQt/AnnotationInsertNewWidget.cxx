@@ -53,6 +53,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "Model.h"
+#include "UserInputModeEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -72,15 +73,18 @@ static bool polyClickAndDragDrawingFlag(true);
 
 /**
  * Constructor.
- *
+ * @param userInputMode
+ *    The user input mode
  * @param browserWindowIndex
  *     Index of the browser window.
  * @param parent
  *     Parent of this widget.
  */
-AnnotationInsertNewWidget::AnnotationInsertNewWidget(const int32_t browserWindowIndex,
+AnnotationInsertNewWidget::AnnotationInsertNewWidget(const UserInputModeEnum::Enum userInputMode,
+                                                     const int32_t browserWindowIndex,
                                                      QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     /*

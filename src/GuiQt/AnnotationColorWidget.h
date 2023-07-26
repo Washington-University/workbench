@@ -26,6 +26,7 @@
 
 #include "AnnotationWidgetParentEnum.h"
 #include "CaretColorEnum.h"
+#include "UserInputModeEnum.h"
 
 class QAction;
 class QDoubleSpinBox;
@@ -42,7 +43,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationColorWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+        AnnotationColorWidget(const UserInputModeEnum::Enum userInputMode,
+                              const AnnotationWidgetParentEnum::Enum parentWidgetType,
                               const int32_t browserWindowIndex,
                               QWidget* parent = 0);
         
@@ -79,6 +81,8 @@ namespace caret {
                                                  const CaretColorEnum::Enum colorOne,
                                                  const CaretColorEnum::Enum colorTwo,
                                                  const std::vector<Annotation*>& annotations);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
         

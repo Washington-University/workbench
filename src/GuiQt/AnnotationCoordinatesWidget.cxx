@@ -143,7 +143,9 @@ m_browserWindowIndex(browserWindowIndex)
     coordinateLayout->addWidget(m_zCoordLabel, 0, 4);
     coordinateLayout->addWidget(m_zCoordSpinBox[0], 0, 5);
     coordinateLayout->addWidget(m_zCoordSpinBox[1], 1, 5);
-    coordinateLayout->setColumnStretch(coordinateLayout->columnCount(), 100);
+    if (m_userInputMode == UserInputModeEnum::Enum::ANNOTATIONS) {
+        coordinateLayout->setColumnStretch(coordinateLayout->columnCount(), 100);
+    }
 
     m_stackedLayout = new QStackedLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(m_stackedLayout, 2, 2);
@@ -219,10 +221,18 @@ AnnotationCoordinatesWidget::createCoordinateWidgets(const int32_t coordinateInd
     
     m_zCoordSpinBox[coordinateIndex] = createCoordinateSpinBox(coordinateIndex, "Z", 2);
     
-    const float spinBoxMaximumWidth = 80.0f;
-    m_xCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
-    m_yCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
-    m_zCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+    if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        const int32_t spinBoxWidth(90);
+        m_xCoordSpinBox[coordinateIndex]->setFixedWidth(spinBoxWidth);
+        m_yCoordSpinBox[coordinateIndex]->setFixedWidth(spinBoxWidth);
+        m_zCoordSpinBox[coordinateIndex]->setFixedWidth(spinBoxWidth);
+    }
+    else {
+        const float spinBoxMaximumWidth = 80.0f;
+        m_xCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+        m_yCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+        m_zCoordSpinBox[coordinateIndex]->setMaximumWidth(spinBoxMaximumWidth);
+    }
     
     if (coordinateIndex == 0) {
         m_surfaceOffsetVectorTypeComboBox = new EnumComboBoxTemplate(this);
