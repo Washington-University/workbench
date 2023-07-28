@@ -665,7 +665,7 @@ SceneFile::readFile(const AString& filenameIn)
     clear();
     
     AString filename = filenameIn;
-    if (DataFile::isFileOnNetwork(filename) == false) {
+    if ( ! DataFile::isFileOnNetwork(filename)) {
         FileInformation specInfo(filename);
         filename = specInfo.getAbsoluteFilePath();
     }
@@ -703,7 +703,7 @@ SceneFile::readFileStreamReader(const AString& filenameIn)
     clear();
     
     AString filename = filenameIn;
-    if (DataFile::isFileOnNetwork(filename) == false) {
+    if ( ! DataFile::isFileOnNetwork(filename)) {
         FileInformation specInfo(filename);
         filename = specInfo.getAbsoluteFilePath();
     }
@@ -731,17 +731,22 @@ SceneFile::readFileStreamReader(const AString& filenameIn)
 
 /**
  * Write the scene file.
- * @param filename
+ * @param filenameIn
  *    Name of scene file.
  * @throws DataFileException
  *    If there is an error writing the file.
  */
 void 
-SceneFile::writeFile(const AString& filename)
+SceneFile::writeFile(const AString& filenameIn)
 {
-    if (!(filename.endsWith(".scene") || filename.endsWith(".wb_scene")))
+    if (!(filenameIn.endsWith(".scene") || filenameIn.endsWith(".wb_scene")))
     {
-        CaretLogWarning("scene file '" + filename + "' should be saved ending in .scene");
+        CaretLogWarning("scene file '" + filenameIn + "' should be saved ending in .scene");
+    }
+    AString filename(filenameIn);
+    if ( ! DataFile::isFileOnNetwork(filename)) {
+        FileInformation specInfo(filename);
+        filename = specInfo.getAbsoluteFilePath();
     }
     checkFileWritability(filename);
     
