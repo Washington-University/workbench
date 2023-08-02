@@ -30,6 +30,8 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
+class QDoubleSpinBox;
+class QSpinBox;
 class QTextEdit;
 
 namespace caret {
@@ -37,19 +39,22 @@ namespace caret {
     class AnnotationFile;
     class BrowserTabContent;
     class MouseEvent;
-    
+    class SelectionItemVoxel;
+
     class AnnotationCreateDialog : public WuQDialogModal {
         
         Q_OBJECT
 
     public:
         static Annotation* newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
+                                                         const SelectionItemVoxel* selectionItemVoxel,
                                                          const std::vector<Vector3D>& drawingCoordinates,
                                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                          const AnnotationTypeEnum::Enum annotationType,
                                                          AnnotationFile* annotationFile);
         
         static Annotation* newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
+                                                               const SelectionItemVoxel* selectionItemVoxel,
                                                                const std::vector<Vector3D>& drawingCoordinates,
                                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                const AnnotationTypeEnum::Enum annotationType,
@@ -78,6 +83,7 @@ namespace caret {
         class NewAnnotationInfo {
         public:
             NewAnnotationInfo(const MouseEvent& mouseEvent,
+                              const SelectionItemVoxel* selectionItemVoxel,
                               const std::vector<Vector3D>& drawingCoordinates,
                               const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
                               const AnnotationTypeEnum::Enum annotationType,
@@ -96,6 +102,8 @@ namespace caret {
                                                  float& heightOut);
             
             const MouseEvent& m_mouseEvent;
+            
+            const SelectionItemVoxel* m_selectionItemVoxel;
             
             AnnotationCoordinateSpaceEnum::Enum m_selectedSpace;
             
@@ -121,6 +129,7 @@ namespace caret {
         
         static Annotation* newAnnotationFromSpaceTypeAndCoords(const Mode mode,
                                                                const MouseEvent& mouseEvent,
+                                                               const SelectionItemVoxel* selectionItemVoxel,
                                                                const std::vector<Vector3D>& drawingCoordinates,
                                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                const AnnotationTypeEnum::Enum annotationType,
@@ -140,6 +149,8 @@ namespace caret {
         
         QWidget* createImageWidget();
         
+        QWidget* createPolyhedronWidget();
+        
         void invalidateImage();
         
         static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
@@ -157,21 +168,27 @@ namespace caret {
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;
         
-        Annotation* m_annotationThatWasCreated;
+        Annotation* m_annotationThatWasCreated = NULL;
         
-        QButtonGroup* m_annotationSpaceButtonGroup;
+        QButtonGroup* m_annotationSpaceButtonGroup = NULL;
         
-        QTextEdit* m_textEdit;
+        QTextEdit* m_textEdit = NULL;
         
-        QLabel* m_imageFileNameLabel;
+        QLabel* m_imageFileNameLabel = NULL;
         
-        QLabel* m_imageThumbnailLabel;
+        QLabel* m_imageThumbnailLabel = NULL;
         
         std::vector<uint8_t> m_imageRgbaBytes;
         int32_t m_imageWidth;
         int32_t m_imageHeight;
         
+        QSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
+        
+        QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
+        
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
+        
+        static int32_t s_previousPolyhedronDepthValue;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -179,6 +196,7 @@ namespace caret {
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
+    int32_t AnnotationCreateDialog::s_previousPolyhedronDepthValue = 5;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

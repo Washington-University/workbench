@@ -863,7 +863,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewProjection(const AllSliceViewM
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,
                                                                                         sliceThickness);
-    
+    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceSamplesOnVolumeSlice(&inputs,
+                                                                                    slicePlane,
+                                                                                    sliceThickness);
+
     m_fixedPipelineDrawing->disableClippingPlanes();
     
     bool drawSelectionBoxFlag(false);
@@ -3932,14 +3935,16 @@ BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnde
                 /* do not replace the identified voxel */
             }
             else if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                vf,
-                                                voxelIndices,
-                                                depth);
-                
                 float voxelCoordinates[3];
                 vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                  voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                voxelCoordinates,
+                                                Plane(),
+                                                depth);
+                
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                  voxelCoordinates);
@@ -3951,15 +3956,17 @@ BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnde
         if (voxelEditID->isEnabledForSelection()) {
             if (voxelEditID->getVolumeFileForEditing() == vf) {
                 if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
-                    voxelEditID->setVoxelIdentification(m_brain,
-                                                        vf,
-                                                        voxelIndices,
-                                                        depth);
-                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                    
                     float voxelCoordinates[3];
                     vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                      voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                    voxelEditID->setVoxelIdentification(m_brain,
+                                                        vf,
+                                                        voxelIndices,
+                                                        voxelCoordinates,
+                                                        Plane(),
+                                                        depth);
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                    
                     
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                      voxelCoordinates);

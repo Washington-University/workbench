@@ -25,6 +25,7 @@
 #include <QMenu>
 
 #include "AString.h"
+#include "UserInputModeEnum.h"
 
 namespace caret {
 
@@ -35,7 +36,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationMenuFileSelection(QWidget* parent = 0);
+        AnnotationMenuFileSelection(const UserInputModeEnum::Enum userInputMode,
+                                    QWidget* parent = 0);
         
         virtual ~AnnotationMenuFileSelection();
 
@@ -60,11 +62,21 @@ namespace caret {
             ACTION_ID_FIRST_DISK_FILE = 0
         };
         
+        enum class FileMode {
+            INVALID,
+            ANNOTATIONS,
+            SAMPLES
+        };
+        
         AnnotationMenuFileSelection(const AnnotationMenuFileSelection&);
 
         AnnotationMenuFileSelection& operator=(const AnnotationMenuFileSelection&);
         
         void chooseDiskFile();
+        
+        const UserInputModeEnum::Enum m_userInputMode;
+        
+        FileMode m_fileMode = FileMode::INVALID;
         
         std::vector<AnnotationFile*> m_annotationDiskFiles;
         

@@ -50,11 +50,13 @@ AnnotationGroupingModeEnum.h
 AnnotationImage.h
 AnnotationLine.h
 AnnotationMultiCoordinateShape.h
+AnnotationMultiPairedCoordinateShape.h
 AnnotationOneCoordinateShape.h
 AnnotationOval.h
 AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationPolygon.h
+AnnotationPolyhedron.h
 AnnotationPolyLine.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
@@ -107,11 +109,13 @@ AnnotationGroupingModeEnum.cxx
 AnnotationImage.cxx
 AnnotationLine.cxx
 AnnotationMultiCoordinateShape.cxx
+AnnotationMultiPairedCoordinateShape.cxx
 AnnotationOneCoordinateShape.cxx
 AnnotationOval.cxx
 AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
 AnnotationPolygon.cxx
+AnnotationPolyhedron.cxx
 AnnotationPolyLine.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx

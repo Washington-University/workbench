@@ -175,6 +175,8 @@ namespace caret {
         
         static const QString ELEMENT_POINT_SIZE_TEXT;
         
+        static const QString ELEMENT_POLYHEDRON;
+
         static const QString ELEMENT_POLYGON;
         
         static const QString ELEMENT_POLY_LINE;
@@ -312,6 +314,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_PERCENT_WIDTH_SIZE_TEXT = "percentWidthSizeText";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POINT_SIZE_TEXT = "pointSizeText";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_POLYHEDRON = "polyhedron";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POLYGON = "polygon";
     

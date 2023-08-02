@@ -188,6 +188,9 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
             case AnnotationTypeEnum::OVAL:
                 validateFlag = true;
                 break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                validateFlag = true;
+                break;
             case AnnotationTypeEnum::POLYGON:
                 validateFlag = true;
                 break;

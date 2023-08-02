@@ -166,6 +166,8 @@ AnnotationDeleteWidget::deleteActionTriggered()
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    break;
                 case AnnotationTypeEnum::POLYGON:
                     break;
                 case AnnotationTypeEnum::POLYLINE:

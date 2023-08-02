@@ -4971,14 +4971,15 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             };
             
             if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                vf,
-                                                voxelIndices,
-                                                depth);
-                
                 float voxelCoordinates[3];
                 vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                  voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                voxelCoordinates,
+                                                Plane(),
+                                                depth);
                 
                 this->setSelectedItemScreenXYZ(voxelID,
                                                voxelCoordinates);
@@ -5641,15 +5642,16 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
             };
             
             if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                vf,
-                                                voxelIndices,
-                                                depth);
-                
                 float voxelCoordinates[3];
                 vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                  voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
-                
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                voxelCoordinates,
+                                                Plane(),
+                                                depth);
+                                
                 this->setSelectedItemScreenXYZ(voxelID,
                                                voxelCoordinates);
                 CaretLogFine("Selected Voxel (3D): " + AString::fromNumbers(voxelIndices, 3, ","));

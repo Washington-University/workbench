@@ -24,9 +24,11 @@
 #undef __ANNOTATION_CREATE_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QRadioButton>
+#include <QSpinBox>
 #include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -38,6 +40,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -57,8 +60,10 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "ModelVolume.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
+#include "SelectionItemVoxel.h"
 #include "WuQtUtilities.h"
 #include "WuQMessageBox.h"
 
@@ -79,6 +84,8 @@ using namespace caret;
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ * @param selectionItemVoxel
+ *     Voxel selection info
  * @param drawingCoordinates
  *     Coordinates of annotation that was drawn
  * @param annotationSpace
@@ -93,6 +100,7 @@ using namespace caret;
  */
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
+                                                      const SelectionItemVoxel* selectionItemVoxel,
                                                       const std::vector<Vector3D>& drawingCoordinates,
                                                       const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                       const AnnotationTypeEnum::Enum annotationType,
@@ -100,6 +108,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
 {
     Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(MODE_NEW_ANNOTATION_TYPE_CLICK,
                                                                     mouseEvent,
+                                                                    selectionItemVoxel,
                                                                     drawingCoordinates,
                                                                     annotationSpace,
                                                                     annotationType,
@@ -115,6 +124,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
  *
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
+ * @param selectionItemVoxel
+ *     Voxel selection info
  * @param drawingCoordinates
  *     Coordinates of annotation that was drawn
  * @param annotationSpace
@@ -129,6 +140,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceAndType(const MouseEvent& mouseEve
  */
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
+                                                            const SelectionItemVoxel* selectionItemVoxel,
                                                             const std::vector<Vector3D>& drawingCoordinates,
                                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                             const AnnotationTypeEnum::Enum annotationType,
@@ -136,6 +148,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
 {
     Annotation* newAnnotation = newAnnotationFromSpaceTypeAndCoords(MODE_NEW_ANNOTATION_TYPE_FROM_BOUNDS,
                                                                      mouseEvent,
+                                                                    selectionItemVoxel,
                                                                     drawingCoordinates,
                                                                      annotationSpace,
                                                                      annotationType,
@@ -152,7 +165,9 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
  *     The mode.
  * @param mouseEvent
  *     The mouse event indicating where user clicked in the window
- *@param drawingCoordinates
+ * @param selectionItemVoxel
+ *     Voxel selection info
+ * @param drawingCoordinates
  *     Coordinates of annotation that was drawn
  * @param annotationSpace
  *      Space of annotation being created.
@@ -171,6 +186,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mo
 Annotation*
 AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
                                                             const MouseEvent& mouseEvent,
+                                                            const SelectionItemVoxel* selectionItemVoxel,
                                                             const std::vector<Vector3D>& drawingCoordinates,
                                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpaceIn,
                                                             const AnnotationTypeEnum::Enum annotationType,
@@ -186,6 +202,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
     }
     
     NewAnnotationInfo newInfo(mouseEvent,
+                              selectionItemVoxel,
                               drawingCoordinates,
                               annotationSpaceIn,
                               annotationType,
@@ -199,7 +216,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
         return NULL;
     }
     
-    bool needImageOrTextFlag = false;
+    bool annotationNeedsDialogFlag = false;
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
             break;
@@ -210,11 +227,14 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             CaretAssertMessage(0, "Color bars do not get created !!!");
             break;
         case AnnotationTypeEnum::IMAGE:
-            needImageOrTextFlag = true;
+            annotationNeedsDialogFlag = true;
             break;
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            annotationNeedsDialogFlag = true;
             break;
         case AnnotationTypeEnum::POLYGON:
             break;
@@ -224,13 +244,13 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             CaretAssertMessage(0, "Scale bars do not get created !!!");
             break;
         case AnnotationTypeEnum::TEXT:
-            needImageOrTextFlag = true;
+            annotationNeedsDialogFlag = true;
             break;
     }
     
     bool needToLaunchDialogFlag = false;
     if (newInfo.isSelectedSpaceValid()) {
-        if (needImageOrTextFlag) {
+        if (annotationNeedsDialogFlag) {
             needToLaunchDialogFlag = true;
         }
         else {
@@ -407,6 +427,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    break;
                 case AnnotationTypeEnum::POLYGON:
                     break;
                 case AnnotationTypeEnum::POLYLINE:
@@ -447,6 +469,8 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 break;
             case AnnotationTypeEnum::OVAL:
                 break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                break;
             case AnnotationTypeEnum::POLYGON:
                 if (annotationSpace == AnnotationCoordinateSpaceEnum::CHART) {
                     if ( ! newAnnotationInfo.m_coordMultiInfo.empty()) {
@@ -472,7 +496,6 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                                  tabIndex);
         return newAnnotation;
     }
-    
     else {
         CaretAssertMessage(0, "Space should have been valid, we should never get here.");
         delete newAnnotation;
@@ -546,6 +569,10 @@ m_imageHeight(0)
                             ? createImageWidget()
                             : NULL);
     
+    QWidget* polyedronWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
+                                ? createPolyhedronWidget()
+                                : NULL);
+    
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
     
@@ -578,6 +605,10 @@ m_imageHeight(0)
         layout->addWidget(imageWidget);
     }
 
+    if (polyedronWidget != NULL) {
+        layout->addWidget(polyedronWidget);
+    }
+    
     dialogWidget->setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
                                 QSizePolicy::Fixed);
     
@@ -620,6 +651,34 @@ AnnotationCreateDialog::createTextWidget()
     QHBoxLayout* layout = new QHBoxLayout(groupBox);
     layout->addWidget(m_textEdit, 100);
     
+    return groupBox;
+}
+
+/**
+ * @return New instance of polyhedron widget.
+ */
+QWidget*
+AnnotationCreateDialog::createPolyhedronWidget()
+{
+    m_polyhedronSliceIndexDepthSpinBox = new QSpinBox();
+    m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000);
+    m_polyhedronSliceIndexDepthSpinBox->setMinimum(-m_polyhedronSliceIndexDepthSpinBox->maximum());
+    m_polyhedronSliceIndexDepthSpinBox->setSingleStep(1);
+    m_polyhedronSliceIndexDepthSpinBox->setValue(s_previousPolyhedronDepthValue);
+    
+    m_polyhedronSliceMillimetersDepthSpinBox = new QDoubleSpinBox();
+    m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
+    m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
+    m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
+    m_polyhedronSliceMillimetersDepthSpinBox->setValue(5.0);
+    
+    QGroupBox* groupBox = new QGroupBox("Polyhedron Depth");
+    QGridLayout* layout = new QGridLayout(groupBox);
+    layout->addWidget(new QLabel("Slices"), 0, 0);
+    layout->addWidget(m_polyhedronSliceIndexDepthSpinBox, 0, 1);
+    layout->addWidget(new QLabel("Millimeters"), 1, 0);
+    layout->addWidget(m_polyhedronSliceMillimetersDepthSpinBox, 1, 1);
+
     return groupBox;
 }
 
@@ -760,6 +819,7 @@ AnnotationCreateDialog::okButtonClicked()
     
     QString userText;
     if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::TEXT) {
+        CaretAssert(m_textEdit);
         userText = m_textEdit->toPlainText();
         if (userText.isEmpty()) {
             errorMessage.appendWithNewLine("Text is missing.");
@@ -772,6 +832,15 @@ AnnotationCreateDialog::okButtonClicked()
             || (m_imageHeight <= 0)
             || (m_imageRgbaBytes.empty())) {
             errorMessage = "Image File is invalid.  Choose Image File.";
+        }
+    }
+    
+    float polyhedronDepthMM(0);
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
+        CaretAssert(m_polyhedronSliceMillimetersDepthSpinBox);
+        polyhedronDepthMM = m_polyhedronSliceMillimetersDepthSpinBox->value();
+        if (polyhedronDepthMM == 0.0) {
+            errorMessage = "Polyhedron depht must not be zero.";
         }
     }
     
@@ -821,6 +890,39 @@ AnnotationCreateDialog::okButtonClicked()
         annImage->setImageBytesRGBA(&m_imageRgbaBytes[0],
                                     m_imageWidth,
                                     m_imageHeight);
+    }
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
+        
+        VolumeMappableInterface* underlayVolume;
+        const MouseEvent& mouseEvent(m_newAnnotationInfo.m_mouseEvent);
+        BrowserTabContent* btc(mouseEvent.getViewportContent()->getBrowserTabContent());
+        CaretAssert(btc);
+        ModelVolume* mv(btc->getDisplayedVolumeModel());
+        if (mv != NULL) {
+            underlayVolume = mv->getUnderlayVolumeFile(btc->getTabNumber());
+            if (underlayVolume == NULL) {
+                WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                       "Polyhedron requires an underlay volume");
+                return;
+            }
+        }
+        else {
+            WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                   "Polyhedron must be drawn on volume slices");
+            return;
+        }
+        
+        AnnotationPolyhedron* polyhedron(annotation.getPointer()->castToPolyhedron());
+        CaretAssert(polyhedron);
+        AString message;
+        CaretAssert(m_newAnnotationInfo.m_selectionItemVoxel);
+        if ( ! polyhedron->finishNewPolyhedron(m_newAnnotationInfo.m_selectionItemVoxel->getPlane(),
+                                               polyhedronDepthMM,
+                                               message)) {
+            WuQMessageBox::errorOk(this,
+                                   message);
+            return;
+        }
     }
 
     /*
@@ -882,6 +984,8 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            break;
         case AnnotationTypeEnum::POLYGON:
             break;
         case AnnotationTypeEnum::POLYLINE:
@@ -922,6 +1026,8 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
  *
  * @param mouseEvent
  *     The mouse event.
+ * @param selectionItemVoxel
+ *     Voxel selection info
  * @param drawingCoordinates
  *     Coordinates of annotation that was drawn
  * @param selectedSpace
@@ -934,12 +1040,14 @@ AnnotationCreateDialog::finishAnnotationCreation(AnnotationFile* annotationFile,
  *     File to which annotation is added.
  */
 AnnotationCreateDialog::NewAnnotationInfo::NewAnnotationInfo(const MouseEvent& mouseEvent,
+                                                             const SelectionItemVoxel* selectionItemVoxel,
                                                              const std::vector<Vector3D>& drawingCoordinates,
                                                              const AnnotationCoordinateSpaceEnum::Enum selectedSpace,
                                                              const AnnotationTypeEnum::Enum annotationType,
                                                              const bool useBothCoordinatesFromMouseFlag,
                                                              AnnotationFile* annotationFile)
 : m_mouseEvent(mouseEvent),
+m_selectionItemVoxel(selectionItemVoxel),
 m_selectedSpace(selectedSpace),
 m_annotationType(annotationType),
 m_annotationFile(annotationFile)
@@ -955,6 +1063,7 @@ m_annotationFile(annotationFile)
     m_percentageHeight = -1;
     
     bool multiCoordAnnFlag(false);
+    bool multiPairedCoordAnnFlag(false);
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
             break;
@@ -968,6 +1077,9 @@ m_annotationFile(annotationFile)
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            multiPairedCoordAnnFlag = true;
+            break;
         case AnnotationTypeEnum::POLYGON:
             multiCoordAnnFlag = true;
             break;
@@ -980,7 +1092,38 @@ m_annotationFile(annotationFile)
             break;
     }
     
-    if (multiCoordAnnFlag) {
+    if (multiPairedCoordAnnFlag) {
+        const bool newFlag(true);
+        if (newFlag) {
+            for (const auto& vec3D : drawingCoordinates) {
+                std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                                   vec3D[0],
+                                                                                   vec3D[1],
+                                                                                   *ptr.get());
+                m_coordMultiInfo.push_back(std::move(ptr));
+            }
+            
+            AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
+                                                                      m_validSpaces);
+        }
+        else {
+            const int32_t numXY(mouseEvent.getXyHistoryCount());
+            for (int32_t i = 0; i < numXY; i++) {
+                const auto xy(mouseEvent.getHistoryAtIndex(i));
+                std::unique_ptr<AnnotationCoordinateInformation> ptr(new AnnotationCoordinateInformation());
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                                   xy.m_x,
+                                                                                   xy.m_y,
+                                                                                   *ptr.get());
+                m_coordMultiInfo.push_back(std::move(ptr));
+            }
+        }
+        
+        AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
+                                                                  m_validSpaces);
+    }
+    else if (multiCoordAnnFlag) {
         const bool newFlag(true);
         if (newFlag) {
             for (const auto& vec3D : drawingCoordinates) {
@@ -1009,8 +1152,7 @@ m_annotationFile(annotationFile)
         }
         
         AnnotationCoordinateInformation::getValidCoordinateSpaces(m_coordMultiInfo,
-                                                                  m_validSpaces);
-        
+                                                                  m_validSpaces);        
     }
     else if (useBothCoordinatesFromMouseFlag) {
         AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
@@ -1055,6 +1197,8 @@ m_annotationFile(annotationFile)
                 addSecondCoordFlag = true;
                 break;
             case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
                 break;
             case AnnotationTypeEnum::POLYGON:
                 break;
@@ -1128,6 +1272,9 @@ AnnotationCreateDialog::NewAnnotationInfo::processTwoCoordInfo()
                 useAverageFlag = true;
                 break;
             case AnnotationTypeEnum::LINE:
+                useAverageFlag = false;
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
                 useAverageFlag = false;
                 break;
             case AnnotationTypeEnum::POLYGON:

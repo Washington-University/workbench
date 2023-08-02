@@ -156,7 +156,8 @@ namespace caret {
                                            const float mouseX,
                                            const float mouseY);
 
-        void performViewportSliceIdentification(const VolumeMprViewportSlice& mprViewportSlice,
+        void performViewportSliceIdentification(const VolumeMprVirtualSliceView& mprSliceView,
+                                                const VolumeMprViewportSlice& mprViewportSlice,
                                                 VolumeMappableInterface* volumeInterface,
                                                 const float mouseX,
                                                 const float mouseY);

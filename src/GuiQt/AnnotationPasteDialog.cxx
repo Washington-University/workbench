@@ -556,6 +556,8 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
                     break;
                 case AnnotationTypeEnum::OVAL:
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    break;
                 case AnnotationTypeEnum::POLYGON:
                     break;
                 case AnnotationTypeEnum::POLYLINE:
@@ -751,6 +753,8 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
             case AnnotationTypeEnum::LINE:
                 break;
             case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
                 break;
             case AnnotationTypeEnum::POLYGON:
                 break;

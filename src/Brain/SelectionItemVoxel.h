@@ -22,7 +22,9 @@
 /*LICENSE_END*/
 
 #include <vector>
+#include "Plane.h"
 #include "SelectionItem.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -45,9 +47,15 @@ namespace caret {
         
         void getVoxelIJK(int64_t voxelIJK[3]) const;
         
+        Vector3D getVoxelXYZ() const;
+        
+        Plane getPlane() const;
+        
         void setVoxelIdentification(Brain* brain,
                                     VolumeMappableInterface* volumeFile,
                                     const int64_t voxelIJK[3],
+                                    const Vector3D& voxelXYZ,
+                                    const Plane& plane,
                                     const double screenDepth);
         
         virtual void reset();
@@ -62,9 +70,14 @@ namespace caret {
 
         void resetPrivate();
         
-        VolumeMappableInterface* m_volumeFile;
+        VolumeMappableInterface* m_volumeFile = NULL;
         
         int64_t m_voxelIJK[3];
+        
+        Vector3D m_voxelXYZ;
+        
+        Plane m_plane;
+        
     };
     
 #ifdef __SELECTION_ITEM_VOXEL_DECLARE__

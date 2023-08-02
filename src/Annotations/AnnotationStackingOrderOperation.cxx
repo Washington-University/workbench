@@ -236,8 +236,8 @@ AnnotationStackingOrderOperation::runOrdering(const AnnotationStackingOrderTypeE
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::POLYHEDRON:
             case AnnotationTypeEnum::POLYGON:
-                break;
             case AnnotationTypeEnum::POLYLINE:
             case AnnotationTypeEnum::TEXT:
             {
@@ -377,8 +377,8 @@ AnnotationStackingOrderOperation::preOrderAnnotations(std::vector<OrderInfo>& an
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::POLYHEDRON:
             case AnnotationTypeEnum::POLYGON:
-                break;
             case AnnotationTypeEnum::POLYLINE:
             case AnnotationTypeEnum::TEXT:
             {

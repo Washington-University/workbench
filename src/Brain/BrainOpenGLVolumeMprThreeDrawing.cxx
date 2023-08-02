@@ -1419,6 +1419,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                             layersDrawingPlane,
                                                                                             doubleSliceThickness);
+        
+        m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceSamplesOnVolumeSlice(&inputs,
+                                                                                        layersDrawingPlane,
+                                                                                        doubleSliceThickness);
                 
         switch (m_brainModelMode) {
             case BrainModelMode::INVALID:
@@ -3138,7 +3142,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         }
                         else {
                             CaretAssert(mprViewportSlice);
-                            performViewportSliceIdentification(*mprViewportSlice.get(),
+                            performViewportSliceIdentification(mprSliceView,
+                                                               *mprViewportSlice.get(),
                                                                volumeInterface,
                                                                m_fixedPipelineDrawing->mouseX,
                                                                m_fixedPipelineDrawing->mouseY);
@@ -3308,7 +3313,8 @@ BrainOpenGLVolumeMprThreeDrawing::getMouseViewportNormalizedXY(const GraphicsVie
  *    Y location of mouse click
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const VolumeMprViewportSlice& mprViewportSlice,
+BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const VolumeMprVirtualSliceView& mprSliceView,
+                                                                     const VolumeMprViewportSlice& mprViewportSlice,
                                                                      VolumeMappableInterface* volume,
                                                                      const float mouseX,
                                                                      const float mouseY)
@@ -3357,13 +3363,15 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
                  * Voxel identification
                  */
                 if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
+                    Vector3D xyz;
+                    volume->indexToSpace(ijk, xyz);
                     voxelID->setVoxelIdentification(m_brain,
                                                     volume,
                                                     ijk,
+                                                    xyz,
+                                                    mprSliceView.getVirtualPlane(),
                                                     selectedPrimitiveDepth);
                     
-                    Vector3D xyz;
-                    volume->indexToSpace(ijk, xyz);
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                      xyz);
                     CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
@@ -3389,15 +3397,17 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
                              GL_DEPTH_COMPONENT,
                              GL_FLOAT,
                              &selectedPrimitiveDepth);
+                Vector3D xyz;
+                volume->indexToSpace(ijk, xyz);
                 voxelEditID->setVoxelIdentification(m_brain,
                                                     volume,
                                                     ijk,
+                                                    xyz,
+                                                    mprSliceView.getVirtualPlane(),
                                                     selectedPrimitiveDepth);
                 const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                 voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
                 
-                Vector3D xyz;
-                volume->indexToSpace(ijk, xyz);
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                  xyz);
                 CaretLogFinest("Selected Voxel Editing (3D): Indices ("
@@ -3629,13 +3639,15 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
                      * Voxel identification
                      */
                     if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
+                        Vector3D xyz;
+                        volume->indexToSpace(ijk, xyz);
                         voxelID->setVoxelIdentification(m_brain,
                                                         volume,
                                                         ijk,
+                                                        xyz,
+                                                        mprSliceView.getVirtualPlane(),
                                                         selectedPrimitiveDepth);
                         
-                        Vector3D xyz;
-                        volume->indexToSpace(ijk, xyz);
                         m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                          xyz);
                         CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
@@ -3661,15 +3673,17 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
                                  GL_DEPTH_COMPONENT,
                                  GL_FLOAT,
                                  &selectedPrimitiveDepth);
+                    Vector3D xyz;
+                    volume->indexToSpace(ijk, xyz);
                     voxelEditID->setVoxelIdentification(m_brain,
                                                         volume,
                                                         ijk,
+                                                        xyz,
+                                                        mprSliceView.getVirtualPlane(),
                                                         selectedPrimitiveDepth);
                     const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                     voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
                     
-                    Vector3D xyz;
-                    volume->indexToSpace(ijk, xyz);
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                      xyz);
                     CaretLogFinest("Selected Voxel Editing (3D): Indices ("
@@ -4260,6 +4274,8 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                 voxelID->setVoxelIdentification(m_brain,
                                                 volume,
                                                 minMaxIJK,
+                                                xyz,
+                                                mprSliceView.getVirtualPlane(),
                                                 primitiveDepth);
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
@@ -4274,6 +4290,8 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                         voxelEditID->setVoxelIdentification(m_brain,
                                                             volume,
                                                             minMaxIJK,
+                                                            xyz,
+                                                            mprSliceView.getVirtualPlane(),
                                                             primitiveDepth);
                         const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                         voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);

@@ -37,6 +37,7 @@ namespace caret {
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
     class AnnotationMultiCoordinateShape;
+    class AnnotationMultiPairedCoordinateShape;
     class BrainOpenGLWidget;
     class BrainOpenGLViewportContent;
     class MouseEvent;
@@ -177,6 +178,10 @@ namespace caret {
                                                            const AnnotationCoordinateInformation* coordInfoTwo);
         
         static bool setMultiDimAnnotationCoordinatesForSpace(AnnotationMultiCoordinateShape* annotation,
+                                                             const AnnotationCoordinateSpaceEnum::Enum space,
+                                                             const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti);
+        
+        static bool setMultiPairedDimAnnotationCoordinatesForSpace(AnnotationMultiPairedCoordinateShape* annotation,
                                                              const AnnotationCoordinateSpaceEnum::Enum space,
                                                              const std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordInfoMulti);
         // ADD_NEW_MEMBERS_HERE

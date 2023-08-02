@@ -462,6 +462,8 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
             allowsSideResizingFlag = true;
             allowsRotationFlag = true;
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            break;
         case AnnotationTypeEnum::POLYGON:
             break;
         case AnnotationTypeEnum::POLYLINE:

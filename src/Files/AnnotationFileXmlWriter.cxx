@@ -34,6 +34,7 @@
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationOval.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationText.h"
@@ -286,6 +287,9 @@ AnnotationFileXmlWriter::writeGroup(const AnnotationGroup* group)
             case AnnotationTypeEnum::OVAL:
                 writeOval(dynamic_cast<const AnnotationOval*>(annotation));
                 break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                writePolyhedron(annotation->castToPolyhedron());
+                break;
             case AnnotationTypeEnum::POLYGON:
                 writePolygon(annotation->castToPolygon());
                 break;
@@ -385,6 +389,21 @@ AnnotationFileXmlWriter::writeLine(const AnnotationLine* line)
     
     writeTwoCoordinateShapeAnnotation(line,
                                   ELEMENT_LINE);
+}
+
+/**
+ * Write the given annotation polyhedron in XML.
+ *
+ * @param polyhedron
+ *     The annotation polyhedron.
+ */
+void
+AnnotationFileXmlWriter::writePolyhedron(const AnnotationPolyhedron* polyhedron)
+{
+    CaretAssert(polyhedron);
+    
+    writeMultiPairedCoordinateShapeAnnotation(polyhedron,
+                                              ELEMENT_POLYHEDRON);
 }
 
 /**
@@ -658,6 +677,44 @@ AnnotationFileXmlWriter::writeTwoCoordinateShapeAnnotation(const AnnotationTwoCo
     writeCoordinate(shape->getEndCoordinate(),
                     shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_TWO);
+    
+    m_stream->writeEndElement();
+}
+
+/**
+ * Write the given paired mult-coordinate annotation in XML.
+ *
+ * @param shape
+ *     The paired multi-coordinate annotation.
+ * @param annotationXmlElement
+ *     The XML element for the annotation.
+ */
+void
+AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const AnnotationMultiPairedCoordinateShape* shape,
+                                                                   const QString& annotationXmlElement)
+{
+    CaretAssert(shape);
+    
+    QXmlStreamAttributes attributes;
+    getAnnotationPropertiesAsAttributes(shape,
+                                        attributes);
+    
+    m_stream->writeStartElement(annotationXmlElement);
+    
+    m_stream->writeAttributes(attributes);
+    
+    const int32_t numCoords = shape->getNumberOfCoordinates();
+    
+    m_stream->writeStartElement(ELEMENT_COORDINATE_LIST);
+    m_stream->writeAttribute(ATTRIBUTE_COORDINATE_LIST_COUNT,
+                             AString::number(numCoords));
+    for (int32_t i = 0; i < numCoords; i++) {
+        const AnnotationCoordinate* ac = shape->getCoordinate(i);
+        writeCoordinate(ac,
+                        shape->getCoordinateSpace(),
+                        ELEMENT_COORDINATE);
+    }
+    m_stream->writeEndElement();
     
     m_stream->writeEndElement();
 }

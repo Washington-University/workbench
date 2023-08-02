@@ -35,6 +35,7 @@
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationMultiCoordinateShape.h"
+#include "AnnotationMultiPairedCoordinateShape.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPasteDialog.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -175,6 +176,16 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             case AnnotationTypeEnum::LINE:
                 break;
             case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                switch (annotationEvent->getPolyLineDrawingMode()) {
+                    case EventAnnotationCreateNewType::CONTINUOUS:
+                        mode = MODE_NEW_WITH_DRAG_START;
+                        break;
+                    case EventAnnotationCreateNewType::DISCRETE:
+                        mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                        break;
+                }
                 break;
             case AnnotationTypeEnum::POLYGON:
                 switch (annotationEvent->getPolyLineDrawingMode()) {
@@ -792,7 +803,8 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                         AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
                         AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
                         AnnotationMultiCoordinateShape* multiCoordShape = selectedAnnotation->castToMultiCoordinateShape();
-                        
+                        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(selectedAnnotation->castToMultiPairedCoordinateShape());
+
                         {
                             bool surfaceFlag = false;
                             switch (selectedAnnotation->getCoordinateSpace()) {
@@ -867,6 +879,23 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     undoCommand->setModeCoordinateMulti(constCoords,
                                                                         annotations);
                                 }
+                                else if (multiPairedCoordShape != NULL) {
+                                    std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords(multiPairedCoordShape->getCopyOfAllCoordinates());
+                                    std::vector<std::unique_ptr<const AnnotationCoordinate>> constCoords;
+                                    
+                                    for (auto& ac : allCoords) {
+                                        float xyz[3];
+                                        ac->getXYZ(xyz);
+                                        xyz[0] += dx;
+                                        xyz[1] += dy;
+                                        ac->setXYZ(xyz);
+                                        std::unique_ptr<const AnnotationCoordinate> acCopy(new AnnotationCoordinate(*ac.get()));
+                                        constCoords.push_back(std::move(acCopy));
+                                    }
+                                    
+                                    undoCommand->setModeCoordinateMulti(constCoords,
+                                                                        annotations);
+                                }
                                 else {
                                     CaretAssert(0);
                                 }
@@ -887,7 +916,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                             }
-                            
                         }
                     }
                 }
@@ -1281,6 +1309,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelSpaceInfo.m_xyz[0],
                                                                 coordInfo.m_modelSpaceInfo.m_xyz[1],
                                                                 coordInfo.m_modelSpaceInfo.m_xyz[2]);
+                std::cout << "New model coord: " << AString::fromNumbers(coordInfo.m_modelSpaceInfo.m_xyz, 3) << std::endl;
             }
             
             if (coordInfo.m_chartSpaceInfo.m_validFlag) {
@@ -1546,6 +1575,25 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                                                                                                  mouseEvent);
                         }
                     }
+                    
+                    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(afterSelectedAnns[0]->castToMultiPairedCoordinateShape());
+                    if (multiPairedCoordShape != NULL) {
+                        const bool allowInsertFlag(false);
+                        if (allowInsertFlag) {
+                            /*
+                             * Cross cursor indicates insert coordinate mode.
+                             * If not tested, dragging a coordinate would also add a coordinate
+                             */
+                            if (getCursor() == CursorEnum::CURSOR_CROSS) {
+                                UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
+                                                                                                     mouseEvent);
+                            }
+                        }
+                        else {
+                            CaretLogSevere("Inserting points into polyhedron not supported");
+                        }
+                    }
+
                 }
             }
         }
@@ -1659,7 +1707,15 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
         }
         std::vector<Vector3D> coords = m_newAnnotationCreatingWithMouseDrag->getDrawingCoordinates();
         
+        EventIdentificationRequest idRequest(getBrowserWindowIndex(),
+                                             mouseEvent.getPressedX(),
+                                             mouseEvent.getPressedY());
+        EventManager::get()->sendEvent(idRequest.getPointer());
+        const SelectionManager* selectionManager(idRequest.getSelectionManager());
+        const SelectionItemVoxel* idVoxel(selectionManager->getVoxelIdentification());
+        
         Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(mouseEvent,
+                                                                                      idVoxel,
                                                                                       coords,
                                                                                       m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
                                                                                       m_modeNewAnnotationFileSpaceAndType->m_annotationType,
@@ -1943,11 +1999,19 @@ UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEv
 {
     resetAnnotationUnderMouse();
     
+    EventIdentificationRequest idRequest(getBrowserWindowIndex(),
+                                         mouseEvent.getPressedX(),
+                                         mouseEvent.getPressedY());
+    EventManager::get()->sendEvent(idRequest.getPointer());
+    const SelectionManager* selectionManager(idRequest.getSelectionManager());
+    const SelectionItemVoxel* idVoxel(selectionManager->getVoxelIdentification());
+
     std::vector<Vector3D> coords;
     coords.emplace_back(mouseEvent.getPressedX(),
                         mouseEvent.getPressedY(),
                         0.0);
     Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceAndType(mouseEvent,
+                                                                            idVoxel,
                                                                             coords,
                                                                             m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
                                                                             m_modeNewAnnotationFileSpaceAndType->m_annotationType,
@@ -2547,6 +2611,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
                         break;
                     case AnnotationTypeEnum::OVAL:
                         break;
+                    case AnnotationTypeEnum::POLYHEDRON:
+                        break;
                     case AnnotationTypeEnum::POLYGON:
                         break;
                     case AnnotationTypeEnum::POLYLINE:
@@ -2714,6 +2780,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
 
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
     AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
     AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
     AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
@@ -2749,6 +2816,12 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         setCoordinate(ac, m_mousePressWindowX, m_mousePressWindowY);
         multiCoordShape->addCoordinate(ac);
         
+        m_drawingCoordinates.push_back(mouseCoord3D);
+    }
+    else if (multiPairedCoordShape != NULL) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+        setCoordinate(ac, m_mousePressWindowX, m_mousePressWindowY);
+        multiPairedCoordShape->addCoordinate(ac);
         m_drawingCoordinates.push_back(mouseCoord3D);
     }
     else {
@@ -2791,6 +2864,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const MouseEvent&
     AnnotationTwoCoordinateShape* twoCoordShape = m_annotation->castToTwoCoordinateShape();
     AnnotationOneCoordinateShape* oneCoordShape = m_annotation->castToOneCoordinateShape();
     AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
     
     Vector3D mouseCoord3D(mouseEvent.getX(),
                           mouseEvent.getY(),
@@ -2840,6 +2914,13 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const MouseEvent&
         AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
         setCoordinate(ac, mouseWindowX, mouseWindowY);
         multiCoordShape->addCoordinate(ac);
+        
+        m_drawingCoordinates.push_back(mouseCoord3D);
+    }
+    else if (multiPairedCoordShape != NULL) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+        setCoordinate(ac, mouseWindowX, mouseWindowY);
+        multiPairedCoordShape->addCoordinate(ac);
         
         m_drawingCoordinates.push_back(mouseCoord3D);
     }

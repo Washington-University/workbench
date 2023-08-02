@@ -36,6 +36,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPolygon.h"
 #include "AnnotationPolyLine.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "CaretAssert.h"
@@ -763,6 +764,55 @@ AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotation
 }
 
 /**
+ * Read a multi paired coordinate annotation.
+ *
+ * @param annotationElementName
+ *     Name of one-dimensional attribute.
+ * @param annotation
+ *     One-dimensional annotation that has its data read.
+ */
+void
+AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(const QString& annotationElementName,
+                                                             AnnotationMultiPairedCoordinateShape* annotation)
+{
+    CaretAssert(annotation);
+    
+    const QXmlStreamAttributes attributes = m_stream->attributes();
+    
+    readAnnotationAttributes(annotation,
+                             annotationElementName,
+                             attributes);
+    
+    if (m_stream->readNextStartElement()) {
+        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
+            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
+            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
+                                                                                             ELEMENT_COORDINATE_LIST,
+                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
+            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
+                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+                readCoordinate(ELEMENT_COORDINATE,
+                               ac,
+                               annotation->getCoordinateSpace());
+                annotation->addCoordinate(ac);
+            }
+            
+            m_stream->skipCurrentElement();
+        }
+        else {
+            m_streamHelper->throwDataFileException("Expected elment "
+                                                   + ELEMENT_COORDINATE_LIST
+                                                   + " but read element "
+                                                   + m_stream->name().toString());
+        }
+    }
+    else {
+        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
+                                               + ELEMENT_COORDINATE_LIST);
+    }
+}
+
+/**
  * Read an annotation group.
  *
  * @param annotationFile
@@ -889,6 +939,12 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
             CaretPointer<AnnotationPolyLine> annotation(new AnnotationPolyLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
             readMultiCoordinateAnnotation(ELEMENT_POLY_LINE,
                                           annotation);
+            annotations.push_back(annotation.releasePointer());
+        }
+        else if (elementName == ELEMENT_POLYHEDRON) {
+            CaretPointer<AnnotationPolyhedron> annotation(new AnnotationPolyhedron(AnnotationAttributesDefaultTypeEnum::NORMAL));
+            readMultiPairedCoordinateAnnotation(ELEMENT_POLYHEDRON,
+                                                annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {

@@ -41,6 +41,7 @@
 #include "AnnotationManager.h"
 #include "AnnotationOval.h"
 #include "AnnotationPolyLine.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
@@ -69,6 +70,7 @@
 #include "IdentificationWithColor.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
+#include "SamplesFile.h"
 #include "SelectionManager.h"
 #include "SelectionItemAnnotation.h"
 #include "Surface.h"
@@ -528,6 +530,46 @@ BrainOpenGLAnnotationDrawingFixedPipeline::applyRotationToShape(const float rota
  *     Thickness of volume slice
  */
 void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(Inputs* inputs,
+                                                                              const Plane& plane,
+                                                                              const float sliceThickness)
+{
+    CaretAssert(inputs);
+    m_inputs = inputs;
+    m_surfaceViewScaling = 1.0f;
+    m_volumeSpacePlaneValid = false;
+    
+    if (plane.isValidPlane()) {
+        m_volumeSpacePlane = plane;
+        m_volumeSpacePlaneValid = true;
+        
+        std::vector<AnnotationColorBar*> emptyColorBars;
+        std::vector<AnnotationScaleBar*> emptyScaleBars;
+        std::vector<Annotation*> emptyNotInFileAnnotations;
+        drawAnnotationsInternal(DrawingDataType::SAMPLES,
+                                AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                emptyColorBars,
+                                emptyScaleBars,
+                                emptyNotInFileAnnotations,
+                                NULL,
+                                sliceThickness);
+    }
+    
+    m_volumeSpacePlaneValid = false;
+    m_inputs = NULL;
+}
+
+/**
+ * Draw model space annotations on the volume slice with the given plane.
+ *
+ * @param inputs
+ *     Inputs for drawing annotations.
+ * @param plane
+ *     The volume slice's plane.
+ * @param sliceThickness
+ *     Thickness of volume slice
+ */
+void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
                                                                                   const Plane& plane,
                                                                                   const float sliceThickness)
@@ -544,7 +586,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<AnnotationScaleBar*> emptyScaleBars;
         std::vector<Annotation*> emptyNotInFileAnnotations;
-        drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+        drawAnnotationsInternal(DrawingDataType::ANNOTATIONS,
+                                AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                 emptyColorBars,
                                 emptyScaleBars,
                                 emptyNotInFileAnnotations,
@@ -583,7 +626,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnHistologyS
             std::vector<AnnotationColorBar*> emptyColorBars;
             std::vector<AnnotationScaleBar*> emptyScaleBars;
             std::vector<Annotation*> emptyNotInFileAnnotations;
-            drawAnnotationsInternal(AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+            drawAnnotationsInternal(DrawingDataType::ANNOTATIONS,
+                                    AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                     emptyColorBars,
                                     emptyScaleBars,
                                     emptyNotInFileAnnotations,
@@ -634,7 +678,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     
     const float sliceThickness = 0.0;
     
-    drawAnnotationsInternal(drawingCoordinateSpace,
+    drawAnnotationsInternal(DrawingDataType::ANNOTATIONS,
+                            drawingCoordinateSpace,
                             colorBars,
                             scaleBars,
                             notInFileAnnotations,
@@ -647,6 +692,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
 /**
  * Draw the annotations in the given coordinate space.
  *
+ * @param drawingDataType
+ *     Type of data being drawn
  * @param drawingCoordinateSpace
  *     Coordinate space of annotation that are drawn.
  * @param colorbars
@@ -663,13 +710,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
  *     Thickness of volume slice
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const DrawingDataType drawingDataType,
+                                                                   const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                                                    std::vector<AnnotationColorBar*>& colorBars,
                                                                    std::vector<AnnotationScaleBar*>& scaleBars,
                                                                    std::vector<Annotation*>& notInFileAnnotations,
                                                                    const Surface* surfaceDisplayed,
                                                                    const float sliceThickness)
 {
+    CaretAssert(drawingDataType != DrawingDataType::INVALID);
+    
     if (m_inputs->m_brain == NULL) {
         return;
     }
@@ -801,8 +851,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
     }
     
     std::vector<AnnotationFile*> allAnnotationFiles;
-    if (drawAnnotationsFromFilesFlag) {
-        m_inputs->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+    switch (drawingDataType) {
+        case DrawingDataType::ANNOTATIONS:
+            if (drawAnnotationsFromFilesFlag) {
+                m_inputs->m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+            }
+            break;
+        case DrawingDataType::INVALID:
+            break;
+        case DrawingDataType::SAMPLES:
+        {
+            std::vector<SamplesFile*> allSamplesFiles(m_inputs->m_brain->getAllSamplesFiles());
+            allAnnotationFiles.insert(allAnnotationFiles.end(),
+                                      allSamplesFiles.begin(),
+                                      allSamplesFiles.end());
+        }
+            break;
     }
 
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("Before draw annotations loop in space: "
@@ -996,6 +1060,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             AnnotationTwoCoordinateShape* oneDimAnn = dynamic_cast<AnnotationTwoCoordinateShape*>(annotation);
             AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
             AnnotationMultiCoordinateShape* multiCoordAnn = dynamic_cast<AnnotationMultiCoordinateShape*>(annotation);
+            AnnotationMultiPairedCoordinateShape* multiPairedCoordAnn(annotation->castToMultiPairedCoordinateShape());
+
             /*
              * Limit drawing of annotations to those in the
              * selected coordinate space.
@@ -1010,6 +1076,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
             else if (twoDimAnn != NULL) {
             }
             else if (multiCoordAnn != NULL) {
+            }
+            else if (multiPairedCoordAnn != NULL) {
             }
             else {
                 CaretAssertMessage(0, ("Annotation is not derived from One or Two Dim Annotation classes: "
@@ -1115,6 +1183,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                     float firstPointToPointOnLineNormalizedDisance(0.0);
                     if (selectionInfo.m_polyLineCoordinateIndex >= 0) {
                         const AnnotationMultiCoordinateShape* multiCoordShape = selectionInfo.m_annotation->castToMultiCoordinateShape();
+                        const AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(selectionInfo.m_annotation->castToMultiPairedCoordinateShape());
                         if (multiCoordShape != NULL) {
                             const int32_t numCoords(multiCoordShape->getNumberOfCoordinates());
                             const int32_t indexOne(selectionInfo.m_polyLineCoordinateIndex);
@@ -1128,6 +1197,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Annotat
                             glGetIntegerv(GL_VIEWPORT,
                                           viewport);
 
+                            const float mouseXYZ[3] {
+                                static_cast<float>(m_brainOpenGLFixedPipeline->mouseX - viewport[0]),
+                                static_cast<float>(m_brainOpenGLFixedPipeline->mouseY - viewport[1]),
+                                0.0
+                            };
+                            
+                            float pointOnLine[3];
+                            MathFunctions::nearestPointOnLine3D(selectionInfo.m_coordsInWindowXYZ[indexOne],
+                                                                selectionInfo.m_coordsInWindowXYZ[indexTwo],
+                                                                mouseXYZ,
+                                                                pointOnLine,
+                                                                firstPointToPointOnLineNormalizedDisance);
+                        }
+                        else if (multiPairedCoordShape != NULL) {
+                            const int32_t numCoords(multiPairedCoordShape->getNumberOfCoordinates());
+                            const int32_t indexOne(selectionInfo.m_polyLineCoordinateIndex);
+                            const int32_t indexTwo((indexOne >= (numCoords - 1))
+                                                   ? 0
+                                                   : (indexOne + 1));
+                            CaretAssertVectorIndex(selectionInfo.m_coordsInWindowXYZ, indexOne);
+                            CaretAssertVectorIndex(selectionInfo.m_coordsInWindowXYZ, indexTwo);
+                            
+                            GLint viewport[4];
+                            glGetIntegerv(GL_VIEWPORT,
+                                          viewport);
+                            
                             const float mouseXYZ[3] {
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseX - viewport[0]),
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseY - viewport[1]),
@@ -1328,6 +1423,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
         AnnotationOneCoordinateShape* oneCoordAnn = annotation->castToOneCoordinateShape();
         AnnotationTwoCoordinateShape* twoCoordAnn = annotation->castToTwoCoordinateShape();
         AnnotationMultiCoordinateShape* multiCoordAnn = annotation->castToMultiCoordinateShape();
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordAnn(annotation->castToMultiPairedCoordinateShape());
         if (oneCoordAnn != NULL) {
             drawnFlag = drawOneCoordinateAnnotationSurfaceTangentOffset(annotationFile,
                                                                         oneCoordAnn,
@@ -1342,6 +1438,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
             drawnFlag = drawMultiCoordinateAnnotationSurfaceTangentOffset(annotationFile,
                                                                           multiCoordAnn,
                                                                           surfaceDisplayed);
+        }
+        else if (multiPairedCoordAnn != NULL) {
+            /* Never drawn on surface */
+            drawnFlag = false;
         }
         else {
             CaretAssertMessage(0, "Has new annotation type been added");
@@ -1364,6 +1464,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                 drawnFlag = drawTwoCoordinateAnnotationSurfaceTangentOffset(annotationFile,
                                      dynamic_cast<AnnotationTwoCoordinateShape*>(annotation),
                                      surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                CaretAssertMessage(0, "Polyhedrons not drawn in surface space");
                 break;
             case AnnotationTypeEnum::POLYGON:
                 drawnFlag = drawMultiCoordinateAnnotationSurfaceTangentOffset(annotationFile,
@@ -1408,6 +1511,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotation(AnnotationFile* annota
                 drawnFlag = drawOval(annotationFile,
                                      dynamic_cast<AnnotationOval*>(annotation),
                                      surfaceDisplayed);
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                drawnFlag = drawMultiPairedCoordinateShape(annotationFile,
+                                                           annotation->castToMultiPairedCoordinateShape(),
+                                                           surfaceDisplayed);
                 break;
             case AnnotationTypeEnum::POLYGON:
                 drawnFlag = drawMultiCoordinateShape(annotationFile,
@@ -1668,6 +1776,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawOneCoordinateAnnotationSurfaceTan
                                                      surfaceExtentZ,
                                                      vertexXYZ);
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            CaretAssert(0);
+            break;
         case AnnotationTypeEnum::POLYGON:
             CaretAssert(0);
             break;
@@ -1754,6 +1865,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTwoCoordinateAnnotationSurfaceTan
         case AnnotationTypeEnum::COLOR_BAR:
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::POLYHEDRON:
         case AnnotationTypeEnum::POLYGON:
         case AnnotationTypeEnum::POLYLINE:
         case AnnotationTypeEnum::SCALE_BAR:
@@ -1840,6 +1952,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateAnnotationSurfaceT
         case AnnotationTypeEnum::SCALE_BAR:
         case AnnotationTypeEnum::TEXT:
         case AnnotationTypeEnum::LINE:
+        case AnnotationTypeEnum::POLYHEDRON:
             CaretAssert(0);
             break;
         case AnnotationTypeEnum::POLYGON:
@@ -4930,6 +5043,306 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTangentOffset(Annotati
 }
 
 /**
+ * Draw an annotation paired multi-coordinate
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param multiPairedCoordShape
+ *    Annotation to draw.
+ * @param surfaceDisplayed
+ *    Surface that is displayed (may be NULL).
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(AnnotationFile* annotationFile,
+                                                                          AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
+                                                                          const Surface* surfaceDisplayed)
+{
+    AnnotationPolyhedron* polyhedron(NULL);
+    CaretAssert(multiPairedCoordShape);
+    switch (multiPairedCoordShape->getType()) {
+        case AnnotationTypeEnum::BOX:
+        case AnnotationTypeEnum::BROWSER_TAB:
+        case AnnotationTypeEnum::COLOR_BAR:
+        case AnnotationTypeEnum::IMAGE:
+        case AnnotationTypeEnum::LINE:
+        case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::SCALE_BAR:
+        case AnnotationTypeEnum::TEXT:
+        case AnnotationTypeEnum::POLYGON:
+        case AnnotationTypeEnum::POLYLINE:
+            CaretAssert(0);
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            CaretAssert(multiPairedCoordShape->castToPolyhedron());
+            polyhedron = multiPairedCoordShape->castToPolyhedron();
+            break;
+    }
+    
+    if (polyhedron == NULL) {
+        CaretAssertMessage(0, "Has new multi-paired-coord annotation type been added?");
+        return false;
+    }
+    
+    if ( ! MathFunctions::isEvenNumber(multiPairedCoordShape->getNumberOfCoordinates())) {
+        CaretLogSevere("Polyhedron shape must have an even number of coordinates");
+        return false;
+    }
+    
+    uint8_t foregroundRGBA[4];
+    multiPairedCoordShape->getLineColorRGBA(foregroundRGBA);
+    const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
+    
+    std::vector<Vector3D> windowVertexXYZ;
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> primitive;
+    primitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN,
+                                                           foregroundRGBA));
+    CaretAssert(primitive);
+    
+    /*
+     * Note: A multi-paired coordinate annotations contains 'two sets' of coordinates
+     * that are stored as a single set of coordinates.  The total number of coordinates
+     * is always even.  The first half of the coordinates draw the one face of a
+     * polyhedron and the second half of the coordinates draw the the other face of
+     * the polyhedron.  In addition, lines are drawn from the first set of coordinates
+     * to the second set.
+     */
+    bool allowSizingHandlesFlag(false);
+    int32_t drawStartingCoordinateIndex(-1);
+    int32_t drawCoordinateCount(-1);
+    for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
+        const int32_t numTotalCoords(multiPairedCoordShape->getNumberOfCoordinates());
+        const int32_t numHalfCoords(numTotalCoords / 2);
+
+        std::vector<Vector3D> xyzToDraw;
+        switch (iDraw) {
+            case 0:
+            {
+                /*
+                 * 'Near' polygon in first half of coordinates
+                 */
+                for (int32_t i = 0; i < numHalfCoords; i++) {
+                    Vector3D xyz;
+                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                            multiPairedCoordShape->getCoordinate(i),
+                                                            surfaceDisplayed,
+                                                            xyz)) {
+                        xyzToDraw.push_back(xyz);
+                    }
+                }
+            }
+                break;
+            case 1:
+            {
+                /*
+                 * 'Far' polygon in second half of coordinates
+                 */
+                for (int32_t i = numHalfCoords; i < numTotalCoords; i++) {
+                    Vector3D xyz;
+                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                            multiPairedCoordShape->getCoordinate(i),
+                                                            surfaceDisplayed,
+                                                            xyz)) {
+                        xyzToDraw.push_back(xyz);
+                    }
+                }
+            }
+                break;
+            case 2:
+                /*
+                 * Only draw "in between" points if NOT selection mode
+                 */
+                if ( ! m_selectionModeFlag) {
+                    /*
+                     * Slices between near and far polygons
+                     */
+                    if (m_volumeSpacePlane.isValidPlane()) {
+                        for (int32_t i = 0; i < numHalfCoords; i++) {
+                            Vector3D xyzOne, xyzTwo;
+                            multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
+                            multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
+                            
+                            Vector3D xyz;
+                            if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
+                                                                             xyzTwo,
+                                                                             xyz)) {
+                                AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
+                                ac.setXYZ(xyz);
+                                
+                                if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                                        &ac,
+                                                                        surfaceDisplayed,
+                                                                        xyz)) {
+                                    xyzToDraw.push_back(xyz);
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+        
+        if (static_cast<int32_t>(xyzToDraw.size()) == numHalfCoords) {
+            switch (iDraw) {
+                case 0:
+                    /*
+                     * To prevent problems, number of vertices in primitive
+                     * must be all coordinates so that selection works but
+                     * we only draw FIRST half of coordinates
+                     */
+                    allowSizingHandlesFlag  = true;
+                    drawStartingCoordinateIndex = 0;
+                    drawCoordinateCount = numHalfCoords;
+                    for (int32_t i = 0; i < numHalfCoords; i++) {
+                        xyzToDraw.push_back(xyzToDraw[i]);
+                    }
+                    CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
+                    break;
+                case 1:
+                    /*
+                     * To prevent problems, number of vertices in primitive
+                     * must be all coordinates so that selection works but
+                     * we only draw SECOND half of coordinates
+                     */
+                    allowSizingHandlesFlag  = true;
+                    drawStartingCoordinateIndex = numHalfCoords;
+                    drawCoordinateCount = numHalfCoords;
+                    for (int32_t i = 0; i < numHalfCoords; i++) {
+                        xyzToDraw.push_back(xyzToDraw[i]);
+                    }
+                    CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
+                    break;
+                case 2:
+                    /* No ID */
+                    break;
+            }
+            for (auto& xyz : xyzToDraw) {
+                windowVertexXYZ.push_back(xyz);
+                primitive->addVertex(xyz);
+            }
+            
+            /*
+             * Exit loop
+             */
+            iDraw = 4;
+        }
+    }
+    
+    if ((drawStartingCoordinateIndex >= 0)
+        && (drawCoordinateCount > 0)) {
+        if (drawCoordinateCount < 3) {
+            return false;
+        }
+        primitive->setDrawArrayIndicesSubset(drawStartingCoordinateIndex,
+                                             drawCoordinateCount);
+    }
+
+    if (primitive->getNumberOfVertices() < 3) {
+        return false;
+    }
+    
+    if (multiPairedCoordShape->getLineWidthPercentage() <= 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(multiPairedCoordShape);
+    }
+    primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                            multiPairedCoordShape->getLineWidthPercentage());
+    
+    BoundingBox boundingBox;
+    primitive->getVertexBounds(boundingBox);
+    float selectionCenterXYZ[3];
+    boundingBox.getCenter(selectionCenterXYZ);
+    
+    const bool depthTestFlag = isDrawnWithDepthTesting(multiPairedCoordShape,
+                                                       surfaceDisplayed);
+    const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+    
+    
+    bool drawnFlag = false;
+    
+    if (drawForegroundFlag) {
+        if (m_selectionModeFlag
+            && m_inputs->m_annotationUserInputModeFlag) {
+            
+            const int32_t numberOfVertices = primitive->getNumberOfVertices();
+            int32_t iStart(0);
+            int32_t iEnd(numberOfVertices);
+            if ((drawStartingCoordinateIndex >= 0)
+                && (drawCoordinateCount > 0)) {
+                iStart = drawStartingCoordinateIndex;
+                iEnd   = drawStartingCoordinateIndex + drawCoordinateCount;
+            }
+
+            for (int32_t i = iStart; i < iEnd; i++) {
+                int32_t nextCoordIndex(i + 1);
+                if (i == (iEnd - 1)) {
+                    nextCoordIndex = iStart;
+                }
+                
+                uint8_t selectionColorRGBA[4];
+                getIdentificationColor(selectionColorRGBA);
+                std::unique_ptr<GraphicsPrimitiveV3f> idPrim(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                                                                selectionColorRGBA));
+                GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
+                float lineWidth(0.0);
+                primitive->getLineWidth(lineWidthType, lineWidth);
+                lineWidth += 3.0; /* thicker to help with ID and reduce flashing of cursor */
+                idPrim->setLineWidth(lineWidthType, lineWidth);
+                CaretAssertVectorIndex(windowVertexXYZ, i);
+                idPrim->addVertex(windowVertexXYZ[i]);
+                
+                CaretAssertVectorIndex(windowVertexXYZ, nextCoordIndex);
+                idPrim->addVertex(windowVertexXYZ[nextCoordIndex]);
+
+                m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                        multiPairedCoordShape,
+                                                        AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                        i,
+                                                        selectionCenterXYZ,
+                                                        windowVertexXYZ));
+                GraphicsEngineDataOpenGL::draw(idPrim.get());
+                drawnFlag = true;
+            }
+        }
+        else {
+            GraphicsEngineDataOpenGL::draw(primitive.get());
+            drawnFlag = true;
+        }
+                
+        if (allowSizingHandlesFlag) {
+            if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
+                GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
+                float lineWidth(0.0);
+                primitive->getLineWidth(lineWidthType, lineWidth);
+                float sizeHandleWidthInPixels = lineWidth;
+                switch (lineWidthType) {
+                    case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
+                        sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * 3);
+                        break;
+                    case GraphicsPrimitive::LineWidthType::PIXELS:
+                        sizeHandleWidthInPixels = (lineWidth * 3);
+                        break;
+                }
+                drawAnnotationMultiPairedCoordShapeSizingHandles(annotationFile,
+                                                                 multiPairedCoordShape,
+                                                                 windowVertexXYZ,
+                                                                 primitive.get(),
+                                                                 sizeHandleWidthInPixels);
+            }
+        }
+    }
+    
+    setDepthTestingStatus(savedDepthTestStatus);
+    
+    multiPairedCoordShape->setDrawnInWindowBounds(m_inputs->m_windowIndex,
+                                                  boundingBox);
+    
+    return drawnFlag;
+}
+
+/**
  * Draw an annotation multi-coordinate
  *
  * @param annotationFile
@@ -4956,6 +5369,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::LINE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::POLYHEDRON:
         case AnnotationTypeEnum::SCALE_BAR:
         case AnnotationTypeEnum::TEXT:
             CaretAssert(0);
@@ -5092,6 +5506,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
     return drawnFlag;
 }
 
+
 /**
  * Draw an annotation poly line that is in surface space with tangent offset.
  *
@@ -5120,6 +5535,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShapeSurfaceTangen
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::LINE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::POLYHEDRON:
         case AnnotationTypeEnum::SCALE_BAR:
         case AnnotationTypeEnum::TEXT:
             CaretAssert(0);
@@ -5414,6 +5830,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
             case AnnotationTypeEnum::IMAGE:
             case AnnotationTypeEnum::LINE:
             case AnnotationTypeEnum::OVAL:
+            case AnnotationTypeEnum::POLYHEDRON:
             case AnnotationTypeEnum::POLYGON:
             case AnnotationTypeEnum::POLYLINE:
             case AnnotationTypeEnum::SCALE_BAR:
@@ -5634,6 +6051,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimShapeSizingHandle
         case AnnotationTypeEnum::IMAGE:
         case AnnotationTypeEnum::LINE:
         case AnnotationTypeEnum::OVAL:
+        case AnnotationTypeEnum::POLYHEDRON:
         case AnnotationTypeEnum::POLYGON:
         case AnnotationTypeEnum::POLYLINE:
         case AnnotationTypeEnum::SCALE_BAR:
@@ -5921,6 +6339,69 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
     }
 }
 
+/**
+ * Draw sizing handles around a multi-paired coord annotation.
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param multiPairedCoordShape
+ *    Multi-paired-coord nnotation to draw.
+ * @param primitive
+ *     Primitive that draws the annotation
+ * @param lineThickness
+ *     Thickness of lines (when enabled).
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSizingHandles(AnnotationFile* annotationFile,
+                                                                                            AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
+                                                                                            const std::vector<Vector3D>& verticesWindowXYZ,
+                                                                                            const GraphicsPrimitive* primitive,
+                                                                                            const float lineThickness)
+{
+    if ( ! multiPairedCoordShape->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE)) {
+        return;
+    }
+    
+    const bool tangentSurfaceOffsetFlag = multiPairedCoordShape->isInSurfaceSpaceWithTangentOffset();
+    
+    float cornerSquareSize = 6.0 + lineThickness;
+    if (tangentSurfaceOffsetFlag) {
+        cornerSquareSize = lineThickness;
+        cornerSquareSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(cornerSquareSize) / 2.0f;
+    }
+    
+    const float rotationAngle(0.0);
+    
+    int32_t primStart(-1), primCount(-1);
+    primitive->getDrawArrayIndicesSubset(primStart, primCount);
+    
+    const int32_t numberOfVertices = primitive->getNumberOfVertices();
+    int32_t iStart(0);
+    int32_t iEnd(numberOfVertices);
+    if ((primStart >= 0)
+        && (primCount > 0)) {
+        iStart = primStart;
+        iEnd   = primStart + primCount;
+    }
+    
+    for (int32_t i = iStart; i < iEnd; i++) {
+        float xyz[3];
+        primitive->getVertexFloatXYZ(i, xyz);
+        /*
+         * Symbol for selected vertex is a little bigger
+         */
+        float symbolSize(cornerSquareSize);
+        
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
+                         annotationFile,
+                         multiPairedCoordShape,
+                         verticesWindowXYZ,
+                         xyz,
+                         symbolSize,
+                         rotationAngle,
+                         i);
+    }
+}
 
 /**
  * Set the color for drawing the selection box and handles.
@@ -5958,6 +6439,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            break;
         case AnnotationTypeEnum::POLYGON:
             break;
         case AnnotationTypeEnum::POLYLINE:
@@ -5983,16 +6466,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
     qreal value = 0.0;
 #endif
     
-    color.getHsvF(&hue,
-                  &saturation,
-                  &value);
-    
-    saturation *= 0.8;
-    value      *= 0.8;
-    
-    color.setHsvF(hue,
-                  saturation,
-                  value);
+    const bool reduceBrightnessFlag(false);
+    if (reduceBrightnessFlag) {
+        color.getHsvF(&hue,
+                      &saturation,
+                      &value);
+        
+        saturation *= 0.8;
+        value      *= 0.8;
+        
+        color.setHsvF(hue,
+                      saturation,
+                      value);
+    }
     
     m_selectionBoxRGBA[0] = static_cast<uint8_t>(color.red());
     m_selectionBoxRGBA[1] = static_cast<uint8_t>(color.green());
@@ -6035,6 +6521,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
              * will only draw annotation if it is close to the slice's plane.
              */
             if (m_histologySpacePlaneValid) {
+                depthTestFlag = false;
+            }
+            if (m_volumeSpacePlaneValid) {
                 depthTestFlag = false;
             }
             break;

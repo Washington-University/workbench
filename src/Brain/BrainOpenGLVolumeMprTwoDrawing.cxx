@@ -3095,13 +3095,15 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                  * Voxel identification
                  */
                 if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
+                    Vector3D xyz;
+                    volumeInterface->indexToSpace(ijk, xyz);
                     voxelID->setVoxelIdentification(m_brain,
                                                     volumeInterface,
                                                     ijk,
+                                                    xyz,
+                                                    sliceInfo.m_plane,
                                                     selectedPrimitiveDepth);
                     
-                    Vector3D xyz;
-                    volumeInterface->indexToSpace(ijk, xyz);
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                      xyz);
                     CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
@@ -3130,6 +3132,8 @@ BrainOpenGLVolumeMprTwoDrawing::performPlaneIdentification(const SliceInfo& slic
                 voxelEditID->setVoxelIdentification(m_brain,
                                                     volumeInterface,
                                                     ijk,
+                                                    xyz,
+                                                    sliceInfo.m_plane,
                                                     selectedPrimitiveDepth);
                 const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                 voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
@@ -3681,6 +3685,8 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                 voxelID->setVoxelIdentification(m_brain,
                                                 volume,
                                                 minMaxIJK,
+                                                xyz,
+                                                sliceInfo.m_plane,
                                                 primitiveDepth);
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
@@ -3695,6 +3701,8 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                         voxelEditID->setVoxelIdentification(m_brain,
                                                             volume,
                                                             minMaxIJK,
+                                                            xyz,
+                                                            sliceInfo.m_plane,
                                                             primitiveDepth);
                         const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                         voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);

@@ -867,7 +867,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
     m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                         slicePlane,
                                                                                         sliceThickness);
-    
+    m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceSamplesOnVolumeSlice(&inputs,
+                                                                                    slicePlane,
+                                                                                    sliceThickness);
+
     bool drawSelectionBoxFlag(false);
     switch (sliceDrawingType) {
         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
@@ -2174,14 +2177,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::processIdentification()
         SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
         if (voxelID->isEnabledForSelection()) {
             if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
-                voxelID->setVoxelIdentification(m_brain,
-                                                vf,
-                                                voxelIndices,
-                                                depth);
-                
                 float voxelCoordinates[3];
                 vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                  voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                voxelID->setVoxelIdentification(m_brain,
+                                                vf,
+                                                voxelIndices,
+                                                voxelCoordinates,
+                                                Plane(),
+                                                depth);
+                
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
                                                                  voxelCoordinates);
@@ -2193,15 +2198,17 @@ BrainOpenGLVolumeObliqueSliceDrawing::processIdentification()
         if (voxelEditID->isEnabledForSelection()) {
             if (voxelEditID->getVolumeFileForEditing() == vf) {
                 if (voxelEditID->isOtherScreenDepthCloserToViewer(depth)) {
-                    voxelEditID->setVoxelIdentification(m_brain,
-                                                        vf,
-                                                        voxelIndices,
-                                                        depth);
-                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
-                    
                     float voxelCoordinates[3];
                     vf->indexToSpace(voxelIndices[0], voxelIndices[1], voxelIndices[2],
                                      voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                    voxelEditID->setVoxelIdentification(m_brain,
+                                                        vf,
+                                                        voxelIndices,
+                                                        voxelCoordinates,
+                                                        Plane(),
+                                                        depth);
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                    
                     
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
                                                                      voxelCoordinates);
@@ -3782,14 +3789,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                     && (m_selectionIJK[2])) {
                     if (selectionItemVoxel->isEnabledForSelection()) {
                         if (selectionItemVoxel->isOtherScreenDepthCloserToViewer(selectedDepth)) {
-                            selectionItemVoxel->setVoxelIdentification(brain,
-                                                                       m_volumeInterface,
-                                                                       m_selectionIJK,
-                                                                       selectedDepth);
-                            
                             float voxelCoordinates[3];
                             m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
                                                             voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                            selectionItemVoxel->setVoxelIdentification(brain,
+                                                                       m_volumeInterface,
+                                                                       m_selectionIJK,
+                                                                       voxelCoordinates,
+                                                                       Plane(),
+                                                                       selectedDepth);
+                            
                             
                             fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxel,
                                                                            voxelCoordinates);
@@ -3800,9 +3809,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                     if (selectionItemVoxelEditing->isEnabledForSelection()) {
                         if (selectionItemVoxelEditing->getVolumeFileForEditing() == m_volumeFile) {
                             if (selectionItemVoxelEditing->isOtherScreenDepthCloserToViewer(selectedDepth)) {
+                                float voxelCoordinates[3];
+                                m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
+                                                                voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
                                 selectionItemVoxelEditing->setVoxelIdentification(brain,
                                                                                   m_volumeInterface,
                                                                                   m_selectionIJK,
+                                                                                  voxelCoordinates,
+                                                                                  Plane(),
                                                                                   selectedDepth);
                                 float floatDiffXYZ[3] = {
                                     m_leftToRightStepXYZ[0] + m_bottomToTopStepXYZ[0],
@@ -3811,9 +3825,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                                 };
                                 selectionItemVoxelEditing->setVoxelDiffXYZ(floatDiffXYZ);
                                 
-                                float voxelCoordinates[3];
-                                m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
-                                                                voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
                                 
                                 fixedPipelineDrawing->setSelectedItemScreenXYZ(selectionItemVoxelEditing,
                                                                                voxelCoordinates);

@@ -36,6 +36,7 @@ namespace caret {
     class AnnotationGroup;
     class AnnotationImage;
     class AnnotationMultiCoordinateShape;
+    class AnnotationMultiPairedCoordinateShape;
     class AnnotationTwoCoordinateShape;
     class AnnotationText;
     class AnnotationOneCoordinateShape;
@@ -79,6 +80,9 @@ namespace caret {
         
         void readMultiCoordinateAnnotation(const QString& annotationElementName,
                                            AnnotationMultiCoordinateShape* annotation);
+        
+        void readMultiPairedCoordinateAnnotation(const QString& annotationElementName,
+                                                 AnnotationMultiPairedCoordinateShape* annotation);
         
         void readCoordinate(const QString& coordinateElementName,
                             AnnotationCoordinate* coordinate,

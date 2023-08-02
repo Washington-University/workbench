@@ -34,6 +34,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "AnnotationPolygon.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
@@ -220,6 +221,13 @@ Annotation::clone() const
             myClone = new AnnotationOval(*oval);
         }
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+        {
+            const AnnotationPolyhedron* polyhedron(castToPolyhedron());
+            CaretAssert(polyhedron);
+            myClone = new AnnotationPolyhedron(*polyhedron);
+        }
+            break;
         case AnnotationTypeEnum::POLYGON:
         {
             const AnnotationPolygon* polygon = dynamic_cast<const AnnotationPolygon*>(this);
@@ -397,6 +405,9 @@ Annotation::newAnnotationOfType(const AnnotationTypeEnum::Enum annotationType,
         case AnnotationTypeEnum::OVAL:
             annotation = new AnnotationOval(attributeDefaultType);
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            annotation = new AnnotationPolyhedron(attributeDefaultType);
+            break;
         case AnnotationTypeEnum::POLYGON:
             annotation = new AnnotationPolygon(attributeDefaultType);
             break;
@@ -478,6 +489,8 @@ Annotation::initializeAnnotationMembers()
                     break;
                 case AnnotationTypeEnum::POLYGON:
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    break;
                 case AnnotationTypeEnum::POLYLINE:
                     break;
                 case AnnotationTypeEnum::SCALE_BAR:
@@ -543,6 +556,11 @@ Annotation::initializeAnnotationMembers()
                         m_colorBackground = defaultColor;
                     }
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    if (m_colorLine == CaretColorEnum::NONE) {
+                        m_colorLine = defaultColor;
+                    }
+                    break;
                 case AnnotationTypeEnum::POLYGON:
                     if (m_colorLine == CaretColorEnum::NONE) {
                         m_colorLine = defaultColor;
@@ -598,6 +616,9 @@ Annotation::initializeAnnotationMembers()
             disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            disallowLineColorNoneFlag = true;
             break;
         case AnnotationTypeEnum::POLYGON:
             disallowLineColorNoneFlag = true;
@@ -722,6 +743,8 @@ Annotation::getTextForPasteMenuItems(AString& pasteMenuItemText,
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
             break;
         case AnnotationTypeEnum::POLYGON:
             break;
@@ -1737,6 +1760,9 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::OVAL:
             break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            fillColorFlag = false;
+            break;
         case AnnotationTypeEnum::POLYGON:
             fillColorFlag = false;
             break;
@@ -2095,6 +2121,8 @@ Annotation::textAnnotationResetName()
         case AnnotationTypeEnum::LINE:
             break;
         case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
             break;
         case AnnotationTypeEnum::POLYGON:
             break;

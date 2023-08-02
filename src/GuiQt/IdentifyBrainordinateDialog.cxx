@@ -1121,6 +1121,8 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                     voxelID->setVoxelIdentification(brain,
                                                     ciftiMapFile,
                                                     voxelIJK,
+                                                    voxelXYZ,
+                                                    Plane(),
                                                     0.0);
                     const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
                     voxelID->setModelXYZ(doubleXYZ);

@@ -208,6 +208,7 @@ namespace caret {
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationMultiCoordinateShape;
+        friend class AnnotationMultiPairedCoordinateShape;
         friend class AnnotationText;
         friend class AnnotationOneCoordinateShape;
         friend class AnnotationTwoCoordinateShape;

@@ -138,6 +138,10 @@ AnnotationTypeEnum::initialize()
                                           "POLYGON",
                                           "Polygon"));
     
+    enumData.push_back(AnnotationTypeEnum(POLYHEDRON,
+                                          "POLYHEDRON",
+                                          "Polyhedron"));
+    
     enumData.push_back(AnnotationTypeEnum(SCALE_BAR,
                                           "SCALE_BAR",
                                           "Scale Bar"));

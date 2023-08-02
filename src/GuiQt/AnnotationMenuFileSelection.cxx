@@ -30,6 +30,7 @@
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "SamplesFile.h"
 
 using namespace caret;
 
@@ -44,12 +45,41 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *    The user input mode
  * @param parent
  *    The parent widget.
  */
-AnnotationMenuFileSelection::AnnotationMenuFileSelection(QWidget* parent)
-: QMenu(parent)
+AnnotationMenuFileSelection::AnnotationMenuFileSelection(const UserInputModeEnum::Enum userInputMode,
+                                                         QWidget* parent)
+: QMenu(parent),
+m_userInputMode(userInputMode)
 {
+    m_fileMode = FileMode::INVALID;
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            m_fileMode = FileMode::ANNOTATIONS;
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            m_fileMode = FileMode::SAMPLES;
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+    CaretAssert(m_fileMode != FileMode::INVALID);
+    
     m_selectedAnnotationFile = NULL;
     
     QObject::connect(this, SIGNAL(aboutToShow()),
@@ -77,6 +107,20 @@ AnnotationMenuFileSelection::getSelectedAnnotationFile()
      */
     updateMenuContents();
     
+    if (m_selectedAnnotationFile != NULL) {
+        switch (m_fileMode) {
+            case FileMode::INVALID:
+                CaretAssert(0);
+                break;
+            case FileMode::ANNOTATIONS:
+                CaretAssert(m_selectedAnnotationFile->getDataFileType() == DataFileTypeEnum::ANNOTATION);
+                break;
+            case FileMode::SAMPLES:
+                CaretAssert(m_selectedAnnotationFile->getDataFileType() == DataFileTypeEnum::SAMPLES);
+                break;
+        }
+    }
+    
     return m_selectedAnnotationFile;
 }
 
@@ -87,16 +131,35 @@ AnnotationMenuFileSelection::getSelectedAnnotationFile()
 AString
 AnnotationMenuFileSelection::getSelectedNameForToolButton()
 {
-    AString name("Scene");
-    
     AnnotationFile* annFile = getSelectedAnnotationFile();
-    if (annFile != NULL) {
-        if (annFile == GuiManager::get()->getBrain()->getSceneAnnotationFile()) {
+
+    AString name;
+    
+    switch (m_fileMode) {
+        case FileMode::INVALID:
+            CaretAssert(0);
+            break;
+        case FileMode::ANNOTATIONS:
+        {
             name = "Scene";
+            if (annFile != NULL) {
+                if (annFile == GuiManager::get()->getBrain()->getSceneAnnotationFile()) {
+                    name = "Scene";
+                }
+                else {
+                    name = "Disk ";
+                }
+            }
         }
-        else {
-            name = "Disk ";
+            break;
+        case FileMode::SAMPLES:
+        {
+            name = "Select";
+            if (annFile != NULL) {
+                name = "Disk";
+            }
         }
+            break;
     }
     
     return name;
@@ -116,12 +179,23 @@ AnnotationMenuFileSelection::chooseDiskFile()
     CaretFileDialog fd(CaretFileDialog::Mode::MODE_SAVE,
                        this);
     fd.setAcceptMode(CaretFileDialog::AcceptSave);
-    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(DataFileTypeEnum::ANNOTATION));
+    switch (m_fileMode) {
+        case FileMode::INVALID:
+            CaretAssert(0);
+            break;
+        case FileMode::ANNOTATIONS:
+            fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(DataFileTypeEnum::ANNOTATION));
+            fd.selectFile(AnnotationFile().getFileNameNoPath());
+            break;
+        case FileMode::SAMPLES:
+            fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilterForWriting(DataFileTypeEnum::SAMPLES));
+            fd.selectFile(SamplesFile().getFileNameNoPath());
+            break;
+    }
     fd.setFileMode(CaretFileDialog::AnyFile);
     fd.setViewMode(CaretFileDialog::List);
     fd.setLabelText(CaretFileDialog::Accept, "Choose"); // OK button shows Insert
     fd.restoreDialogSettings(fileDialogSettingsName);
-    fd.selectFile(AnnotationFile().getFileNameNoPath());
     
     AString errorMessages;
     
@@ -130,12 +204,29 @@ AnnotationMenuFileSelection::chooseDiskFile()
         
         QStringList selectedFiles = fd.selectedFiles();
         if ( ! selectedFiles.empty()) {
-            const AString annotationFileName = selectedFiles.at(0);
+            const AString newFileName = selectedFiles.at(0);
             
-            AnnotationFile* newFile = new AnnotationFile();
-            newFile->setFileName(annotationFileName);
-            EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
-            m_selectedAnnotationFile = newFile;
+            switch (m_fileMode) {
+                case FileMode::INVALID:
+                    CaretAssert(0);
+                    break;
+                case FileMode::ANNOTATIONS:
+                {
+                    AnnotationFile* newFile = new AnnotationFile();
+                    newFile->setFileName(newFileName);
+                    EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
+                    m_selectedAnnotationFile = newFile;
+                }
+                    break;
+                case FileMode::SAMPLES:
+                {
+                    SamplesFile* newFile = new SamplesFile();
+                    newFile->setFileName(newFileName);
+                    EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
+                    m_selectedAnnotationFile = newFile;
+                }
+                    break;
+            }
         }
     }
 }
@@ -151,6 +242,15 @@ AnnotationMenuFileSelection::menuActionSelected(QAction* action)
 {
     CaretAssert(action);
     
+    switch (m_fileMode) {
+        case FileMode::INVALID:
+            CaretAssert(0);
+            break;
+        case FileMode::ANNOTATIONS:
+            break;
+        case FileMode::SAMPLES:
+            break;
+    }
     const int actionID = action->data().toInt();
     
     if (actionID == ACTION_ID_SCENE) {
@@ -183,17 +283,30 @@ AnnotationMenuFileSelection::updateMenuContents()
     bool foundSelectedFileFlag = false;
     
     Brain* brain = GuiManager::get()->getBrain();
+    
+    QAction* sceneAction(NULL);
     AnnotationFile* sceneAnnotationFile = brain->getSceneAnnotationFile();
-    
-    QAction* sceneAction = addAction("Scene Annotations");
-    sceneAction->setData((int)ACTION_ID_SCENE);
-    sceneAction->setCheckable(true);
-    if (sceneAnnotationFile == m_selectedAnnotationFile) {
-        sceneAction->setChecked(true);
-        foundSelectedFileFlag = true;
+    switch (m_fileMode) {
+        case FileMode::INVALID:
+            CaretAssert(0);
+            break;
+        case FileMode::ANNOTATIONS:
+        {
+            sceneAction = addAction("Scene Annotations");
+            sceneAction->setData((int)ACTION_ID_SCENE);
+            sceneAction->setCheckable(true);
+            if (sceneAnnotationFile == m_selectedAnnotationFile) {
+                sceneAction->setChecked(true);
+                foundSelectedFileFlag = true;
+            }
+            
+            addSeparator();
+        }
+            break;
+        case FileMode::SAMPLES:
+            break;
     }
-    
-    addSeparator();
+
     
     QAction* newDiskFileAction = addAction("New Disk File...");
     newDiskFileAction->setData((int)ACTION_ID_NEW_DISK_FILE);
@@ -201,7 +314,24 @@ AnnotationMenuFileSelection::updateMenuContents()
     addSeparator();
     
     m_annotationDiskFiles.clear();
-    brain->getAllAnnotationFilesExcludingSceneAnnotationFile(m_annotationDiskFiles);
+    
+    switch (m_fileMode) {
+        case FileMode::INVALID:
+            CaretAssert(0);
+            break;
+        case FileMode::ANNOTATIONS:
+            brain->getAllAnnotationFilesExcludingSceneAnnotationFile(m_annotationDiskFiles);
+            break;
+        case FileMode::SAMPLES:
+        {
+            std::vector<SamplesFile*> samplesFiles(brain->getAllSamplesFiles());
+            m_annotationDiskFiles.insert(m_annotationDiskFiles.end(),
+                                         samplesFiles.begin(),
+                                         samplesFiles.end());
+        }
+            break;
+    }
+
     
     const int32_t numDiskFiles = static_cast<int32_t>(m_annotationDiskFiles.size());
     for (int32_t i = 0; i < numDiskFiles; i++) {
@@ -219,8 +349,17 @@ AnnotationMenuFileSelection::updateMenuContents()
     }
     
     if ( ! foundSelectedFileFlag) {
-        sceneAction->setChecked(true);
-        m_selectedAnnotationFile = sceneAnnotationFile;
+        if (sceneAction != NULL) {
+            sceneAction->setChecked(true);
+            m_selectedAnnotationFile = sceneAnnotationFile;
+        }
+        else if ( ! m_annotationDiskFiles.empty()) {
+            CaretAssertVectorIndex(m_annotationDiskFiles, 0);
+            m_selectedAnnotationFile = m_annotationDiskFiles[0];
+        }
+        else {
+            m_selectedAnnotationFile = NULL;
+        }
     }
     
     blockSignals(false);

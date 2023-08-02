@@ -78,6 +78,8 @@ namespace caret {
         
         void enableDisableSpaceActions();
         
+        void enableDisableShapeActions();
+        
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
@@ -101,6 +103,8 @@ namespace caret {
         AString m_polyLineDrawClicksToolTipText;
         
         AString m_polyLineDrawDragToolTipText;
+        
+        QToolButton* m_polyhedronToolButton = NULL;
         
         static AString s_previousImageFileDirectory;
         

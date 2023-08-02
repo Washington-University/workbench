@@ -112,6 +112,8 @@ SelectionItemVoxel::copyHelperSelectionItemVoxel(const SelectionItemVoxel& idIte
     m_voxelIJK[0] = idItem.m_voxelIJK[0];
     m_voxelIJK[1] = idItem.m_voxelIJK[1];
     m_voxelIJK[2] = idItem.m_voxelIJK[2];
+    m_voxelXYZ    = idItem.m_voxelXYZ;
+    m_plane       = idItem.m_plane;
 }
 
 /**
@@ -135,6 +137,8 @@ SelectionItemVoxel::resetPrivate()
     m_voxelIJK[0] = -1;
     m_voxelIJK[1] = -1;
     m_voxelIJK[2] = -1;
+    m_voxelXYZ.set(0.0, 0.0, 0.0);
+    m_plane       = Plane();
 }
 
 
@@ -161,6 +165,24 @@ SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 }
 
 /**
+ * @return The voxel XYZ coordinate
+ */
+Vector3D
+SelectionItemVoxel::getVoxelXYZ() const
+{
+    return m_voxelXYZ;
+}
+
+/**
+ * @return The plane
+ */
+Plane
+SelectionItemVoxel::getPlane() const
+{
+    return m_plane;
+}
+
+/**
  * Set the volume file.
  *
  * @param brain
@@ -169,6 +191,10 @@ SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
  *    New value for volume file.
  * @param voxelIJK
  *    New value for voxel indices.
+ * @param voxelXYZ
+ *    XYZ coordinate of voxel
+ * @param sliceNormalVector
+ *    Normal vector of slice
  * @param screenDepth
  *    The screen depth.
  */
@@ -176,6 +202,8 @@ void
 SelectionItemVoxel::setVoxelIdentification(Brain* brain,
                                            VolumeMappableInterface* volumeFile,
                                            const int64_t voxelIJK[3],
+                                           const Vector3D& voxelXYZ,
+                                           const Plane& plane,
                                            const double screenDepth)
 {
     setBrain(brain);
@@ -183,6 +211,9 @@ SelectionItemVoxel::setVoxelIdentification(Brain* brain,
     m_voxelIJK[0] = voxelIJK[0];
     m_voxelIJK[1] = voxelIJK[1];
     m_voxelIJK[2] = voxelIJK[2];
+    m_voxelXYZ    = voxelXYZ;
+    setModelXYZ(voxelXYZ);
+    m_plane       = plane;
     setScreenDepth(screenDepth);
 }
 

@@ -47,6 +47,8 @@ public:
         LINE,
         /** Oval */
         OVAL,
+        /** Polyhedron (three dim polygon) */
+        POLYHEDRON,
         /** Polyline */
         POLYLINE,
         /** Polygon */

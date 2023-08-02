@@ -559,6 +559,9 @@ AnnotationColorWidget::isBothColorsSetToNoneAllowed(QWidget* widget,
                 case AnnotationTypeEnum::OVAL:
                     allowBothColorsNoneFlag = false;
                     break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    allowBothColorsNoneFlag = false;
+                    break;
                 case AnnotationTypeEnum::POLYGON:
                     allowBothColorsNoneFlag = false;
                     break;

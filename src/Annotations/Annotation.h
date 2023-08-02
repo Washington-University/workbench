@@ -44,7 +44,9 @@ namespace caret {
     class AnnotationCoordinate;
     class AnnotationScaleBar;
     class AnnotationMultiCoordinateShape;
+    class AnnotationMultiPairedCoordinateShape;
     class AnnotationOneCoordinateShape;
+    class AnnotationPolyhedron;
     class AnnotationPolygon;
     class AnnotationPolyLine;
     class AnnotationSpatialModification;
@@ -138,9 +140,19 @@ namespace caret {
         virtual AnnotationMultiCoordinateShape* castToMultiCoordinateShape() { return NULL; }
         
         /**
-         * @return Cast to multi-coordinate (NULL if NOT multi-coordinate annotation)
+         * @return Cast to  multi-coordinate (NULL if NOT multi-coordinate annotation)
         */
         virtual const AnnotationMultiCoordinateShape* castToMultiCoordinateShape() const { return NULL; }
+        
+        /**
+         * @return Cast to paired multi-coordinate (NULL if NOT multi-coordinate annotation)
+         */
+        virtual AnnotationMultiPairedCoordinateShape* castToMultiPairedCoordinateShape() { return NULL; }
+        
+        /**
+         * @return Cast to  paired multi-coordinate (NULL if NOT multi-coordinate annotation)
+         */
+        virtual const AnnotationMultiPairedCoordinateShape* castToMultiPairedCoordinateShape() const { return NULL; }
         
         /**
          * @return Cast to one-coordinate (NULL if NOT one-coordinate annotation)
@@ -171,6 +183,16 @@ namespace caret {
          * @return Cast to polygon (NULL if NOT polygon) const method
          */
         virtual const AnnotationPolygon* castToPolygon() const { return NULL; }
+        
+        /**
+         * @return Cast to polyhedron (NULL if NOT polygon)
+         */
+        virtual AnnotationPolyhedron* castToPolyhedron() { return NULL; }
+        
+        /**
+         * @return Cast to polyhedron (NULL if NOT polygon) const method
+         */
+        virtual const AnnotationPolyhedron* castToPolyhedron() const { return NULL; }
         
         /**
          * @return Cast to polyline (NULL if NOT polyline)

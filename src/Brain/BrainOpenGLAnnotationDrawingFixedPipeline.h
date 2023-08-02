@@ -50,8 +50,10 @@ namespace caret {
     class AnnotationImage;
     class AnnotationLine;
     class AnnotationMultiCoordinateShape;
+    class AnnotationMultiPairedCoordinateShape;
     class AnnotationTwoCoordinateShape;
     class AnnotationOval;
+    class AnnotationPolyhedron;
     class AnnotationPolyLine;
     class AnnotationScaleBar;
     class AnnotationText;
@@ -127,6 +129,10 @@ namespace caret {
                              std::vector<Annotation*>& notInFileAnnotations,
                              const Surface* surfaceDisplayed,
                              const float surfaceViewScaling);
+
+        void drawModelSpaceSamplesOnVolumeSlice(Inputs* inputs,
+                                                const Plane& plane,
+                                                const float sliceThickness);
 
         void drawModelSpaceAnnotationsOnVolumeSlice(Inputs* inputs,
                                                     const Plane& plane,
@@ -248,11 +254,24 @@ namespace caret {
             bool m_valid = false;
         };
         
+        /**
+         * Type of data drawing
+         */
+        enum class DrawingDataType {
+            /** Invalid */
+            INVALID,
+            /** Annotations */
+            ANNOTATIONS,
+            /** Samples */
+            SAMPLES
+        };
+        
         BrainOpenGLAnnotationDrawingFixedPipeline(const BrainOpenGLAnnotationDrawingFixedPipeline&);
 
         BrainOpenGLAnnotationDrawingFixedPipeline& operator=(const BrainOpenGLAnnotationDrawingFixedPipeline&);
         
-        void drawAnnotationsInternal(const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
+        void drawAnnotationsInternal(const DrawingDataType drawingDataType,
+                                     const AnnotationCoordinateSpaceEnum::Enum drawingCoordinateSpace,
                                      std::vector<AnnotationColorBar*>& colorBars,
                                      std::vector<AnnotationScaleBar*>& scaleBars,
                                      std::vector<Annotation*>& viewportAnnotations,
@@ -331,10 +350,14 @@ namespace caret {
                       AnnotationOval* oval,
                       const Surface* surfaceDisplayed);
         
+        bool drawMultiPairedCoordinateShape(AnnotationFile* annotationFile,
+                                            AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
+                                            const Surface* surfaceDisplayed);
+
         bool drawMultiCoordinateShape(AnnotationFile* annotationFile,
                                       AnnotationMultiCoordinateShape* multiCoordShape,
                                       const Surface* surfaceDisplayed);
-
+        
         bool drawMultiCoordinateShapeSurfaceTangentOffset(AnnotationFile* annotationFile,
                                                           AnnotationMultiCoordinateShape* multiCoordShape,
                                                           const Surface* surfaceDisplayed,
@@ -412,6 +435,12 @@ namespace caret {
                                                         const std::vector<Vector3D>& verticesWindowXYZ,
                                                         const GraphicsPrimitive* primitive,
                                                         const float lineThickness);
+
+        void drawAnnotationMultiPairedCoordShapeSizingHandles(AnnotationFile* annotationFile,
+                                                              AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
+                                                              const std::vector<Vector3D>& verticesWindowXYZ,
+                                                              const GraphicsPrimitive* primitive,
+                                                              const float lineThickness);
 
         bool isDrawnWithDepthTesting(const Annotation* annotation,
                                      const Surface* surface);
