@@ -660,18 +660,24 @@ AnnotationCreateDialog::createTextWidget()
 QWidget*
 AnnotationCreateDialog::createPolyhedronWidget()
 {
-    m_polyhedronSliceIndexDepthSpinBox = new QSpinBox();
-    m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000);
+    m_polyhedronSliceIndexDepthSpinBox = new QDoubleSpinBox();
+    m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000.0);
     m_polyhedronSliceIndexDepthSpinBox->setMinimum(-m_polyhedronSliceIndexDepthSpinBox->maximum());
-    m_polyhedronSliceIndexDepthSpinBox->setSingleStep(1);
+    m_polyhedronSliceIndexDepthSpinBox->setSingleStep(1.0);
     m_polyhedronSliceIndexDepthSpinBox->setValue(s_previousPolyhedronDepthValue);
+    QObject::connect(m_polyhedronSliceIndexDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged);
+
     
     m_polyhedronSliceMillimetersDepthSpinBox = new QDoubleSpinBox();
     m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
     m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
     m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
-    m_polyhedronSliceMillimetersDepthSpinBox->setValue(5.0);
-    
+    m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValue
+                                                       * m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    QObject::connect(m_polyhedronSliceMillimetersDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged);
+
     QGroupBox* groupBox = new QGroupBox("Polyhedron Depth");
     QGridLayout* layout = new QGridLayout(groupBox);
     layout->addWidget(new QLabel("Slices"), 0, 0);
@@ -680,6 +686,37 @@ AnnotationCreateDialog::createPolyhedronWidget()
     layout->addWidget(m_polyhedronSliceMillimetersDepthSpinBox, 1, 1);
 
     return groupBox;
+}
+
+/**
+ * Called when polyhedron depth index spin box value changed
+ * @param value
+ *    New value
+ */
+void
+AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged(double value)
+{
+    const float mm(m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    const float mmSize(value * mm);
+    QSignalBlocker blocker(m_polyhedronSliceMillimetersDepthSpinBox);
+    m_polyhedronSliceMillimetersDepthSpinBox->setValue(mmSize);
+}
+
+/**
+ * Called when polyhedron depth value spin box value changed
+ * @param value
+ *    New value
+ */
+void
+AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged(double value)
+{
+    float mm(m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    if (mm == 0) {
+        mm = 1.0;
+    }
+    const float mmSize(value / mm);
+    QSignalBlocker blocker(m_polyhedronSliceIndexDepthSpinBox);
+    m_polyhedronSliceIndexDepthSpinBox->setValue(mmSize);
 }
 
 /**

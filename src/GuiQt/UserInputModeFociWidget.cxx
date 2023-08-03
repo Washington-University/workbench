@@ -299,15 +299,11 @@ UserInputModeFociWidget::createLastIdentificationFocusActionTriggered()
                 const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(volumeFile);
                 if (brain->isFileValid(cmdf)) {
                     CaretAssert(volumeFile);
-                    int64_t ijk[3];
-                    voxelID->getVoxelIJK(ijk);
-                    float xyz[3];
-                    volumeFile->indexToSpace(ijk, xyz);
-                    
+                    const Vector3D xyz(voxelID->getVoxelXYZ());
                     const AString focusName = ("Last ID "
                                                + cmdf->getFileNameNoPath()
-                                               + " IJK ("
-                                               + AString::fromNumbers(ijk, 3, ",")
+                                               + " XYZ ("
+                                               + AString::fromNumbers(xyz, 3, ",")
                                                + ")");
                     
                     const AString comment = ("Created from "

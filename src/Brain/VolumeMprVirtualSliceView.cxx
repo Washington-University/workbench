@@ -261,11 +261,11 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
         /*
          * Need to flip sign of normal vector
          */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-virtualSliceVector,
+        m_montageTopLeftSliceDirectionPlane = Plane(-virtualSliceVector,
                                                               m_selectedSlicesXYZ);
     }
     else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(virtualSliceVector,
+        m_montageTopLeftSliceDirectionPlane = Plane(virtualSliceVector,
                                                               m_selectedSlicesXYZ);
     }
 }
@@ -450,12 +450,26 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
         /*
          * Need to flip sign of normal vector
          */
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(-m_virtualPlane.getNormalVector(),
+        m_montageTopLeftSliceDirectionPlane = Plane(m_virtualPlane.getNormalVector(),
                                                               m_selectedSlicesXYZ);
     }
     else {
-        m_montageVirutalSliceIncreasingDirectionPlane = Plane(m_virtualPlane.getNormalVector(),
-                                                              m_selectedSlicesXYZ);
+        switch (m_sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_montageTopLeftSliceDirectionPlane = Plane(m_virtualPlane.getNormalVector(),
+                                                            m_selectedSlicesXYZ);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_montageTopLeftSliceDirectionPlane = Plane(-m_virtualPlane.getNormalVector(),
+                                                            m_selectedSlicesXYZ);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_montageTopLeftSliceDirectionPlane = Plane(-m_virtualPlane.getNormalVector(),
+                                                            m_selectedSlicesXYZ);
+                break;
+        }
     }
     
     m_preLookAtTranslation.fill(0.0);
@@ -738,7 +752,7 @@ VolumeMprVirtualSliceView::copyHelperVolumeMprVirtualSliceView(const VolumeMprVi
     
     m_virtualPlane = obj.m_virtualPlane;
     
-    m_montageVirutalSliceIncreasingDirectionPlane = obj.m_montageVirutalSliceIncreasingDirectionPlane;
+    m_montageTopLeftSliceDirectionPlane = obj.m_montageTopLeftSliceDirectionPlane;
     
     m_neurologicalOrientationFlag = obj.m_neurologicalOrientationFlag;
     
@@ -791,13 +805,13 @@ VolumeMprVirtualSliceView::getOriginalUtransformedPlane() const
 }
 
 /**
- * @return Plane for using when increasing slices coordinates
+ * @return Plane that contains coordinate direction from center slice to the top left slice in the montage
  * in montage view
  */
 Plane
-VolumeMprVirtualSliceView::getMontageIncreasingDirectionPlane() const
+VolumeMprVirtualSliceView::getMontageTopLeftSliceDirectionPlane() const
 {
-    return m_montageVirutalSliceIncreasingDirectionPlane;
+    return m_montageTopLeftSliceDirectionPlane;
 }
 
 /**

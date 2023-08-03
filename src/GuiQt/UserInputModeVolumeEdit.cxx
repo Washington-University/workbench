@@ -136,8 +136,7 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
                                                                 mouseY);
     if ((volumeEditInfo.m_volumeFile == idEditVoxel->getVolumeFile())
         && idEditVoxel->isValid()) {
-        int64_t ijk[3];
-        idEditVoxel->getVoxelIJK(ijk);
+        const VoxelIJK ijk(idEditVoxel->getVoxelIJK());
         
         VolumeEditingModeEnum::Enum editMode = VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON;
         int32_t brushSizes[3] = { 0, 0, 0 };
@@ -196,7 +195,7 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
                                                           sliceProjectionType,
                                                           obliqueRotationMatrix,
                                                           voxelDiffXYZ,
-                                                          ijk,
+                                                          ijk.m_ijk,
                                                           brushSizesInt64,
                                                           voxelValueOn,
                                                           voxelValueOff,

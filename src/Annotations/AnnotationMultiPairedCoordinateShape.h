@@ -73,6 +73,10 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
                 
+        void setDrawingNewAnnotationStatus(const bool status);
+        
+        bool isDrawingNewAnnotation() const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -108,6 +112,8 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         std::vector<std::unique_ptr<AnnotationCoordinate>> m_coordinates;
+        
+        bool m_drawingNewAnnotationStatusFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

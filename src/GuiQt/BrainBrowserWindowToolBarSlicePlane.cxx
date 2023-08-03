@@ -320,7 +320,7 @@ BrainBrowserWindowToolBarSlicePlane::createCrosshairMenu(const QString& objectNa
     m_crosshairGapSpinBox = new QDoubleSpinBox();
     m_crosshairGapSpinBox->setMinimum(0.0);
     m_crosshairGapSpinBox->setMaximum(100);
-    m_crosshairGapSpinBox->setSingleStep(0.1);
+    m_crosshairGapSpinBox->setSingleStep(1.0);
     m_crosshairGapSpinBox->setDecimals(1);
     m_crosshairGapSpinBox->setSuffix("%");
     m_crosshairGapSpinBox->setObjectName(objectNamePrefix

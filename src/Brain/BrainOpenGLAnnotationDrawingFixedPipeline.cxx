@@ -5086,10 +5086,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         return false;
     }
     
-    if ( ! MathFunctions::isEvenNumber(multiPairedCoordShape->getNumberOfCoordinates())) {
-        CaretLogSevere("Polyhedron shape must have an even number of coordinates");
-        return false;
+    if ( ! multiPairedCoordShape->isDrawingNewAnnotation()) {
+        if ( ! MathFunctions::isEvenNumber(multiPairedCoordShape->getNumberOfCoordinates())) {
+            if (polyhedron != NULL) {
+                CaretLogSevere("Polyhedron shape must have an even number of coordinates");
+            }
+            else {
+                CaretLogSevere("Multi paired coordinate shape must have an even number of coordinates");
+            }
+            return false;
+        }
     }
+
     
     uint8_t foregroundRGBA[4];
     multiPairedCoordShape->getLineColorRGBA(foregroundRGBA);
@@ -5113,121 +5121,137 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     bool allowSizingHandlesFlag(false);
     int32_t drawStartingCoordinateIndex(-1);
     int32_t drawCoordinateCount(-1);
-    for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
-        const int32_t numTotalCoords(multiPairedCoordShape->getNumberOfCoordinates());
-        const int32_t numHalfCoords(numTotalCoords / 2);
-
-        std::vector<Vector3D> xyzToDraw;
-        switch (iDraw) {
-            case 0:
-            {
-                /*
-                 * 'Near' polygon in first half of coordinates
-                 */
-                for (int32_t i = 0; i < numHalfCoords; i++) {
-                    Vector3D xyz;
-                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
-                                                            multiPairedCoordShape->getCoordinate(i),
-                                                            surfaceDisplayed,
-                                                            xyz)) {
-                        xyzToDraw.push_back(xyz);
-                    }
-                }
+    
+    if (multiPairedCoordShape->isDrawingNewAnnotation()) {
+        const int32_t numCoords(multiPairedCoordShape->getNumberOfCoordinates());
+        for (int32_t i = 0; i < numCoords; i++) {
+            Vector3D xyz;
+            if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                    multiPairedCoordShape->getCoordinate(i),
+                                                    surfaceDisplayed,
+                                                    xyz)) {
+                windowVertexXYZ.push_back(xyz);
+                primitive->addVertex(xyz);
             }
-                break;
-            case 1:
-            {
-                /*
-                 * 'Far' polygon in second half of coordinates
-                 */
-                for (int32_t i = numHalfCoords; i < numTotalCoords; i++) {
-                    Vector3D xyz;
-                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
-                                                            multiPairedCoordShape->getCoordinate(i),
-                                                            surfaceDisplayed,
-                                                            xyz)) {
-                        xyzToDraw.push_back(xyz);
-                    }
-                }
-            }
-                break;
-            case 2:
-                /*
-                 * Only draw "in between" points if NOT selection mode
-                 */
-                if ( ! m_selectionModeFlag) {
+        }
+    }
+    else {
+        for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
+            const int32_t numTotalCoords(multiPairedCoordShape->getNumberOfCoordinates());
+            const int32_t numHalfCoords(numTotalCoords / 2);
+            
+            std::vector<Vector3D> xyzToDraw;
+            switch (iDraw) {
+                case 0:
+                {
                     /*
-                     * Slices between near and far polygons
+                     * 'Near' polygon in first half of coordinates
                      */
-                    if (m_volumeSpacePlane.isValidPlane()) {
-                        for (int32_t i = 0; i < numHalfCoords; i++) {
-                            Vector3D xyzOne, xyzTwo;
-                            multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
-                            multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
-                            
-                            Vector3D xyz;
-                            if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
-                                                                             xyzTwo,
-                                                                             xyz)) {
-                                AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
-                                ac.setXYZ(xyz);
+                    for (int32_t i = 0; i < numHalfCoords; i++) {
+                        Vector3D xyz;
+                        if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                                multiPairedCoordShape->getCoordinate(i),
+                                                                surfaceDisplayed,
+                                                                xyz)) {
+                            xyzToDraw.push_back(xyz);
+                        }
+                    }
+                }
+                    break;
+                case 1:
+                {
+                    /*
+                     * 'Far' polygon in second half of coordinates
+                     */
+                    for (int32_t i = numHalfCoords; i < numTotalCoords; i++) {
+                        Vector3D xyz;
+                        if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                                multiPairedCoordShape->getCoordinate(i),
+                                                                surfaceDisplayed,
+                                                                xyz)) {
+                            xyzToDraw.push_back(xyz);
+                        }
+                    }
+                }
+                    break;
+                case 2:
+                    /*
+                     * Only draw "in between" points if NOT selection mode
+                     */
+                    if ( ! m_selectionModeFlag) {
+                        /*
+                         * Slices between near and far polygons
+                         */
+                        if (m_volumeSpacePlane.isValidPlane()) {
+                            for (int32_t i = 0; i < numHalfCoords; i++) {
+                                Vector3D xyzOne, xyzTwo;
+                                multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
+                                multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
                                 
-                                if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
-                                                                        &ac,
-                                                                        surfaceDisplayed,
-                                                                        xyz)) {
-                                    xyzToDraw.push_back(xyz);
+                                Vector3D xyz;
+                                if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
+                                                                                 xyzTwo,
+                                                                                 xyz)) {
+                                    AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
+                                    ac.setXYZ(xyz);
+                                    
+                                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                                            &ac,
+                                                                            surfaceDisplayed,
+                                                                            xyz)) {
+                                        xyzToDraw.push_back(xyz);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                break;
-        }
-        
-        if (static_cast<int32_t>(xyzToDraw.size()) == numHalfCoords) {
-            switch (iDraw) {
-                case 0:
-                    /*
-                     * To prevent problems, number of vertices in primitive
-                     * must be all coordinates so that selection works but
-                     * we only draw FIRST half of coordinates
-                     */
-                    allowSizingHandlesFlag  = true;
-                    drawStartingCoordinateIndex = 0;
-                    drawCoordinateCount = numHalfCoords;
-                    for (int32_t i = 0; i < numHalfCoords; i++) {
-                        xyzToDraw.push_back(xyzToDraw[i]);
-                    }
-                    CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
                     break;
-                case 1:
-                    /*
-                     * To prevent problems, number of vertices in primitive
-                     * must be all coordinates so that selection works but
-                     * we only draw SECOND half of coordinates
-                     */
-                    allowSizingHandlesFlag  = true;
-                    drawStartingCoordinateIndex = numHalfCoords;
-                    drawCoordinateCount = numHalfCoords;
-                    for (int32_t i = 0; i < numHalfCoords; i++) {
-                        xyzToDraw.push_back(xyzToDraw[i]);
-                    }
-                    CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
-                    break;
-                case 2:
-                    /* No ID */
-                    break;
-            }
-            for (auto& xyz : xyzToDraw) {
-                windowVertexXYZ.push_back(xyz);
-                primitive->addVertex(xyz);
             }
             
-            /*
-             * Exit loop
-             */
-            iDraw = 4;
+            if (static_cast<int32_t>(xyzToDraw.size()) == numHalfCoords) {
+                switch (iDraw) {
+                    case 0:
+                        /*
+                         * To prevent problems, number of vertices in primitive
+                         * must be all coordinates so that selection works but
+                         * we only draw FIRST half of coordinates
+                         */
+                        allowSizingHandlesFlag  = true;
+                        drawStartingCoordinateIndex = 0;
+                        drawCoordinateCount = numHalfCoords;
+                        for (int32_t i = 0; i < numHalfCoords; i++) {
+                            xyzToDraw.push_back(xyzToDraw[i]);
+                        }
+                        CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
+                        break;
+                    case 1:
+                        /*
+                         * To prevent problems, number of vertices in primitive
+                         * must be all coordinates so that selection works but
+                         * we only draw SECOND half of coordinates
+                         */
+                        allowSizingHandlesFlag  = true;
+                        drawStartingCoordinateIndex = numHalfCoords;
+                        drawCoordinateCount = numHalfCoords;
+                        for (int32_t i = 0; i < numHalfCoords; i++) {
+                            xyzToDraw.push_back(xyzToDraw[i]);
+                        }
+                        CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
+                        break;
+                    case 2:
+                        /* No ID */
+                        break;
+                }
+                for (auto& xyz : xyzToDraw) {
+                    windowVertexXYZ.push_back(xyz);
+                    primitive->addVertex(xyz);
+                }
+                
+                /*
+                 * Exit loop
+                 */
+                iDraw = 4;
+            }
         }
     }
     
@@ -5240,8 +5264,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                              drawCoordinateCount);
     }
 
-    if (primitive->getNumberOfVertices() < 3) {
-        return false;
+    if ( ! multiPairedCoordShape->isDrawingNewAnnotation()) {
+        if (primitive->getNumberOfVertices() < 3) {
+            return false;
+        }
     }
     
     if (multiPairedCoordShape->getLineWidthPercentage() <= 0.0) {
@@ -5258,7 +5284,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     const bool depthTestFlag = isDrawnWithDepthTesting(multiPairedCoordShape,
                                                        surfaceDisplayed);
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-    
     
     bool drawnFlag = false;
     

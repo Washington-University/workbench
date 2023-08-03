@@ -1732,7 +1732,11 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
             break;
     }
     const float percentViewportHeight(0.5);
-    const float gapPercentage = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
+    float gapPercentage = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
+    gapPercentage /= 100.0;
+    if (gapPercentage > 0.5) {
+        gapPercentage = 0.5;
+    }
     
     Vector3D crosshairOneStartXYZ(sliceCoordinates
                                   + ((gapPercentage * crosshairLength) * crosshairOneTwoVector));
@@ -3363,17 +3367,15 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
                  * Voxel identification
                  */
                 if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
-                    Vector3D xyz;
-                    volume->indexToSpace(ijk, xyz);
                     voxelID->setVoxelIdentification(m_brain,
                                                     volume,
                                                     ijk,
-                                                    xyz,
+                                                    slicePlaneXYZ,
                                                     mprSliceView.getVirtualPlane(),
                                                     selectedPrimitiveDepth);
                     
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                                     xyz);
+                                                                     slicePlaneXYZ);
                     CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
                 }
             }
@@ -3639,17 +3641,15 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
                      * Voxel identification
                      */
                     if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
-                        Vector3D xyz;
-                        volume->indexToSpace(ijk, xyz);
                         voxelID->setVoxelIdentification(m_brain,
                                                         volume,
                                                         ijk,
-                                                        xyz,
+                                                        selectedXYZ,
                                                         mprSliceView.getVirtualPlane(),
                                                         selectedPrimitiveDepth);
                         
                         m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
-                                                                         xyz);
+                                                                         selectedXYZ);
                         CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
                     }
                 }
@@ -4267,6 +4267,7 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                  */
                 SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
                 float xyz[3];
+                CaretAssertMessage(0, "Should not use index to space, use actual XYZ");
                 volume->indexToSpace(minMaxIJK, xyz);
                 voxelID->setModelXYZ(xyz);
                 
@@ -4396,7 +4397,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
      * coordinate step to move between adjacent slices
      */
     Vector3D sliceCoordIncreaseDirectionVector;
-    mprSliceView.getMontageIncreasingDirectionPlane().getNormalVector(sliceCoordIncreaseDirectionVector);
+    mprSliceView.getMontageTopLeftSliceDirectionPlane().getNormalVector(sliceCoordIncreaseDirectionVector);
     const Vector3D singleSliceCoordStepXYZ(sliceCoordIncreaseDirectionVector * sliceThickness);
     if (m_debugFlag) std::cout << "Single slice step XYZ: " << singleSliceCoordStepXYZ.toString() << std::endl;
     
@@ -4411,12 +4412,14 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
      * from the selected slice indices
      */
     const float firstSliceIndexOffset((numberOfSlicesInMontageGrid - 1.0) / 2.0);
+    if (m_debugFlag) std::cout << "   First slice index: " << firstSliceIndexOffset << std::endl;
     
     /*
      * XYZ offset of first slice (top left) in montage grid from the selected
      * slice coordinates (XYZ in toolbar)
      */
     const Vector3D firstSliceOffsetXYZ(montageSliceCoordStepXYZ * firstSliceIndexOffset);
+    if (m_debugFlag) std::cout << "   First slice offset: " << firstSliceOffsetXYZ.toString() << std::endl;
     
     /*
      * XYZ of first slice (top left) in montage grid
@@ -4448,36 +4451,33 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
                 continue;
             }
             
-            bool viewAngleFixFlag(true);
-            if (viewAngleFixFlag) {
-                if (m_debugFlag) std::cout << "   First montage slice coords: " << sliceXYZ.toString() << std::endl;
-                int64_t voxelIJK[3];
-                underlayVolume->enclosingVoxel(sliceXYZ[0], sliceXYZ[1], sliceXYZ[2],
-                                               voxelIJK[0], voxelIJK[1], voxelIJK[2]);
-                if (m_debugFlag) std::cout << "   Slice indices: " << voxelIJK[0] << ", "
+            if (m_debugFlag) std::cout << "   First montage slice coords: " << sliceXYZ.toString() << std::endl;
+            int64_t voxelIJK[3];
+            underlayVolume->enclosingVoxel(sliceXYZ[0], sliceXYZ[1], sliceXYZ[2],
+                                           voxelIJK[0], voxelIJK[1], voxelIJK[2]);
+            if (m_debugFlag) std::cout << "   Slice indices: " << voxelIJK[0] << ", "
                 << voxelIJK[1] << ", " << voxelIJK[2] << std::endl;
-                if (underlayVolume->indexValid(voxelIJK[0], voxelIJK[1], voxelIJK[2])) {
-                    const bool updateGraphicsObjectToWindowTransformFlag(sliceCounter == midSliceNumber);
-                    drawVolumeSliceViewProjection(viewportContent,
-                                                  sliceProjectionType,
-                                                  sliceDrawingType,
-                                                  sliceViewPlane,
-                                                  sliceXYZ,
-                                                  vp,
-                                                  updateGraphicsObjectToWindowTransformFlag);
-                }
+            if (underlayVolume->indexValid(voxelIJK[0], voxelIJK[1], voxelIJK[2])) {
+                const bool updateGraphicsObjectToWindowTransformFlag(sliceCounter == midSliceNumber);
+                drawVolumeSliceViewProjection(viewportContent,
+                                              sliceProjectionType,
+                                              sliceDrawingType,
+                                              sliceViewPlane,
+                                              sliceXYZ,
+                                              vp,
+                                              updateGraphicsObjectToWindowTransformFlag);
+                
+                /*
+                 * Draw coordinates on slice
+                 */
+                const float offsetDistance(mprSliceView.getMontageTopLeftSliceDirectionPlane().signedDistanceToPlane(sliceXYZ));
+                BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
+                                                                           m_browserTabContent,
+                                                                           sliceViewPlane,
+                                                                           vp,
+                                                                           sliceXYZ,
+                                                                           offsetDistance);
             }
-            
-            /*
-             * Draw coordinates on slice
-             */
-            const float offsetDistance(mprSliceView.getMontageIncreasingDirectionPlane().signedDistanceToPlane(sliceXYZ));
-            BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
-                                                                       m_browserTabContent,
-                                                                       sliceViewPlane,
-                                                                       vp,
-                                                                       sliceXYZ,
-                                                                       offsetDistance);
 
             /*
              * Move 'down' along axis

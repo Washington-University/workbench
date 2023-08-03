@@ -84,7 +84,7 @@ namespace caret {
         
         Plane getOriginalUtransformedPlane() const;
         
-        Plane getMontageIncreasingDirectionPlane() const;
+        Plane getMontageTopLeftSliceDirectionPlane() const;
         
         Vector3D getVolumeCenterXYZ() const;
         
@@ -194,7 +194,7 @@ namespace caret {
         /* Plane after transformation that points to user */
         Plane m_virtualPlane;
         
-        Plane m_montageVirutalSliceIncreasingDirectionPlane;
+        Plane m_montageTopLeftSliceDirectionPlane;
 
         bool m_radiologicalOrientationFlag = false;
         

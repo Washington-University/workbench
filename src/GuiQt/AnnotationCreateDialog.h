@@ -71,6 +71,10 @@ namespace caret {
     private slots:
         void selectImageButtonClicked();
         
+        void polyhedronDepthIndexSpinBoxValueChanged(double value);
+        
+        void polyhedronDepthMillimetersSpinBoxValueChanged(double value);
+        
     private:
         /** Dialogs mode */
         enum Mode {
@@ -182,7 +186,7 @@ namespace caret {
         int32_t m_imageWidth;
         int32_t m_imageHeight;
         
-        QSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
+        QDoubleSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
         
         QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
         

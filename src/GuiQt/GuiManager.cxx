@@ -3360,11 +3360,8 @@ GuiManager::processIdentification(const int32_t tabIndex,
         if (idVoxel->isValid()
             && ( ! triedToLoadSurfaceODemandData)) {
             const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
-            int64_t voxelIJK[3];
-            idVoxel->getVoxelIJK(voxelIJK);
             if (volumeFile != NULL) {
-                float xyz[3];
-                volumeFile->indexToSpace(voxelIJK, xyz);
+                const Vector3D xyz(idVoxel->getVoxelXYZ());
                 
                 updateGraphicsFlag = true;
                 
@@ -3741,24 +3738,25 @@ GuiManager::processIdentification(const int32_t tabIndex,
         
         if (idVoxel->isValid()) {
             const VolumeMappableInterface* volumeFile = idVoxel->getVolumeFile();
-            int64_t voxelIJK[3];
-            idVoxel->getVoxelIJK(voxelIJK);
+            const VoxelIJK voxelIJK(idVoxel->getVoxelIJK());
             if (volumeFile != NULL) {
-                float xyz[3];
-                volumeFile->indexToSpace(voxelIJK, xyz);
+                const Vector3D xyz(idVoxel->getVoxelXYZ());
                 
                 if (identifiedItem == NULL) {
                     const CaretDataFile* caretDataFile = dynamic_cast<const CaretDataFile*>(volumeFile);
                     const AString dataFileName((caretDataFile != NULL)
                                                ? caretDataFile->getFileNameNoPath()
                                                : "");
-                    std::array<int64_t, 3> voxelIdIJK { voxelIJK[0], voxelIJK[1], voxelIJK[2] };
-                    Vector3D stereotaxicXYZ { xyz[0], xyz[1], xyz[2] };
+                    const std::array<int64_t, 3> ijk {
+                        voxelIJK.m_ijk[0],
+                        voxelIJK.m_ijk[1],
+                        voxelIJK.m_ijk[2]
+                    };
                     identifiedItem = IdentifiedItemUniversal::newInstanceVolumeIdentification(identificationMessage,
                                                                                               formattedIdentificationMessage,
                                                                                               dataFileName,
-                                                                                              voxelIdIJK,
-                                                                                              stereotaxicXYZ);
+                                                                                              ijk,
+                                                                                              xyz);
                 }
                 
                 if ( ! issuedIdentificationLocationEvent) {

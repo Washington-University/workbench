@@ -632,12 +632,13 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
         return;
     }
     
-    int64_t ijk[3];
     const VolumeMappableInterface* idVolumeFile = idVolumeVoxel->getVolumeFile();
-    idVolumeVoxel->getVoxelIJK(ijk);
-    float x, y, z;
-    idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
-    
+    const VoxelIJK ijk(idVolumeVoxel->getVoxelIJK());
+    const Vector3D xyz(idVolumeVoxel->getVoxelXYZ());
+    const float x(xyz[0]);
+    const float y(xyz[1]);
+    const float z(xyz[2]);
+
     const QString xyzText(AString::number(x, 'f', 2)
                           + ", "
                           + AString::number(y, 'f', 2)
@@ -645,7 +646,7 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
                           + AString::number(z, 'f', 2));
     
     const QString ijkText("Voxel IJK ("
-                          + AString::fromNumbers(ijk, 3, ", ")
+                          + AString::fromNumbers(ijk.m_ijk, 3, ", ")
                           + ")");
 
     QString filename;
@@ -687,12 +688,10 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
         return;
     }
     
-    int64_t ijk[3];
-    const VolumeMappableInterface* idVolumeFile = idVolumeVoxel->getVolumeFile();
-    idVolumeVoxel->getVoxelIJK(ijk);
-    float x, y, z;
-    idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
-    const float xyz[3] = { x, y, z };
+    const Vector3D xyz(idVolumeVoxel->getVoxelXYZ());
+    const float x(xyz[0]);
+    const float y(xyz[1]);
+    const float z(xyz[2]);
 
     /*
      * Get all volume files
@@ -2650,26 +2649,21 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
                  * Update IJK and XYZ since selection XYZ may be
                  * a different volume file.
                  */
-                int64_t selectionIJK[3];
-                voxelSelection->getVoxelIJK(selectionIJK);
-                int64_t ijk[3] { selectionIJK[0], selectionIJK[1], selectionIJK[2] };
-                
+                const VoxelIJK ijk(voxelSelection->getVoxelIJK());
                 
                 bool validFlag(false);
                 const float value = underlayVolumeInterface->getVoxelValue(xyz[0], xyz[1], xyz[2],
                                                                            &validFlag,
                                                                            mapIndex);
                 if (validFlag) {
-                    underlayVolumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2],
-                                                            ijk[0], ijk[1], ijk[2]);
-                    underlayVolumeInterface->indexToSpace(ijk, xyz);
+                    const Vector3D xyz(voxelSelection->getVoxelXYZ());
                     idText.addLine(indentFlag,
                                    "Underlay Value",
                                    AString::number(value, 'f'));
                     indentFlag = true;
                     idText.addLine(indentFlag,
                                    "IJK: ",
-                                   AString::fromNumbers(ijk, 3, ", "));
+                                   AString::fromNumbers(ijk.m_ijk, 3, ", "));
                     idText.addLine(indentFlag,
                                    "XYZ",
                                    AString::fromNumbers(xyz, 3, ", ", 'f', 1));

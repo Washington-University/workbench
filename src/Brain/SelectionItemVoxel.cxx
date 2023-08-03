@@ -109,11 +109,10 @@ void
 SelectionItemVoxel::copyHelperSelectionItemVoxel(const SelectionItemVoxel& idItem)
 {
     m_volumeFile  = idItem.m_volumeFile;
-    m_voxelIJK[0] = idItem.m_voxelIJK[0];
-    m_voxelIJK[1] = idItem.m_voxelIJK[1];
-    m_voxelIJK[2] = idItem.m_voxelIJK[2];
+    m_voxelIJK    = idItem.m_voxelIJK;
     m_voxelXYZ    = idItem.m_voxelXYZ;
     m_plane       = idItem.m_plane;
+    m_voxelSizeMillimeters = idItem.m_voxelSizeMillimeters;
 }
 
 /**
@@ -139,6 +138,7 @@ SelectionItemVoxel::resetPrivate()
     m_voxelIJK[2] = -1;
     m_voxelXYZ.set(0.0, 0.0, 0.0);
     m_plane       = Plane();
+    m_voxelSizeMillimeters = 1.0;
 }
 
 
@@ -156,12 +156,10 @@ SelectionItemVoxel::getVolumeFile() const
  * @param voxelIJK
  *    Output containing voxel indices.
  */
-void 
-SelectionItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
+VoxelIJK
+SelectionItemVoxel::getVoxelIJK() const
 {
-    voxelIJK[0] = m_voxelIJK[0];
-    voxelIJK[1] = m_voxelIJK[1];
-    voxelIJK[2] = m_voxelIJK[2];
+    return m_voxelIJK;
 }
 
 /**
@@ -183,6 +181,15 @@ SelectionItemVoxel::getPlane() const
 }
 
 /**
+ * @return The voxel size in millimeters (greatest spacing)
+ */
+float
+SelectionItemVoxel::getVoxelSizeMillimeters() const
+{
+    return m_voxelSizeMillimeters;
+}
+
+/**
  * Set the volume file.
  *
  * @param brain
@@ -201,16 +208,22 @@ SelectionItemVoxel::getPlane() const
 void 
 SelectionItemVoxel::setVoxelIdentification(Brain* brain,
                                            VolumeMappableInterface* volumeFile,
-                                           const int64_t voxelIJK[3],
+                                           const VoxelIJK& voxelIJK,
                                            const Vector3D& voxelXYZ,
                                            const Plane& plane,
                                            const double screenDepth)
 {
     setBrain(brain);
-    m_volumeFile = volumeFile;
-    m_voxelIJK[0] = voxelIJK[0];
-    m_voxelIJK[1] = voxelIJK[1];
-    m_voxelIJK[2] = voxelIJK[2];
+    m_volumeFile  = volumeFile;
+    if (m_volumeFile != NULL) {
+        float sp, sc, sa;
+        m_volumeFile->getVoxelSpacingPCA(sp, sc, sa);
+        m_voxelSizeMillimeters = std::max(sp, std::max(sc, sa));
+    }
+    else {
+        m_voxelSizeMillimeters = 1.0;
+    }
+    m_voxelIJK    = voxelIJK;
     m_voxelXYZ    = voxelXYZ;
     setModelXYZ(voxelXYZ);
     m_plane       = plane;
@@ -243,10 +256,8 @@ SelectionItemVoxel::toString() const
     }
     
     text += ("Volume: " + name);
-    text += ("Voxel: " 
-             + AString::number(m_voxelIJK[0]) + ", "
-             + AString::number(m_voxelIJK[1]) + ", "
-             + AString::number(m_voxelIJK[2]) + "\n");
+    text += ("Voxel: "
+             + AString::fromNumbers(m_voxelIJK.m_ijk, 3) + "\n");
     
     return text;
 }

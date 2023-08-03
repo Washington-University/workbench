@@ -261,12 +261,11 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
         return;
     }
     
-    int64_t ijk[3];
     const VolumeMappableInterface* idVolumeFile = idVolumeVoxel->getVolumeFile();
-    idVolumeVoxel->getVoxelIJK(ijk);
-    float x, y, z;
-    idVolumeFile->indexToSpace(ijk[0], ijk[1], ijk[2], x, y, z);
-    
+    const Vector3D xyz(idVolumeVoxel->getVoxelXYZ());
+    const float x(xyz[0]);
+    const float y(xyz[1]);
+    const float z(xyz[2]);
     idText.addLine(false,
                    "Voxel XYZ ("
                    + AString::number(x)
@@ -275,9 +274,6 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                    + ", "
                    + AString::number(z)
                    + ")");
-    
-    const float xyz[3] = { x, y, z };
-
     
     /*
      * Get all volume files
@@ -1833,16 +1829,12 @@ IdentificationSimpleTextGenerator::generateVolumeToolTip(const BrowserTabContent
                  * Update IJK and XYZ since selection XYZ may be
                  * a different volume file.
                  */
-                int64_t selectionIJK[3];
-                voxelSelection->getVoxelIJK(selectionIJK);
-                int64_t ijk[3] { selectionIJK[0], selectionIJK[1], selectionIJK[2] };
-                
-                
                 bool validFlag(false);
                 const float value = underlayVolumeInterface->getVoxelValue(xyz[0], xyz[1], xyz[2],
                                                                            &validFlag,
                                                                            mapIndex);
                 if (validFlag) {
+                    int64_t ijk[3];
                     underlayVolumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2],
                                                             ijk[0], ijk[1], ijk[2]);
                     underlayVolumeInterface->indexToSpace(ijk, xyz);

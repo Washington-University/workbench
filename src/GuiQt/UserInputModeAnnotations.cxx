@@ -1309,7 +1309,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 annSpatialMod.setStereotaxicCoordinateAtMouseXY(coordInfo.m_modelSpaceInfo.m_xyz[0],
                                                                 coordInfo.m_modelSpaceInfo.m_xyz[1],
                                                                 coordInfo.m_modelSpaceInfo.m_xyz[2]);
-                std::cout << "New model coord: " << AString::fromNumbers(coordInfo.m_modelSpaceInfo.m_xyz, 3) << std::endl;
+                //std::cout << "New model coord: " << AString::fromNumbers(coordInfo.m_modelSpaceInfo.m_xyz, 3) << std::endl;
             }
             
             if (coordInfo.m_chartSpaceInfo.m_validFlag) {
@@ -2777,10 +2777,13 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_annotationFile = annotationFile;
     m_annotation = Annotation::newAnnotationOfType(annotationType,
                                                    AnnotationAttributesDefaultTypeEnum::USER);
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+    if (multiPairedCoordShape != NULL) {
+        multiPairedCoordShape->setDrawingNewAnnotationStatus(true);
+    }
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
 
-    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
     AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
     AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
     AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();

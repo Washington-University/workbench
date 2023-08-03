@@ -238,14 +238,10 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
             else if (idVoxel->isValid()) {
                 const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
                 const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(vf);
-                int64_t ijk[3];
-                idVoxel->getVoxelIJK(ijk);
-                float xyz[3];
-                vf->indexToSpace(ijk, xyz);
-                
+                const Vector3D xyz(idVoxel->getVoxelXYZ());
                 const AString focusName = (cmdf->getFileNameNoPath()
-                                           + " IJK ("
-                                           + AString::fromNumbers(ijk, 3, ",")
+                                           + " XYZ ("
+                                           + AString::fromNumbers(xyz, 3, ",")
                                            + ")");
                 
                 const AString comment = ("Created from "

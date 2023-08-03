@@ -155,21 +155,23 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
-    const Vector3D normalVector(plane.getNormalVector());
-    std::cout << "Normal Vector: " << normalVector.toString() << std::endl;
+    const bool debugFlag(false);
+    
+    const Vector3D normalVector(-plane.getNormalVector());
+    if (debugFlag) std::cout << "Normal Vector: " << normalVector.toString() << std::endl;
     const Vector3D offsetVector(normalVector * polyhedronDepth);
     for (int32_t i = 0; i < numCoords; i++) {
         AnnotationCoordinate* newCoord(new AnnotationCoordinate(*getCoordinate(i)));
         Vector3D xyz;
         newCoord->getXYZ(xyz);
-        std::cout << "   Orig: " << xyz.toString();
+        if (debugFlag) std::cout << "   Orig: " << xyz.toString();
         xyz += offsetVector;
         newCoord->setXYZ(xyz);
-        std::cout << ", New: " << xyz.toString() << std::endl;
+        if (debugFlag) std::cout << ", New: " << xyz.toString() << std::endl;
         addCoordinate(newCoord);
     }
     
-    {
+    if (debugFlag) {
         std::cout << "Created annotation: " << this->toString() << std::endl;
         const int32_t n(getNumberOfCoordinates());
         for (int32_t i = 0; i < n; i++) {
@@ -178,6 +180,8 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
             std::cout << "   " << i << ": " << xyz.toString() << std::endl;
         }
     }
+    
+    setDrawingNewAnnotationStatus(false);
     
     return true;
 }

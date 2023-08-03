@@ -311,10 +311,9 @@ UserInputModeViewContextMenu::createIdentifyMenu()
      */
     SelectionItemVoxel* idVoxel = this->selectionManager->getVoxelIdentification();
     if (idVoxel->isValid()) {
-        int64_t ijk[3];
-        idVoxel->getVoxelIJK(ijk);
+        const VoxelIJK ijk(idVoxel->getVoxelIJK());
         const AString text = ("Identify Voxel ("
-                              + AString::fromNumbers(ijk, 3, ",")
+                              + AString::fromNumbers(ijk.m_ijk, 3, ",")
                               + ")");
         identificationActions.push_back(WuQtUtilities::createAction(text,
                                                                     "",
@@ -1066,14 +1065,11 @@ UserInputModeViewContextMenu::createFociMenu()
      */
     if (idVoxel->isValid()
         && (focusVolID->isValid() == false)) {
-        int64_t ijk[3];
-        idVoxel->getVoxelIJK(ijk);
-        float xyz[3];
-        const VolumeMappableInterface* vf = idVoxel->getVolumeFile();
-        vf->indexToSpace(ijk, xyz);
+        const VoxelIJK ijk(idVoxel->getVoxelIJK());
+        const Vector3D xyz(idVoxel->getVoxelXYZ());
         
         const AString text = ("Create Focus at Voxel IJK ("
-                              + AString::fromNumbers(ijk, 3, ",")
+                              + AString::fromNumbers(ijk.m_ijk, 3, ",")
                               + ") XYZ ("
                               + AString::fromNumbers(xyz, 3, ",")
                               + ")...");
@@ -1663,15 +1659,13 @@ UserInputModeViewContextMenu::createVolumeFocusSelected()
 {
     SelectionItemVoxel* voxelID = this->selectionManager->getVoxelIdentification();
     const VolumeMappableInterface* vf = voxelID->getVolumeFile();
-    int64_t ijk[3];
-    voxelID->getVoxelIJK(ijk);
-    float xyz[3];
-    vf->indexToSpace(ijk, xyz);
+    const VoxelIJK ijk(voxelID->getVoxelIJK());
+    const Vector3D xyz(voxelID->getVoxelXYZ());
     
     const CaretMappableDataFile* cmdf = dynamic_cast<const CaretMappableDataFile*>(vf);
     const AString focusName = (cmdf->getFileNameNoPath()
                                + " IJK ("
-                               + AString::fromNumbers(ijk, 3, ",")
+                               + AString::fromNumbers(ijk.m_ijk, 3, ",")
                                + ")");
     
     const AString comment = ("Created from "

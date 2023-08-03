@@ -25,6 +25,7 @@
 #include "Plane.h"
 #include "SelectionItem.h"
 #include "Vector3D.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -45,15 +46,17 @@ namespace caret {
         
         const VolumeMappableInterface* getVolumeFile() const;
         
-        void getVoxelIJK(int64_t voxelIJK[3]) const;
+        VoxelIJK getVoxelIJK() const;
         
         Vector3D getVoxelXYZ() const;
         
         Plane getPlane() const;
         
+        float getVoxelSizeMillimeters() const;
+        
         void setVoxelIdentification(Brain* brain,
                                     VolumeMappableInterface* volumeFile,
-                                    const int64_t voxelIJK[3],
+                                    const VoxelIJK& voxelIJK,
                                     const Vector3D& voxelXYZ,
                                     const Plane& plane,
                                     const double screenDepth);
@@ -72,11 +75,13 @@ namespace caret {
         
         VolumeMappableInterface* m_volumeFile = NULL;
         
-        int64_t m_voxelIJK[3];
+        VoxelIJK m_voxelIJK;
         
         Vector3D m_voxelXYZ;
         
         Plane m_plane;
+        
+        float m_voxelSizeMillimeters;
         
     };
     
