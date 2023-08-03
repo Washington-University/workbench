@@ -39,6 +39,7 @@ namespace caret {
     class AnnotationFile;
     class BrowserTabContent;
     class MouseEvent;
+    class Plane;
     class SelectionItemVoxel;
 
     class AnnotationCreateDialog : public WuQDialogModal {
@@ -159,6 +160,8 @@ namespace caret {
         
         static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                            const Plane& polyedronPlane,
+                                            const float polyhedronDepthMM,
                                             AString& errorMessageOut);
         
         static void finishAnnotationCreation(AnnotationFile* annotationFile,

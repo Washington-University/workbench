@@ -254,8 +254,14 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
             needToLaunchDialogFlag = true;
         }
         else {
+            Plane invalidPolyhedronPlane;
+            float invalidPolyhedronDepth(0.0);
             AString errorMessage;
-            Annotation* newAnn = createAnnotation(newInfo, newInfo.m_selectedSpace, errorMessage);
+            Annotation* newAnn = createAnnotation(newInfo,
+                                                  newInfo.m_selectedSpace,
+                                                  invalidPolyhedronPlane,
+                                                  invalidPolyhedronDepth,
+                                                  errorMessage);
             if (newAnn != NULL) {
                 DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
                 dpa->updateForNewAnnotation(newAnn);
@@ -299,6 +305,10 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
  *     Information about the new annotation.
  * @param annotationSpace
  *     Coordinate space for new annotaiton.
+ * @param polyhedronPlane
+ *     Plane for polyhedron
+ * @param polyhedronDepthMM
+ *     Depth for polyhedron
  * @param errorMessageOut
  *     Output with error message.
  * @return
@@ -307,6 +317,8 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const Mode mode,
 Annotation*
 AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                         const Plane& polyhedronPlane,
+                                         const float polyhedronDepthMM,
                                          AString& errorMessageOut)
 {
     errorMessageOut.clear();
@@ -489,6 +501,20 @@ AnnotationCreateDialog::createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                 break;
             case AnnotationTypeEnum::TEXT:
                 break;
+        }
+        
+        AnnotationPolyhedron* polyhedron(newAnnotation->castToPolyhedron());
+        if (polyhedron != NULL) {
+            AString message;
+            if ( ! polyhedron->finishNewPolyhedron(polyhedronPlane,
+                                                   polyhedronDepthMM,
+                                                   message)) {
+                errorMessageOut = message;
+                delete newAnnotation;
+                newAnnotation = NULL;
+                return NULL;
+            }
+
         }
         finishAnnotationCreation(newAnnotationInfo.m_annotationFile,
                                  newAnnotation,
@@ -903,7 +929,13 @@ AnnotationCreateDialog::okButtonClicked()
     CaretPointer<Annotation> annotation;
     annotation.grabNew(NULL);
     
-    annotation.grabNew(createAnnotation(m_newAnnotationInfo, space, errorMessage));
+    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
+    }
+    annotation.grabNew(createAnnotation(m_newAnnotationInfo,
+                                        space,
+                                        m_newAnnotationInfo.m_selectionItemVoxel->getPlane(),
+                                        polyhedronDepthMM,
+                                        errorMessage));
     if (annotation == NULL) {
         if (errorMessage.isEmpty()) {
             WuQMessageBox::errorOk(this,
@@ -929,7 +961,6 @@ AnnotationCreateDialog::okButtonClicked()
                                     m_imageHeight);
     }
     if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
-        
         VolumeMappableInterface* underlayVolume;
         const MouseEvent& mouseEvent(m_newAnnotationInfo.m_mouseEvent);
         BrowserTabContent* btc(mouseEvent.getViewportContent()->getBrowserTabContent());
@@ -946,18 +977,6 @@ AnnotationCreateDialog::okButtonClicked()
         else {
             WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                    "Polyhedron must be drawn on volume slices");
-            return;
-        }
-        
-        AnnotationPolyhedron* polyhedron(annotation.getPointer()->castToPolyhedron());
-        CaretAssert(polyhedron);
-        AString message;
-        CaretAssert(m_newAnnotationInfo.m_selectionItemVoxel);
-        if ( ! polyhedron->finishNewPolyhedron(m_newAnnotationInfo.m_selectionItemVoxel->getPlane(),
-                                               polyhedronDepthMM,
-                                               message)) {
-            WuQMessageBox::errorOk(this,
-                                   message);
             return;
         }
     }
