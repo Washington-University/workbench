@@ -1452,7 +1452,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         glDisable(GL_POLYGON_OFFSET_FILL);
         
         if (m_identificationModeFlag) {
-            processIdentification(true);
+            processIdentification(true,
+                                  plane);
         }
     }
     
@@ -2075,7 +2076,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
         glDisable(GL_POLYGON_OFFSET_FILL);
         
         if (m_identificationModeFlag) {
-            processIdentification(true);
+            processIdentification(true,
+                                  plane);
         }
     }
 
@@ -3903,9 +3905,12 @@ BrainOpenGLVolumeSliceDrawing::addVoxelToIdentification(const int32_t volumeInde
  *
  * @param doNotReplaceUnderlayFlag
  * If true, do not replace identification from a lower layer
+ * @param plane
+ *    The plane of slice
  */
 void
-BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnderlayFlag)
+BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnderlayFlag,
+                                                     const Plane& plane)
 {
     int32_t identifiedItemIndex;
     float depth = -1.0;
@@ -3942,7 +3947,7 @@ BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnde
                                                 vf,
                                                 voxelIndices,
                                                 voxelCoordinates,
-                                                Plane(),
+                                                plane,
                                                 depth);
                 
                 
@@ -3963,7 +3968,7 @@ BrainOpenGLVolumeSliceDrawing::processIdentification(const bool doNotReplaceUnde
                                                         vf,
                                                         voxelIndices,
                                                         voxelCoordinates,
-                                                        Plane(),
+                                                        plane,
                                                         depth);
                     voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
                     
@@ -4936,7 +4941,8 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
         glPopAttrib();
         
         if (m_identificationModeFlag) {
-            processIdentification(false);
+            processIdentification(false,
+                                  plane);
         }
     }
     

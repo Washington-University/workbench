@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 #include "ModelTypeEnum.h"
+#include "Plane.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
@@ -43,7 +44,6 @@ namespace caret {
     class Matrix4x4;
     class ModelVolume;
     class ModelWholeBrain;
-    class Plane;
     class VolumeMappableInterface;
     
     class BrainOpenGLVolumeObliqueSliceDrawing : public CaretObject {
@@ -124,7 +124,8 @@ namespace caret {
             
             bool getSelectionIJK(int32_t ijkOut[3]) const;
             
-            void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing);
+            void draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                      const Plane& slicePlane);
             
             bool spatialMatch(const ObliqueSlice* slice);
             
@@ -234,6 +235,7 @@ namespace caret {
                               const Plane& plane);
         
         void drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                          const Plane& slicePlane,
                                           Matrix4x4& transformationMatrix);
         
         void createSlicePlaneEquation(const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
@@ -298,7 +300,7 @@ namespace caret {
                                                   int64_t culledLastVoxelIJKOut[3],
                                                   float voxelDeltaXYZOut[3]);
         
-        void processIdentification();
+        void processIdentification(const Plane& plane);
         
         void resetIdentification();
         

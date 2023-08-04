@@ -356,7 +356,8 @@ namespace caret {
                                                         const float sliceCoordinates[3],
                                                         const float sliceNormalVector[3]);
         
-        void processIdentification(const bool doNotReplaceUnderlayFlag);
+        void processIdentification(const bool doNotReplaceUnderlayFlag,
+                                   const Plane& plane);
         
         void resetIdentification();
         

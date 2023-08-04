@@ -787,13 +787,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                           obliqueTransformationMatrix);
         
         drawObliqueSliceWithOutlines(sliceViewPlane,
+                                     slicePlane,
                                      obliqueTransformationMatrix);
 
         /*
          * Process selection
          */
         if (m_identificationModeFlag) {
-            processIdentification();
+            processIdentification(slicePlane);
         }
     }
     
@@ -2150,9 +2151,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::addVoxelToIdentification(const int32_t vol
 
 /**
  * Process voxel identification.
+ * @param plane
+ *    The slice plane
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::processIdentification()
+BrainOpenGLVolumeObliqueSliceDrawing::processIdentification(const Plane& plane)
 {
     int32_t identifiedItemIndex;
     float depth = -1.0;
@@ -2184,7 +2187,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::processIdentification()
                                                 vf,
                                                 voxelIndices,
                                                 voxelCoordinates,
-                                                Plane(),
+                                                plane,
                                                 depth);
                 
                 
@@ -2205,7 +2208,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::processIdentification()
                                                         vf,
                                                         voxelIndices,
                                                         voxelCoordinates,
-                                                        Plane(),
+                                                        plane,
                                                         depth);
                     voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
                     
@@ -2355,11 +2358,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::createObliqueTransformationMatrix(const fl
  *
  * @param sliceViewPlane
  *    The plane for slice drawing.
+ * @param slicePlane
+ *    Plane for the slice
  * @param transformationMatrix
  *    The for oblique viewing.
  */
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                   const Plane& slicePlane,
                                                                    Matrix4x4& transformationMatrix)
 {
     /*
@@ -2764,7 +2770,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                         overlaySlices.push_back(slices[i]);
                     }
                     if (underlaySlice->compositeSlicesRGBA(overlaySlices)) {
-                        underlaySlice->draw(m_fixedPipelineDrawing);
+                        underlaySlice->draw(m_fixedPipelineDrawing,
+                                            slicePlane);
                         drawEachSliceFlag = false;
                     }
                 }
@@ -2772,7 +2779,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
             
             if (drawEachSliceFlag) {
                 for (auto s : slices) {
-                    s->draw(m_fixedPipelineDrawing);
+                    s->draw(m_fixedPipelineDrawing,
+                            slicePlane);
                 }
             }
         }
@@ -3657,9 +3665,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
  *
  * @param fixedPipelineDrawing
  *     The fixed pipeline drawing.
+ * @param slicePlane
+ *    Plane for the slice
  */
 void
-BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing)
+BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipeline* fixedPipelineDrawing,
+                                                         const Plane& slicePlane)
 {
     Brain* brain = fixedPipelineDrawing->m_brain;
     SelectionItemVoxel* selectionItemVoxel = brain->getSelectionManager()->getVoxelIdentification();
@@ -3796,7 +3807,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                                                                        m_volumeInterface,
                                                                        m_selectionIJK,
                                                                        voxelCoordinates,
-                                                                       Plane(),
+                                                                       slicePlane,
                                                                        selectedDepth);
                             
                             
@@ -3816,7 +3827,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                                                                                   m_volumeInterface,
                                                                                   m_selectionIJK,
                                                                                   voxelCoordinates,
-                                                                                  Plane(),
+                                                                                  slicePlane,
                                                                                   selectedDepth);
                                 float floatDiffXYZ[3] = {
                                     m_leftToRightStepXYZ[0] + m_bottomToTopStepXYZ[0],

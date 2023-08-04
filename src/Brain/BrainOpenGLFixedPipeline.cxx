@@ -4978,7 +4978,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                 vf,
                                                 voxelIndices,
                                                 voxelCoordinates,
-                                                Plane(),
+                                                Plane(), /* no plane, so use invalid */
                                                 depth);
                 
                 this->setSelectedItemScreenXYZ(voxelID,
@@ -5649,7 +5649,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
                                                 vf,
                                                 voxelIndices,
                                                 voxelCoordinates,
-                                                Plane(),
+                                                Plane(), /* no plane, so use invalid */
                                                 depth);
                                 
                 this->setSelectedItemScreenXYZ(voxelID,
