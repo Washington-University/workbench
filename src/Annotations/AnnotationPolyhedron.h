@@ -51,7 +51,7 @@ namespace caret {
         
         Plane getPlane() const;
         
-        void setPlane(const Plane& plane);
+        float getDepth() const;
         
        // ADD_NEW_METHODS_HERE
           
@@ -63,6 +63,9 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
+        void setFromFileReading(const Plane& plane,
+                                const float depth);
+        
         void copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj);
         
         void initializeMembersAnnotationPolyhedron();
@@ -71,8 +74,12 @@ namespace caret {
 
         Plane m_plane;
         
+        float m_depth;
+        
         // ADD_NEW_MEMBERS_HERE
 
+        /* Needs to call setPlane() and setDepth() */
+        friend class AnnotationFileXmlReader;
     };
     
 #ifdef __ANNOTATION_POLYHEDRON_DECLARE__

@@ -815,6 +815,9 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         m_stream->skipCurrentElement();
                     }
                     else if (elementName == ELEMENT_POLYHEDRON_DATA) {
+                        AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+                        CaretAssert(polyhedron);
+                        
                         const QXmlStreamAttributes polyAtts(m_stream->attributes());
 
                         const AString planeString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
@@ -826,8 +829,13 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                             p = Plane::fromFormattedString(planeString);
                         }
                         
-                        AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
-                        polyhedron->setPlane(p);
+                        const float depth(m_streamHelper->getOptionalAttributeFloatValue(polyAtts,
+                                                                                         ELEMENT_POLYHEDRON_DATA,
+                                                                                         ATTRIBUTE_DEPTH,
+                                                                                         0.0));
+
+                        polyhedron->setFromFileReading(p,
+                                                       depth);
                         
                         m_stream->skipCurrentElement();
                     }

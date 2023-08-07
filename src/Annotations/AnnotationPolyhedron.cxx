@@ -94,8 +94,10 @@ AnnotationPolyhedron::operator=(const AnnotationPolyhedron& obj)
  *    Object that is copied.
  */
 void
-AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& /*obj*/)
+AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj)
 {
+    m_plane = obj.m_plane;
+    m_depth = obj.m_depth;
 }
 
 /**
@@ -155,6 +157,7 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
+    m_depth = polyhedronDepth;
     m_plane = plane;
     
     const bool debugFlag(false);
@@ -198,14 +201,28 @@ AnnotationPolyhedron::getPlane() const
 }
 
 /**
- * Set plane from when annotation was drawn
+ * @return Depth from when the annotation was drawn
+ */
+float
+AnnotationPolyhedron::getDepth() const
+{
+    return m_depth;
+}
+
+
+/**
+ * Set values while reading file
  * @param plane
- *    The plane
+ *    The plane from when annotation was drawn
+ * @param depth
+ *    The depth value from when annotation was drawn
  */
 void
-AnnotationPolyhedron::setPlane(const Plane& plane)
+AnnotationPolyhedron::setFromFileReading(const Plane& plane,
+                                         const float depth)
 {
     m_plane = plane;
+    m_depth = depth;
     setModified();
 }
 

@@ -81,6 +81,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE;
         
+        static const QString ATTRIBUTE_DEPTH;
+        
         static const QString ATTRIBUTE_FOREGROUND_CARET_COLOR;
         
         static const QString ATTRIBUTE_FOREGROUND_CUSTOM_RGBA;
@@ -224,6 +226,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET = "nodeOffset";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE = "nodeOffsetVectorType";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_DEPTH = "depth";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_FOREGROUND_CARET_COLOR = "foregroundCaretColor";
     
