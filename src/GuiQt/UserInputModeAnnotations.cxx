@@ -1609,7 +1609,7 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                          * If not tested, dragging a coordinate would also add a coordinate
                          */
                         if (getCursor() == CursorEnum::CURSOR_CROSS) {
-                            const bool allowInsertFlag(false);
+                            const bool allowInsertFlag(true);
                             if (allowInsertFlag) {
                                 UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
                                                                                                      mouseEvent);

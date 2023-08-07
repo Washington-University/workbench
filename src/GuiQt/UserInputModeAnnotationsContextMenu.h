@@ -131,7 +131,7 @@ namespace caret {
         
         AnnotationText* m_textAnnotation;
         
-        int32_t m_polyLineCoordinateSelected;
+        int32_t m_polyAnnCoordinateSelected;
         
         Annotation* m_newAnnotationCreatedByContextMenu;
         

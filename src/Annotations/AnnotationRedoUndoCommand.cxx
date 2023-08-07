@@ -29,6 +29,7 @@
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationLine.h"
 #include "AnnotationMultiCoordinateShape.h"
+#include "AnnotationMultiPairedCoordinateShape.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
 #include "AnnotationStackingOrderOperation.h"
@@ -238,10 +239,18 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             AnnotationMultiCoordinateShape* multiCoordShape = dynamic_cast<AnnotationMultiCoordinateShape*>(annotation);
             const AnnotationMultiCoordinateShape* valueMultiCoordShape = dynamic_cast<const AnnotationMultiCoordinateShape*>(annotationValue);
             
+            AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(annotation->castToMultiPairedCoordinateShape());
+            const AnnotationMultiPairedCoordinateShape* valueMultiPairedCoordShape = dynamic_cast<const AnnotationMultiPairedCoordinateShape*>(annotationValue);
+
             if ((multiCoordShape != NULL)
                 && (valueMultiCoordShape != NULL)) {
                 std::vector<std::unique_ptr<AnnotationCoordinate>> coords(valueMultiCoordShape->getCopyOfAllCoordinates());
                 multiCoordShape->replaceAllCoordinatesNotConst(coords);
+            }
+            else if ((multiPairedCoordShape != NULL)
+                     && (valueMultiPairedCoordShape != NULL)) {
+                std::vector<std::unique_ptr<AnnotationCoordinate>> coords(valueMultiPairedCoordShape->getCopyOfAllCoordinates());
+                multiPairedCoordShape->replaceAllCoordinatesNotConst(coords);
             }
             else {
                 CaretAssert(0);
@@ -324,10 +333,18 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
         {
             AnnotationMultiCoordinateShape* multiCoordAnn = annotation->castToMultiCoordinateShape();
             const AnnotationMultiCoordinateShape* multiCoordAnnValue = annotationValue->castToMultiCoordinateShape();
+            AnnotationMultiPairedCoordinateShape* multiPairedCoordAnn(annotation->castToMultiPairedCoordinateShape());
+            const AnnotationMultiPairedCoordinateShape* multiPairedCoordAnnValue(annotationValue->castToMultiPairedCoordinateShape());
+
             if ((multiCoordAnn != NULL)
                 && (multiCoordAnnValue != NULL)) {
                 const std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords(multiCoordAnnValue->getCopyOfAllCoordinates());
                 multiCoordAnn->replaceAllCoordinatesNotConst(allCoords);
+            }
+            else if ((multiPairedCoordAnn != NULL)
+                     && (multiPairedCoordAnnValue != NULL)) {
+                const std::vector<std::unique_ptr<AnnotationCoordinate>> allCoords(multiPairedCoordAnnValue->getCopyOfAllCoordinates());
+                multiPairedCoordAnn->replaceAllCoordinatesNotConst(allCoords);
             }
             else {
                 CaretAssert(0);
@@ -1347,34 +1364,54 @@ AnnotationRedoUndoCommand::setModeCoordinateMulti(const std::vector<std::unique_
                                                   const std::vector<Annotation*>& annotations)
 {
     std::vector<AnnotationMultiCoordinateShape*> multiCoordAnns;
+    std::vector<AnnotationMultiPairedCoordinateShape*> multiPairedCoordAnns;
     for (auto& ann : annotations) {
         CaretAssert(ann);
         AnnotationMultiCoordinateShape* mc = ann->castToMultiCoordinateShape();
+        AnnotationMultiPairedCoordinateShape* mcp(ann->castToMultiPairedCoordinateShape());
         if (mc != NULL) {
             multiCoordAnns.push_back(mc);
+        }
+        else if (mcp) {
+            multiPairedCoordAnns.push_back(mcp);
         }
         else {
             CaretLogWarning("Attempting to apply set multi-coords on annotation that is does not support multi-coordinates: "
                             + ann->toString());
         }
     }
-    if (multiCoordAnns.empty()) {
-        CaretLogWarning("No multi-coord annotations for setting coordinates");
+    if (multiCoordAnns.empty()
+        && multiPairedCoordAnns.empty()) {
+        CaretLogWarning("No multi-coord or multi-paired coord annotations for setting coordinates");
         return;
     }
     
     m_mode        = AnnotationRedoUndoCommandModeEnum::COORDINATE_MULTI;
     setDescription("Set coordinates for multi-coordinate annotations");
     
-    for (auto& ann : multiCoordAnns) {
-        CaretAssert(ann);
-        AnnotationMultiCoordinateShape* redoAnnotation = dynamic_cast<AnnotationMultiCoordinateShape*>(ann->clone());
-        ann->replaceAllCoordinates(coordinates);
-        Annotation* undoAnnotation = ann->clone();
-        AnnotationMemento* am = new AnnotationMemento(ann,
-                                                      redoAnnotation,
-                                                      undoAnnotation);
-        m_annotationMementos.push_back(am);
+    if ( ! multiCoordAnns.empty()) {
+        for (auto& ann : multiCoordAnns) {
+            CaretAssert(ann);
+            AnnotationMultiCoordinateShape* redoAnnotation = dynamic_cast<AnnotationMultiCoordinateShape*>(ann->clone());
+            ann->replaceAllCoordinates(coordinates);
+            Annotation* undoAnnotation = ann->clone();
+            AnnotationMemento* am = new AnnotationMemento(ann,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
+    }
+    else if ( ! multiPairedCoordAnns.empty()) {
+        for (auto& ann : multiPairedCoordAnns) {
+            CaretAssert(ann);
+            AnnotationMultiPairedCoordinateShape* redoAnnotation = dynamic_cast<AnnotationMultiPairedCoordinateShape*>(ann->clone());
+            ann->replaceAllCoordinates(coordinates);
+            Annotation* undoAnnotation = ann->clone();
+            AnnotationMemento* am = new AnnotationMemento(ann,
+                                                          redoAnnotation,
+                                                          undoAnnotation);
+            m_annotationMementos.push_back(am);
+        }
     }
 }
 
@@ -1906,18 +1943,29 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t in
                                                                 const int32_t surfaceSpaceNewVertexIndex,
                                                                 Annotation* annotation)
 {
-    m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_INSERT_COORDINATE;
-    setDescription("Insert Polyline Coordinate");
-    
+    m_mode = AnnotationRedoUndoCommandModeEnum::INVALID;
     Annotation* redoAnnotation = annotation->clone();
     CaretAssert(redoAnnotation);
     
     AnnotationMultiCoordinateShape* multiCoordShape(redoAnnotation->castToMultiCoordinateShape());
-    CaretAssert(multiCoordShape);
-    multiCoordShape->insertCoordinate(insertAfterCoordinateIndex,
-                                      surfaceSpaceNewVertexIndex,
-                                      normalizedDistanceToNextCoordinate);
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(redoAnnotation->castToMultiPairedCoordinateShape());
+    if (multiCoordShape != NULL) {
+        multiCoordShape->insertCoordinate(insertAfterCoordinateIndex,
+                                          surfaceSpaceNewVertexIndex,
+                                          normalizedDistanceToNextCoordinate);
+    }
+    else if (multiPairedCoordShape != NULL) {
+        multiPairedCoordShape->insertCoordinate(insertAfterCoordinateIndex,
+                                                surfaceSpaceNewVertexIndex,
+                                                normalizedDistanceToNextCoordinate);
+    }
+    else {
+        CaretAssert(0);
+        return;
+    }
     
+    m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_INSERT_COORDINATE;
+    setDescription("Insert Polyline Coordinate");
     Annotation* undoAnnotation = annotation->clone();
     AnnotationMemento* am = new AnnotationMemento(annotation,
                                                   redoAnnotation,
@@ -1937,15 +1985,26 @@ void
 AnnotationRedoUndoCommand::setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,
                                                                 Annotation* annotation)
 {
-    m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_REMOVE_COORDINATE;
-    setDescription("Remove Polyline Coordinate");
+    m_mode = AnnotationRedoUndoCommandModeEnum::INVALID;
     
     Annotation* redoAnnotation = annotation->clone();
     CaretAssert(redoAnnotation);
     
     AnnotationMultiCoordinateShape* multiCoordShape(redoAnnotation->castToMultiCoordinateShape());
-    CaretAssert(multiCoordShape);
-    multiCoordShape->removeCoordinateAtIndex(coordinateIndex);
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(redoAnnotation->castToMultiPairedCoordinateShape());
+    if (multiCoordShape != NULL) {
+        multiCoordShape->removeCoordinateAtIndex(coordinateIndex);
+    }
+    else if (multiPairedCoordShape != NULL) {
+        multiPairedCoordShape->removeCoordinateAtIndex(coordinateIndex);
+    }
+    else {
+        CaretAssert(0);
+        return;
+    }
+    
+    m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_REMOVE_COORDINATE;
+    setDescription("Remove Polyline Coordinate");
     
     Annotation* undoAnnotation = annotation->clone();
     AnnotationMemento* am = new AnnotationMemento(annotation,

@@ -34,6 +34,7 @@
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
 #include "AnnotationPolygon.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationPolyLine.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -102,7 +103,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     m_annotationFile = NULL;
     m_annotation     = NULL;
-    m_polyLineCoordinateSelected = -1;
+    m_polyAnnCoordinateSelected = -1;
     
     bool allSelectedAnnotationsDeletableFlag = true;
     if (selectedAnnotations.empty()) {
@@ -173,97 +174,101 @@ m_newAnnotationCreatedByContextMenu(NULL)
         m_tabSpaceFileAndAnnotations.clear();
     }
     
-    AString multiCoordTypeName("ERROR");
-    bool polyLineSelectedFlag(false);
-    bool polylineIsPolygonFlag(false);
-    int32_t polyLineNumberOfVertices(-1);
-    bool polyLineInsertAllowedFlag(false);
+    const AnnotationPolygon*  polygon(NULL);
+    const AnnotationPolyLine* polyline(NULL);
+    const AnnotationPolyhedron* polyhedron(NULL);
+    AString polyAnnTypeName("ERROR");
+    int32_t polyAnnNumberOfCoordinates(-1);
+    bool polyAnnInsertAllowedFlag(false);
     bool oneAnnotationSelectedFlag(false);
     bool oneDeletableAnnotationSelectedFlag = false;
-    bool polyineRemoveCoordinateAllowedFlag(false);
+    bool polyAnnRemoveCoordinateAllowedFlag(false);
+
     if (selectedAnnotations.size() == 1) {
         oneAnnotationSelectedFlag = true;
         
         CaretAssertVectorIndex(selectedAnnotations, 0);
         m_annotationFile = selectedAnnotations[0].getFile();
         m_annotation     = selectedAnnotations[0].getAnnotation();
+        CaretAssert(m_annotation);
         if (m_annotation->testProperty(Annotation::Property::DELETION)) {
             oneDeletableAnnotationSelectedFlag = true;
         }
         
-        const AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
-        if (multiCoordShape != NULL) {
-            const AnnotationPolygon*  polygon = multiCoordShape->castToPolygon();
-            const AnnotationPolyLine* polyline = multiCoordShape->castToPolyline();
-            if (polygon != NULL) {
-                multiCoordTypeName = "Polygon";
+        polygon = m_annotation->castToPolygon();
+        polyline = m_annotation->castToPolyline();
+        polyhedron = m_annotation->castToPolyhedron();
+        
+        polyAnnTypeName = AnnotationTypeEnum::toGuiName(m_annotation->getType());
+
+        const SelectionItemAnnotation* annSel = m_selectionManager->getAnnotationIdentification();
+        if (annSel->isValid()) {
+            bool sizeHandleSelectedFlag(false);
+            switch (annSel->getSizingHandle()) {
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                    sizeHandleSelectedFlag = true;
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+                    break;
             }
-            else if (polyline != NULL) {
-                multiCoordTypeName = "Polyline";
-            }
-            else {
-                CaretAssert(0);
-            }
-            const SelectionItemAnnotation* annSel = m_selectionManager->getAnnotationIdentification();
-            if (annSel->isValid()) {
-                bool sizeHandleSelectedFlag(false);
-                switch (annSel->getSizingHandle()) {
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
-                        sizeHandleSelectedFlag = true;
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
-                        break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                        break;
+            
+            m_polyAnnCoordinateSelected = annSel->getPolyLineCoordinateIndex();
+            polyAnnNumberOfCoordinates   = m_annotation->getNumberOfCoordinates();
+
+            if (m_polyAnnCoordinateSelected >= 0) {
+                polyAnnInsertAllowedFlag = true;
+                if (sizeHandleSelectedFlag) {
+                    polyAnnInsertAllowedFlag = false;
                 }
-                
-                polyLineSelectedFlag     = true;
-                m_polyLineCoordinateSelected   = annSel->getPolyLineCoordinateIndex();
-                polyLineNumberOfVertices = multiCoordShape->getNumberOfCoordinates();
-                if (m_polyLineCoordinateSelected >= 0) {
-                    polyLineInsertAllowedFlag = true;
-                    if (sizeHandleSelectedFlag) {
-                        polyLineInsertAllowedFlag = false;
-                    }
-                    if (multiCoordShape->getNumberOfCoordinates() >= 3) {
-                        if (polygon != NULL) {
-                            polylineIsPolygonFlag = true;
-                            if (polygon->getNumberOfCoordinates() >= 4) {
-                                if (sizeHandleSelectedFlag) {
-                                    polyineRemoveCoordinateAllowedFlag = true;
-                                }
-                            }
-                        }
-                        else if (polyline != NULL) {
+                if (polyAnnNumberOfCoordinates >= 3) {
+                    if (polygon != NULL) {
+                        if (polyAnnNumberOfCoordinates >= 4) {
                             if (sizeHandleSelectedFlag) {
-                                polyineRemoveCoordinateAllowedFlag = true;
+                                polyAnnRemoveCoordinateAllowedFlag = true;
                             }
                         }
-                        else {
-                            CaretAssert(0);
+                    }
+                    else if (polyline != NULL) {
+                        if (sizeHandleSelectedFlag) {
+                            polyAnnRemoveCoordinateAllowedFlag = true;
                         }
+                    }
+                    else if (polyhedron != NULL) {
+                        /*
+                         * Note: Polyhedron contains pairs of coordinates so 8 is really 4 coordinates
+                         */
+                        if (polyAnnNumberOfCoordinates >= 8) {
+                            if (sizeHandleSelectedFlag) {
+                                polyAnnRemoveCoordinateAllowedFlag = true;
+                            }
+                        }
+                    }
+                    else {
+                        CaretAssert(0);
                     }
                 }
             }
@@ -367,21 +372,25 @@ m_newAnnotationCreatedByContextMenu(NULL)
      * Insert poly line coordinate at mouse
      */
     QAction* insertPolylineCoordinateAction = addAction("Insert "
-                                                        + multiCoordTypeName
+                                                        + polyAnnTypeName
                                                         + " Coordinate",
                                                         this,
                                                         &UserInputModeAnnotationsContextMenu::insertPolylineCoordinate);
     bool insertValidFlag(false);
-    if (polyLineSelectedFlag
-        && polyLineInsertAllowedFlag
-        && (m_polyLineCoordinateSelected >= 0)) {
-        if (polylineIsPolygonFlag) {
-            if (m_polyLineCoordinateSelected < polyLineNumberOfVertices) {
+    if (polyAnnInsertAllowedFlag
+        && (m_polyAnnCoordinateSelected >= 0)) {
+        if (polygon != NULL) {
+            if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
                 insertValidFlag = true;
             }
         }
-        else {
-            if (m_polyLineCoordinateSelected < (polyLineNumberOfVertices - 1)) {
+        else if (polyline != NULL) {
+            if (m_polyAnnCoordinateSelected < (polyAnnNumberOfCoordinates - 1)) {
+                insertValidFlag = true;
+            }
+        }
+        else if (polyhedron != NULL) {
+            if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
                 insertValidFlag = true;
             }
         }
@@ -392,10 +401,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
      * Remove poly line coordinate
      */
     QAction* removePolylineCoordinateAction = addAction("Remove "
-                                                        + multiCoordTypeName
+                                                        + polyAnnTypeName
                                                         + " Coordinate",
                                                     this, &UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected);
-    removePolylineCoordinateAction->setEnabled(polyineRemoveCoordinateAllowedFlag);
+    removePolylineCoordinateAction->setEnabled(polyAnnRemoveCoordinateAllowedFlag);
     
     /*
      * Separator
@@ -919,7 +928,7 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
     if ( ! selectedAnnotations.empty()) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeMultiCoordAnnRemoveCoordinate(m_polyLineCoordinateSelected,
+        undoCommand->setModeMultiCoordAnnRemoveCoordinate(m_polyAnnCoordinateSelected,
                                                           selectedAnnotations[0]);
         AString errorMessage;
         if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
@@ -963,9 +972,11 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(mouseEvent.getBrowserWindowIndex());
         AnnotationMultiCoordinateShape* multiCoordAnn(NULL);
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordAnn(NULL);
         if ( ! selectedAnnotations.empty()) {
             CaretAssertVectorIndex(selectedAnnotations, 0);
             multiCoordAnn = selectedAnnotations[0]->castToMultiCoordinateShape();
+            multiPairedCoordAnn = selectedAnnotations[0]->castToMultiPairedCoordinateShape();
         }
         if (multiCoordAnn != NULL) {
             const int32_t numAnnCoords = multiCoordAnn->getNumberOfCoordinates();
@@ -1021,6 +1032,41 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
                 }
             }
             
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeMultiCoordAnnInsertCoordinate(annSel->getPolyLineCoordinateIndex(),
+                                                              annSel->getNormalizedRangeFromCoordIndexToNextCoordIndex(),
+                                                              surfaceSpaceVertexIndex,
+                                                              selectedAnnotations[0]);
+            AString errorMessage;
+            if ( ! annotationManager->applyCommand(userInputModeAnnotations->getUserInputMode(),
+                                                   undoCommand,
+                                                   errorMessage)) {
+                WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                       errorMessage);
+            }
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+
+        if (multiPairedCoordAnn != NULL) {
+            const int32_t numAnnCoords = multiPairedCoordAnn->getNumberOfCoordinates();
+            if (numAnnCoords <= 2) {
+                return;
+            }
+            
+            /*
+             * Verify selected coordinate index is valid for shape type
+             */
+            if (multiPairedCoordAnn->castToPolyhedron() != NULL) {
+                if (annSel->getPolyLineCoordinateIndex() >= numAnnCoords) {
+                    return;
+                }
+            }
+            else {
+                CaretAssertMessage(0, "Multi paired coord shape is neither polyline nor polygon.  Has new shape been added?");
+                return;
+            }
+            int32_t surfaceSpaceVertexIndex(-1);
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeMultiCoordAnnInsertCoordinate(annSel->getPolyLineCoordinateIndex(),
                                                               annSel->getNormalizedRangeFromCoordIndexToNextCoordIndex(),
