@@ -1415,14 +1415,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                  emptyMediaFileNames,
                                                                  annotationModeFlag,
                                                                  tileTabsEditModeFlag);
-        const float doubleSliceThickness(sliceThickness * 2.0);
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceAnnotationsOnVolumeSlice(&inputs,
                                                                                             layersDrawingPlane,
-                                                                                            doubleSliceThickness);
+                                                                                            sliceThickness);
         
         m_fixedPipelineDrawing->m_annotationDrawing->drawModelSpaceSamplesOnVolumeSlice(&inputs,
                                                                                         layersDrawingPlane,
-                                                                                        doubleSliceThickness);
+                                                                                        sliceThickness);
                 
         switch (m_brainModelMode) {
             case BrainModelMode::INVALID:
@@ -3371,7 +3370,8 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
                                                     volume,
                                                     ijk,
                                                     slicePlaneXYZ,
-                                                    mprSliceView.getVirtualPlane(),
+                                                    mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                    //mprSliceView.getVirtualPlane(),
                                                     selectedPrimitiveDepth);
                     
                     m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
@@ -3405,7 +3405,8 @@ BrainOpenGLVolumeMprThreeDrawing::performViewportSliceIdentification(const Volum
                                                     volume,
                                                     ijk,
                                                     xyz,
-                                                    mprSliceView.getVirtualPlane(),
+                                                    mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                    //mprSliceView.getVirtualPlane(),
                                                     selectedPrimitiveDepth);
                 const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                 voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
@@ -3645,7 +3646,8 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
                                                         volume,
                                                         ijk,
                                                         selectedXYZ,
-                                                        mprSliceView.getVirtualPlane(),
+                                                        mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                        //mprSliceView.getVirtualPlane(),
                                                         selectedPrimitiveDepth);
                         
                         m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
@@ -3679,7 +3681,8 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
                                                         volume,
                                                         ijk,
                                                         xyz,
-                                                        mprSliceView.getVirtualPlane(),
+                                                        mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                        //mprSliceView.getVirtualPlane(),
                                                         selectedPrimitiveDepth);
                     const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                     voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
@@ -4276,7 +4279,8 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                                                 volume,
                                                 minMaxIJK,
                                                 xyz,
-                                                mprSliceView.getVirtualPlane(),
+                                                mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                //mprSliceView.getVirtualPlane(),
                                                 primitiveDepth);
                 
                 m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
@@ -4292,7 +4296,8 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                                                             volume,
                                                             minMaxIJK,
                                                             xyz,
-                                                            mprSliceView.getVirtualPlane(),
+                                                            mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                            //mprSliceView.getVirtualPlane(),
                                                             primitiveDepth);
                         const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
                         voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);

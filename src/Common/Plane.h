@@ -31,6 +31,8 @@ namespace caret {
     class Plane : public CaretObject {
         
     public:
+        static Plane fromFormattedString(const AString& s);
+        
         Plane();
         
         Plane(const float p1[3],
@@ -38,6 +40,12 @@ namespace caret {
               const float p3[3]);
         
         Plane(const float unitNormalVector[3],
+              const float pointOnPlane[3]);
+        
+        Plane(const float A,
+              const float B,
+              const float C,
+              const float D, 
               const float pointOnPlane[3]);
         
         virtual ~Plane();
@@ -95,6 +103,8 @@ namespace caret {
                              float& distanceOut) const;
         
         virtual AString toString() const;
+        
+        AString toFormattedString() const;
         
         static void unitTest(std::ostream& stream,
                       const bool isVerbose);

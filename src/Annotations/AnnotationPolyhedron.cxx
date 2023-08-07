@@ -155,9 +155,11 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
+    m_plane = plane;
+    
     const bool debugFlag(false);
     
-    const Vector3D normalVector(-plane.getNormalVector());
+    const Vector3D normalVector(plane.getNormalVector());
     if (debugFlag) std::cout << "Normal Vector: " << normalVector.toString() << std::endl;
     const Vector3D offsetVector(normalVector * polyhedronDepth);
     for (int32_t i = 0; i < numCoords; i++) {
@@ -184,6 +186,27 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
     setDrawingNewAnnotationStatus(false);
     
     return true;
+}
+
+/**
+ * @return The plane from when polyhedron was drawn
+ */
+Plane
+AnnotationPolyhedron::getPlane() const
+{
+    return m_plane;
+}
+
+/**
+ * Set plane from when annotation was drawn
+ * @param plane
+ *    The plane
+ */
+void
+AnnotationPolyhedron::setPlane(const Plane& plane)
+{
+    m_plane = plane;
+    setModified();
 }
 
 /**

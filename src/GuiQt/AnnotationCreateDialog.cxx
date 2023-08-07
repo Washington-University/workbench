@@ -686,11 +686,15 @@ AnnotationCreateDialog::createTextWidget()
 QWidget*
 AnnotationCreateDialog::createPolyhedronWidget()
 {
+    if ( ! s_previousPolyhedronDepthValueValidFlag) {
+        const float numberOfSlices(3.0);
+        s_previousPolyhedronDepthValue = (numberOfSlices
+                                          * m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    }
     m_polyhedronSliceIndexDepthSpinBox = new QDoubleSpinBox();
     m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000.0);
     m_polyhedronSliceIndexDepthSpinBox->setMinimum(-m_polyhedronSliceIndexDepthSpinBox->maximum());
     m_polyhedronSliceIndexDepthSpinBox->setSingleStep(1.0);
-    m_polyhedronSliceIndexDepthSpinBox->setValue(s_previousPolyhedronDepthValue);
     QObject::connect(m_polyhedronSliceIndexDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged);
 
@@ -699,10 +703,12 @@ AnnotationCreateDialog::createPolyhedronWidget()
     m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
     m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
     m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
-    m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValue
-                                                       * m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValue);
     QObject::connect(m_polyhedronSliceMillimetersDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged);
+    
+    /* Will update slice index with appropriate value */
+    polyhedronDepthMillimetersSpinBoxValueChanged(m_polyhedronSliceMillimetersDepthSpinBox->value());
 
     QGroupBox* groupBox = new QGroupBox("Polyhedron Depth");
     QGridLayout* layout = new QGridLayout(groupBox);
@@ -905,6 +911,8 @@ AnnotationCreateDialog::okButtonClicked()
         if (polyhedronDepthMM == 0.0) {
             errorMessage = "Polyhedron depht must not be zero.";
         }
+        s_previousPolyhedronDepthValue = polyhedronDepthMM;
+        s_previousPolyhedronDepthValueValidFlag = true;
     }
     
     if ( ! errorMessage.isEmpty()) {

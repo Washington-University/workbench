@@ -142,6 +142,9 @@ AnnotationFileXmlReader::readFileFromString(const QString& fileInString,
     m_stream.grabNew(new QXmlStreamReader(fileInString));
     setAnnotationFileDirectory(fileNameForRelativePaths);
     
+    if (annotationFile != NULL) {
+        m_filename = annotationFile->getFileName();
+    }
     readFileContentFromXmlStreamReader("AnnotationsInSceneFile",
                                        annotationFile);
     
@@ -766,13 +769,16 @@ AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotation
 /**
  * Read a multi paired coordinate annotation.
  *
+ * @param annotationFile
+ *     Annnotation file being read
  * @param annotationElementName
  *     Name of one-dimensional attribute.
  * @param annotation
  *     One-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(const QString& annotationElementName,
+AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* annotationFile,
+                                                             const QString& annotationElementName,
                                                              AnnotationMultiPairedCoordinateShape* annotation)
 {
     CaretAssert(annotation);
@@ -782,34 +788,101 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(const QString& anno
     readAnnotationAttributes(annotation,
                              annotationElementName,
                              attributes);
-    
-    if (m_stream->readNextStartElement()) {
-        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
-            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
-            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
-                                                                                             ELEMENT_COORDINATE_LIST,
-                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
-            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
-                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
-                readCoordinate(ELEMENT_COORDINATE,
-                               ac,
-                               annotation->getCoordinateSpace());
-                annotation->addCoordinate(ac);
-            }
-            
-            m_stream->skipCurrentElement();
+    bool done(false);
+    while ( ! done) {
+        bool skipCurrentElementFlag(false);
+        const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
+        if (m_stream->atEnd()) {
+            done = true;
         }
         else {
-            m_streamHelper->throwDataFileException("Expected elment "
-                                                   + ELEMENT_COORDINATE_LIST
-                                                   + " but read element "
-                                                   + m_stream->name().toString());
+            const QString elementName(m_stream->name().toString());
+            switch (tokenType) {
+                case QXmlStreamReader::StartElement:
+                    if (elementName == ELEMENT_COORDINATE_LIST) {
+                        const QXmlStreamAttributes coordListAtts(m_stream->attributes());
+                        const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
+                                                                                                         ELEMENT_COORDINATE_LIST,
+                                                                                                         ATTRIBUTE_COORDINATE_LIST_COUNT);
+                        for (int32_t i = 0; i < numberOfCoordiantes; i++) {
+                            AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+                            readCoordinate(ELEMENT_COORDINATE,
+                                           ac,
+                                           annotation->getCoordinateSpace());
+                            annotation->addCoordinate(ac);
+                        }
+                        
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == ELEMENT_POLYHEDRON_DATA) {
+                        const QXmlStreamAttributes polyAtts(m_stream->attributes());
+
+                        const AString planeString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
+                                                                                                  ELEMENT_POLYHEDRON_DATA,
+                                                                                                  ATTRIBUTE_PLANE,
+                                                                                                  ""));
+                        Plane p;
+                        if ( ! planeString.isEmpty()) {
+                            p = Plane::fromFormattedString(planeString);
+                        }
+                        
+                        AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+                        polyhedron->setPlane(p);
+                        
+                        m_stream->skipCurrentElement();
+                    }
+                    else {
+                        /*
+                         * Issue warning (instead of fatal error) if unrecognized element found.
+                         * Will skip over remainder of element later in code.
+                         */
+                        annotationFile->addFileReadWarning("Unrecognized element \""
+                                                           + elementName
+                                                           + "\" and content ignored.  Updating Workbench "
+                                                           "may correct this problem.");
+                        skipCurrentElementFlag = true;
+                    }
+                    break;
+                case QXmlStreamReader::EndElement:
+                    if (elementName == ELEMENT_POLYHEDRON) {
+                        done = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (skipCurrentElementFlag) {
+            m_stream->skipCurrentElement();
         }
     }
-    else {
-        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
-                                               + ELEMENT_COORDINATE_LIST);
-    }
+//    if (m_stream->readNextStartElement()) {
+//        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
+//            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
+//            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
+//                                                                                             ELEMENT_COORDINATE_LIST,
+//                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
+//            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
+//                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+//                readCoordinate(ELEMENT_COORDINATE,
+//                               ac,
+//                               annotation->getCoordinateSpace());
+//                annotation->addCoordinate(ac);
+//            }
+//
+//            m_stream->skipCurrentElement();
+//        }
+//        else {
+//            m_streamHelper->throwDataFileException("Expected elment "
+//                                                   + ELEMENT_COORDINATE_LIST
+//                                                   + " but read element "
+//                                                   + m_stream->name().toString());
+//        }
+//    }
+//    else {
+//        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
+//                                               + ELEMENT_COORDINATE_LIST);
+//    }
 }
 
 /**
@@ -943,9 +1016,15 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
         }
         else if (elementName == ELEMENT_POLYHEDRON) {
             CaretPointer<AnnotationPolyhedron> annotation(new AnnotationPolyhedron(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readMultiPairedCoordinateAnnotation(ELEMENT_POLYHEDRON,
+            readMultiPairedCoordinateAnnotation(annotationFile,
+                                                ELEMENT_POLYHEDRON,
                                                 annotation);
             annotations.push_back(annotation.releasePointer());
+            
+            /*
+             * Polyhedron reads to the end tag so don't need to skip to next element
+             */
+            skipCurrentElementFlag = false;
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));

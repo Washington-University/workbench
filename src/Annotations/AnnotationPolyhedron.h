@@ -24,6 +24,7 @@
 
 #include "AnnotationMultiPairedCoordinateShape.h"
 #include "CaretPointer.h"
+#include "Plane.h"
 
 namespace caret {
 
@@ -48,6 +49,10 @@ namespace caret {
                                  const float polyhedronDepth,
                                  AString& errorMessageOut);
         
+        Plane getPlane() const;
+        
+        void setPlane(const Plane& plane);
+        
        // ADD_NEW_METHODS_HERE
           
     protected: 
@@ -64,6 +69,8 @@ namespace caret {
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
+        Plane m_plane;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

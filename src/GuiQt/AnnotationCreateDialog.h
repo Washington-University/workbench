@@ -195,15 +195,17 @@ namespace caret {
         
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
-        static int32_t s_previousPolyhedronDepthValue;
+        static float s_previousPolyhedronDepthValue;
         
+        static bool s_previousPolyhedronDepthValueValidFlag;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
-    int32_t AnnotationCreateDialog::s_previousPolyhedronDepthValue = 5;
+    float AnnotationCreateDialog::s_previousPolyhedronDepthValue = 5;
+    bool AnnotationCreateDialog::s_previousPolyhedronDepthValueValidFlag = false;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

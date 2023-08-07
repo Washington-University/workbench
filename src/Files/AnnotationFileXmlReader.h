@@ -81,7 +81,8 @@ namespace caret {
         void readMultiCoordinateAnnotation(const QString& annotationElementName,
                                            AnnotationMultiCoordinateShape* annotation);
         
-        void readMultiPairedCoordinateAnnotation(const QString& annotationElementName,
+        void readMultiPairedCoordinateAnnotation(AnnotationFile* annotationFile,
+                                                 const QString& annotationElementName,
                                                  AnnotationMultiPairedCoordinateShape* annotation);
         
         void readCoordinate(const QString& coordinateElementName,

@@ -101,6 +101,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_LINE_START_ARROW;
         
+        static const QString ATTRIBUTE_PLANE;
+        
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
         static const QString ATTRIBUTE_SPACER_TAB_INDEX;
@@ -177,6 +179,8 @@ namespace caret {
         
         static const QString ELEMENT_POLYHEDRON;
 
+        static const QString ELEMENT_POLYHEDRON_DATA;
+        
         static const QString ELEMENT_POLYGON;
         
         static const QString ELEMENT_POLY_LINE;
@@ -240,6 +244,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_END_ARROW = "endArrow";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_START_ARROW = "startArrow";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE = "plane";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     
@@ -316,6 +322,8 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ELEMENT_POINT_SIZE_TEXT = "pointSizeText";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POLYHEDRON = "polyhedron";
+    
+    const QString AnnotationFileXmlFormatBase::ELEMENT_POLYHEDRON_DATA = "polyhedronData";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_POLYGON = "polygon";
     

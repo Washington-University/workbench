@@ -28,6 +28,33 @@
 using namespace caret;
 
 /**
+ * Static method
+ * @return a plane that is in a string created by Plane::toFormattedString()
+ * @ s
+ *    The string
+ * @sealso toFormattedString
+ */
+Plane
+Plane::fromFormattedString(const AString& s)
+{
+    std::vector<float> v;
+    s.toNumbers(s, v);
+    
+    if (v.size() == 8) {
+        if (v[7] != 0.0) {
+            const Vector3D pointOnPlane(v[4], v[5], v[6]);
+            return Plane(v[0], v[1], v[2], v[3],
+                         pointOnPlane);
+        }
+    }
+    
+    CaretLogSevere("ERROR: Unable to decode Plane from string \""
+                   + s
+                   + "\"");
+    return Plane();
+}
+
+/**
  * Construct an invalid plane.
  * Intended for use by the assignement operator.
  */
@@ -120,6 +147,41 @@ Plane::Plane(const float unitNormalVector[3],
     m_D = (-m_A * m_pointOnPlane[0]
                -m_B * m_pointOnPlane[1]
                -m_C * m_pointOnPlane[2]);
+
+    m_validPlaneFlag = (MathFunctions::vectorLength(m_normalVector) > 0.0);
+}
+
+/**
+ * Contructor from plane equation and a point on the plane
+ * @param A
+ *   A component of plane equation
+ * @param B
+ *   B component of plane equation
+ * @param C
+ *   C component of plane equation
+ * @param D
+ *   D component of plane equation
+ * @param pointOnPlane
+ *   Point on the plane
+ */
+Plane::Plane(const float A,
+             const float B,
+             const float C,
+             const float D,
+             const float pointOnPlane[3])
+{
+    m_pointOnPlane[0] = pointOnPlane[0];
+    m_pointOnPlane[1] = pointOnPlane[1];
+    m_pointOnPlane[2] = pointOnPlane[2];
+    
+    m_normalVector[0] = A;
+    m_normalVector[1] = B;
+    m_normalVector[2] = C;
+    
+    m_A = A;
+    m_B = B;
+    m_C = C;
+    m_D = D;
 
     m_validPlaneFlag = (MathFunctions::vectorLength(m_normalVector) > 0.0);
 }
@@ -532,6 +594,41 @@ Plane::toString() const
     else {
         s = "invalid";
     }
+    
+    return s;
+}
+
+/**
+ * @return Formatted string for saving
+ * @seealso fromFormattedString
+ */
+AString
+Plane::toFormattedString() const
+{
+    /*
+     * Default vector to all zeros (invalid plane)
+     */
+    std::vector<float> v(8, 0.0);
+    
+    if (isValidPlane()) {
+        CaretAssertVectorIndex(v, 7);
+        v[0] = m_A;
+        v[1] = m_B;
+        v[2] = m_C;
+        v[3] = m_D;
+        v[4] = m_pointOnPlane[0];
+        v[5] = m_pointOnPlane[1];
+        v[6] = m_pointOnPlane[2];
+        v[7] = (m_validPlaneFlag ? 1.0 : 0.0);
+    }
+    
+    const AString separator(" ");
+    const char    floatingPointFormat('f');
+    const int32_t precision(8);
+    const AString s(AString::fromNumbers(v,
+                                         separator,
+                                         floatingPointFormat,
+                                         precision));
     
     return s;
 }
