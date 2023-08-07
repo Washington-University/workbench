@@ -154,9 +154,13 @@ AnnotationSizingHandleTypeEnum::initialize()
                                                       "ANNOTATION_SIZING_HANDLE_LINE_START",
                                                       "Line Start"));
     
-    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
-                                                      "ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE",
-                                                      "Coordinate in a Poly Line"));
+    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE,
+                                                      "ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE",
+                                                      "Editable Coordinate in a Poly Line"));
+
+    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE,
+                                                      "ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE",
+                                                      "NOT Editable Coordinate in a Poly Line"));
 }
 
 /**

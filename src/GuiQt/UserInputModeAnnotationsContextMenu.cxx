@@ -230,8 +230,10 @@ m_newAnnotationCreatedByContextMenu(NULL)
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                         break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
                         sizeHandleSelectedFlag = true;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         break;

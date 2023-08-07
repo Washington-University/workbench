@@ -3227,7 +3227,7 @@ BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewP
         QQuaternion q;
         switch (slicePlane) {
             case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssertToDoFatal();
+                CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
                 q = m_mprThreeAxialSeparateRotationQuaternion;
@@ -3245,7 +3245,7 @@ BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewP
         QQuaternion q(m_mprThreeRotationQuaternion);
         switch (slicePlane) {
             case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssertToDoFatal();
+                CaretAssert(0);
                 break;
             case VolumeSliceViewPlaneEnum::AXIAL:
                 q *= m_mprThreeAxialInverseRotationQuaternion;

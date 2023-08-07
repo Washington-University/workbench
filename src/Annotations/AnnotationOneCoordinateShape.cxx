@@ -540,7 +540,9 @@ AnnotationOneCoordinateShape::isSizeHandleValid(const AnnotationSizingHandleType
                     validFlag = true;
                 }
                 break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                 break;
         }
     }
@@ -679,7 +681,9 @@ AnnotationOneCoordinateShape::applySpatialModificationChartSpace(const Annotatio
             validFlag = true;
         }
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -719,7 +723,9 @@ AnnotationOneCoordinateShape::applySpatialModificationChartSpace(const Annotatio
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                     break;
-                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -875,7 +881,9 @@ AnnotationOneCoordinateShape::applySpatialModificationMediaSpace(const Annotatio
             validFlag = true;
         }
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -915,7 +923,9 @@ AnnotationOneCoordinateShape::applySpatialModificationMediaSpace(const Annotatio
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                     break;
-                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -1071,7 +1081,9 @@ AnnotationOneCoordinateShape::applySpatialModificationHistologySpace(const Annot
             validFlag = true;
         }
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -1111,7 +1123,9 @@ AnnotationOneCoordinateShape::applySpatialModificationHistologySpace(const Annot
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                     break;
-                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -1333,7 +1347,9 @@ AnnotationOneCoordinateShape::applySpatialModificationSurfaceOrStereotaxicSpace(
             validFlag = true;
         }
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -1373,7 +1389,9 @@ AnnotationOneCoordinateShape::applySpatialModificationSurfaceOrStereotaxicSpace(
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                 case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                     break;
-                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                    break;
+                case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                     break;
             }
         }
@@ -1682,7 +1700,9 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
             validRotationFlag = true;
         }
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     
@@ -1775,7 +1795,9 @@ AnnotationOneCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                         break;
                 }
             }
@@ -1952,7 +1974,9 @@ AnnotationOneCoordinateShape::getSideHandleMouseDelta(const AnnotationSizingHand
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
     }
     

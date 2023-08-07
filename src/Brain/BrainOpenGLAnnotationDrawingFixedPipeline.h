@@ -436,7 +436,8 @@ namespace caret {
                                                         const GraphicsPrimitive* primitive,
                                                         const float lineThickness);
 
-        void drawAnnotationMultiPairedCoordShapeSizingHandles(AnnotationFile* annotationFile,
+        void drawAnnotationMultiPairedCoordShapeSizingHandles(const AnnotationSizingHandleTypeEnum::Enum sizingHandleType,
+                                                              AnnotationFile* annotationFile,
                                                               AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
                                                               const std::vector<Vector3D>& verticesWindowXYZ,
                                                               const GraphicsPrimitive* primitive,

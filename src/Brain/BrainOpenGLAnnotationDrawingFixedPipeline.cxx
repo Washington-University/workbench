@@ -5118,7 +5118,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
      * the polyhedron.  In addition, lines are drawn from the first set of coordinates
      * to the second set.
      */
-    bool allowSizingHandlesFlag(false);
+    bool drawEditableSizingHandlesFlag(false);
+    bool drawNonEditableSizingHandlesFlag(false);
     int32_t drawStartingCoordinateIndex(-1);
     int32_t drawCoordinateCount(-1);
     
@@ -5176,31 +5177,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                     break;
                 case 2:
                     /*
-                     * Only draw "in between" points if NOT selection mode
+                     * Points in between near and far
                      */
-                    if ( ! m_selectionModeFlag) {
-                        /*
-                         * Slices between near and far polygons
-                         */
-                        if (m_volumeSpacePlane.isValidPlane()) {
-                            for (int32_t i = 0; i < numHalfCoords; i++) {
-                                Vector3D xyzOne, xyzTwo;
-                                multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
-                                multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
+                    if (m_volumeSpacePlane.isValidPlane()) {
+                        for (int32_t i = 0; i < numHalfCoords; i++) {
+                            Vector3D xyzOne, xyzTwo;
+                            multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
+                            multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
+                            
+                            Vector3D xyz;
+                            if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
+                                                                             xyzTwo,
+                                                                             xyz)) {
+                                AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
+                                ac.setXYZ(xyz);
                                 
-                                Vector3D xyz;
-                                if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
-                                                                                 xyzTwo,
-                                                                                 xyz)) {
-                                    AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
-                                    ac.setXYZ(xyz);
-                                    
-                                    if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
-                                                                            &ac,
-                                                                            surfaceDisplayed,
-                                                                            xyz)) {
-                                        xyzToDraw.push_back(xyz);
-                                    }
+                                if (getAnnotationDrawingSpaceCoordinate(multiPairedCoordShape,
+                                                                        &ac,
+                                                                        surfaceDisplayed,
+                                                                        xyz)) {
+                                    xyzToDraw.push_back(xyz);
                                 }
                             }
                         }
@@ -5212,11 +5208,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 switch (iDraw) {
                     case 0:
                         /*
+                         * DRAWING: First half of coordinates, 'near' face
+                         *
                          * To prevent problems, number of vertices in primitive
                          * must be all coordinates so that selection works but
-                         * we only draw FIRST half of coordinates
+                         * we only draw FIRST half of coordinates.
+                         * Use start/count for primitive drawing.
                          */
-                        allowSizingHandlesFlag  = true;
+                        drawEditableSizingHandlesFlag = true;
                         drawStartingCoordinateIndex = 0;
                         drawCoordinateCount = numHalfCoords;
                         for (int32_t i = 0; i < numHalfCoords; i++) {
@@ -5226,11 +5225,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                         break;
                     case 1:
                         /*
+                         * DRAWING: First half of coordinates, 'far' face
+                         *
                          * To prevent problems, number of vertices in primitive
                          * must be all coordinates so that selection works but
-                         * we only draw SECOND half of coordinates
+                         * we only draw SECOND half of coordinates.
+                         * Use start/count for primitive drawing.
                          */
-                        allowSizingHandlesFlag  = true;
+                        drawEditableSizingHandlesFlag  = true;
                         drawStartingCoordinateIndex = numHalfCoords;
                         drawCoordinateCount = numHalfCoords;
                         for (int32_t i = 0; i < numHalfCoords; i++) {
@@ -5239,9 +5241,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                         CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
                         break;
                     case 2:
-                        /* No ID */
+                        /*
+                         * DRAWING: section in between 'near' and 'far'
+                         *
+                         * To prevent problems, number of vertices in primitive
+                         * must be all coordinates so that selection works but
+                         * we only draw SECOND half of coordinates.
+                         * Use start/count for primitive drawing.
+                         *
+                         * NO sizing handles since coordinates cannot be dragged by user
+                         */
+                        drawNonEditableSizingHandlesFlag = true;
+                        drawStartingCoordinateIndex = 0;
+                        drawCoordinateCount = numHalfCoords;
+                        for (int32_t i = 0; i < numHalfCoords; i++) {
+                            xyzToDraw.push_back(xyzToDraw[i]);
+                        }
+                        CaretAssert(static_cast<int32_t>(xyzToDraw.size()) == numTotalCoords);
                         break;
                 }
+                
                 for (auto& xyz : xyzToDraw) {
                     windowVertexXYZ.push_back(xyz);
                     primitive->addVertex(xyz);
@@ -5336,7 +5355,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             drawnFlag = true;
         }
                 
-        if (allowSizingHandlesFlag) {
+        if (drawEditableSizingHandlesFlag
+            || drawNonEditableSizingHandlesFlag) {
             if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
                 GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
                 float lineWidth(0.0);
@@ -5350,7 +5370,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                         sizeHandleWidthInPixels = (lineWidth * 3);
                         break;
                 }
-                drawAnnotationMultiPairedCoordShapeSizingHandles(annotationFile,
+                AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
+                if (drawEditableSizingHandlesFlag) {
+                    sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
+                }
+                else if (drawNonEditableSizingHandlesFlag) {
+                    sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE;
+                }
+                else {
+                    CaretAssert(0);
+                }
+                drawAnnotationMultiPairedCoordShapeSizingHandles(sizeHandleType,
+                                                                 annotationFile,
                                                                  multiPairedCoordShape,
                                                                  windowVertexXYZ,
                                                                  primitive.get(),
@@ -5830,13 +5861,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             drawOutlineCircleFlag = true;
             break;
-        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
             if (annotation->isInSurfaceSpaceWithTangentOffset()) {
                 drawSphereFlag = true;
             }
             else {
                 drawFilledCircleFlag = true;
             }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+            drawOutlineCircleFlag = true;
             break;
     }
     
@@ -6330,7 +6364,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
                                                                                       const GraphicsPrimitive* primitive,
                                                                                       const float lineThickness)
 {
-    if ( ! multiCoordShape->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE)) {
+    if ( ! multiCoordShape->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE)) {
         return;
     }
     
@@ -6353,7 +6387,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
          */
         float symbolSize(cornerSquareSize);
 
-        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
+        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE,
                          annotationFile,
                          multiCoordShape,
                          verticesWindowXYZ,
@@ -6367,6 +6401,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
 /**
  * Draw sizing handles around a multi-paired coord annotation.
  *
+ * @param sizingHandleType
+ *    Type of sizing handle to draw
  * @param annotationFile
  *    File containing the annotation.
  * @param multiPairedCoordShape
@@ -6377,13 +6413,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
  *     Thickness of lines (when enabled).
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSizingHandles(AnnotationFile* annotationFile,
+BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSizingHandles(const AnnotationSizingHandleTypeEnum::Enum sizingHandleType,
+                                                                                            AnnotationFile* annotationFile,
                                                                                             AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
                                                                                             const std::vector<Vector3D>& verticesWindowXYZ,
                                                                                             const GraphicsPrimitive* primitive,
                                                                                             const float lineThickness)
 {
-    if ( ! multiPairedCoordShape->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE)) {
+    if ( ! multiPairedCoordShape->isSizeHandleValid(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE)) {
         return;
     }
     
@@ -6417,7 +6454,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSi
          */
         float symbolSize(cornerSquareSize);
         
-        drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE,
+        drawSizingHandle(sizingHandleType,
                          annotationFile,
                          multiPairedCoordShape,
                          verticesWindowXYZ,

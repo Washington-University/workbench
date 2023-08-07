@@ -401,8 +401,32 @@ UserInputModeAnnotations::getCursor() const
                         if (selectedAnns.size() == 1) {
                             CaretAssertVectorIndex(selectedAnns, 0);
                             if (m_annotationUnderMouse == selectedAnns[0]) {
-                                if (selectedAnns[0]->castToMultiCoordinateShape() != NULL) {
-                                    cursor = CursorEnum::CURSOR_CROSS;
+                                switch (m_annotationUnderMouse->getType()) {
+                                    case AnnotationTypeEnum::BOX:
+                                        break;
+                                    case AnnotationTypeEnum::BROWSER_TAB:
+                                        break;
+                                    case AnnotationTypeEnum::COLOR_BAR:
+                                        break;
+                                    case AnnotationTypeEnum::IMAGE:
+                                        break;
+                                    case AnnotationTypeEnum::LINE:
+                                        break;
+                                    case AnnotationTypeEnum::OVAL:
+                                        break;
+                                    case AnnotationTypeEnum::POLYGON:
+                                        cursor = CursorEnum::CURSOR_CROSS;
+                                        break;
+                                    case AnnotationTypeEnum::POLYHEDRON:
+                                        cursor = CursorEnum::CURSOR_CROSS;
+                                        break;
+                                    case AnnotationTypeEnum::POLYLINE:
+                                        cursor = CursorEnum::CURSOR_CROSS;
+                                        break;
+                                    case AnnotationTypeEnum::SCALE_BAR:
+                                        break;
+                                    case AnnotationTypeEnum::TEXT:
+                                        break;
                                 }
                             }
                         }
@@ -411,8 +435,10 @@ UserInputModeAnnotations::getCursor() const
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         cursor = CursorEnum::CURSOR_ROTATION;
                         break;
-                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLY_LINE_COORDINATE:
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                         break;
                 }
             }
@@ -1578,19 +1604,19 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                     
                     AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(afterSelectedAnns[0]->castToMultiPairedCoordinateShape());
                     if (multiPairedCoordShape != NULL) {
-                        const bool allowInsertFlag(false);
-                        if (allowInsertFlag) {
-                            /*
-                             * Cross cursor indicates insert coordinate mode.
-                             * If not tested, dragging a coordinate would also add a coordinate
-                             */
-                            if (getCursor() == CursorEnum::CURSOR_CROSS) {
+                        /*
+                         * Cross cursor indicates insert coordinate mode.
+                         * If not tested, dragging a coordinate would also add a coordinate
+                         */
+                        if (getCursor() == CursorEnum::CURSOR_CROSS) {
+                            const bool allowInsertFlag(false);
+                            if (allowInsertFlag) {
                                 UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
                                                                                                      mouseEvent);
                             }
-                        }
-                        else {
-                            CaretLogSevere("Inserting points into polyhedron not supported");
+                            else {
+                                CaretLogSevere("Inserting points into polyhedron not supported");
+                            }
                         }
                     }
 

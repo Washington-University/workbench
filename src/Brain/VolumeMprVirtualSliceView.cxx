@@ -178,7 +178,7 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
 
     switch (getViewType()) {
         case ViewType::VOLUME_VIEW_FIXED_CAMERA:
-            CaretAssertToDoFatal();
+            CaretAssert(0);
             break;
         case ViewType::ALL_VIEW_SLICES:
             m_sliceRotationMatrix.multiplyPoint3(v);
