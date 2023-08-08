@@ -4469,11 +4469,13 @@ BrowserTabContent::getMouseMovementAngleCCW(const Vector3D& rotationCenterXY,
 void
 BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewportContent,
                                               const SelectionItemVolumeMprCrosshair::Axis mprCrosshairAxis,
-                                              const GraphicsViewport& viewport,
+                                              const GraphicsViewport& viewportIn,
                                               const Vector3D& mousePressWindowXY,
                                               const Vector3D& mouseWindowXY,
                                               const Vector3D& previousMouseWindowXY)
 {
+    GraphicsViewport viewport(viewportIn);
+    
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane = this->getVolumeSliceViewPlane();
     GraphicsViewport sliceViewport;
     if (sliceViewPlane == VolumeSliceViewPlaneEnum::ALL) {
@@ -4483,6 +4485,21 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                                                             sliceViewport);
     }
 
+    bool montageFlag(false);
+    switch (getVolumeSliceDrawingType()) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+        {
+            GraphicsViewport mvp(getMprThreeMontageViewportContainingMouse(mousePressWindowXY));
+            if (mvp.isValid()) {
+                viewport = mvp;
+                montageFlag = true;
+            }
+        }
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+            break;
+    }
+    
     /*
      * Transform selected slice coordinates to a window coordinate
      */
@@ -4503,9 +4520,15 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
      * We want to rotate around the intersection of the selected slices
      * in the viewport containing the mouse.
      */
-    const Vector3D rotationCenterXYZ(windowXYZ - Vector3D(viewport.getXF(),
+    Vector3D rotationCenterXYZ(windowXYZ - Vector3D(viewport.getXF(),
                                                           viewport.getYF(),
                                                           0.0));
+    if (montageFlag) {
+        /*
+         * For montage slice, use center of the slice as rotation center
+         */
+        rotationCenterXYZ = viewport.getCenter() - viewport.getBottomLeft();
+    }
     
     const Vector3D rotationVector(getMprThreeRotationVectorForSlicePlane(sliceViewPlane));
     
@@ -8814,4 +8837,31 @@ void
 BrowserTabContent::setMouseLeftDragMode(const MouseLeftDragModeEnum::Enum mouseLeftDragMode)
 {
     m_mouseLeftDragMode = mouseLeftDragMode;
+}
+
+/**
+ * Add an MPR three montage viewport
+ * @param viewport
+ *    Montage viewport from drawing a slice
+ */
+void
+BrowserTabContent::addMprThreeMontageViewport(const GraphicsViewport& viewport)
+{
+    m_mprThreeMontageViewports.push_back(viewport);
+}
+
+/**
+ * @return The viewport containing the mouse from MPR drawing
+ * @param mouseXY
+ *    XY of the mouse.
+ */
+GraphicsViewport
+BrowserTabContent::getMprThreeMontageViewportContainingMouse(const Vector3D mouseXY) const
+{
+    for (auto& gvp : m_mprThreeMontageViewports) {
+        if (gvp.containsWindowXY(mouseXY[0], mouseXY[1])) {
+            return gvp;
+        }
+    }
+    return GraphicsViewport();
 }

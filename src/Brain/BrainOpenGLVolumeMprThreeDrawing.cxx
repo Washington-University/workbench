@@ -1632,32 +1632,54 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
                                                       const SelectionItemVolumeMprCrosshair::Axis rotationSliceAxisID,
                                                       const SelectionItemVolumeMprCrosshair::Axis rotationTransformAxisID)
 {
-    /*
-     * Note: There are three sections:
-     * (1) First section is dragged to select slice indices for
-     * other slice plane views.
-     * (2) Second section is used to rotate only the current axis.
-     * (3) Third section rotates the transform.
-     */
-    const Vector3D totalLength(endXYZ - startXYZ);
-    const Vector3D sliceStartXYZ(startXYZ);
-    const Vector3D sliceEndXYZ(startXYZ + (totalLength * 0.40));
-    const Vector3D rotateSliceStartXYZ(startXYZ + (totalLength * 0.45));
-    const Vector3D rotateSliceEndXYZ(startXYZ + (totalLength * 0.70));
-    const Vector3D rotateTransformStartXYZ(startXYZ + (totalLength * 0.75));
-    const Vector3D rotateTransformEndXYZ(endXYZ);
-
-    sliceSelectionIndices.push_back(sliceSelectionAxisID);
-    primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
-    primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
+    bool montageFlag(false);
+    switch (m_browserTabContent->getVolumeSliceDrawingType()) {
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+            /*montageFlag = true;*/
+            break;
+        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+            break;
+    }
     
-    rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
-    primitiveRotateSliceCrosshair->addVertex(rotateSliceStartXYZ, rgba.data());
-    primitiveRotateSliceCrosshair->addVertex(rotateSliceEndXYZ, rgba.data());
-    
-    rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
-    primitiveRotateTransformCrosshair->addVertex(rotateTransformStartXYZ, rgba.data());
-    primitiveRotateTransformCrosshair->addVertex(rotateTransformEndXYZ, rgba.data());
+    if (montageFlag) {
+        /*
+         * No rotation in montage
+         */
+        const Vector3D totalLength(endXYZ - startXYZ);
+        const Vector3D sliceStartXYZ(startXYZ);
+        const Vector3D sliceEndXYZ(endXYZ);
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
+        primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
+    }
+    else {
+        /*
+         * Note: There are three sections:
+         * (1) First section is dragged to select slice indices for
+         * other slice plane views.
+         * (2) Second section is used to rotate only the current axis.
+         * (3) Third section rotates the transform.
+         */
+        const Vector3D totalLength(endXYZ - startXYZ);
+        const Vector3D sliceStartXYZ(startXYZ);
+        const Vector3D sliceEndXYZ(startXYZ + (totalLength * 0.40));
+        const Vector3D rotateSliceStartXYZ(startXYZ + (totalLength * 0.45));
+        const Vector3D rotateSliceEndXYZ(startXYZ + (totalLength * 0.70));
+        const Vector3D rotateTransformStartXYZ(startXYZ + (totalLength * 0.75));
+        const Vector3D rotateTransformEndXYZ(endXYZ);
+        
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
+        primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
+        
+        rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
+        primitiveRotateSliceCrosshair->addVertex(rotateSliceStartXYZ, rgba.data());
+        primitiveRotateSliceCrosshair->addVertex(rotateSliceEndXYZ, rgba.data());
+        
+        rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
+        primitiveRotateTransformCrosshair->addVertex(rotateTransformStartXYZ, rgba.data());
+        primitiveRotateTransformCrosshair->addVertex(rotateTransformEndXYZ, rgba.data());
+    }
 }
 
 
@@ -4482,6 +4504,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
                                                                            vp,
                                                                            sliceXYZ,
                                                                            offsetDistance);
+                CaretAssert(m_browserTabContent);
+                m_browserTabContent->addMprThreeMontageViewport(GraphicsViewport(vp));
             }
 
             /*

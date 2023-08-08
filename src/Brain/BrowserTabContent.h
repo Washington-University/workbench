@@ -713,6 +713,10 @@ namespace caret {
         
         void setMouseLeftDragMode(const MouseLeftDragModeEnum::Enum mouseLeftDragMode);
 
+        void addMprThreeMontageViewport(const GraphicsViewport& viewport);
+        
+        GraphicsViewport getMprThreeMontageViewportContainingMouse(const Vector3D mouseXY) const;
+        
     private:
         class ColorBarFileMap {
         public:
@@ -976,6 +980,9 @@ namespace caret {
         /** Selection box NOT copied when tab cloned*/
         std::unique_ptr<GraphicsRegionSelectionBox> m_regionSelectionBox;
         
+        /** Montage viewports not saved to scene */
+        std::vector<GraphicsViewport> m_mprThreeMontageViewports;
+
         /** Not saved to scenes nor copied when tab copied/yoked*/
         mutable MouseLeftDragModeEnum::Enum m_mouseLeftDragMode = MouseLeftDragModeEnum::INVALID;
         
@@ -985,7 +992,6 @@ namespace caret {
          * Contains all active browser tab content instances
          */
         static std::set<BrowserTabContent*> s_allBrowserTabContent;
-        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

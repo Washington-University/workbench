@@ -126,6 +126,15 @@ namespace caret {
         float getCenterYF() const { return ((getBottomF() + getTopF()) / 2.0); }
         
         /**
+         * @return Center of viewport
+         */
+        Vector3D getCenter() const {
+            return Vector3D(getCenterXF(),
+                            getCenterYF(),
+                            0.0);
+        }
+
+        /**
          * @return Bottom left corner of viewport
          */
         Vector3D getBottomLeft() const {
