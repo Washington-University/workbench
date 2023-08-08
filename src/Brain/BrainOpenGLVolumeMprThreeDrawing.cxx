@@ -1717,10 +1717,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
         }
     }
     
-    BoundingBox boundingBox;
-    underlayVolume->getVoxelSpaceBoundingBox(boundingBox);
-    const float maxSliceSize(boundingBox.getMaximumDifferenceOfXYZ());
-    const float crosshairLength(maxSliceSize / 2.0);
+    const float pixelSize(std::min(viewport.getWidthF(),
+                                   viewport.getHeightF()));
+    const float millimeterSize(GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(pixelSize));
+    const float crosshairLength(millimeterSize / 2.0);
     if (crosshairLength <= 0.0) {
         return;
     }
@@ -1752,7 +1752,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
             crosshairThreeFourRGBA   = getAxisColor(VolumeSliceViewPlaneEnum::CORONAL);
             break;
     }
-    const float percentViewportHeight(0.5);
     float gapPercentage = SessionManager::get()->getCaretPreferences()->getVolumeCrosshairGap();
     gapPercentage /= 100.0;
     if (gapPercentage > 0.5) {
@@ -1783,27 +1782,27 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInte
         std::cout << "   C: " << m_coronalSliceNormalVector.toString() << std::endl;
         std::cout << "   A: " << m_axialSliceNormalVector.toString() << std::endl;
     }
-    
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> sliceSelectionPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
+
+    const float percentViewportHeight(0.95);
+
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> sliceSelectionPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
     const float sliceLineWidth(m_identificationModeFlag
                                ? (percentViewportHeight * 5.0)
                                : percentViewportHeight);
     sliceSelectionPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                           sliceLineWidth);
     
-    const float rotateThicker(m_axialCoronalParaSliceViewFlag
-                              ? 3.0
-                              : 2.0);
+    const float rotateThicker(2.0);
     const float rotateTransformLineWidth(m_identificationModeFlag
                                          ? (percentViewportHeight * 5.0)
                                          : percentViewportHeight * rotateThicker);
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotateSlicePrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotateSlicePrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
     rotateSlicePrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                            rotateTransformLineWidth);
 
-    std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotateTransformPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::OPENGL_LINES));
+    std::unique_ptr<GraphicsPrimitiveV3fC4ub> rotateTransformPrimitive(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES));
     rotateTransformPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                           rotateTransformLineWidth * 2);
+                                           rotateTransformLineWidth * 1.5);
     
     std::vector<SelectionItemVolumeMprCrosshair::Axis> sliceSelectionIndices;
     std::vector<SelectionItemVolumeMprCrosshair::Axis> rotateSliceSelectionIndices;
