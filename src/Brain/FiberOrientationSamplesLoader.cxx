@@ -120,13 +120,11 @@ FiberOrientationSamplesLoader::receiveEvent(Event* event)
                 break;
             case EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES:
             {
-                const float* xyz = idEvent->getXYZ();
-                if (xyz != NULL) {
-                    m_lastIdentificationValid = true;
-                    m_lastIdentificationXYZ[0] = xyz[0];
-                    m_lastIdentificationXYZ[1] = xyz[1];
-                    m_lastIdentificationXYZ[2] = xyz[2];
-                }
+                const Vector3D xyz(idEvent->getStereotaxicXYZ());
+                m_lastIdentificationValid = true;
+                m_lastIdentificationXYZ[0] = xyz[0];
+                m_lastIdentificationXYZ[1] = xyz[1];
+                m_lastIdentificationXYZ[2] = xyz[2];
             }
                 break;
         }

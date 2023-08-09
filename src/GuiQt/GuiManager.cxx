@@ -3729,6 +3729,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 if ( ! issuedIdentificationLocationEvent) {
                     EventIdentificationHighlightLocation idLocation(tabIndex,
                                                                     xyz,
+                                                                    xyz,
                                                                     EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
@@ -3760,8 +3761,11 @@ GuiManager::processIdentification(const int32_t tabIndex,
                 }
                 
                 if ( ! issuedIdentificationLocationEvent) {
+                    Vector3D voxelCenterXYZ;
+                    volumeFile->indexToSpace(voxelIJK.m_ijk, voxelCenterXYZ);
                     EventIdentificationHighlightLocation idLocation(tabIndex,
                                                                     xyz,
+                                                                    voxelCenterXYZ,
                                                                     EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                     EventManager::get()->sendEvent(idLocation.getPointer());
                     issuedIdentificationLocationEvent = true;
@@ -3789,6 +3793,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                             if ( ! issuedIdentificationLocationEvent) {
                                 EventIdentificationHighlightLocation idLocation(tabIndex,
                                                                                 stereotaxicXYZ,
+                                                                                stereotaxicXYZ,
                                                                                 EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                                 EventManager::get()->sendEvent(idLocation.getPointer());
                                 issuedIdentificationLocationEvent = true;
@@ -3804,6 +3809,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
                         if (stereotaxicXYZValidFlag) {
                             if ( ! issuedIdentificationLocationEvent) {
                                 EventIdentificationHighlightLocation idLocation(tabIndex,
+                                                                                stereotaxicXYZ,
                                                                                 stereotaxicXYZ,
                                                                                 EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_YES);
                                 EventManager::get()->sendEvent(idLocation.getPointer());

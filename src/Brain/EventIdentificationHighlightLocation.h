@@ -23,6 +23,7 @@
 
 #include "Event.h"
 #include "StructureEnum.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -36,13 +37,16 @@ namespace caret {
         };
         
         EventIdentificationHighlightLocation(const int32_t tabIndex,
-                                             const float xyz[3],
+                                             const Vector3D& stereotaxicXYZ,
+                                             const Vector3D& voxelCenterXYZ,
                                              const LOAD_FIBER_ORIENTATION_SAMPLES_MODE loadFiberOrientationSamplesMode);
         
         virtual ~EventIdentificationHighlightLocation();
         
-        const float* getXYZ() const;
+        const Vector3D getStereotaxicXYZ() const;
         
+        const Vector3D getVoxelCenterXYZ() const;
+
         bool isTabSelected(const int32_t tabIndex) const;
         
         LOAD_FIBER_ORIENTATION_SAMPLES_MODE getLoadFiberOrientationSamplesMode() const;
@@ -54,8 +58,10 @@ namespace caret {
         
         const int32_t m_tabIndex;
         
-        float m_xyz[3];
+        Vector3D m_stereotaxicXYZ;
 
+        Vector3D m_voxelCenterXYZ;
+        
         const LOAD_FIBER_ORIENTATION_SAMPLES_MODE m_loadFiberOrientationSamplesMode;
         
     };

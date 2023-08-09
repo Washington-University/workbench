@@ -32,11 +32,15 @@ using namespace caret;
  *    be negative indicating that the identification request is not
  *    for a specific browser tab.  One source for this is the Select Brainordinate
  *    option on the Information Window.
- * @param xyz
+ * @param stereotaxicXYZ
  *    Stereotaxic location of selected item.
+ * @param voxelCenterXYZ
+ *    Stereotaxic XYZ but moved to the center of a voxel on which identification was performed.  I
+ *    If identification was NOT on a volume this is the same as stereotaxciXYZ
  */
 EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(const int32_t tabIndex,
-                                                                           const float xyz[3],
+                                                                           const Vector3D& stereotaxicXYZ,
+                                                                           const Vector3D& voxelCenterXYZ,
                                                                            const LOAD_FIBER_ORIENTATION_SAMPLES_MODE loadFiberOrientationSamplesMode)
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION),
 m_tabIndex(tabIndex),
@@ -47,9 +51,8 @@ m_loadFiberOrientationSamplesMode(loadFiberOrientationSamplesMode)
      */
     CaretAssert(tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     
-    m_xyz[0] = xyz[0];
-    m_xyz[1] = xyz[1];
-    m_xyz[2] = xyz[2];
+    m_stereotaxicXYZ = stereotaxicXYZ;
+    m_voxelCenterXYZ = voxelCenterXYZ;
 }
 
 /**
@@ -61,14 +64,23 @@ EventIdentificationHighlightLocation::~EventIdentificationHighlightLocation()
 }
 
 /**
- * @return The stereotaxic location of the identification (valid for all).
+ * @return The stereotaxic XYZ of the identification (valid for all).
  */
-const float* 
-EventIdentificationHighlightLocation::getXYZ() const
+const Vector3D
+EventIdentificationHighlightLocation::getStereotaxicXYZ() const
 {
-    return m_xyz;
+    return m_stereotaxicXYZ;
 }
 
+/**
+ * @return The  XYZ at the center of the voxel containing the stereotaxic XYZ.
+ * If identification was NOT on a volume this is the same as getStereotaxicXYZ
+ */
+const Vector3D
+EventIdentificationHighlightLocation::getVoxelCenterXYZ() const
+{
+    return m_voxelCenterXYZ;
+}
 /**
  * Is the tab with the given index selected for identification operations?
  *

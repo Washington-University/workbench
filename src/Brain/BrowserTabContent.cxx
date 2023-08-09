@@ -1844,10 +1844,7 @@ BrowserTabContent::receiveEvent(Event* event)
 
         if (idLocationEvent->isTabSelected(getTabNumber())) {
             if (isIdentificationUpdateHistologySlices()) {
-                const float* highlighXYZ = idLocationEvent->getXYZ();
-                const Vector3D xyz(highlighXYZ[0],
-                                   highlighXYZ[1],
-                                   highlighXYZ[2]);
+                const Vector3D xyz(idLocationEvent->getStereotaxicXYZ());
                 HistologyOverlaySet* histologyOverlaySet(getHistologyOverlaySet());
                 if (histologyOverlaySet != NULL) {
                     HistologyOverlay* histologyUnderlay(histologyOverlaySet->getUnderlay());
@@ -1867,12 +1864,10 @@ BrowserTabContent::receiveEvent(Event* event)
             }
             
             if (isIdentificationUpdatesVolumeSlices()) {
-                const float* highlighXYZ = idLocationEvent->getXYZ();
-                float volumeSliceXYZ[3] = {
-                    highlighXYZ[0],
-                    highlighXYZ[1],
-                    highlighXYZ[2]
-                };
+                /*
+                 * Use XYZ of voxel center for slice selection
+                 */
+                Vector3D volumeSliceXYZ(idLocationEvent->getVoxelCenterXYZ());
                 
                 /*
                  * If othogonal/montage viewing, do not alter the slice
