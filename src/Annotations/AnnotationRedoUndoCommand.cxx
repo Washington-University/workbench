@@ -1965,7 +1965,9 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t in
     }
     
     m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_INSERT_COORDINATE;
-    setDescription("Insert Polyline Coordinate");
+    setDescription("Remove "
+                   + AnnotationTypeEnum::toGuiName(redoAnnotation->getType())
+                   + " Coordinate");
     Annotation* undoAnnotation = annotation->clone();
     AnnotationMemento* am = new AnnotationMemento(annotation,
                                                   redoAnnotation,
@@ -2004,7 +2006,9 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnRemoveCoordinate(const int32_t co
     }
     
     m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_REMOVE_COORDINATE;
-    setDescription("Remove Polyline Coordinate");
+    setDescription("Remove "
+                   + AnnotationTypeEnum::toGuiName(redoAnnotation->getType())
+                   + " Coordinate");
     
     Annotation* undoAnnotation = annotation->clone();
     AnnotationMemento* am = new AnnotationMemento(annotation,
