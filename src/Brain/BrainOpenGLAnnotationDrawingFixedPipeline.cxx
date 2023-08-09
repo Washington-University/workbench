@@ -5364,7 +5364,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 float sizeHandleWidthInPixels = lineWidth;
                 switch (lineWidthType) {
                     case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
-                        sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * 3);
+                        sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * s_polyCoordinateSizeHandleWithMultiplier);
                         break;
                     case GraphicsPrimitive::LineWidthType::PIXELS:
                         sizeHandleWidthInPixels = (lineWidth * 3);
@@ -5540,7 +5540,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
             float sizeHandleWidthInPixels = lineWidth;
             switch (lineWidthType) {
                 case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
-                    sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth);
+                    sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * s_polyCoordinateSizeHandleWithMultiplier);
                     break;
                 case GraphicsPrimitive::LineWidthType::PIXELS:
                     sizeHandleWidthInPixels = lineWidth;
@@ -5550,7 +5550,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
                                                        multiCoordShape,
                                                        windowVertexXYZ,
                                                        primitive.get(),
-                                                       sizeHandleWidthInPixels / 2.0);
+                                                       sizeHandleWidthInPixels);
         }
     }
     
@@ -6370,7 +6370,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
     
     const bool tangentSurfaceOffsetFlag = multiCoordShape->isInSurfaceSpaceWithTangentOffset();
     
-    float cornerSquareSize = 3.0 + lineThickness;
+    float cornerSquareSize = lineThickness;
     if (tangentSurfaceOffsetFlag) {
         cornerSquareSize = lineThickness;
         cornerSquareSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(cornerSquareSize) / 2.0f;
@@ -6426,7 +6426,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSi
     
     const bool tangentSurfaceOffsetFlag = multiPairedCoordShape->isInSurfaceSpaceWithTangentOffset();
     
-    float cornerSquareSize = 6.0 + lineThickness;
+    float cornerSquareSize = lineThickness;
     if (tangentSurfaceOffsetFlag) {
         cornerSquareSize = lineThickness;
         cornerSquareSize = GraphicsUtilitiesOpenGL::convertPixelsToMillimeters(cornerSquareSize) / 2.0f;
