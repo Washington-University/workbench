@@ -55,6 +55,7 @@
 #include "CaretPreferences.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
+#include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
@@ -132,6 +133,7 @@ m_annotationUnderMouse(NULL)
     setWidgetForToolBar(m_annotationToolsWidget);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL);
 }
 
 /**
@@ -215,6 +217,22 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         
         setMode(mode);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL) {
+        EventAnnotationDrawingFinishCancel* finishCancelEvent(dynamic_cast<EventAnnotationDrawingFinishCancel*>(event));
+        CaretAssert(finishCancelEvent);
+        
+        if (finishCancelEvent->getBrowserWindowIndex() == getBrowserWindowIndex()) {
+            finishCancelEvent->setEventProcessed();
+            switch (finishCancelEvent->getMode()) {
+                case EventAnnotationDrawingFinishCancel::Mode::CANCEL:
+                    std::cout << "Cancel" << std::endl;
+                    break;
+                case EventAnnotationDrawingFinishCancel::Mode::FINISH:
+                    std::cout << "Finish" << std::endl;
+                    break;
+            }
+        }
     }
 }
 
@@ -1057,6 +1075,7 @@ UserInputModeAnnotations::initializeNewAnnotationFromStartClick(const MouseEvent
     annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
                                                        m_newAnnotationCreatingWithMouseDrag->getAnnotation());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
 /**
@@ -1695,6 +1714,7 @@ UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& m
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
         annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
                                                            m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }
@@ -1767,6 +1787,7 @@ UserInputModeAnnotations::resetAnnotationBeingCreated()
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
                                                        NULL);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
 /**

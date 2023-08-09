@@ -54,6 +54,7 @@ ELSE()
         AnnotationCoordinatesWidget.h
         AnnotationCreateDialog.h
         AnnotationDeleteWidget.h
+	AnnotationFinishCancelWidget.h
         AnnotationFontWidget.h
         AnnotationFormatWidget.h
         AnnotationInsertNewWidget.h
@@ -323,6 +324,7 @@ AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
 AnnotationDeleteWidget.h
+AnnotationFinishCancelWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -422,6 +424,7 @@ DisplayGroupEnumComboBox.h
 DynConnViewController.h
 EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
+EventAnnotationDrawingFinishCancel.h
 EventAnnotationGetDrawnInWindow.h
 EventBrowserTabCloseInToolBar.h
 EventBrowserTabDeleteInToolBar.h
@@ -657,6 +660,7 @@ AnnotationCoordinateSpaceWidget.cxx
 AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationDeleteWidget.cxx
+AnnotationFinishCancelWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
@@ -758,6 +762,7 @@ EventBrowserTabCloseInToolBar.cxx
 EventBrowserTabDeleteInToolBar.cxx
 EventBrowserTabNewInGUI.cxx
 EventAnnotationCreateNewType.cxx
+EventAnnotationDrawingFinishCancel.cxx
 EventAnnotationGetDrawnInWindow.cxx
 EventBrowserWindowDrawingContent.cxx
 EventBrowserWindowCreateTabs.cxx

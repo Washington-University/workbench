@@ -48,6 +48,8 @@ public:
         EVENT_ANNOTATION_BARS_GET,
         /** Annotation create new of a particular type */
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
+        /** Annotation finish cancel annotation being drawn */
+        EVENT_ANNOTATION_DRAWING_FINISH_CANCEL,
         /** Get the annotations drawn in a window */
         EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW,
         /** Get an annotation group */

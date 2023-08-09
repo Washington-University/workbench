@@ -90,6 +90,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW",
                                      "Event for getting annotations drawn in a window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_DRAWING_FINISH_CANCEL,
+                                     "EVENT_ANNOTATION_DRAWING_FINISH_CANCEL",
+                                     "Event for finishing or cancel annotation being drawn in window"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
                                      "EVENT_ANNOTATION_GROUP_GET_WITH_KEY",
                                      "Event for getting an annotation group using its key"));
