@@ -124,8 +124,7 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
 {
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     const Annotation* annotation(annMan->getAnnotationBeingDrawnInWindow(m_browserWindowIndex));
-//    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
-//
+
     AString cancelToolTip;
     AString finishToolTip;
     bool cancelEnabledFlag(false);
@@ -173,8 +172,9 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
     m_cancelAction->setEnabled(cancelEnabledFlag);
     m_cancelAction->setToolTip(cancelToolTip);
 
+    
     m_finishAction->setEnabled(false);
-    m_cancelAction->setEnabled(false);
+    
     
     setEnabled(( ! annotations.empty())
                || m_finishAction->isEnabled()
@@ -188,21 +188,16 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
 void
 AnnotationFinishCancelWidget::finishActionTriggered()
 {
-//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-//    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
-//
-//    AString errorMessage;
-//    if ( ! undoStack->redoInWindow(m_browserWindowIndex,
-//                                   errorMessage)) {
-//        WuQMessageBox::errorOk(this,
-//                               errorMessage);
-//    }
+    m_finishAction->blockSignals(true);
     
     EventAnnotationDrawingFinishCancel finishEvent(EventAnnotationDrawingFinishCancel::Mode::FINISH,
-                                                   m_browserWindowIndex);
+                                                   m_browserWindowIndex,
+                                                   m_userInputMode);
     EventManager::get()->sendEvent(finishEvent.getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    m_finishAction->blockSignals(false);
 }
 
 /**
@@ -211,18 +206,9 @@ AnnotationFinishCancelWidget::finishActionTriggered()
 void
 AnnotationFinishCancelWidget::cancelActionTriggered()
 {
-//    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-//    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
-//
-//    AString errorMessage;
-//    if ( ! undoStack->undoInWindow(m_browserWindowIndex,
-//                                   errorMessage)) {
-//        WuQMessageBox::errorOk(this,
-//                               errorMessage);
-//    }
-    
     EventAnnotationDrawingFinishCancel cancelEvent(EventAnnotationDrawingFinishCancel::Mode::CANCEL,
-                                                   m_browserWindowIndex);
+                                                   m_browserWindowIndex,
+                                                   m_userInputMode);
     EventManager::get()->sendEvent(cancelEvent.getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

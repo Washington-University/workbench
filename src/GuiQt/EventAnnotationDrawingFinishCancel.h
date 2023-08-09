@@ -26,7 +26,7 @@
 #include <memory>
 
 #include "Event.h"
-
+#include "UserInputModeEnum.h"
 
 
 namespace caret {
@@ -40,7 +40,8 @@ namespace caret {
         };
         
         EventAnnotationDrawingFinishCancel(const Mode mode,
-                                           const int32_t browserWindowIndex);
+                                           const int32_t browserWindowIndex,
+                                           const UserInputModeEnum::Enum userInputMode);
         
         virtual ~EventAnnotationDrawingFinishCancel();
         
@@ -52,12 +53,16 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
         
+        UserInputModeEnum::Enum getUserInputMode() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         const Mode m_mode;
         
         const int32_t m_browserWindowIndex;
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         // ADD_NEW_MEMBERS_HERE
 

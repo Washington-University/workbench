@@ -44,10 +44,12 @@ using namespace caret;
  *    Index of the browser window
  */
 EventAnnotationDrawingFinishCancel::EventAnnotationDrawingFinishCancel(const Mode mode,
-                                                                       const int32_t browserWindowIndex)
+                                                                       const int32_t browserWindowIndex,
+                                                                       const UserInputModeEnum::Enum userInputMode)
 : Event(EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL),
 m_mode(mode),
-m_browserWindowIndex(browserWindowIndex)
+m_browserWindowIndex(browserWindowIndex),
+m_userInputMode(userInputMode)
 {
     
 }
@@ -75,6 +77,15 @@ int32_t
 EventAnnotationDrawingFinishCancel::getBrowserWindowIndex() const
 {
     return m_browserWindowIndex;
+}
+
+/**
+ * @return The user input mode
+ */
+UserInputModeEnum::Enum
+EventAnnotationDrawingFinishCancel::getUserInputMode() const
+{
+    return m_userInputMode;
 }
 
 

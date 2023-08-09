@@ -222,14 +222,16 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         EventAnnotationDrawingFinishCancel* finishCancelEvent(dynamic_cast<EventAnnotationDrawingFinishCancel*>(event));
         CaretAssert(finishCancelEvent);
         
-        if (finishCancelEvent->getBrowserWindowIndex() == getBrowserWindowIndex()) {
+        if ((finishCancelEvent->getBrowserWindowIndex() == getBrowserWindowIndex())
+            && (finishCancelEvent->getUserInputMode() == getUserInputMode())) {
             finishCancelEvent->setEventProcessed();
             switch (finishCancelEvent->getMode()) {
                 case EventAnnotationDrawingFinishCancel::Mode::CANCEL:
-                    std::cout << "Cancel" << std::endl;
+                    resetAnnotationBeingCreated();
+                    finish();
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
-                    std::cout << "Finish" << std::endl;
+                    //createNewAnnotationFromMouseDrag(MouseEvent());
                     break;
             }
         }
@@ -1807,7 +1809,7 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_CLICK_SERIES_START:
             break;
         case MODE_NEW_WITH_DRAG:
-            createNewAnnotationFromMouseDrag(mouseEvent);
+            //createNewAnnotationFromMouseDrag(mouseEvent);
             m_mode = MODE_SELECT;
             break;
         case MODE_PASTE:
