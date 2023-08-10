@@ -354,6 +354,11 @@ namespace caret {
                                             AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
                                             const Surface* surfaceDisplayed);
 
+        bool drawPolyhedronEdgesOnPlane(AnnotationFile* annotationFile,
+                                        AnnotationPolyhedron* polyhedron,
+                                        const Plane& plane,
+                                        const uint8_t foregroundRGBA[4]);
+
         bool drawMultiCoordinateShape(AnnotationFile* annotationFile,
                                       AnnotationMultiCoordinateShape* multiCoordShape,
                                       const Surface* surfaceDisplayed);
@@ -533,11 +538,8 @@ namespace caret {
         /** OpenGL Viewport */
         GLint m_modelSpaceViewport[4];
         
-        /** volume space plane */
-        Plane m_volumeSpacePlane;
-        
-        /** Validity of volume space plane */
-        bool m_volumeSpacePlaneValid = false;;
+        /** volume space plane initialized to an invalid plane */
+        Plane m_volumeSpacePlane = Plane();
         
         /** Thickness of volume slice when drawing annotations on volume slices */
         float m_volumeSliceThickness = 0.0;

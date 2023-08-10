@@ -28,7 +28,7 @@
 #include "HistologySpaceKey.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
-
+#include "Vector3D.h"
 
 namespace caret {
     class SceneClassAssistant;
@@ -44,7 +44,7 @@ namespace caret {
 
         AnnotationCoordinate& operator=(const AnnotationCoordinate& obj);
         
-        const float* getXYZ() const;
+        const Vector3D getXYZ() const;
         
         void getXYZ(float xyzOut[3]) const;
         

@@ -227,6 +227,46 @@ AnnotationPolyhedron::setFromFileReading(const Plane& plane,
 }
 
 /**
+ * @param edgesOut
+ *    Contains all edges from the polyhedron
+ * @param trianglesOut
+ *    Contains all triangles from sides
+ */
+void
+AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
+                                           std::vector<Triangle>& trianglesOut) const
+{
+    edgesOut.clear();
+    
+    const int32_t halfNumCoords(getNumberOfCoordinates() / 2);
+    for (int32_t i = 0; i < halfNumCoords; i++) {
+        /*
+         * Near face
+         */
+        const int32_t iNext((i == (halfNumCoords - 1)) ? 0 : i + 1);
+        edgesOut.push_back(Edge(getCoordinate(i)->getXYZ(),
+                                getCoordinate(iNext)->getXYZ()));
+        
+        /*
+         * Far face
+         */
+        const int32_t farOffset(halfNumCoords);
+        edgesOut.push_back(Edge(getCoordinate(i + farOffset)->getXYZ(),
+                                getCoordinate(iNext + farOffset)->getXYZ()));
+        
+        /*
+         * Triangles
+         */
+        trianglesOut.push_back(Triangle(getCoordinate(i)->getXYZ(),
+                                        getCoordinate(i + farOffset)->getXYZ(),
+                                        getCoordinate(iNext)->getXYZ()));
+        trianglesOut.push_back(Triangle(getCoordinate(iNext)->getXYZ(),
+                                        getCoordinate(i + farOffset)->getXYZ(),
+                                        getCoordinate(iNext + farOffset)->getXYZ()));
+    }
+}
+
+/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes

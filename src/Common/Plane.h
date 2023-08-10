@@ -59,6 +59,10 @@ namespace caret {
                                         const Vector3D& normalVectorThree,
                                         AString* optionalMessageOut);
         
+        static float angleDegreesOfPlaneNormalVectors(const Plane& p1,
+                                                      const Plane& p2,
+                                                      bool* optionalValidFlagOut = NULL);
+        
         bool isValidPlane() const;
         
         bool triangleIntersectPlane(

@@ -96,11 +96,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::BrainOpenGLAnnotationDrawingFixedPipe
 : CaretObject(),
 m_brainOpenGLFixedPipeline(brainOpenGLFixedPipeline),
 m_inputs(NULL),
-m_volumeSpacePlaneValid(false),
 m_volumeSliceThickness(0.0),
 m_histologySpacePlaneValid(false),
 m_histologySliceThickness(0.0)
 {
+    m_volumeSpacePlane = Plane();
+    
     CaretAssert(brainOpenGLFixedPipeline);
     
     m_dummyAnnotationFile = new AnnotationFile(AnnotationFile::ANNOTATION_FILE_DUMMY_FOR_DRAWING);
@@ -237,7 +238,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                 }
             }
 
-            if (m_volumeSpacePlaneValid) {
+            if (m_volumeSpacePlane.isValidPlane()) {
                 float xyzFloat[3] = {
                     modelXYZ[0],
                     modelXYZ[1],
@@ -537,11 +538,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     CaretAssert(inputs);
     m_inputs = inputs;
     m_surfaceViewScaling = 1.0f;
-    m_volumeSpacePlaneValid = false;
     
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
-        m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<AnnotationScaleBar*> emptyScaleBars;
@@ -555,7 +554,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
                                 sliceThickness);
     }
     
-    m_volumeSpacePlaneValid = false;
+    m_volumeSpacePlane = Plane();
     m_inputs = NULL;
 }
 
@@ -577,11 +576,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
     CaretAssert(inputs);
     m_inputs = inputs;
     m_surfaceViewScaling = 1.0f;
-    m_volumeSpacePlaneValid = false;
     
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
-        m_volumeSpacePlaneValid = true;
         
         std::vector<AnnotationColorBar*> emptyColorBars;
         std::vector<AnnotationScaleBar*> emptyScaleBars;
@@ -595,7 +592,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnVolumeSlic
                                 sliceThickness);
     }
     
-    m_volumeSpacePlaneValid = false;
+    m_volumeSpacePlane = Plane();
     m_inputs = NULL;
 }
 
@@ -674,7 +671,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotations(Inputs* inputs,
     m_surfaceViewScaling = surfaceViewScaling;
     
     m_histologySpacePlaneValid = false;
-    m_volumeSpacePlaneValid = false;
+    m_volumeSpacePlane = Plane();
     
     const float sliceThickness = 0.0;
     
@@ -725,7 +722,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     }
     
     EventOpenGLObjectToWindowTransform::SpaceType spaceType = EventOpenGLObjectToWindowTransform::SpaceType::MODEL;
-    if (m_volumeSpacePlaneValid) {
+    if (m_volumeSpacePlane.isValidPlane()) {
         spaceType = EventOpenGLObjectToWindowTransform::SpaceType::VOLUME_SLICE_MODEL;
     }
     m_transformEvent.reset(new EventOpenGLObjectToWindowTransform(spaceType));
@@ -5054,7 +5051,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawLineSurfaceTangentOffset(Annotati
  * @return
  *    True if the annotation was drawn while NOT selecting annotations.
  */
-
 bool
 BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(AnnotationFile* annotationFile,
                                                                           AnnotationMultiPairedCoordinateShape* multiPairedCoordShape,
@@ -5098,11 +5094,50 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         }
     }
 
-    
     uint8_t foregroundRGBA[4];
     multiPairedCoordShape->getLineColorRGBA(foregroundRGBA);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
     
+    float absAngle(-10000.0);
+    if (m_volumeSpacePlane.isValidPlane()) {
+        const Plane annPlane(polyhedron->getPlane());
+        if (annPlane.isValidPlane()) {
+            absAngle = std::fabs(Plane::angleDegreesOfPlaneNormalVectors(m_volumeSpacePlane,
+                                                                         annPlane));
+        }
+        else {
+            CaretLogSevere("Invalid plane, cannot drawn: "
+                           + multiPairedCoordShape->toString());
+            return false;
+        }
+    }
+    else {
+        /*
+         * Note: Plane is invalid when a new annotation is being drawn
+         */
+        if (multiPairedCoordShape->isDrawingNewAnnotation()) {
+            /*
+             * Special case for annotation being drawn
+             */
+            absAngle = 0.0;
+        }
+        else {
+            return false;
+        }
+    }
+
+    std::cout << "Angle: " << absAngle << std::endl;
+    
+    if ((absAngle > 5.0)
+        && (absAngle < 175.0)) {
+        drawPolyhedronEdgesOnPlane(annotationFile,
+                                   polyhedron,
+                                   m_volumeSpacePlane,
+                                   foregroundRGBA);
+        std::cout << "Planes not aligned" << std::endl;
+        return false;
+    }
+
     std::vector<Vector3D> windowVertexXYZ;
     
     std::unique_ptr<GraphicsPrimitiveV3f> primitive;
@@ -5396,6 +5431,136 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                   boundingBox);
     
     return drawnFlag;
+}
+
+/**
+ * Draw an annotation paired multi-coordinate
+ *
+ * @param annotationFile
+ *    File containing the annotation.
+ * @param polyhedron
+ *    Polyhedron annotation to draw.
+ * @param plane
+ *    Plane on which to draw polyhedron.
+ * @param foregroundRGBA
+ *    The foreground color
+ * @return
+ *    True if the annotation was drawn while NOT selecting annotations.
+ */
+bool
+BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(AnnotationFile* /*annotationFile*/,
+                                                                      AnnotationPolyhedron* polyhedron,
+                                                                      const Plane& plane,
+                                                                      const uint8_t foregroundRGBA[4])
+{
+    if (m_selectionModeFlag) {
+        /*
+         * No identification
+         */
+        return false;
+    }
+    
+    std::vector<AnnotationPolyhedron::Edge> edges;
+    std::vector<AnnotationPolyhedron::Triangle> triangles;
+    polyhedron->getEdgesAndTriangles(edges,
+                                     triangles);
+    
+    if (edges.empty()
+        && triangles.empty()) {
+        return false;
+    }
+    
+    if (foregroundRGBA[3] == 0) {
+        return false;
+    }
+    
+    const float lineWidthPct(polyhedron->getLineWidthPercentage());
+    const float sphereSizeMillimeters(GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(lineWidthPct));
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> edgesPrimitive;
+    edgesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+                                                       foregroundRGBA));
+    CaretAssert(edgesPrimitive);
+    edgesPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                lineWidthPct * 3);
+    
+    std::unique_ptr<GraphicsPrimitiveV3f> trianglesPrimitive;
+    trianglesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                            foregroundRGBA));
+    CaretAssert(trianglesPrimitive);
+    trianglesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                     lineWidthPct * 3);
+    
+    for (const auto& e : edges) {
+        Vector3D intersectionXYZ;
+        if (plane.lineSegmentIntersectPlane(e.m_v1,
+                                            e.m_v2,
+                                            intersectionXYZ)) {
+            
+            AnnotationCoordinate ac(*polyhedron->getCoordinate(0));
+            ac.setXYZ(intersectionXYZ);
+            
+            const Surface* invalidSurface(NULL);
+            Vector3D xyz(intersectionXYZ);
+            if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                    &ac,
+                                                    invalidSurface,
+                                                    xyz)) {
+                edgesPrimitive->addVertex(xyz);
+            }
+        }
+    }
+    
+    for (const auto& t : triangles) {
+        Vector3D intersectionOneXYZ;
+        Vector3D intersectionTwoXYZ;
+        if (plane.triangleIntersectPlane(t.m_v1,
+                                         t.m_v2,
+                                         t.m_v3,
+                                         intersectionOneXYZ,
+                                         intersectionTwoXYZ)) {
+            AnnotationCoordinate acOne(*polyhedron->getCoordinate(0));
+            acOne.setXYZ(intersectionOneXYZ);
+            AnnotationCoordinate acTwo(*polyhedron->getCoordinate(0));
+            acTwo.setXYZ(intersectionTwoXYZ);
+
+            const Surface* invalidSurface(NULL);
+            Vector3D xyzOne(intersectionOneXYZ);
+            Vector3D xyzTwo(intersectionTwoXYZ);
+            if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                    &acOne,
+                                                    invalidSurface,
+                                                    xyzOne)
+                && getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                       &acTwo,
+                                                       invalidSurface,
+                                                       xyzTwo)) {
+                trianglesPrimitive->addVertex(xyzOne);
+                trianglesPrimitive->addVertex(xyzTwo);
+            }
+        }
+    }
+
+    
+    if (edgesPrimitive->getNumberOfVertices() >= 2) {
+        const Surface* invalidSurface(NULL);
+        const bool depthTestFlag = isDrawnWithDepthTesting(polyhedron,
+                                                           invalidSurface);
+        const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+        GraphicsEngineDataOpenGL::draw(edgesPrimitive.get());
+        setDepthTestingStatus(savedDepthTestStatus);
+    }
+    
+    if (trianglesPrimitive->getNumberOfVertices() >= 3) {
+        const Surface* invalidSurface(NULL);
+        const bool depthTestFlag = isDrawnWithDepthTesting(polyhedron,
+                                                           invalidSurface);
+        const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
+        GraphicsEngineDataOpenGL::draw(trianglesPrimitive.get());
+        setDepthTestingStatus(savedDepthTestStatus);
+    }
+    
+    return true;
 }
 
 /**
@@ -6585,7 +6750,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
             if (m_histologySpacePlaneValid) {
                 depthTestFlag = false;
             }
-            if (m_volumeSpacePlaneValid) {
+            if (m_volumeSpacePlane.isValidPlane()) {
                 depthTestFlag = false;
             }
             break;

@@ -785,6 +785,58 @@ Plane::arePlanesOrthogonal(const Vector3D& normalVectorOne,
     return false;
 }
 
+/**
+ * @return Angle in degrees formed by the normal vectors of the two planes
+ * @param p1
+ *    First plane
+ * @param p2
+ *    Second plane
+ * @param optionalValidFlagOut
+ *    If not NULL, will indicate returned value is valid
+ */
+float
+Plane::angleDegreesOfPlaneNormalVectors(const Plane& p1,
+                                        const Plane& p2,
+                                        bool* optionalValidFlagOut)
+{
+    if (optionalValidFlagOut != NULL) {
+        *optionalValidFlagOut = false;
+    }
+
+    bool validPlanesFlag(true);
+    if ( ! p1.isValidPlane()) {
+        if (optionalValidFlagOut == NULL) {
+            CaretLogSevere("Program error: Plane p1 is invalid.");
+        }
+        validPlanesFlag = false;
+    }
+    if ( ! p2.isValidPlane()) {
+        if (optionalValidFlagOut == NULL) {
+            CaretLogSevere("Program error: Plane p2 is invalid.");
+        }
+        validPlanesFlag = false;
+    }
+    
+    if ( ! validPlanesFlag) {
+        return 0.0;
+    }
+    
+    const Vector3D n1(p1.getNormalVector());
+    const Vector3D n2(p2.getNormalVector());
+    float dot(n1.dot(n2));
+    if (dot <= -1.0) {
+        dot = -1.0;
+    }
+    else if (dot >= 1.0) {
+        dot = 1.0;
+    }
+    const float angle(MathFunctions::toDegrees(std::acos(dot)));
+    if (optionalValidFlagOut != NULL) {
+        *optionalValidFlagOut = true;
+    }
+    return angle;
+}
+
 void
 Plane::unitTest1(std::ostream& stream)
 {

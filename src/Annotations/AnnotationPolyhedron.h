@@ -33,6 +33,31 @@ namespace caret {
     class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape {
         
     public:
+        class Edge {
+        public:
+            Edge(const Vector3D& v1,
+                 const Vector3D& v2)
+            : m_v1(v1), m_v2(v2) { }
+            
+            const Vector3D m_v1;
+            
+            const Vector3D m_v2;
+        };
+        
+        class Triangle {
+        public:
+            Triangle(const Vector3D& v1,
+                     const Vector3D& v2,
+                     const Vector3D& v3)
+            : m_v1(v1), m_v2(v2), m_v3(v3) { }
+            
+            const Vector3D m_v1;
+            
+            const Vector3D m_v2;
+
+            const Vector3D m_v3;
+        };
+        
         AnnotationPolyhedron(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
         virtual ~AnnotationPolyhedron();
@@ -52,6 +77,9 @@ namespace caret {
         Plane getPlane() const;
         
         float getDepth() const;
+        
+        void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
+                                  std::vector<Triangle>& trianglesOut) const;
         
        // ADD_NEW_METHODS_HERE
           

@@ -164,10 +164,10 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
  *
  * For tab and window spaces, the Z value is a depth for ordering.
  */
-const float*
+const Vector3D
 AnnotationCoordinate::getXYZ() const
 {
-    return m_xyz;
+    return Vector3D(m_xyz);
 }
 
 /**
