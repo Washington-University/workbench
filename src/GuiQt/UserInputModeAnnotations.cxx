@@ -157,66 +157,71 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         EventAnnotationCreateNewType* annotationEvent = dynamic_cast<EventAnnotationCreateNewType*>(event);
         CaretAssert(annotationEvent);
         
-        deselectAnnotationsForEditingInAnnotationManager();
-        resetAnnotationUnderMouse();
-        
-        const AnnotationTypeEnum::Enum annType(annotationEvent->getAnnotationType());
-        m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(annotationEvent->getAnnotationFile(),
-                                                                                      annotationEvent->getAnnotationSpace(),
-                                                                                      annType));
-
-        Mode mode(MODE_NEW_WITH_DRAG_START);
-        switch (annType) {
-            case AnnotationTypeEnum::BOX:
-                break;
-            case AnnotationTypeEnum::BROWSER_TAB:
-                break;
-            case AnnotationTypeEnum::COLOR_BAR:
-                break;
-            case AnnotationTypeEnum::IMAGE:
-                break;
-            case AnnotationTypeEnum::LINE:
-                break;
-            case AnnotationTypeEnum::OVAL:
-                break;
-            case AnnotationTypeEnum::POLYHEDRON:
-                switch (annotationEvent->getPolyLineDrawingMode()) {
-                    case EventAnnotationCreateNewType::CONTINUOUS:
-                        mode = MODE_NEW_WITH_DRAG_START;
-                        break;
-                    case EventAnnotationCreateNewType::DISCRETE:
-                        mode = MODE_NEW_WITH_CLICK_SERIES_START;
-                        break;
-                }
-                break;
-            case AnnotationTypeEnum::POLYGON:
-                switch (annotationEvent->getPolyLineDrawingMode()) {
-                    case EventAnnotationCreateNewType::CONTINUOUS:
-                        mode = MODE_NEW_WITH_DRAG_START;
-                        break;
-                    case EventAnnotationCreateNewType::DISCRETE:
-                        mode = MODE_NEW_WITH_CLICK_SERIES_START;
-                        break;
-                }
-                break;
-            case AnnotationTypeEnum::POLYLINE:
-                switch (annotationEvent->getPolyLineDrawingMode()) {
-                    case EventAnnotationCreateNewType::CONTINUOUS:
-                        mode = MODE_NEW_WITH_DRAG_START;
-                        break;
-                    case EventAnnotationCreateNewType::DISCRETE:
-                        mode = MODE_NEW_WITH_CLICK_SERIES_START;
-                        break;
-                }
-                break;
-            case AnnotationTypeEnum::SCALE_BAR:
-                break;
-            case AnnotationTypeEnum::TEXT:
-                break;
+        if ((annotationEvent->getBrowserWindowIndex() == getBrowserWindowIndex())
+            && (annotationEvent->getUserInputMode() == getUserInputMode())) {
+            annotationEvent->setEventProcessed();
+            
+            deselectAnnotationsForEditingInAnnotationManager();
+            resetAnnotationUnderMouse();
+            
+            const AnnotationTypeEnum::Enum annType(annotationEvent->getAnnotationType());
+            m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(annotationEvent->getAnnotationFile(),
+                                                                                          annotationEvent->getAnnotationSpace(),
+                                                                                          annType));
+            
+            Mode mode(MODE_NEW_WITH_DRAG_START);
+            switch (annType) {
+                case AnnotationTypeEnum::BOX:
+                    break;
+                case AnnotationTypeEnum::BROWSER_TAB:
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    switch (annotationEvent->getPolyLineDrawingMode()) {
+                        case EventAnnotationCreateNewType::CONTINUOUS:
+                            mode = MODE_NEW_WITH_DRAG_START;
+                            break;
+                        case EventAnnotationCreateNewType::DISCRETE:
+                            mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                            break;
+                    }
+                    break;
+                case AnnotationTypeEnum::POLYGON:
+                    switch (annotationEvent->getPolyLineDrawingMode()) {
+                        case EventAnnotationCreateNewType::CONTINUOUS:
+                            mode = MODE_NEW_WITH_DRAG_START;
+                            break;
+                        case EventAnnotationCreateNewType::DISCRETE:
+                            mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                            break;
+                    }
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
+                    switch (annotationEvent->getPolyLineDrawingMode()) {
+                        case EventAnnotationCreateNewType::CONTINUOUS:
+                            mode = MODE_NEW_WITH_DRAG_START;
+                            break;
+                        case EventAnnotationCreateNewType::DISCRETE:
+                            mode = MODE_NEW_WITH_CLICK_SERIES_START;
+                            break;
+                    }
+                    break;
+                case AnnotationTypeEnum::SCALE_BAR:
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    break;
+            }
+            
+            setMode(mode);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         }
-        
-        setMode(mode);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL) {
         EventAnnotationDrawingFinishCancel* finishCancelEvent(dynamic_cast<EventAnnotationDrawingFinishCancel*>(event));

@@ -24,7 +24,7 @@
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
 #include "Event.h"
-
+#include "UserInputModeEnum.h"
 
 
 namespace caret {
@@ -39,12 +39,18 @@ namespace caret {
             DISCRETE
         };
         
-        EventAnnotationCreateNewType(AnnotationFile* annotationFile,
+        EventAnnotationCreateNewType(const int32_t browserWindowIndex,
+                                     const UserInputModeEnum::Enum userInputMode,
+                                     AnnotationFile* annotationFile,
                                      const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                      const AnnotationTypeEnum::Enum annotationType,
                                      const PolyLineDrawingMode polyLineDrawingMode);
         
         virtual ~EventAnnotationCreateNewType();
+        
+        int32_t getBrowserWindowIndex() const;
+        
+        UserInputModeEnum::Enum getUserInputMode() const;
         
         AnnotationFile* getAnnotationFile() const;
         
@@ -61,6 +67,10 @@ namespace caret {
 
         EventAnnotationCreateNewType& operator=(const EventAnnotationCreateNewType&);
         
+        const int32_t m_browserWindowIndex;
+        
+        const UserInputModeEnum::Enum m_userInputMode;
+
         AnnotationFile* m_annotationFile;
         
         const AnnotationCoordinateSpaceEnum::Enum m_annotationSpace;

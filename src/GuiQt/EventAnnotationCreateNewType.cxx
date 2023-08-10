@@ -39,6 +39,10 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param userInputMode
+ *    The user input mode
  * @param annotationFile
  *    File for annotation
  * @param annotationSpace
@@ -49,11 +53,15 @@ using namespace caret;
  *    Mode for drawing polyline
  *
  */
-EventAnnotationCreateNewType::EventAnnotationCreateNewType(AnnotationFile* annotationFile,
+EventAnnotationCreateNewType::EventAnnotationCreateNewType(const int32_t browserWindowIndex,
+                                                           const UserInputModeEnum::Enum userInputMode,
+                                                           AnnotationFile* annotationFile,
                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                            const AnnotationTypeEnum::Enum annotationType,
                                                            const PolyLineDrawingMode polyLineDrawingMode)
 : Event(EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE),
+m_browserWindowIndex(browserWindowIndex),
+m_userInputMode(userInputMode),
 m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
 m_annotationType(annotationType),
@@ -69,6 +77,23 @@ EventAnnotationCreateNewType::~EventAnnotationCreateNewType()
 {
 }
 
+/**
+ * @return Index of the browser window
+ */
+int32_t
+EventAnnotationCreateNewType::getBrowserWindowIndex() const
+{
+    return m_browserWindowIndex;
+}
+
+/**
+ * @return The user input mode
+ */
+UserInputModeEnum::Enum
+EventAnnotationCreateNewType::getUserInputMode() const
+{
+    return m_userInputMode;
+}
 /**
  * @return Annotation file for new anotation.
  */

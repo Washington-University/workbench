@@ -866,7 +866,9 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
     
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->setDisplayAnnotations(true);
-    EventManager::get()->sendEvent(EventAnnotationCreateNewType(annotationFile,
+    EventManager::get()->sendEvent(EventAnnotationCreateNewType(m_browserWindowIndex,
+                                                                m_userInputMode,
+                                                                annotationFile,
                                                                 annSpace,
                                                                 annShape,
                                                                 polyLineDrawingMode).getPointer());
