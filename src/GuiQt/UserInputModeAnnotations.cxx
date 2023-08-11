@@ -227,8 +227,11 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             finishCancelEvent->setEventProcessed();
             switch (finishCancelEvent->getMode()) {
                 case EventAnnotationDrawingFinishCancel::Mode::CANCEL:
-                    resetAnnotationBeingCreated();
-                    finish();
+                    /*
+                     * Same as ESC key to cancel drawing of new annotation
+                     */
+                    setMode(MODE_SELECT);
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
                     //createNewAnnotationFromMouseDrag(MouseEvent());
@@ -1809,7 +1812,7 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_CLICK_SERIES_START:
             break;
         case MODE_NEW_WITH_DRAG:
-            //createNewAnnotationFromMouseDrag(mouseEvent);
+            createNewAnnotationFromMouseDrag(mouseEvent);
             m_mode = MODE_SELECT;
             break;
         case MODE_PASTE:
