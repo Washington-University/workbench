@@ -42,6 +42,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
+#include "GiftiMetaData.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "SceneClass.h"
@@ -149,6 +150,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    *m_metaData = *obj.m_metaData;
+    
     m_stackingOrder = obj.m_stackingOrder;
     
     m_properties = obj.m_properties;
@@ -451,6 +454,8 @@ Annotation::initializeAnnotationMembers()
     m_viewportCoordinateSpaceViewport[3] = 0;
     
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
+    
+    m_metaData.reset(new GiftiMetaData());
     
     /*
      * Default the unique identifier.
@@ -1722,6 +1727,25 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
         }
     }
 }
+
+/**
+ * @return Pointer to the metadata
+ */
+GiftiMetaData*
+Annotation::getMetaData()
+{
+    return m_metaData.get();
+}
+
+/**
+ * @return Pointer to the metadata (const method)
+ */
+const GiftiMetaData*
+Annotation::getMetaData() const
+{
+    return m_metaData.get();
+}
+
 
 /**
  * Initialize properties.

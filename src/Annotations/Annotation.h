@@ -52,6 +52,7 @@ namespace caret {
     class AnnotationSpatialModification;
     class AnnotationTwoCoordinateShape;
     class DisplayGroupAndTabItemHelper;
+    class GiftiMetaData;
     class SceneClassAssistant;
 
     class Annotation : public CaretObjectTracksModification, public DisplayGroupAndTabItemInterface, public SceneableInterface {
@@ -327,6 +328,10 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
+        GiftiMetaData* getMetaData();
+        
+        const GiftiMetaData* getMetaData() const;
+        
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         
         float getLineWidthPercentage() const;
@@ -534,6 +539,8 @@ namespace caret {
         float m_lineWidthPercentage = -1.0f;
         
         AString m_name;
+        
+        std::unique_ptr<GiftiMetaData> m_metaData;
         
         int32_t m_uniqueKey;
         

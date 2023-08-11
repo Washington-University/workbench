@@ -529,6 +529,8 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     m_stream->writeCharacters(text->getText());
     m_stream->writeEndElement();
     
+    writeAnnotationMetaData(text);
+    
     m_stream->writeEndElement();
 }
 
@@ -636,6 +638,8 @@ AnnotationFileXmlWriter::writeOneCoordinateShapeAnnotation(const AnnotationOneCo
                     shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_ONE);
     
+    writeAnnotationMetaData(shape);
+    
     m_stream->writeEndElement();
 }
 
@@ -677,6 +681,8 @@ AnnotationFileXmlWriter::writeTwoCoordinateShapeAnnotation(const AnnotationTwoCo
     writeCoordinate(shape->getEndCoordinate(),
                     shape->getCoordinateSpace(),
                     ELEMENT_COORDINATE_TWO);
+    
+    writeAnnotationMetaData(shape);
     
     m_stream->writeEndElement();
 }
@@ -728,6 +734,8 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
         m_stream->writeEndElement();
     }
     
+    writeAnnotationMetaData(shape);
+    
     m_stream->writeEndElement();
 }
 
@@ -765,6 +773,8 @@ AnnotationFileXmlWriter::writeMultiCoordinateShapeAnnotation(const AnnotationMul
                         ELEMENT_COORDINATE);
     }
     m_stream->writeEndElement();
+    
+    writeAnnotationMetaData(shape);
     
     m_stream->writeEndElement();
 }
@@ -886,6 +896,15 @@ AnnotationFileXmlWriter::realArrayToString(const float values[],
     }
                     
     return text;
+}
+
+/**
+ * Write an annotation's metadata
+ */
+void
+AnnotationFileXmlWriter::writeAnnotationMetaData(const Annotation* annotation)
+{
+    m_streamHelper->writeMetaData(annotation->getMetaData());
 }
 
 

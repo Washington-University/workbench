@@ -72,13 +72,16 @@ namespace caret {
         
         void readGroup(AnnotationFile* annotationFile);
         
-        void readTwoCoordinateAnnotation(const QString& annotationElementName,
-                                          AnnotationTwoCoordinateShape* annotation);
+        void readTwoCoordinateAnnotation(AnnotationFile* annotationFile,
+                                         const QString& annotationElementName,
+                                         AnnotationTwoCoordinateShape* annotation);
 
-        void readOneCoordinateAnnotation(const QString& annotationElementName,
+        void readOneCoordinateAnnotation(AnnotationFile* annotationFile,
+                                         const QString& annotationElementName,
                                           AnnotationOneCoordinateShape* annotation);
         
-        void readMultiCoordinateAnnotation(const QString& annotationElementName,
+        void readMultiCoordinateAnnotation(AnnotationFile* annotationFile,
+                                           const QString& annotationElementName,
                                            AnnotationMultiCoordinateShape* annotation);
         
         void readMultiPairedCoordinateAnnotation(AnnotationFile* annotationFile,
@@ -87,7 +90,8 @@ namespace caret {
         
         void readCoordinate(const QString& coordinateElementName,
                             AnnotationCoordinate* coordinate,
-                            const AnnotationCoordinateSpaceEnum::Enum coordinateSpace);
+                            const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                            const bool readStartElementFlag);
         
         void readAnnotationAttributes(Annotation* annotation,
                                       const QString& annotationElementName,

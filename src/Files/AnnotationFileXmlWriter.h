@@ -116,6 +116,8 @@ namespace caret {
         
         void writeText(const AnnotationText* text);
         
+        void writeAnnotationMetaData(const Annotation* annotation);
+        
         CaretPointer<QXmlStreamWriter> m_stream;
         
         CaretPointer<XmlStreamWriterHelper> m_streamHelper;

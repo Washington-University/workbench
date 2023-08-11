@@ -243,50 +243,58 @@ AnnotationFileXmlReader::readVersionOne(AnnotationFile* annotationFile)
         }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_BOX,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_BOX,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_IMAGE,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_IMAGE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoCoordinateAnnotation(ELEMENT_LINE,
+            readTwoCoordinateAnnotation(annotationFile,
+                                        ELEMENT_LINE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_OVAL,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_OVAL,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_WIDTH_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL,
                                                                                   AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_WIDTH));
-            readOneCoordinateAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_POINT_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_TEXT_OBSOLETE,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_TEXT_OBSOLETE,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
@@ -350,31 +358,36 @@ AnnotationFileXmlReader::readVersionTwo(AnnotationFile* annotationFile)
  *     Coordinate whose data is set with data read
  * @param coordinateSpace
  *     Coordinate space of annotation
+ *  @param readStartElementFlag
+ *     If true, read the start element and skipt to next element when done
  * @throw
  *     DataFileException
  */
 void
 AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                                         AnnotationCoordinate* coordinate,
-                                        const AnnotationCoordinateSpaceEnum::Enum coordinateSpace)
+                                        const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                        const bool readStartElementFlag)
 {
     CaretAssert(coordinate);
     
-    const bool elementValid = m_stream->readNextStartElement();
-    if ( ! elementValid) {
-        m_streamHelper->throwDataFileException("Failed to read element "
-                               + coordinateElementName);
-    }
-    
-    if (m_stream->name() != coordinateElementName) {
-        m_streamHelper->throwDataFileException("Expected elment "
-                               + coordinateElementName
-                               + " but read element "
-                               + m_stream->name().toString());
+    if (readStartElementFlag) {
+        const bool elementValid = m_stream->readNextStartElement();
+        if ( ! elementValid) {
+            m_streamHelper->throwDataFileException("Failed to read element "
+                                                   + coordinateElementName);
+        }
+        
+        if (m_stream->name() != coordinateElementName) {
+            m_streamHelper->throwDataFileException("Expected elment "
+                                                   + coordinateElementName
+                                                   + " but read element "
+                                                   + m_stream->name().toString());
+        }
     }
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
-    
+
     /*
      * XYZ coordinate
      */
@@ -384,7 +397,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
         m_streamHelper->getRequiredAttributeFloatValue(attributes, coordinateElementName, ATTRIBUTE_COORD_Z)
     };
     coordinate->setXYZ(xyz);
-    
+
     /*
      * Surface coordinate
      */
@@ -400,7 +413,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     const float offsetDistance = m_streamHelper->getRequiredAttributeFloatValue(attributes,
                                                                                 coordinateElementName,
                                                                                 ATTRIBUTE_COORD_SURFACE_NODE_OFFSET);
-    
+
     const QString offsetVectorString = m_streamHelper->getOptionalAttributeStringValue(attributes,
                                                                                        coordinateElementName,
                                                                                        ATTRIBUTE_COORD_SURFACE_NODE_OFFSET_VECTOR_TYPE,
@@ -408,16 +421,16 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
     bool structureValid = false;
     StructureEnum::Enum structure = StructureEnum::fromName(structureValueString,
                                                           &structureValid);
-    
+
     bool offsetVectorValid = false;
     AnnotationSurfaceOffsetVectorTypeEnum::Enum offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::fromName(offsetVectorString,
                                                                                                                &offsetVectorValid);
-   
-    
+
+
     if ( ! offsetVectorValid) {
         offsetVector = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
     }
-    
+
     if (structureValid) {
         coordinate->setSurfaceSpace(structure,
                                     numberOfNodes,
@@ -431,7 +444,7 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
                                + " for attribute "
                                + ATTRIBUTE_COORD_SURFACE_STRUCTURE);
     }
-    
+
     switch (coordinateSpace) {
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
         {
@@ -493,10 +506,12 @@ AnnotationFileXmlReader::readCoordinate(const QString& coordinateElementName,
             break;
     }
 
-    /*
-     * No other child elements so move on
-     */
-    m_stream->skipCurrentElement();
+    if (readStartElementFlag) {
+        /*
+         * No other child elements so move on
+         */
+        m_stream->skipCurrentElement();
+    }
 }
 
 /**
@@ -686,8 +701,9 @@ AnnotationFileXmlReader::readAnnotationAttributes(Annotation* annotation,
  *     One-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readTwoCoordinateAnnotation(const QString& annotationElementName,
-                                                      AnnotationTwoCoordinateShape* annotation)
+AnnotationFileXmlReader::readTwoCoordinateAnnotation(AnnotationFile* annotationFile,
+                                                     const QString& annotationElementName,
+                                                     AnnotationTwoCoordinateShape* annotation)
 {
     CaretAssert(annotation);
 
@@ -709,25 +725,83 @@ AnnotationFileXmlReader::readTwoCoordinateAnnotation(const QString& annotationEl
                                                                                  false));
     }
     
-    readCoordinate(ELEMENT_COORDINATE_ONE,
-                   annotation->getStartCoordinate(),
-                   annotation->getCoordinateSpace());
-    readCoordinate(ELEMENT_COORDINATE_TWO,
-                   annotation->getEndCoordinate(),
-                   annotation->getCoordinateSpace());
+    bool done(false);
+    while ( ! done) {
+        const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
+        if (m_stream->atEnd()) {
+            done = true;
+        }
+        else {
+            const QString elementName(m_stream->name().toString());
+            switch (tokenType) {
+                case QXmlStreamReader::StartElement:
+                    if (elementName == ELEMENT_COORDINATE_ONE) {
+                        /*
+                         * Read the coordinate
+                         */
+                        const bool readStartElementFlag(false);
+                        readCoordinate(ELEMENT_COORDINATE_ONE,
+                                       annotation->getStartCoordinate(),
+                                       annotation->getCoordinateSpace(),
+                                       readStartElementFlag);
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == ELEMENT_COORDINATE_TWO) {
+                        /*
+                         * Read the coordinate
+                         */
+                        const bool readStartElementFlag(false);
+                        readCoordinate(ELEMENT_COORDINATE_TWO,
+                                       annotation->getEndCoordinate(),
+                                       annotation->getCoordinateSpace(),
+                                       readStartElementFlag);
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == GiftiXmlElements::TAG_METADATA) {
+                        /*
+                         * Reads through the metadata end element so
+                         * DO NOT skip to next element
+                         */
+                        m_streamHelper->readMetaData(annotation->getMetaData());
+                    }
+                    else {
+                        /*
+                         * Issue warning (instead of fatal error) if unrecognized element found.
+                         * Will skip over remainder of element later in code.
+                         */
+                        annotationFile->addFileReadWarning("Unrecognized element \""
+                                                           + elementName
+                                                           + "\" and content ignored.  Updating Workbench "
+                                                           "may correct this problem.");
+                        m_stream->skipCurrentElement();
+                    }
+                    break;
+                case QXmlStreamReader::EndElement:
+                    if (elementName == annotationElementName) {
+                        done = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 }
 
 /**
  * Read a multi coordinate annotation.
  *
+ * @param annotationFile,
+       Annotation file being read
  * @param annotationElementName
  *     Name of one-dimensional attribute.
  * @param annotation
  *     One-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotationElementName,
-                                         AnnotationMultiCoordinateShape* annotation)
+AnnotationFileXmlReader::readMultiCoordinateAnnotation(AnnotationFile* annotationFile,
+                                                       const QString& annotationElementName,
+                                                       AnnotationMultiCoordinateShape* annotation)
 {
     CaretAssert(annotation);
     
@@ -737,32 +811,61 @@ AnnotationFileXmlReader::readMultiCoordinateAnnotation(const QString& annotation
                              annotationElementName,
                              attributes);
     
-    if (m_stream->readNextStartElement()) {
-        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
-            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
-            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
-                                                                                             ELEMENT_COORDINATE_LIST,
-                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
-            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
-                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
-                readCoordinate(ELEMENT_COORDINATE,
-                               ac,
-                               annotation->getCoordinateSpace());
-                annotation->addCoordinate(ac);
-            }
-            
-            m_stream->skipCurrentElement();
+    bool done(false);
+    while ( ! done) {
+        const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
+        if (m_stream->atEnd()) {
+            done = true;
         }
         else {
-            m_streamHelper->throwDataFileException("Expected elment "
-                                                   + ELEMENT_COORDINATE_LIST
-                                                   + " but read element "
-                                                   + m_stream->name().toString());
+            const QString elementName(m_stream->name().toString());
+            switch (tokenType) {
+                case QXmlStreamReader::StartElement:
+                    if (elementName == ELEMENT_COORDINATE_LIST) {
+                        const QXmlStreamAttributes coordListAtts(m_stream->attributes());
+                        const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
+                                                                                                         ELEMENT_COORDINATE_LIST,
+                                                                                                         ATTRIBUTE_COORDINATE_LIST_COUNT);
+                        for (int32_t i = 0; i < numberOfCoordiantes; i++) {
+                            AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+                            const bool readStartElementFlag(true);
+                            readCoordinate(ELEMENT_COORDINATE,
+                                           ac,
+                                           annotation->getCoordinateSpace(),
+                                           readStartElementFlag);
+                            annotation->addCoordinate(ac);
+                        }
+                        
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == GiftiXmlElements::TAG_METADATA) {
+                        /*
+                         * Reads through the metadata end element so
+                         * DO NOT skip to next element
+                         */
+                        m_streamHelper->readMetaData(annotation->getMetaData());
+                    }
+                    else {
+                        /*
+                         * Issue warning (instead of fatal error) if unrecognized element found.
+                         * Will skip over remainder of element later in code.
+                         */
+                        annotationFile->addFileReadWarning("Unrecognized element \""
+                                                           + elementName
+                                                           + "\" and content ignored.  Updating Workbench "
+                                                           "may correct this problem.");
+                        m_stream->skipCurrentElement();
+                    }
+                    break;
+                case QXmlStreamReader::EndElement:
+                    if (elementName == annotationElementName) {
+                        done = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
-    }
-    else {
-        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
-                                               + ELEMENT_COORDINATE_LIST);
     }
 }
 
@@ -790,7 +893,6 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                              attributes);
     bool done(false);
     while ( ! done) {
-        bool skipCurrentElementFlag(false);
         const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
         if (m_stream->atEnd()) {
             done = true;
@@ -806,13 +908,22 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                                                                                                          ATTRIBUTE_COORDINATE_LIST_COUNT);
                         for (int32_t i = 0; i < numberOfCoordiantes; i++) {
                             AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
+                            const bool readStartElementFlag(true);
                             readCoordinate(ELEMENT_COORDINATE,
                                            ac,
-                                           annotation->getCoordinateSpace());
+                                           annotation->getCoordinateSpace(),
+                                           readStartElementFlag);
                             annotation->addCoordinate(ac);
                         }
                         
                         m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == GiftiXmlElements::TAG_METADATA) {
+                        /*
+                         * Reads through the metadata end element so
+                         * DO NOT skip to next element
+                         */
+                        m_streamHelper->readMetaData(annotation->getMetaData());
                     }
                     else if (elementName == ELEMENT_POLYHEDRON_DATA) {
                         AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
@@ -848,11 +959,11 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                                                            + elementName
                                                            + "\" and content ignored.  Updating Workbench "
                                                            "may correct this problem.");
-                        skipCurrentElementFlag = true;
+                        m_stream->skipCurrentElement();
                     }
                     break;
                 case QXmlStreamReader::EndElement:
-                    if (elementName == ELEMENT_POLYHEDRON) {
+                    if (elementName == annotationElementName) {
                         done = true;
                     }
                     break;
@@ -860,37 +971,7 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                     break;
             }
         }
-        if (skipCurrentElementFlag) {
-            m_stream->skipCurrentElement();
-        }
     }
-//    if (m_stream->readNextStartElement()) {
-//        if (m_stream->name() == ELEMENT_COORDINATE_LIST) {
-//            const QXmlStreamAttributes coordListAtts(m_stream->attributes());
-//            const int32_t numberOfCoordiantes = m_streamHelper->getRequiredAttributeIntValue(coordListAtts,
-//                                                                                             ELEMENT_COORDINATE_LIST,
-//                                                                                             ATTRIBUTE_COORDINATE_LIST_COUNT);
-//            for (int32_t i = 0; i < numberOfCoordiantes; i++) {
-//                AnnotationCoordinate* ac = new AnnotationCoordinate(annotation->m_attributeDefaultType);
-//                readCoordinate(ELEMENT_COORDINATE,
-//                               ac,
-//                               annotation->getCoordinateSpace());
-//                annotation->addCoordinate(ac);
-//            }
-//
-//            m_stream->skipCurrentElement();
-//        }
-//        else {
-//            m_streamHelper->throwDataFileException("Expected elment "
-//                                                   + ELEMENT_COORDINATE_LIST
-//                                                   + " but read element "
-//                                                   + m_stream->name().toString());
-//        }
-//    }
-//    else {
-//        m_streamHelper->throwDataFileException("Failed to multi-coordinate child element "
-//                                               + ELEMENT_COORDINATE_LIST);
-//    }
 }
 
 /**
@@ -968,13 +1049,10 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
     HistologySpaceKey histologySpaceKey;
     
     while (m_stream->readNextStartElement()) {
-        bool skipCurrentElementFlag = true;
-        
         const QString elementName = m_stream->name().toString();
         
         if (elementName == ELEMENT_COORDINATE_MEDIA_FILE_NAME) {
             mediaFileName = m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
-            skipCurrentElementFlag = false;
         }
         else if (elementName == ELEMENT_COORDINATE_HISTOLOGY_SPACE_KEY) {
             const AString encodedHistologyKey(m_stream->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement));
@@ -984,41 +1062,46 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                         + encodedHistologyKey
                                                         + " into a HistologyKey"));
             }
-            skipCurrentElementFlag = false;
         }
         else if (elementName == ELEMENT_BOX) {
             CaretPointer<AnnotationBox> annotation(new AnnotationBox(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_BOX,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_BOX,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_IMAGE) {
             CaretPointer<AnnotationImage> annotation(new AnnotationImage(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_IMAGE,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_IMAGE,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_LINE) {
             CaretPointer<AnnotationLine> annotation(new AnnotationLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readTwoCoordinateAnnotation(ELEMENT_LINE,
+            readTwoCoordinateAnnotation(annotationFile,
+                                        ELEMENT_LINE,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_OVAL) {
             CaretPointer<AnnotationOval> annotation(new AnnotationOval(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_OVAL,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_OVAL,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POLYGON) {
             CaretPointer<AnnotationPolygon> annotation(new AnnotationPolygon(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readMultiCoordinateAnnotation(ELEMENT_POLYGON,
+            readMultiCoordinateAnnotation(annotationFile,
+                                          ELEMENT_POLYGON,
                                            annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POLY_LINE) {
             CaretPointer<AnnotationPolyLine> annotation(new AnnotationPolyLine(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readMultiCoordinateAnnotation(ELEMENT_POLY_LINE,
+            readMultiCoordinateAnnotation(annotationFile,
+                                          ELEMENT_POLY_LINE,
                                           annotation);
             annotations.push_back(annotation.releasePointer());
         }
@@ -1028,34 +1111,33 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                 ELEMENT_POLYHEDRON,
                                                 annotation);
             annotations.push_back(annotation.releasePointer());
-            
-            /*
-             * Polyhedron reads to the end tag so don't need to skip to next element
-             */
-            skipCurrentElementFlag = false;
         }
         else if (elementName == ELEMENT_PERCENT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_PERCENT_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_PERCENT_SIZE_TEXT,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_PERCENT_WIDTH_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_PERCENT_WIDTH_SIZE_TEXT,
                                          annotation);
             annotationFile->addAnnotationDuringFileVersionOneReading(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_POINT_SIZE_TEXT) {
             CaretPointer<AnnotationText> annotation(new AnnotationPointSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_POINT_SIZE_TEXT,
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_POINT_SIZE_TEXT,
                                          annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else if (elementName == ELEMENT_TEXT_OBSOLETE) {
             CaretPointer<AnnotationText> annotation(new AnnotationPercentSizeText(AnnotationAttributesDefaultTypeEnum::NORMAL));
-            readOneCoordinateAnnotation(ELEMENT_TEXT_OBSOLETE,
-                                         annotation);
+            readOneCoordinateAnnotation(annotationFile,
+                                        ELEMENT_TEXT_OBSOLETE,
+                                        annotation);
             annotations.push_back(annotation.releasePointer());
         }
         else {
@@ -1067,13 +1149,6 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
                                                + elementName
                                                + "\" and content ignored.  Updating Workbench "
                                                "may correct this problem.");
-            skipCurrentElementFlag = true;
-        }
-        
-        /*
-         * These elements have no other child elements so move on
-         */
-        if (skipCurrentElementFlag) {
             m_stream->skipCurrentElement();
         }
     }
@@ -1093,14 +1168,17 @@ AnnotationFileXmlReader::readGroup(AnnotationFile* annotationFile)
 /**
  * Read a two dimensional annotation.
  *
+ * @param annotationFile
+ *     The annotation file being read
  * @param annotationElementName
  *     Name of two-dimensional attribute.
  * @param annotation
  *     Two-dimensional annotation that has its data read.
  */
 void
-AnnotationFileXmlReader::readOneCoordinateAnnotation(const QString& annotationElementName,
-                                                      AnnotationOneCoordinateShape* annotation)
+AnnotationFileXmlReader::readOneCoordinateAnnotation(AnnotationFile* annotationFile,
+                                                     const QString& annotationElementName,
+                                                     AnnotationOneCoordinateShape* annotation)
 {
     CaretAssert(annotation);
     
@@ -1129,28 +1207,87 @@ AnnotationFileXmlReader::readOneCoordinateAnnotation(const QString& annotationEl
                                                         annotationElementName,
                                                         ATTRIBUTE_ROTATION_ANGLE));
     
-    /*
-     * Read the coordinate
-     */
-    readCoordinate(ELEMENT_COORDINATE_ONE,
-                   annotation->getCoordinate(),
-                   annotation->getCoordinateSpace());
-    
-    /*
-     * Is this an image annotation?
-     */
-    AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotation);
-    if (imageAnn != NULL) {
-        readImageDataElement(imageAnn);
-    }
-    
-    /*
-     * Is this a text annotation?
-     */
-    AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
-    if (textAnn != NULL) {
-        readTextDataElement(textAnn,
-                            annotationElementName);
+    bool done(false);
+    while ( ! done) {
+        const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
+        if (m_stream->atEnd()) {
+            done = true;
+        }
+        else {
+            const QString elementName(m_stream->name().toString());
+            switch (tokenType) {
+                case QXmlStreamReader::StartElement:
+                    if (elementName == ELEMENT_COORDINATE_ONE) {
+                        /*
+                         * Read the coordinate
+                         */
+                        const bool readStartElementFlag(false);
+                        readCoordinate(ELEMENT_COORDINATE_ONE,
+                                       annotation->getCoordinate(),
+                                       annotation->getCoordinateSpace(),
+                                       readStartElementFlag);
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64) {
+                        AnnotationImage* imageAnn = dynamic_cast<AnnotationImage*>(annotation);
+                        if (imageAnn != NULL) {
+                            readImageDataElement(imageAnn);
+                        }
+                        else {
+                            /*
+                             * Issue warning
+                             */
+                            annotationFile->addFileReadWarning("Annotation Type \""
+                                                               + AnnotationTypeEnum::toGuiName(annotation->getType())
+                                                               + " should not contain child element "
+                                                               + ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64);
+                        }
+                        m_stream->skipCurrentElement();
+                    }
+                    else if (elementName == ELEMENT_TEXT_DATA) {
+                        AnnotationText* textAnn = dynamic_cast<AnnotationText*>(annotation);
+                        if (textAnn != NULL) {
+                            readTextDataElement(textAnn,
+                                                annotationElementName);
+                        }
+                        else {
+                            /*
+                             * Issue warning
+                             */
+                            annotationFile->addFileReadWarning("Annotation Type \""
+                                                               + AnnotationTypeEnum::toGuiName(annotation->getType())
+                                                               + " should not contain child element "
+                                                               + ELEMENT_TEXT_DATA);
+                        }
+                    }
+                    else if (elementName == GiftiXmlElements::TAG_METADATA) {
+                        /*
+                         * Reads through the metadata end element so
+                         * DO NOT skip to next element
+                         */
+                        m_streamHelper->readMetaData(annotation->getMetaData());
+                    }
+                    else {
+                        /*
+                         * Issue warning (instead of fatal error) if unrecognized element found.
+                         * Will skip over remainder of element later in code.
+                         */
+                        annotationFile->addFileReadWarning("Unrecognized element \""
+                                                           + elementName
+                                                           + "\" and content ignored.  Updating Workbench "
+                                                           "may correct this problem.");
+                        m_stream->skipCurrentElement();
+                    }
+                    break;
+                case QXmlStreamReader::EndElement:
+                    if (elementName == annotationElementName) {
+                        done = true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 }
 
@@ -1166,19 +1303,6 @@ void
 AnnotationFileXmlReader::readImageDataElement(AnnotationImage* imageAnnotation)
 {
     CaretAssert(imageAnnotation);
-    
-    const bool elementValid = m_stream->readNextStartElement();
-    if ( ! elementValid) {
-        m_streamHelper->throwDataFileException("Failed to read element "
-                                               + ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64);
-    }
-    
-    if (m_stream->name() != ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64) {
-        m_streamHelper->throwDataFileException("Expected elment "
-                                               + ELEMENT_IMAGE_RGBA_BYTES_IN_BASE64
-                                               + " but read element "
-                                               + m_stream->name().toString());
-    }
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
@@ -1230,19 +1354,6 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
                                              const QString& annotationTextElementName)
 {
     CaretAssert(textAnnotation);
-    
-    const bool elementValid = m_stream->readNextStartElement();
-    if ( ! elementValid) {
-        m_streamHelper->throwDataFileException("Failed to read element "
-                               + ELEMENT_TEXT_DATA);
-    }
-    
-    if (m_stream->name() != ELEMENT_TEXT_DATA) {
-        m_streamHelper->throwDataFileException("Expected elment "
-                               + ELEMENT_TEXT_DATA
-                               + " but read element "
-                               + m_stream->name().toString());
-    }
     
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
