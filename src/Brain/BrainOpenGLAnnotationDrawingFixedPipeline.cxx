@@ -5126,15 +5126,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         }
     }
 
-    std::cout << "Angle: " << absAngle << std::endl;
-    
     if ((absAngle > 5.0)
         && (absAngle < 175.0)) {
         drawPolyhedronEdgesOnPlane(annotationFile,
                                    polyhedron,
                                    m_volumeSpacePlane,
                                    foregroundRGBA);
-        std::cout << "Planes not aligned" << std::endl;
         return false;
     }
 
