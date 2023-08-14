@@ -3207,7 +3207,7 @@ BrainBrowserWindow::processDataFileOpen()
 {
     if (s_previousOpenFileNameFilter.isEmpty()) {
         s_previousOpenFileNameFilter = 
-            DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::SPECIFICATION);
+            DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::SCENE);
     }
     
     /*
