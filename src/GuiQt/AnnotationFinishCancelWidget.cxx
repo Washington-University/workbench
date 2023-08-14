@@ -33,6 +33,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventAnnotationDrawingFinishCancel.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -122,8 +123,9 @@ AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
 void
 AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    const Annotation* annotation(annMan->getAnnotationBeingDrawnInWindow(m_browserWindowIndex));
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
+    const Annotation* annotation(annDrawEvent.getAnnotation());
 
     AString cancelToolTip;
     AString finishToolTip;

@@ -39,6 +39,7 @@
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumMenu.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -260,11 +261,23 @@ AnnotationColorWidget::~AnnotationColorWidget()
 /**
  * Update with the given annotation.
  *
- * @param annotations
+ * @param annotationsIn
  */
 void
-AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotations)
+AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotationsIn)
 {
+    std::vector<Annotation*> annotations(annotationsIn);
+
+    m_annotationBeingDrawn = NULL;
+    if (annotations.empty()) {
+        EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+        EventManager::get()->sendEvent(annDrawEvent.getPointer());
+        m_annotationBeingDrawn = annDrawEvent.getAnnotation();
+        if (m_annotationBeingDrawn != NULL) {
+            annotations.push_back(m_annotationBeingDrawn);
+        }
+    }
+    
     m_lineColorAnnotations.clear();
     m_lineColorAnnotations.reserve(annotations.size());
     
@@ -340,20 +353,26 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
             return;
         }
         
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeColorBackground(caretColor,
-                                            rgba,
-                                            m_backgroundColorAnnotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        
-        AString errorMessage;
-        if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
-                                    undoCommand,
-                                    errorMessage)) {
-            WuQMessageBox::errorOk(this,
-                                   errorMessage);
+        if (m_annotationBeingDrawn != NULL) {
+            m_annotationBeingDrawn->setBackgroundColor(caretColor);
+            m_annotationBeingDrawn->setCustomBackgroundColor(rgba);
         }
-        
+        else {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeColorBackground(caretColor,
+                                                rgba,
+                                                m_backgroundColorAnnotations);
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            
+            AString errorMessage;
+            if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+                                        undoCommand,
+                                        errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+        }
+
         Annotation::setUserDefaultBackgroundColor(caretColor);
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
@@ -623,18 +642,24 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
             return;
         }
         
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeColorLine(caretColor,
-                                      rgba,
-                                      m_lineColorAnnotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-        
-        AString errorMessage;
-        if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
-                                    undoCommand,
-                                    errorMessage)) {
-            WuQMessageBox::errorOk(this,
-                                   errorMessage);
+        if (m_annotationBeingDrawn != NULL) {
+            m_annotationBeingDrawn->setLineColor(caretColor);
+            m_annotationBeingDrawn->setCustomLineColor(rgba);
+        }
+        else {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeColorLine(caretColor,
+                                          rgba,
+                                          m_lineColorAnnotations);
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            
+            AString errorMessage;
+            if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+                                        undoCommand,
+                                        errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
         }
         setUserDefaultLineColor(caretColor,
                                 rgba);
@@ -726,17 +751,22 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
         }
     }
     
-    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-    undoCommand->setModeLineWidth(value,
-                                  m_lineThicknessAnnotations);
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    
-    AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
-                                undoCommand,
-                                errorMessage)) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
+    if (m_annotationBeingDrawn != NULL) {
+        m_annotationBeingDrawn->setLineWidthPercentage(value);
+    }
+    else {
+        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+        undoCommand->setModeLineWidth(value,
+                                      m_lineThicknessAnnotations);
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        
+        AString errorMessage;
+        if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+                                    undoCommand,
+                                    errorMessage)) {
+            WuQMessageBox::errorOk(this,
+                                   errorMessage);
+        }
     }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

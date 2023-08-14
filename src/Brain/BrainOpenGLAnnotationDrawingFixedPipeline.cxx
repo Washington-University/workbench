@@ -55,6 +55,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -735,13 +736,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL, ("At beginning of annotation drawing in space "
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
-    AnnotationManager* annotationManager = m_inputs->m_brain->getAnnotationManager();
-    
     /*
      * When user is drawing an annotation by dragging the mouse, it is always in window space.
      */
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_inputs->m_windowIndex);
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
     const Annotation* annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
-                                              ? annotationManager->getAnnotationBeingDrawnInWindow(m_inputs->m_windowIndex)
+                                              ? annDrawEvent.getAnnotation()
                                               : NULL);
     
     bool drawAnnotationsFromFilesFlag = true;

@@ -162,8 +162,10 @@ namespace caret {
                                const int32_t x,
                                const int32_t y);
             
-            const Annotation* getAnnotation() const;
+            Annotation* getAnnotation();
 
+            const Annotation* getAnnotation() const;
+            
             const std::vector<Vector3D>& getDrawingCoordinates() const;
             
         private:

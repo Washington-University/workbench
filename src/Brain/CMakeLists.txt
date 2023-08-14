@@ -90,6 +90,7 @@ DisplayPropertyDataEnum.h
 DisplayPropertyDataFloat.h
 DummyFontTextRenderer.h
 EventAnnotationBarsGet.h
+EventAnnotationGetBeingDrawnInWindow.h
 EventBrainReset.h
 EventBrainStructureGetAll.h
 EventBrowserTabGet.h
@@ -304,6 +305,7 @@ DisplayPropertyDataBoolean.cxx
 DisplayPropertyDataFloat.cxx
 DummyFontTextRenderer.cxx
 EventAnnotationBarsGet.cxx
+EventAnnotationGetBeingDrawnInWindow.cxx
 EventBrainReset.cxx
 EventBrainStructureGetAll.cxx
 EventBrowserTabGet.cxx

@@ -56,12 +56,14 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationDrawingFinishCancel.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventUserInputModeGet.h"
 #include "GestureEvent.h"
 #include "GuiManager.h"
 #include "HistologyOverlaySet.h"
@@ -134,6 +136,7 @@ m_annotationUnderMouse(NULL)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW);
 }
 
 /**
@@ -241,6 +244,20 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
                     //createNewAnnotationFromMouseDrag(MouseEvent());
                     break;
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW) {
+        EventAnnotationGetBeingDrawnInWindow* annDrawingEvent(dynamic_cast<EventAnnotationGetBeingDrawnInWindow*>(event));
+        CaretAssert(annDrawingEvent);
+        if (annDrawingEvent->getBrowserWindowIndex() == getBrowserWindowIndex()) {
+            EventUserInputModeGet modeEvent(getBrowserWindowIndex());
+            EventManager::get()->sendEvent(modeEvent.getPointer());
+            if (getUserInputMode() == modeEvent.getUserInputMode()) {
+                annDrawingEvent->setEventProcessed();
+                if (m_newAnnotationCreatingWithMouseDrag) {
+                    annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+                }
             }
         }
     }
@@ -1081,9 +1098,6 @@ UserInputModeAnnotations::initializeNewAnnotationFromStartClick(const MouseEvent
 {
     initializeUserDrawingNewAnnotation(mouseEvent);
     m_mode = MODE_NEW_WITH_CLICK_SERIES;
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
-                                                       m_newAnnotationCreatingWithMouseDrag->getAnnotation());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
@@ -1721,9 +1735,6 @@ UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& m
                                                      mouseEvent.getX(),
                                                      mouseEvent.getY());
 
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
-                                                           m_newAnnotationCreatingWithMouseDrag->getAnnotation());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
@@ -1794,9 +1805,6 @@ UserInputModeAnnotations::resetAnnotationBeingCreated()
 {
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-    annotationManager->setAnnotationBeingDrawnInWindow(getBrowserWindowIndex(),
-                                                       NULL);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
@@ -1817,7 +1825,45 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
         case MODE_NEW_WITH_CLICK_SERIES_START:
             break;
         case MODE_NEW_WITH_DRAG:
-            createNewAnnotationFromMouseDrag(mouseEvent);
+        {
+            if (m_newAnnotationCreatingWithMouseDrag) {
+                const Annotation* annotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+                if (annotation != NULL) {
+                    bool createAnnFlag(false);
+                    switch (annotation->getType()) {
+                        case AnnotationTypeEnum::BOX:
+                            createAnnFlag = true;
+                            break;
+                        case AnnotationTypeEnum::BROWSER_TAB:
+                            break;
+                        case AnnotationTypeEnum::COLOR_BAR:
+                            break;
+                        case AnnotationTypeEnum::IMAGE:
+                            break;
+                        case AnnotationTypeEnum::LINE:
+                            createAnnFlag = true;
+                            break;
+                        case AnnotationTypeEnum::OVAL:
+                            createAnnFlag = true;
+                            break;
+                        case AnnotationTypeEnum::POLYGON:
+                            break;
+                        case AnnotationTypeEnum::POLYHEDRON:
+                            break;
+                        case AnnotationTypeEnum::POLYLINE:
+                            break;
+                        case AnnotationTypeEnum::SCALE_BAR:
+                            break;
+                        case AnnotationTypeEnum::TEXT:
+                            createAnnFlag = true;
+                            break;
+                    }
+                    if (createAnnFlag) {
+                        createNewAnnotationFromMouseDrag(mouseEvent);
+                    }
+                }
+            }
+        }
             m_mode = MODE_SELECT;
             break;
         case MODE_PASTE:
@@ -3018,6 +3064,15 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::setCoordinate(Annotation
 
 /**
  * @return New annotation being drawn by the user.
+ */
+Annotation*
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotation()
+{
+    return m_annotation;
+}
+
+/**
+ * @return New annotation being drawn by the user (const method)
  */
 const Annotation*
 UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotation() const

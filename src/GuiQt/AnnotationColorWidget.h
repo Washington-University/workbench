@@ -114,6 +114,8 @@ namespace caret {
         
         std::vector<Annotation*> m_backgroundColorAnnotations;
         
+        Annotation* m_annotationBeingDrawn = NULL;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

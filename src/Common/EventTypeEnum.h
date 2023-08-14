@@ -50,6 +50,8 @@ public:
         EVENT_ANNOTATION_CREATE_NEW_TYPE,
         /** Annotation finish cancel annotation being drawn */
         EVENT_ANNOTATION_DRAWING_FINISH_CANCEL,
+        /** Get the annotation that is being drawn in the given window */
+        EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW,
         /** Get the annotations drawn in a window */
         EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW,
         /** Get an annotation group */

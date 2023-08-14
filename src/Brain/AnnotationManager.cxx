@@ -86,7 +86,6 @@ m_brain(brain)
     m_samplesAnnotationsRedoUndoStack->setUndoLimit(100);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        m_annotationBeingDrawnInWindow[i] = NULL;
         m_selectionInformation[i] = new AnnotationEditingSelectionInformation(i);
     }
 
@@ -103,10 +102,6 @@ AnnotationManager::~AnnotationManager()
     EventManager::get()->removeAllEventsFromListener(this);
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
-        if (m_annotationBeingDrawnInWindow[i] != NULL) {
-            delete m_annotationBeingDrawnInWindow[i];
-        }
-        
         delete m_selectionInformation[i];
     }
 
@@ -1165,45 +1160,6 @@ const AnnotationClipboard*
 AnnotationManager::getClipboard() const
 {
     return m_clipboard.get();
-}
-
-/**
- * Get the annotation being drawn in window with the given window index.
- *
- * @param windowIndex
- *     Index of window.
- * @return
- *     Pointer to the annotation (will be NULL if no annotation is being drawn).
- */
-const Annotation*
-AnnotationManager::getAnnotationBeingDrawnInWindow(const int32_t windowIndex) const
-{
-    CaretAssertArrayIndex(m_annotationBeingDrawnInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    return m_annotationBeingDrawnInWindow[windowIndex];
-}
-
-/**
- * Set the annotation being drawn in window with the given window index.
- *
- * @param windowIndex
- *     Index of window.
- * @param annotation
- *     Pointer to the annotation (will be NULL if no annotation is being drawn).
- */
-void
-AnnotationManager::setAnnotationBeingDrawnInWindow(const int32_t windowIndex,
-                                                   const Annotation* annotation)
-{
-    CaretAssertArrayIndex(m_annotationBeingDrawnInWindow, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-   
-    if (m_annotationBeingDrawnInWindow[windowIndex] != NULL) {
-        delete m_annotationBeingDrawnInWindow[windowIndex];
-        m_annotationBeingDrawnInWindow[windowIndex] = NULL;
-    }
-    
-    if (annotation != NULL) {
-        m_annotationBeingDrawnInWindow[windowIndex] = annotation->clone();
-    }
 }
 
 /**

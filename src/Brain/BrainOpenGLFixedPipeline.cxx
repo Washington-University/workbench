@@ -4604,9 +4604,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
      * drawing but oblique drawing probably needs a new algorithm to 
      * fix the problem.
      */
-//    bool useNewDrawingFlag = false;
-//    bool useMprDrawingFlag = false;
-//    bool useMprThreeDrawingFlag = false;
     switch (sliceProjectionType) {
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
         {
@@ -4656,48 +4653,6 @@ BrainOpenGLFixedPipeline::drawVolumeModel(const BrainOpenGLViewportContent* view
         }
             break;
     }
-    
-//    if (useMprDrawingFlag) {
-//        GraphicsViewport graphicsViewport(viewport);
-//
-//        if (useMprThreeDrawingFlag) {
-//            BrainOpenGLVolumeMprThreeDrawing mprDrawing;
-//            mprDrawing.draw(this,
-//                            viewportContent,
-//                            browserTabContent,
-//                            volumeDrawInfo,
-//                            graphicsViewport);
-//        }
-//        else {
-//            BrainOpenGLVolumeMprTwoDrawing mprDrawing;
-//            mprDrawing.draw(this,
-//                            viewportContent,
-//                            browserTabContent,
-//                            volumeDrawInfo,
-//                            graphicsViewport);
-//        }
-//    }
-//    else if (useNewDrawingFlag) {
-//        BrainOpenGLVolumeSliceDrawing volumeSliceDrawing;
-//        volumeSliceDrawing.draw(this,
-//                                const_cast<BrainOpenGLViewportContent*>(viewportContent),
-//                                browserTabContent,
-//                                volumeDrawInfo,
-//                                sliceDrawingType,
-//                                sliceProjectionType,
-//                                viewport);
-//    }
-//    else {
-//        BrainOpenGLVolumeObliqueSliceDrawing obliqueVolumeSliceDrawing;
-//        obliqueVolumeSliceDrawing.draw(this,
-//                                       const_cast<BrainOpenGLViewportContent*>(viewportContent),
-//                                       browserTabContent,
-//                                       volumeDrawInfo,
-//                                       sliceDrawingType,
-//                                       sliceProjectionType,
-//                                       obliqueMaskType,
-//                                       viewport);
-//    }
 }
 
 /**
