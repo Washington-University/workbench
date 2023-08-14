@@ -51,6 +51,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
+#include "MetaDataEditorDialog.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
 #include "UserInputModeAnnotations.h"
@@ -446,6 +447,14 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     
     /*
+     * Edit Metadata
+     */
+    QAction* editMetaDataAction = addAction("Edit Metadata...",
+                                            this,
+                                            &UserInputModeAnnotationsContextMenu::editMetaDataDialog);
+    editMetaDataAction->setEnabled(oneAnnotationSelectedFlag);
+    
+    /*
      * Separator
      */
     addSeparator();
@@ -622,6 +631,18 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
     ted.move(diaglogPos);
     ted.exec();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Edit an annotation's metadata
+ */
+void
+UserInputModeAnnotationsContextMenu::editMetaDataDialog()
+{
+    CaretAssert(m_annotation);
+    MetaDataEditorDialog dialog(m_annotation,
+                                this);
+    dialog.exec();
 }
 
 /**

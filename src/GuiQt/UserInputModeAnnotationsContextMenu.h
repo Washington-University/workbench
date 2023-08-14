@@ -75,6 +75,8 @@ namespace caret {
         
         void setAnnotationText();
         
+        void editMetaDataDialog();
+        
         void turnOffDisplayInOtherTabs();
         
         void turnOnDisplayInAllTabs();

@@ -28,6 +28,7 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
+#include "Annotation.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
@@ -44,6 +45,27 @@ using namespace caret;
  * \brief Dialog for editing metadata.
  * \ingroup GuiQt
  */
+
+/**
+ * Constructor for editing an annotation's metadata.
+ *
+ * @param annotation
+ *    Annotation that will have its metadata edited.
+ * @param parent
+ *    Widget on which this dialog is displayed.
+ */
+MetaDataEditorDialog::MetaDataEditorDialog(Annotation* annotation,
+                                           QWidget* parent)
+: WuQDialogModal("",
+                 parent)
+{
+    CaretAssert(annotation);
+    
+    initializeDialog(("Edit Annotation Metadata: "
+                      + annotation->getName()),
+                     annotation->getMetaData());
+}
+
 
 /**
  * Constructor for editing a file's metadata.

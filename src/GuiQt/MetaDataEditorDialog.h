@@ -26,6 +26,7 @@
 
 namespace caret {
 
+    class Annotation;
     class CaretDataFile;
     class CaretMappableDataFile;
     class GiftiMetaData;
@@ -36,6 +37,9 @@ namespace caret {
         Q_OBJECT
 
     public:
+        MetaDataEditorDialog(Annotation* annotation,
+                             QWidget* parent);
+        
         MetaDataEditorDialog(CaretDataFile* caretDataFile,
                              QWidget* parent);
         
