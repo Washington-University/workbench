@@ -38,6 +38,8 @@ namespace caret {
     class Annotation;
     class AnnotationFile;
     class BrowserTabContent;
+    class GiftiMetaData;
+    class MetaDataEditorWidget;
     class MouseEvent;
     class Plane;
     class SelectionItemVoxel;
@@ -156,6 +158,8 @@ namespace caret {
         
         QWidget* createPolyhedronWidget();
         
+        MetaDataEditorWidget* createMetaDataWidget();
+        
         void invalidateImage();
         
         static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
@@ -193,11 +197,16 @@ namespace caret {
         
         QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
         
+        MetaDataEditorWidget* m_metaEditorDataWidget = NULL;
+        
+        static std::unique_ptr<GiftiMetaData> s_annotationMetaData;
+        
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
         static float s_previousPolyhedronDepthValue;
         
         static bool s_previousPolyhedronDepthValueValidFlag;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -206,6 +215,7 @@ namespace caret {
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
     float AnnotationCreateDialog::s_previousPolyhedronDepthValue = 5;
     bool AnnotationCreateDialog::s_previousPolyhedronDepthValueValidFlag = false;
+    std::unique_ptr<GiftiMetaData> AnnotationCreateDialog::s_annotationMetaData;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

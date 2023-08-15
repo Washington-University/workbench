@@ -58,8 +58,10 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
+#include "MetaDataEditorWidget.h"
 #include "ModelVolume.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
@@ -599,6 +601,10 @@ m_imageHeight(0)
                                 ? createPolyhedronWidget()
                                 : NULL);
     
+    m_metaEditorDataWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
+                              ? createMetaDataWidget()
+                              : NULL);
+    
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
     
@@ -624,15 +630,19 @@ m_imageHeight(0)
     }
 
     if (textWidget != NULL) {
-        layout->addWidget(textWidget);
+        layout->addWidget(textWidget, 0, Qt::AlignLeft);
     }
     
     if (imageWidget != NULL) {
-        layout->addWidget(imageWidget);
+        layout->addWidget(imageWidget, 0, Qt::AlignLeft);
     }
 
     if (polyedronWidget != NULL) {
-        layout->addWidget(polyedronWidget);
+        layout->addWidget(polyedronWidget, 0, Qt::AlignLeft);
+    }
+    
+    if (m_metaEditorDataWidget != NULL) {
+        layout->addWidget(m_metaEditorDataWidget, 0, Qt::AlignLeft);
     }
     
     dialogWidget->setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
@@ -749,6 +759,32 @@ AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged(double val
     const float mmSize(value / mm);
     QSignalBlocker blocker(m_polyhedronSliceIndexDepthSpinBox);
     m_polyhedronSliceIndexDepthSpinBox->setValue(mmSize);
+}
+
+/**
+ * @return A metadata editor widget for polyhedrons
+ */
+MetaDataEditorWidget*
+AnnotationCreateDialog::createMetaDataWidget()
+{
+    if (! s_annotationMetaData) {
+        s_annotationMetaData.reset(new GiftiMetaData());
+        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_CASE_ID, "");
+        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID, "");
+        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID, "");
+        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
+        s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
+    }
+    
+    s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
+    s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
+    s_annotationMetaData->remove(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
+
+
+    MetaDataEditorWidget* mdw = new MetaDataEditorWidget(this);
+    mdw->loadMetaData(s_annotationMetaData.get());
+        
+    return mdw;
 }
 
 /**
@@ -904,6 +940,10 @@ AnnotationCreateDialog::okButtonClicked()
         }
     }
     
+    if (m_metaEditorDataWidget != NULL) {
+        m_metaEditorDataWidget->saveMetaData();
+    }
+    
     float polyhedronDepthMM(0);
     if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
         CaretAssert(m_polyhedronSliceMillimetersDepthSpinBox);
@@ -989,6 +1029,13 @@ AnnotationCreateDialog::okButtonClicked()
         }
     }
 
+    if (m_metaEditorDataWidget != NULL) {
+        GiftiMetaData* annMetaData(annotation->getMetaData());
+        CaretAssert(annMetaData);
+        CaretAssert(s_annotationMetaData);
+        annMetaData->replace(*s_annotationMetaData.get());
+    }
+    
     /*
      * Need to release annotation from its CaretPointer since the
      * annotation file will take ownership of the annotation.

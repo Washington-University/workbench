@@ -211,6 +211,15 @@ namespace GiftiMetaDataXmlElements {
     
     /** name of histogram number of buckets */
     static const AString HISTOGRAM_NUMBER_OF_BUCKETS = "HistogramNumberOfBuckets";
+    
+    static const AString SAMPLES_CASE_ID = "Case_id";
+    
+    static const AString SAMPLES_SLAB_ID = "Slab_id";
+    
+    static const AString SAMPLES_SAMPLE_ID = "Sample_id";
+    
+    static const AString SAMPLES_LOCATION_ID = "Location";
+    
 
 } // namespace
 
