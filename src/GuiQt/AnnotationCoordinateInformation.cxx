@@ -690,9 +690,9 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
     coordInfoOut.reset();
     
     SelectionManager* idManager =
-    openGLWidget->performIdentification(windowX,
-                                        windowY,
-                                        false);
+    openGLWidget->performIdentificationAll(windowX,
+                                           windowY,
+                                           false);
     
     SelectionItemVoxel* voxelID = idManager->getVoxelIdentification();
     SelectionItemSurfaceNode*  surfaceNodeIdentification = idManager->getSurfaceNodeIdentification();

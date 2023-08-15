@@ -365,9 +365,9 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
         case MODE_EDIT:
         {
             SelectionManager* idManager =
-            openGLWidget->performIdentification(mouseX,
-                                                mouseY,
-                                                true);
+            openGLWidget->performIdentificationAll(mouseX,
+                                                   mouseY,
+                                                   true);
             SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
             if (idBorder->isValid()) {
                 BorderFile* borderFile = idBorder->getBorderFile();
@@ -404,9 +404,9 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
         case MODE_ROI:
         {
             SelectionManager* idManager =
-            openGLWidget->performIdentification(mouseX,
-                                                mouseY,
-                                                true);
+            openGLWidget->performIdentificationAll(mouseX,
+                                                   mouseY,
+                                                   true);
             SelectionItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
             if (idBorder->isValid()) {
                 Brain* brain = idBorder->getBrain();

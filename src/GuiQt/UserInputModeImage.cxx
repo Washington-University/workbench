@@ -182,9 +182,9 @@ UserInputModeImage::mouseLeftClick(const MouseEvent& mouseEvent)
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     SelectionManager* idManager =
-    openGLWidget->performIdentification(mouseEvent.getX(),
-                                        mouseEvent.getY(),
-                                        true);
+    openGLWidget->performIdentificationAll(mouseEvent.getX(),
+                                           mouseEvent.getY(),
+                                           true);
     
     SelectionItemMediaLogicalCoordinate* idMediaPixel = idManager->getMediaLogicalCoordinateIdentification();
     CaretAssert(idMediaPixel);

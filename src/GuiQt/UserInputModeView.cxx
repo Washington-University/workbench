@@ -136,9 +136,9 @@ UserInputModeView::processModelViewIdentification(BrainOpenGLViewportContent* vi
                                            const int32_t mouseClickY)
 {
     SelectionManager* selectionManager =
-    openGLWidget->performIdentification(mouseClickX,
-                                        mouseClickY,
-                                        false);
+    openGLWidget->performIdentificationAll(mouseClickX,
+                                           mouseClickY,
+                                           false);
     
     BrowserTabContent* btc = viewportContent->getBrowserTabContent();
     if (btc != NULL) {
@@ -255,9 +255,9 @@ UserInputModeView::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
         const int32_t mouseY = mouseEvent.getY();
         
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-        SelectionManager* idManager = openGLWidget->performIdentification(mouseX,
-                                                                          mouseY,
-                                                                          false);
+        SelectionManager* idManager = openGLWidget->performIdentificationAll(mouseX,
+                                                                             mouseY,
+                                                                             false);
         CaretAssert(idManager);
         SelectionItemChartTwoLabel* labelID = idManager->getChartTwoLabelIdentification();
         if (labelID->isValid()) {
@@ -413,9 +413,9 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                     selectionManager->setAllSelectionsEnabled(false);
                     SelectionItemVoxel* voxelID(selectionManager->getVoxelIdentification());
                     voxelID->setEnabledForSelection(true);
-                    mouseEvent.getOpenGLWidget()->performIdentification(mouseEvent.getX(),
-                                                                        mouseEvent.getY(),
-                                                                        false);
+                    mouseEvent.getOpenGLWidget()->performIdentificationSome(mouseEvent.getX(),
+                                                                            mouseEvent.getY(),
+                                                                            false);
                     if (voxelID->isValid()) {
                         double xyzDouble[3] { 0.0, 0.0, 0.0 };
                         voxelID->getModelXYZ(xyzDouble);
@@ -627,7 +627,7 @@ UserInputModeView::updateGraphicsRegionSelectionBox(const MouseEvent& mouseEvent
         }
     }
     else if (browserTabContent->isVolumeSlicesDisplayed()) {
-        openGLWidget->performIdentification(mouseEvent.getX(), mouseEvent.getY(), false);
+        openGLWidget->performIdentificationAll(mouseEvent.getX(), mouseEvent.getY(), false);
         SelectionItemVoxel* voxelID(GuiManager::get()->getBrain()->getSelectionManager()->getVoxelIdentification());
         CaretAssert(voxelID);
         if (voxelID->isValid()) {
@@ -1187,9 +1187,9 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
     const int32_t mouseX = mouseEvent.getX();
     const int32_t mouseY = mouseEvent.getY();
     
-    SelectionManager* idManager = openGLWidget->performIdentification(mouseX,
-                                                                      mouseY,
-                                                                      false);
+    SelectionManager* idManager = openGLWidget->performIdentificationAll(mouseX,
+                                                                         mouseY,
+                                                                         false);
     
     UserInputModeViewContextMenu contextMenu(mouseEvent,
                                              viewportContent,
@@ -1326,9 +1326,9 @@ UserInputModeView::keyPressEvent(const KeyEvent& keyEvent)
              * Increment/decrement selected point in line layer chart.
              * Identification will fail if chart is not visible.
              */
-            SelectionManager* selectionManager = keyEvent.getOpenGLWidget()->performIdentification(mouseXY[0],
-                                                                                                   mouseXY[1],
-                                                                                                   false);
+            SelectionManager* selectionManager = keyEvent.getOpenGLWidget()->performIdentificationAll(mouseXY[0],
+                                                                                                      mouseXY[1],
+                                                                                                      false);
             
             SelectionItemChartTwoLineLayerVerticalNearest* layerSelection = selectionManager->getChartTwoLineLayerVerticalNearestIdentification();
             CaretAssert(layerSelection);

@@ -87,9 +87,13 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        SelectionManager* performIdentification(const int x,
-                                                const int y,
-                                                const bool applySelectionBackgroundFiltering);
+        SelectionManager* performIdentificationAll(const int x,
+                                                   const int y,
+                                                   const bool applySelectionBackgroundFiltering);
+        
+        SelectionManager* performIdentificationSome(const int x,
+                                                    const int y,
+                                                    const bool applySelectionBackgroundFiltering = false);
         
         SelectionItemHistologyCoordinate*   performIdentificationHistologyPlaneCoordinate(const int x,
                                                                                                const int y);

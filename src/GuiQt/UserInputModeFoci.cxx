@@ -202,9 +202,9 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
     SelectionManager* idManager =
-    openGLWidget->performIdentification(mouseEvent.getX(),
-                                        mouseEvent.getY(),
-                                        true);
+    openGLWidget->performIdentificationAll(mouseEvent.getX(),
+                                           mouseEvent.getY(),
+                                           true);
     
     switch (m_mode) {
         case MODE_CREATE_AT_ID:

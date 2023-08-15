@@ -906,9 +906,9 @@ BrainOpenGLWidget::event(QEvent* event)
             if (idViewport != NULL) {
                 BrowserTabContent* browserTabContent = idViewport->getBrowserTabContent();
                 if (browserTabContent != NULL) {
-                    SelectionManager* selectionManager = performIdentification(x,
-                                                                               y,
-                                                                               false); // include items in background
+                    SelectionManager* selectionManager = performIdentificationAll(x,
+                                                                                  y,
+                                                                                  false); // include items in background
                     toolTipText = dttm->getToolTip(GuiManager::get()->getBrain(),
                                                    browserTabContent,
                                                    selectionManager);
@@ -1739,9 +1739,9 @@ BrainOpenGLWidget::getViewportContent() const
  *    SelectionManager providing identification information.
  */
 SelectionManager* 
-BrainOpenGLWidget::performIdentification(const int x,
-                                         const int y,
-                                         const bool applySelectionBackgroundFiltering)
+BrainOpenGLWidget::performIdentificationAll(const int x,
+                                            const int y,
+                                            const bool applySelectionBackgroundFiltering)
 {
     const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
 
@@ -1776,6 +1776,65 @@ BrainOpenGLWidget::performIdentification(const int x,
     this->repaintGraphics();
     this->doneCurrent();
 
+    return idManager;
+}
+
+/**
+ * Perform identification using items enabled in selection manager just before
+ * calling this method.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @param applySelectionBackgroundFiltering
+ *    If true (which is in most cases), if there are multiple items
+ *    selected, those items "behind" other items are not reported.
+ *    For example, suppose a focus is selected and there is a node
+ *    the focus.  If this parameter is true, the node will NOT be
+ *    selected.  If this parameter is false, the node will be
+ *    selected.
+ * @return
+ *    SelectionManager providing identification information.
+ */
+SelectionManager*
+BrainOpenGLWidget::performIdentificationSome(const int x,
+                                             const int y,
+                                             const bool applySelectionBackgroundFiltering)
+{
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+//    idManager->setAllSelectionsEnabled(true);
+//    idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
+    
+    if (idViewport != NULL) {
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                       getSelectedInputMode(),
+                                       GuiManager::get()->getBrain(),
+                                       m_contextShareGroupPointer,
+                                       idViewport,
+                                       x,
+                                       y,
+                                       applySelectionBackgroundFiltering);
+    }
+    
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaintGraphics();
+    this->doneCurrent();
+    
     return idManager;
 }
 
@@ -2581,9 +2640,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         CaretAssert(idRequestEvent);
         
         if (idRequestEvent->getWindowIndex() == this->windowIndex) {
-            SelectionManager* sm = performIdentification(idRequestEvent->getWindowX(),
-                                                         idRequestEvent->getWindowY(),
-                                                         false);
+            SelectionManager* sm = performIdentificationAll(idRequestEvent->getWindowX(),
+                                                            idRequestEvent->getWindowY(),
+                                                            false);
             idRequestEvent->setSelectionManager(sm);
             idRequestEvent->setEventProcessed();
         }
