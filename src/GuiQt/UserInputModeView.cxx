@@ -424,7 +424,14 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
                             static_cast<float>(xyzDouble[1]),
                             static_cast<float>(xyzDouble[2])
                         };
-                        browserTabContent->selectVolumeSlicesAtCoordinate(xyz);
+                        switch (browserTabContent->getVolumeSliceDrawingType()) {
+                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                                CaretLogInfo("Slice selection disabled (not implemented) in montage.  Needs to move the selected coordinates, not this slice");
+                                break;
+                            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                                browserTabContent->selectVolumeSlicesAtCoordinate(xyz);
+                                break;
+                        }
                     }
                     allowRotationFlag = false;
                     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_UPDATE_VOLUME_SLICE_INDICES_COORDS_TOOLBAR);

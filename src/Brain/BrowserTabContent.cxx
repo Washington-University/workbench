@@ -4542,6 +4542,7 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
     switch (mprCrosshairAxis) {
         case SelectionItemVolumeMprCrosshair::Axis::INVALID:
             CaretAssert(0);
+            return;
             break;
         case SelectionItemVolumeMprCrosshair::Axis::ROTATE_SLICE:
             rotateSliceFlag = true;
