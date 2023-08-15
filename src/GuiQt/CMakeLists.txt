@@ -181,6 +181,7 @@ ELSE()
 	MediaOverlaySettingsMenu.h
 	MediaOverlayViewController.h
 	MediaOverlaySetViewController.h
+	MetaDataCustomEditorWidget.h
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
 	MovieRecordingDialog.h
@@ -494,6 +495,7 @@ MapYokingGroupComboBox.h
 MediaOverlaySettingsMenu.h
 MediaOverlayViewController.h
 MediaOverlaySetViewController.h
+MetaDataCustomEditorWidget.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieRecordingDialog.h
@@ -829,6 +831,7 @@ MapYokingGroupComboBox.cxx
 MediaOverlaySettingsMenu.cxx
 MediaOverlayViewController.cxx
 MediaOverlaySetViewController.cxx
+MetaDataCustomEditorWidget.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MovieRecordingDialog.cxx

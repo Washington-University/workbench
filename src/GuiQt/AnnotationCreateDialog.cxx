@@ -61,7 +61,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "ImageFile.h"
-#include "MetaDataEditorWidget.h"
+#include "MetaDataCustomEditorWidget.h"
 #include "ModelVolume.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
@@ -601,8 +601,8 @@ m_imageHeight(0)
                                 ? createPolyhedronWidget()
                                 : NULL);
     
-    m_metaEditorDataWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
-                              ? createMetaDataWidget()
+    m_metaDataEditorWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
+                              ? createMetaDataEditorWidget()
                               : NULL);
     
     QWidget* dialogWidget = new QWidget();
@@ -641,8 +641,8 @@ m_imageHeight(0)
         layout->addWidget(polyedronWidget, 0, Qt::AlignLeft);
     }
     
-    if (m_metaEditorDataWidget != NULL) {
-        layout->addWidget(m_metaEditorDataWidget, 0, Qt::AlignLeft);
+    if (m_metaDataEditorWidget != NULL) {
+        layout->addWidget(m_metaDataEditorWidget, 0, Qt::AlignLeft);
     }
     
     dialogWidget->setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
@@ -764,25 +764,29 @@ AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged(double val
 /**
  * @return A metadata editor widget for polyhedrons
  */
-MetaDataEditorWidget*
-AnnotationCreateDialog::createMetaDataWidget()
+MetaDataCustomEditorWidget*
+AnnotationCreateDialog::createMetaDataEditorWidget()
 {
+    std::vector<AString> metaDataNames;
+    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
+    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
+    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
+
     if (! s_annotationMetaData) {
         s_annotationMetaData.reset(new GiftiMetaData());
-        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_CASE_ID, "");
-        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID, "");
-        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID, "");
-        s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
+        for (const auto& name : metaDataNames) {
+            s_annotationMetaData->set(name, "");
+        }
         s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
     }
     
     s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
     s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
-    s_annotationMetaData->remove(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
 
-
-    MetaDataEditorWidget* mdw = new MetaDataEditorWidget(this);
-    mdw->loadMetaData(s_annotationMetaData.get());
+    MetaDataCustomEditorWidget* mdw = new MetaDataCustomEditorWidget(metaDataNames,
+                                                                     MetaDataCustomEditorWidget::CommentEditorStatus::SHOW_YES,
+                                                                     s_annotationMetaData.get());
         
     return mdw;
 }
@@ -940,8 +944,8 @@ AnnotationCreateDialog::okButtonClicked()
         }
     }
     
-    if (m_metaEditorDataWidget != NULL) {
-        m_metaEditorDataWidget->saveMetaData();
+    if (m_metaDataEditorWidget != NULL) {
+        m_metaDataEditorWidget->saveMetaData();
     }
     
     float polyhedronDepthMM(0);
@@ -1029,7 +1033,7 @@ AnnotationCreateDialog::okButtonClicked()
         }
     }
 
-    if (m_metaEditorDataWidget != NULL) {
+    if (m_metaDataEditorWidget != NULL) {
         GiftiMetaData* annMetaData(annotation->getMetaData());
         CaretAssert(annMetaData);
         CaretAssert(s_annotationMetaData);

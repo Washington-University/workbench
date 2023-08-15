@@ -39,7 +39,7 @@ namespace caret {
     class AnnotationFile;
     class BrowserTabContent;
     class GiftiMetaData;
-    class MetaDataEditorWidget;
+    class MetaDataCustomEditorWidget;
     class MouseEvent;
     class Plane;
     class SelectionItemVoxel;
@@ -158,7 +158,7 @@ namespace caret {
         
         QWidget* createPolyhedronWidget();
         
-        MetaDataEditorWidget* createMetaDataWidget();
+        MetaDataCustomEditorWidget* createMetaDataEditorWidget();
         
         void invalidateImage();
         
@@ -197,7 +197,7 @@ namespace caret {
         
         QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
         
-        MetaDataEditorWidget* m_metaEditorDataWidget = NULL;
+        MetaDataCustomEditorWidget* m_metaDataEditorWidget = NULL;
         
         static std::unique_ptr<GiftiMetaData> s_annotationMetaData;
         
