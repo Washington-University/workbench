@@ -166,7 +166,9 @@ namespace caret {
 
             const Annotation* getAnnotation() const;
             
-            const std::vector<Vector3D>& getDrawingCoordinates() const;
+            std::vector<Vector3D> getDrawingCoordinates() const;
+            
+            const MouseEvent* getLastMouseEvent() const;
             
         private:
             AnnotationFile* m_annotationFile;
@@ -185,7 +187,7 @@ namespace caret {
             
             float m_windowHeight;
             
-            std::vector<Vector3D> m_drawingCoordinates;
+            std::vector<std::pair<Vector3D, MouseEvent>> m_drawingCoordinateAndMouseEvents;
         };
         
         class NewAnnotationFileSpaceAndType {

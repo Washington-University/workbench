@@ -28,6 +28,8 @@
 
 #include "UserInputModeEnum.h"
 
+class QToolButton;
+
 namespace caret {
     class Annotation;
 
@@ -61,6 +63,12 @@ namespace caret {
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
+        
+        QToolButton* m_finishToolButton;
+        
+        QString m_finishToolButtonStyleSheetDisabled;
+        
+        QString m_finishToolButtonStyleSheetEnabled;
         
         QAction* m_finishAction;
         

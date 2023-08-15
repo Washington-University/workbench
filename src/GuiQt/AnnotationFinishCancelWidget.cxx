@@ -70,33 +70,43 @@ m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_finishAction = new QAction("Finish");
-    QToolButton* finishToolButton = new QToolButton();
-    finishToolButton->setDefaultAction(m_finishAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(finishToolButton);
+    m_finishToolButton = new QToolButton();
+    m_finishToolButton->setDefaultAction(m_finishAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_finishToolButton);
     QObject::connect(m_finishAction, &QAction::triggered,
                      this, &AnnotationFinishCancelWidget::finishActionTriggered);
     
+    m_finishToolButtonStyleSheetDisabled = m_finishToolButton->styleSheet();
+    
+    /*
+     * Used to make button background green when finish button is enabled
+     */
+    m_finishToolButtonStyleSheetEnabled = ("background-color: rgb(0, 255, 0)");
+
     m_cancelAction = WuQtUtilities::createAction("Cancel",
                                                "Cancel drawing new annotation",
                                                this,
                                                this,
                                                SLOT(cancelActionTriggered()));
-    m_cancelAction->setAutoRepeat(false);
+
     QToolButton* cancelToolButton = new QToolButton();
     cancelToolButton->setDefaultAction(m_cancelAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(cancelToolButton);
+    
+    WuQtUtilities::matchWidgetWidths(m_finishToolButton,
+                                     cancelToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     switch (orientation) {
         case Qt::Horizontal:
-            gridLayout->addWidget(finishToolButton,
+            gridLayout->addWidget(m_finishToolButton,
                                   0, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   0, 1, Qt::AlignHCenter);
             break;
         case Qt::Vertical:
-            gridLayout->addWidget(finishToolButton,
+            gridLayout->addWidget(m_finishToolButton,
                                   0, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   1, 0, Qt::AlignHCenter);
@@ -168,15 +178,19 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
                 break;
         }
     }
+    
+    if (finishEnabledFlag) {
+        m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetEnabled);
+    }
+    else {
+        m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
+    }
+    
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
 
     m_cancelAction->setEnabled(cancelEnabledFlag);
     m_cancelAction->setToolTip(cancelToolTip);
-
-    
-    m_finishAction->setEnabled(false);
-    
     
     setEnabled(( ! annotations.empty())
                || m_finishAction->isEnabled()
