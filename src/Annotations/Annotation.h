@@ -231,7 +231,11 @@ namespace caret {
         
         void setPropertiesForSpecializedUsage(const PropertiesSpecializedUsage specializedUsage);
         
-        virtual void setModified();
+        virtual void setModified() override;
+
+        virtual void clearModified() override;
+        
+        virtual bool isModified() const override;
 
         AnnotationGroupKey getAnnotationGroupKey() const;
         

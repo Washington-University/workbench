@@ -327,6 +327,28 @@ Annotation::setModified()
 }
 
 /**
+ * Clear modification status of this instance
+ */
+void
+Annotation::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    m_metaData->clearModified();
+}
+
+/**
+ * @return True if this instance is modified
+ */
+bool
+Annotation::isModified() const
+{
+    if (m_metaData->isModified()) {
+        return true;
+    }
+    return CaretObjectTracksModification::isModified();
+}
+
+/**
  * @return Is this annotation requiring that it be kept in a fixed
  * aspect ratio?  By default, this is false.  This method may be 
  * overridden by annotations that require a fixed aspect ratio
@@ -2258,7 +2280,6 @@ Annotation::setStackingOrder(const int32_t stackingOrder)
     m_stackingOrder = stackingOrder;
     setModified();
 }
-
 
 /**
  * @return The annotation's selected for editing status.
