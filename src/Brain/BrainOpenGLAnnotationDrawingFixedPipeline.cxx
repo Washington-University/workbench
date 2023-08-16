@@ -5391,18 +5391,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         if (drawEditableSizingHandlesFlag
             || drawNonEditableSizingHandlesFlag) {
             if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
-                GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
-                float lineWidth(0.0);
-                primitive->getLineWidth(lineWidthType, lineWidth);
-                float sizeHandleWidthInPixels = lineWidth;
-                switch (lineWidthType) {
-                    case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
-                        sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * s_polyCoordinateSizeHandleWithMultiplier);
-                        break;
-                    case GraphicsPrimitive::LineWidthType::PIXELS:
-                        sizeHandleWidthInPixels = (lineWidth * 3);
-                        break;
-                }
+                const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
                 AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
                 if (drawEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
@@ -5431,6 +5420,50 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     return drawnFlag;
 }
 
+/**
+ * Compute the diameter for a poly-type annotation size handle
+ * @param primitive
+ *    Primitive that is drawn and contains width of the line for the poly-type shape
+ * @return
+ *    Diameter for drawing the size handle.
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const GraphicsPrimitive* primitive) const
+{
+    GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
+    float lineWidth(0.0);
+    primitive->getLineWidth(lineWidthType, lineWidth);
+    float diameterInPixels = lineWidth;
+    switch (lineWidthType) {
+        case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
+        {
+            float width(1.0);
+            if (lineWidth >= 2) {
+                width = lineWidth;
+            }
+            else {
+                /*
+                 * When line gets very narrow, make the symbol
+                 * larger than the line width
+                 *
+                 * LineWidth:  SymbolWidth
+                 *    0             1
+                 *    1             1.5
+                 *    2             2
+                 */
+                width = (0.5 * lineWidth) + 1.0;
+            }
+            width *= 1.5;
+            diameterInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(width);
+        }
+            break;
+        case GraphicsPrimitive::LineWidthType::PIXELS:
+            diameterInPixels = (lineWidth * 3);
+            break;
+    }
+    return diameterInPixels;
+}
+    
 /**
  * Draw an annotation paired multi-coordinate
  *
@@ -5697,18 +5730,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         }
         
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
-            GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
-            float lineWidth(0.0);
-            primitive->getLineWidth(lineWidthType, lineWidth);
-            float sizeHandleWidthInPixels = lineWidth;
-            switch (lineWidthType) {
-                case GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT:
-                    sizeHandleWidthInPixels = GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToPixels(lineWidth * s_polyCoordinateSizeHandleWithMultiplier);
-                    break;
-                case GraphicsPrimitive::LineWidthType::PIXELS:
-                    sizeHandleWidthInPixels = lineWidth;
-                    break;
-            }
+            const float sizeHandleWidthInPixels = computePolySizeHandleDiameter(primitive.get());
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
                                                        multiCoordShape,
                                                        windowVertexXYZ,
@@ -6545,17 +6567,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
     for (int32_t i = 0; i < numberOfVertices; i++) {
         float xyz[3];
         primitive->getVertexFloatXYZ(i, xyz);
-        /*
-         * Symbol for selected vertex is a little bigger
-         */
-        float symbolSize(cornerSquareSize);
 
+        const float halfSymbolSize(cornerSquareSize / 2.0);
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE,
                          annotationFile,
                          multiCoordShape,
                          verticesWindowXYZ,
                          xyz,
-                         symbolSize,
+                         halfSymbolSize,
                          rotationAngle,
                          i);
     }
@@ -6612,17 +6631,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSi
     for (int32_t i = iStart; i < iEnd; i++) {
         float xyz[3];
         primitive->getVertexFloatXYZ(i, xyz);
-        /*
-         * Symbol for selected vertex is a little bigger
-         */
-        float symbolSize(cornerSquareSize);
-        
+
+        const float halfSymbolSize(cornerSquareSize / 2.0);
         drawSizingHandle(sizingHandleType,
                          annotationFile,
                          multiPairedCoordShape,
                          verticesWindowXYZ,
                          xyz,
-                         symbolSize,
+                         halfSymbolSize,
                          rotationAngle,
                          i);
     }
