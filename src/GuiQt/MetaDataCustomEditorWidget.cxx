@@ -75,10 +75,9 @@ m_metaData(metaData)
     const int32_t COLUMN_LABEL(0);
     const int32_t COLUMN_VALUE(1);
     int32_t rowIndex(0);
-    QWidget* metaDataWidget(new QWidget());
-    QGridLayout* gridLayout(new QGridLayout(metaDataWidget));
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 100);
+    QGridLayout* gridLayout(new QGridLayout(this));
+    gridLayout->setColumnStretch(COLUMN_LABEL, 0);
+    gridLayout->setColumnStretch(COLUMN_VALUE, 100);
     for (const auto& name : metaDataNames) {
         MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(name,
                                                       m_metaData));
@@ -108,18 +107,6 @@ m_metaData(metaData)
         }
             break;
     }
-    
-    QScrollArea* scrollArea(new QScrollArea());
-    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scrollArea->setWidget(metaDataWidget);
-    scrollArea->setWidgetResizable(true);
-    scrollArea->setFrameShape(QFrame::NoFrame);
-    
-    QHBoxLayout* dialogLayout = new QHBoxLayout(this);
-    dialogLayout->addWidget(scrollArea);
-    
-    setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 }
 
 /**

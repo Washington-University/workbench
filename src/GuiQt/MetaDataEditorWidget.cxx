@@ -80,6 +80,10 @@ MetaDataEditorWidget::MetaDataEditorWidget(QWidget* parent)
     buttonsLayout->addSpacing(10);
     
     m_metaGridLayout = new QGridLayout();
+    m_metaGridLayout->setColumnStretch(COLUMN_DELETE, 0);
+    m_metaGridLayout->setColumnStretch(COLUMN_NAME, 0);
+    m_metaGridLayout->setColumnMinimumWidth(COLUMN_NAME, 120);
+    m_metaGridLayout->setColumnStretch(COLUMN_VALUE, 100);
     m_metaGridLayout->addWidget(new QLabel("Delete"),
                                       0, COLUMN_DELETE,
                                       Qt::AlignCenter);

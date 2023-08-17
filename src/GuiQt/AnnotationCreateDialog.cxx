@@ -642,12 +642,12 @@ m_imageHeight(0)
     }
     
     if (m_metaDataEditorWidget != NULL) {
-        layout->addWidget(m_metaDataEditorWidget, 0, Qt::AlignLeft);
+        layout->addWidget(m_metaDataEditorWidget, 0);
     }
     
-    dialogWidget->setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
-                                QSizePolicy::Fixed);
-    
+    setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
+                  QSizePolicy::Fixed);
+
     setCentralWidget(dialogWidget,
                      SCROLL_AREA_NEVER);
     
