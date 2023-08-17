@@ -1649,6 +1649,7 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
         const Vector3D sliceStartXYZ(startXYZ);
         const Vector3D sliceEndXYZ(endXYZ);
         sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
         primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
         primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
     }
@@ -1669,13 +1670,16 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
         const Vector3D rotateTransformEndXYZ(endXYZ);
         
         sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
         primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
         primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
         
         rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
+        rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
         primitiveRotateSliceCrosshair->addVertex(rotateSliceStartXYZ, rgba.data());
         primitiveRotateSliceCrosshair->addVertex(rotateSliceEndXYZ, rgba.data());
         
+        rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
         rotateTransformSelectionIndices.push_back(rotationTransformAxisID);
         primitiveRotateTransformCrosshair->addVertex(rotateTransformStartXYZ, rgba.data());
         primitiveRotateTransformCrosshair->addVertex(rotateTransformEndXYZ, rgba.data());
