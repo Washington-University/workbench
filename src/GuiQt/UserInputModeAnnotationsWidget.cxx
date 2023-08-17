@@ -343,7 +343,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_widthHeightWidget          = new AnnotationWidthHeightWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                    AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                                    m_browserWindowIndex,
-                                                                   Qt::Horizontal);
+                                                                   Qt::Vertical);
     
     m_rotationWidget             = new AnnotationRotationWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
@@ -400,8 +400,9 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     lbColumn++;
     leftBottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, lbColumn, 2, 1);
     lbColumn++;
-    leftBottomRowLayout->addWidget(m_widthHeightWidget, 0, lbColumn);
-    leftBottomRowLayout->addWidget(m_rotationWidget, 1, lbColumn);
+    leftBottomRowLayout->addWidget(m_widthHeightWidget, 0, lbColumn, 2, 1);
+    lbColumn++;
+    leftBottomRowLayout->addWidget(m_rotationWidget, 0, lbColumn, 2, 1, Qt::AlignTop);
     lbColumn++;
     
     QHBoxLayout* rightBottomRowLayout(new QHBoxLayout());

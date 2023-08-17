@@ -71,16 +71,16 @@ AnnotationRotationWidget::AnnotationRotationWidget(const UserInputModeEnum::Enum
 m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
-    QLabel* rotationLabel = new QLabel(" R:");
+    QLabel* rotationLabel = new QLabel("Rotate");
     m_rotationSpinBox = WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(0.0, 359, 1.0, 0,
                                                                                        this, SLOT(rotationValueChanged(double)));
     m_rotationSpinBox->setWrapping(true);
     WuQtUtilities::setWordWrappedToolTip(m_rotationSpinBox,
                                          "Rotation, clockwise in degrees");
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(rotationLabel);
+    layout->addWidget(rotationLabel, 0, Qt::AlignHCenter);
     layout->addWidget(m_rotationSpinBox);
     
     setSizePolicy(QSizePolicy::Fixed,
