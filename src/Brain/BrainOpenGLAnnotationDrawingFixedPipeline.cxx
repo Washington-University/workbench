@@ -5506,21 +5506,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(Annotation
     }
     
     const float lineWidthPct(polyhedron->getLineWidthPercentage());
-    const float sphereSizeMillimeters(GraphicsUtilitiesOpenGL::convertPercentageOfViewportHeightToMillimeters(lineWidthPct));
     
     std::unique_ptr<GraphicsPrimitiveV3f> edgesPrimitive;
     edgesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
                                                        foregroundRGBA));
     CaretAssert(edgesPrimitive);
     edgesPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                lineWidthPct * 3);
+                                lineWidthPct);
     
     std::unique_ptr<GraphicsPrimitiveV3f> trianglesPrimitive;
     trianglesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
                                                             foregroundRGBA));
     CaretAssert(trianglesPrimitive);
     trianglesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                                     lineWidthPct * 3);
+                                     lineWidthPct);
     
     for (const auto& e : edges) {
         Vector3D intersectionXYZ;
