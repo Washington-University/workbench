@@ -301,6 +301,8 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        static constexpr bool s_allowInsertionIntoPolyTypesFlag = false;
+
         /*
          * Some private methods are accessed by this friend class
          */

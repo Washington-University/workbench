@@ -479,49 +479,49 @@ UserInputModeAnnotations::getCursor() const
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                    {
                         cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                         
-                        /*
-                         * If over one selected annotation and the annotation
-                         * is a mult-coord shape, show a cursor that indicates
-                         * insertion of a new coordinate
-                         */
-                        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-                        const std::vector<Annotation*> selectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
-                        if (selectedAnns.size() == 1) {
-                            CaretAssertVectorIndex(selectedAnns, 0);
-                            if (m_annotationUnderMouse == selectedAnns[0]) {
-                                switch (m_annotationUnderMouse->getType()) {
-                                    case AnnotationTypeEnum::BOX:
-                                        break;
-                                    case AnnotationTypeEnum::BROWSER_TAB:
-                                        break;
-                                    case AnnotationTypeEnum::COLOR_BAR:
-                                        break;
-                                    case AnnotationTypeEnum::IMAGE:
-                                        break;
-                                    case AnnotationTypeEnum::LINE:
-                                        break;
-                                    case AnnotationTypeEnum::OVAL:
-                                        break;
-                                    case AnnotationTypeEnum::POLYGON:
-                                        cursor = CursorEnum::CURSOR_CROSS;
-                                        break;
-                                    case AnnotationTypeEnum::POLYHEDRON:
-                                        cursor = CursorEnum::CURSOR_CROSS;
-                                        break;
-                                    case AnnotationTypeEnum::POLYLINE:
-                                        cursor = CursorEnum::CURSOR_CROSS;
-                                        break;
-                                    case AnnotationTypeEnum::SCALE_BAR:
-                                        break;
-                                    case AnnotationTypeEnum::TEXT:
-                                        break;
+                        if (s_allowInsertionIntoPolyTypesFlag) {
+                            /*
+                             * If over one selected annotation and the annotation
+                             * is a mult-coord shape, show a cursor that indicates
+                             * insertion of a new coordinate
+                             */
+                            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                            const std::vector<Annotation*> selectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
+                            if (selectedAnns.size() == 1) {
+                                CaretAssertVectorIndex(selectedAnns, 0);
+                                if (m_annotationUnderMouse == selectedAnns[0]) {
+                                    switch (m_annotationUnderMouse->getType()) {
+                                        case AnnotationTypeEnum::BOX:
+                                            break;
+                                        case AnnotationTypeEnum::BROWSER_TAB:
+                                            break;
+                                        case AnnotationTypeEnum::COLOR_BAR:
+                                            break;
+                                        case AnnotationTypeEnum::IMAGE:
+                                            break;
+                                        case AnnotationTypeEnum::LINE:
+                                            break;
+                                        case AnnotationTypeEnum::OVAL:
+                                            break;
+                                        case AnnotationTypeEnum::POLYGON:
+                                            cursor = CursorEnum::CURSOR_CROSS;
+                                            break;
+                                        case AnnotationTypeEnum::POLYHEDRON:
+                                            cursor = CursorEnum::CURSOR_CROSS;
+                                            break;
+                                        case AnnotationTypeEnum::POLYLINE:
+                                            cursor = CursorEnum::CURSOR_CROSS;
+                                            break;
+                                        case AnnotationTypeEnum::SCALE_BAR:
+                                            break;
+                                        case AnnotationTypeEnum::TEXT:
+                                            break;
+                                    }
                                 }
                             }
                         }
-                    }
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
                         cursor = CursorEnum::CURSOR_ROTATION;
@@ -1670,45 +1670,41 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                                          shiftKeyDown,
                                          singleSelectionModeFlag);
             
-            const std::vector<Annotation*> afterSelectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
-            if (afterSelectedAnns.size() == 1) {
-                /*
-                 * If shape clicked was same a previous selection and
-                 * is a multi-coord annotation, insert new coordinate
-                 * at location of mouse.
-                 */
-                if (beforeSelectedAnns == afterSelectedAnns) {
-                    CaretAssertVectorIndex(afterSelectedAnns, 0);
-                    AnnotationMultiCoordinateShape* multiCoordShape = afterSelectedAnns[0]->castToMultiCoordinateShape();
-                    if (multiCoordShape != NULL) {
-                        /*
-                         * Cross cursor indicates insert coordinate mode.
-                         * If not tested, dragging a coordinate would also add a coordinate
-                         */
-                        if (getCursor() == CursorEnum::CURSOR_CROSS) {
-                            UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
-                                                                                                 mouseEvent);
-                        }
-                    }
-                    
-                    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(afterSelectedAnns[0]->castToMultiPairedCoordinateShape());
-                    if (multiPairedCoordShape != NULL) {
-                        /*
-                         * Cross cursor indicates insert coordinate mode.
-                         * If not tested, dragging a coordinate would also add a coordinate
-                         */
-                        if (getCursor() == CursorEnum::CURSOR_CROSS) {
-                            const bool allowInsertFlag(true);
-                            if (allowInsertFlag) {
+            if (s_allowInsertionIntoPolyTypesFlag) {
+                const std::vector<Annotation*> afterSelectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
+                if (afterSelectedAnns.size() == 1) {
+                    /*
+                     * If shape clicked was same a previous selection and
+                     * is a multi-coord annotation, insert new coordinate
+                     * at location of mouse.
+                     */
+                    if (beforeSelectedAnns == afterSelectedAnns) {
+                        CaretAssertVectorIndex(afterSelectedAnns, 0);
+                        AnnotationMultiCoordinateShape* multiCoordShape = afterSelectedAnns[0]->castToMultiCoordinateShape();
+                        if (multiCoordShape != NULL) {
+                            /*
+                             * Cross cursor indicates insert coordinate mode.
+                             * If not tested, dragging a coordinate would also add a coordinate
+                             */
+                            if (getCursor() == CursorEnum::CURSOR_CROSS) {
                                 UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
                                                                                                      mouseEvent);
                             }
-                            else {
-                                CaretLogSevere("Inserting points into polyhedron not supported");
+                        }
+                        
+                        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(afterSelectedAnns[0]->castToMultiPairedCoordinateShape());
+                        if (multiPairedCoordShape != NULL) {
+                            /*
+                             * Cross cursor indicates insert coordinate mode.
+                             * If not tested, dragging a coordinate would also add a coordinate
+                             */
+                            if (getCursor() == CursorEnum::CURSOR_CROSS) {
+                                UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(this,
+                                                                                                     mouseEvent);
                             }
                         }
+                        
                     }
-
                 }
             }
         }
