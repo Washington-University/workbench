@@ -108,12 +108,14 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     switch (orientation) {
         case Qt::Horizontal:
+            gridLayout->addWidget(new QLabel("Drawing"),
+                                  0, 0, 1, 2, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
-                                  0, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(cancelToolButton,
                                   1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(cancelToolButton,
+                                  2, 0, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
-                                  0, 1, 2, 1, Qt::AlignCenter);
+                                  1, 1, 2, 1, Qt::AlignCenter);
             break;
         case Qt::Vertical:
             gridLayout->addWidget(m_finishToolButton,
