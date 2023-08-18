@@ -27,6 +27,7 @@
 #include "AnnotationTypeEnum.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
+#include "MouseEvent.h"
 #include "StructureEnum.h"
 #include "UserInputModeView.h"
 #include "Vector3D.h"
@@ -41,7 +42,6 @@ namespace caret {
     class AnnotationOneCoordinateShape;
     class BrowserTabContent;
     class KeyEvent;
-    class MouseEvent;
     class SelectionItemAnnotation;
     class UserInputModeAnnotationsWidget;
     
@@ -147,6 +147,24 @@ namespace caret {
     private:
         class NewMouseDragCreateAnnotation {
         public:
+            class CoordInfo {
+            public:
+                CoordInfo() { }
+                
+                CoordInfo(const Vector3D& xyz,
+                          const MouseEvent& mouseEvent)
+                : m_xyz(xyz) {
+                    m_mouseEvent.reset(new MouseEvent(mouseEvent));
+                }
+                
+//                CoordInfo(const CoordInfo& rhs)
+//                : m_xyz(rhs.m_xyz),
+//                m_mouseEvent(rhs.m_mouseEvent) { }
+                
+                Vector3D m_xyz;
+                std::unique_ptr<MouseEvent> m_mouseEvent;
+            };
+            
             NewMouseDragCreateAnnotation(AnnotationFile* annotationFile,
                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                          const AnnotationTypeEnum::Enum annotationType,
@@ -166,9 +184,15 @@ namespace caret {
 
             const Annotation* getAnnotation() const;
             
+            AnnotationFile* getAnnotationFile();
+            
+            const AnnotationFile* getAnnotationFile() const;
+            
             std::vector<Vector3D> getDrawingCoordinates() const;
             
             const MouseEvent* getLastMouseEvent() const;
+            
+            void eraseLastCoordinate();
             
         private:
             AnnotationFile* m_annotationFile;
@@ -187,7 +211,7 @@ namespace caret {
             
             float m_windowHeight;
             
-            std::vector<std::pair<Vector3D, MouseEvent>> m_drawingCoordinateAndMouseEvents;
+            std::vector<CoordInfo> m_drawingCoordinateAndMouseEvents;
         };
         
         class NewAnnotationFileSpaceAndType {

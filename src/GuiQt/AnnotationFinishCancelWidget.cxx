@@ -96,6 +96,14 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::matchWidgetWidths(m_finishToolButton,
                                      cancelToolButton);
     
+    m_eraseLastCoordinateAction = new QAction("X");
+    m_eraseLastCoordinateAction->setToolTip("Remove the last poly coordinate");
+    QObject::connect(m_eraseLastCoordinateAction, &QAction::triggered,
+                     this, &AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered);
+    QToolButton* eraseLastCoordinateToolButton = new QToolButton();
+    eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
     switch (orientation) {
@@ -103,13 +111,17 @@ m_browserWindowIndex(browserWindowIndex)
             gridLayout->addWidget(m_finishToolButton,
                                   0, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
-                                  0, 1, Qt::AlignHCenter);
+                                  1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(eraseLastCoordinateToolButton,
+                                  0, 1, 2, 1, Qt::AlignCenter);
             break;
         case Qt::Vertical:
             gridLayout->addWidget(m_finishToolButton,
                                   0, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(eraseLastCoordinateToolButton,
+                                  2, 0, Qt::AlignHCenter);
             break;
     }
     
@@ -131,7 +143,7 @@ AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
  *     The selected annotations
  */
 void
-AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& annotations)
+AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*annotations*/)
 {
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
@@ -141,6 +153,8 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
     AString finishToolTip;
     bool cancelEnabledFlag(false);
     bool finishEnabledFlag(false);
+    bool eraseLastEnabledFlag(false);
+    m_annotationNumberOfCoordinates = 0;
     if (annotation != NULL) {
         cancelEnabledFlag = true;
         
@@ -150,6 +164,7 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
                          + AnnotationTypeEnum::toGuiName(annotation->getType()));
         
         const int32_t numCoords(annotation->getNumberOfCoordinates());
+        m_annotationNumberOfCoordinates = numCoords;
         switch (annotation->getType()) {
             case AnnotationTypeEnum::BOX:
                 break;
@@ -164,12 +179,15 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
             case AnnotationTypeEnum::OVAL:
                 break;
             case AnnotationTypeEnum::POLYGON:
+                eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
                 break;
             case AnnotationTypeEnum::POLYHEDRON:
+                eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
                 break;
             case AnnotationTypeEnum::POLYLINE:
+                eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
@@ -192,7 +210,9 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& anno
     m_cancelAction->setEnabled(cancelEnabledFlag);
     m_cancelAction->setToolTip(cancelToolTip);
     
-    setEnabled(( ! annotations.empty())
+    m_eraseLastCoordinateAction->setEnabled(eraseLastEnabledFlag);
+    
+    setEnabled(m_eraseLastCoordinateAction->isEnabled()
                || m_finishAction->isEnabled()
                || m_cancelAction->isEnabled());
 }
@@ -230,3 +250,24 @@ AnnotationFinishCancelWidget::cancelActionTriggered()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Gets called when the erase last coordinate action is triggered
+ */
+void
+AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered()
+{
+    if (m_annotationNumberOfCoordinates > 1) {
+        EventAnnotationDrawingFinishCancel eraseEvent(EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE,
+                                                       m_browserWindowIndex,
+                                                       m_userInputMode);
+        EventManager::get()->sendEvent(eraseEvent.getPointer());
+    }
+    else if (m_annotationNumberOfCoordinates == 1) {
+        EventAnnotationDrawingFinishCancel restartEvent(EventAnnotationDrawingFinishCancel::Mode::RESTART_DRAWING,
+                                                      m_browserWindowIndex,
+                                                      m_userInputMode);
+        EventManager::get()->sendEvent(restartEvent.getPointer());
+    }
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}

@@ -52,6 +52,7 @@ namespace caret {
         
         void cancelActionTriggered();
         
+        void eraseLastCoordinateActionTriggered();
 
         // ADD_NEW_METHODS_HERE
 
@@ -73,6 +74,10 @@ namespace caret {
         QAction* m_finishAction;
         
         QAction* m_cancelAction;
+        
+        QAction* m_eraseLastCoordinateAction;
+        
+        int32_t m_annotationNumberOfCoordinates = 0;
         
         // ADD_NEW_MEMBERS_HERE
 

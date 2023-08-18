@@ -36,7 +36,9 @@ namespace caret {
     public:
         enum class Mode {
             CANCEL,
-            FINISH
+            ERASE_LAST_COORDINATE,
+            FINISH,
+            RESTART_DRAWING
         };
         
         EventAnnotationDrawingFinishCancel(const Mode mode,

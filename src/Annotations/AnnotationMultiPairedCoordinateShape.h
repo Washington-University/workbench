@@ -59,6 +59,8 @@ namespace caret {
                 
         void removeCoordinateAtIndex(const int32_t index);
         
+        void removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index);
+        
         virtual void replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates) override;
         
         virtual AnnotationSurfaceOffsetVectorTypeEnum::Enum getSurfaceOffsetVectorType() const override;

@@ -221,12 +221,9 @@ AnnotationMultiPairedCoordinateShape::replaceAllCoordinates(const std::vector<st
  */
 void
 AnnotationMultiPairedCoordinateShape::insertCoordinate(const int32_t insertAfterCoordinateIndex,
-                                                 const int32_t surfaceSpaceVertexIndex,
-                                                 const float normalizedDistanceToNextCoordinate)
+                                                       const int32_t /*surfaceSpaceVertexIndex*/,
+                                                       const float normalizedDistanceToNextCoordinate)
 {
-    StructureEnum::Enum surfaceStructure = StructureEnum::INVALID;
-    int32_t surfaceNumberOfVertices(-1);
-
     bool validFlag(false);
     switch (getCoordinateSpace()) {
         case AnnotationCoordinateSpaceEnum::CHART:
@@ -514,6 +511,21 @@ AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndex(const int32_t inde
         CaretAssertVectorIndex(m_coordinates, indexTwo);
         m_coordinates.erase(m_coordinates.begin() + indexTwo);
     }
+    setModified();
+}
+
+/**
+ * Remove the coordinate at the given index.  This method should ONLY BE CALLED
+ * by UserInputModeAnnotations to erase a coordinate from an annotation that is being drawn
+ * BEFORE the second face of the polyhedron is added.
+ * @param index
+ *    Index of coordinate for removal
+ */
+void
+AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index)
+{
+    CaretAssertVectorIndex(m_coordinates, index);
+    m_coordinates.erase(m_coordinates.begin() + index);
     setModified();
 }
 

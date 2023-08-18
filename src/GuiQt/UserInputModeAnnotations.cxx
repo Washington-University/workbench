@@ -164,6 +164,10 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             && (annotationEvent->getUserInputMode() == getUserInputMode())) {
             annotationEvent->setEventProcessed();
             
+            /*
+             * Remove any incomplete annotation
+             */
+            setMode(MODE_SELECT);
             deselectAnnotationsForEditingInAnnotationManager();
             resetAnnotationUnderMouse();
             
@@ -241,6 +245,12 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     setMode(MODE_SELECT);
                     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                     break;
+                case EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE:
+                    if (m_newAnnotationCreatingWithMouseDrag) {
+                        m_newAnnotationCreatingWithMouseDrag->eraseLastCoordinate();
+                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    }
+                    break;
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
                 {
                     if (m_newAnnotationCreatingWithMouseDrag) {
@@ -250,7 +260,35 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                         }
                     }
                 }
-                    //createNewAnnotationFromMouseDrag(MouseEvent());
+                    break;
+                case EventAnnotationDrawingFinishCancel::Mode::RESTART_DRAWING:
+                    if (m_newAnnotationCreatingWithMouseDrag) {
+                        const Annotation* ann(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+                        AnnotationFile* annFile(m_newAnnotationCreatingWithMouseDrag->getAnnotationFile());
+                        if ((ann != NULL)
+                            && (annFile != NULL)) {
+                            const AnnotationTypeEnum::Enum annShape(ann->getType());
+                            const AnnotationCoordinateSpaceEnum::Enum annSpace(ann->getCoordinateSpace());
+                            
+                            /*
+                             * First cancel the current drawing
+                             */
+                            setMode(MODE_SELECT);
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
+                            /*
+                             * Now restart drawing
+                             */
+                            EventManager::get()->sendEvent(EventAnnotationCreateNewType(getBrowserWindowIndex(),
+                                                                                        getUserInputMode(),
+                                                                                        annFile,
+                                                                                        annSpace,
+                                                                                        annShape,
+                                                                                        EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE).getPointer());
+
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        }
+                    }
                     break;
             }
         }
@@ -2906,17 +2944,14 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         setCoordinate(twoCoordShape->getStartCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
 
         setCoordinate(twoCoordShape->getEndCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-//        CaretAssert(m_drawingCoordinates.size() == 2);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
         CaretAssert(m_drawingCoordinateAndMouseEvents.size() == 2);
     }
     else if (oneCoordShape != NULL) {
@@ -2926,11 +2961,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         oneCoordShape->setWidth(1.0);
         oneCoordShape->setHeight(1.0);
         
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-//        CaretAssert(m_drawingCoordinates.size() == 1);
-        
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
         CaretAssert(m_drawingCoordinateAndMouseEvents.size() == 1);
     }
     else if (multiCoordShape != NULL) {
@@ -2938,17 +2970,15 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
         setCoordinate(ac, m_mousePressWindowX, m_mousePressWindowY);
         multiCoordShape->addCoordinate(ac);
         
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
     }
     else if (multiPairedCoordShape != NULL) {
         AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
         setCoordinate(ac, m_mousePressWindowX, m_mousePressWindowY);
         multiPairedCoordShape->addCoordinate(ac);
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
     }
     else {
         CaretAssert(0);
@@ -3000,12 +3030,10 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const MouseEvent&
         setCoordinate(twoCoordShape->getEndCoordinate(),
                       mouseWindowX,
                       mouseWindowY);
-//        CaretAssertVectorIndex(m_drawingCoordinates, 1);
-//        m_drawingCoordinates[1] = mouseCoord3D;
         
         CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, 1);
-        m_drawingCoordinateAndMouseEvents[1].first  = mouseCoord3D;
-        m_drawingCoordinateAndMouseEvents[1].second = mouseEvent;
+        m_drawingCoordinateAndMouseEvents[1].m_xyz        = mouseCoord3D;
+        m_drawingCoordinateAndMouseEvents[1].m_mouseEvent.reset(new MouseEvent(mouseEvent));
     }
     else if (oneCoordShape != NULL) {
         const float minX = std::min(m_mousePressWindowX,
@@ -3036,35 +3064,60 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const MouseEvent&
         oneCoordShape->setWidth(relativeWidth);
         oneCoordShape->setHeight(relativeHeight);
         
-//        CaretAssertVectorIndex(m_drawingCoordinates, 0);
-//        m_drawingCoordinates[0][0] = ((mouseEvent.getPressedX() + mouseEvent.getX()) / 2.0);
-//        m_drawingCoordinates[0][1] = ((mouseEvent.getPressedY() + mouseEvent.getY()) / 2.0);
-        
         CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, 0);
-        m_drawingCoordinateAndMouseEvents[0].first[0] = ((mouseEvent.getPressedX() + mouseEvent.getX()) / 2.0);
-        m_drawingCoordinateAndMouseEvents[0].first[1] = ((mouseEvent.getPressedY() + mouseEvent.getY()) / 2.0);
+        m_drawingCoordinateAndMouseEvents[0].m_xyz[0] = ((mouseEvent.getPressedX() + mouseEvent.getX()) / 2.0);
+        m_drawingCoordinateAndMouseEvents[0].m_xyz[1] = ((mouseEvent.getPressedY() + mouseEvent.getY()) / 2.0);
     }
     else if (multiCoordShape != NULL) {
         AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
         setCoordinate(ac, mouseWindowX, mouseWindowY);
         multiCoordShape->addCoordinate(ac);
         
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
     }
     else if (multiPairedCoordShape != NULL) {
         AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
         setCoordinate(ac, mouseWindowX, mouseWindowY);
         multiPairedCoordShape->addCoordinate(ac);
         
-//        m_drawingCoordinates.push_back(mouseCoord3D);
-        m_drawingCoordinateAndMouseEvents.push_back(std::make_pair(mouseCoord3D,
-                                                                   mouseEvent));
+        m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
+                                                       mouseEvent);
     }
     else {
         CaretAssert(0);
     }
+}
+
+/**
+ * Erase the last coordinate but not the first coordinate
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::eraseLastCoordinate()
+{
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+    
+    const int32_t num(m_drawingCoordinateAndMouseEvents.size());
+    if (num > 0) {
+        const int32_t removeIndex(num - 1);
+        CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, removeIndex);
+        m_drawingCoordinateAndMouseEvents.resize(removeIndex);
+        
+        CaretAssert(m_annotation);
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        AnnotationMultiCoordinateShape* multiCoordShape(m_annotation->castToMultiCoordinateShape());
+        if (multiPairedCoordShape != NULL) {
+            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex);
+        }
+        else if (multiCoordShape != NULL) {
+            multiCoordShape->removeCoordinateAtIndex(removeIndex);
+        }
+        else {
+            CaretAssertMessage(0, "Invalid annotation type for erasing last coordinate");
+        }
+    }
+    
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
 }
 
 /**
@@ -3112,6 +3165,24 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotation() const
     return m_annotation;
 }
 
+/*
+ * @return File for new annotation
+ */
+AnnotationFile*
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotationFile()
+{
+    return m_annotationFile;
+}
+
+/*
+ * @return File for new annotation (const method)
+ */
+const AnnotationFile*
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::getAnnotationFile() const
+{
+    return m_annotationFile;
+}
+
 /**
  * @return Copy of the drawing coordinates
  */
@@ -3120,7 +3191,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getDrawingCoordinates() 
 {
     std::vector<Vector3D> coordsOut;
     for (auto& dcme : m_drawingCoordinateAndMouseEvents) {
-        coordsOut.push_back(dcme.first);
+        coordsOut.push_back(dcme.m_xyz);
     }
     return coordsOut;
 //    return m_drawingCoordinates;
@@ -3135,7 +3206,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getLastMouseEvent() cons
     const int32_t num(m_drawingCoordinateAndMouseEvents.size());
     if (num > 0) {
         CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, num - 1);
-        return &m_drawingCoordinateAndMouseEvents[num - 1].second;
+        return m_drawingCoordinateAndMouseEvents[num - 1].m_mouseEvent.get();
     }
     return NULL;
 }

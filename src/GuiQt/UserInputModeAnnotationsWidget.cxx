@@ -354,7 +354,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                  m_browserWindowIndex);
     
-    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Vertical,
+    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
     
