@@ -48,7 +48,10 @@ namespace caret {
         
         Annotation* getAnnotation() const;
 
-        void setAnnotation(Annotation* annotation);
+        int32_t getDrawingViewportHeight() const;
+        
+        void setAnnotation(Annotation* annotation,
+                           const int32_t drawingViewportHeight);
         
         // ADD_NEW_METHODS_HERE
 
@@ -56,6 +59,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         Annotation* m_annotation = NULL;
+        
+        int32_t m_drawingViewportHeight = 0;
         
         // ADD_NEW_MEMBERS_HERE
 

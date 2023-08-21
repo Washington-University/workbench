@@ -157,10 +157,6 @@ namespace caret {
                     m_mouseEvent.reset(new MouseEvent(mouseEvent));
                 }
                 
-//                CoordInfo(const CoordInfo& rhs)
-//                : m_xyz(rhs.m_xyz),
-//                m_mouseEvent(rhs.m_mouseEvent) { }
-                
                 Vector3D m_xyz;
                 std::unique_ptr<MouseEvent> m_mouseEvent;
             };
@@ -168,7 +164,8 @@ namespace caret {
             NewMouseDragCreateAnnotation(AnnotationFile* annotationFile,
                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                          const AnnotationTypeEnum::Enum annotationType,
-                                         const MouseEvent& mousePressEvent);
+                                         const MouseEvent& mousePressEvent,
+                                         const int32_t drawingViewportHeight);
             
             ~NewMouseDragCreateAnnotation();
             
@@ -192,9 +189,13 @@ namespace caret {
             
             const MouseEvent* getLastMouseEvent() const;
             
+            int32_t getDrawingViewportHeight() const;
+            
             void eraseLastCoordinate();
             
         private:
+            const int32_t m_drawingViewportHeight;
+            
             AnnotationFile* m_annotationFile;
             
             Annotation* m_annotation;

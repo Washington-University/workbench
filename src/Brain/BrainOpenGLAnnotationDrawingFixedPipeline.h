@@ -512,6 +512,8 @@ namespace caret {
         
         float computePolySizeHandleDiameter(const GraphicsPrimitive* primitive) const;
         
+        float getLineWidthMultiplierForAnnotationBeingDrawn(const Annotation* annotation) const;
+        
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
         Inputs* m_inputs;
@@ -524,6 +526,10 @@ namespace caret {
          * "annotation being drawn" and AnnotationColorBar's.
          */
         AnnotationFile* m_dummyAnnotationFile;
+        
+        Annotation* m_annotationBeingDrawn = NULL;
+        
+        float m_annotationBeingDrawnViewportHeight = 0.0;
         
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;

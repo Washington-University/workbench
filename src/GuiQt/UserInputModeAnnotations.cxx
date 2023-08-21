@@ -45,6 +45,7 @@
 #include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
@@ -64,6 +65,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventUserInputModeGet.h"
+#include "GapsAndMargins.h"
 #include "GestureEvent.h"
 #include "GuiManager.h"
 #include "HistologyOverlaySet.h"
@@ -302,7 +304,8 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             if (getUserInputMode() == modeEvent.getUserInputMode()) {
                 annDrawingEvent->setEventProcessed();
                 if (m_newAnnotationCreatingWithMouseDrag) {
-                    annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+                    annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
+                                                   m_newAnnotationCreatingWithMouseDrag->getDrawingViewportHeight());
                 }
             }
         }
@@ -1125,13 +1128,80 @@ UserInputModeAnnotations::initializeUserDrawingNewAnnotation(const MouseEvent& m
     }
     
     /*
+     * Viewport of drawing needs proper setting for volume slice montage
+     * when space is a "model type space" (not tab, window, etc)
+     */
+    int32_t drawingViewportHeight(0);
+    
+    bool modelSpaceFlag(false);
+    switch (m_modeNewAnnotationFileSpaceAndType->m_annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            modelSpaceFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    
+    if (modelSpaceFlag) {
+        const BrainOpenGLViewportContent* vpContent(mouseEvent.getViewportContent());
+        if (vpContent != NULL) {
+            const BrowserTabContent* btc(vpContent->getBrowserTabContent());
+            if (btc != NULL) {
+                int32_t modelVP[4];
+                vpContent->getModelViewport(modelVP);
+                const int32_t viewportHeight(modelVP[3]);
+                drawingViewportHeight = viewportHeight;
+                
+                if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
+                    switch (btc->getVolumeSliceDrawingType()) {
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                        {
+                            Brain* brain(GuiManager::get()->getBrain());
+                            CaretAssert(brain);
+                            const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
+                            
+                            const int32_t numRows(btc->getVolumeMontageNumberOfRows());
+                            drawingViewportHeight = 0;
+                            int32_t verticalMargin(0);
+                            BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewportHeight,
+                                                                                   gapsAndMargins->getVolumeMontageVerticalGapForWindow(getBrowserWindowIndex()),
+                                                                                   -1,
+                                                                                   numRows,
+                                                                                   drawingViewportHeight,
+                                                                                   verticalMargin);
+                        }
+                            break;
+                        case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    /*
      * Note ALWAYS use WINDOW space for the drag anntotion.
      * Otherwise it will not get displayed if surface/stereotaxic
      */
     m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
                                                                                   AnnotationCoordinateSpaceEnum::WINDOW,
                                                                                   m_modeNewAnnotationFileSpaceAndType->m_annotationType,
-                                                                                  mouseEvent));
+                                                                                  mouseEvent,
+                                                                                  drawingViewportHeight));
 }
 
 /**
@@ -1754,11 +1824,16 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
      * Update graphics only if an annotation was passed to this method (WB-820)
      */
     if (annotationIDIn != NULL) {
-#if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-        openGLWidget->updateGL();
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        this->update();
 #else
-        openGLWidget->update();
+        this->updateGL();
 #endif
+//#if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
+//        openGLWidget->updateGL();
+//#else
+//        openGLWidget->update();
+//#endif
     }
 }
 
@@ -2893,11 +2968,15 @@ UserInputModeAnnotations::groupAnnotationsAfterPasting(std::vector<Annotation*>&
  *     Type of annotation being created.
  * @param mouseEvent
  *     Mouse event.
+ * @param drawingViewportHeight
+ *     Height of viewport in which drawing is done, valid if greater than zero
  */
 UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnotation(AnnotationFile* annotationFile,
                                                                                      const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                                      const AnnotationTypeEnum::Enum annotationType,
-                                                                                     const MouseEvent& mouseEvent)
+                                                                                     const MouseEvent& mouseEvent,
+                                                                                     const int32_t drawingViewportHeight)
+: m_drawingViewportHeight(drawingViewportHeight)
 {
     BrainOpenGLViewportContent* vpContent = mouseEvent.getViewportContent();
     CaretAssert(vpContent);
@@ -3207,3 +3286,12 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getLastMouseEvent() cons
     return NULL;
 }
 
+/**
+ * @return Height of viewport for drawing new annotation, valid if greater than zero.
+ * Typically set for volume slice montage
+ */
+int32_t
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::getDrawingViewportHeight() const
+{
+    return m_drawingViewportHeight;
+}

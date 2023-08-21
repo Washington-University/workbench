@@ -71,14 +71,25 @@ EventAnnotationGetBeingDrawnInWindow::getAnnotation() const
     return m_annotation;
 }
 
+int32_t
+EventAnnotationGetBeingDrawnInWindow::getDrawingViewportHeight() const
+{
+    return m_drawingViewportHeight;
+}
+
 /**
  * Set the annotation being drawn in window
  * @param annotation
  *   The annotation
+ * @param drawingViewportHeight
+ *    Height of viewport in which annotation is drawn.  Valid if greater than zero
+ *    and used for volume montage height
  */
 void
-EventAnnotationGetBeingDrawnInWindow::setAnnotation(Annotation* annotation)
+EventAnnotationGetBeingDrawnInWindow::setAnnotation(Annotation* annotation,
+                                                    const int32_t drawingViewportHeight)
 {
-    m_annotation = annotation;
+    m_annotation            = annotation;
+    m_drawingViewportHeight = drawingViewportHeight;
 }
 

@@ -741,10 +741,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
      */
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_inputs->m_windowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
-    const Annotation* annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
-                                              ? annDrawEvent.getAnnotation()
-                                              : NULL);
-    
+    m_annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
+                              ? annDrawEvent.getAnnotation()
+                              : NULL);
+    m_annotationBeingDrawnViewportHeight = annDrawEvent.getDrawingViewportHeight();
+
     bool drawAnnotationsFromFilesFlag = true;
     
     const DisplayPropertiesAnnotationTextSubstitution* dpats = m_inputs->m_brain->getDisplayPropertiesAnnotationTextSubstitution();
@@ -1256,9 +1257,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
          */
         m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                         "Start of annotation drawn by user model space.");
-        if (annotationBeingDrawn != NULL) {
-            if (annotationBeingDrawn->getType() == AnnotationTypeEnum::TEXT) {
-                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(annotationBeingDrawn);
+        if (m_annotationBeingDrawn != NULL) {
+            if (m_annotationBeingDrawn->getType() == AnnotationTypeEnum::TEXT) {
+                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationBeingDrawn);
                 CaretAssert(textAnn);
                 
                 AnnotationBox box(AnnotationAttributesDefaultTypeEnum::NORMAL);
@@ -1271,7 +1272,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
             }
             else {
                 drawAnnotation(m_dummyAnnotationFile,
-                               const_cast<Annotation*>(annotationBeingDrawn),
+                               const_cast<Annotation*>(m_annotationBeingDrawn),
                                surfaceDisplayed);
             }
         }
@@ -5325,8 +5326,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     if (multiPairedCoordShape->getLineWidthPercentage() <= 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(multiPairedCoordShape);
     }
+    
+    const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiPairedCoordShape));
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                            multiPairedCoordShape->getLineWidthPercentage());
+                            (multiPairedCoordShape->getLineWidthPercentage()
+                             * lineWidthMultiplier));
     
     BoundingBox boundingBox;
     primitive->getVertexBounds(boundingBox);
@@ -5418,6 +5422,36 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                   boundingBox);
     
     return drawnFlag;
+}
+
+/**
+ * @return The line width multiplier for the annotation being drawn.  Returns
+ * one if the given annotation IS NOT the annotation currently being drawn by the user
+ * @param annotation
+ *   Annotation for testing to see if it is the annotation being drawn by the user.
+ *
+ * Note that the viewport for the annotation being drawn is always the window viewport.
+ * Also note that lines are a percentage of the viewport height.
+ * But if drawing in slice montage, the viewport is always "Number of Rows" too large.
+ * So this is sort of a kludge to adjust the line width to sort of fix this problem.
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthMultiplierForAnnotationBeingDrawn(const Annotation* annotation) const
+{
+    float lineWidthMultiplier(1.0);
+    
+    if (annotation != NULL) {
+        if (annotation == m_annotationBeingDrawn) {
+            GraphicsViewport vp(GraphicsViewport::newInstanceCurrentViewport());
+            const float vpHeight(vp.getHeightF());
+            if ((vpHeight > 0.0)
+                && (m_annotationBeingDrawnViewportHeight > 0.0)) {
+                lineWidthMultiplier = m_annotationBeingDrawnViewportHeight / vpHeight;
+            }
+        }
+    }
+
+    return lineWidthMultiplier;
 }
 
 /**
@@ -5671,8 +5705,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
     if (multiCoordShape->getLineWidthPercentage() <= 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(multiCoordShape);
     }
+    const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiCoordShape));
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                            multiCoordShape->getLineWidthPercentage());
+                            (multiCoordShape->getLineWidthPercentage()
+                             * lineWidthMultiplier));
     
     BoundingBox boundingBox;
     primitive->getVertexBounds(boundingBox);
