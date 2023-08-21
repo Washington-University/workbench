@@ -705,5 +705,33 @@ GiftiMetaData::getNumberOfMetaData() const
     return this->metadata.size();
 }
 
+/**
+ * Validate the the required metadata (values must not be empty)
+ * @param requiredMetaDataNames
+ *    Names of required metadata
+ * @param errorMessageOut
+ *    Contains error message if validation fails
+ * @return
+ *    True if metadata is valid, else false.
+ */
+bool
+GiftiMetaData::validateRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
+                                        AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    for (const auto& name : requiredMetaDataNames) {
+        const AString& value(get(name).trimmed());
+        if (value.isEmpty()) {
+            errorMessageOut.appendWithNewLine("   " + name);
+        }
+    }
+    
+    if ( ! errorMessageOut.isEmpty()) {
+        errorMessageOut.insert(0, "Required metadata is invalid:\n");
+    }
+    
+    return errorMessageOut.isEmpty();
+}
 
 

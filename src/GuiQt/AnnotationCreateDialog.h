@@ -30,6 +30,7 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
+class QCheckBox;
 class QDoubleSpinBox;
 class QSpinBox;
 class QTextEdit;
@@ -158,9 +159,11 @@ namespace caret {
         
         QWidget* createPolyhedronWidget();
         
-        MetaDataCustomEditorWidget* createMetaDataEditorWidget();
+        QWidget* createMetaDataEditorWidget();
         
         void invalidateImage();
+        
+        float convertPolyhedronSlicesToMillimeters() const;
         
         static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
@@ -197,15 +200,23 @@ namespace caret {
         
         QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
         
+        QLabel* m_polyhedronSliceMillimetersDepthLabel = NULL;
+        
         MetaDataCustomEditorWidget* m_metaDataEditorWidget = NULL;
+        
+        QCheckBox* m_metaDataRequiredCheckBox = NULL;
         
         static std::unique_ptr<GiftiMetaData> s_annotationMetaData;
         
+        std::vector<AString> m_requiredMetaDataNames;
+        
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
-        static float s_previousPolyhedronDepthValue;
+        static float s_previousPolyhedronDepthValueMillimeters;
         
-        static bool s_previousPolyhedronDepthValueValidFlag;
+        static bool s_previousPolyhedronDepthValueMillimetersValidFlag;
+        
+        static bool s_previousMetaDataRequiredCheckedStatus;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -213,9 +224,10 @@ namespace caret {
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
-    float AnnotationCreateDialog::s_previousPolyhedronDepthValue = 5;
-    bool AnnotationCreateDialog::s_previousPolyhedronDepthValueValidFlag = false;
+    float AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimeters = 5;
+    bool AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimetersValidFlag = false;
     std::unique_ptr<GiftiMetaData> AnnotationCreateDialog::s_annotationMetaData;
+    bool AnnotationCreateDialog::s_previousMetaDataRequiredCheckedStatus = true;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

@@ -40,18 +40,15 @@ namespace caret {
         Q_OBJECT
 
     public:
-        enum class CommentEditorStatus {
-            SHOW_NO,
-            SHOW_YES
-        };
-        
         MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
-                                   const CommentEditorStatus commentEditorStatus,
                                    GiftiMetaData* metaData,
                                    QWidget* parent = 0);
         
         virtual ~MetaDataCustomEditorWidget();
         
+        bool validateAndSaveRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
+                                             AString& errorMessageOut);
+
         void saveMetaData();
         
     private:

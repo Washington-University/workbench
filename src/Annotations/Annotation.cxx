@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
 #include "GiftiMetaData.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "SceneClass.h"
@@ -1768,6 +1769,53 @@ Annotation::getMetaData() const
     return m_metaData.get();
 }
 
+/**
+ * @return The default metadata names for the given annotation type
+ * @param annotationType
+ *    The type of annotation
+ * @param polyhedronSamplesFlag
+ *    If polyhedron type, true if this polyhedron is used in Edit Samples Mode
+ */
+std::vector<AString>
+Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
+                                           const bool polyhedronSamplesFlag)
+{
+    std::vector<AString> names;
+    
+    switch (annotationType) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+            if (polyhedronSamplesFlag) {
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
+                names.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
+            }
+            break;
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
+
+    return names;
+}
 
 /**
  * Initialize properties.

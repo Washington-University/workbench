@@ -66,12 +66,12 @@ using namespace caret;
  *    Parent widget.
  */
 MetaDataCustomEditorWidget::MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
-                                                       const CommentEditorStatus commentEditorStatus,
                                                        GiftiMetaData* metaData,
                                                        QWidget* parent)
 : QWidget(parent),
 m_metaData(metaData)
 {
+    bool hasCommentMetaDataFlag(false);
     const int32_t COLUMN_LABEL(0);
     const int32_t COLUMN_VALUE(1);
     int32_t rowIndex(0);
@@ -79,33 +79,33 @@ m_metaData(metaData)
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_VALUE, 100);
     for (const auto& name : metaDataNames) {
-        MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(name,
-                                                      m_metaData));
-        m_metaDataWidgetRows.push_back(mdwr);
-        
-        gridLayout->addWidget(mdwr->m_nameLabel,
-                              rowIndex, COLUMN_LABEL);
-        gridLayout->addWidget(mdwr->m_valueLineEdit,
-                              rowIndex, COLUMN_VALUE);
-        ++rowIndex;
-    }
-    
-    m_commentTextEditor = NULL;
-    switch (commentEditorStatus) {
-        case CommentEditorStatus::SHOW_NO:
-            break;
-        case CommentEditorStatus::SHOW_YES:
-        {
-            QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
-            m_commentTextEditor = new QTextEdit();
-            m_commentTextEditor->setText(m_metaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
-            gridLayout->addWidget(commentLabel,
+        if (name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT) {
+            /* Comment uses a text editor, below */
+            hasCommentMetaDataFlag = true;
+        }
+        else {
+            MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(name,
+                                                          m_metaData));
+            m_metaDataWidgetRows.push_back(mdwr);
+            
+            gridLayout->addWidget(mdwr->m_nameLabel,
                                   rowIndex, COLUMN_LABEL);
-            gridLayout->addWidget(m_commentTextEditor,
+            gridLayout->addWidget(mdwr->m_valueLineEdit,
                                   rowIndex, COLUMN_VALUE);
             ++rowIndex;
         }
-            break;
+    }
+    
+    m_commentTextEditor = NULL;
+    if (hasCommentMetaDataFlag) {
+        QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
+        m_commentTextEditor = new QTextEdit();
+        m_commentTextEditor->setText(m_metaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
+        gridLayout->addWidget(commentLabel,
+                              rowIndex, COLUMN_LABEL);
+        gridLayout->addWidget(m_commentTextEditor,
+                              rowIndex, COLUMN_VALUE);
+        ++rowIndex;
     }
 }
 
@@ -122,16 +122,34 @@ MetaDataCustomEditorWidget::~MetaDataCustomEditorWidget()
 void
 MetaDataCustomEditorWidget::saveMetaData()
 {
+    for (auto& mdwr : m_metaDataWidgetRows) {
+        mdwr->saveToMetaData();
+    }
+
     if (m_commentTextEditor != NULL) {
         m_metaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT,
                         m_commentTextEditor->toPlainText());
     }
-    
-    for (auto& mdwr : m_metaDataWidgetRows) {
-        mdwr->saveToMetaData();
-    }
 }
 
+/**
+ * Validate the the required metadata (values must not be empty)
+ * @param requiredMetaDataNames
+ *    Names of required metadata
+ * @param errorMessageOut
+ *    Contains error message if validation fails
+ * @return
+ *    True if metadata is valid, else false.
+ */
+bool
+MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
+                                                            AString& errorMessageOut)
+{
+    CaretAssert(m_metaData);
+    saveMetaData();
+    return m_metaData->validateRequiredMetaData(requiredMetaDataNames,
+                                                errorMessageOut);
+}
 
 /**
  * Constructor.

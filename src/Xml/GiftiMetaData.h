@@ -67,6 +67,9 @@ private:
     void initializeMembersGiftiMetaData();
     
 public:
+    bool validateRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
+                                  AString& errorMessageOut) const;
+    
     AString getUniqueID() const;
 
     //void removeUniqueID();

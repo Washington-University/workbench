@@ -24,6 +24,7 @@
 #undef __ANNOTATION_CREATE_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
@@ -601,10 +602,10 @@ m_imageHeight(0)
                                 ? createPolyhedronWidget()
                                 : NULL);
     
-    m_metaDataEditorWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
-                              ? createMetaDataEditorWidget()
-                              : NULL);
-    
+    QWidget* metaDataWidget = ((m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON)
+                               ? createMetaDataEditorWidget()
+                               : NULL);
+
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
     
@@ -641,8 +642,8 @@ m_imageHeight(0)
         layout->addWidget(polyedronWidget, 0, Qt::AlignLeft);
     }
     
-    if (m_metaDataEditorWidget != NULL) {
-        layout->addWidget(m_metaDataEditorWidget, 0);
+    if (metaDataWidget != NULL) {
+        layout->addWidget(metaDataWidget, 0);
     }
     
     setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
@@ -696,38 +697,83 @@ AnnotationCreateDialog::createTextWidget()
 QWidget*
 AnnotationCreateDialog::createPolyhedronWidget()
 {
-    if ( ! s_previousPolyhedronDepthValueValidFlag) {
-        const float numberOfSlices(3.0);
-        s_previousPolyhedronDepthValue = (numberOfSlices
-                                          * m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+    float numberOfSlices(3.0);
+    if (s_previousPolyhedronDepthValueMillimetersValidFlag) {
+        const float sliceThickness(m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+        float mm(s_previousPolyhedronDepthValueMillimeters);
+        float absMM(std::fabs(mm));
+        if (sliceThickness > 0.0) {
+            numberOfSlices = (absMM / sliceThickness) + 1;
+            if (mm < 0.0) {
+                numberOfSlices = -numberOfSlices;
+            }
+        }
     }
+    
     m_polyhedronSliceIndexDepthSpinBox = new QDoubleSpinBox();
     m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000.0);
     m_polyhedronSliceIndexDepthSpinBox->setMinimum(-m_polyhedronSliceIndexDepthSpinBox->maximum());
     m_polyhedronSliceIndexDepthSpinBox->setSingleStep(1.0);
+    m_polyhedronSliceIndexDepthSpinBox->setValue(numberOfSlices);
     QObject::connect(m_polyhedronSliceIndexDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged);
 
+    m_polyhedronSliceMillimetersDepthLabel = NULL;
+    m_polyhedronSliceMillimetersDepthSpinBox = NULL;
+    const bool useMillimetrsLabelFlag(true);
+    if (useMillimetrsLabelFlag) {
+        m_polyhedronSliceMillimetersDepthLabel = new QLabel("     ");
+        
+        /*
+         * Will update slice depth label
+         */
+        polyhedronDepthIndexSpinBoxValueChanged(m_polyhedronSliceIndexDepthSpinBox->value());
+    }
+    else {
+        m_polyhedronSliceMillimetersDepthSpinBox = new QDoubleSpinBox();
+        m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
+        m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
+        m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
+        m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValueMillimeters);
+        QObject::connect(m_polyhedronSliceMillimetersDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                         this, &AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged);
+        
+        /* Will update slice index with appropriate value */
+        polyhedronDepthMillimetersSpinBoxValueChanged(m_polyhedronSliceMillimetersDepthSpinBox->value());
+    }
     
-    m_polyhedronSliceMillimetersDepthSpinBox = new QDoubleSpinBox();
-    m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
-    m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
-    m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
-    m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValue);
-    QObject::connect(m_polyhedronSliceMillimetersDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                     this, &AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged);
-    
-    /* Will update slice index with appropriate value */
-    polyhedronDepthMillimetersSpinBoxValueChanged(m_polyhedronSliceMillimetersDepthSpinBox->value());
-
     QGroupBox* groupBox = new QGroupBox("Polyhedron Depth");
     QGridLayout* layout = new QGridLayout(groupBox);
     layout->addWidget(new QLabel("Slices"), 0, 0);
     layout->addWidget(m_polyhedronSliceIndexDepthSpinBox, 0, 1);
     layout->addWidget(new QLabel("Millimeters"), 1, 0);
-    layout->addWidget(m_polyhedronSliceMillimetersDepthSpinBox, 1, 1);
+    if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
+        layout->addWidget(m_polyhedronSliceMillimetersDepthSpinBox, 1, 1);
+    }
+    if (m_polyhedronSliceMillimetersDepthLabel != NULL) {
+        layout->addWidget(m_polyhedronSliceMillimetersDepthLabel, 1, 1);
+    }
 
     return groupBox;
+}
+
+/**
+ * @return polyhedron slice depth converted to millimeters
+ */
+float
+AnnotationCreateDialog::convertPolyhedronSlicesToMillimeters() const
+{
+    float millimetersOut(0.0);
+    const float numSlices(m_polyhedronSliceIndexDepthSpinBox->value());
+    const float absNumSlices(std::fabs(numSlices));
+    if (absNumSlices >= 2.0) {
+        const float sliceThickness(m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
+        millimetersOut = (absNumSlices - 1.0) * sliceThickness;
+        if (numSlices < 0.0) {
+            millimetersOut = -millimetersOut;
+        }
+    }
+    return millimetersOut;
 }
 
 /**
@@ -736,12 +782,16 @@ AnnotationCreateDialog::createPolyhedronWidget()
  *    New value
  */
 void
-AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged(double value)
+AnnotationCreateDialog::polyhedronDepthIndexSpinBoxValueChanged(double /*value*/)
 {
-    const float mm(m_newAnnotationInfo.m_selectionItemVoxel->getVoxelSizeMillimeters());
-    const float mmSize(value * mm);
-    QSignalBlocker blocker(m_polyhedronSliceMillimetersDepthSpinBox);
-    m_polyhedronSliceMillimetersDepthSpinBox->setValue(mmSize);
+    const float millimeters(convertPolyhedronSlicesToMillimeters());
+    if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
+        QSignalBlocker blocker(m_polyhedronSliceMillimetersDepthSpinBox);
+        m_polyhedronSliceMillimetersDepthSpinBox->setValue(millimeters);
+    }
+    if (m_polyhedronSliceMillimetersDepthLabel != NULL) {
+        m_polyhedronSliceMillimetersDepthLabel->setText(QString::number(millimeters, 'f', 3));
+    }
 }
 
 /**
@@ -764,31 +814,37 @@ AnnotationCreateDialog::polyhedronDepthMillimetersSpinBoxValueChanged(double val
 /**
  * @return A metadata editor widget for polyhedrons
  */
-MetaDataCustomEditorWidget*
+QWidget*
 AnnotationCreateDialog::createMetaDataEditorWidget()
 {
-    std::vector<AString> metaDataNames;
-    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
-    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
-    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
-    metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
-
-    if (! s_annotationMetaData) {
+    const bool polyhedronSamplesFlag(true);
+    m_requiredMetaDataNames = Annotation::getDefaultMetaDataNamesForType(m_newAnnotationInfo.m_annotationType,
+                                                                         polyhedronSamplesFlag);
+    /*
+     * If first time dialog displayed, setup metadata names
+     */
+    if ( ! s_annotationMetaData) {
         s_annotationMetaData.reset(new GiftiMetaData());
-        for (const auto& name : metaDataNames) {
+        for (const auto& name : m_requiredMetaDataNames) {
             s_annotationMetaData->set(name, "");
         }
-        s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
     }
     
     s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
     s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
 
-    MetaDataCustomEditorWidget* mdw = new MetaDataCustomEditorWidget(metaDataNames,
-                                                                     MetaDataCustomEditorWidget::CommentEditorStatus::SHOW_YES,
-                                                                     s_annotationMetaData.get());
-        
-    return mdw;
+    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(m_requiredMetaDataNames,
+                                                            s_annotationMetaData.get());
+
+    m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata");
+    m_metaDataRequiredCheckBox->setChecked(s_previousMetaDataRequiredCheckedStatus);
+    
+    QGroupBox* groupBox(new QGroupBox("Metadata"));
+    QVBoxLayout* groupLayout = new QVBoxLayout(groupBox);
+    groupLayout->addWidget(m_metaDataEditorWidget);
+    groupLayout->addWidget(m_metaDataRequiredCheckBox, 0, Qt::AlignLeft);
+    
+    return groupBox;
 }
 
 /**
@@ -940,29 +996,41 @@ AnnotationCreateDialog::okButtonClicked()
         if ((m_imageWidth <= 0)
             || (m_imageHeight <= 0)
             || (m_imageRgbaBytes.empty())) {
-            errorMessage = "Image File is invalid.  Choose Image File.";
+            errorMessage.appendWithNewLine("Image File is invalid.  Choose Image File.");
         }
-    }
-    
-    if (m_metaDataEditorWidget != NULL) {
-        m_metaDataEditorWidget->saveMetaData();
     }
     
     float polyhedronDepthMM(0);
     if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
-        CaretAssert(m_polyhedronSliceMillimetersDepthSpinBox);
-        polyhedronDepthMM = m_polyhedronSliceMillimetersDepthSpinBox->value();
-        if (polyhedronDepthMM == 0.0) {
-            errorMessage = "Polyhedron depht must not be zero.";
+        if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
+            polyhedronDepthMM = m_polyhedronSliceMillimetersDepthSpinBox->value();
         }
-        s_previousPolyhedronDepthValue = polyhedronDepthMM;
-        s_previousPolyhedronDepthValueValidFlag = true;
+        else {
+            polyhedronDepthMM = convertPolyhedronSlicesToMillimeters();
+        }
+        if (polyhedronDepthMM == 0.0) {
+            errorMessage.appendWithNewLine("Polyhedron depth must not be zero.");
+        }
+        s_previousPolyhedronDepthValueMillimeters = polyhedronDepthMM;
+        s_previousPolyhedronDepthValueMillimetersValidFlag = true;
     }
     
-    if ( ! errorMessage.isEmpty()) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-        return;
+    if (m_metaDataEditorWidget != NULL) {
+        CaretAssert(m_metaDataRequiredCheckBox);
+        s_previousMetaDataRequiredCheckedStatus = m_metaDataRequiredCheckBox->isChecked();
+        if (m_metaDataRequiredCheckBox->isChecked()) {
+            AString message;
+            if ( ! m_metaDataEditorWidget->validateAndSaveRequiredMetaData(m_requiredMetaDataNames,
+                                                                           message)) {
+                message.appendWithNewLine("\nUncheck \""
+                                          + m_metaDataRequiredCheckBox->text()
+                                          + "\" to finish metadata entry later");
+                errorMessage.appendWithNewLine(message);
+            }
+        }
+        else {
+            m_metaDataEditorWidget->saveMetaData();
+        }
     }
     
     AnnotationCoordinateSpaceEnum::Enum space = m_newAnnotationInfo.m_selectedSpace;
@@ -971,9 +1039,14 @@ AnnotationCreateDialog::okButtonClicked()
         bool validFlag = false;
         space = AnnotationCoordinateSpaceEnum::fromIntegerCode(id, &validFlag);
         if ( ! validFlag) {
-            WuQMessageBox::errorOk(this, "No Space is selected.");
+            errorMessage.appendWithNewLine("No Space is selected for annotation.");
             return;
         }
+    }
+    if ( ! errorMessage.isEmpty()) {
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+        return;
     }
     
     CaretAssert(m_newAnnotationInfo.m_annotationFile);
