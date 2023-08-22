@@ -25,6 +25,12 @@
 
 #include <cmath>
 
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+#include <QOpenGLWidget>
+#else
+#include <QGLWidget>
+#endif
+
 #include "AnnotationBrowserTab.h"
 #include "AnnotationChangeCoordinateDialog.h"
 #include "AnnotationClipboard.h"
