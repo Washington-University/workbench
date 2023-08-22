@@ -23,6 +23,8 @@
 #include "AnnotationCreateDialog.h"
 #undef __ANNOTATION_CREATE_DIALOG_DECLARE__
 
+#include <cmath>
+
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QDoubleSpinBox>
