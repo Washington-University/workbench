@@ -25,11 +25,14 @@
 
 #include <cmath>
 
+//TSC: we aren't using updateGL() at the moment, so let's remove the GL includes to try to fix the windows build
+/*
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
 #include <QOpenGLWidget>
 #else
 #include <QGLWidget>
 #endif
+/**/
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationChangeCoordinateDialog.h"
