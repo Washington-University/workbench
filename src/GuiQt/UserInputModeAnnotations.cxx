@@ -1833,13 +1833,9 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
 #ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
         this->update();
 #else
-        this->updateGL();
+        this->update();
+/* Does not compile on linux    JWH 22aug2023    this->updateGL();  */
 #endif
-//#if BRAIN_OPENGL_INFO_SUPPORTS_DISPLAY_LISTS
-//        openGLWidget->updateGL();
-//#else
-//        openGLWidget->update();
-//#endif
     }
 }
 
