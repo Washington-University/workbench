@@ -5154,6 +5154,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
      */
     bool drawEditableSizingHandlesFlag(false);
     bool drawNonEditableSizingHandlesFlag(false);
+    bool drawCreatingNewAnnotationSizingHandlesFlag(false);
     int32_t drawStartingCoordinateIndex(-1);
     int32_t drawCoordinateCount(-1);
     
@@ -5169,6 +5170,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 primitive->addVertex(xyz);
             }
         }
+        drawCreatingNewAnnotationSizingHandlesFlag = true;
     }
     else {
         for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
@@ -5413,6 +5415,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                                  primitive.get(),
                                                                  sizeHandleWidthInPixels);
             }
+        }
+        if (drawCreatingNewAnnotationSizingHandlesFlag) {
+            const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
+            AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
+            sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
+//            sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE;
+            drawAnnotationMultiPairedCoordShapeSizingHandles(sizeHandleType,
+                                                             annotationFile,
+                                                             multiPairedCoordShape,
+                                                             windowVertexXYZ,
+                                                             primitive.get(),
+                                                             sizeHandleWidthInPixels);
         }
     }
     
