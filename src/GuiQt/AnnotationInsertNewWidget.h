@@ -94,15 +94,7 @@ namespace caret {
         
         QToolButton* m_polygonToolButton = NULL;
         
-        AString m_polygonDrawClicksToolTipText;
-        
-        AString m_polygonDrawDragToolTipText;
-        
         QToolButton* m_polyLineToolButton = NULL;
-        
-        AString m_polyLineDrawClicksToolTipText;
-        
-        AString m_polyLineDrawDragToolTipText;
         
         QToolButton* m_polyhedronToolButton = NULL;
         

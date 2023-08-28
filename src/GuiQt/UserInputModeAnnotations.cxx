@@ -202,31 +202,31 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 case AnnotationTypeEnum::OVAL:
                     break;
                 case AnnotationTypeEnum::POLYHEDRON:
-                    switch (annotationEvent->getPolyLineDrawingMode()) {
-                        case EventAnnotationCreateNewType::CONTINUOUS:
-                            mode = MODE_NEW_WITH_DRAG_START;
-                            break;
-                        case EventAnnotationCreateNewType::DISCRETE:
+                    switch (annotationEvent->getPolyDrawingMode()) {
+//                        case EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS:
+//                            mode = MODE_NEW_WITH_DRAG_START;
+//                            break;
+                        case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
                             mode = MODE_NEW_WITH_CLICK_SERIES_START;
                             break;
                     }
                     break;
                 case AnnotationTypeEnum::POLYGON:
-                    switch (annotationEvent->getPolyLineDrawingMode()) {
-                        case EventAnnotationCreateNewType::CONTINUOUS:
-                            mode = MODE_NEW_WITH_DRAG_START;
-                            break;
-                        case EventAnnotationCreateNewType::DISCRETE:
+                    switch (annotationEvent->getPolyDrawingMode()) {
+//                        case EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS:
+//                            mode = MODE_NEW_WITH_DRAG_START;
+//                            break;
+                        case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
                             mode = MODE_NEW_WITH_CLICK_SERIES_START;
                             break;
                     }
                     break;
                 case AnnotationTypeEnum::POLYLINE:
-                    switch (annotationEvent->getPolyLineDrawingMode()) {
-                        case EventAnnotationCreateNewType::CONTINUOUS:
-                            mode = MODE_NEW_WITH_DRAG_START;
-                            break;
-                        case EventAnnotationCreateNewType::DISCRETE:
+                    switch (annotationEvent->getPolyDrawingMode()) {
+//                        case EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS:
+//                            mode = MODE_NEW_WITH_DRAG_START;
+//                            break;
+                        case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
                             mode = MODE_NEW_WITH_CLICK_SERIES_START;
                             break;
                     }
@@ -295,7 +295,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                                                                                         annFile,
                                                                                         annSpace,
                                                                                         annShape,
-                                                                                        EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE).getPointer());
+                                                                                        EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG).getPointer());
 
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                         }

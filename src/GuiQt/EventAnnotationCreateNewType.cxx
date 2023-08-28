@@ -58,14 +58,14 @@ EventAnnotationCreateNewType::EventAnnotationCreateNewType(const int32_t browser
                                                            AnnotationFile* annotationFile,
                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                            const AnnotationTypeEnum::Enum annotationType,
-                                                           const PolyLineDrawingMode polyLineDrawingMode)
+                                                           const PolyDrawingMode polyDrawingMode)
 : Event(EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE),
 m_browserWindowIndex(browserWindowIndex),
 m_userInputMode(userInputMode),
 m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
 m_annotationType(annotationType),
-m_polyLineDrawingMode(polyLineDrawingMode)
+m_polyDrawingMode(polyDrawingMode)
 {
     
 }
@@ -122,12 +122,12 @@ EventAnnotationCreateNewType::getAnnotationType() const
 }
 
 /**
- * @return Mode for polyline drawing
+ * @return Mode for poly type drawing
  */
-EventAnnotationCreateNewType::PolyLineDrawingMode
-EventAnnotationCreateNewType::getPolyLineDrawingMode() const
+EventAnnotationCreateNewType::PolyDrawingMode
+EventAnnotationCreateNewType::getPolyDrawingMode() const
 {
-    return m_polyLineDrawingMode;
+    return m_polyDrawingMode;
 }
 
 

@@ -34,9 +34,15 @@ namespace caret {
     class EventAnnotationCreateNewType : public Event {
         
     public:
-        enum PolyLineDrawingMode {
-            CONTINUOUS,
-            DISCRETE
+        /**
+         * Mode for drawing poly type annotations
+         */
+        enum class PolyDrawingMode {
+            /**
+             * Use may click to add discrete points or drag to add
+             * continuous points
+             */
+            CLICK_AND_OR_DRAG
         };
         
         EventAnnotationCreateNewType(const int32_t browserWindowIndex,
@@ -44,7 +50,7 @@ namespace caret {
                                      AnnotationFile* annotationFile,
                                      const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                      const AnnotationTypeEnum::Enum annotationType,
-                                     const PolyLineDrawingMode polyLineDrawingMode);
+                                     const PolyDrawingMode polyDrawingMode);
         
         virtual ~EventAnnotationCreateNewType();
         
@@ -58,7 +64,7 @@ namespace caret {
         
         AnnotationTypeEnum::Enum getAnnotationType() const;
         
-        PolyLineDrawingMode getPolyLineDrawingMode() const;
+        PolyDrawingMode getPolyDrawingMode() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -77,7 +83,7 @@ namespace caret {
         
         const AnnotationTypeEnum::Enum m_annotationType;
 
-        const PolyLineDrawingMode m_polyLineDrawingMode;
+        const PolyDrawingMode m_polyDrawingMode;
         
         // ADD_NEW_MEMBERS_HERE
 

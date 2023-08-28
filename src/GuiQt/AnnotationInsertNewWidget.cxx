@@ -59,12 +59,6 @@
 
 using namespace caret;
 
-/*
- * If true, polylines and polygons are drawn using both
- * clicks and drags that may be intermixed.
- */
-static bool polyClickAndDragDrawingFlag(true);
-
 /**
  * \class caret::AnnotationInsertNewWidget
  * \brief Widget for creating new annotations.
@@ -625,37 +619,14 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                         "</ul>");
             break;
         case AnnotationTypeEnum::POLYGON:
-            if (polyClickAndDragDrawingFlag) {
-                typeText = ("Polygon Annotation.<p>"
-                            "A polygon is a series of connected line segments that form a closed shape "
-                            "(last coordinate automatically connects to first coordinate). "
-                            "<p>"
-                            + polyDrawingText);
-            }
-            else {
-                clickText = ("Click the mouse to draw each vertex of the polygon and "
-                             "shift-click the mouse to draw the last vertex and finish the polygon. "
-                             "The last vertex is automatically connected to the first vertex to "
-                             "form the polygon.");
-                dragText = ("Move the mouse to the first vertex of the polygon. While holding "
-                            "down the left mouse button, drag the mouse to draw the polygon and "
-                            "release the left mouse button to finish the polygon.  "
-                            "The last vertex is automatically connected to the first vertex to "
-                            "form the polygon. "
-                            "This method "
-                            "creates a polygon with many vertices and there may be a pause when "
-                            "the mouse button is released to finish the polygon.");
-                typeText = ("Polygon Annotation.  A polygon is a series of line segments that form a closed shape "
-                            "(last vertex automatically connects to first vertex). "
-                            "When this button is clicked, a menu appears for selecting the method used "
-                            "to draw the polygon.");
-                m_polygonDrawClicksToolTipText = ("<html>" + clickText + "</html>");
-                m_polygonDrawDragToolTipText   = ("<html>" + dragText + "<html>");
-            }
-            
+            typeText = ("Polygon Annotation.<p>"
+                        "A polygon is a series of connected line segments that form a closed shape "
+                        "(last coordinate automatically connects to first coordinate). "
+                        "<p>"
+                        + polyDrawingText);
             break;
         case AnnotationTypeEnum::POLYLINE:
-            if (polyClickAndDragDrawingFlag) {
+            {
                 AString polyDrawTextCopy(polyDrawingText);
                 polyDrawTextCopy.replace("olygon", "olyline");
                 typeText = ("Polyline Annotation.<p>"
@@ -663,20 +634,6 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                             "(last coordinate DOES NOT connect to first coordinate). "
                             "<p>"
                             + polyDrawTextCopy);
-            }
-            else {
-                clickText = ("Click the mouse to draw each vertex of the polyline and "
-                             "shift-click the mouse to draw the last vertex and finish the polyline.");
-                dragText = ("Move the mouse to the first vertex of the polyline. While holding "
-                            "down the left mouse button, drag the mouse to draw the polyline and "
-                            "release the left mouse button to finish the polyline.  This method "
-                            "creates a polyline with many vertices and there may be a pause when "
-                            "the mouse button is released to finish the polyline.");
-                typeText = ("Polyline Annotation.  A polyline is a series of line segments connected at their end points. "
-                            "When this button is clicked, a menu appears for selecting the method used "
-                            "to draw the polyline.");
-                m_polyLineDrawClicksToolTipText = ("<html>" + clickText + "</html>");
-                m_polyLineDrawDragToolTipText   = ("<html>" + dragText + "<html>");
             }
             break;
         case AnnotationTypeEnum::SCALE_BAR:
@@ -781,8 +738,8 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
                                                                             &shapeValidFlag);
     CaretAssert(shapeValidFlag);
     
-    EventAnnotationCreateNewType::PolyLineDrawingMode polyLineDrawingMode
-    = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
+    EventAnnotationCreateNewType::PolyDrawingMode polyDrawingMode
+    = EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG;
     
     switch (annShape) {
         case AnnotationTypeEnum::BOX:
@@ -798,65 +755,13 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
         case AnnotationTypeEnum::OVAL:
             break;
         case AnnotationTypeEnum::POLYHEDRON:
-            polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
+            polyDrawingMode = EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG;
             break;
         case AnnotationTypeEnum::POLYGON:
-            if (polyClickAndDragDrawingFlag) {
-                polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
-            }
-            else {
-                CaretAssert(m_polygonToolButton);
-                QMenu menu;
-                menu.setToolTipsVisible(true);
-                
-                /*
-                 * Drawing modes
-                 */
-                QAction* dragAction = menu.addAction("Drag (Continuous)");
-                dragAction->setToolTip(m_polygonDrawDragToolTipText);
-                QAction* clicksAction  = menu.addAction("Clicks (Discrete)");
-                clicksAction->setToolTip(m_polygonDrawClicksToolTipText);
-                
-                QAction* selectedAction = menu.exec(m_polygonToolButton->mapToGlobal(QPoint(0,0)));
-                if (selectedAction == dragAction) {
-                    polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS;
-                }
-                else if (selectedAction == clicksAction) {
-                    polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
-                }
-                else {
-                    return;
-                }
-            }
+            polyDrawingMode = EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG;
             break;
         case AnnotationTypeEnum::POLYLINE:
-            if (polyClickAndDragDrawingFlag) {
-                polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
-            }
-            else {
-                CaretAssert(m_polyLineToolButton);
-                QMenu menu;
-                menu.setToolTipsVisible(true);
-                
-                /*
-                 * Drawing modes
-                 */
-                QAction* dragAction = menu.addAction("Drag (Continuous)");
-                dragAction->setToolTip(m_polyLineDrawDragToolTipText);
-                QAction* clicksAction  = menu.addAction("Clicks (Discrete)");
-                clicksAction->setToolTip(m_polyLineDrawClicksToolTipText);
-                
-                QAction* selectedAction = menu.exec(m_polyLineToolButton->mapToGlobal(QPoint(0,0)));
-                if (selectedAction == dragAction) {
-                    polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::CONTINUOUS;
-                }
-                else if (selectedAction == clicksAction) {
-                    polyLineDrawingMode = EventAnnotationCreateNewType::PolyLineDrawingMode::DISCRETE;
-                }
-                else {
-                    return;
-                }
-            }
+            polyDrawingMode = EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG;
             break;
         case AnnotationTypeEnum::SCALE_BAR:
             break;
@@ -871,7 +776,7 @@ AnnotationInsertNewWidget::spaceOrShapeActionTriggered()
                                                                 annotationFile,
                                                                 annSpace,
                                                                 annShape,
-                                                                polyLineDrawingMode).getPointer());
+                                                                polyDrawingMode).getPointer());
 }
 
 /**
