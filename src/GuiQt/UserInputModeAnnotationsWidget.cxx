@@ -458,13 +458,13 @@ UserInputModeAnnotationsWidget::updateWidget()
      * Show the proper widget
      */
     switch (m_inputModeAnnotations->getMode()) {
-        case UserInputModeAnnotations::MODE_NEW_WITH_DRAG_START:
+        case UserInputModeAnnotations::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK_SERIES:
+        case UserInputModeAnnotations::MODE_DRAWING_NEW_POLY_TYPE:
             break;
-        case UserInputModeAnnotations::MODE_NEW_WITH_CLICK_SERIES_START:
+        case UserInputModeAnnotations::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
-        case UserInputModeAnnotations::MODE_NEW_WITH_DRAG:
+        case UserInputModeAnnotations::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
         case UserInputModeAnnotations::MODE_PASTE:
             break;

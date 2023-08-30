@@ -53,13 +53,13 @@ namespace caret {
          */
         enum Mode {
             /** Mouse updates new annotation as mouse is clicked */
-            MODE_NEW_WITH_CLICK_SERIES,
+            MODE_DRAWING_NEW_POLY_TYPE,
             /** Mouse starts a new annotaiton with a series of clicks (used with polyline) */
-            MODE_NEW_WITH_CLICK_SERIES_START,
+            MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE,
             /** Mouse updates new annotation as mouse is dragged */
-            MODE_NEW_WITH_DRAG,
+            MODE_DRAWING_NEW_SIMPLE_SHAPE,
             /** Mouse starts new annotation drawn by dragging */
-            MODE_NEW_WITH_DRAG_START,
+            MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE,
             /** User selected Paste from Edit Menu, user may need to click mouse to paste the annotation */
             MODE_PASTE,
             /** User selected Paste Special from Edit Menu, user may need to click mouse to paste the annotation */
