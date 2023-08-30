@@ -65,11 +65,7 @@ namespace caret {
             /** User selected Paste Special from Edit Menu, user may need to click mouse to paste the annotation */
             MODE_PASTE_SPECIAL,
             /** Mouse selects annotation */
-            MODE_SELECT,
-            /** Set coordinate one in annotation*/
-            MODE_SET_COORDINATE_ONE,
-            /** Set coordinate two in annotation*/
-            MODE_SET_COORDINATE_TWO
+            MODE_SELECT
         };
         
         UserInputModeAnnotations(const int32_t browserWindowIndex);
@@ -236,8 +232,6 @@ namespace caret {
         void setMode(const Mode mode);
         
         void processModeNewMouseLeftClick(const MouseEvent& mouseEvent);
-        
-        void processModeSetCoordinate(const MouseEvent& mouseEvent);
         
         void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
                                      SelectionItemAnnotation* annotationIDIn);

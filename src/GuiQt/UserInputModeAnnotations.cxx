@@ -35,7 +35,6 @@
 /**/
 
 #include "AnnotationBrowserTab.h"
-#include "AnnotationChangeCoordinateDialog.h"
 #include "AnnotationClipboard.h"
 #include "AnnotationCreateDialog.h"
 #include "AnnotationColorBar.h"
@@ -413,10 +412,6 @@ UserInputModeAnnotations::setMode(const Mode mode)
                 break;
             case MODE_SELECT:
                 break;
-            case MODE_SET_COORDINATE_ONE:
-                break;
-            case MODE_SET_COORDINATE_TWO:
-                break;
         }
         
         if ( ! drawingModeFlag) {
@@ -545,12 +540,6 @@ UserInputModeAnnotations::getCursor() const
                 }
             }
             break;
-        case MODE_SET_COORDINATE_ONE:
-            cursor = CursorEnum::CURSOR_CROSS;
-            break;
-        case MODE_SET_COORDINATE_TWO:
-            cursor = CursorEnum::CURSOR_CROSS;
-            break;
     }
     
     return cursor;
@@ -634,10 +623,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     deleteSelectedAnnotations();
                     keyWasProcessedFlag = true;
                     break;
-                case MODE_SET_COORDINATE_ONE:
-                    break;
-                case MODE_SET_COORDINATE_TWO:
-                    break;
             }
         }
             break;
@@ -662,12 +647,6 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     selectModeFlag = true;
                     break;
                 case MODE_SELECT:
-                    break;
-                case MODE_SET_COORDINATE_ONE:
-                    selectModeFlag = true;
-                    break;
-                case MODE_SET_COORDINATE_TWO:
-                    selectModeFlag = true;
                     break;
             }
             if (selectModeFlag) {
@@ -1263,10 +1242,6 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             break;
         case MODE_SELECT:
             break;
-        case MODE_SET_COORDINATE_ONE:
-            break;
-        case MODE_SET_COORDINATE_TWO:
-            break;
     }
     
     AnnotationCoordinateSpaceEnum::Enum draggingCoordinateSpace = AnnotationCoordinateSpaceEnum::VIEWPORT;
@@ -1656,12 +1631,6 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             break;
         case MODE_SELECT:
             break;
-        case MODE_SET_COORDINATE_ONE:
-            processModeSetCoordinate(mouseEvent);
-            break;
-        case MODE_SET_COORDINATE_TWO:
-            processModeSetCoordinate(mouseEvent);
-            break;
     }
 }
 
@@ -1703,10 +1672,6 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
                                              shiftKeyDown,
                                              singleSelectionModeFlag);
             }
-            break;
-        case MODE_SET_COORDINATE_ONE:
-            break;
-        case MODE_SET_COORDINATE_TWO:
             break;
     }
 }
@@ -1785,10 +1750,6 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                 }
             }
         }
-            break;
-        case MODE_SET_COORDINATE_ONE:
-            break;
-        case MODE_SET_COORDINATE_TWO:
             break;
     }
 }
@@ -1886,10 +1847,6 @@ UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mou
             case MODE_PASTE_SPECIAL:
                 break;
             case MODE_SELECT:
-                break;
-            case MODE_SET_COORDINATE_ONE:
-                break;
-            case MODE_SET_COORDINATE_TWO:
                 break;
         }
         std::vector<Vector3D> coords = m_newAnnotationCreatingWithMouseDrag->getDrawingCoordinates();
@@ -1991,10 +1948,6 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
         case MODE_PASTE_SPECIAL:
             break;
         case MODE_SELECT:
-            break;
-        case MODE_SET_COORDINATE_ONE:
-            break;
-        case MODE_SET_COORDINATE_TWO:
             break;
     }
     
@@ -2126,90 +2079,6 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
         }
     }
 }
-
-/**
- * Process a mouse left click to set a coordinate.
- *
- * @param mouseEvent
- *     Mouse event information.
- */
-void
-UserInputModeAnnotations::processModeSetCoordinate(const MouseEvent& mouseEvent)
-{
-    Annotation* selectedAnnotation = getSingleSelectedAnnotation();
-    if (selectedAnnotation == NULL) {
-        return;
-    }
-
-    AnnotationCoordinateInformation coordInfo;
-    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
-                                                             mouseEvent.getViewportContent(),
-                                                             mouseEvent.getX(),
-                                                             mouseEvent.getY(),
-                                                             coordInfo);
-    
-    AnnotationTwoCoordinateShape* twoCoordShape = selectedAnnotation->castToTwoCoordinateShape();
-    AnnotationOneCoordinateShape* oneCoordShape = selectedAnnotation->castToOneCoordinateShape();
-
-    AnnotationCoordinate* coordinate = NULL;
-    AnnotationCoordinate* otherCoordinate = NULL;
-    switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
-            break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
-            break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-            break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
-            break;
-        case MODE_PASTE:
-            break;
-        case MODE_PASTE_SPECIAL:
-            break;
-        case MODE_SELECT:
-            break;
-        case MODE_SET_COORDINATE_ONE:
-            if (twoCoordShape != NULL) {
-                coordinate      = twoCoordShape->getStartCoordinate();
-                otherCoordinate = twoCoordShape->getEndCoordinate();
-            }
-            else if (oneCoordShape != NULL) {
-                coordinate = oneCoordShape->getCoordinate();
-            }
-            break;
-        case MODE_SET_COORDINATE_TWO:
-            if (twoCoordShape != NULL) {
-                coordinate      = twoCoordShape->getEndCoordinate();
-                otherCoordinate = twoCoordShape->getStartCoordinate();
-            }
-            break;
-    }
-    
-    if (coordinate != NULL) {
-        StructureEnum::Enum structure = StructureEnum::INVALID;
-        int32_t numNodes = -1;
-        int32_t nodeIndex = -1;
-        float surfaceOffset = 0.0;
-        AnnotationSurfaceOffsetVectorTypeEnum::Enum surfaceVectorType = AnnotationSurfaceOffsetVectorTypeEnum::CENTROID_THRU_VERTEX;
-        coordinate->getSurfaceSpace(structure, numNodes, nodeIndex, surfaceOffset, surfaceVectorType);
-        coordInfo.m_surfaceSpaceInfo.m_nodeOffsetLength = surfaceOffset;
-        coordInfo.m_surfaceSpaceInfo.m_nodeVectorOffsetType = surfaceVectorType;
-    }
-    
-    AnnotationChangeCoordinateDialog changeCoordDialog(coordInfo,
-                                                       selectedAnnotation,
-                                                       coordinate,
-                                                       otherCoordinate,
-                                                       m_annotationToolsWidget);
-    if (changeCoordDialog.exec() == AnnotationChangeCoordinateDialog::Accepted) {
-        
-    }
-
-    setMode(MODE_SELECT);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-}
-
 
 /**
  * Process a mouse left click for new mode.
@@ -2420,10 +2289,6 @@ UserInputModeAnnotations::isEditMenuValid() const
             break;
         case MODE_SELECT:
             editMenuValid = true;
-            break;
-        case MODE_SET_COORDINATE_ONE:
-            break;
-        case MODE_SET_COORDINATE_TWO:
             break;
     }
     

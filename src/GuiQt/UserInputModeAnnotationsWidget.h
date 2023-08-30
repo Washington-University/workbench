@@ -71,11 +71,6 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void selectCoordinateOneWithMouse();
-        
-        void selectCoordinateTwoWithMouse();
-        
     private:
         UserInputModeAnnotationsWidget(const UserInputModeAnnotationsWidget&);
 

@@ -430,25 +430,6 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
 }
 
 /**
- * Select coordinate one with the mouse.
- */
-void
-UserInputModeAnnotationsWidget::selectCoordinateOneWithMouse()
-{
-    m_inputModeAnnotations->setMode(UserInputModeAnnotations::MODE_SET_COORDINATE_ONE);
-}
-
-/**
- * Select coordinate two with the mouse.
- */
-void
-UserInputModeAnnotationsWidget::selectCoordinateTwoWithMouse()
-{
-    m_inputModeAnnotations->setMode(UserInputModeAnnotations::MODE_SET_COORDINATE_TWO);
-}
-
-
-/**
  * Update the widget.
  */
 void
@@ -471,10 +452,6 @@ UserInputModeAnnotationsWidget::updateWidget()
         case UserInputModeAnnotations::MODE_PASTE_SPECIAL:
             break;
         case UserInputModeAnnotations::MODE_SELECT:
-            break;
-        case UserInputModeAnnotations::MODE_SET_COORDINATE_ONE:
-            break;
-        case UserInputModeAnnotations::MODE_SET_COORDINATE_TWO:
             break;
     }
     
