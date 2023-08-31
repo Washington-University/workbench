@@ -171,30 +171,8 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
         }
     }
     
-    SubvolumeAttributes::VolumeType volumeType(m_volumeFile->getType());
-    
-    /*
-     * Test palette name to see if it is the special palette name for mapping
-     * first first three maps using RGB coloring
-     */
-    switch (volumeType) {
-        case SubvolumeAttributes::UNKNOWN:
-        case SubvolumeAttributes::ANATOMY:
-        case SubvolumeAttributes::FUNCTIONAL:
-            if (m_volumeFile->getNumberOfMaps() >= 3) {
-                if (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getSelectedPaletteName() == Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME) {
-                    volumeType = SubvolumeAttributes::RGB_WORKBENCH;
-                }
-            }
-            break;
-        case SubvolumeAttributes::LABEL:
-        case SubvolumeAttributes::RGB:
-        case SubvolumeAttributes::RGB_WORKBENCH:
-        case SubvolumeAttributes::SEGMENTATION:
-        case SubvolumeAttributes::VECTOR:
-            break;
-    }
-    
+    const SubvolumeAttributes::VolumeType volumeType(m_volumeFile->getType());
+        
     switch (volumeType) {
         case SubvolumeAttributes::UNKNOWN:
         case SubvolumeAttributes::ANATOMY:

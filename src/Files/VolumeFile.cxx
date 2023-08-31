@@ -182,6 +182,13 @@ void VolumeFile::addSubvolumes(const int64_t& numToAdd)
 
 SubvolumeAttributes::VolumeType VolumeFile::getType() const
 {
+    if (getNumberOfMaps() >= 3) {
+        const int32_t mapIndex(0);
+        if (getMapPaletteColorMapping(mapIndex)->getSelectedPaletteName() == Palette::SPECIAL_RGB_VOLUME_PALETTE_NAME) {
+            return SubvolumeAttributes::RGB_WORKBENCH;
+        }
+    }
+
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, 0);
     CaretAssert(m_caretVolExt.m_attributes[0] != NULL);
     return m_caretVolExt.m_attributes[0]->m_type;
