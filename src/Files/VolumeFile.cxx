@@ -365,15 +365,6 @@ void VolumeFile::readFile(const AString& filename)
     CaretLogFine("Total Time to read and process volume is "
                  + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds.");
-    
-    /*
-     * Temporay kludge so file gets RGB coloring
-     */
-    if (getFileNameNoPath() == "photo_recon_SLA.nii.gz") {
-        if (m_caretVolExt.m_attributes.size() > 0) {
-            m_caretVolExt.m_attributes[0]->m_type = SubvolumeAttributes::RGB_WORKBENCH;
-        }
-    }
 }
 
 /**
