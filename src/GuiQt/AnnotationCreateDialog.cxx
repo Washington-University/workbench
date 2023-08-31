@@ -822,21 +822,16 @@ AnnotationCreateDialog::createMetaDataEditorWidget()
     const bool polyhedronSamplesFlag(true);
     m_requiredMetaDataNames = Annotation::getDefaultMetaDataNamesForType(m_newAnnotationInfo.m_annotationType,
                                                                          polyhedronSamplesFlag);
-    /*
-     * If first time dialog displayed, setup metadata names
-     */
-    if ( ! s_annotationMetaData) {
-        s_annotationMetaData.reset(new GiftiMetaData());
-        for (const auto& name : m_requiredMetaDataNames) {
-            s_annotationMetaData->set(name, "");
-        }
+    m_annotationMetaData.reset(new GiftiMetaData());
+    for (const auto& name : m_requiredMetaDataNames) {
+        m_annotationMetaData->set(name, "");
     }
-    
-    s_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
-    s_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
+
+    m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
+    m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
 
     m_metaDataEditorWidget = new MetaDataCustomEditorWidget(m_requiredMetaDataNames,
-                                                            s_annotationMetaData.get());
+                                                            m_annotationMetaData.get());
 
     m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata");
     m_metaDataRequiredCheckBox->setChecked(s_previousMetaDataRequiredCheckedStatus);
@@ -1111,8 +1106,8 @@ AnnotationCreateDialog::okButtonClicked()
     if (m_metaDataEditorWidget != NULL) {
         GiftiMetaData* annMetaData(annotation->getMetaData());
         CaretAssert(annMetaData);
-        CaretAssert(s_annotationMetaData);
-        annMetaData->replace(*s_annotationMetaData.get());
+        CaretAssert(m_annotationMetaData);
+        annMetaData->replace(*m_annotationMetaData.get());
     }
     
     /*

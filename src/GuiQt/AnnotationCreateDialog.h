@@ -206,7 +206,7 @@ namespace caret {
         
         QCheckBox* m_metaDataRequiredCheckBox = NULL;
         
-        static std::unique_ptr<GiftiMetaData> s_annotationMetaData;
+        std::unique_ptr<GiftiMetaData> m_annotationMetaData;
         
         std::vector<AString> m_requiredMetaDataNames;
         
@@ -226,7 +226,6 @@ namespace caret {
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
     float AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimeters = 5;
     bool AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimetersValidFlag = false;
-    std::unique_ptr<GiftiMetaData> AnnotationCreateDialog::s_annotationMetaData;
     bool AnnotationCreateDialog::s_previousMetaDataRequiredCheckedStatus = true;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
