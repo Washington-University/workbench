@@ -46,10 +46,8 @@ ELSE()
         AboutWorkbenchDialog.h
 	AnnotationBackgroundTypeWidget.h
 	AnnotationBoundsWidget.h
-        AnnotationChangeCoordinateDialog.h
         AnnotationColorWidget.h
 	AnnotationCoordinateCenterXYWidget.h
-        AnnotationCoordinateSelectionWidget.h
         AnnotationCoordinateSpaceWidget.h
         AnnotationCoordinatesWidget.h
         AnnotationCreateDialog.h
@@ -316,11 +314,9 @@ SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 AnnotationBackgroundTypeWidget.h
 AnnotationBoundsWidget.h
-AnnotationChangeCoordinateDialog.h
 AnnotationColorWidget.h
 AnnotationCoordinateCenterXYWidget.h
 AnnotationCoordinateInformation.h
-AnnotationCoordinateSelectionWidget.h
 AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
@@ -653,11 +649,9 @@ ZipSceneFileDialog.h
 AboutWorkbenchDialog.cxx
 AnnotationBackgroundTypeWidget.cxx
 AnnotationBoundsWidget.cxx
-AnnotationChangeCoordinateDialog.cxx
 AnnotationColorWidget.cxx
 AnnotationCoordinateCenterXYWidget.cxx
 AnnotationCoordinateInformation.cxx
-AnnotationCoordinateSelectionWidget.cxx
 AnnotationCoordinateSpaceWidget.cxx
 AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
