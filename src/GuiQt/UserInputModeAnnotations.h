@@ -231,18 +231,18 @@ namespace caret {
         
         void setMode(const Mode mode);
         
-        void processModeNewMouseLeftClick(const MouseEvent& mouseEvent);
+        void createNewAnnotationAtMouseLeftClick(const MouseEvent& mouseEvent);
         
         void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
                                      SelectionItemAnnotation* annotationIDIn);
         
-        void createNewAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
+        void finishCreatingNewAnnotationDrawnByUser(const MouseEvent& mouseEvent);
         
         void userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent);
         
         void initializeUserDrawingNewAnnotation(const MouseEvent& mouseEvent);
 
-        void initializeNewAnnotationFromStartClick(const MouseEvent& mouseEvent);
+        void initializeUserDrawingNewPolyTypeAnnotation(const MouseEvent& mouseEvent);
         
         void selectAnnotation(Annotation* annotation);
         

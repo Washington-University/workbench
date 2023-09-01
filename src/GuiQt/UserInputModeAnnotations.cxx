@@ -265,7 +265,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     if (m_newAnnotationCreatingWithMouseDrag) {
                         const MouseEvent* me(m_newAnnotationCreatingWithMouseDrag->getLastMouseEvent());
                         if (me != NULL) {
-                            createNewAnnotationFromMouseDrag(*me);
+                            finishCreatingNewAnnotationDrawnByUser(*me);
                         }
                     }
                 }
@@ -1192,12 +1192,12 @@ UserInputModeAnnotations::initializeUserDrawingNewAnnotation(const MouseEvent& m
 }
 
 /**
- * Initialize user drawing a new annotation from click start mode
+ * Initialize user drawing a new poly type annotation
  * @param mouseEvent
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::initializeNewAnnotationFromStartClick(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::initializeUserDrawingNewPolyTypeAnnotation(const MouseEvent& mouseEvent)
 {
     initializeUserDrawingNewAnnotation(mouseEvent);
     m_mode = MODE_DRAWING_NEW_POLY_TYPE;
@@ -1229,7 +1229,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             return;
             break;
         case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-            initializeNewAnnotationFromStartClick(mouseEvent);
+            initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             return;
             break;
         case MODE_DRAWING_NEW_SIMPLE_SHAPE:
@@ -1613,13 +1613,13 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
         case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
-            processModeNewMouseLeftClick(mouseEvent);
+            createNewAnnotationAtMouseLeftClick(mouseEvent);
             break;
         case MODE_DRAWING_NEW_POLY_TYPE:
             userDrawingAnnotationFromMouseDrag(mouseEvent);
             break;
         case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-            initializeNewAnnotationFromStartClick(mouseEvent);
+            initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             break;
         case MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
@@ -1650,7 +1650,7 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
             /*
              * Finish annotation
              */
-            createNewAnnotationFromMouseDrag(mouseEvent);
+            finishCreatingNewAnnotationDrawnByUser(mouseEvent);
             m_mode = MODE_SELECT;
             break;
         case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
@@ -1829,7 +1829,7 @@ UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& m
  *     Mouse event issued when mouse button was released.
  */
 void
-UserInputModeAnnotations::createNewAnnotationFromMouseDrag(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEvent& mouseEvent)
 {
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
@@ -1936,7 +1936,7 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
                             break;
                     }
                     if (createAnnFlag) {
-                        createNewAnnotationFromMouseDrag(mouseEvent);
+                        finishCreatingNewAnnotationDrawnByUser(mouseEvent);
                     }
                 }
             }
@@ -2081,13 +2081,13 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
 }
 
 /**
- * Process a mouse left click for new mode.
+ * Create a new annotation the location of where the mouse was clicked
  *
  * @param mouseEvent
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::processModeNewMouseLeftClick(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& mouseEvent)
 {
     resetAnnotationUnderMouse();
     
