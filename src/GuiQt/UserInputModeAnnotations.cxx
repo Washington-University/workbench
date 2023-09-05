@@ -131,7 +131,7 @@ UserInputModeAnnotations::UserInputModeAnnotations(const UserInputModeEnum::Enum
 m_annotationUnderMouse(NULL)
 {
     m_allowMultipleSelectionModeFlag = true;
-    m_mode = MODE_SELECT;
+    m_mode = Mode::MODE_SELECT;
     m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     m_annotationUnderMousePolyLineCoordinateIndex = -1;
     
@@ -177,7 +177,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             /*
              * Remove any incomplete annotation
              */
-            setMode(MODE_SELECT);
+            setMode(Mode::MODE_SELECT);
             deselectAnnotationsForEditingInAnnotationManager();
             resetAnnotationUnderMouse();
             
@@ -186,44 +186,44 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                                                                                           annotationEvent->getAnnotationSpace(),
                                                                                           annType));
             
-            Mode mode(MODE_SELECT);
+            Mode mode(Mode::MODE_SELECT);
             switch (annType) {
                 case AnnotationTypeEnum::BOX:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
                 case AnnotationTypeEnum::BROWSER_TAB:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
                 case AnnotationTypeEnum::COLOR_BAR:
                     CaretAssertMessage(0, "Should never create Color Bar by drawing");
                     break;
                 case AnnotationTypeEnum::IMAGE:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                    break;
                 case AnnotationTypeEnum::LINE:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
                 case AnnotationTypeEnum::OVAL:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
                 case AnnotationTypeEnum::POLYHEDRON:
                     switch (annotationEvent->getPolyDrawingMode()) {
                         case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
-                            mode = MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
+                            mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
                             break;
                     }
                     break;
                 case AnnotationTypeEnum::POLYGON:
                     switch (annotationEvent->getPolyDrawingMode()) {
                         case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
-                            mode = MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
+                            mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
                             break;
                     }
                     break;
                 case AnnotationTypeEnum::POLYLINE:
                     switch (annotationEvent->getPolyDrawingMode()) {
                         case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
-                            mode = MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
+                            mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
                             break;
                     }
                     break;
@@ -231,7 +231,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     CaretAssertMessage(0, "Should never create Scale Bar by drawing");
                     break;
                 case AnnotationTypeEnum::TEXT:
-                    mode = MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
+                    mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE;
                     break;
             }
             
@@ -251,7 +251,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     /*
                      * Same as ESC key to cancel drawing of new annotation
                      */
-                    setMode(MODE_SELECT);
+                    setMode(Mode::MODE_SELECT);
                     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE:
@@ -265,7 +265,35 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     if (m_newAnnotationCreatingWithMouseDrag) {
                         const MouseEvent* me(m_newAnnotationCreatingWithMouseDrag->getLastMouseEvent());
                         if (me != NULL) {
-                            finishCreatingNewAnnotationDrawnByUser(*me);
+                            bool polyTypeStereotaxicFlag(false);
+                            switch (m_mode) {
+                                case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                                    break;
+                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                                    break;
+                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                                    polyTypeStereotaxicFlag = true;
+                                    break;
+                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                                    polyTypeStereotaxicFlag = true;
+                                    break;
+                                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                                    break;
+                                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                                    break;
+                                case Mode::MODE_PASTE:
+                                    break;
+                                case Mode::MODE_PASTE_SPECIAL:
+                                    break;
+                                case Mode::MODE_SELECT:
+                                    break;
+                            }
+                            if (polyTypeStereotaxicFlag) {
+                                finishNewPolyTypeStereotaxicAnnotation(*me);
+                            }
+                            else {
+                                finishCreatingNewAnnotationDrawnByUser(*me);
+                            }
                         }
                     }
                 }
@@ -282,7 +310,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                             /*
                              * First cancel the current drawing
                              */
-                            setMode(MODE_SELECT);
+                            setMode(Mode::MODE_SELECT);
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 
                             /*
@@ -327,7 +355,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
 void
 UserInputModeAnnotations::initialize()
 {
-    m_mode = MODE_SELECT;
+    m_mode = Mode::MODE_SELECT;
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->setDisplayAnnotations(true);
     resetAnnotationUnderMouse();
@@ -340,7 +368,7 @@ UserInputModeAnnotations::initialize()
 void
 UserInputModeAnnotations::finish()
 {
-    m_mode = MODE_SELECT;
+    m_mode = Mode::MODE_SELECT;
     resetAnnotationUnderMouse();
 }
 
@@ -394,26 +422,36 @@ UserInputModeAnnotations::setMode(const Mode mode)
         
         bool drawingModeFlag(false);
         switch (m_mode) {
-            case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+            case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                 drawingModeFlag = true;
                 break;
-            case MODE_DRAWING_NEW_POLY_TYPE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE:
                 drawingModeFlag = true;
                 break;
-            case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
                 drawingModeFlag = true;
                 break;
-            case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
                 drawingModeFlag = true;
                 break;
-            case MODE_PASTE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                drawingModeFlag = true;
                 break;
-            case MODE_PASTE_SPECIAL:
+            case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                drawingModeFlag = true;
                 break;
-            case MODE_SELECT:
+            case Mode::MODE_PASTE:
+                break;
+            case Mode::MODE_PASTE_SPECIAL:
+                break;
+            case Mode::MODE_SELECT:
                 break;
         }
         
+        /*
+         * If mode is changed to NOT a drawing mode,
+         * reset any annotation that was being created.
+         */
         if ( ! drawingModeFlag) {
             resetAnnotationBeingCreated();
         }
@@ -431,25 +469,31 @@ UserInputModeAnnotations::getCursor() const
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_PASTE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
-        case MODE_SELECT:
+        case Mode::MODE_PASTE:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
+        case Mode::MODE_PASTE_SPECIAL:
+            cursor = CursorEnum::CURSOR_CROSS;
+            break;
+        case Mode::MODE_SELECT:
             if (m_annotationUnderMouse != NULL) {
                 cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                 
@@ -607,19 +651,23 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Delete:
         {
             switch (m_mode) {
-                case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                     break;
-                case MODE_DRAWING_NEW_POLY_TYPE:
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE:
                     break;
-                case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
                     break;
-                case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
                     break;
-                case MODE_PASTE:
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
                     break;
-                case MODE_PASTE_SPECIAL:
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
                     break;
-                case MODE_SELECT:
+                case Mode::MODE_PASTE:
+                    break;
+                case Mode::MODE_PASTE_SPECIAL:
+                    break;
+                case Mode::MODE_SELECT:
                     deleteSelectedAnnotations();
                     keyWasProcessedFlag = true;
                     break;
@@ -628,29 +676,35 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
             break;
         case Qt::Key_Escape:
         {
-            bool selectModeFlag = false;
+            bool changeToSelectModeFlag = false;
             switch (m_mode) {
-                case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                     break;
-                case MODE_DRAWING_NEW_POLY_TYPE:
-                    selectModeFlag = true;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                    changeToSelectModeFlag = true;
                     break;
-                case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-                    selectModeFlag = true;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                    changeToSelectModeFlag = true;
                     break;
-                case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                    changeToSelectModeFlag = true;
                     break;
-                case MODE_PASTE:
-                    selectModeFlag = true;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                    changeToSelectModeFlag = true;
                     break;
-                case MODE_PASTE_SPECIAL:
-                    selectModeFlag = true;
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
                     break;
-                case MODE_SELECT:
+                case Mode::MODE_PASTE:
+                    changeToSelectModeFlag = true;
+                    break;
+                case Mode::MODE_PASTE_SPECIAL:
+                    changeToSelectModeFlag = true;
+                    break;
+                case Mode::MODE_SELECT:
                     break;
             }
-            if (selectModeFlag) {
-                setMode(MODE_SELECT);
+            if (changeToSelectModeFlag) {
+                setMode(Mode::MODE_SELECT);
                 EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                 keyWasProcessedFlag = true;
             }
@@ -1200,10 +1254,114 @@ void
 UserInputModeAnnotations::initializeUserDrawingNewPolyTypeAnnotation(const MouseEvent& mouseEvent)
 {
     initializeUserDrawingNewAnnotation(mouseEvent);
-    m_mode = MODE_DRAWING_NEW_POLY_TYPE;
+    m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE;
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
+
+/**
+ * Initialize user drawing a new poly type annotation in stereotaxic space
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+{
+    CaretAssertToDoFatal();
+    
+    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+        m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    }
+    
+    /*
+     * Viewport of drawing needs proper setting for volume slice montage
+     * when space is a "model type space" (not tab, window, etc)
+     */
+    int32_t drawingViewportHeight(0);
+    
+    /*
+     * Must be stereotaxic space
+     */
+    CaretAssert(m_modeNewAnnotationFileSpaceAndType->m_annotationSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC);
+        
+    const BrainOpenGLViewportContent* vpContent(mouseEvent.getViewportContent());
+    if (vpContent != NULL) {
+        const BrowserTabContent* btc(vpContent->getBrowserTabContent());
+        if (btc != NULL) {
+            int32_t modelVP[4];
+            vpContent->getModelViewport(modelVP);
+            const int32_t viewportHeight(modelVP[3]);
+            drawingViewportHeight = viewportHeight;
+            
+            CaretAssertToDoFatal();
+            //NEED TO GET MONTAGE VIEWPORT CONTAINING THE MOUSE
+            //TO SET THE LINE THICKNESS BASED UPON THE VIEWPORT HEIGHT
+            
+            if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
+                switch (btc->getVolumeSliceDrawingType()) {
+                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                    {
+                        Brain* brain(GuiManager::get()->getBrain());
+                        CaretAssert(brain);
+                        const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
+                        
+                        const int32_t numRows(btc->getVolumeMontageNumberOfRows());
+                        drawingViewportHeight = 0;
+                        int32_t verticalMargin(0);
+                        BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewportHeight,
+                                                                               gapsAndMargins->getVolumeMontageVerticalGapForWindow(getBrowserWindowIndex()),
+                                                                               -1,
+                                                                               numRows,
+                                                                               drawingViewportHeight,
+                                                                               verticalMargin);
+                    }
+                        break;
+                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                        break;
+                }
+            }
+        }
+    }
+    
+    /*
+     * Note ALWAYS use WINDOW space for the drag anntotion.
+     * Otherwise it will not get displayed if surface/stereotaxic
+     */
+    m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
+                                                                                  AnnotationCoordinateSpaceEnum::WINDOW,
+                                                                                  m_modeNewAnnotationFileSpaceAndType->m_annotationType,
+                                                                                  mouseEvent,
+                                                                                  drawingViewportHeight));
+
+    
+    
+    m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC;
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+}
+
+/**
+ * Add a new coordinate to the poly type stereotaxic annotation that user is drawing
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+{
+    CaretAssertToDoFatal();
+}
+
+/**
+ * Finish the poly type stereotaxic annotation that user is drawing
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+{
+    CaretAssertToDoFatal();
+}
+
 
 /**
  * Process a mouse left drag with no keys down event.
@@ -1217,30 +1375,36 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
     
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
         {
             initializeUserDrawingNewAnnotation(mouseEvent);
-            m_mode = MODE_DRAWING_NEW_SIMPLE_SHAPE;
+            m_mode = Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE;
             return;
         }
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             userDrawingAnnotationFromMouseDrag(mouseEvent);
             return;
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             return;
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            initializeUserDrawingNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             userDrawingAnnotationFromMouseDrag(mouseEvent);
             return;
             break;
-        case MODE_PASTE:
+        case Mode::MODE_PASTE:
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_PASTE_SPECIAL:
             break;
-        case MODE_SELECT:
+        case Mode::MODE_SELECT:
             break;
     }
     
@@ -1612,24 +1776,30 @@ void
 UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             createNewAnnotationAtMouseLeftClick(mouseEvent);
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             userDrawingAnnotationFromMouseDrag(mouseEvent);
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
             break;
-        case MODE_PASTE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            initializeUserDrawingNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            break;
+        case Mode::MODE_PASTE:
             pasteAnnotationFromAnnotationClipboard(mouseEvent);
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_PASTE_SPECIAL:
             pasteAnnotationFromAnnotationClipboardAndChangeSpace(mouseEvent);
             break;
-        case MODE_SELECT:
+        case Mode::MODE_SELECT:
             break;
     }
 }
@@ -1644,27 +1814,35 @@ void
 UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             /*
              * Finish annotation
              */
             finishCreatingNewAnnotationDrawnByUser(mouseEvent);
-            m_mode = MODE_SELECT;
+            m_mode = Mode::MODE_SELECT;
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             WuQMessageBox::errorOk(m_annotationToolsWidget,
                                    "Annotation has not been started.  "
-                                   "Click mouse WITHOUT SHIFT key down to draw annotation or press ESC key to exit drawing.");
+                                   "Click or drag mouse WITHOUT SHIFT key down to draw annotation or press ESC key to exit drawing.");
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            finishNewPolyTypeStereotaxicAnnotation(mouseEvent);
             break;
-        case MODE_PASTE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                   "Annotation has not been started.  "
+                                   "Click or drag mouse WITHOUT SHIFT key down to draw annotation or press ESC key to exit drawing.");
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
-        case MODE_SELECT:
+        case Mode::MODE_PASTE:
+            break;
+        case Mode::MODE_PASTE_SPECIAL:
+            break;
+        case Mode::MODE_SELECT:
             if (m_allowMultipleSelectionModeFlag) {
                 const bool shiftKeyDown(true);
                 const bool singleSelectionModeFlag(false);
@@ -1686,19 +1864,23 @@ void
 UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
-        case MODE_PASTE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             break;
-        case MODE_SELECT:
+        case Mode::MODE_PASTE:
+            break;
+        case Mode::MODE_PASTE_SPECIAL:
+            break;
+        case Mode::MODE_SELECT:
         {
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
             const std::vector<Annotation*> beforeSelectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
@@ -1834,19 +2016,25 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
     if (m_newAnnotationCreatingWithMouseDrag != NULL) {
         
         switch (m_mode) {
-            case MODE_DRAWING_NEW_POLY_TYPE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE:
                 break;
-            case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
                 break;
-            case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                CaretAssert(0);
                 break;
-            case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+            case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                CaretAssert(0);
                 break;
-            case MODE_PASTE:
+            case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
                 break;
-            case MODE_PASTE_SPECIAL:
+            case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                 break;
-            case MODE_SELECT:
+            case Mode::MODE_PASTE:
+                break;
+            case Mode::MODE_PASTE_SPECIAL:
+                break;
+            case Mode::MODE_SELECT:
                 break;
         }
         std::vector<Vector3D> coords = m_newAnnotationCreatingWithMouseDrag->getDrawingCoordinates();
@@ -1868,7 +2056,7 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
             selectAnnotation(ann);
         }
         
-        setMode(MODE_SELECT);
+        setMode(Mode::MODE_SELECT);
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
@@ -1895,13 +2083,17 @@ void
 UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
 {
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
         {
             if (m_newAnnotationCreatingWithMouseDrag) {
                 const Annotation* annotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
@@ -1941,13 +2133,13 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
                 }
             }
         }
-            m_mode = MODE_SELECT;
+            m_mode = Mode::MODE_SELECT;
             break;
-        case MODE_PASTE:
+        case Mode::MODE_PASTE:
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_PASTE_SPECIAL:
             break;
-        case MODE_SELECT:
+        case Mode::MODE_SELECT:
             break;
     }
     
@@ -2112,7 +2304,7 @@ UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& 
         selectAnnotation(ann);
     }
     
-    setMode(MODE_SELECT);
+    setMode(Mode::MODE_SELECT);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
@@ -2273,21 +2465,25 @@ UserInputModeAnnotations::isEditMenuValid() const
     bool editMenuValid = false;
     
     switch (m_mode) {
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
             break;
-        case MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
-        case MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             break;
-        case MODE_PASTE:
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            break;
+        case Mode::MODE_PASTE:
             editMenuValid = true;
             break;
-        case MODE_PASTE_SPECIAL:
+        case Mode::MODE_PASTE_SPECIAL:
             editMenuValid = true;
             break;
-        case MODE_SELECT:
+        case Mode::MODE_SELECT:
             editMenuValid = true;
             break;
     }
@@ -2417,7 +2613,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
                 pasteAnnotationFromAnnotationClipboard(*mouseEvent);
             }
             else {
-                setMode(MODE_PASTE);
+                setMode(Mode::MODE_PASTE);
             }
         }
             break;
@@ -2428,7 +2624,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
                 pasteAnnotationFromAnnotationClipboardAndChangeSpace(*mouseEvent);
             }
             else {
-                setMode(MODE_PASTE_SPECIAL);
+                setMode(Mode::MODE_PASTE_SPECIAL);
             }
         }
             break;
@@ -2765,7 +2961,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
         dpa->updateForNewAnnotations(newPastedAnnotations);
     }
     
-    setMode(MODE_SELECT);
+    setMode(Mode::MODE_SELECT);
     
     groupAnnotationsAfterPasting(newPastedAnnotations);
     
@@ -2792,7 +2988,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(c
         dpa->updateForNewAnnotations(newPastedAnnotations);
     }
     
-    setMode(MODE_SELECT);
+    setMode(Mode::MODE_SELECT);
     
     groupAnnotationsAfterPasting(newPastedAnnotations);
     

@@ -439,19 +439,23 @@ UserInputModeAnnotationsWidget::updateWidget()
      * Show the proper widget
      */
     switch (m_inputModeAnnotations->getMode()) {
-        case UserInputModeAnnotations::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
-        case UserInputModeAnnotations::MODE_DRAWING_NEW_POLY_TYPE:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE:
             break;
-        case UserInputModeAnnotations::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
-        case UserInputModeAnnotations::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             break;
-        case UserInputModeAnnotations::MODE_PASTE:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             break;
-        case UserInputModeAnnotations::MODE_PASTE_SPECIAL:
+        case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
-        case UserInputModeAnnotations::MODE_SELECT:
+        case UserInputModeAnnotations::Mode::MODE_PASTE:
+            break;
+        case UserInputModeAnnotations::Mode::MODE_PASTE_SPECIAL:
+            break;
+        case UserInputModeAnnotations::Mode::MODE_SELECT:
             break;
     }
     

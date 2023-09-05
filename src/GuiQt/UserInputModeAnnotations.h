@@ -51,14 +51,22 @@ namespace caret {
         /**
          * Annotation mode
          */
-        enum Mode {
-            /** Mouse updates new annotation as mouse is clicked */
+        enum class Mode {
+            /**
+             * Add coordinates to new poly type annotation as mouse is clicked or dragged.
+             * Note: while drawing, window coordinates are used and when user completes
+             * drawing the annotation, coordinates in the selected space are generated.
+             */
             MODE_DRAWING_NEW_POLY_TYPE,
-            /** Mouse starts a new annotaiton with a series of clicks (used with polyline) */
+            /** Mouse starts drawing a new poly type annoatation */
             MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE,
-            /** Mouse updates new annotation as mouse is dragged */
+            /** Mouse updates new annotation as mouse is clicked */
+            MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC,
+            /** Mouse starts a new annotaiton with a series of clicks (used with polyline) */
+            MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE,
+            /** As mouse is dragged, the shape is updated */
             MODE_DRAWING_NEW_SIMPLE_SHAPE,
-            /** Mouse starts new annotation drawn by dragging */
+            /** Clicking the mouse gererates a new annotation.  Dragging the mouse starts a new annotation */
             MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE,
             /** User selected Paste from Edit Menu, user may need to click mouse to paste the annotation */
             MODE_PASTE,
@@ -243,6 +251,12 @@ namespace caret {
         void initializeUserDrawingNewAnnotation(const MouseEvent& mouseEvent);
 
         void initializeUserDrawingNewPolyTypeAnnotation(const MouseEvent& mouseEvent);
+        
+        void initializeUserDrawingNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        
+        void addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        
+        void finishNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
         void selectAnnotation(Annotation* annotation);
         
