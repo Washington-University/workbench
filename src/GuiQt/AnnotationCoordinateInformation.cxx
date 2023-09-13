@@ -1824,3 +1824,83 @@ AnnotationCoordinateInformation::createCoordinateInformationForPasting(const Mou
     
     return true;
 }
+
+/**
+ * Generate an annotation coordinate in the given space from the mouse X/Y
+ * @param mouseEvent
+ *    The mouse event
+ * @param annotationSpace
+ *    Desired annotation space
+ * @return
+ *    An annotaiton coordinate or NULL if it could not be created
+ */
+AnnotationCoordinate*
+AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(const MouseEvent& mouseEvent,
+                                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace)
+{
+    AnnotationCoordinateInformation coordInfo;
+    createCoordinateInformationFromXY(mouseEvent,
+                                      coordInfo);
+    
+    
+    AnnotationCoordinate* ac(NULL);
+    
+    switch (annotationSpace) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            if (coordInfo.m_chartSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_chartSpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            if (coordInfo.m_histologySpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_histologySpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            if (coordInfo.m_mediaSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_mediaSpaceInfo.m_xyz);
+                ac->setMediaFileNameAndPixelSpace(coordInfo.m_mediaSpaceInfo.m_mediaFileName,
+                                                  coordInfo.m_mediaSpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            if (coordInfo.m_spacerTabSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_spacerTabSpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            if (coordInfo.m_modelSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_modelSpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setSurfaceSpace(coordInfo.m_surfaceSpaceInfo.m_structure,
+                                    coordInfo.m_surfaceSpaceInfo.m_numberOfNodes,
+                                    coordInfo.m_surfaceSpaceInfo.m_nodeIndex);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            if (coordInfo.m_tabSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_tabSpaceInfo.m_xyz);
+            }
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            if (coordInfo.m_windowSpaceInfo.m_validFlag) {
+                ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+                ac->setXYZ(coordInfo.m_windowSpaceInfo.m_xyz);
+            }
+            break;
+    }
+
+    return ac;
+}

@@ -43,6 +43,7 @@
 #include "CiftiConnectivityMatrixDataFileManager.h"
 #include "CiftiFiberTrajectoryManager.h"
 #include "DataToolTipsManager.h"
+#include "DrawingViewportContentManager.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventBrowserTabClose.h"
@@ -110,6 +111,7 @@ SessionManager::SessionManager()
     m_ciftiConnectivityMatrixDataFileManager = new CiftiConnectivityMatrixDataFileManager();
     m_ciftiFiberTrajectoryManager = new CiftiFiberTrajectoryManager();
     m_dataToolTipsManager.reset(new DataToolTipsManager(m_caretPreferences->isShowDataToolTipsEnabled()));
+    m_drawingViewportContentManager.reset(new DrawingViewportContentManager());
     
     m_browserTabs.fill(NULL);
     

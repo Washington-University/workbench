@@ -737,14 +737,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
     /*
-     * When user is drawing an annotation by dragging the mouse, it is always in window space.
+     * Get annotation being drawn by the user for this window
      */
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_inputs->m_windowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
-    m_annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
-                              ? annDrawEvent.getAnnotation()
-                              : NULL);
-    m_annotationBeingDrawnViewportHeight = annDrawEvent.getDrawingViewportHeight();
+    m_annotationBeingDrawn = NULL;
+    m_annotationBeingDrawnViewportHeight = 0;
+    if (annDrawEvent.getAnnotation() != NULL) {
+        Annotation* ann(annDrawEvent.getAnnotation());
+        CaretAssert(ann);
+        if (ann->getCoordinateSpace() == drawingCoordinateSpace) {
+            m_annotationBeingDrawn = ann;
+            m_annotationBeingDrawnViewportHeight = annDrawEvent.getDrawingViewportHeight();
+        }
+    }
+//    m_annotationBeingDrawn = ((drawingCoordinateSpace == AnnotationCoordinateSpaceEnum::WINDOW)
+//                              ? annDrawEvent.getAnnotation()
+//                              : NULL);
+//    m_annotationBeingDrawnViewportHeight = annDrawEvent.getDrawingViewportHeight();
 
     bool drawAnnotationsFromFilesFlag = true;
     
@@ -1258,6 +1268,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
         m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                         "Start of annotation drawn by user model space.");
         if (m_annotationBeingDrawn != NULL) {
+            setSelectionBoxColor(m_annotationBeingDrawn);
+            
             if (m_annotationBeingDrawn->getType() == AnnotationTypeEnum::TEXT) {
                 const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationBeingDrawn);
                 CaretAssert(textAnn);
@@ -5130,10 +5142,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
 
     if ((absAngle > 5.0)
         && (absAngle < 175.0)) {
-        drawPolyhedronEdgesOnPlane(annotationFile,
-                                   polyhedron,
-                                   m_volumeSpacePlane,
-                                   foregroundRGBA);
+        if ( ! polyhedron->isDrawingNewAnnotation()) {
+            drawPolyhedronEdgesOnPlane(annotationFile,
+                                       polyhedron,
+                                       m_volumeSpacePlane,
+                                       foregroundRGBA);
+        }
         return false;
     }
 
@@ -5158,7 +5172,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     int32_t drawStartingCoordinateIndex(-1);
     int32_t drawCoordinateCount(-1);
     
-    if (multiPairedCoordShape->isDrawingNewAnnotation()) {
+    if (multiPairedCoordShape->isDrawingNewAnnotation()
+        && (multiPairedCoordShape->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::WINDOW)) {
         const int32_t numCoords(multiPairedCoordShape->getNumberOfCoordinates());
         for (int32_t i = 0; i < numCoords; i++) {
             Vector3D xyz;
@@ -5173,6 +5188,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         drawCreatingNewAnnotationSizingHandlesFlag = true;
     }
     else {
+        if (multiPairedCoordShape->isDrawingNewAnnotation()) {
+            drawCreatingNewAnnotationSizingHandlesFlag = true;
+        }
         for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
             const int32_t numTotalCoords(multiPairedCoordShape->getNumberOfCoordinates());
             const int32_t numHalfCoords(numTotalCoords / 2);
@@ -5310,17 +5328,21 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         }
     }
     
+    bool drawLinesFlag(true);
     if ((drawStartingCoordinateIndex >= 0)
         && (drawCoordinateCount > 0)) {
-        if (drawCoordinateCount < 3) {
-            return false;
+        if (drawCoordinateCount < 2) {
+            drawLinesFlag = false;
         }
+//        if (drawCoordinateCount < 3) {
+//            return false;
+//        }
         primitive->setDrawArrayIndicesSubset(drawStartingCoordinateIndex,
                                              drawCoordinateCount);
     }
 
     if ( ! multiPairedCoordShape->isDrawingNewAnnotation()) {
-        if (primitive->getNumberOfVertices() < 3) {
+        if (primitive->getNumberOfVertices() < 2) {
             return false;
         }
     }
@@ -5390,7 +5412,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             }
         }
         else {
-            GraphicsEngineDataOpenGL::draw(primitive.get());
+            if (drawLinesFlag) {
+                GraphicsEngineDataOpenGL::draw(primitive.get());
+            }
             drawnFlag = true;
         }
                 

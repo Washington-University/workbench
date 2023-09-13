@@ -2293,6 +2293,64 @@ BrainOpenGLWidget::performIdentificationVoxelEditing(VolumeFile* editingVolumeFi
 }
 
 /**
+ * Perform voxel identification
+ * @param x
+ *    Mouse X
+ * @param y
+ *    Mouse Y
+ * @return
+ *    Voxel selection info
+ */
+SelectionItemVoxel*
+BrainOpenGLWidget::performIdentificationVoxel(const int x,
+                                              const int y)
+{
+    const BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    
+    CaretLogFine("Performing selection");
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+    idManager->reset();
+    idManager->setAllSelectionsEnabled(false);
+    SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
+    idVoxel->setEnabledForSelection(true);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        s_singletonOpenGL->selectModel(this->windowIndex,
+                                       getSelectedInputMode(),
+                                       GuiManager::get()->getBrain(),
+                                       m_contextShareGroupPointer,
+                                       idViewport,
+                                       x,
+                                       y,
+                                       true);
+    }
+    
+    /*
+     * Note: The QOpenGLWidget always renders in a
+     * frame buffer object (see its documentation) so
+     * there is no "back" or "front buffer".  Since
+     * identification is encoded in the framebuffer,
+     * it is necessary to repaint (udpates graphics
+     * immediately) to redraw the models.  Otherwise,
+     * the graphics flash with strange looking drawing.
+     */
+    this->repaintGraphics();
+    this->doneCurrent();
+    
+    return idVoxel;
+}
+
+/**
  * Project the given item to a model.
  *
  * @param x

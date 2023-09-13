@@ -74,9 +74,15 @@ namespace caret {
                                  const float polyhedronDepth,
                                  AString& errorMessageOut);
         
+        virtual void updateCoordinatePairsWhileDrawing() override;
+        
         Plane getPlane() const;
         
         float getDepth() const;
+        
+        void setPlane(const Plane& plane);
+        
+        void setDepth(const float depth);
         
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;

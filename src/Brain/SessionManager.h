@@ -44,6 +44,7 @@ namespace caret {
     class CiftiConnectivityMatrixDataFileManager;
     class CiftiFiberTrajectoryManager;
     class DataToolTipsManager;
+    class DrawingViewportContentManager;
     class EventBrowserTabClose;
     class EventBrowserTabDelete;
     class ImageCaptureDialogSettings;
@@ -180,6 +181,8 @@ namespace caret {
         
         /** Settings for image capture dialog */
         ImageCaptureDialogSettings* m_imageCaptureDialogSettings;
+        
+        std::unique_ptr<DrawingViewportContentManager> m_drawingViewportContentManager;
         
         /** Map to spacer tabs where key is window index, row index, column index */
         std::map<SpacerTabIndex, SpacerTabContent*> m_spacerTabsMap;

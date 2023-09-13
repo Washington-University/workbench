@@ -93,9 +93,14 @@
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
+#include "DrawingViewportContentModel.h"
+#include "DrawingViewportContentTab.h"
+#include "DrawingViewportContentWindow.h"
 #include "ElapsedTimer.h"
 #include "EventAnnotationBarsGet.h"
 #include "EventBrowserWindowContent.h"
+#include "EventDrawingViewportContentAdd.h"
+#include "EventDrawingViewportContentClear.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "EventNodeIdentificationColorsGetFromCharts.h"
@@ -778,6 +783,14 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
                                                    const std::vector<const BrainOpenGLViewportContent*>& viewportContents,
                                                    const GraphicsFramesPerSecond* graphicsFramesPerSecond)
 {
+    /*
+     * We only clear the drawing viewport contents when
+     * drawing all models.  Projection and Selection only
+     * draw the tab of interest.
+     */
+    EventDrawingViewportContentClear clearContentEvent(windowIndex);
+    EventManager::get()->sendEvent(clearContentEvent.getPointer());
+    
     m_brain = brain;
     m_windowIndex = windowIndex;
     m_windowUserInputMode = windowUserInputMode;
@@ -841,6 +854,24 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     const int32_t numberOfTabs = static_cast<int32_t>(viewportContents.size());
     for (int32_t i = 0; i < numberOfTabs; i++) {
         const BrainOpenGLViewportContent* vpContent = viewportContents[i];
+        
+        if (i == 0) {
+            /*
+             * First time, save the window's viewports
+             */
+            int32_t windowBeforeLockArray[4];
+            vpContent->getWindowBeforeAspectLockingViewport(windowBeforeLockArray);
+            int32_t windowAfterLockArray[4];
+            vpContent->getWindowViewport(windowAfterLockArray);
+            
+            DrawingViewportContentWindow*
+               dvcw(new DrawingViewportContentWindow(m_windowIndex,
+                                                     GraphicsViewport(windowBeforeLockArray),
+                                                     GraphicsViewport(windowAfterLockArray)));
+            EventDrawingViewportContentAdd addContentEvent(dvcw);
+            EventManager::get()->sendEvent(addContentEvent.getPointer());
+        }
+        
         /*
          * Don't draw if off-screen
          */
@@ -888,7 +919,7 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
         }
         
         /*
-         * Viewport of window.
+         * Viewport of tab.
          */
         setTabViewport(vpContent);
         glViewport(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
@@ -1820,9 +1851,38 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         
         Model* model = this->browserTabContent->getModelForDisplay();
         this->windowTabIndex = this->browserTabContent->getTabNumber();
-        int viewport[4];
-        viewportContent->getModelViewport(viewport);
+        int modelViewport[4];
+        viewportContent->getModelViewport(modelViewport);
         
+        {
+            int32_t tabBeforeLockArray[4];
+            viewportContent->getTabViewportBeforeApplyingMargins(tabBeforeLockArray);
+            GraphicsViewport tabBeforeLockViewport(tabBeforeLockArray);
+            
+            /*
+             * Tab after aspect locked is the same as model's viewport,
+             * initially.  Some models, such as surface montage and
+             * volume montage, will create smaller viewports.  Drawing
+             * for these model types will add additional model viewports.
+             */
+            GraphicsViewport tabAfterAspectLockedViewport(modelViewport);
+            
+            DrawingViewportContentTab* dvct(
+                new DrawingViewportContentTab(m_windowIndex,
+                                              this->windowTabIndex,
+                                              tabBeforeLockViewport,
+                                              tabAfterAspectLockedViewport));
+            EventDrawingViewportContentAdd addContentEvent(dvct);
+            EventManager::get()->sendEvent(addContentEvent.getPointer());
+
+            DrawingViewportContentModel* dvcm(
+                new DrawingViewportContentModel(m_windowIndex,
+                                                this->windowTabIndex,
+                                                tabAfterAspectLockedViewport,
+                                                model->getModelType()));
+            EventDrawingViewportContentAdd addContentEventTwo(dvcm);
+            EventManager::get()->sendEvent(addContentEventTwo.getPointer());
+        }
         
         this->mode = mode;
         
@@ -1840,46 +1900,46 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             ModelVolume* volumeModel = dynamic_cast<ModelVolume*>(model);
             ModelWholeBrain* wholeBrainModel = dynamic_cast<ModelWholeBrain*>(model);
             if (modelChart != NULL) {
-                drawChartOneData(browserTabContent, modelChart, viewport);
+                drawChartOneData(browserTabContent, modelChart, modelViewport);
             }
             else if (modelTwoChart != NULL) {
-                drawChartTwoData(viewportContent, modelTwoChart, viewport);
+                drawChartTwoData(viewportContent, modelTwoChart, modelViewport);
             }
             else if (modelHistology != NULL) {
                 drawHistologyModel(viewportContent,
                                    browserTabContent,
                                    modelHistology,
-                                   viewport);
+                                   modelViewport);
             }
             else if (mediaModel != NULL) {
                 drawMediaModel(viewportContent,
                                browserTabContent,
                                mediaModel,
-                               viewport);
+                               modelViewport);
             }
             else if (surfaceModel != NULL) {
                 m_mirroredClippingEnabled = true;
                 this->drawSurfaceModel(browserTabContent,
                                        surfaceModel,
-                                       viewport);
+                                       modelViewport);
             }
             else if (surfaceMontageModel != NULL) {
                 m_mirroredClippingEnabled = true;
                 this->drawSurfaceMontageModel(browserTabContent,
                                               surfaceMontageModel, 
-                                              viewport);
+                                              modelViewport);
             }
             else if (volumeModel != NULL) {
                 this->drawVolumeModel(viewportContent,
                                       browserTabContent,
                                       volumeModel,
-                                      viewport);
+                                      modelViewport);
             }
             else if (wholeBrainModel != NULL) {
                 this->drawWholeBrainModel(viewportContent,
                                           browserTabContent,
                                           wholeBrainModel,
-                                          viewport);
+                                          modelViewport);
             }
             else {
                 CaretAssertMessage(0, "Unknown type of model for drawing");
@@ -6720,6 +6780,14 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         };
         mvp->setViewport(surfaceViewport);
         
+        DrawingViewportContentModel* dvcm(
+            new DrawingViewportContentModel(m_windowIndex,
+                                            this->windowTabIndex,
+                                            GraphicsViewport(surfaceViewport),
+                                            surfaceMontageModel->getModelType()));
+        EventDrawingViewportContentAdd addContentEvent(dvcm);
+        EventManager::get()->sendEvent(addContentEvent.getPointer());
+
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
                                                                  mvp->getProjectionViewType(),
                                                                  mvp->getSurface());

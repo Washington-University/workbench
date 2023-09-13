@@ -34,6 +34,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationClipboard;
+    class AnnotationCoordinate;
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
     class AnnotationMultiCoordinateShape;
@@ -92,6 +93,9 @@ namespace caret {
                                                           AnnotationCoordinateInformation& mouseCoordInfoOut,
                                                           std::vector<std::unique_ptr<AnnotationCoordinateInformation>>& coordsOut,
                                                           AString& errorMessageOut);
+
+        static AnnotationCoordinate* createCoordinateInSpaceFromXY(const MouseEvent& mouseEvent,
+                                                                   const AnnotationCoordinateSpaceEnum::Enum annotationSpace);
 
         class SpaceInfo {
         public:

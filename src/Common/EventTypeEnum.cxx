@@ -303,6 +303,18 @@ EventTypeEnum::initialize()
                                      "EVENT_DATA_FILE_RELOAD_ALL",
                                      "Reopen all data files (replace it with saved version) in the Brain"));
     
+    enumData.push_back(EventTypeEnum(EVENT_DRAWING_VIEWPORT_CONTENT_ADD,
+                                     "EVENT_DRAWING_VIEWPORT_CONTENT_ADD",
+                                     "Event to add viewport while drawing"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR,
+                                     "EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR",
+                                     "Event to clear viewports for window before drawing"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_DRAWING_VIEWPORT_CONTENT_GET,
+                                     "EVENT_DRAWING_VIEWPORT_CONTENT_GET",
+                                     "Event get a drawing viewport after drawing"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GET_DISPLAYED_DATA_FILES,
                                      "EVENT_GET_DISPLAYED_DATA_FILES",
                                      "Get data files displayed in windows/tabs"));

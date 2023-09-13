@@ -149,6 +149,57 @@ namespace caret {
         void processSelectAllAnnotations();
         
     private:
+        /**
+         * Supports drawing of a new annotation in the space selected by the user
+         */
+        class NewUserSpaceAnnotation {
+        public:
+            NewUserSpaceAnnotation(AnnotationFile* annotationFile,
+                                   const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                   const AnnotationTypeEnum::Enum annotationType,
+                                   const MouseEvent& mousePressEvent,
+                                   const int32_t browserWindowIndex);
+
+            ~NewUserSpaceAnnotation();
+            
+            void eraseLastCoordinate();
+            
+            void finishAnnotation();
+            
+            void updateAnnotation(const MouseEvent& mouseEvent);
+            
+            bool isValid() const;
+            
+            AnnotationFile* getAnnotationFile() const { return m_annotationFile; }
+            
+            Annotation* getAnnotation() const { return m_annotation; }
+            
+            int32_t getViewportHeight() const { return m_viewportHeight; }
+            
+        private:
+//            bool getCoordinateAtMouse(const MouseEvent& mouseEvent,
+//                                      Vector3D& xyzOut) const;
+            
+            AnnotationFile* m_annotationFile = NULL;
+            
+            Annotation* m_annotation = NULL;
+            
+            int32_t m_viewportHeight = 0;
+            
+            const int32_t m_browserWindowIndex = -1;
+            
+            int32_t m_browserTabIndex = -1;
+            
+            float m_sliceThickness = 1.0;
+            
+            bool m_validFlag = false;
+        };
+        
+        /**
+         * Supports drawing of a new annotation, initially in window space, and then converted
+         * to space selected by user when finished.  If vertices of annotation are not in user's
+         * selected space, then the user is given a choice of coordinates in valid spaces
+         */
         class NewMouseDragCreateAnnotation {
         public:
             class CoordInfo {
@@ -256,7 +307,7 @@ namespace caret {
         
         void addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
-        void finishNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        void finishNewPolyTypeStereotaxicAnnotation();
         
         void selectAnnotation(Annotation* annotation);
         
@@ -304,6 +355,8 @@ namespace caret {
         
         CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
                 
+        std::unique_ptr<NewUserSpaceAnnotation> m_newUserSpaceAnnotationBeingCreated;
+        
         std::vector<Vector3D> m_lastSelectedAnnotationWindowCoordinates;
 
         bool m_allowMultipleSelectionModeFlag;

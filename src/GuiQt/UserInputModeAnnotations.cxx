@@ -32,11 +32,12 @@
 #else
 #include <QGLWidget>
 #endif
-/**/
+*/
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationClipboard.h"
 #include "AnnotationCreateDialog.h"
+#include "AnnotationCreateDialogTwo.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateInformation.h"
@@ -46,6 +47,7 @@
 #include "AnnotationMultiPairedCoordinateShape.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationPasteDialog.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationSpatialModification.h"
 #include "AnnotationText.h"
@@ -63,6 +65,10 @@
 #include "CursorEnum.h"
 #include "CaretPreferences.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DrawingViewportContentModel.h"
+#include "DrawingViewportContentModel.h"
+#include "DrawingViewportContentWindow.h"
+#include "EventDrawingViewportContentGet.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
@@ -139,6 +145,7 @@ m_annotationUnderMouse(NULL)
                                                                                   AnnotationCoordinateSpaceEnum::VIEWPORT,
                                                                                   AnnotationTypeEnum::LINE));
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    m_newUserSpaceAnnotationBeingCreated.reset();
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
                                                                  browserWindowIndex);
@@ -209,7 +216,12 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 case AnnotationTypeEnum::POLYHEDRON:
                     switch (annotationEvent->getPolyDrawingMode()) {
                         case EventAnnotationCreateNewType::PolyDrawingMode::CLICK_AND_OR_DRAG:
-                            mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
+                            if (annotationEvent->getAnnotationSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+                                mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE;
+                            }
+                            else {
+                                mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE;
+                            }
                             break;
                     }
                     break;
@@ -259,42 +271,19 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                         m_newAnnotationCreatingWithMouseDrag->eraseLastCoordinate();
                         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                     }
+                    else if (m_newUserSpaceAnnotationBeingCreated) {
+                        m_newUserSpaceAnnotationBeingCreated->eraseLastCoordinate();
+                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    }
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
                 {
                     if (m_newAnnotationCreatingWithMouseDrag) {
                         const MouseEvent* me(m_newAnnotationCreatingWithMouseDrag->getLastMouseEvent());
-                        if (me != NULL) {
-                            bool polyTypeStereotaxicFlag(false);
-                            switch (m_mode) {
-                                case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-                                    break;
-                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-                                    break;
-                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-                                    polyTypeStereotaxicFlag = true;
-                                    break;
-                                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
-                                    polyTypeStereotaxicFlag = true;
-                                    break;
-                                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
-                                    break;
-                                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
-                                    break;
-                                case Mode::MODE_PASTE:
-                                    break;
-                                case Mode::MODE_PASTE_SPECIAL:
-                                    break;
-                                case Mode::MODE_SELECT:
-                                    break;
-                            }
-                            if (polyTypeStereotaxicFlag) {
-                                finishNewPolyTypeStereotaxicAnnotation(*me);
-                            }
-                            else {
-                                finishCreatingNewAnnotationDrawnByUser(*me);
-                            }
-                        }
+                        finishCreatingNewAnnotationDrawnByUser(*me);
+                    }
+                    else if (m_newUserSpaceAnnotationBeingCreated) {
+                        finishNewPolyTypeStereotaxicAnnotation();
                     }
                 }
                     break;
@@ -326,6 +315,9 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                         }
                     }
+                    else if (m_newUserSpaceAnnotationBeingCreated) {
+                        CaretAssertToDoFatal(); // restart drawing
+                    }
                     break;
             }
         }
@@ -341,6 +333,20 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 if (m_newAnnotationCreatingWithMouseDrag) {
                     annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
                                                    m_newAnnotationCreatingWithMouseDrag->getDrawingViewportHeight());
+                }
+                else if (m_newUserSpaceAnnotationBeingCreated) {
+                    Annotation* ann(m_newUserSpaceAnnotationBeingCreated->getAnnotation());
+                    if (ann != NULL) {
+                        /**
+                         * Multi-coord shapes may need coordinates updated while being drawn by user
+                         */
+                        AnnotationMultiPairedCoordinateShape* multiPairCoordShape(ann->castToMultiPairedCoordinateShape());
+                        if (multiPairCoordShape != NULL) {
+                            multiPairCoordShape->updateCoordinatePairsWhileDrawing();
+                        }
+                    }
+                    annDrawingEvent->setAnnotation(m_newUserSpaceAnnotationBeingCreated->getAnnotation(),
+                                                   m_newUserSpaceAnnotationBeingCreated->getViewportHeight());
                 }
             }
         }
@@ -1267,73 +1273,36 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeAnnotation(const Mouse
 void
 UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
 {
-    CaretAssertToDoFatal();
-    
-    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
-        m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
-    }
-    
-    /*
-     * Viewport of drawing needs proper setting for volume slice montage
-     * when space is a "model type space" (not tab, window, etc)
-     */
-    int32_t drawingViewportHeight(0);
+//    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+//        m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+//    }
+//
+//    /*
+//     * Viewport of drawing needs proper setting for volume slice montage
+//     * when space is a "model type space" (not tab, window, etc)
+//     */
+//    int32_t drawingViewportHeight(0);
     
     /*
      * Must be stereotaxic space
      */
     CaretAssert(m_modeNewAnnotationFileSpaceAndType->m_annotationSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         
-    const BrainOpenGLViewportContent* vpContent(mouseEvent.getViewportContent());
-    if (vpContent != NULL) {
-        const BrowserTabContent* btc(vpContent->getBrowserTabContent());
-        if (btc != NULL) {
-            int32_t modelVP[4];
-            vpContent->getModelViewport(modelVP);
-            const int32_t viewportHeight(modelVP[3]);
-            drawingViewportHeight = viewportHeight;
-            
-            CaretAssertToDoFatal();
-            //NEED TO GET MONTAGE VIEWPORT CONTAINING THE MOUSE
-            //TO SET THE LINE THICKNESS BASED UPON THE VIEWPORT HEIGHT
-            
-            if (btc->getSelectedModelType() == ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES) {
-                switch (btc->getVolumeSliceDrawingType()) {
-                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-                    {
-                        Brain* brain(GuiManager::get()->getBrain());
-                        CaretAssert(brain);
-                        const GapsAndMargins* gapsAndMargins = brain->getGapsAndMargins();
-                        
-                        const int32_t numRows(btc->getVolumeMontageNumberOfRows());
-                        drawingViewportHeight = 0;
-                        int32_t verticalMargin(0);
-                        BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewportHeight,
-                                                                               gapsAndMargins->getVolumeMontageVerticalGapForWindow(getBrowserWindowIndex()),
-                                                                               -1,
-                                                                               numRows,
-                                                                               drawingViewportHeight,
-                                                                               verticalMargin);
-                    }
-                        break;
-                    case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-                        break;
-                }
-            }
-        }
+    NewUserSpaceAnnotation* nsa(new NewUserSpaceAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
+                                                           m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
+                                                           m_modeNewAnnotationFileSpaceAndType->m_annotationType,
+                                                           mouseEvent,
+                                                           getBrowserWindowIndex()));
+    if ( ! nsa->isValid()) {
+        /*
+         * Invalid coordinate at mouse, so do not create annotation
+         * but leave mode active
+         */
+        delete nsa;
+        return;
     }
     
-    /*
-     * Note ALWAYS use WINDOW space for the drag anntotion.
-     * Otherwise it will not get displayed if surface/stereotaxic
-     */
-    m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
-                                                                                  AnnotationCoordinateSpaceEnum::WINDOW,
-                                                                                  m_modeNewAnnotationFileSpaceAndType->m_annotationType,
-                                                                                  mouseEvent,
-                                                                                  drawingViewportHeight));
-
-    
+    m_newUserSpaceAnnotationBeingCreated.reset(nsa);
     
     m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC;
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -1348,18 +1317,32 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(
 void
 UserInputModeAnnotations::addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
 {
-    CaretAssertToDoFatal();
+    if (m_newUserSpaceAnnotationBeingCreated) {
+        m_newUserSpaceAnnotationBeingCreated->updateAnnotation(mouseEvent);
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    }
+    else {
+        CaretAssertMessage(0, "Trying to add/update new user space annotation but invalid");
+    }
 }
 
 /**
  * Finish the poly type stereotaxic annotation that user is drawing
- * @param mouseEvent
- *     Mouse event information.
  */
 void
-UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation()
 {
-    CaretAssertToDoFatal();
+    if (m_newUserSpaceAnnotationBeingCreated) {
+        m_newUserSpaceAnnotationBeingCreated->finishAnnotation();
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+        m_newUserSpaceAnnotationBeingCreated.reset();
+        setMode(Mode::MODE_SELECT);
+    }
+    else {
+        CaretAssertMessage(0, "Trying to add/update new user space annotation but invalid");
+    }
 }
 
 
@@ -1829,7 +1812,7 @@ UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
                                    "Click or drag mouse WITHOUT SHIFT key down to draw annotation or press ESC key to exit drawing.");
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            finishNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            finishNewPolyTypeStereotaxicAnnotation();
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             WuQMessageBox::errorOk(m_annotationToolsWidget,
@@ -2069,6 +2052,7 @@ void
 UserInputModeAnnotations::resetAnnotationBeingCreated()
 {
     m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    m_newUserSpaceAnnotationBeingCreated.reset();
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
@@ -3071,11 +3055,11 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     }
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
-
+    
     AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
     AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
     AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
-
+    
     Vector3D mouseCoord3D(mouseEvent.getPressedX(),
                           mouseEvent.getPressedY(),
                           0.0);
@@ -3085,7 +3069,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
                       m_mousePressWindowY);
         m_drawingCoordinateAndMouseEvents.emplace_back(mouseCoord3D,
                                                        mouseEvent);
-
+        
         setCoordinate(twoCoordShape->getEndCoordinate(),
                       m_mousePressWindowX,
                       m_mousePressWindowY);
@@ -3246,7 +3230,9 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::eraseLastCoordinate()
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
         AnnotationMultiCoordinateShape* multiCoordShape(m_annotation->castToMultiCoordinateShape());
         if (multiPairedCoordShape != NULL) {
-            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex);
+            const bool removePairFlag(false); /* This method does NOT add pairs of coordinates*/
+            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex,
+                                                                                     removePairFlag);
         }
         else if (multiCoordShape != NULL) {
             multiCoordShape->removeCoordinateAtIndex(removeIndex);
@@ -3358,3 +3344,324 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getDrawingViewportHeight
 {
     return m_drawingViewportHeight;
 }
+
+
+/* ******************************************************************************* */
+
+/**
+ * New annotation that is drawn in the space selected by the user
+ */
+UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(AnnotationFile* annotationFile,
+                                                                         const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
+                                                                         const AnnotationTypeEnum::Enum annotationType,
+                                                                         const MouseEvent& mouseEvent,
+                                                                         const int32_t browserWindowIndex)
+: m_annotationFile(annotationFile),
+m_browserWindowIndex(browserWindowIndex)
+{
+    const BrainOpenGLViewportContent* viewportContent(mouseEvent.getViewportContent());
+    m_browserTabIndex = ((viewportContent != NULL)
+                         ? viewportContent->getTabIndex()
+                         : -1);
+
+    /*
+     * Try to create annotation coordinate at the mouse location
+     */
+    AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                            annotationSpace));
+    if (ac == NULL) {
+        return;
+    }
+    
+    Plane planeOfVolumeSlice;
+    if (annotationType == AnnotationTypeEnum::POLYHEDRON) {
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionItemVoxel* voxelID(openGLWidget->performIdentificationVoxel(mouseEvent.getX(),
+                                                                             mouseEvent.getY()));
+        if (voxelID->isValid()) {
+            planeOfVolumeSlice = voxelID->getPlane();
+        }
+        if ( ! planeOfVolumeSlice.isValidPlane()) {
+            return;
+        }
+        m_sliceThickness = voxelID->getVoxelSizeMillimeters();
+    }
+    
+    m_annotationFile = annotationFile;
+    m_annotation = Annotation::newAnnotationOfType(annotationType,
+                                                   AnnotationAttributesDefaultTypeEnum::USER);
+    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+    if (multiPairedCoordShape != NULL) {
+        multiPairedCoordShape->setDrawingNewAnnotationStatus(true);
+    }
+    
+    AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
+    if (polyhedron != NULL) {
+        polyhedron->setPlane(planeOfVolumeSlice);
+        polyhedron->setDepth(3.0);
+        CaretAssertToDoWarning();   // where is depth
+    }
+
+    m_annotation->setCoordinateSpace(annotationSpace);
+    CaretAssert(m_annotation);
+    
+    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+    AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
+    AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
+    
+    if (twoCoordShape != NULL) {
+        *twoCoordShape->getStartCoordinate() = *ac;
+        *twoCoordShape->getEndCoordinate()   = *ac;
+        delete ac;
+    }
+    else if (oneCoordShape != NULL) {
+        *oneCoordShape->getCoordinate() = *ac;
+        delete ac;
+        oneCoordShape->setWidth(1.0);
+        oneCoordShape->setHeight(1.0);
+    }
+    else if (multiCoordShape != NULL) {
+        multiCoordShape->addCoordinate(ac);
+    }
+    else if (multiPairedCoordShape != NULL) {
+        /*
+         * Add a pair of coordinates.  For polyhedron, the second
+         * coordinate will get updated when the polyhedron is requested
+         * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
+         */
+        AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
+        multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+    }
+    else {
+        CaretAssert(0);
+        delete ac;
+        return;
+    }
+
+    EventDrawingViewportContentGet viewportEvent(DrawingViewportContentTypeEnum::MODEL,
+                                                 m_browserWindowIndex,
+                                                 Vector3D(mouseEvent.getPressedX(),
+                                                          mouseEvent.getPressedY(),
+                                                          0.0));
+    EventManager::get()->sendEvent(viewportEvent.getPointer());
+    const DrawingViewportContentModel* dvcm(viewportEvent.getDrawingViewportContentModel());
+    if (dvcm != NULL) {
+        m_viewportHeight = dvcm->getGraphicsViewport().getHeight();
+    }
+
+    if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
+        && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
+        m_annotation->setLineColor(CaretColorEnum::RED);
+    }
+
+    m_validFlag = true;
+}
+
+/**
+ * Erase (remove) the last coordinate from the annotation being drawn
+ */
+void
+UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
+{
+    CaretAssert(m_annotation);
+    const int32_t num(m_annotation->getNumberOfCoordinates());
+    if (num > 0) {
+        const int32_t removeIndex(num - 1);
+
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        AnnotationMultiCoordinateShape* multiCoordShape(m_annotation->castToMultiCoordinateShape());
+        if (multiPairedCoordShape != NULL) {
+            const bool removePairFlag(true); /* This method DOES add pairs of coordinates*/
+            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex,
+                                                                                     removePairFlag);
+        }
+        else if (multiCoordShape != NULL) {
+            multiCoordShape->removeCoordinateAtIndex(removeIndex);
+        }
+        else {
+            CaretAssertMessage(0, "Invalid annotation type for erasing last coordinate");
+        }
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+/**
+ * Finish creation of the annotation and add it to its file
+ */
+void
+UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
+{
+    if (m_validFlag) {
+        BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+        AnnotationCreateDialogTwo dialog(m_annotationFile,
+                                         m_annotation,
+                                         m_viewportHeight,
+                                         m_sliceThickness,
+                                         m_browserWindowIndex,
+                                         m_browserTabIndex,
+                                         window);
+        if (dialog.exec()) {
+            m_annotationFile = NULL;
+            m_annotation     = NULL;
+        }
+    }
+}
+
+/**
+ * Add / Update coordinate to annotation
+ * @param mouseEvent
+ *    The mouse event containing window XY
+ */
+void
+UserInputModeAnnotations::NewUserSpaceAnnotation::updateAnnotation(const MouseEvent& mouseEvent)
+{
+    CaretAssertMessage(m_validFlag, "Attempting to update invalid annotation being created by user");
+
+    if (m_validFlag) {
+        /*
+         * Try to create annotation coordinate at the mouse location
+         */
+        AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                                m_annotation->getCoordinateSpace()));
+        if (ac == NULL) {
+            return;
+        }
+
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+        AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
+        AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
+        
+        if (twoCoordShape != NULL) {
+            *twoCoordShape->getEndCoordinate()   = *ac;
+            delete ac;
+        }
+        else if (oneCoordShape != NULL) {
+            *oneCoordShape->getCoordinate() = *ac;
+            delete ac;
+        }
+        else if (multiCoordShape != NULL) {
+            multiCoordShape->addCoordinate(ac);
+        }
+        else if (multiPairedCoordShape != NULL) {
+            /*
+             * Add a pair of coordinates.  For polyhedron, the second
+             * coordinate will get updated when the polyhedron is requested
+             * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
+             */
+            AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
+            multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+        }
+    }
+}
+
+/*
+ * Destructor
+ */
+UserInputModeAnnotations::NewUserSpaceAnnotation::~NewUserSpaceAnnotation()
+{
+    
+}
+
+/**
+ * @return True if the new user space annotation is valid
+ */
+bool
+UserInputModeAnnotations::NewUserSpaceAnnotation::isValid() const
+{
+    return m_validFlag;
+}
+
+
+///**
+// * @return True if the output coordinate is valid
+// * @param mouseEvent
+// *    The mouse event
+// * @param xyzOut
+// *    Output with coordinate at mouse
+// */
+//bool
+//UserInputModeAnnotations::NewStereotaxicPolyhedronAnnotation::getCoordinateAtMouse(const MouseEvent& mouseEvent,
+//                                                                                   Vector3D& xyzOut) const
+//{
+//    bool validFlag(false);
+//    xyzOut[0] = mouseEvent.getX();
+//    xyzOut[1] = mouseEvent.getY();
+//    xyzOut[2] = 0.0;
+//    std::cout << "Default coord: " << xyzOut.toString() << std::endl;
+//
+//    /*
+//     * Get valid annotation space coordinates at location of mouse
+//     */
+//    AnnotationCoordinateInformation annCoordInfo;
+//    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+//                                                                       annCoordInfo);
+//
+////    /*
+////     * Find window at where mouse was pressed
+////     */
+////    const Vector3D mouseXY(mouseEvent.getX(),
+////                           mouseEvent.getY(),
+////                           0.0);
+////    EventDrawingViewportContentGet getViewportEvent(DrawingViewportContentTypeEnum::WINDOW,
+////                                                    mouseEvent.getBrowserWindowIndex(),
+////                                                    mouseXY);
+////    EventManager::get()->sendEvent(getViewportEvent.getPointer());
+////    if (getViewportEvent.getEventProcessCount() <= 0) {
+////        CaretLogSevere("Failed to find mouse="
+////                       + mousePressXY.toString()
+////                       + " in window="
+////                       + AString::number(mouseEvent.getBrowserWindowIndex()));
+////        return false;
+////    }
+////
+////    /*
+////     * Get viewport information
+////     */
+////    const DrawingViewportContentBase* windowViewportContentBase(getViewportEvent.getDrawingViewportContent());
+////    CaretAssert(windowViewportContentBase);
+////    CaretAssert(windowViewportContentBase->getViewportContentType() == DrawingViewportContentTypeEnum::WINDOW);
+////    const DrawingViewportContentWindow* windowViewportContent(windowViewportContentBase->castToWindow());
+////    CaretAssert(windowViewportContent);
+////    const GraphicsViewport beforeLockWindowViewport(windowViewportContent->getBeforeAspectLockedGraphicsViewport());
+////    const GraphicsViewport afterLockWindowViewport(windowViewportContent->getAfterAspectLockedGraphicsViewport());
+////
+////    /*
+////     * Window coordinate is relative to the aspect locked region
+////     */
+////    xyzOut[0] = mouseEvent.getX() - afterLockWindowViewport.getX();
+////    xyzOut[1] = mouseEvent.getY() - afterLockWindowViewport.getY();
+////    xyzOut[2] = 0.0;
+//
+//    
+//    CaretAssert(m_annotation);
+//    switch (m_annotation->getCoordinateSpace()) {
+//        case AnnotationCoordinateSpaceEnum::CHART:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SPACER:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+//            if (annCoordInfo.m_modelSpaceInfo.m_validFlag) {
+//                xyzOut = annCoordInfo.m_modelSpaceInfo.m_xyz;  add operator= to Vector3D
+//                validFlag = true;
+//            }
+//            break;
+//        case AnnotationCoordinateSpaceEnum::SURFACE:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::TAB:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+//            break;
+//        case AnnotationCoordinateSpaceEnum::WINDOW:
+//            break;
+//    }
+//
+//    retrurn an annotation coordinate or NULL if invalid
+//    std::cout << "   Output coord: " << xyzOut.toString() << std::endl;
+//    return validFlag;
+//}
+

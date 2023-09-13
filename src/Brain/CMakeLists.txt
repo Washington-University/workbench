@@ -88,6 +88,12 @@ DisplayPropertiesVolume.h
 DisplayPropertyDataBoolean.h
 DisplayPropertyDataEnum.h
 DisplayPropertyDataFloat.h
+DrawingViewportContentBase.h
+DrawingViewportContentManager.h
+DrawingViewportContentModel.h
+DrawingViewportContentTab.h
+DrawingViewportContentTypeEnum.h
+DrawingViewportContentWindow.h
 DummyFontTextRenderer.h
 EventAnnotationBarsGet.h
 EventAnnotationGetBeingDrawnInWindow.h
@@ -107,6 +113,9 @@ EventDataFileDelete.h
 EventDataFileRead.h
 EventDataFileReload.h
 EventDataFileReloadAll.h
+EventDrawingViewportContentAdd.h
+EventDrawingViewportContentClear.h
+EventDrawingViewportContentGet.h
 EventGetBrainOpenGLTextRenderer.h
 EventIdentificationHighlightLocation.h
 EventImageCapture.h
@@ -303,6 +312,12 @@ DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
 DisplayPropertyDataBoolean.cxx
 DisplayPropertyDataFloat.cxx
+DrawingViewportContentBase.cxx
+DrawingViewportContentManager.cxx
+DrawingViewportContentModel.cxx
+DrawingViewportContentTab.cxx
+DrawingViewportContentTypeEnum.cxx
+DrawingViewportContentWindow.cxx
 DummyFontTextRenderer.cxx
 EventAnnotationBarsGet.cxx
 EventAnnotationGetBeingDrawnInWindow.cxx
@@ -322,6 +337,9 @@ EventDataFileDelete.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
 EventDataFileReloadAll.cxx
+EventDrawingViewportContentAdd.cxx
+EventDrawingViewportContentClear.cxx
+EventDrawingViewportContentGet.cxx
 EventGetBrainOpenGLTextRenderer.cxx
 EventIdentificationHighlightLocation.cxx
 EventImageCapture.cxx

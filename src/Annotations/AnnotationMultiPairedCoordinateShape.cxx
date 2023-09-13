@@ -162,6 +162,37 @@ AnnotationMultiPairedCoordinateShape::addCoordinate(AnnotationCoordinate* coord)
 }
 
 /**
+ * Add a coordinate pair to this multi-coordinate shape
+ * @param acOne
+ *     FIrst coordinate added at the 'middle'
+ * @param acTwo
+ *     Second coordinate added at the end
+ */
+void
+AnnotationMultiPairedCoordinateShape::addCoordinatePair(AnnotationCoordinate* acOne,
+                                                        AnnotationCoordinate* acTwo)
+{
+    CaretAssert(acOne);
+    CaretAssert(acTwo);
+    std::unique_ptr<AnnotationCoordinate> ptrOne(acOne);
+    std::unique_ptr<AnnotationCoordinate> ptrTwo(acTwo);
+    const int32_t numCoords(getNumberOfCoordinates());
+    if (numCoords > 0) {
+        CaretAssert(MathFunctions::isEvenNumber(numCoords));
+        const int32_t halfOffset(numCoords / 2);
+        m_coordinates.insert(m_coordinates.begin() + halfOffset,
+                             std::move(ptrOne));
+        m_coordinates.push_back(std::move(ptrTwo));
+    }
+    else {
+        m_coordinates.push_back(std::move(ptrOne));
+        m_coordinates.push_back(std::move(ptrTwo));
+    }
+    
+    CaretAssert(MathFunctions::isEvenNumber(getNumberOfCoordinates()));
+}
+
+/**
  * @return Number of coordinates in this annotation
  */
 int32_t
@@ -520,13 +551,22 @@ AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndex(const int32_t inde
  * BEFORE the second face of the polyhedron is added.
  * @param index
  *    Index of coordinate for removal
+ * @param removePairFlag
+ *    If true, remove a pair of coordinates.  This should only be true if the annotation is drawn by
+ *    adding pairs of coordinates.
  */
 void
-AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index)
+AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index,
+                                                                                        const bool removePairFlag)
 {
-    CaretAssertVectorIndex(m_coordinates, index);
-    m_coordinates.erase(m_coordinates.begin() + index);
-    setModified();
+    if (removePairFlag) {
+        removeCoordinateAtIndex(index);
+    }
+    else {
+        CaretAssertVectorIndex(m_coordinates, index);
+        m_coordinates.erase(m_coordinates.begin() + index);
+        setModified();
+    }
 }
 
 

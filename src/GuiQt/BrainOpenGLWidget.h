@@ -65,6 +65,7 @@ namespace caret {
     class SelectionItemMediaLogicalCoordinate;
     class SelectionItemMediaPlaneCoordinate;
     class SelectionItemVolumeMprCrosshair;
+    class SelectionItemVoxel;
     class SelectionManager;
     class Model;
     class SurfaceProjectedItem;
@@ -113,6 +114,9 @@ namespace caret {
         SelectionManager* performIdentificationVoxelEditing(VolumeFile* editingVolumeFile,
                                                             const int x,
                                                             const int y);
+        
+        SelectionItemVoxel* performIdentificationVoxel(const int x,
+                                                       const int y);
         
         void performProjection(const int x,
                                const int y,

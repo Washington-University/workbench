@@ -43,6 +43,9 @@ namespace caret {
         
         void addCoordinate(AnnotationCoordinate* coord);
         
+        void addCoordinatePair(AnnotationCoordinate* acOne,
+                               AnnotationCoordinate* acTwo);
+        
         virtual AnnotationMultiPairedCoordinateShape* castToMultiPairedCoordinateShape() override;
         
         virtual const AnnotationMultiPairedCoordinateShape* castToMultiPairedCoordinateShape() const override;
@@ -59,7 +62,8 @@ namespace caret {
                 
         void removeCoordinateAtIndex(const int32_t index);
         
-        void removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index);
+        void removeCoordinateAtIndexByUserInputModeAnnotations(const int32_t index,
+                                                               const bool removePairFlag);
         
         virtual void replaceAllCoordinates(const std::vector<std::unique_ptr<const AnnotationCoordinate>>& coordinates) override;
         
@@ -78,6 +82,9 @@ namespace caret {
         void setDrawingNewAnnotationStatus(const bool status);
         
         bool isDrawingNewAnnotation() const;
+        
+        /** Subclasses may need  to update the coordinate pairs while drawing the annotation */
+        virtual void updateCoordinatePairsWhileDrawing() = 0;
         
         // ADD_NEW_METHODS_HERE
 

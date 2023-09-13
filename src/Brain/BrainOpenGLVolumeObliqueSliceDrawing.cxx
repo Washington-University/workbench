@@ -45,7 +45,9 @@
 #include "CiftiMappableDataFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
+#include "DrawingViewportContentModel.h"
 #include "ElapsedTimer.h"
+#include "EventDrawingViewportContentAdd.h"
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -698,6 +700,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                    viewport[1],
                    viewport[2],
                    viewport[3]);
+
+        DrawingViewportContentModel* dvcm(
+              new DrawingViewportContentModel(m_fixedPipelineDrawing->m_windowIndex,
+                                              m_fixedPipelineDrawing->windowTabIndex,
+                                              GraphicsViewport(viewport),
+                                              ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES));
+        EventDrawingViewportContentAdd addContentEvent(dvcm);
+        EventManager::get()->sendEvent(addContentEvent.getPointer());
 
         /*
          * Set the orthographic projection to fit the slice axis

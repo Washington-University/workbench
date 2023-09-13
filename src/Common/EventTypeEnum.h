@@ -150,6 +150,12 @@ public:
         EVENT_DATA_FILE_RELOAD,
         /** Reload (replace) a data file with its saved version in the brain*/
         EVENT_DATA_FILE_RELOAD_ALL,
+        /** Drawing viewport content event, add new while drawing */
+        EVENT_DRAWING_VIEWPORT_CONTENT_ADD,
+        /** Drawing viewport content event, clear before drawing*/
+        EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR,
+        /** Drawing viewport content event, get after drawing */
+        EVENT_DRAWING_VIEWPORT_CONTENT_GET,
         /** Get data files that are display in windows/tabs */
         EVENT_GET_DISPLAYED_DATA_FILES,
         /** Get node data files */

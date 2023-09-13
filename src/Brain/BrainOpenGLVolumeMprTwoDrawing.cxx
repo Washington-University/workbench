@@ -47,6 +47,8 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesVolume.h"
+#include "DrawingViewportContentModel.h"
+#include "EventDrawingViewportContentAdd.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GapsAndMargins.h"
@@ -447,12 +449,21 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
         case BrainModelMode::ALL_3D:
             break;
         case BrainModelMode::VOLUME_2D:
+        {
             glLoadIdentity();
             glViewport(viewport.getX(),
                        viewport.getY(),
                        viewport.getWidth(),
                        viewport.getHeight());
             
+            DrawingViewportContentModel* dvcm(
+                  new DrawingViewportContentModel(m_fixedPipelineDrawing->m_windowIndex,
+                                                  m_fixedPipelineDrawing->windowTabIndex,
+                                                  GraphicsViewport(viewport),
+                                                  ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES));
+            EventDrawingViewportContentAdd addContentEvent(dvcm);
+            EventManager::get()->sendEvent(addContentEvent.getPointer());
+
             bool drawViewportBoxFlag(false);
             if (drawViewportBoxFlag) {
                 glMatrixMode(GL_PROJECTION);
@@ -473,6 +484,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                 glPopMatrix();
                 glMatrixMode(GL_MODELVIEW);
             }
+        }
             break;
     }
         

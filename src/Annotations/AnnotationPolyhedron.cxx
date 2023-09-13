@@ -25,6 +25,8 @@
 
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -144,6 +146,10 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
                                           const float polyhedronDepth,
                                           AString& errorMessageOut)
 {
+    if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
+        CaretAssertToDoFatal();
+    }
+    
     errorMessageOut.clear();
     
     const int32_t numCoords(getNumberOfCoordinates());
@@ -209,6 +215,53 @@ AnnotationPolyhedron::getDepth() const
     return m_depth;
 }
 
+/**
+ * Set plane for the polyhedron SHOULD BE DONE BEFORE ADDING ANY COORDINATES
+ * @param plane
+ *    New plane
+ */
+void
+AnnotationPolyhedron::setPlane(const Plane& plane)
+{
+    if (getNumberOfCoordinates() > 0) {
+        CaretLogSevere("Changing plane of polyhedron after coordinates have been added.  "
+                       "Plane should be set before adding any coordinates.");
+    }
+    m_plane = plane;
+}
+
+/**
+ * Updates the 'far' coordinates that are 'depth' away from the near coordinates.
+ * This gets called prior to drawing the annotation while the user is in the process
+ * of drawing the poyhedron.
+ */
+void
+AnnotationPolyhedron::updateCoordinatePairsWhileDrawing()
+{
+    const int32_t numCoords(getNumberOfCoordinates());
+    if (numCoords > 0) {
+        const Vector3D offsetVectorXYZ(getPlane().getNormalVector() * getDepth());
+        
+        CaretAssert(MathFunctions::isEvenNumber(numCoords));
+        const int32_t halfNumCoords(numCoords / 2);
+        for (int32_t i = 0; i < halfNumCoords; i++) {
+            const Vector3D xyz(getCoordinate(i)->getXYZ());
+            const Vector3D farXYZ(xyz + offsetVectorXYZ);
+            getCoordinate(i + halfNumCoords)->setXYZ(farXYZ);
+        }
+    }
+}
+
+/**
+ * Set depth of polyhedron
+ * @param depth
+ *    New depth
+ */
+void
+AnnotationPolyhedron::setDepth(const float depth)
+{
+    m_depth = depth;
+}
 
 /**
  * Set values while reading file
