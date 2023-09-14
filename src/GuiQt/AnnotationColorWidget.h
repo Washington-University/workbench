@@ -25,7 +25,8 @@
 #include <QWidget>
 
 #include "AnnotationWidgetParentEnum.h"
-#include "CaretColorEnum.h"
+#include "CaretColor.h"
+#include "EventListenerInterface.h"
 #include "UserInputModeEnum.h"
 
 class QAction;
@@ -38,7 +39,7 @@ namespace caret {
     class CaretColorEnumMenu;
     class WuQWidgetObjectGroup;
     
-    class AnnotationColorWidget : public QWidget {
+    class AnnotationColorWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -50,6 +51,8 @@ namespace caret {
         
         virtual ~AnnotationColorWidget();
         
+        virtual void receiveEvent(Event* event) override;
+
         void updateContent(std::vector<Annotation*>& annotations);
         
 
@@ -113,6 +116,10 @@ namespace caret {
         std::vector<Annotation*> m_lineThicknessAnnotations;
         
         std::vector<Annotation*> m_backgroundColorAnnotations;
+        
+        CaretColor m_currentLineColorForDrawingNewAnnotation;
+        
+        CaretColor m_currentBackgroundColorForDrawingNewAnnotation;
         
         Annotation* m_annotationBeingDrawn = NULL;
         

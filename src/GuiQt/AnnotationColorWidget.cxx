@@ -259,6 +259,17 @@ AnnotationColorWidget::~AnnotationColorWidget()
 }
 
 /**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+AnnotationColorWidget::receiveEvent(Event* /*event*/)
+{
+}
+
+/**
  * Update with the given annotation.
  *
  * @param annotationsIn
@@ -266,18 +277,20 @@ AnnotationColorWidget::~AnnotationColorWidget()
 void
 AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotationsIn)
 {
-    std::vector<Annotation*> annotations(annotationsIn);
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
+    m_annotationBeingDrawn = annDrawEvent.getAnnotation();
 
-    m_annotationBeingDrawn = NULL;
+    std::vector<Annotation*> annotations(annotationsIn);
     if (annotations.empty()) {
-        EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
-        EventManager::get()->sendEvent(annDrawEvent.getPointer());
-        m_annotationBeingDrawn = annDrawEvent.getAnnotation();
         if (m_annotationBeingDrawn != NULL) {
             annotations.push_back(m_annotationBeingDrawn);
         }
     }
-    
+    else {
+        m_annotationBeingDrawn = NULL;
+    }
+
     m_lineColorAnnotations.clear();
     m_lineColorAnnotations.reserve(annotations.size());
     
@@ -353,7 +366,7 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
             return;
         }
         
-        if (m_annotationBeingDrawn != NULL) {
+        if (m_annotationBeingDrawn) {
             m_annotationBeingDrawn->setBackgroundColor(caretColor);
             m_annotationBeingDrawn->setCustomBackgroundColor(rgba);
         }
@@ -446,7 +459,7 @@ AnnotationColorWidget::updateBackgroundColorButton()
     if ( ! enableBackgroundFlag) {
         colorEnum = CaretColorEnum::NONE;
     }
-
+    
     QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_backgroundToolButton,
                                                            24, 24,
                                                            colorEnum,
@@ -456,6 +469,18 @@ AnnotationColorWidget::updateBackgroundColorButton()
     
     m_backgroundColorAction->setIcon(icon);
     m_backgroundColorMenu->setSelectedColor(colorEnum);
+    
+    /*
+     * Used for event requesting color for drawing a new annotation
+     */
+    m_currentBackgroundColorForDrawingNewAnnotation.setCaretColorEnum(colorEnum);
+    std::array<uint8_t, 4> rgbaByte {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        255
+    };
+    m_currentBackgroundColorForDrawingNewAnnotation.setCustomColorRGBA(rgbaByte);
 }
 
 
@@ -528,6 +553,18 @@ AnnotationColorWidget::updateLineColorButton()
     QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_lineToolButton, 24, 24, colorEnum, rgba, true);
     m_lineColorAction->setIcon(QIcon(pm));
     m_lineColorMenu->setSelectedColor(colorEnum);
+    
+    /*
+     * Used for event requesting color for drawing a new annotation
+     */
+    m_currentLineColorForDrawingNewAnnotation.setCaretColorEnum(colorEnum);
+    std::array<uint8_t, 4> rgbaByte {
+        static_cast<uint8_t>(rgba[0] * 255.0),
+        static_cast<uint8_t>(rgba[1] * 255.0),
+        static_cast<uint8_t>(rgba[2] * 255.0),
+        255
+    };
+    m_currentLineColorForDrawingNewAnnotation.setCustomColorRGBA(rgbaByte);
 }
 
 /**
@@ -661,6 +698,7 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
                                        errorMessage);
             }
         }
+        
         setUserDefaultLineColor(caretColor,
                                 rgba);
     }
@@ -768,7 +806,7 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
                                    errorMessage);
         }
     }
-    
+
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     Annotation::setUserDefaultLineWidthPercentage(value);
     
