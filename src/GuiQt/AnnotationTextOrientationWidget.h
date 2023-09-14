@@ -25,6 +25,7 @@
 #include <QWidget>
 
 #include "AnnotationTextOrientationEnum.h"
+#include "UserInputModeEnum.h"
 
 class QActionGroup;
 class QToolButton;
@@ -39,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationTextOrientationWidget(const int32_t browserWindowIndex,
+        AnnotationTextOrientationWidget(const UserInputModeEnum::Enum userInputMode,
+                                        const int32_t browserWindowIndex,
                                         QWidget* parent = 0);
         
         virtual ~AnnotationTextOrientationWidget();
@@ -61,6 +63,8 @@ namespace caret {
         
         QPixmap createHorizontalAlignmentPixmap(const QWidget* widget,
                                                 const AnnotationTextOrientationEnum::Enum orientation);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

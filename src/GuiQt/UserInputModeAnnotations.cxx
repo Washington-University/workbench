@@ -2151,7 +2151,8 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
         if (annotation != NULL) {
             AnnotationText* textAnnotation = dynamic_cast<AnnotationText*>(annotation);
             if (textAnnotation != NULL) {
-                AnnotationTextEditorDialog ted(textAnnotation,
+                AnnotationTextEditorDialog ted(getUserInputMode(),
+                                               textAnnotation,
                                                openGLWidget);
                 /*
                  * Note: Y==0 is at top for widget.
@@ -2936,7 +2937,8 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
 void
 UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent)
 {
-    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboard(mouseEvent);
+    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboard(getUserInputMode(),
+                                                                                                      mouseEvent);
     if ( ! newPastedAnnotations.empty()) {
         CaretAssertVectorIndex(newPastedAnnotations, 0);
         selectAnnotation(newPastedAnnotations[0]);
@@ -2963,7 +2965,8 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
 void
 UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(const MouseEvent& mouseEvent)
 {
-    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(mouseEvent);
+    std::vector<Annotation*> newPastedAnnotations = AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(getUserInputMode(),
+                                                                                                                 mouseEvent);
     if ( ! newPastedAnnotations.empty()) {
         CaretAssertVectorIndex(newPastedAnnotations, 0);
         selectAnnotation(newPastedAnnotations[0]);

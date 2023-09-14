@@ -99,6 +99,13 @@ AnnotationPasteDialog::getPastingOffsets(const AnnotationClipboard* clipboard,
     }
 }
 
+/**
+ * Offset an annotation by the given offset
+ * @param annotation
+ *    The annotation
+ * @param offsetXYZ
+ *    The offset
+ */
 void
 AnnotationPasteDialog::offsetAnnotationsCoordinates(Annotation* annotation,
                                                     const Vector3D& offsetXYZ)
@@ -149,7 +156,8 @@ AnnotationPasteDialog::offsetAnnotationsCoordinates(Annotation* annotation,
  *     on the clipboard was not pasted.
  */
 std::vector<Annotation*>
-AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
+AnnotationPasteDialog::pasteAnnotationOnClipboard(const UserInputModeEnum::Enum userInputMode,
+                                                  const MouseEvent& mouseEvent)
 {
     std::vector<Annotation*> newPastedAnnotations;
 
@@ -171,7 +179,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
         AnnotationFile* annotationFile = clipboard->getAnnotationFile(0);
         
         if (clipboard->getNumberOfAnnotations() >= 2) {
-            newPastedAnnotations = pasteAnnotationsInSpace(clipboard,
+            newPastedAnnotations = pasteAnnotationsInSpace(userInputMode,
+                                                           clipboard,
                                                            pastingInformation);
             return newPastedAnnotations;
         }
@@ -182,7 +191,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
             /*
              * Try pasting the annotation
              */
-            const bool pasteSuccessFlag = pasteAnnotationInSpace(annotationFile,
+            const bool pasteSuccessFlag = pasteAnnotationInSpace(userInputMode,
+                                                                 annotationFile,
                                                                  annotation,
                                                                  annotation->getCoordinateSpace(),
                                                                  pastingInformation);
@@ -204,7 +214,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
                 /*
                  * Use dialog to allow user to choose a space for pasting
                  */
-                AnnotationPasteDialog pasteDialog(mouseEvent,
+                AnnotationPasteDialog pasteDialog(userInputMode,
+                                                  mouseEvent,
                                                   pastingInformation,
                                                   annotationFile,
                                                   clipboard->getAnnotation(0),
@@ -224,6 +235,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
  * Paste the annotation on the clipboard using the mouse information
  * and allow the user to change the coordinate space.
  *
+ * @param userInputMode
+ *     The user input mode
  * @param mouseEvent
  *     Information about where to paste the annotation.
  * @return
@@ -231,7 +244,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const MouseEvent& mouseEvent)
  *     on the clipboard was not pasted.
  */
 std::vector<Annotation*>
-AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent)
+AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const UserInputModeEnum::Enum userInputMode,
+                                                             const MouseEvent& mouseEvent)
 {
     std::vector<Annotation*> newPastedAnnotations;
     
@@ -258,7 +272,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& m
         /*
          * Use dialog to allow user to choose a space for pasting
          */
-        AnnotationPasteDialog pasteDialog(mouseEvent,
+        AnnotationPasteDialog pasteDialog(userInputMode,
+                                          mouseEvent,
                                           pastingInformation,
                                           annotationFile,
                                           clipboard->getAnnotation(0),
@@ -288,7 +303,8 @@ AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const MouseEvent& m
  * @param parent
  *     Parent widget of dialog.
  */
-AnnotationPasteDialog::AnnotationPasteDialog(const MouseEvent& mouseEvent,
+AnnotationPasteDialog::AnnotationPasteDialog(const UserInputModeEnum::Enum userInputMode,
+                                             const MouseEvent& mouseEvent,
                                              const AnnotationPastingInformation& annotationPastingInformation,
                                              AnnotationFile* annotationFile,
                                              const Annotation* annotation,
@@ -296,6 +312,7 @@ AnnotationPasteDialog::AnnotationPasteDialog(const MouseEvent& mouseEvent,
                                              QWidget* parent)
 : WuQDialogModal("Paste Annotation",
                  parent),
+m_userInputMode(userInputMode),
 m_mouseEvent(mouseEvent),
 m_annotationPastingInformation(annotationPastingInformation),
 m_annotationFile(annotationFile),
@@ -365,8 +382,20 @@ AnnotationPasteDialog::getAnnotationsThatWereCreated()
     return m_annotationsThatWereCreated;
 }
 
+/**
+ * Paste an annotation
+ * @param userInputMode
+ *    The input mode
+ * @param clipboard
+ *    The clipboard
+ * @param annotationPastingInformation
+ *    The pasting info
+ * @return
+ *    Annotations that were pasted
+ */
 std::vector<Annotation*>
-AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipboard,
+AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum userInputMode,
+                                               const AnnotationClipboard* clipboard,
                                                const AnnotationPastingInformation& annotationPastingInformation)
 {
     std::vector<Annotation*> annotationsPasted;
@@ -579,7 +608,7 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
         const MouseEvent& mouseEvent(annotationPastingInformation.getMouseEvent());
         AString errorMessage;
         AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager());
-        if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+        if ( ! annotationManager->applyCommand(userInputMode,
                                                undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
@@ -619,6 +648,8 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
 
 /**
  * Paste the given annotation in the given space using the coordinate information for the annotation's coordinates
+ * @param userInputMode
+ *   The user input mode
  * @param annotationFile
  *    File for the annotation
  * @param annotation
@@ -630,7 +661,8 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const AnnotationClipboard* clipbo
  * @return New annotation that was pasted or NULL if failed to paste the annotation
  */
 bool
-AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
+AnnotationPasteDialog::pasteAnnotationInSpace(const UserInputModeEnum::Enum userInputMode,
+                                              AnnotationFile* annotationFile,
                                               Annotation* annotation,
                                               const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                               const AnnotationPastingInformation& annotationPastingInformation)
@@ -772,7 +804,7 @@ AnnotationPasteDialog::pasteAnnotationInSpace(AnnotationFile* annotationFile,
         const MouseEvent& mouseEvent(annotationPastingInformation.getMouseEvent());
         AString errorMessage;
         AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager());
-        if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+        if ( ! annotationManager->applyCommand(userInputMode,
                                                undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
@@ -823,13 +855,15 @@ AnnotationPasteDialog::okButtonClicked()
     bool pasteValidFlag(false);
     AnnotationClipboard* clipboard = GuiManager::get()->getBrain()->getAnnotationManager()->getClipboard();
     if (clipboard->getNumberOfAnnotations() >= 2) {
-        m_annotationsThatWereCreated = pasteAnnotationsInSpace(clipboard,
-                                                 m_annotationPastingInformation);
+        m_annotationsThatWereCreated = pasteAnnotationsInSpace(m_userInputMode,
+                                                               clipboard,
+                                                               m_annotationPastingInformation);
         pasteValidFlag = ( ! m_annotationsThatWereCreated.empty());
     }
     else {
         Annotation* newAnnotation(m_annotation->clone());
-        pasteValidFlag = pasteAnnotationInSpace(m_annotationFile,
+        pasteValidFlag = pasteAnnotationInSpace(m_userInputMode,
+                                                m_annotationFile,
                                                 newAnnotation,
                                                 selectedCoordinateSpace,
                                                 m_annotationPastingInformation);

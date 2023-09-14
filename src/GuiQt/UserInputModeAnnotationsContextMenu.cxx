@@ -620,7 +620,8 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
 {
     CaretAssert(m_textAnnotation);
     
-    AnnotationTextEditorDialog ted(m_textAnnotation,
+    AnnotationTextEditorDialog ted(m_userInputModeAnnotations->getUserInputMode(),
+                                   m_textAnnotation,
                                    this);
     /*
      * Note: Y==0 is at top for widget.

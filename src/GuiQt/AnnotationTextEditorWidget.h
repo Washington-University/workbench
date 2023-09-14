@@ -27,6 +27,8 @@
 #include <QLineEdit>
 #include <QWidget>
 
+#include "UserInputModeEnum.h"
+
 namespace caret {
 
     class AnnotationLineEdit;
@@ -38,7 +40,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationTextEditorWidget(const int32_t browserWindowIndex,
+        AnnotationTextEditorWidget(const UserInputModeEnum::Enum userInputMode,
+                                   const int32_t browserWindowIndex,
                                    QWidget* parent = 0);
         
         virtual ~AnnotationTextEditorWidget();
@@ -63,6 +66,8 @@ namespace caret {
         AnnotationTextEditorWidget& operator=(const AnnotationTextEditorWidget&);
         
         void updateLineEditText(const QString& text);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

@@ -49,14 +49,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *    The user input mode
  * @param textAnnotation
  *    Text annotation that will be edited.
  * @param parent
  *    Parent of this dialog.
  */
-AnnotationTextEditorDialog::AnnotationTextEditorDialog(AnnotationText* textAnnotation,
+AnnotationTextEditorDialog::AnnotationTextEditorDialog(const UserInputModeEnum::Enum userInputMode,
+                                                       AnnotationText* textAnnotation,
                                                        QWidget* parent)
 : QDialog(parent),
+m_userInputMode(userInputMode),
 m_textAnnotation(textAnnotation)
 {
     CaretAssert(textAnnotation);
@@ -133,7 +137,7 @@ AnnotationTextEditorDialog::textWasEdited()
     undoCommand->setModeTextCharacters(text,
                                        annotationVector);
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(m_userInputMode,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

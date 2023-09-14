@@ -29,6 +29,7 @@
 #include "AnnotationWidgetParentEnum.h"
 #include "CaretColorEnum.h"
 #include "EventListenerInterface.h"
+#include "UserInputModeEnum.h"
 
 class QToolButton;
 
@@ -47,6 +48,7 @@ namespace caret {
 
     public:
         AnnotationFontWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+                             const UserInputModeEnum::Enum userInputMode,
                              const int32_t browserWindowIndex,
                              QWidget* parent = 0);
         
@@ -93,6 +95,8 @@ namespace caret {
         static std::vector<Annotation*> convertToAnnotations(const std::vector<AnnotationFontAttributesInterface*>& fontInterfaces);
         
         const AnnotationWidgetParentEnum::Enum m_parentWidgetType;
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

@@ -52,10 +52,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param userInputMode
+ *    The user input mode
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param parent
+ *    Parent widget
  */
-AnnotationLineArrowTipsWidget::AnnotationLineArrowTipsWidget(const int32_t browserWindowIndex,
+AnnotationLineArrowTipsWidget::AnnotationLineArrowTipsWidget(const UserInputModeEnum::Enum userInputMode,
+                                                             const int32_t browserWindowIndex,
                                                              QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* label = new QLabel("Line");
@@ -163,7 +171,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(m_userInputMode,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -187,7 +195,7 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
         AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
 
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(m_userInputMode,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

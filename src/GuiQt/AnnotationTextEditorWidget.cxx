@@ -59,10 +59,12 @@ using namespace caret;
  * @param parent
  *     The parent widget.
  */
-AnnotationTextEditorWidget::AnnotationTextEditorWidget(const int32_t browserWindowIndex,
+AnnotationTextEditorWidget::AnnotationTextEditorWidget(const UserInputModeEnum::Enum userInputMode,
+                                                       const int32_t browserWindowIndex,
                                                        QWidget* parent)
 :
 QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     m_annotationText = NULL;
@@ -156,7 +158,8 @@ void
 AnnotationTextEditorWidget::displayTextEditor()
 {
     if (m_annotationText != NULL) {
-        AnnotationTextEditorDialog ted(m_annotationText,
+        AnnotationTextEditorDialog ted(m_userInputMode,
+                                       m_annotationText,
                                        this);
         QObject::connect(&ted, SIGNAL(textHasBeenChanged(const QString&)),
                          this, SLOT(textEditorDialogTextChanged(const QString&)));
@@ -203,7 +206,7 @@ AnnotationTextEditorWidget::annotationTextChanged()
     undoCommand->setModeTextCharacters(s, selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(m_userInputMode,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -249,7 +252,7 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
                                                    selectedAnnotations);
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
     AString errorMessage;
-    if ( ! annMan->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+    if ( ! annMan->applyCommand(m_userInputMode,
                                 undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,

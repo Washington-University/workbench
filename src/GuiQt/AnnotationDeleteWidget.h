@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <QWidget>
 
+#include "UserInputModeEnum.h"
 
 class QAction;
 class QToolButton;
@@ -35,7 +36,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationDeleteWidget(const int32_t browserWindowIndex,
+        AnnotationDeleteWidget(const UserInputModeEnum::Enum userInputMode,
+                               const int32_t browserWindowIndex,
                                QWidget* parent = 0);
         
         virtual ~AnnotationDeleteWidget();
@@ -54,6 +56,8 @@ namespace caret {
         AnnotationDeleteWidget& operator=(const AnnotationDeleteWidget&);
         
         QToolButton* createDeleteToolButton();
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

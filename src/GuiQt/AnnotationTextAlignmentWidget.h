@@ -27,6 +27,8 @@
 #include "AnnotationTextAlignHorizontalEnum.h"
 #include "AnnotationTextAlignVerticalEnum.h"
 
+#include "UserInputModeEnum.h"
+
 class QActionGroup;
 class QToolButton;
 
@@ -40,7 +42,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationTextAlignmentWidget(const int32_t browserWindowIndex,
+        AnnotationTextAlignmentWidget(const UserInputModeEnum::Enum userInputMode,
+                                      const int32_t browserWindowIndex,
                                       QWidget* parent = 0);
         
         virtual ~AnnotationTextAlignmentWidget();
@@ -69,6 +72,8 @@ namespace caret {
         
         QPixmap createVerticalAlignmentPixmap(const QWidget* widget,
                                                 const AnnotationTextAlignVerticalEnum::Enum verticalAlignment);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         

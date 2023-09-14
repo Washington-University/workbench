@@ -52,10 +52,18 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param userInputMode
+ *    The input mode
+ * @param browserWindowIndex
+ *    Index of browser window
+ * @param parent
+ *    The parent widget
  */
-AnnotationDeleteWidget::AnnotationDeleteWidget(const int32_t browserWindowIndex,
+AnnotationDeleteWidget::AnnotationDeleteWidget(const UserInputModeEnum::Enum userInputMode,
+                                               const int32_t browserWindowIndex,
                                                QWidget* parent)
 : QWidget(parent),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* deleteLabel = new QLabel("Delete");
@@ -187,7 +195,7 @@ AnnotationDeleteWidget::deleteActionTriggered()
         undoCommand->setModeDeleteAnnotations(deleteAnnotations);
 
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(UserInputModeEnum::Enum::ANNOTATIONS,
+        if ( ! annotationManager->applyCommand(m_userInputMode,
                                                undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,

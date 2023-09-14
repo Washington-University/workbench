@@ -24,6 +24,8 @@
 
 #include <QDialog>
 
+#include "UserInputModeEnum.h"
+
 class QTextEdit;
 
 namespace caret {
@@ -35,7 +37,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationTextEditorDialog(AnnotationText* textAnnotation,
+        AnnotationTextEditorDialog(const UserInputModeEnum::Enum userInputMode,
+                                   AnnotationText* textAnnotation,
                                    QWidget* parent);
         
         virtual ~AnnotationTextEditorDialog();
@@ -54,6 +57,8 @@ namespace caret {
         AnnotationTextEditorDialog(const AnnotationTextEditorDialog&);
 
         AnnotationTextEditorDialog& operator=(const AnnotationTextEditorDialog&);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         AnnotationText* m_textAnnotation;
         

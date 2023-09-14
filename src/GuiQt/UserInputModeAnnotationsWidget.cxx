@@ -188,7 +188,8 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                  m_browserWindowIndex);
     
-    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
+    m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                              m_browserWindowIndex);
 
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
                                                                 m_inputModeAnnotations->getUserInputMode(),
@@ -318,20 +319,25 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
 void
 UserInputModeAnnotationsWidget::createAnnotationWidget()
 {
-    m_textEditorWidget           = new AnnotationTextEditorWidget(m_browserWindowIndex);
+    m_textEditorWidget           = new AnnotationTextEditorWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                  m_browserWindowIndex);
     
-    m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_browserWindowIndex);
+    m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                     m_browserWindowIndex);
     
     m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                            m_inputModeAnnotations->getUserInputMode(),
                                                             m_browserWindowIndex);
     
     m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
     
-    m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_browserWindowIndex);
+    m_textAlignmentWidget        = new AnnotationTextAlignmentWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                     m_browserWindowIndex);
     
-    m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_browserWindowIndex);
+    m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                       m_browserWindowIndex);
     
     QLabel* coordinateSpaceLabel = new QLabel("Space");
     m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
@@ -358,7 +364,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
     
-    m_deleteWidget               = new AnnotationDeleteWidget(m_browserWindowIndex);
+    m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                              m_browserWindowIndex);
     
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
                                                                 m_inputModeAnnotations->getUserInputMode(),

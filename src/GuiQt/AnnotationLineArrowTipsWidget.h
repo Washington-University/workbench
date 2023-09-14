@@ -26,6 +26,8 @@
 
 #include <QWidget>
 
+#include "UserInputModeEnum.h"
+
 namespace caret {
 
     class Annotation;
@@ -36,7 +38,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationLineArrowTipsWidget(const int32_t browserWindowIndex,
+        AnnotationLineArrowTipsWidget(const UserInputModeEnum::Enum userInputMode,
+                                      const int32_t browserWindowIndex,
                                       QWidget* parent = 0);
         
         virtual ~AnnotationLineArrowTipsWidget();
@@ -64,7 +67,8 @@ namespace caret {
         QPixmap createArrowPixmap(const QWidget* widget,
                                   const ArrowType arrowType);
         
-
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         const int32_t m_browserWindowIndex;
         
         QAction* m_startArrowAction;

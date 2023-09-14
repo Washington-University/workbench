@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "AnnotationCoordinateInformation.h"
+#include "UserInputModeEnum.h"
 #include "Vector3D.h"
 #include "WuQDialogModal.h"
 
@@ -41,9 +42,11 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static std::vector<Annotation*> pasteAnnotationOnClipboard(const MouseEvent& mouseEvent);
+        static std::vector<Annotation*> pasteAnnotationOnClipboard(const UserInputModeEnum::Enum userInputMode,
+                                                                   const MouseEvent& mouseEvent);
         
-        static std::vector<Annotation*> pasteAnnotationOnClipboardChangeSpace(const MouseEvent& mouseEvent);
+        static std::vector<Annotation*> pasteAnnotationOnClipboardChangeSpace(const UserInputModeEnum::Enum userInputMode,
+                                                                              const MouseEvent& mouseEvent);
         
         virtual ~AnnotationPasteDialog();
         
@@ -52,7 +55,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        AnnotationPasteDialog(const MouseEvent& mouseEvent,
+        AnnotationPasteDialog(const UserInputModeEnum::Enum userInputMode,
+                              const MouseEvent& mouseEvent,
                               const AnnotationPastingInformation& annotationPastingInformation,
                               AnnotationFile* annotationFile,
                               const Annotation* annotation,
@@ -63,12 +67,14 @@ namespace caret {
 
         AnnotationPasteDialog& operator=(const AnnotationPasteDialog&);
         
-        static bool pasteAnnotationInSpace(AnnotationFile* annotationFile,
+        static bool pasteAnnotationInSpace(const UserInputModeEnum::Enum userInputMode,
+                                           AnnotationFile* annotationFile,
                                            Annotation* annotation,
                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                            const AnnotationPastingInformation& annotationPastingInformation);
 
-        static std::vector<Annotation*> pasteAnnotationsInSpace(const AnnotationClipboard* clipboard,
+        static std::vector<Annotation*> pasteAnnotationsInSpace(const UserInputModeEnum::Enum userInputMode,
+                                                                const AnnotationClipboard* clipboard,
                                                                 const AnnotationPastingInformation& annotationPastingInformation);
         
         virtual void okButtonClicked();
@@ -83,6 +89,8 @@ namespace caret {
         static void offsetAnnotationsCoordinates(Annotation* annotation,
                                                  const Vector3D& offsetXYZ);
 
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         const MouseEvent& m_mouseEvent;
         
         const AnnotationPastingInformation& m_annotationPastingInformation;
