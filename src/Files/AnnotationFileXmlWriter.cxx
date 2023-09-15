@@ -726,7 +726,7 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
     if (polyhedron != NULL) {
         m_stream->writeStartElement(ELEMENT_POLYHEDRON_DATA);
         m_stream->writeAttribute(ATTRIBUTE_DEPTH,
-                                 QString::number(polyhedron->getDepth(),
+                                 QString::number(polyhedron->getDepthMillimeters(),
                                                  'f',
                                                  6));
         m_stream->writeAttribute(ATTRIBUTE_PLANE,

@@ -99,7 +99,7 @@ void
 AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj)
 {
     m_plane = obj.m_plane;
-    m_depth = obj.m_depth;
+    m_depthMillimeters = obj.m_depthMillimeters;
 }
 
 /**
@@ -147,7 +147,7 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
                                           AString& errorMessageOut)
 {
     if (getCoordinateSpace() == AnnotationCoordinateSpaceEnum::STEREOTAXIC) {
-        CaretAssertToDoFatal();
+        CaretLogSevere("Should not call this function when stereotaxic drawing");
     }
     
     errorMessageOut.clear();
@@ -163,7 +163,7 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
-    m_depth = polyhedronDepth;
+    m_depthMillimeters = polyhedronDepth;
     m_plane = plane;
     
     const bool debugFlag(false);
@@ -207,12 +207,48 @@ AnnotationPolyhedron::getPlane() const
 }
 
 /**
- * @return Depth from when the annotation was drawn
+ * @return Depth in millimeters from when the annotation was drawn
  */
 float
-AnnotationPolyhedron::getDepth() const
+AnnotationPolyhedron::getDepthMillimeters() const
 {
-    return m_depth;
+    return m_depthMillimeters;
+}
+
+/**
+ * @return Depth in number of slices (converts millimeter depth to slices)
+ * @param sliceThickness
+ *    Thickness of volume slice
+ */
+float
+AnnotationPolyhedron::getDepthSlices(const float sliceThickness) const
+{
+    float numberOfSlices(m_depthMillimeters);
+    if (sliceThickness > 0) {
+        numberOfSlices = (m_depthMillimeters / sliceThickness);
+    }
+    return numberOfSlices;
+}
+
+/**
+ * Set the depth in slicdes (converts slices to millimeters)
+ * @param numberOfSlices
+ *    Thickness of number of slices
+ * @param sliceThickness
+ *    Thickness of the volume slices
+ */
+void
+AnnotationPolyhedron::setDepthSlices(const int32_t numberOfSlices,
+                                     const float sliceThickness)
+{
+    float depth(0.0);
+    if (numberOfSlices > 0) {
+        depth = (numberOfSlices - 1) * sliceThickness;
+    }
+    else if (numberOfSlices < 0) {
+        depth = (numberOfSlices + 1) * sliceThickness;
+    }
+    setDepthMillimeters(depth);
 }
 
 /**
@@ -228,19 +264,18 @@ AnnotationPolyhedron::setPlane(const Plane& plane)
                        "Plane should be set before adding any coordinates.");
     }
     m_plane = plane;
+    setModified();
 }
 
 /**
- * Updates the 'far' coordinates that are 'depth' away from the near coordinates.
- * This gets called prior to drawing the annotation while the user is in the process
- * of drawing the poyhedron.
+ * Updates the 'far' coordinates that are 'depth' away from the near coordinates using the depth value.
  */
 void
-AnnotationPolyhedron::updateCoordinatePairsWhileDrawing()
+AnnotationPolyhedron::updateCoordinatesAfterDepthChanged()
 {
     const int32_t numCoords(getNumberOfCoordinates());
     if (numCoords > 0) {
-        const Vector3D offsetVectorXYZ(getPlane().getNormalVector() * getDepth());
+        const Vector3D offsetVectorXYZ(getPlane().getNormalVector() * getDepthMillimeters());
         
         CaretAssert(MathFunctions::isEvenNumber(numCoords));
         const int32_t halfNumCoords(numCoords / 2);
@@ -258,9 +293,12 @@ AnnotationPolyhedron::updateCoordinatePairsWhileDrawing()
  *    New depth
  */
 void
-AnnotationPolyhedron::setDepth(const float depth)
+AnnotationPolyhedron::setDepthMillimeters(const float depth)
 {
-    m_depth = depth;
+    if (m_depthMillimeters != depth) {
+        m_depthMillimeters = depth;
+        setModified();
+    }
 }
 
 /**
@@ -275,7 +313,7 @@ AnnotationPolyhedron::setFromFileReading(const Plane& plane,
                                          const float depth)
 {
     m_plane = plane;
-    m_depth = depth;
+    m_depthMillimeters = depth;
     setModified();
 }
 

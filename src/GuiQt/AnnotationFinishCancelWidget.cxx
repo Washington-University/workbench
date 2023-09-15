@@ -165,8 +165,7 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
         finishToolTip = ("Finish drawing "
                          + AnnotationTypeEnum::toGuiName(annotation->getType()));
         
-        const int32_t numCoords(annotation->getNumberOfCoordinates());
-        m_annotationNumberOfCoordinates = numCoords;
+        int32_t numCoords(annotation->getNumberOfCoordinates());
         switch (annotation->getType()) {
             case AnnotationTypeEnum::BOX:
                 break;
@@ -185,6 +184,34 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
                 finishEnabledFlag = (numCoords >= 3);
                 break;
             case AnnotationTypeEnum::POLYHEDRON:
+                switch (m_userInputMode) {
+                    case UserInputModeEnum::Enum::INVALID:
+                        break;
+                    case UserInputModeEnum::Enum::ANNOTATIONS:
+                        break;
+                    case UserInputModeEnum::Enum::BORDERS:
+                        break;
+                    case UserInputModeEnum::Enum::FOCI:
+                        break;
+                    case UserInputModeEnum::Enum::IMAGE:
+                        break;
+                    case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                        /*
+                         * When drawing samples, there are pairs of coordinates
+                         * with one on the near volume slice and the other on
+                         * the far volume slice.  Since the each coordinate added
+                         * by the use is doubled, reduce the number of coordinates
+                         * by 2.
+                         */
+                        numCoords /= 2;
+                        break;
+                    case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                        break;
+                    case UserInputModeEnum::Enum::VIEW:
+                        break;
+                    case UserInputModeEnum::Enum::VOLUME_EDIT:
+                        break;
+                }
                 eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
                 break;
@@ -197,6 +224,7 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
             case AnnotationTypeEnum::TEXT:
                 break;
         }
+        m_annotationNumberOfCoordinates = numCoords;
     }
     
     if (finishEnabledFlag) {

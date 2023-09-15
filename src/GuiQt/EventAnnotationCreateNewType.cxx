@@ -49,7 +49,7 @@ using namespace caret;
  *    Space for new annotation.
  * @param annotationType
  *    Type for new annotation.
- * @param polyLineDrawingMode
+ * @param polyhedronDrawingMode
  *    Mode for drawing polyline
  *
  */
@@ -58,14 +58,14 @@ EventAnnotationCreateNewType::EventAnnotationCreateNewType(const int32_t browser
                                                            AnnotationFile* annotationFile,
                                                            const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                            const AnnotationTypeEnum::Enum annotationType,
-                                                           const PolyDrawingMode polyDrawingMode)
+                                                           const PolyhedronDrawingMode polyhedronDrawingMode)
 : Event(EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE),
 m_browserWindowIndex(browserWindowIndex),
 m_userInputMode(userInputMode),
 m_annotationFile(annotationFile),
 m_annotationSpace(annotationSpace),
 m_annotationType(annotationType),
-m_polyDrawingMode(polyDrawingMode)
+m_polyhedronDrawingMode(polyhedronDrawingMode)
 {
     
 }
@@ -124,10 +124,10 @@ EventAnnotationCreateNewType::getAnnotationType() const
 /**
  * @return Mode for poly type drawing
  */
-EventAnnotationCreateNewType::PolyDrawingMode
-EventAnnotationCreateNewType::getPolyDrawingMode() const
+EventAnnotationCreateNewType::PolyhedronDrawingMode
+EventAnnotationCreateNewType::getPolyhedronDrawingMode() const
 {
-    return m_polyDrawingMode;
+    return m_polyhedronDrawingMode;
 }
 
 

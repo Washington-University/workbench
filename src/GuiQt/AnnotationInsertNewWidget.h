@@ -26,17 +26,19 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "EventListenerInterface.h"
 #include "UserInputModeEnum.h"
 
 class QAbstractButton;
 class QActionGroup;
+class QSpinBox;
 class QRadioButton;
 class QToolButton;
 
 namespace caret {
     class AnnotationMenuFileSelection;
     
-    class AnnotationInsertNewWidget : public QWidget {
+    class AnnotationInsertNewWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -47,6 +49,7 @@ namespace caret {
         
         virtual ~AnnotationInsertNewWidget();
         
+        virtual void receiveEvent(Event* event);
 
         // ADD_NEW_METHODS_HERE
 
@@ -57,7 +60,17 @@ namespace caret {
         
         void spaceOrShapeActionTriggered();
         
+        void newSampleActionTriggered();
+        
+        void newSampleDepthValueChanged(int value);
+        
     private:
+        enum class WidgetMode {
+            INVALID,
+            ANNOTATIONS,
+            SAMPLES
+        };
+        
         AnnotationInsertNewWidget(const AnnotationInsertNewWidget&);
 
         AnnotationInsertNewWidget& operator=(const AnnotationInsertNewWidget&);
@@ -80,9 +93,15 @@ namespace caret {
         
         void enableDisableShapeActions();
         
+        void createAnnotationsWidgets();
+        
+        void createEditSamplesWidgets();
+        
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
+        
+        WidgetMode m_widgetMode = WidgetMode::INVALID;
         
         QActionGroup* m_spaceActionGroup;
         
@@ -97,6 +116,12 @@ namespace caret {
         QToolButton* m_polyLineToolButton = NULL;
         
         QToolButton* m_polyhedronToolButton = NULL;
+        
+        QAction* m_newSampleAction = NULL;
+        
+        QSpinBox* m_newSampleDepthSpinBox = NULL;;
+        
+        int32_t m_previousNewSampleDepthSpinBoxValue = 3;
         
         static AString s_previousImageFileDirectory;
         

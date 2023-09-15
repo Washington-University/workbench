@@ -58,6 +58,8 @@ public:
         EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
         /** Annotation grouping (group, regroup, ungroup) operation */
         EVENT_ANNOTATION_GROUPING,
+        /** Annotation get slice depth while drawing a new polyhedron */
+        EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH,
         /** Get the bounds of annotation text */
         EVENT_ANNOTATION_TEXT_GET_BOUNDS,
         /** Get annotation text substitutions */

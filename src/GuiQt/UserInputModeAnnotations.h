@@ -158,6 +158,7 @@ namespace caret {
                                    const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                    const AnnotationTypeEnum::Enum annotationType,
                                    const MouseEvent& mousePressEvent,
+                                   const UserInputModeEnum::Enum userInputMode,
                                    const int32_t browserWindowIndex);
 
             ~NewUserSpaceAnnotation();
@@ -176,10 +177,9 @@ namespace caret {
             
             int32_t getViewportHeight() const { return m_viewportHeight; }
             
-        private:
-//            bool getCoordinateAtMouse(const MouseEvent& mouseEvent,
-//                                      Vector3D& xyzOut) const;
+            float getSliceThickness() const { return m_sliceThickness; }
             
+        private:
             AnnotationFile* m_annotationFile = NULL;
             
             Annotation* m_annotation = NULL;
@@ -375,7 +375,6 @@ namespace caret {
     };
     
 #ifdef __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
-    //const AString UserInputModeAnnotations::s_pasteSpecialMenuItemText = "Paste and Change Space";
 #endif // __USER_INPUT_MODE_ANNOTATIONS_DECLARE__
 
 } // namespace

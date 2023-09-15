@@ -34,6 +34,7 @@
 #include "AnnotationPointSizeText.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "AnnotationOneCoordinateShape.h"
+#include "AnnotationPolyhedron.h"
 #include "CaretLogger.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGrouping.h"
@@ -348,6 +349,18 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
             else {
                 CaretAssert(0);
+            }
+        }
+            break;
+        case AnnotationRedoUndoCommandModeEnum::POLYHEDRON_DEPTH:
+        {
+            AnnotationPolyhedron* polyAnn(annotation->castToPolyhedron());
+            AnnotationPolyhedron* polyAnnValue(annotation->castToPolyhedron());
+            if ((polyAnn != NULL)
+                && (polyAnnValue != NULL)) {
+                polyAnn->setDepthMillimeters(polyAnnValue->getDepthMillimeters());
+                /* Applies depth value*/
+                polyAnn->updateCoordinatesAfterDepthChanged();
             }
         }
             break;
@@ -2016,6 +2029,40 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnRemoveCoordinate(const int32_t co
                                                   undoAnnotation);
     m_annotationMementos.push_back(am);
 }
+
+/**
+ * Set the mode to polyhedron depth and create the undo/redo instances
+ *
+ * @param depth
+ *     The new polyhedron depth
+ * @param annotations
+ *     Annotations that receive this new depth
+ */
+void
+AnnotationRedoUndoCommand::setModePolyhedronDepth(const float depth,
+                                                  const std::vector<Annotation*>& annotations)
+{
+    m_mode        = AnnotationRedoUndoCommandModeEnum::POLYHEDRON_DEPTH;
+    setDescription("Polyhedron Depth");
+    
+    for (auto& annotation : annotations) {
+        CaretAssert(annotation);
+        
+        AnnotationPolyhedron* polyAnn(annotation->castToPolyhedron());
+        if (polyAnn != NULL) {
+            AnnotationPolyhedron* redoAnnotation(polyAnn->clone()->castToPolyhedron());
+            CaretAssert(redoAnnotation);
+            redoAnnotation->setDepthMillimeters(depth);
+            Annotation* undoAnnotation(polyAnn->clone());
+            CaretAssert(undoAnnotation);
+            AnnotationMemento* am(new AnnotationMemento(annotation,
+                                                        redoAnnotation,
+                                                        undoAnnotation));
+            m_annotationMementos.push_back(am);
+        }
+    }
+}
+
 
 /**
  * Set the mode to rotation angle and create the undo/redo instances

@@ -392,7 +392,7 @@ AnnotationMultiPairedCoordinateShape::insertCoordinate(const int32_t insertAfter
     CaretAssert(polyhedron);
     const Plane plane(polyhedron->getPlane());
     const Vector3D normalVector(plane.getNormalVector());
-    const float depth(polyhedron->getDepth());
+    const float depth(polyhedron->getDepthMillimeters());
     
     Vector3D pairXYZ;
     int32_t indexPair(-1);

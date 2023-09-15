@@ -74,15 +74,20 @@ namespace caret {
                                  const float polyhedronDepth,
                                  AString& errorMessageOut);
         
-        virtual void updateCoordinatePairsWhileDrawing() override;
+        virtual void updateCoordinatesAfterDepthChanged() override;
         
         Plane getPlane() const;
         
-        float getDepth() const;
+        float getDepthMillimeters() const;
+        
+        float getDepthSlices(const float sliceThickness) const;
         
         void setPlane(const Plane& plane);
         
-        void setDepth(const float depth);
+        void setDepthMillimeters(const float depth);
+        
+        void setDepthSlices(const int32_t numberOfSlices,
+                            const float sliceThickness);
         
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;
@@ -108,7 +113,7 @@ namespace caret {
 
         Plane m_plane;
         
-        float m_depth;
+        float m_depthMillimeters;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -141,6 +141,9 @@ namespace caret {
         void setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,
                                                   Annotation* annotation);
         
+        void setModePolyhedronDepth(const float depth,
+                                    const std::vector<Annotation*>& annotations);
+        
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);
         

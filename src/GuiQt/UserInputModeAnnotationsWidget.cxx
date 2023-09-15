@@ -38,6 +38,7 @@
 #include "AnnotationCoordinatesWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationDeleteWidget.h"
+#include "AnnotationDepthWidget.h"
 #include "AnnotationFinishCancelWidget.h"
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
@@ -182,9 +183,6 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
-    m_coordinatesWidget        = new AnnotationCoordinatesWidget(m_inputModeAnnotations->getUserInputMode(),
-                                                                 AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
-                                                                 m_browserWindowIndex);
     m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                  m_browserWindowIndex);
     
@@ -195,24 +193,45 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    QVBoxLayout* deleteUndoRedoLayout = new QVBoxLayout();
-    WuQtUtilities::setLayoutSpacingAndMargins(deleteUndoRedoLayout, 2, 0);
-    deleteUndoRedoLayout->addWidget(m_redoUndoWidget);
-    deleteUndoRedoLayout->addSpacing(4);
-    deleteUndoRedoLayout->addWidget(m_deleteWidget, 0, Qt::AlignHCenter);
-    deleteUndoRedoLayout->addStretch();
-
-
+    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
+                                                                    m_inputModeAnnotations->getUserInputMode(),
+                                                                    m_browserWindowIndex);
+    
+    m_depthWidget = new  AnnotationDepthWidget(m_inputModeAnnotations->getUserInputMode(),
+                                               m_browserWindowIndex);
+    
+    QGridLayout* leftLayout(new QGridLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(leftLayout, 2, 0);
+    leftLayout->addWidget(m_colorWidget,
+                          0, 0);
+    leftLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                          0, 1);
+    leftLayout->addWidget(m_depthWidget,
+                          0, 2, Qt::AlignLeft);
+    
+    QGridLayout* rightLayout(new QGridLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(rightLayout, 2, 0);
+    rightLayout->addWidget(m_insertNewWidget,
+                           0, 0, 1, 5, Qt::AlignLeft);
+    rightLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
+                           1, 0, 1, 5);
+    rightLayout->addWidget(m_finishCancelWidget,
+                           2, 0);
+    rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                           2, 1);
+    rightLayout->addWidget(m_deleteWidget,
+                           2, 2);
+    rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
+                           2, 3);
+    rightLayout->addWidget(m_redoUndoWidget,
+                           2, 4);
+    
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(8);
-    layout->addWidget(m_colorWidget);
+    layout->addLayout(leftLayout);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_coordinatesWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addWidget(m_insertNewWidget);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addLayout(deleteUndoRedoLayout);
+    layout->addLayout(rightLayout);
     layout->addStretch();
 }
 
@@ -534,6 +553,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_rotationWidget != NULL) m_rotationWidget->updateContent(selectedAnnotations);
     if (m_insertNewWidget != NULL) m_insertNewWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
+    if (m_depthWidget != NULL) m_depthWidget->updateContent(selectedAnnotations);
     if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent(selectedAnnotations);
     
     Annotation* coordEditAnnotation = NULL;

@@ -39,6 +39,7 @@ namespace caret {
     class AnnotationCoordinateSpaceWidget;
     class AnnotationCoordinatesWidget;
     class AnnotationDeleteWidget;
+    class AnnotationDepthWidget;
     class AnnotationFinishCancelWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
@@ -125,6 +126,8 @@ namespace caret {
         AnnotationInsertNewWidget* m_insertNewWidget = NULL;
         
         AnnotationDeleteWidget* m_deleteWidget = NULL;
+        
+        AnnotationDepthWidget* m_depthWidget = NULL;
         
         AnnotationFinishCancelWidget* m_finishCancelWidget = NULL;
         

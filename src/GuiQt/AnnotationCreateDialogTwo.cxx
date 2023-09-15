@@ -551,7 +551,7 @@ AnnotationCreateDialogTwo::okButtonClicked()
     if (m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
         AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
         CaretAssert(polyhedron);
-        polyhedron->setDepth(polyhedronDepthMM);
+        polyhedron->setDepthMillimeters(polyhedronDepthMM);
         polyhedron->setDrawingNewAnnotationStatus(false);
     }
     

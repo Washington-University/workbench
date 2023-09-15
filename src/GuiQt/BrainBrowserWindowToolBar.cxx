@@ -2513,10 +2513,6 @@ BrainBrowserWindowToolBar::createModeWidget()
     this->modeInputModeSamplesEditRadioButton->setObjectName(m_objectNamePrefix
                                                              + "Mode::EditSamples");
     
-    /* DISABLED */
-    this->modeInputModeSamplesEditRadioButton->setEnabled(false);
-    this->modeInputModeSamplesEditRadioButton->setVisible(false);
-    
     /*
      * Tile tabs manual layout editing
      */

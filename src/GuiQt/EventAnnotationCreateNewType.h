@@ -35,14 +35,17 @@ namespace caret {
         
     public:
         /**
-         * Mode for drawing poly type annotations
+         * Mode for drawing polyhedron annotations
          */
-        enum class PolyDrawingMode {
+        enum class PolyhedronDrawingMode {
             /**
-             * Use may click to add discrete points or drag to add
-             * continuous points
+             * Normal drawing
              */
-            CLICK_AND_OR_DRAG
+            ANNOTATION_DRAWING,
+            /*
+             * Samples Mode drawing
+             */
+            SAMPLES_DRAWING
         };
         
         EventAnnotationCreateNewType(const int32_t browserWindowIndex,
@@ -50,7 +53,7 @@ namespace caret {
                                      AnnotationFile* annotationFile,
                                      const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                      const AnnotationTypeEnum::Enum annotationType,
-                                     const PolyDrawingMode polyDrawingMode);
+                                     const PolyhedronDrawingMode polyhedronDrawingMode);
         
         virtual ~EventAnnotationCreateNewType();
         
@@ -64,7 +67,7 @@ namespace caret {
         
         AnnotationTypeEnum::Enum getAnnotationType() const;
         
-        PolyDrawingMode getPolyDrawingMode() const;
+        PolyhedronDrawingMode getPolyhedronDrawingMode() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -83,7 +86,7 @@ namespace caret {
         
         const AnnotationTypeEnum::Enum m_annotationType;
 
-        const PolyDrawingMode m_polyDrawingMode;
+        const PolyhedronDrawingMode m_polyhedronDrawingMode;
         
         // ADD_NEW_MEMBERS_HERE
 

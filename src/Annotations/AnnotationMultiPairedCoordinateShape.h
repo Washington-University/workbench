@@ -84,7 +84,7 @@ namespace caret {
         bool isDrawingNewAnnotation() const;
         
         /** Subclasses may need  to update the coordinate pairs while drawing the annotation */
-        virtual void updateCoordinatePairsWhileDrawing() = 0;
+        virtual void updateCoordinatesAfterDepthChanged() = 0;
         
         // ADD_NEW_METHODS_HERE
 
