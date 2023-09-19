@@ -226,7 +226,12 @@ AnnotationPolyhedron::getDepthSlices(const float sliceThickness) const
 {
     float numberOfSlices(m_depthMillimeters);
     if (sliceThickness > 0) {
-        numberOfSlices = (m_depthMillimeters / sliceThickness);
+        numberOfSlices = std::fabs(m_depthMillimeters / sliceThickness);
+        
+        /*
+         * Zero thickness is one slice
+         */
+        ++numberOfSlices;
     }
     return numberOfSlices;
 }

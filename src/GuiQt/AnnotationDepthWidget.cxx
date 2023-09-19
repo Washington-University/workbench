@@ -32,16 +32,20 @@
 #include "AnnotationManager.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
+#include "BrowserTabContent.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "NumericTextFormatting.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
+#include "VolumeMappableInterface.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::AnnotationDepthWidget
@@ -70,16 +74,19 @@ m_browserWindowIndex(browserWindowIndex)
     m_depthSpinBox = new QDoubleSpinBox();
     m_depthSpinBox->setMinimum(-500.0);
     m_depthSpinBox->setMaximum(500.0);
-    m_depthSpinBox->setDecimals(0);
+    m_depthSpinBox->setDecimals(2);
     m_depthSpinBox->setValue(3.0);
     QObject::connect(m_depthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationDepthWidget::depthValueChanged);
 
+    m_sliceThicknessLabel = new QLabel("Slice=X.XXmm");
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
     layout->addWidget(depthLabel, 0, Qt::AlignHCenter);
     layout->addWidget(mmLabel, 0, Qt::AlignHCenter);
     layout->addWidget(m_depthSpinBox, 0, Qt::AlignHCenter);
+    layout->addWidget(m_sliceThicknessLabel, 0, Qt::AlignLeft);
     layout->addStretch();
     
     setSizePolicy(QSizePolicy::Fixed,
@@ -102,17 +109,52 @@ AnnotationDepthWidget::updateContent(std::vector<Annotation*>& annotationsIn)
     /*
      * This depth DOES NOT affect the annotation being drawn
      */
-    float depthValue(3.0);
+    AnnotationPolyhedron* firstPolyhedron(NULL);
     m_annotations.clear();
     for (auto& ann : annotationsIn) {
         CaretAssert(ann);
         AnnotationPolyhedron* ap(ann->castToPolyhedron());
         if (ap != NULL) {
-            depthValue = ap->getDepthMillimeters();
-            m_annotations.push_back(ann);
+            if (firstPolyhedron == NULL) {
+                firstPolyhedron = ap;
+            }
+            m_annotations.push_back(ap);
         }
     }
 
+    float sliceThickness(1.0);
+    const BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        const BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            const OverlaySet* overlaySet(tabContent->getOverlaySet());
+            if (overlaySet != NULL) {
+                const VolumeMappableInterface* volumeInterface(tabContent->getOverlaySet()->getUnderlayVolume());
+                if (volumeInterface != NULL) {
+                    sliceThickness = volumeInterface->getMaximumVoxelSpacing();
+                }
+            }
+        }
+    }
+    
+    float numberOfSlices(1.0);
+    float depthValue(3.0);
+    if (firstPolyhedron != NULL) {
+        depthValue = firstPolyhedron->getDepthMillimeters();
+        if (sliceThickness != 0.0) {
+            numberOfSlices = firstPolyhedron->getDepthSlices(sliceThickness);
+        }
+    }
+    
+    AString sliceCountText(NumericTextFormatting::formatValue(numberOfSlices));
+    if (sliceCountText.endsWith(".0")) {
+        sliceCountText.resize(sliceCountText.length() - 2);
+    }
+    m_sliceThicknessLabel->setText(sliceCountText
+                                   + " Slices");
+    
+    m_depthSpinBox->setSingleStep(sliceThickness);
+    
     QSignalBlocker blocker(m_depthSpinBox);
     m_depthSpinBox->setValue(depthValue);
     
@@ -125,6 +167,8 @@ AnnotationDepthWidget::updateContent(std::vector<Annotation*>& annotationsIn)
 void
 AnnotationDepthWidget::depthValueChanged(double value)
 {
+    QSignalBlocker blocker(m_depthSpinBox);
+    
     if ( ! m_annotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModePolyhedronDepth(value,

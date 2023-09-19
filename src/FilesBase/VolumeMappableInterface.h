@@ -303,6 +303,8 @@ namespace caret {
                                 float& spacingCoronalYOut,
                                 float& spacingAxialZOut) const;
 
+        float getMaximumVoxelSpacing() const;
+        
         /**
          * Get the voxel colors for a slice in the map.
          *

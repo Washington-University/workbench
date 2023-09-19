@@ -355,7 +355,7 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
         case AnnotationRedoUndoCommandModeEnum::POLYHEDRON_DEPTH:
         {
             AnnotationPolyhedron* polyAnn(annotation->castToPolyhedron());
-            AnnotationPolyhedron* polyAnnValue(annotation->castToPolyhedron());
+            const AnnotationPolyhedron* polyAnnValue(annotationValue->castToPolyhedron());
             if ((polyAnn != NULL)
                 && (polyAnnValue != NULL)) {
                 polyAnn->setDepthMillimeters(polyAnnValue->getDepthMillimeters());

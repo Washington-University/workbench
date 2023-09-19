@@ -27,6 +27,7 @@
 #include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
+class QLabel;
 
 namespace caret {
 
@@ -62,6 +63,8 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         QDoubleSpinBox* m_depthSpinBox = NULL;
+        
+        QLabel* m_sliceThicknessLabel = NULL;
         
         std::vector<Annotation*> m_annotations;
         

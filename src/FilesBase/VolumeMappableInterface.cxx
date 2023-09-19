@@ -104,6 +104,26 @@ VolumeMappableInterface::getVoxelSpacingPCA(float& spacingParasagittalXOut,
 }
 
 /**
+ * @return The maximum voxel spacing
+ */
+float
+VolumeMappableInterface::getMaximumVoxelSpacing() const
+{
+    float maxSpacing(1.0);
+    
+    float sp, sc, sa;
+    getVoxelSpacing(sp, sc, sa);
+    maxSpacing = std::max(sp, std::max(sc, sa));
+    
+    if (maxSpacing == 0.0) {
+        maxSpacing = 1.0;
+    }
+
+    return maxSpacing;
+}
+
+
+/**
  * Does this volume have these spatial dimensions?
  *
  * @param dim1

@@ -215,14 +215,15 @@ SelectionItemVoxel::setVoxelIdentification(Brain* brain,
 {
     setBrain(brain);
     m_volumeFile  = volumeFile;
-    if (m_volumeFile != NULL) {
-        float sp, sc, sa;
-        m_volumeFile->getVoxelSpacingPCA(sp, sc, sa);
-        m_voxelSizeMillimeters = std::max(sp, std::max(sc, sa));
-    }
-    else {
-        m_voxelSizeMillimeters = 1.0;
-    }
+    m_voxelSizeMillimeters = m_volumeFile->getMaximumVoxelSpacing();
+//    if (m_volumeFile != NULL) {
+//        float sp, sc, sa;
+//        m_volumeFile->getVoxelSpacingPCA(sp, sc, sa);
+//        m_voxelSizeMillimeters = std::max(sp, std::max(sc, sa));
+//    }
+//    else {
+//        m_voxelSizeMillimeters = 1.0;
+//    }
     m_voxelIJK    = voxelIJK;
     m_voxelXYZ    = voxelXYZ;
     setModelXYZ(voxelXYZ);
