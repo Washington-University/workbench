@@ -191,8 +191,6 @@ AnnotationPasteDialog::pasteAnnotationOnClipboard(const UserInputModeEnum::Enum 
             return newPastedAnnotations;
         }
 
-//        AnnotationFile* annotationFile = clipboard->getAnnotationFile(0);
-        
         AnnotationFile* annotationFile(getAnnotationFileForPasting(userInputMode));
         if (annotationFile == NULL) {
             const QString msg("No file selected in toolbar.  Select/create a file and try pasting again");
@@ -285,8 +283,6 @@ AnnotationPasteDialog::pasteAnnotationOnClipboardChangeSpace(const UserInputMode
             return newPastedAnnotations;
         }
 
-//        AnnotationFile* annotationFile = clipboard->getAnnotationFile(0);
-        
         /*
          * Create information that finds valid spaces for all
          * of the annotations coordinates
@@ -447,7 +443,6 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum use
     const Annotation* firstAnnotation(clipboard->getAnnotation(0));
     CaretAssert(firstAnnotation);
     const AnnotationCoordinateSpaceEnum::Enum previousSpace(firstAnnotation->getCoordinateSpace());
-//    AnnotationFile* firstFile(clipboard->getAnnotationFile(0));
     AnnotationFile* firstFile(getAnnotationFileForPasting(userInputMode));
     if (firstFile == NULL) {
         const QString msg("No file selected in toolbar.  Select/create a file and try pasting again");
@@ -531,7 +526,6 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum use
     for (int32_t iAnn = 0; iAnn < numAnn; iAnn++) {
         Annotation* annotation(clipboard->getAnnotation(iAnn)->clone());
         CaretAssert(annotation);
-//        CaretAssert(firstFile == clipboard->getAnnotationFile(iAnn));
         
         /*
          * Update space information for annotation

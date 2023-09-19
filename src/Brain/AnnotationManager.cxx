@@ -51,7 +51,6 @@
 #include "EventBrowserWindowContent.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
-#include "EventUserInputModeGet.h"
 #include "SamplesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -81,8 +80,7 @@ m_brain(brain)
 {
     CaretAssert(m_brain);
     
-    m_clipboard.reset(new AnnotationClipboard(m_userInputMode,
-                                              m_brain));
+    m_clipboard.reset(new AnnotationClipboard(m_brain));
     
     m_annotationsExceptBrowserTabsRedoUndoStack.grabNew(new CaretUndoStack());
     m_annotationsExceptBrowserTabsRedoUndoStack->setUndoLimit(500);
@@ -631,9 +629,7 @@ AnnotationManager::getAnnotationEditingSelectionInformation(const int32_t window
 {
     CaretAssertArrayIndex(m_selectionInformation, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
     
-    EventUserInputModeGet modeEvent(windowIndex);
-    EventManager::get()->sendEvent(modeEvent.getPointer());
-    const bool tileModeFlag = (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+    const bool tileModeFlag = (m_userInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
 
     AnnotationEditingSelectionInformation* asi = m_selectionInformation[windowIndex];
     
@@ -725,13 +721,6 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
 {
     annotationsAndFileOut.clear();
 
-//    EventUserInputModeGet modeEvent(windowIndex);
-//    EventManager::get()->sendEvent(modeEvent.getPointer());
-//    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
-//        /* In Tile Editing mode and browser tabs are not in files */
-//        return;
-//    }
-    
     std::vector<AnnotationFile*> annotationFiles;
     switch (m_userInputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
@@ -792,9 +781,7 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
 {
     annotationsAndFileOut.clear();
     
-    EventUserInputModeGet modeEvent(windowIndex);
-    EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
+    if (m_userInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
         /* In Tile Editing mode and browser tabs are not in files */
         return;
     }

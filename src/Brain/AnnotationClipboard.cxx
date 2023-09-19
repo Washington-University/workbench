@@ -40,15 +40,11 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param userInputMode
- *    The user input mode
  * @param brain
  *    The brain
  */
-AnnotationClipboard::AnnotationClipboard(const UserInputModeEnum::Enum userInputMode,
-                                         Brain* brain)
+AnnotationClipboard::AnnotationClipboard(Brain* brain)
 : CaretObject(),
-m_userInputMode(userInputMode),
 m_brain(brain)
 {
     CaretAssert(m_brain);
@@ -84,7 +80,7 @@ AnnotationClipboard::clear()
      * Clipboard owns its annotations
      */
     for (auto& element : m_clipboardContent) {
-        delete element.getAnnotation();
+        delete element;
     }
     m_clipboardContent.clear();
     m_mouseWindowCoordinates = Vector3D();
@@ -119,7 +115,7 @@ const Annotation*
 AnnotationClipboard::getAnnotation(const int32_t index) const
 {
     CaretAssertVectorIndex(m_clipboardContent, index);
-    return m_clipboardContent[index].getAnnotation();
+    return m_clipboardContent[index];
 }
 
 /**
@@ -131,74 +127,7 @@ Annotation*
 AnnotationClipboard::getCopyOfAnnotation(const int32_t index) const
 {
     CaretAssertVectorIndex(m_clipboardContent, index);
-    return m_clipboardContent[index].getAnnotation()->clone();
-}
-
-///**
-// * @return Pointer to annotation file that contained annotation on clipboard.
-// * Returned file is a valid file if not NULL.
-// * @param index
-// *    Index of annotation
-// */
-//AnnotationFile*
-//AnnotationClipboard::getAnnotationFile(const int32_t index) const
-//{
-//    CaretAssertVectorIndex(m_clipboardContent, index);
-//    AnnotationFile* annotationFile(m_clipboardContent[index].getFile());
-//    
-//    std::vector<AnnotationFile*> allAnnotationFiles;
-//    
-//    switch (m_userInputMode) {
-//        case UserInputModeEnum::Enum::ANNOTATIONS:
-//            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-//            break;
-//        case UserInputModeEnum::Enum::BORDERS:
-//            break;
-//        case UserInputModeEnum::Enum::FOCI:
-//            break;
-//        case UserInputModeEnum::Enum::IMAGE:
-//            break;
-//        case UserInputModeEnum::Enum::INVALID:
-//            break;
-//        case UserInputModeEnum::Enum::SAMPLES_EDITING:
-//        {
-//            std::vector<SamplesFile*> sampleFiles(m_brain->getAllSamplesFiles());
-//            allAnnotationFiles.insert(allAnnotationFiles.end(),
-//                                      sampleFiles.begin(),
-//                                      sampleFiles.end());
-//        }
-//            break;
-//        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
-//            break;
-//        case UserInputModeEnum::Enum::VIEW:
-//            break;
-//        case UserInputModeEnum::Enum::VOLUME_EDIT:
-//            break;
-//    }
-//    /*
-//     * It is possible that the file has been destroyed.
-//     * If so, invalidate the file (set it to NULL).
-//     */
-//    
-//    if (std::find(allAnnotationFiles.begin(),
-//                  allAnnotationFiles.end(),
-//                  annotationFile) == allAnnotationFiles.end()) {
-//        annotationFile = NULL;
-//    }
-//    
-//    return annotationFile;
-//}
-
-/**
- * @return Group key for the annotation at the given index.
- * @param index
- *    Index of annotation
- */
-AnnotationGroupKey
-AnnotationClipboard::getAnnotationGroupKey(const int32_t index) const
-{
-    CaretAssertVectorIndex(m_clipboardContent, index);
-    return m_clipboardContent[index].getGroupKey();
+    return m_clipboardContent[index]->clone();
 }
 
 /**
@@ -220,8 +149,7 @@ AnnotationClipboard::getAnnotationWindowCoordinates() const
 }
 
 /*
- * @param annotationFile
- *   The annotation file from which annotation was copied
+ * Set annotation on clipboard
  * @param annotation
  *   The annotation on the clipboard
  * @param annotationWindowCoordinates
@@ -230,8 +158,7 @@ AnnotationClipboard::getAnnotationWindowCoordinates() const
  *   Window coordinates of mouse when the annotation was copied to the clipboard
  */
 void
-AnnotationClipboard::setContent(AnnotationFile* annotationFile,
-                                const Annotation* annotation,
+AnnotationClipboard::setContent(const Annotation* annotation,
                                 std::vector<Vector3D>& annotationWindowCoordinates,
                                 Vector3D& mouseWindowCoordinates)
 {
@@ -240,9 +167,7 @@ AnnotationClipboard::setContent(AnnotationFile* annotationFile,
     m_annotationWindowCoordinates = annotationWindowCoordinates;
     m_mouseWindowCoordinates      = mouseWindowCoordinates;
 
-    m_clipboardContent.emplace_back(annotation->clone(),
-                                    annotationFile,
-                                    annotation->getAnnotationGroupKey());
+    m_clipboardContent.emplace_back(annotation->clone());
 }
 
 /*
@@ -279,9 +204,7 @@ AnnotationClipboard::setContent(const std::vector<AnnotationAndFile>& annotation
                 break;
         }
         
-        m_clipboardContent.emplace_back(af.getAnnotation()->clone(),
-                                        af.getFile(),
-                                        af.getGroupKey());
+        m_clipboardContent.emplace_back(af.getAnnotation()->clone());
     }
     
     m_allAnnotationsInSameUserGroupFlag = ((getNumberOfAnnotations() > 1)

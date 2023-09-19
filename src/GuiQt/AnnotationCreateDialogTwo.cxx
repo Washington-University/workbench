@@ -547,9 +547,6 @@ AnnotationCreateDialogTwo::okButtonClicked()
     
     CaretAssert(m_annotationFile);
     
-//    CaretPointer<Annotation> annotation;
-//    annotation.grabNew(NULL);
-    
     if (m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
         AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
         CaretAssert(polyhedron);
@@ -568,26 +565,6 @@ AnnotationCreateDialogTwo::okButtonClicked()
                                     m_imageWidth,
                                     m_imageHeight);
     }
-//    if (m_newAnnotationInfo.m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
-//        VolumeMappableInterface* underlayVolume;
-//        const MouseEvent& mouseEvent(m_newAnnotationInfo.m_mouseEvent);
-//        BrowserTabContent* btc(mouseEvent.getViewportContent()->getBrowserTabContent());
-//        CaretAssert(btc);
-//        ModelVolume* mv(btc->getDisplayedVolumeModel());
-//        if (mv != NULL) {
-//            underlayVolume = mv->getUnderlayVolumeFile(btc->getTabNumber());
-//            if (underlayVolume == NULL) {
-//                WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
-//                                       "Polyhedron requires an underlay volume");
-//                return;
-//            }
-//        }
-//        else {
-//            WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
-//                                   "Polyhedron must be drawn on volume slices");
-//            return;
-//        }
-//    }
 
     if (m_metaDataEditorWidget != NULL) {
         GiftiMetaData* annMetaData(m_annotation->getMetaData());

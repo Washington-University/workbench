@@ -2528,13 +2528,11 @@ UserInputModeAnnotations::cutAnnotation()
     }
     else if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
-        AnnotationFile* annotationFile = selectedAnnotations[0].getFile();
         Annotation* annotation = selectedAnnotations[0].getAnnotation();
         
         Vector3D mouseCoordinates;
         AnnotationClipboard* clipboard = annotationManager->getClipboard();
-        clipboard->setContent(annotationFile,
-                              annotation,
+        clipboard->setContent(annotation,
                               m_lastSelectedAnnotationWindowCoordinates,
                               mouseCoordinates);
 
@@ -2590,8 +2588,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
                 
                 Vector3D mouseCoordinates;
                 AnnotationClipboard* clipboard = annotationManager->getClipboard();
-                clipboard->setContent(selectedAnnotations[0].getFile(),
-                                      selectedAnnotations[0].getAnnotation(),
+                clipboard->setContent(selectedAnnotations[0].getAnnotation(),
                                       m_lastSelectedAnnotationWindowCoordinates,
                                       mouseCoordinates);
             }

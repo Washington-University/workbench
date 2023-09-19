@@ -111,6 +111,7 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
     }
+    resetProperty(Property::COPY_CUT_PASTE);
 }
 
 /**
