@@ -50,6 +50,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
+#include "EventAnnotationGetSelectedInsertNewFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
@@ -127,6 +128,7 @@ m_browserWindowIndex(browserWindowIndex)
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE);
 }
 
 /**
@@ -155,6 +157,14 @@ AnnotationInsertNewWidget::receiveEvent(Event* event)
                 depthEvent->setNumberOfSlicesDepth(m_newSampleDepthSpinBox->value());
                 depthEvent->setEventProcessed();
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE) {
+        EventAnnotationGetSelectedInsertNewFile* fileEvent(dynamic_cast<EventAnnotationGetSelectedInsertNewFile*>(event));
+        CaretAssert(fileEvent);
+        if (fileEvent->getUserInputMode() == m_userInputMode) {
+            fileEvent->setAnnotationFile(m_fileSelectionMenu->getSelectedAnnotationFile());
+            fileEvent->setEventProcessed();
         }
     }
 }

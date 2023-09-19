@@ -308,10 +308,9 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
                                              m_annotations.end());
         undoCommand->setModeTextAlignmentHorizontal(actionAlign,
                                                     annotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
         AString errorMessage;
-        if ( ! annMan->applyCommand(m_userInputMode,
-                                    undoCommand,
+        if ( ! annMan->applyCommand(undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
@@ -343,10 +342,9 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
                                              m_annotations.end());
         undoCommand->setModeTextAlignmentVertical(actionAlign,
                                                   annotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
         AString errorMessage;
-        if ( ! annMan->applyCommand(m_userInputMode,
-                                    undoCommand,
+        if ( ! annMan->applyCommand(undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);

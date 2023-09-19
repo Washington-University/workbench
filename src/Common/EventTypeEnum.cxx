@@ -98,6 +98,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_DRAWING_FINISH_CANCEL",
                                      "Event for finishing or cancel annotation being drawn in window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE,
+                                     "EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE",
+                                     "Event for getting file selecte in 'insert new' section of toolbar"));
+
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
                                      "EVENT_ANNOTATION_GROUP_GET_WITH_KEY",
                                      "Event for getting an annotation group using its key"));

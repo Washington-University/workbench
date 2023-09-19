@@ -98,7 +98,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<AnnotationAndFile> selectedAnnotations;
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     annotationManager->getAnnotationsAndFilesSelectedForEditingIncludingLabels(browserWindexIndex,
                                                                        selectedAnnotations);
     
@@ -559,14 +559,13 @@ UserInputModeAnnotationsContextMenu::deleteAnnotations()
     /*
      * Delete the annotation that is under the mouse
      */
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeDeleteAnnotations(selectedAnnotations);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
-                                               undoCommand,
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
@@ -802,7 +801,7 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
     CaretAssert(action);
     CaretAssert(m_tabSpaceFileAndAnnotations.size() > 0);
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     
     const int32_t tabIndex = action->data().toInt();
     
@@ -822,8 +821,7 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeDuplicateAnnotations(fileAnnCopies);
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
-                                           undoCommand,
+    if ( ! annotationManager->applyCommand(undoCommand,
                                            errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -886,11 +884,10 @@ UserInputModeAnnotationsContextMenu::applyGroupingUngroup()
 void
 UserInputModeAnnotationsContextMenu::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     
     AString errorMessage;
-    if ( ! annMan->applyGroupingMode(m_userInputModeAnnotations->getUserInputMode(),
-                                     m_mouseEvent.getBrowserWindowIndex(),
+    if ( ! annMan->applyGroupingMode(m_mouseEvent.getBrowserWindowIndex(),
                                      grouping,
                                      errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -912,7 +909,7 @@ UserInputModeAnnotationsContextMenu::processAnnotationOrderOperation(const Annot
 {
     const int32_t browserWindowIndex = m_mouseEvent.getBrowserWindowIndex();
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(browserWindowIndex);
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
@@ -945,7 +942,7 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
     /*
      * Remove coordinate from annotation
      */
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
@@ -953,8 +950,7 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
         undoCommand->setModeMultiCoordAnnRemoveCoordinate(m_polyAnnCoordinateSelected,
                                                           selectedAnnotations[0]);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(m_userInputModeAnnotations->getUserInputMode(),
-                                               undoCommand,
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);
@@ -991,7 +987,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
     CaretAssert(selectionManager);
     const SelectionItemAnnotation* annSel = selectionManager->getAnnotationIdentification();
     if (annSel->isValid()) {
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(userInputModeAnnotations->getUserInputMode());
         std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(mouseEvent.getBrowserWindowIndex());
         AnnotationMultiCoordinateShape* multiCoordAnn(NULL);
         AnnotationMultiPairedCoordinateShape* multiPairedCoordAnn(NULL);
@@ -1060,8 +1056,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
                                                               surfaceSpaceVertexIndex,
                                                               selectedAnnotations[0]);
             AString errorMessage;
-            if ( ! annotationManager->applyCommand(userInputModeAnnotations->getUserInputMode(),
-                                                   undoCommand,
+            if ( ! annotationManager->applyCommand(undoCommand,
                                                    errorMessage)) {
                 WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                        errorMessage);
@@ -1095,8 +1090,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
                                                               surfaceSpaceVertexIndex,
                                                               selectedAnnotations[0]);
             AString errorMessage;
-            if ( ! annotationManager->applyCommand(userInputModeAnnotations->getUserInputMode(),
-                                                   undoCommand,
+            if ( ! annotationManager->applyCommand(undoCommand,
                                                    errorMessage)) {
                 WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                        errorMessage);

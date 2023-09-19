@@ -430,7 +430,7 @@ DisplayPropertiesAnnotation::restoreVersionOne(const SceneClass* sceneClass)
     /*
      * Apply version one selections to the annotations.
      */
-    std::vector<Annotation*> allAnnotations = m_parentBrain->getAnnotationManager()->getAllAnnotations();
+    std::vector<Annotation*> allAnnotations = m_parentBrain->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS)->getAllAnnotations();
     for (std::vector<Annotation*>::iterator annIter = allAnnotations.begin();
          annIter != allAnnotations.end();
          annIter++) {

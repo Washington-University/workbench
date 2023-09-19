@@ -375,11 +375,10 @@ AnnotationColorWidget::backgroundColorSelected(const CaretColorEnum::Enum caretC
             undoCommand->setModeColorBackground(caretColor,
                                                 rgba,
                                                 m_backgroundColorAnnotations);
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
             
             AString errorMessage;
-            if ( ! annMan->applyCommand(m_userInputMode,
-                                        undoCommand,
+            if ( ! annMan->applyCommand(undoCommand,
                                         errorMessage)) {
                 WuQMessageBox::errorOk(this,
                                        errorMessage);
@@ -688,11 +687,10 @@ AnnotationColorWidget::lineColorSelected(const CaretColorEnum::Enum caretColor)
             undoCommand->setModeColorLine(caretColor,
                                           rgba,
                                           m_lineColorAnnotations);
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
             
             AString errorMessage;
-            if ( ! annMan->applyCommand(m_userInputMode,
-                                        undoCommand,
+            if ( ! annMan->applyCommand(undoCommand,
                                         errorMessage)) {
                 WuQMessageBox::errorOk(this,
                                        errorMessage);
@@ -796,11 +794,10 @@ AnnotationColorWidget::lineThicknessSpinBoxValueChanged(double value)
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLineWidth(value,
                                       m_lineThicknessAnnotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
         
         AString errorMessage;
-        if ( ! annMan->applyCommand(m_userInputMode,
-                                    undoCommand,
+        if ( ! annMan->applyCommand(undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);

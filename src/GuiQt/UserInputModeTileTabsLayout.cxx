@@ -130,7 +130,7 @@ UserInputModeTileTabsLayout::showContextMenu(const MouseEvent& mouseEvent,
 void
 UserInputModeTileTabsLayout::deleteSelectedAnnotations()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     if ( ! selectedAnnotations.empty()) {
         std::vector<BrowserTabContent*> tabs;
@@ -194,7 +194,7 @@ UserInputModeTileTabsLayout::processMouseSelectAnnotation(const MouseEvent& mous
                                                            shiftKeyDownFlag,
                                                            singleSelectionModeFlag);
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);

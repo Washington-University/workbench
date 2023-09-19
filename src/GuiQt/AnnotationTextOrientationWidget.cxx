@@ -190,10 +190,9 @@ AnnotationTextOrientationWidget::orientationActionSelected(QAction* action)
                                              m_annotations.end());
         undoCommand->setModeTextOrientation(actionOrientation,
                                             annotations);
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
         AString errorMessage;
-        if ( ! annMan->applyCommand(m_userInputMode,
-                                    undoCommand,
+        if ( ! annMan->applyCommand(undoCommand,
                                     errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);

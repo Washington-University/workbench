@@ -128,8 +128,8 @@ AnnotationRedoUndoWidget::~AnnotationRedoUndoWidget()
 void
 AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
 
     m_redoAction->setEnabled(undoStack->canRedo());
     m_redoAction->setToolTip(undoStack->redoText());
@@ -149,8 +149,8 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
 void
 AnnotationRedoUndoWidget::redoActionTriggered()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
     
     AString errorMessage;
     if ( ! undoStack->redoInWindow(m_browserWindowIndex,
@@ -169,8 +169,8 @@ AnnotationRedoUndoWidget::redoActionTriggered()
 void
 AnnotationRedoUndoWidget::undoActionTriggered()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(m_userInputMode);
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
+    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
     
     AString errorMessage;
     if ( ! undoStack->undoInWindow(m_browserWindowIndex,

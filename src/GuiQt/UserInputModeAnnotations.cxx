@@ -572,7 +572,7 @@ UserInputModeAnnotations::getCursor() const
                              * is a mult-coord shape, show a cursor that indicates
                              * insertion of a new coordinate
                              */
-                            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
                             const std::vector<Annotation*> selectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
                             if (selectedAnns.size() == 1) {
                                 CaretAssertVectorIndex(selectedAnns, 0);
@@ -630,15 +630,14 @@ UserInputModeAnnotations::getCursor() const
 void
 UserInputModeAnnotations::deleteSelectedAnnotations()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     if (annotationManager->isAnnotationSelectedForEditingDeletable(getBrowserWindowIndex())) {
         std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
         if ( ! selectedAnnotations.empty()) {
             AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
             undoCommand->setModeDeleteAnnotations(selectedAnnotations);
             AString errorMessage;
-            if ( !  annotationManager->applyCommand(getUserInputMode(),
-                                                    undoCommand,
+            if ( !  annotationManager->applyCommand(undoCommand,
                                                     errorMessage)) {
                 WuQMessageBox::errorOk(m_annotationToolsWidget,
                                        errorMessage);
@@ -750,7 +749,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
         case Qt::Key_Right:
         case Qt::Key_Up:
         {
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
             std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
 
             if (allSelectedAnnotations.size() > 1) {
@@ -904,10 +903,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                     undoCommand->setMergeEnabled(true);
                 }
                 
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
                 AString errorMessage;
-                if ( ! annMan->applyCommand(getUserInputMode(),
-                                            undoCommand,
+                if ( ! annMan->applyCommand(undoCommand,
                                             errorMessage)) {
                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                            errorMessage);
@@ -1100,10 +1098,9 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                     undoCommand->setMergeEnabled(true);
                                 }
                                 
-                                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
                                 AString errorMessage;
-                                if ( ! annMan->applyCommand(getUserInputMode(),
-                                                            undoCommand,
+                                if ( ! annMan->applyCommand(undoCommand,
                                                             errorMessage)) {
                                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                                            errorMessage);
@@ -1375,7 +1372,7 @@ UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation()
 void
 UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     
     switch (m_mode) {
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
@@ -1703,8 +1700,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
                 
                 AString errorMessage;
-                if ( !  annotationManager->applyCommand(getUserInputMode(),
-                                                        command,
+                if ( !  annotationManager->applyCommand(command,
                                                         errorMessage)) {
                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                            errorMessage);
@@ -1885,7 +1881,7 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
             break;
         case Mode::MODE_SELECT:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
             const std::vector<Annotation*> beforeSelectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
             
             /*
@@ -2049,7 +2045,8 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
         const SelectionManager* selectionManager(idRequest.getSelectionManager());
         const SelectionItemVoxel* idVoxel(selectionManager->getVoxelIdentification());
         
-        Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(mouseEvent,
+        Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceTypeAndBounds(getUserInputMode(),
+                                                                                      mouseEvent,
                                                                                       idVoxel,
                                                                                       coords,
                                                                                       m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
@@ -2240,7 +2237,7 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
         {
             float deltaRotateAngle = gestureEvent.getValue();
             
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
             std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
             
             float rotationAngle(0.0);
@@ -2264,8 +2261,7 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
                 command->setModeRotationAngle(rotationAngle,
                                               modAnns);
                 AString errorMessage;
-                if ( !  annotationManager->applyCommand(getUserInputMode(),
-                                                        command,
+                if ( !  annotationManager->applyCommand(command,
                                                         errorMessage)) {
                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                            errorMessage);
@@ -2299,7 +2295,8 @@ UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& 
     coords.emplace_back(mouseEvent.getPressedX(),
                         mouseEvent.getPressedY(),
                         0.0);
-    Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceAndType(mouseEvent,
+    Annotation* ann = AnnotationCreateDialog::newAnnotationFromSpaceAndType(getUserInputMode(),
+                                                                            mouseEvent,
                                                                             idVoxel,
                                                                             coords,
                                                                             m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
@@ -2321,7 +2318,7 @@ UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& 
 Annotation*
 UserInputModeAnnotations::getSingleSelectedAnnotation()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     Annotation* selectedAnnotation = NULL;
     if (allSelectedAnnotations.size() == 1) {
@@ -2386,7 +2383,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
         deselectAnnotationsForEditingInAnnotationManager();
     }
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     AnnotationManager::SelectionMode selectionMode = AnnotationManager::SELECTION_MODE_SINGLE;
     if (m_allowMultipleSelectionModeFlag) {
         selectionMode = AnnotationManager::SELECTION_MODE_EXTENDED;
@@ -2504,7 +2501,7 @@ void
 UserInputModeAnnotations::cutAnnotation()
 {
     std::vector<AnnotationAndFile> selectedAnnotations;
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
                                                                 selectedAnnotations);
     
@@ -2523,8 +2520,7 @@ UserInputModeAnnotations::cutAnnotation()
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeCutAnnotations(annotationVector);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(getUserInputMode(),
-                                               undoCommand,
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(m_annotationToolsWidget,
                                    errorMessage);
@@ -2547,8 +2543,7 @@ UserInputModeAnnotations::cutAnnotation()
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeCutAnnotations(annotationVector);
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(getUserInputMode(),
-                                               undoCommand,
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(m_annotationToolsWidget,
                                    errorMessage);
@@ -2578,7 +2573,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
     switch (editMenuItem) {
         case BrainBrowserWindowEditMenuItemEnum::COPY:
         {
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
             std::vector<AnnotationAndFile> selectedAnnotations;
             annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
                                                                         selectedAnnotations);
@@ -2635,8 +2630,8 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             break;
         case BrainBrowserWindowEditMenuItemEnum::REDO:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(getUserInputMode());
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
             
             AString errorMessage;
             if ( ! undoStack->redo(errorMessage)) {
@@ -2653,8 +2648,8 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             break;
         case BrainBrowserWindowEditMenuItemEnum::UNDO:
         {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
-            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack(getUserInputMode());
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+            CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
             
             AString errorMessage;
             if ( ! undoStack->undo(errorMessage)) {
@@ -2708,7 +2703,7 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
 void
 UserInputModeAnnotations::deselectAnnotationsForEditingInAnnotationManager()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     annMan->deselectAllAnnotationsForEditing(getBrowserWindowIndex());
     m_lastSelectedAnnotationWindowCoordinates.clear();
 }
@@ -2724,12 +2719,13 @@ UserInputModeAnnotations::processSelectAllAnnotations()
     switch (getUserInputMode()) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
         {
-            EventAnnotationGetDrawnInWindow getDrawnEvent(getBrowserWindowIndex());
+            EventAnnotationGetDrawnInWindow getDrawnEvent(EventAnnotationGetDrawnInWindow::DataTypeMode::ANNOTATIONS,
+                                                          getBrowserWindowIndex());
             EventManager::get()->sendEvent(getDrawnEvent.getPointer());
             getDrawnEvent.getAnnotations(annotationsSelected);
 
             deselectAnnotationsForEditingInAnnotationManager();
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
             annMan->setAnnotationsForEditing(getBrowserWindowIndex(),
                                              annotationsSelected);
         }
@@ -2740,7 +2736,17 @@ UserInputModeAnnotations::processSelectAllAnnotations()
         case UserInputModeEnum::Enum::INVALID:
             break;
         case UserInputModeEnum::Enum::SAMPLES_EDITING:
-            CaretAssertToDoFatal();
+        {
+            EventAnnotationGetDrawnInWindow getDrawnEvent(EventAnnotationGetDrawnInWindow::DataTypeMode::SAMPLES,
+                                                          getBrowserWindowIndex());
+            EventManager::get()->sendEvent(getDrawnEvent.getPointer());
+            getDrawnEvent.getAnnotations(annotationsSelected);
+            
+            deselectAnnotationsForEditingInAnnotationManager();
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+            annMan->setAnnotationsForEditing(getBrowserWindowIndex(),
+                                             annotationsSelected);
+        }
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
         {
@@ -2759,7 +2765,7 @@ UserInputModeAnnotations::processSelectAllAnnotations()
             }
             
             if ( ! annotations.empty()) {
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
                 CaretAssert(annMan);
                 annMan->setAnnotationsForEditing(getBrowserWindowIndex(),
                                                  annotations);
@@ -2814,7 +2820,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
     
     if (isEditMenuValid()) {
         std::vector<AnnotationAndFile> selectedAnnotations;
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
         annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
                                                                     selectedAnnotations);
         
@@ -2933,7 +2939,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
             }
         }
         
-        CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack(getUserInputMode());
+        CaretUndoStack* undoStack = annotationManager->getCommandRedoUndoStack();
         
         if (undoStack->canRedo()) {
             enabledEditMenuItemsOut.push_back(BrainBrowserWindowEditMenuItemEnum::REDO);
@@ -3010,7 +3016,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(c
 void
 UserInputModeAnnotations::groupAnnotationsAfterPasting(std::vector<Annotation*>& pastedAnnotations)
 {
-    AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager());
+    AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode()));
     AnnotationClipboard* clipboard(annMan->getClipboard());
     
     if (clipboard->areAllAnnotationsInSameUserGroup()) {
@@ -3393,6 +3399,7 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(Annotat
                                                                          const UserInputModeEnum::Enum userInputMode,
                                                                          const int32_t browserWindowIndex)
 : m_annotationFile(annotationFile),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     const BrainOpenGLViewportContent* viewportContent(mouseEvent.getViewportContent());
@@ -3536,12 +3543,13 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
 {
     if (m_validFlag) {
         BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-        AnnotationCreateDialogTwo dialog(m_annotationFile,
+        AnnotationCreateDialogTwo dialog(m_userInputMode,
+                                         m_browserWindowIndex,
+                                         m_browserTabIndex,
+                                         m_annotationFile,
                                          m_annotation,
                                          m_viewportHeight,
                                          m_sliceThickness,
-                                         m_browserWindowIndex,
-                                         m_browserTabIndex,
                                          window);
         if (dialog.exec()) {
             m_annotationFile = NULL;

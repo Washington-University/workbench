@@ -1857,17 +1857,20 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
 {
     const UserInputModeEnum::Enum inputMode = getSelectedInputMode();
     bool manLayoutFlag(false);
+    bool samplesFlag(false);
     switch (inputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
             manLayoutFlag = true;
             break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            samplesFlag = true;
+            break;
         case UserInputModeEnum::Enum::BORDERS:
         case UserInputModeEnum::Enum::FOCI:
         case UserInputModeEnum::Enum::IMAGE:
         case UserInputModeEnum::Enum::INVALID:
-        case UserInputModeEnum::Enum::SAMPLES_EDITING:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
             break;
@@ -1884,6 +1887,9 @@ BrainOpenGLWidget::performIdentificationAnnotations(const int x,
     idManager->reset();
     idManager->setAllSelectionsEnabled(false);
     SelectionItemAnnotation* annotationID = idManager->getAnnotationIdentification();
+    if (samplesFlag) {
+        annotationID = idManager->getSamplesIdentification();
+    }
     annotationID->setEnabledForSelection(true);
     
     if (idViewport != NULL) {

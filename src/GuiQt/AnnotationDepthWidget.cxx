@@ -131,9 +131,8 @@ AnnotationDepthWidget::depthValueChanged(double value)
                                             m_annotations);
         
         AString errorMessage;
-        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-        if ( ! annotationManager->applyCommand(m_userInputMode,
-                                               undoCommand,
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);

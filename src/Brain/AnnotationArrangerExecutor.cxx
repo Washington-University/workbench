@@ -347,8 +347,7 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
                                             afterMoving);
         undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
         
-        validFlag = m_annotationManager->applyCommand(m_userInputMode,
-                                                      undoCommand,
+        validFlag = m_annotationManager->applyCommand(undoCommand,
                                                       errorMessage);
     }
     
@@ -458,8 +457,7 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
                                             afterMoving);
         undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(m_alignment));
         
-        validFlag = m_annotationManager->applyCommand(m_userInputMode,
-                                                      undoCommand,
+        validFlag = m_annotationManager->applyCommand(undoCommand,
                                                       errorMessage);
     }
     

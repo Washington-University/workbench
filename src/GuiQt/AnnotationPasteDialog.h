@@ -55,6 +55,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        static AnnotationFile* getAnnotationFileForPasting(const UserInputModeEnum::Enum userInputMode);
+        
         AnnotationPasteDialog(const UserInputModeEnum::Enum userInputMode,
                               const MouseEvent& mouseEvent,
                               const AnnotationPastingInformation& annotationPastingInformation,

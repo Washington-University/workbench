@@ -73,16 +73,15 @@ namespace caret {
             SELECTION_MODE_EXTENDED
         };
         
-        AnnotationManager(Brain* brain);
+        AnnotationManager(const UserInputModeEnum::Enum userInputMode,
+                          Brain* brain);
         
         virtual ~AnnotationManager();
 
-        bool applyCommand(const UserInputModeEnum::Enum userInputMode,
-                          AnnotationRedoUndoCommand* command,
+        bool applyCommand(AnnotationRedoUndoCommand* command,
                           AString& errorMessageOut);
         
-        bool applyCommandInWindow(const UserInputModeEnum::Enum userInputMode,
-                                  AnnotationRedoUndoCommand* command,
+        bool applyCommandInWindow(AnnotationRedoUndoCommand* command,
                                   const int32_t windowIndex,
                                   AString& errorMessageOut);
         
@@ -122,23 +121,20 @@ namespace caret {
         
         const AnnotationClipboard* getClipboard() const;
         
-        CaretUndoStack* getCommandRedoUndoStack(const UserInputModeEnum::Enum userInputMode);
+        CaretUndoStack* getCommandRedoUndoStack();
         
         void getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displayedFilesEvent,
                                          std::vector<AnnotationFile*>& displayedAnnotationFilesOut) const;
         
-        bool alignAnnotations(const UserInputModeEnum::Enum userInputMode,
-                              const AnnotationArrangerInputs& arrangerInputs,
+        bool alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
                               const AnnotationAlignmentEnum::Enum alignment,
                               AString& errorMessageOut);
         
-        bool distributeAnnotations(const UserInputModeEnum::Enum userInputMode,
-                                   const AnnotationArrangerInputs& arrangerInputs,
+        bool distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
                                    const AnnotationDistributeEnum::Enum distribute,
                                    AString& errorMessageOut);
 
-        bool applyGroupingMode(const UserInputModeEnum::Enum userInputMode,
-                               const int32_t windowIndex,
+        bool applyGroupingMode(const int32_t windowIndex,
                                const AnnotationGroupingModeEnum::Enum groupingMode,
                                AString& errorMessageOut);
         
@@ -156,7 +152,6 @@ namespace caret {
         
         bool shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
                                                          const int32_t windowIndex,
-                                                         const UserInputModeEnum::Enum userInputMode,
                                                          AString& errorMessageOut);
 
         std::vector<Annotation*> getAnnotationsInSameSpace(const Annotation* annotation);
@@ -195,10 +190,12 @@ namespace caret {
         void processSingleModeSelectionForEditing(const int32_t windowIndex,
                                         Annotation* selectedAnnotation);
         
-        SceneClassAssistant* m_sceneAssistant;
-
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         /** Brain owning this manager */
         Brain* m_brain;
+        
+        SceneClassAssistant* m_sceneAssistant;
         
         /*
          * DO NOT directly reference this.  Instead, call this class'

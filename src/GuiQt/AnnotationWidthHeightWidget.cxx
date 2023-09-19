@@ -311,10 +311,9 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeTwoDimHeight(value,
                                      annotations);
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                undoCommand,
+    if ( ! annMan->applyCommand(undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -350,10 +349,9 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     undoCommand->setModeTwoDimWidth(value,
                                     annotations);
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                undoCommand,
+    if ( ! annMan->applyCommand(undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

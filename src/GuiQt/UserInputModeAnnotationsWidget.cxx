@@ -485,7 +485,7 @@ UserInputModeAnnotationsWidget::updateWidget()
             break;
     }
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_inputModeAnnotations->getUserInputMode());
     
     
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);

@@ -97,6 +97,7 @@ SelectionManager::SelectionManager()
     m_mediaLogicalCoordinateIdentification.reset(new SelectionItemMediaLogicalCoordinate());
     m_mediaPlaneCoordinateIdentification.reset(new SelectionItemMediaPlaneCoordinate());
     
+    m_samplesIdentification.reset(new SelectionItemAnnotation());
     m_surfaceNodeIdentification = new SelectionItemSurfaceNode();
     m_universalIdentificationSymbol.reset(new SelectionItemUniversalIdentificationSymbol());
     m_surfaceTriangleIdentification = new SelectionItemSurfaceTriangle();
@@ -118,6 +119,7 @@ SelectionManager::SelectionManager()
     m_allSelectionItems.push_back(m_chartTwoLineSeriesIdentification.get());
     m_allSelectionItems.push_back(m_chartTwoMatrixIdentification.get());
     m_allSelectionItems.push_back(m_ciftiConnectivityMatrixRowColumnIdentfication);
+    m_allSelectionItems.push_back(m_samplesIdentification.get());
     m_allSelectionItems.push_back(m_surfaceFocusIdentification);
     m_allSelectionItems.push_back(m_surfaceNodeIdentification);
     m_allSelectionItems.push_back(m_surfaceTriangleIdentification);
@@ -597,6 +599,24 @@ const SelectionItemMediaPlaneCoordinate*
 SelectionManager::getMediaPlaneCoordinateIdentification() const
 {
     return m_mediaPlaneCoordinateIdentification.get();
+}
+
+/**
+ * @return Identification for samples.
+ */
+SelectionItemAnnotation*
+SelectionManager::getSamplesIdentification()
+{
+    return m_samplesIdentification.get();
+}
+
+/**
+ * @return Identification for samples.
+ */
+const SelectionItemAnnotation*
+SelectionManager::getSamplesIdentification() const
+{
+    return m_samplesIdentification.get();
 }
 
 /**

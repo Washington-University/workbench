@@ -82,7 +82,7 @@ m_parentOpenGLWidget(parentOpenGLWidget)
     CaretAssert(m_userInputTileTabsManualLayout);
     
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputTileTabsManualLayout->getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(browserWindexIndex);
     for (auto ann : selectedAnnotations) {
         AnnotationBrowserTab* abt = dynamic_cast<AnnotationBrowserTab*>(ann);
@@ -250,11 +250,10 @@ UserInputModeTileTabsLayoutContextMenu::applyGroupingUngroup()
 void
 UserInputModeTileTabsLayoutContextMenu::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputTileTabsManualLayout->getUserInputMode());
     
     AString errorMessage;
-    if ( ! annMan->applyGroupingMode(m_userInputTileTabsManualLayout->getUserInputMode(),
-                                     m_mouseEvent.getBrowserWindowIndex(),
+    if ( ! annMan->applyGroupingMode(m_mouseEvent.getBrowserWindowIndex(),
                                      grouping,
                                      errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -277,11 +276,10 @@ UserInputModeTileTabsLayoutContextMenu::processShrinkAndExpandTabMenuItem()
     std::vector<BrowserTabContent*> allTabContent;
     window->getAllTabContent(allTabContent);
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputTileTabsManualLayout->getUserInputMode());
     AString errorMessage;
     const bool result = annMan->shrinkAndExpandSelectedBrowserTabAnnotation(allTabContent,
                                                                    browserWindowIndex,
-                                                                   m_userInputTileTabsManualLayout->getUserInputMode(),
                                                                    errorMessage);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

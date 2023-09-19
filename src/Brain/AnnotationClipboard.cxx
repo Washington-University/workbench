@@ -26,6 +26,7 @@
 #include "Annotation.h"
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "SamplesFile.h"
 
 using namespace caret;
 
@@ -39,11 +40,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param userInputMode
+ *    The user input mode
  * @param brain
  *    The brain
  */
-AnnotationClipboard::AnnotationClipboard(Brain* brain)
+AnnotationClipboard::AnnotationClipboard(const UserInputModeEnum::Enum userInputMode,
+                                         Brain* brain)
 : CaretObject(),
+m_userInputMode(userInputMode),
 m_brain(brain)
 {
     CaretAssert(m_brain);
@@ -129,33 +134,60 @@ AnnotationClipboard::getCopyOfAnnotation(const int32_t index) const
     return m_clipboardContent[index].getAnnotation()->clone();
 }
 
-/**
- * @return Pointer to annotation file that contained annotation on clipboard.
- * Returned file is a valid file if not NULL.
- * @param index
- *    Index of annotation
- */
-AnnotationFile*
-AnnotationClipboard::getAnnotationFile(const int32_t index) const
-{
-    CaretAssertVectorIndex(m_clipboardContent, index);
-    AnnotationFile* annotationFile(m_clipboardContent[index].getFile());
-    
-    /*
-     * It is possible that the file has been destroyed.
-     * If so, invalidate the file (set it to NULL).
-     */
-    std::vector<AnnotationFile*> allAnnotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
-    
-    if (std::find(allAnnotationFiles.begin(),
-                  allAnnotationFiles.end(),
-                  annotationFile) == allAnnotationFiles.end()) {
-        annotationFile = NULL;
-    }
-    
-    return annotationFile;
-}
+///**
+// * @return Pointer to annotation file that contained annotation on clipboard.
+// * Returned file is a valid file if not NULL.
+// * @param index
+// *    Index of annotation
+// */
+//AnnotationFile*
+//AnnotationClipboard::getAnnotationFile(const int32_t index) const
+//{
+//    CaretAssertVectorIndex(m_clipboardContent, index);
+//    AnnotationFile* annotationFile(m_clipboardContent[index].getFile());
+//    
+//    std::vector<AnnotationFile*> allAnnotationFiles;
+//    
+//    switch (m_userInputMode) {
+//        case UserInputModeEnum::Enum::ANNOTATIONS:
+//            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+//            break;
+//        case UserInputModeEnum::Enum::BORDERS:
+//            break;
+//        case UserInputModeEnum::Enum::FOCI:
+//            break;
+//        case UserInputModeEnum::Enum::IMAGE:
+//            break;
+//        case UserInputModeEnum::Enum::INVALID:
+//            break;
+//        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+//        {
+//            std::vector<SamplesFile*> sampleFiles(m_brain->getAllSamplesFiles());
+//            allAnnotationFiles.insert(allAnnotationFiles.end(),
+//                                      sampleFiles.begin(),
+//                                      sampleFiles.end());
+//        }
+//            break;
+//        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+//            break;
+//        case UserInputModeEnum::Enum::VIEW:
+//            break;
+//        case UserInputModeEnum::Enum::VOLUME_EDIT:
+//            break;
+//    }
+//    /*
+//     * It is possible that the file has been destroyed.
+//     * If so, invalidate the file (set it to NULL).
+//     */
+//    
+//    if (std::find(allAnnotationFiles.begin(),
+//                  allAnnotationFiles.end(),
+//                  annotationFile) == allAnnotationFiles.end()) {
+//        annotationFile = NULL;
+//    }
+//    
+//    return annotationFile;
+//}
 
 /**
  * @return Group key for the annotation at the given index.

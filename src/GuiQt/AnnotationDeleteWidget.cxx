@@ -92,7 +92,7 @@ AnnotationDeleteWidget::~AnnotationDeleteWidget()
 void
 AnnotationDeleteWidget::updateContent()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     m_deleteToolButtonAction->setEnabled(annotationManager->isAnnotationSelectedForEditingDeletable(m_browserWindowIndex));
 }
 
@@ -155,7 +155,7 @@ AnnotationDeleteWidget::createDeleteToolButton()
 void
 AnnotationDeleteWidget::deleteActionTriggered()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     std::vector<Annotation*> deleteAnnotations;
     for (auto a : selectedAnnotations) {
@@ -195,8 +195,7 @@ AnnotationDeleteWidget::deleteActionTriggered()
         undoCommand->setModeDeleteAnnotations(deleteAnnotations);
 
         AString errorMessage;
-        if ( ! annotationManager->applyCommand(m_userInputMode,
-                                               undoCommand,
+        if ( ! annotationManager->applyCommand(undoCommand,
                                                errorMessage)) {
             WuQMessageBox::errorOk(this,
                                    errorMessage);

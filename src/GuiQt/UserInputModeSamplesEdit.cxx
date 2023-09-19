@@ -83,6 +83,9 @@ UserInputModeSamplesEdit::showContextMenu(const MouseEvent& mouseEvent,
                                           const QPoint& menuPosition,
                                           BrainOpenGLWidget* openGLWidget)
 {
+    UserInputModeAnnotations::showContextMenu(mouseEvent,
+                                              menuPosition,
+                                              openGLWidget);
 //    BrainBrowserWindow* window = GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex());
 //    CaretAssert(window);
 //    BrowserWindowContent* windowContent = window->getBrowerWindowContent();
@@ -194,7 +197,7 @@ UserInputModeSamplesEdit::processMouseSelectAnnotation(const MouseEvent& mouseEv
                                                            shiftKeyDownFlag,
                                                            singleSelectionModeFlag);
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);

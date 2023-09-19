@@ -1533,7 +1533,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
              * Process options
              */
             if (replaceDialog.isChangeSurfaceAnnotationOffsetToOffset()) {
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
                 std::vector<Annotation*> annotations = annMan->getAllAnnotations();
                 for (auto ann : annotations) {
                     ann->changeSurfaceSpaceToTangentOffset();

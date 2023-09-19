@@ -264,7 +264,7 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
                 break;
             case MenuItem::MANUAL_LAYOUT_SELECT_FOR_EDITING:
                 if (m_selectedBrowserTabAnnotation != NULL) {
-                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
                     CaretAssert(annMan);
                     annMan->selectAnnotationForEditing(m_browserWindowIndex,
                                                        AnnotationManager::SELECTION_MODE_EXTENDED,

@@ -26,6 +26,7 @@
 
 #include "AnnotationAndFile.h"
 #include "CaretObject.h"
+#include "UserInputModeEnum.h"
 #include "Vector3D.h"
 
 namespace caret {
@@ -37,7 +38,8 @@ namespace caret {
     class AnnotationClipboard : public CaretObject {
         
     public:
-        AnnotationClipboard(Brain* brain);
+        AnnotationClipboard(const UserInputModeEnum::Enum userInputMode,
+                            Brain* brain);
         
         virtual ~AnnotationClipboard();
         
@@ -54,8 +56,6 @@ namespace caret {
         const Annotation* getAnnotation(const int32_t index) const;
         
         Annotation* getCopyOfAnnotation(const int32_t index) const;
-        
-        AnnotationFile* getAnnotationFile(const int32_t index) const;
         
         AnnotationGroupKey getAnnotationGroupKey(const int32_t index) const;
         
@@ -81,6 +81,8 @@ namespace caret {
         static bool areAnnotationsClipboardEligible(const std::vector<AnnotationAndFile>& annotationsAndFile);
         
     private:
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         Brain* m_brain = NULL;
         
         std::vector<Vector3D> m_annotationWindowCoordinates;

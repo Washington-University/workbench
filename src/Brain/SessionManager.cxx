@@ -1492,7 +1492,7 @@ SessionManager::createNewBrowserTab()
         }
         
         CaretAssert(m_brains[0]);
-        AnnotationManager* annMan = m_brains[0]->getAnnotationManager();
+        AnnotationManager* annMan = m_brains[0]->getAnnotationManager(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
         AString errorMessage;
         const bool resultFlag = annMan->moveTabOrWindowAnnotationToFront(newTab->getManualLayoutBrowserTabAnnotation(),
                                                                          errorMessage);

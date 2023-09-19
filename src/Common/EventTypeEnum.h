@@ -54,6 +54,8 @@ public:
         EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW,
         /** Get the annotations drawn in a window */
         EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW,
+        /** Get the file selected in the "insert new" section of toolbar */
+        EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE,
         /** Get an annotation group */
         EVENT_ANNOTATION_GROUP_GET_WITH_KEY,
         /** Annotation grouping (group, regroup, ungroup) operation */

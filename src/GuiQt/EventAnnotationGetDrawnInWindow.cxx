@@ -39,11 +39,15 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param dataTypeMode
+ *     Data type mode annotations or samples
  * @param windowIndex
  *     Index of window.
  */
-EventAnnotationGetDrawnInWindow::EventAnnotationGetDrawnInWindow(const int32_t windowIndex)
+EventAnnotationGetDrawnInWindow::EventAnnotationGetDrawnInWindow(const DataTypeMode dataTypeMode,
+                                                                 const int32_t windowIndex)
 : Event(EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW),
+m_dataTypeMode(dataTypeMode),
 m_windowIndex(windowIndex)
 {
     
@@ -54,6 +58,15 @@ m_windowIndex(windowIndex)
  */
 EventAnnotationGetDrawnInWindow::~EventAnnotationGetDrawnInWindow()
 {
+}
+
+/**
+ * @return The data type mode
+ */
+EventAnnotationGetDrawnInWindow::DataTypeMode
+EventAnnotationGetDrawnInWindow::getDataTypeMode() const
+{
+    return m_dataTypeMode;
 }
 
 /**

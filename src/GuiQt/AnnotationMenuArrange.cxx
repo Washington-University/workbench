@@ -283,7 +283,7 @@ AnnotationMenuArrange::addOrderingSelections()
 void
 AnnotationMenuArrange::menuAboutToShow()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     
     if (m_groupAction != NULL) {
         m_groupAction->setEnabled(annMan->isGroupingModeValid(m_browserWindowIndex,
@@ -524,7 +524,7 @@ AnnotationMenuArrange::processOrderingMenuItem(QAction* actionSelected)
 void
 AnnotationMenuArrange::processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     std::vector<Annotation*> selectedAnnotations = annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex);
     if (selectedAnnotations.size() == 1) {
         CaretAssertVectorIndex(selectedAnnotations, 0);
@@ -558,7 +558,7 @@ AnnotationMenuArrange::processWindowTileTabOperation(const EventBrowserWindowTil
 {
     std::vector<BrowserTabContent*> emptyBrowserTabs;
 
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex);
     CaretAssert(bbw);
     BrowserWindowContent* bwc = bbw->getBrowerWindowContent();
@@ -610,11 +610,10 @@ AnnotationMenuArrange::processShrinkAndExpandTabMenuItem()
     std::vector<BrowserTabContent*> allTabContent;
     window->getAllTabContent(allTabContent);
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
     const bool result = annMan->shrinkAndExpandSelectedBrowserTabAnnotation(allTabContent,
                                                                             m_browserWindowIndex,
-                                                                            m_userInputMode,
                                                                             errorMessage);
     if ( ! result) {
         WuQMessageBox::errorOk(this,
@@ -648,10 +647,9 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
                                       drawingFlags,
                                      m_browserWindowIndex);
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->alignAnnotations(m_userInputMode,
-                                    alignMod,
+    if ( ! annMan->alignAnnotations(alignMod,
                                     alignment,
                                     errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -687,10 +685,9 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
                                            drawingFlags,
                                            m_browserWindowIndex);
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->distributeAnnotations(m_userInputMode,
-                                         distributeMod,
+    if ( ! annMan->distributeAnnotations(distributeMod,
                                          distribute,
                                          errorMessage)) {
         WuQMessageBox::errorOk(this,
@@ -710,11 +707,10 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
 void
 AnnotationMenuArrange::applyGrouping(const AnnotationGroupingModeEnum::Enum grouping)
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
 
     AString errorMessage;
-    if ( ! annMan->applyGroupingMode(m_userInputMode,
-                                     m_browserWindowIndex,
+    if ( ! annMan->applyGroupingMode(m_browserWindowIndex,
                                      grouping,
                                      errorMessage)) {
         WuQMessageBox::errorOk(this,

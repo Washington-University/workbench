@@ -428,6 +428,7 @@ EventAnnotationCreateNewType.h
 EventAnnotationDrawingFinishCancel.h
 EventAnnotationGetDrawnInWindow.h
 EventAnnotationGetDrawingPolyhedronSliceDepth.h
+EventAnnotationGetSelectedInsertNewFile.h
 EventBrowserTabCloseInToolBar.h
 EventBrowserTabDeleteInToolBar.h
 EventBrowserTabNewInGUI.h
@@ -768,6 +769,7 @@ EventAnnotationCreateNewType.cxx
 EventAnnotationDrawingFinishCancel.cxx
 EventAnnotationGetDrawnInWindow.cxx
 EventAnnotationGetDrawingPolyhedronSliceDepth.cxx
+EventAnnotationGetSelectedInsertNewFile.cxx
 EventBrowserWindowDrawingContent.cxx
 EventBrowserWindowCreateTabs.cxx
 EventBrowserWindowGraphicsRedrawn.cxx

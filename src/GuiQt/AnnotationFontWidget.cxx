@@ -290,7 +290,7 @@ AnnotationFontWidget::receiveEvent(Event* event)
         
         if (m_browserWindowIndex == redrawEvent->getBrowserWindowIndex()) {
             if (isVisible()) {
-                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
                 std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
                 
                 if (selectedAnnotations.empty()) {
@@ -600,10 +600,9 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
                 undoCommand->setModeTextColor(caretColor,
                                               rgba,
                                               convertToAnnotations(m_annotationsFontColor));
-                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
                 AString errorMessage;
-                if ( ! annMan->applyCommand(m_userInputMode,
-                                            undoCommand,
+                if ( ! annMan->applyCommand(undoCommand,
                                             errorMessage)) {
                     WuQMessageBox::errorOk(this,
                                            errorMessage);
@@ -721,10 +720,9 @@ AnnotationFontWidget::fontBoldChanged()
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontBold(m_boldFontAction->isChecked(),
                                  convertToAnnotations(m_annotationsFontStyle));
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                command,
+    if ( ! annMan->applyCommand(command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -750,10 +748,9 @@ AnnotationFontWidget::fontItalicChanged()
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontItalic(m_italicFontAction->isChecked(),
                                    convertToAnnotations(m_annotationsFontStyle));
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                command,
+    if ( ! annMan->applyCommand(command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -781,10 +778,9 @@ AnnotationFontWidget::fontNameChanged()
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontName(fontName,
                                  convertToAnnotations(m_annotationsFontName));
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                command,
+    if ( ! annMan->applyCommand(command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -815,10 +811,9 @@ AnnotationFontWidget::fontSizeChanged()
     command->setModeTextFontPercentSize(fontPercentSize,
                                         convertToAnnotations(m_annotationsFontSize),
                                         getSurfaceMontageRowCount());
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                command,
+    if ( ! annMan->applyCommand(command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);
@@ -876,10 +871,9 @@ AnnotationFontWidget::fontUnderlineChanged()
     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
     command->setModeTextFontUnderline(m_underlineFontAction->isChecked(),
                                       convertToAnnotations(m_annotationsFontStyle));
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                command,
+    if ( ! annMan->applyCommand(command,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

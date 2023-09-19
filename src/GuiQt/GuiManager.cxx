@@ -110,6 +110,7 @@
 #include "PaletteColorMappingEditorDialog.h"
 #include "PaletteEditorDialog.h"
 #include "PreferencesDialog.h"
+#include "SamplesFile.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -1447,15 +1448,25 @@ GuiManager::receiveEvent(Event* event)
         
         Brain* brain = getBrain();
         std::vector<AnnotationFile*> allAnnotationFiles;
-        brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+        switch (annGetEvent->getDataTypeMode()) {
+            case EventAnnotationGetDrawnInWindow::DataTypeMode::ANNOTATIONS:
+                brain->getAllAnnotationFilesIncludingSceneAnnotationFile(allAnnotationFiles);
+                break;
+            case EventAnnotationGetDrawnInWindow::DataTypeMode::SAMPLES:
+            {
+                std::vector<SamplesFile*> allSamplesFiles(brain->getAllSamplesFiles());
+                allAnnotationFiles.insert(allAnnotationFiles.end(),
+                                          allSamplesFiles.begin(),
+                                          allSamplesFiles.end());
+            }
+                break;
+        }
         
         /*
          * Clear "drawn in window status" for all annotations
          */
-        for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-             fileIter != allAnnotationFiles.end();
-             fileIter++) {
-            (*fileIter)->clearAllAnnotationsDrawnInWindowStatus();
+        for (auto& af : allAnnotationFiles) {
+            af->clearAllAnnotationsDrawnInWindowStatus();
         }
         
         /*
@@ -1468,12 +1479,10 @@ GuiManager::receiveEvent(Event* event)
         /*
          * Find annotations that were drawn in the given window.
          */
-        for (std::vector<AnnotationFile*>::iterator fileIter = allAnnotationFiles.begin();
-             fileIter != allAnnotationFiles.end();
-             fileIter++) {
+        for (auto& af : allAnnotationFiles) {
             std::vector<Annotation*> annotations;
-            (*fileIter)->getAllAnnotationWithDrawnInWindowStatusSet(windowIndex,
-                                                                    annotations);
+            af->getAllAnnotationWithDrawnInWindowStatusSet(windowIndex,
+                                                           annotations);
             annGetEvent->addAnnotations(annotations);
         }
     }

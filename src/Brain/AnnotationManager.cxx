@@ -51,9 +51,10 @@
 #include "EventBrowserWindowContent.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
+#include "EventUserInputModeGet.h"
+#include "SamplesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
-#include "EventUserInputModeGet.h"
 
 using namespace caret;
 
@@ -67,14 +68,21 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param userInputMode
+ *    The user input mode
+ * @param brain
+ *    The brain
  */
-AnnotationManager::AnnotationManager(Brain* brain)
+AnnotationManager::AnnotationManager(const UserInputModeEnum::Enum userInputMode,
+                                     Brain* brain)
 : CaretObject(),
+m_userInputMode(userInputMode),
 m_brain(brain)
 {
     CaretAssert(m_brain);
     
-    m_clipboard.reset(new AnnotationClipboard(m_brain));
+    m_clipboard.reset(new AnnotationClipboard(m_userInputMode,
+                                              m_brain));
     
     m_annotationsExceptBrowserTabsRedoUndoStack.grabNew(new CaretUndoStack());
     m_annotationsExceptBrowserTabsRedoUndoStack->setUndoLimit(500);
@@ -128,8 +136,6 @@ AnnotationManager::reset()
  * the command, the command is placed on the undo stack so that the
  * user can undo or redo the command.
  *
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
@@ -138,12 +144,10 @@ AnnotationManager::reset()
  *     Output with error information if command fails.
  */
 bool
-AnnotationManager::applyCommand(const UserInputModeEnum::Enum userInputMode,
-                                AnnotationRedoUndoCommand* command,
+AnnotationManager::applyCommand(AnnotationRedoUndoCommand* command,
                                 AString& errorMessageOut)
 {
-    return applyCommandInWindow(userInputMode,
-                                command,
+    return applyCommandInWindow(command,
                                 -1,
                                 errorMessageOut);
 }
@@ -153,8 +157,6 @@ AnnotationManager::applyCommand(const UserInputModeEnum::Enum userInputMode,
  * the command, the command is placed on the undo stack so that the
  * user can undo or redo the command.
  *
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param command
  *     Command that will be applied to the selected annotations.
  *     Annotation manager will take ownership of the command and
@@ -165,8 +167,7 @@ AnnotationManager::applyCommand(const UserInputModeEnum::Enum userInputMode,
  *     Output with error information if command fails.
  */
 bool
-AnnotationManager::applyCommandInWindow(const UserInputModeEnum::Enum userInputMode,
-                                        AnnotationRedoUndoCommand* command,
+AnnotationManager::applyCommandInWindow(AnnotationRedoUndoCommand* command,
                                         const int32_t windowIndex,
                                         AString& errorMessageOut)
 {
@@ -186,9 +187,9 @@ AnnotationManager::applyCommandInWindow(const UserInputModeEnum::Enum userInputM
     /*
      * "Redo" the command and add it to the undo stack
      */
-    const bool result = getCommandRedoUndoStack(userInputMode)->pushAndRedo(command,
-                                                                            windowIndex,
-                                                                            errorMessageOut);
+    const bool result = getCommandRedoUndoStack()->pushAndRedo(command,
+                                                               windowIndex,
+                                                               errorMessageOut);
     return result;
 }
 
@@ -201,51 +202,81 @@ AnnotationManager::applyCommandInWindow(const UserInputModeEnum::Enum userInputM
 void
 AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
 {
-    std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-    
-    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-         fileIter != annotationFiles.end();
-         fileIter++) {
-        AnnotationFile* file = *fileIter;
-        CaretAssert(file);
-        
-        file->setAllAnnotationsSelectedForEditing(windowIndex,
-                                        false);
-    }
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        {
+            std::vector<AnnotationFile*> annotationFiles;
+            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+            
+            for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
+                 fileIter != annotationFiles.end();
+                 fileIter++) {
+                AnnotationFile* file = *fileIter;
+                CaretAssert(file);
+                
+                file->setAllAnnotationsSelectedForEditing(windowIndex,
+                                                          false);
+            }
 
-    EventAnnotationBarsGet barsEvent;
-    EventManager::get()->sendEvent(barsEvent.getPointer());
-    std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
-
-    for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
-         iter != colorBars.end();
-         iter++) {
-        AnnotationColorBar* cb = *iter;
-        cb->setSelectedForEditing(windowIndex,
-                                  false);
-    }
-    
-    std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
-    for (auto sb : scaleBars) {
-        sb->setSelectedForEditing(windowIndex,
-                                  false);
-    }
-    
-    EventAnnotationChartLabelGet chartLabelEvent;
-    EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
-    for (auto label : chartLabels) {
-        label->setSelectedForEditing(windowIndex,
-                                     false);
-    }
-    
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
-    for (auto tab : allTabs) {
-        tab->getManualLayoutBrowserTabAnnotation()->setSelectedForEditing(windowIndex,
-                                                                          false);
+            EventAnnotationBarsGet barsEvent;
+            EventManager::get()->sendEvent(barsEvent.getPointer());
+            std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
+            
+            for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
+                 iter != colorBars.end();
+                 iter++) {
+                AnnotationColorBar* cb = *iter;
+                cb->setSelectedForEditing(windowIndex,
+                                          false);
+            }
+            
+            std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
+            for (auto sb : scaleBars) {
+                sb->setSelectedForEditing(windowIndex,
+                                          false);
+            }
+            
+            EventAnnotationChartLabelGet chartLabelEvent;
+            EventManager::get()->sendEvent(chartLabelEvent.getPointer());
+            std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+            for (auto label : chartLabels) {
+                label->setSelectedForEditing(windowIndex,
+                                             false);
+            }
+        }
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            std::vector<SamplesFile*> samplesFiles(m_brain->getAllSamplesFiles());
+            for (auto& sf : samplesFiles) {
+                sf->setAllAnnotationsSelectedForEditing(windowIndex,
+                                                        false);
+            }
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+        {
+            EventBrowserTabGetAll allTabsEvent;
+            EventManager::get()->sendEvent(allTabsEvent.getPointer());
+            std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
+            for (auto tab : allTabs) {
+                tab->getManualLayoutBrowserTabAnnotation()->setSelectedForEditing(windowIndex,
+                                                                                  false);
+            }
+        }
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
     }
 }
 
@@ -454,8 +485,34 @@ std::vector<Annotation*>
 AnnotationManager::getAllAnnotations() const
 {
     std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
     
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            std::vector<SamplesFile*> samplesFiles(m_brain->getAllSamplesFiles());
+            annotationFiles.insert(annotationFiles.end(),
+                                   samplesFiles.begin(),
+                                   samplesFiles.end());
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            /*
+             * Tabs are not in files so nothing to do
+             */
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+    }
+
     std::vector<Annotation*> allAnnotations;
     
     for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
@@ -472,35 +529,60 @@ AnnotationManager::getAllAnnotations() const
                                   annotations.end());
         }
     }
+    
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        {
+            /*
+             * Put color bars with annotations
+             */
+            EventAnnotationBarsGet barsEvent;
+            EventManager::get()->sendEvent(barsEvent.getPointer());
+            std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
+            for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
+                 iter != colorBars.end();
+                 iter++) {
+                allAnnotations.push_back(*iter);
+            }
+            
+            /*
+             * Put scale bars with annotations
+             */
+            std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
+            for (auto sb : scaleBars) {
+                allAnnotations.push_back(sb);
+            }
+            
+            EventAnnotationChartLabelGet chartLabelEvent;
+            EventManager::get()->sendEvent(chartLabelEvent.getPointer());
+            std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
+            allAnnotations.insert(allAnnotations.end(),
+                                  chartLabels.begin(),
+                                  chartLabels.end());
+        }
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+        {
+            EventBrowserTabGetAll allTabsEvent;
+            EventManager::get()->sendEvent(allTabsEvent.getPointer());
+            std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
+            for (auto tab : allTabs) {
+                allAnnotations.push_back(tab->getManualLayoutBrowserTabAnnotation());
+            }
+        }
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+    }
 
-    EventAnnotationBarsGet barsEvent;
-    EventManager::get()->sendEvent(barsEvent.getPointer());
-    std::vector<AnnotationColorBar*> colorBars = barsEvent.getAnnotationColorBars();
-    for (std::vector<AnnotationColorBar*>::iterator iter = colorBars.begin();
-         iter != colorBars.end();
-         iter++) {
-        allAnnotations.push_back(*iter);
-    }
-    
-    std::vector<AnnotationScaleBar*> scaleBars = barsEvent.getAnnotationScaleBars();
-    for (auto sb : scaleBars) {
-        allAnnotations.push_back(sb);
-    }
-
-    EventAnnotationChartLabelGet chartLabelEvent;
-    EventManager::get()->sendEvent(chartLabelEvent.getPointer());
-    std::vector<Annotation*> chartLabels = chartLabelEvent.getAnnotationChartLabels();
-    allAnnotations.insert(allAnnotations.end(),
-                          chartLabels.begin(),
-                          chartLabels.end());
-    
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
-    std::vector<BrowserTabContent*> allTabs = allTabsEvent.getAllBrowserTabs();
-    for (auto tab : allTabs) {
-        allAnnotations.push_back(tab->getManualLayoutBrowserTabAnnotation());
-    }
-    
     return allAnnotations;
 }
 
@@ -643,30 +725,53 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditing(const int32_t window
 {
     annotationsAndFileOut.clear();
 
-    EventUserInputModeGet modeEvent(windowIndex);
-    EventManager::get()->sendEvent(modeEvent.getPointer());
-    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
-        /* In Tile Editing mode and browser tabs are not in files */
-        return;
-    }
+//    EventUserInputModeGet modeEvent(windowIndex);
+//    EventManager::get()->sendEvent(modeEvent.getPointer());
+//    if (modeEvent.getUserInputMode() == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
+//        /* In Tile Editing mode and browser tabs are not in files */
+//        return;
+//    }
     
     std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            std::vector<SamplesFile*> samplesFiles(m_brain->getAllSamplesFiles());
+            annotationFiles.insert(annotationFiles.end(),
+                                   samplesFiles.begin(),
+                                   samplesFiles.end());
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            /*
+             * Tabs are not in files so nothing to do
+             */
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+    }
+
     
-    for (std::vector<AnnotationFile*>::iterator fileIter = annotationFiles.begin();
-         fileIter != annotationFiles.end();
-         fileIter++) {
-        AnnotationFile* file = *fileIter;
-        CaretAssert(file);
+    for (auto& af : annotationFiles) {
+        CaretAssert(af);
         
         std::vector<Annotation*> annotations;
-        file->getAllAnnotations(annotations);
+        af->getAllAnnotations(annotations);
         for (std::vector<Annotation*>::iterator annIter = annotations.begin();
              annIter != annotations.end();
              annIter++) {
             Annotation* ann = *annIter;
             if (ann->isSelectedForEditing(windowIndex)) {
-                annotationsAndFileOut.emplace_back(ann, file, ann->getAnnotationGroupKey());
+                annotationsAndFileOut.emplace_back(ann, af, ann->getAnnotationGroupKey());
             }
         }
     }
@@ -711,8 +816,6 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
 /**
  * Align annotations.
  * 
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -721,12 +824,11 @@ AnnotationManager::getAnnotationsAndFilesSelectedForEditingIncludingLabels(const
  *    True if successful, false if error.
  */
 bool
-AnnotationManager::alignAnnotations(const UserInputModeEnum::Enum userInputMode,
-                                    const AnnotationArrangerInputs& arrangerInputs,
+AnnotationManager::alignAnnotations(const AnnotationArrangerInputs& arrangerInputs,
                                     const AnnotationAlignmentEnum::Enum alignment,
                                     AString& errorMessageOut)
 {
-    AnnotationArrangerExecutor arranger(userInputMode);
+    AnnotationArrangerExecutor arranger(m_userInputMode);
     
     return arranger.alignAnnotations(this,
                                      arrangerInputs,
@@ -737,8 +839,6 @@ AnnotationManager::alignAnnotations(const UserInputModeEnum::Enum userInputMode,
 /**
  * Align annotations.
  *
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param arrangerInputs
  *    Inputs to algorithm that aligns the annotations.
  * @param errorMessageOut
@@ -747,12 +847,11 @@ AnnotationManager::alignAnnotations(const UserInputModeEnum::Enum userInputMode,
  *    True if successful, false if error.
  */
 bool
-AnnotationManager::distributeAnnotations(const UserInputModeEnum::Enum userInputMode,
-                                         const AnnotationArrangerInputs& arrangerInputs,
+AnnotationManager::distributeAnnotations(const AnnotationArrangerInputs& arrangerInputs,
                                          const AnnotationDistributeEnum::Enum distribute,
                                          AString& errorMessageOut)
 {
-    AnnotationArrangerExecutor arranger(userInputMode);
+    AnnotationArrangerExecutor arranger(m_userInputMode);
     
     return arranger.distributeAnnotations(this,
                                      arrangerInputs,
@@ -763,8 +862,6 @@ AnnotationManager::distributeAnnotations(const UserInputModeEnum::Enum userInput
 /**
  * Apply given grouping mode valid in the given window.
  *
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  * @param windowIndex
  *     Index of the window.
  * @param groupingMode
@@ -775,8 +872,7 @@ AnnotationManager::distributeAnnotations(const UserInputModeEnum::Enum userInput
  *     True if successful, else false.
  */
 bool
-AnnotationManager::applyGroupingMode(const UserInputModeEnum::Enum userInputMode,
-                                     const int32_t windowIndex,
+AnnotationManager::applyGroupingMode(const int32_t windowIndex,
                                      const AnnotationGroupingModeEnum::Enum groupingMode,
                                      AString& errorMessageOut)
 {
@@ -815,8 +911,7 @@ AnnotationManager::applyGroupingMode(const UserInputModeEnum::Enum userInputMode
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingGroupAnnotations(annotationGroupKey,
                                                      annotations);
-            validFlag = applyCommandInWindow(userInputMode,
-                                             command,
+            validFlag = applyCommandInWindow(command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -836,8 +931,7 @@ AnnotationManager::applyGroupingMode(const UserInputModeEnum::Enum userInputMode
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingRegroupAnnotations(annotationGroupKey);
             
-            validFlag = applyCommandInWindow(userInputMode,
-                                             command,
+            validFlag = applyCommandInWindow(command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -858,8 +952,7 @@ AnnotationManager::applyGroupingMode(const UserInputModeEnum::Enum userInputMode
             AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
             command->setModeGroupingUngroupAnnotations(annotationGroupKey);
             
-            validFlag = applyCommandInWindow(userInputMode,
-                                             command,
+            validFlag = applyCommandInWindow(command,
                                              windowIndex,
                                              errorMessageOut);
         }
@@ -932,8 +1025,7 @@ AnnotationManager::applyStackingOrder(const std::vector<Annotation*>& annotation
                                              stackOrders,
                                              orderType);
 
-    const float resultFlag = applyCommandInWindow(UserInputModeEnum::Enum::ANNOTATIONS,
-                                                  command,
+    const float resultFlag = applyCommandInWindow(command,
                                                   windowIndex,
                                                   errorMessageOut);
     return resultFlag;
@@ -1179,8 +1271,33 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
     const std::vector<int32_t> tabIndices = displayedFilesEvent->getTabIndices();
     
     std::vector<AnnotationFile*> annotationFiles;
-    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-    
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            std::vector<SamplesFile*> samplesFiles(m_brain->getAllSamplesFiles());
+            annotationFiles.insert(annotationFiles.end(),
+                                   samplesFiles.begin(),
+                                   samplesFiles.end());
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            /*
+             * Tabs are not in files so nothing to do
+             */
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+    }
+
     const int32_t numAnnFiles = static_cast<int32_t>(annotationFiles.size());
     for (int32_t iFile = 0; iFile < numAnnFiles; iFile++) {
         CaretAssertVectorIndex(annotationFiles, iFile);
@@ -1234,15 +1351,12 @@ AnnotationManager::getDisplayedAnnotationFiles(EventGetDisplayedDataFiles* displ
 
 /**
  * @return Pointer to the command redo undo stack
- *
- * @param userInputMode
- *     The current user input mode which MUST be ANNOTATIONS or TILE_TABS_LAYOUT_EDITING
  */
 CaretUndoStack*
-AnnotationManager::getCommandRedoUndoStack(const UserInputModeEnum::Enum userInputMode)
+AnnotationManager::getCommandRedoUndoStack()
 {
-    CaretUndoStack* undoStackOut(NULL);
-    switch (userInputMode) {
+    CaretUndoStack* undoStackOut(m_annotationsExceptBrowserTabsRedoUndoStack);
+    switch (m_userInputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
             undoStackOut = m_annotationsExceptBrowserTabsRedoUndoStack;
             break;
@@ -1328,8 +1442,6 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
  *     Tabs displayed in the window (may or may not include selected tab)
  * @param windowIndex
  *     Index of window
- * @param userInputMode
- *     The current user input mode (browser tab always)
  * @param errorMessageOut
  *     Contains error information if expansion has error (inability to expand is NOT an error)
  * @return
@@ -1338,9 +1450,15 @@ AnnotationManager::restoreFromScene(const SceneAttributes* sceneAttributes,
 bool
 AnnotationManager::shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector<BrowserTabContent*>& tabsInWindow,
                                                                const int32_t windowIndex,
-                                                               const UserInputModeEnum::Enum userInputMode,
                                                                AString& errorMessageOut)
 {
+    if (m_userInputMode != UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING) {
+        const AString txt("This method should only be called for TILE TABS LAYOUT EDITING");
+        CaretLogSevere(txt);
+        CaretAssertMessage(0, txt);
+        return false;
+    }
+
     errorMessageOut.clear();
     
     AnnotationBrowserTab* selectedTabAnnotation(NULL);
@@ -1372,8 +1490,7 @@ AnnotationManager::shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector
                                       newBounds[2],
                                       newBounds[3],
                                       selectedTabAnnotation);
-            if (applyCommand(userInputMode,
-                             undoCommand,
+            if (applyCommand(undoCommand,
                              errorMessageOut)) {
                 return true;
             }

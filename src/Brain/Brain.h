@@ -35,6 +35,7 @@
 #include "FileInformation.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
+#include "UserInputModeEnum.h"
 #include "VolumeFile.h"
 
 namespace caret {
@@ -238,9 +239,9 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        AnnotationManager* getAnnotationManager();
+        AnnotationManager* getAnnotationManager(const UserInputModeEnum::Enum userInputMode);
         
-        const AnnotationManager* getAnnotationManager() const;
+        const AnnotationManager* getAnnotationManager(const UserInputModeEnum::Enum userInputMode) const;
         
         ModelChart* getChartModel();
         
@@ -905,8 +906,13 @@ namespace caret {
         
         ChartingDataManager* m_chartingDataManager;
         
-        AnnotationManager* m_annotationManager;
+        std::unique_ptr<AnnotationManager> m_annotationsManager;
         
+        std::unique_ptr<AnnotationManager> m_samplesAnnotationsManager;
+        
+        std::unique_ptr<AnnotationManager> m_tileTabsAnnotationsManager;
+        
+
         std::unique_ptr<ChartTwoCartesianOrientedAxesYokingManager> m_chartTwoCartesianAxesYokingManager;
         
         /** contains all display properties */

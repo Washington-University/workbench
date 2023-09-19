@@ -2764,10 +2764,18 @@ BrainBrowserWindowToolBar::updateModeWidget(BrowserTabContent* /*browserTabConte
 void
 BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 {
+    bool annotationsModeFlag(false);
+    bool samplesModeFlag(false);
+    bool tileTabsModeFlag(false);
     switch (this->selectedUserInputProcessor->getUserInputMode()) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
+            annotationsModeFlag = true;
+            break;
         case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            samplesModeFlag = true;
+            break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            tileTabsModeFlag = true;
             break;
         case UserInputModeEnum::Enum::BORDERS:
         case UserInputModeEnum::Enum::FOCI:
@@ -2775,12 +2783,22 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
         case UserInputModeEnum::Enum::INVALID:
         case UserInputModeEnum::Enum::VIEW:
         case UserInputModeEnum::Enum::VOLUME_EDIT:
-            /*
-             * Delete all selected annotations and update graphics and UI.
-             */
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
-            annotationManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
             break;
+    }
+    /*
+     * Deselect all selected annotations and update graphics and UI.
+     */
+    if ( ! annotationsModeFlag) {
+        AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
+        annotationManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+    }
+    if  ( ! samplesModeFlag) {
+        AnnotationManager* samplesManager = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING);
+        samplesManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+    }
+    if  ( ! tileTabsModeFlag) {
+        AnnotationManager* tileTabsManager = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+        tileTabsManager->deselectAllAnnotationsForEditing(this->browserWindowIndex);
     }
 }
 
@@ -3679,7 +3697,19 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                 
                 if ((newUserInputProcessor == this->userInputAnnotationsModeProcessor)
                     || (this->selectedUserInputProcessor == this->userInputAnnotationsModeProcessor)) {
-                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
+                    CaretAssert(annMan);
+                    annMan->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+                }
+                if ((newUserInputProcessor == this->userInputSamplesEditProcessor)
+                    || (this->selectedUserInputProcessor == this->userInputSamplesEditProcessor)) {
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING);
+                    CaretAssert(annMan);
+                    annMan->deselectAllAnnotationsForEditing(this->browserWindowIndex);
+                }
+                if ((newUserInputProcessor == this->userInputTileTabsManualLayoutProcessor)
+                    || (this->selectedUserInputProcessor == this->userInputTileTabsManualLayoutProcessor)) {
+                    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
                     CaretAssert(annMan);
                     annMan->deselectAllAnnotationsForEditing(this->browserWindowIndex);
                 }

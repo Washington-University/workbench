@@ -26,6 +26,7 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "UserInputModeEnum.h"
 #include "Vector3D.h"
 #include "WuQDialogModal.h"
 
@@ -50,14 +51,16 @@ namespace caret {
         Q_OBJECT
 
     public:
-        static Annotation* newAnnotationFromSpaceAndType(const MouseEvent& mouseEvent,
+        static Annotation* newAnnotationFromSpaceAndType(const UserInputModeEnum::Enum userInputMode,
+                                                         const MouseEvent& mouseEvent,
                                                          const SelectionItemVoxel* selectionItemVoxel,
                                                          const std::vector<Vector3D>& drawingCoordinates,
                                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                          const AnnotationTypeEnum::Enum annotationType,
                                                          AnnotationFile* annotationFile);
         
-        static Annotation* newAnnotationFromSpaceTypeAndBounds(const MouseEvent& mouseEvent,
+        static Annotation* newAnnotationFromSpaceTypeAndBounds(const UserInputModeEnum::Enum userInputMode,
+                                                               const MouseEvent& mouseEvent,
                                                                const SelectionItemVoxel* selectionItemVoxel,
                                                                const std::vector<Vector3D>& drawingCoordinates,
                                                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
@@ -135,7 +138,8 @@ namespace caret {
             
         };
         
-        static Annotation* newAnnotationFromSpaceTypeAndCoords(const Mode mode,
+        static Annotation* newAnnotationFromSpaceTypeAndCoords(const UserInputModeEnum::Enum userInputMode,
+                                                               const Mode mode,
                                                                const MouseEvent& mouseEvent,
                                                                const SelectionItemVoxel* selectionItemVoxel,
                                                                const std::vector<Vector3D>& drawingCoordinates,
@@ -143,7 +147,8 @@ namespace caret {
                                                                const AnnotationTypeEnum::Enum annotationType,
                                                                AnnotationFile* annotationFile);
 
-        AnnotationCreateDialog(const Mode mode,
+        AnnotationCreateDialog(const UserInputModeEnum::Enum userInputMode,
+                               const Mode mode,
                                NewAnnotationInfo& newAnnotationInfo,
                                const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                const bool annotationSpaceValidFlag,
@@ -165,16 +170,20 @@ namespace caret {
         
         float convertPolyhedronSlicesToMillimeters() const;
         
-        static Annotation* createAnnotation(NewAnnotationInfo& newAnnotationInfo,
+        static Annotation* createAnnotation(const UserInputModeEnum::Enum userInputMode,
+                                            NewAnnotationInfo& newAnnotationInfo,
                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                             const Plane& polyedronPlane,
                                             const float polyhedronDepthMM,
                                             AString& errorMessageOut);
         
-        static void finishAnnotationCreation(AnnotationFile* annotationFile,
-                                             Annotation* annotation,
+        static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
                                              const int32_t browswerWindowIndex,
-                                             const int32_t tabIndex);
+                                             const int32_t tabIndex,
+                                             AnnotationFile* annotationFile,
+                                             Annotation* annotation);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
         
         const Mode m_mode;
         

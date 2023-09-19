@@ -234,7 +234,7 @@ DisplayGroupAndTabItemViewController::processAnnotationDataSelection(const std::
     if ( ! annotationSet.empty()) {
         std::vector<Annotation*> selectedAnnotations(annotationSet.begin(),
                                                      annotationSet.end());
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
         annMan->setAnnotationsForEditing(m_browserWindowIndex,
                                          selectedAnnotations);
     }

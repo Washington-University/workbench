@@ -100,21 +100,23 @@ using namespace caret;
  * @param parent
  *     Optional parent for this dialog.
  */
-AnnotationCreateDialogTwo::AnnotationCreateDialogTwo(AnnotationFile* annotationFile,
+AnnotationCreateDialogTwo::AnnotationCreateDialogTwo(const UserInputModeEnum::Enum userInputMode,
+                                                     const int32_t browserWindowIndex,
+                                                     const int32_t browserTabIndex,
+                                                     AnnotationFile* annotationFile,
                                                      Annotation* annotation,
                                                      const int32_t viewportHeight,
                                                      const float volumeSliceThickness,
-                                                     const int32_t browserWindowIndex,
-                                                     const int32_t browserTabIndex,
                                                      QWidget* parent)
 : WuQDialogModal("New Annotation",
                  parent),
+m_userInputMode(userInputMode),
+m_browserWindowIndex(browserWindowIndex),
+m_browserTabIndex(browserTabIndex),
 m_annotationFile(annotationFile),
 m_annotation(annotation),
 m_viewportHeight(viewportHeight),
-m_volumeSliceThickness(volumeSliceThickness),
-m_browserWindowIndex(browserWindowIndex),
-m_browserTabIndex(browserTabIndex)
+m_volumeSliceThickness(volumeSliceThickness)
 {
     CaretAssert(m_annotationFile);
     CaretAssert(m_annotation);
@@ -594,7 +596,8 @@ AnnotationCreateDialogTwo::okButtonClicked()
         annMetaData->replace(*m_annotationMetaData.get());
     }
     
-    finishAnnotationCreation(m_annotationFile,
+    finishAnnotationCreation(m_userInputMode,
+                             m_annotationFile,
                              m_annotation,
                              m_browserWindowIndex,
                              m_browserTabIndex);
@@ -620,12 +623,13 @@ AnnotationCreateDialogTwo::okButtonClicked()
  *     Index of tab in which annotation was created.
  */
 void
-AnnotationCreateDialogTwo::finishAnnotationCreation(AnnotationFile* annotationFile,
+AnnotationCreateDialogTwo::finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
+                                                    AnnotationFile* annotationFile,
                                                     Annotation* annotation,
                                                     const int32_t browswerWindowIndex,
                                                     const int32_t tabIndex)
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(userInputMode);
     
     /*
      * Add annotation to its file
@@ -635,12 +639,11 @@ AnnotationCreateDialogTwo::finishAnnotationCreation(AnnotationFile* annotationFi
                                          annotation);
     
     CaretAssert(annotation);
-    UserInputModeEnum::Enum inputMode = UserInputModeEnum::Enum::ANNOTATIONS;
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             break;
         case AnnotationTypeEnum::BROWSER_TAB:
-            inputMode = UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING;
+            CaretAssert(userInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -662,8 +665,7 @@ AnnotationCreateDialogTwo::finishAnnotationCreation(AnnotationFile* annotationFi
             break;
     }
     AString errorMessage;
-    if ( ! annotationManager->applyCommand(inputMode,
-                                           undoCommand,
+    if ( ! annotationManager->applyCommand(undoCommand,
                                            errorMessage)) {
         WuQMessageBox::errorOk(GuiManager::get()->getBrowserWindowByWindowIndex(browswerWindowIndex),
                                errorMessage);

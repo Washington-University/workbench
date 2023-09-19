@@ -812,6 +812,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     }
     
     SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();
+    switch (drawingDataType) {
+        case DrawingDataType::ANNOTATIONS:
+            break;
+        case DrawingDataType::INVALID:
+            break;
+        case DrawingDataType::SAMPLES:
+            annotationID = m_inputs->m_brain->getSelectionManager()->getSamplesIdentification();
+            break;
+    }
     
     GLint savedShadeModel = 0;
     GLboolean savedLightingEnabled = GL_FALSE;

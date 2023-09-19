@@ -186,6 +186,8 @@ namespace caret {
             
             int32_t m_viewportHeight = 0;
             
+            const UserInputModeEnum::Enum m_userInputMode;
+            
             const int32_t m_browserWindowIndex = -1;
             
             int32_t m_browserTabIndex = -1;

@@ -74,7 +74,7 @@ namespace caret {
         SelectionItemAnnotation* getAnnotationIdentification();
         
         const SelectionItemAnnotation* getAnnotationIdentification() const;
-        
+                
         SelectionItemBorderSurface* getSurfaceBorderIdentification();
         
         const SelectionItemBorderSurface* getSurfaceBorderIdentification() const;
@@ -103,6 +103,10 @@ namespace caret {
         
         const SelectionItemMediaPlaneCoordinate* getMediaPlaneCoordinateIdentification() const;
         
+        SelectionItemAnnotation* getSamplesIdentification();
+        
+        const SelectionItemAnnotation* getSamplesIdentification() const;
+
         SelectionItemSurfaceNode* getSurfaceNodeIdentification();
         
         const SelectionItemSurfaceNode* getSurfaceNodeIdentification() const;
@@ -248,6 +252,8 @@ namespace caret {
         std::unique_ptr<SelectionItemMediaLogicalCoordinate> m_mediaLogicalCoordinateIdentification;
         
         std::unique_ptr<SelectionItemMediaPlaneCoordinate> m_mediaPlaneCoordinateIdentification;
+        
+        std::unique_ptr<SelectionItemAnnotation> m_samplesIdentification;
         
         SelectionItemSurfaceNode* m_surfaceNodeIdentification;
         

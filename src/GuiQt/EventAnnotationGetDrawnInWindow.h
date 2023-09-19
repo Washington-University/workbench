@@ -33,10 +33,18 @@ namespace caret {
     class EventAnnotationGetDrawnInWindow : public Event {
         
     public:
-        EventAnnotationGetDrawnInWindow(const int32_t windowIndex);
+        enum class DataTypeMode {
+            ANNOTATIONS,
+            SAMPLES
+        };
+        
+        EventAnnotationGetDrawnInWindow(const DataTypeMode dataTypeMode,
+                                        const int32_t windowIndex);
         
         virtual ~EventAnnotationGetDrawnInWindow();
 
+        DataTypeMode getDataTypeMode() const;
+        
         int32_t getWindowIndex() const;
         
         void addAnnotations(const std::vector<Annotation*>& annotations);
@@ -49,6 +57,8 @@ namespace caret {
         EventAnnotationGetDrawnInWindow(const EventAnnotationGetDrawnInWindow&);
 
         EventAnnotationGetDrawnInWindow& operator=(const EventAnnotationGetDrawnInWindow&);
+        
+        const DataTypeMode m_dataTypeMode;
         
         const int32_t m_windowIndex;
         

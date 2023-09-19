@@ -175,7 +175,13 @@ sortDataFileTypeByFileNameNoPath(std::vector<DFT*>& dataFiles)
  */
 Brain::Brain(CaretPreferences* caretPreferences)
 {
-    m_annotationManager = new AnnotationManager(this);
+    m_annotationsManager.reset(new AnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS,
+                                                     this));
+    m_samplesAnnotationsManager.reset(new AnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING,
+                                                            this));
+    m_tileTabsAnnotationsManager.reset(new AnnotationManager(UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING,
+                                                             this));
+    
     m_chartingDataManager = new ChartingDataManager(this);
     m_fiberOrientationSamplesLoader = new FiberOrientationSamplesLoader();
     m_chartTwoCartesianAxesYokingManager.reset(new ChartTwoCartesianOrientedAxesYokingManager());
@@ -353,7 +359,6 @@ Brain::~Brain()
 
     delete m_sceneAnnotationFile;
     delete m_specFile;
-    delete m_annotationManager;
     delete m_chartingDataManager;
     delete m_fiberOrientationSamplesLoader;
     delete m_paletteFile;
@@ -797,7 +802,9 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
     
-    m_annotationManager->reset();
+    m_annotationsManager->reset();
+    m_samplesAnnotationsManager->reset();
+    m_tileTabsAnnotationsManager->reset();
     
     m_brainordinateHighlightRegionOfInterest->clear();
     
@@ -7071,11 +7078,22 @@ Brain::receiveEvent(Event* event)
          * Annotation files
          */
         std::vector<AnnotationFile*> annotationFiles;
-        m_annotationManager->getDisplayedAnnotationFiles(displayedFilesEvent,
+        m_annotationsManager->getDisplayedAnnotationFiles(displayedFilesEvent,
                                                          annotationFiles);
         if ( ! annotationFiles.empty()) {
             dataFilesDisplayedInTabs.insert(annotationFiles.begin(),
                                             annotationFiles.end());
+        }
+        
+        /*
+         * Samples files
+         */
+        std::vector<AnnotationFile*> samplesFiles;
+        m_samplesAnnotationsManager->getDisplayedAnnotationFiles(displayedFilesEvent,
+                                                                 samplesFiles);
+        if ( ! samplesFiles.empty()) {
+            dataFilesDisplayedInTabs.insert(samplesFiles.begin(),
+                                            samplesFiles.end());
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_GET_BY_NAME) {
@@ -7212,20 +7230,76 @@ Brain::getMediaModel() const
 
 /**
  * @return The annotation manager.
+ * @param userInputMode
+ *    Identifies which annotation manager to get (annotations, samples, tabs)
  */
 AnnotationManager*
-Brain::getAnnotationManager()
+Brain::getAnnotationManager(const UserInputModeEnum::Enum userInputMode)
 {
-    return m_annotationManager;
+    AnnotationManager* annotationManagerOut(NULL);
+    switch (userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            annotationManagerOut = m_annotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            annotationManagerOut = m_samplesAnnotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            annotationManagerOut = m_tileTabsAnnotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+        {
+            const AString txt("Requesting AnnotationManager for invalid input mode="
+                              + UserInputModeEnum::toName(userInputMode)
+                              + ".  This may cause a crash.");
+            CaretLogSevere(txt);
+            CaretAssertMessage(0, txt);
+        }
+            break;
+    }
+    return annotationManagerOut;
 }
 
 /**
  * @return The annotation manager.
+ * @param userInputMode
+ *    Identifies which annotation manager to get (annotations, samples, tabs)
  */
 const AnnotationManager*
-Brain::getAnnotationManager() const
+Brain::getAnnotationManager(const UserInputModeEnum::Enum userInputMode) const
 {
-    return m_annotationManager;
+    AnnotationManager* annotationManagerOut(NULL);
+    switch (userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            annotationManagerOut = m_annotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            annotationManagerOut = m_samplesAnnotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            annotationManagerOut = m_tileTabsAnnotationsManager.get();
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+        {
+            const AString txt("Requesting AnnotationManager for invalid input mode="
+                              + UserInputModeEnum::toName(userInputMode)
+                              + ".  This may cause a crash.");
+            CaretLogSevere(txt);
+            CaretAssertMessage(0, txt);
+        }
+            break;
+    }
+    return annotationManagerOut;
 }
 
 /**

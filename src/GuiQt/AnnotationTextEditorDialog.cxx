@@ -130,15 +130,14 @@ void
 AnnotationTextEditorDialog::textWasEdited()
 {
     const QString text = m_textEdit->toPlainText();
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager();
+    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
     std::vector<Annotation*> annotationVector;
     annotationVector.push_back(m_textAnnotation);
     undoCommand->setModeTextCharacters(text,
                                        annotationVector);
     AString errorMessage;
-    if ( ! annMan->applyCommand(m_userInputMode,
-                                undoCommand,
+    if ( ! annMan->applyCommand(undoCommand,
                                 errorMessage)) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

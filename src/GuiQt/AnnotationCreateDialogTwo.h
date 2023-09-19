@@ -26,6 +26,7 @@
 #include "AnnotationCoordinateInformation.h"
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationTypeEnum.h"
+#include "UserInputModeEnum.h"
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
@@ -46,12 +47,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationCreateDialogTwo(AnnotationFile* annotationFile,
+        AnnotationCreateDialogTwo(const UserInputModeEnum::Enum userInputMode,
+                                  const int32_t browserWindowIndex,
+                                  const int32_t browserTabIndex,
+                                  AnnotationFile* annotationFile,
                                   Annotation* annotation,
                                   const int32_t viewportHeight,
                                   const float volumeSliceThickness,
-                                  const int32_t browserWindowIndex,
-                                  const int32_t browserTabIndex,
                                   QWidget* parent = 0);
         
         AnnotationCreateDialogTwo(const AnnotationCreateDialogTwo&) = delete;
@@ -86,10 +88,17 @@ namespace caret {
         
         float convertPolyhedronSlicesToMillimeters() const;
         
-        static void finishAnnotationCreation(AnnotationFile* annotationFile,
+        static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
+                                             AnnotationFile* annotationFile,
                                              Annotation* annotation,
                                              const int32_t browswerWindowIndex,
                                              const int32_t tabIndex);
+        
+        const UserInputModeEnum::Enum m_userInputMode;
+        
+        const int32_t m_browserWindowIndex;
+        
+        const int32_t m_browserTabIndex;
         
         AnnotationFile* m_annotationFile;
 
@@ -98,10 +107,6 @@ namespace caret {
         const int32_t m_viewportHeight;
         
         const float m_volumeSliceThickness;
-        
-        const int32_t m_browserWindowIndex;
-        
-        const int32_t m_browserTabIndex;
         
         AnnotationTypeEnum::Enum m_annotationType;
         
