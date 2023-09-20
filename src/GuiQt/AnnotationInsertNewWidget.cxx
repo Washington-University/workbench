@@ -440,15 +440,18 @@ AnnotationInsertNewWidget::createEditSamplesWidgets()
     WuQtUtilities::setToolButtonStyleForQt5Mac(newSampleToolButton);
     newSampleToolButton->setDefaultAction(m_newSampleAction);
     
-    QLabel* slicesLabel(new QLabel("Slices"));
-    m_newSampleDepthSpinBox = new QSpinBox();
-    m_newSampleDepthSpinBox->setMinimum(-99);
-    m_newSampleDepthSpinBox->setMaximum(99);
-    m_newSampleDepthSpinBox->setSingleStep(1);
-    m_newSampleDepthSpinBox->setValue(m_previousNewSampleDepthSpinBoxValue);
-    QObject::connect(m_newSampleDepthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                     this, &AnnotationInsertNewWidget::newSampleDepthValueChanged);
-    m_newSampleDepthSpinBox->setToolTip("Polyhedron spans this number of slices");
+    m_newSampleDepthSpinBox = NULL;
+    const bool showDepthFlag(true);
+    if (showDepthFlag) {
+        m_newSampleDepthSpinBox = new QSpinBox();
+        m_newSampleDepthSpinBox->setMinimum(-99);
+        m_newSampleDepthSpinBox->setMaximum(99);
+        m_newSampleDepthSpinBox->setSingleStep(1);
+        m_newSampleDepthSpinBox->setValue(m_previousNewSampleDepthSpinBoxValue);
+        QObject::connect(m_newSampleDepthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                         this, &AnnotationInsertNewWidget::newSampleDepthValueChanged);
+        m_newSampleDepthSpinBox->setToolTip("Polyhedron spans this number of slices");
+    }
     
     QGridLayout* layout(new QGridLayout(this));
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
@@ -458,10 +461,13 @@ AnnotationInsertNewWidget::createEditSamplesWidgets()
                       1, 0, Qt::AlignHCenter);
     layout->addWidget(newSampleToolButton,
                       1, 1);
-    layout->addWidget(slicesLabel,
+    if (m_newSampleDepthSpinBox != NULL) {
+        QLabel* slicesLabel(new QLabel("Slices"));
+        layout->addWidget(slicesLabel,
                       0, 2, Qt::AlignHCenter);
-    layout->addWidget(m_newSampleDepthSpinBox,
-                      1, 2, Qt::AlignHCenter);
+        layout->addWidget(m_newSampleDepthSpinBox,
+                          1, 2, Qt::AlignHCenter);
+    }
 
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);

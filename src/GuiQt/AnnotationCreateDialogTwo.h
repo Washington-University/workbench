@@ -73,8 +73,6 @@ namespace caret {
         
         void polyhedronDepthIndexSpinBoxValueChanged(double value);
         
-        void polyhedronDepthMillimetersSpinBoxValueChanged(double value);
-        
     private:
         QWidget* createTextWidget();
         
@@ -121,8 +119,6 @@ namespace caret {
         int32_t m_imageHeight = 0;
         
         QDoubleSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
-        
-        QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
         
         QLabel* m_polyhedronSliceMillimetersDepthLabel = NULL;
         

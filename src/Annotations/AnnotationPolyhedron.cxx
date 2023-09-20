@@ -23,6 +23,8 @@
 #include "AnnotationPolyhedron.h"
 #undef __ANNOTATION_POLYHEDRON_DECLARE__
 
+#include <cmath>
+
 #include "AnnotationCoordinate.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -224,37 +226,119 @@ AnnotationPolyhedron::getDepthMillimeters() const
 float
 AnnotationPolyhedron::getDepthSlices(const float sliceThickness) const
 {
-    float numberOfSlices(m_depthMillimeters);
-    if (sliceThickness > 0) {
-        numberOfSlices = std::fabs(m_depthMillimeters / sliceThickness);
-        
-        /*
-         * Zero thickness is one slice
-         */
-        ++numberOfSlices;
-    }
-    return numberOfSlices;
+    const float numSlices(AnnotationPolyhedron::millimetersToSlices(sliceThickness,
+                                                                    m_depthMillimeters));
+    return numSlices;
 }
 
 /**
  * Set the depth in slicdes (converts slices to millimeters)
- * @param numberOfSlices
- *    Thickness of number of slices
  * @param sliceThickness
  *    Thickness of the volume slices
+ * @param numberOfSlices
+ *    Thickness of number of slices
  */
 void
-AnnotationPolyhedron::setDepthSlices(const int32_t numberOfSlices,
-                                     const float sliceThickness)
+AnnotationPolyhedron::setDepthSlices(const float sliceThickness,
+                                     const int32_t numberOfSlices)
 {
-    float depth(0.0);
-    if (numberOfSlices > 0) {
-        depth = (numberOfSlices - 1) * sliceThickness;
+    const float mm(AnnotationPolyhedron::slicesToMillimeters(sliceThickness,
+                                                             numberOfSlices));
+    setDepthMillimeters(mm);
+}
+
+/**
+ * Set depth of polyhedron
+ * @param depth
+ *    New depth
+ */
+void
+AnnotationPolyhedron::setDepthMillimeters(const float depth)
+{
+    if (m_depthMillimeters != depth) {
+        m_depthMillimeters = depth;
+        setModified();
     }
-    else if (numberOfSlices < 0) {
-        depth = (numberOfSlices + 1) * sliceThickness;
+}
+
+/**
+ * Convert slices to millimeters
+ * Slices  Millimeters
+ *   -3        -2 x sliceThickness
+ *   -2        -sliceThickness
+ *   -1        0.0
+ *   0         0.0
+ *   1         0.0
+ *   2         sliceThickness
+ *   3         2 x sliceThickness
+ *   etc      etc
+ * @param sliceThickness
+ *    Thickness of the slice, must be positive
+ * @param numberOfSlices
+ *    Number of slices, may be negative.
+ * @return
+ *    Millimeters
+ */
+float
+AnnotationPolyhedron::slicesToMillimeters(const float sliceThickness,
+                                          const float numberOfSlices)
+{
+    CaretAssert(sliceThickness > 0.0);
+    
+    float millimetersOut(0.0);
+    if (sliceThickness > 0.0) {
+        const float negFlag(numberOfSlices < 0.0);
+        const float numSlices(std::fabs(numberOfSlices));
+        
+        if (numSlices > 1.0) {
+            millimetersOut = (numSlices - 1.0) * sliceThickness;
+        }
+        
+        if (negFlag) {
+            millimetersOut = -millimetersOut;
+        }
     }
-    setDepthMillimeters(depth);
+    
+    return millimetersOut;
+}
+
+/**
+ * Convert slices to millimeters
+ * Slices  Millimeters
+ *   -3        -2 x sliceThickness
+ *   -2        -sliceThickness
+ *   -1        0.0
+ *   0         0.0
+ *   1         0.0
+ *   2         sliceThickness
+ *   3         2 x sliceThickness
+ *   etc      etc
+ * @param sliceThickness
+ *    Thickness of the slice, must be positive
+ * @param millimeters
+ *    Number of millimeterfs
+ * @return
+ *    Number of slices
+ */
+float
+AnnotationPolyhedron::millimetersToSlices(const float sliceThickness,
+                                          const float millimeters)
+{
+    CaretAssert(sliceThickness > 0.0);
+
+    float sliceOut(0.0);
+    if (sliceThickness > 0.0) {
+        const bool negFlag(millimeters < 0.0);
+        const float mm(std::fabs(millimeters));
+        
+        sliceOut = (mm / sliceThickness) + 1.0;
+        
+        if (negFlag) {
+            sliceOut = - sliceOut;
+        }
+    }
+    
+    return sliceOut;
 }
 
 /**
@@ -290,20 +374,6 @@ AnnotationPolyhedron::updateCoordinatesAfterDepthChanged()
             const Vector3D farXYZ(xyz + offsetVectorXYZ);
             getCoordinate(i + halfNumCoords)->setXYZ(farXYZ);
         }
-    }
-}
-
-/**
- * Set depth of polyhedron
- * @param depth
- *    New depth
- */
-void
-AnnotationPolyhedron::setDepthMillimeters(const float depth)
-{
-    if (m_depthMillimeters != depth) {
-        m_depthMillimeters = depth;
-        setModified();
     }
 }
 

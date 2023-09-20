@@ -47,10 +47,18 @@ namespace caret {
         
         int32_t getWindowIndex() const;
 
+        bool isNumberOfSlicesDepthValid() const;
+        
         int32_t getNumberOfSlicesDepth() const;
         
         void setNumberOfSlicesDepth(const float numberOfSlicesDepth);
 
+        bool isMillimetersDepthValid() const;
+        
+        float getMillimetersDepth() const;
+        
+        void setMillimetersDepth(const float millimetersDepth);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -58,7 +66,13 @@ namespace caret {
         
         const int32_t m_windowIndex;
         
+        float m_millimetersDepth = 1.0;
+        
+        bool m_millimetersDepthValidFlag = false;
+        
         int32_t m_numberOfSlicesDepth = 1;
+        
+        bool m_numberOfSlicesDepthValidFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

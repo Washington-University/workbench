@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <QWidget>
 
+#include "EventListenerInterface.h"
 #include "UserInputModeEnum.h"
 
 class QDoubleSpinBox;
@@ -34,7 +35,7 @@ namespace caret {
     class Annotation;
     class AnnotationPolyhedron;
     
-    class AnnotationDepthWidget : public QWidget {
+    class AnnotationDepthWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -45,28 +46,35 @@ namespace caret {
         
         virtual ~AnnotationDepthWidget();
         
-
+        virtual void receiveEvent(Event* event);
+        
         // ADD_NEW_METHODS_HERE
 
         void updateContent(std::vector<Annotation*>& annotationsIn);
         
     private slots:
-        void depthValueChanged(double value);
+        void millimeterValueChanged(double value);
         
     private:
         AnnotationDepthWidget(const AnnotationDepthWidget&);
 
         AnnotationDepthWidget& operator=(const AnnotationDepthWidget&);
         
+        void updateSlicesLabel();
+        
+        float getSliceThickness() const;
+        
+        AnnotationPolyhedron* getFirstPolyhedron() const;
+        
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         
-        QDoubleSpinBox* m_depthSpinBox = NULL;
+        QDoubleSpinBox* m_millimetersSpinBox = NULL;
         
-        QLabel* m_sliceThicknessLabel = NULL;
+        QLabel* m_slicesLabel;
         
-        std::vector<Annotation*> m_annotations;
+        std::vector<AnnotationPolyhedron*> m_annotations;
         
         // ADD_NEW_MEMBERS_HERE
 

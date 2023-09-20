@@ -357,17 +357,20 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                          */
                         AnnotationMultiPairedCoordinateShape* multiPairCoordShape(ann->castToMultiPairedCoordinateShape());
                         if (multiPairCoordShape != NULL) {
-                            EventAnnotationGetDrawingPolyhedronSliceDepth depthEvent(getUserInputMode(),
-                                                                                     getBrowserWindowIndex());
-                            EventManager::get()->sendEvent(depthEvent.getPointer());
-                            if (depthEvent.getEventProcessCount() > 0) {
-                                const int32_t numberOfSlicesDepth(depthEvent.getNumberOfSlicesDepth());
-                                if (numberOfSlicesDepth != 0.0) {
-                                    const float sliceThickness(m_newUserSpaceAnnotationBeingCreated->getSliceThickness());
-                                    AnnotationPolyhedron* polyhedron(multiPairCoordShape->castToPolyhedron());
-                                    if (polyhedron != NULL) {
-                                        polyhedron->setDepthSlices(numberOfSlicesDepth,
-                                                                   sliceThickness);
+                            AnnotationPolyhedron* polyhedron(multiPairCoordShape->castToPolyhedron());
+                            if (polyhedron != NULL) {
+                                if (polyhedron->isDrawingNewAnnotation()) {
+                                    EventAnnotationGetDrawingPolyhedronSliceDepth depthEvent(getUserInputMode(),
+                                                                                             getBrowserWindowIndex());
+                                    EventManager::get()->sendEvent(depthEvent.getPointer());
+                                    if (depthEvent.isMillimetersDepthValid()) {
+                                        polyhedron->setDepthMillimeters(depthEvent.getMillimetersDepth());
+                                        polyhedron->updateCoordinatesAfterDepthChanged();
+                                    }
+                                    else if (depthEvent.isNumberOfSlicesDepthValid()) {
+                                        const float sliceThickness(m_newUserSpaceAnnotationBeingCreated->getSliceThickness());
+                                        polyhedron->setDepthSlices(sliceThickness,
+                                                                   depthEvent.getNumberOfSlicesDepth());
                                         polyhedron->updateCoordinatesAfterDepthChanged();
                                     }
                                 }
@@ -3438,14 +3441,13 @@ m_browserWindowIndex(browserWindowIndex)
     AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
     if (polyhedron != NULL) {
         polyhedron->setPlane(planeOfVolumeSlice);
-        
         EventAnnotationGetDrawingPolyhedronSliceDepth depthEvent(userInputMode,
                                                                  browserWindowIndex);
         EventManager::get()->sendEvent(depthEvent.getPointer());
         if (depthEvent.getEventProcessCount() > 0) {
             const int32_t numberOfSlicesDepth(depthEvent.getNumberOfSlicesDepth());
-            polyhedron->setDepthSlices(numberOfSlicesDepth,
-                                       m_sliceThickness);
+            polyhedron->setDepthSlices(m_sliceThickness,
+                                       numberOfSlicesDepth);
         }
     }
 

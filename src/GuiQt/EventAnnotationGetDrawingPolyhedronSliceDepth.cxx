@@ -78,6 +78,15 @@ EventAnnotationGetDrawingPolyhedronSliceDepth::getWindowIndex() const
 }
 
 /**
+ * @return True if the number of slices depth is valid
+ */
+bool
+EventAnnotationGetDrawingPolyhedronSliceDepth::isNumberOfSlicesDepthValid() const
+{
+    return m_numberOfSlicesDepthValidFlag;
+}
+
+/**
  * @return The depth in total number of slices
  */
 int32_t
@@ -95,5 +104,35 @@ void
 EventAnnotationGetDrawingPolyhedronSliceDepth::setNumberOfSlicesDepth(const float numberOfSlicesDepth)
 {
     m_numberOfSlicesDepth = numberOfSlicesDepth;
+    m_numberOfSlicesDepthValidFlag = true;
 }
 
+/**
+ * @return True if the millimeters depth is valid
+ */
+bool
+EventAnnotationGetDrawingPolyhedronSliceDepth::isMillimetersDepthValid() const
+{
+    return m_millimetersDepthValidFlag;
+}
+
+/**
+ * @return The depth in millimeters
+ */
+float
+EventAnnotationGetDrawingPolyhedronSliceDepth::getMillimetersDepth() const
+{
+    return m_millimetersDepth;
+}
+
+/**
+ * Set the millimeters depth
+ * @param millimetersDepth
+ *    New depth in millimeters
+ */
+void
+EventAnnotationGetDrawingPolyhedronSliceDepth::setMillimetersDepth(const float millimetersDepth)
+{
+    m_millimetersDepth = millimetersDepth;
+    m_millimetersDepthValidFlag = true;
+}

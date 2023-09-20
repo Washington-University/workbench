@@ -190,6 +190,8 @@ AnnotationMultiPairedCoordinateShape::addCoordinatePair(AnnotationCoordinate* ac
     }
     
     CaretAssert(MathFunctions::isEvenNumber(getNumberOfCoordinates()));
+    
+    updateCoordinatesAfterDepthChanged();
 }
 
 /**
@@ -366,8 +368,6 @@ AnnotationMultiPairedCoordinateShape::insertCoordinate(const int32_t insertAfter
         return;
     }
     
-    //std::cout << "Inserting coords " << indexOne << " and " << indexTwo << " into total " << fullNumCoords << std::endl;
-
     CaretAssertVectorIndex(m_coordinates, indexOne);
     CaretAssertVectorIndex(m_coordinates, indexTwo);
 
@@ -528,7 +528,6 @@ AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndex(const int32_t inde
     
     if (index < halfNumCoords) {
         const int32_t indexTwo = index + halfNumCoords;
-        //std::cout << "Removing coords " << index << " and " << indexTwo << " from total " << totalNumCoords << std::endl;
         CaretAssertVectorIndex(m_coordinates, indexTwo);
         m_coordinates.erase(m_coordinates.begin() + indexTwo);
         CaretAssertVectorIndex(m_coordinates, index);
@@ -536,7 +535,6 @@ AnnotationMultiPairedCoordinateShape::removeCoordinateAtIndex(const int32_t inde
     }
     else {
         const int32_t indexTwo = index - halfNumCoords;
-        //std::cout << "Removing coords " << index << " and " << indexTwo << " from total " << totalNumCoords << std::endl;
         CaretAssertVectorIndex(m_coordinates, index);
         m_coordinates.erase(m_coordinates.begin() + index);
         CaretAssertVectorIndex(m_coordinates, indexTwo);

@@ -86,11 +86,17 @@ namespace caret {
         
         void setDepthMillimeters(const float depth);
         
-        void setDepthSlices(const int32_t numberOfSlices,
-                            const float sliceThickness);
+        void setDepthSlices(const float sliceThickness,
+                            const int32_t numberOfSlices);
         
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;
+        
+        static float slicesToMillimeters(const float sliceThickness,
+                                         const float numberOfSlices);
+        
+        static float millimetersToSlices(const float sliceThickness,
+                                         const float millimeters);
         
        // ADD_NEW_METHODS_HERE
           

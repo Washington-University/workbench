@@ -222,6 +222,13 @@ AnnotationCreateDialogTwo::createPolyhedronWidget()
         }
     }
     
+    if (m_annotation != NULL) {
+        const AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
+        if (polyhedron != NULL) {
+            numberOfSlices = polyhedron->getDepthSlices(m_volumeSliceThickness);
+        }
+    }
+    
     m_polyhedronSliceIndexDepthSpinBox = new QDoubleSpinBox();
     m_polyhedronSliceIndexDepthSpinBox->setMaximum(10000.0);
     m_polyhedronSliceIndexDepthSpinBox->setMinimum(-m_polyhedronSliceIndexDepthSpinBox->maximum());
@@ -230,38 +237,18 @@ AnnotationCreateDialogTwo::createPolyhedronWidget()
     QObject::connect(m_polyhedronSliceIndexDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationCreateDialogTwo::polyhedronDepthIndexSpinBoxValueChanged);
 
-    m_polyhedronSliceMillimetersDepthLabel = NULL;
-    m_polyhedronSliceMillimetersDepthSpinBox = NULL;
-    const bool useMillimetrsLabelFlag(true);
-    if (useMillimetrsLabelFlag) {
-        m_polyhedronSliceMillimetersDepthLabel = new QLabel("     ");
+    m_polyhedronSliceMillimetersDepthLabel = new QLabel("     ");
         
-        /*
-         * Will update slice depth label
-         */
-        polyhedronDepthIndexSpinBoxValueChanged(m_polyhedronSliceIndexDepthSpinBox->value());
-    }
-    else {
-        m_polyhedronSliceMillimetersDepthSpinBox = new QDoubleSpinBox();
-        m_polyhedronSliceMillimetersDepthSpinBox->setRange(-100000.0, 100000.0);
-        m_polyhedronSliceMillimetersDepthSpinBox->setSingleStep(0.1);
-        m_polyhedronSliceMillimetersDepthSpinBox->setDecimals(2);
-        m_polyhedronSliceMillimetersDepthSpinBox->setValue(s_previousPolyhedronDepthValueMillimeters);
-        QObject::connect(m_polyhedronSliceMillimetersDepthSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
-                         this, &AnnotationCreateDialogTwo::polyhedronDepthMillimetersSpinBoxValueChanged);
-        
-        /* Will update slice index with appropriate value */
-        polyhedronDepthMillimetersSpinBoxValueChanged(m_polyhedronSliceMillimetersDepthSpinBox->value());
-    }
-    
+    /*
+     * Will update slice depth label
+     */
+    polyhedronDepthIndexSpinBoxValueChanged(m_polyhedronSliceIndexDepthSpinBox->value());
+
     QGroupBox* groupBox = new QGroupBox("Polyhedron Depth");
     QGridLayout* layout = new QGridLayout(groupBox);
     layout->addWidget(new QLabel("Slices"), 0, 0);
     layout->addWidget(m_polyhedronSliceIndexDepthSpinBox, 0, 1);
     layout->addWidget(new QLabel("Millimeters"), 1, 0);
-    if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
-        layout->addWidget(m_polyhedronSliceMillimetersDepthSpinBox, 1, 1);
-    }
     if (m_polyhedronSliceMillimetersDepthLabel != NULL) {
         layout->addWidget(m_polyhedronSliceMillimetersDepthLabel, 1, 1);
     }
@@ -275,15 +262,7 @@ AnnotationCreateDialogTwo::createPolyhedronWidget()
 float
 AnnotationCreateDialogTwo::convertPolyhedronSlicesToMillimeters() const
 {
-    float millimetersOut(0.0);
-    const float numSlices(m_polyhedronSliceIndexDepthSpinBox->value());
-    const float absNumSlices(std::fabs(numSlices));
-    if (absNumSlices >= 2.0) {
-        millimetersOut = (absNumSlices - 1.0) * m_volumeSliceThickness;
-        if (numSlices < 0.0) {
-            millimetersOut = -millimetersOut;
-        }
-    }
+    float millimetersOut(AnnotationPolyhedron::slicesToMillimeters(m_volumeSliceThickness, m_polyhedronSliceIndexDepthSpinBox->value()));
     return millimetersOut;
 }
 
@@ -296,30 +275,9 @@ void
 AnnotationCreateDialogTwo::polyhedronDepthIndexSpinBoxValueChanged(double /*value*/)
 {
     const float millimeters(convertPolyhedronSlicesToMillimeters());
-    if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
-        QSignalBlocker blocker(m_polyhedronSliceMillimetersDepthSpinBox);
-        m_polyhedronSliceMillimetersDepthSpinBox->setValue(millimeters);
-    }
     if (m_polyhedronSliceMillimetersDepthLabel != NULL) {
         m_polyhedronSliceMillimetersDepthLabel->setText(QString::number(millimeters, 'f', 3));
     }
-}
-
-/**
- * Called when polyhedron depth value spin box value changed
- * @param value
- *    New value
- */
-void
-AnnotationCreateDialogTwo::polyhedronDepthMillimetersSpinBoxValueChanged(double value)
-{
-    float mm(m_volumeSliceThickness);
-    if (mm == 0) {
-        mm = 1.0;
-    }
-    const float mmSize(value / mm);
-    QSignalBlocker blocker(m_polyhedronSliceIndexDepthSpinBox);
-    m_polyhedronSliceIndexDepthSpinBox->setValue(mmSize);
 }
 
 /**
@@ -508,15 +466,7 @@ AnnotationCreateDialogTwo::okButtonClicked()
     
     float polyhedronDepthMM(0);
     if (m_annotationType == AnnotationTypeEnum::POLYHEDRON) {
-        if (m_polyhedronSliceMillimetersDepthSpinBox != NULL) {
-            polyhedronDepthMM = m_polyhedronSliceMillimetersDepthSpinBox->value();
-        }
-        else {
-            polyhedronDepthMM = convertPolyhedronSlicesToMillimeters();
-        }
-        if (polyhedronDepthMM == 0.0) {
-            errorMessage.appendWithNewLine("Polyhedron depth must not be zero.");
-        }
+        polyhedronDepthMM = convertPolyhedronSlicesToMillimeters();
         s_previousPolyhedronDepthValueMillimeters = polyhedronDepthMM;
         s_previousPolyhedronDepthValueMillimetersValidFlag = true;
     }
@@ -551,6 +501,7 @@ AnnotationCreateDialogTwo::okButtonClicked()
         AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
         CaretAssert(polyhedron);
         polyhedron->setDepthMillimeters(polyhedronDepthMM);
+        polyhedron->updateCoordinatesAfterDepthChanged();
         polyhedron->setDrawingNewAnnotationStatus(false);
     }
     

@@ -119,7 +119,7 @@ namespace caret {
         
         QAction* m_newSampleAction = NULL;
         
-        QSpinBox* m_newSampleDepthSpinBox = NULL;;
+        QSpinBox* m_newSampleDepthSpinBox = NULL;
         
         int32_t m_previousNewSampleDepthSpinBoxValue = 3;
         
