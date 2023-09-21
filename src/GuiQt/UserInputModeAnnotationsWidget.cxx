@@ -43,6 +43,7 @@
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
+#include "AnnotationSamplesInsertNewWidget.h"
 #include "AnnotationLine.h"
 #include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
@@ -183,8 +184,9 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
-    m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
-                                                                 m_browserWindowIndex);
+    
+    m_insertSamplesNewWidget     = new AnnotationSamplesInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
+                                                                        m_browserWindowIndex);
     
     m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
@@ -200,36 +202,36 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_depthWidget = new  AnnotationDepthWidget(m_inputModeAnnotations->getUserInputMode(),
                                                m_browserWindowIndex);
     
-    QGridLayout* leftLayout(new QGridLayout());
+    QWidget* leftWidget(new QWidget());
+    QHBoxLayout* leftLayout(new QHBoxLayout(leftWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(leftLayout, 2, 0);
-    leftLayout->addWidget(m_colorWidget,
-                          0, 0);
-    leftLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                          0, 1);
-    leftLayout->addWidget(m_depthWidget,
-                          0, 2, Qt::AlignLeft);
+    leftLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
+    leftLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    leftLayout->addWidget(m_depthWidget, 0, Qt::AlignTop);
+    leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
+                              QSizePolicy::Fixed);
     
     QGridLayout* rightLayout(new QGridLayout());
     WuQtUtilities::setLayoutSpacingAndMargins(rightLayout, 2, 0);
-    rightLayout->addWidget(m_insertNewWidget,
+    rightLayout->addWidget(m_insertSamplesNewWidget,
                            0, 0, 1, 5, Qt::AlignLeft);
     rightLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
                            1, 0, 1, 5);
     rightLayout->addWidget(m_finishCancelWidget,
-                           2, 0);
+                           2, 0, Qt::AlignTop);
     rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
                            2, 1);
     rightLayout->addWidget(m_deleteWidget,
-                           2, 2);
+                           2, 2, Qt::AlignTop);
     rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
                            2, 3);
     rightLayout->addWidget(m_redoUndoWidget,
-                           2, 4);
+                           2, 4, Qt::AlignTop);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(2, 2, 2, 2);
     layout->setSpacing(8);
-    layout->addLayout(leftLayout);
+    layout->addWidget(leftWidget, 0, Qt::AlignTop);
     layout->addWidget(WuQtUtilities::createVerticalLineWidget());
     layout->addLayout(rightLayout);
     layout->addStretch();
@@ -552,6 +554,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_widthHeightWidget != NULL) m_widthHeightWidget->updateContent(twoDimAnnotations);
     if (m_rotationWidget != NULL) m_rotationWidget->updateContent(selectedAnnotations);
     if (m_insertNewWidget != NULL) m_insertNewWidget->updateContent();
+    if (m_insertSamplesNewWidget != NULL) m_insertSamplesNewWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
     if (m_depthWidget != NULL) m_depthWidget->updateContent(selectedAnnotations);
     if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent(selectedAnnotations);

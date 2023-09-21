@@ -55,7 +55,6 @@ namespace caret {
                                                   const bool singleSelectionModeFlag);
         
     private:
-        virtual void deleteSelectedAnnotations() override;
         // ADD_NEW_MEMBERS_HERE
 
     };

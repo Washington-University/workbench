@@ -65,6 +65,7 @@ ELSE()
         AnnotationPasteDialog.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
+	AnnotationSamplesInsertNewWidget.h
         AnnotationSelectionViewController.h
         AnnotationTextAlignmentWidget.h
         AnnotationTextEditorDialog.h
@@ -337,6 +338,7 @@ AnnotationPasteDialog.h
 AnnotationPastingInformation.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
+AnnotationSamplesInsertNewWidget.h
 AnnotationSelectionViewController.h
 AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
@@ -676,6 +678,7 @@ AnnotationPasteDialog.cxx
 AnnotationPastingInformation.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
+AnnotationSamplesInsertNewWidget.cxx
 AnnotationSelectionViewController.cxx
 AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorDialog.cxx

@@ -50,6 +50,8 @@ namespace caret {
         
         virtual QWidget* getWidget();
         
+        void setNoFilesText(const AString& noFilesText);
+        
         // ADD_NEW_METHODS_HERE
 
     signals:
@@ -66,6 +68,8 @@ namespace caret {
         QComboBox* m_comboBox;
         
         CaretDataFileSelectionModel* m_selectionModel;
+        
+        AString m_noFilesText;
         
         // ADD_NEW_MEMBERS_HERE
 
