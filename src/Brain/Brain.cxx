@@ -69,6 +69,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesImages.h"
 #include "DisplayPropertiesLabels.h"
+#include "DisplayPropertiesSamples.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -230,6 +231,9 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesLabels = new DisplayPropertiesLabels();
     m_displayProperties.push_back(m_displayPropertiesLabels);
     
+    m_displayPropertiesSamples = new DisplayPropertiesSamples(this);
+    m_displayProperties.push_back(m_displayPropertiesSamples);
+    
     m_displayPropertiesSurface = new DisplayPropertiesSurface();
     m_displayProperties.push_back(m_displayPropertiesSurface);
     
@@ -308,6 +312,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("m_displayPropertiesLabels",
                           "DisplayPropertiesLabels",
                           m_displayPropertiesLabels);
+    
+    m_sceneAssistant->add("m_displayPropertiesSamples",
+                          "DisplayPropertiesSamples",
+                          m_displayPropertiesSamples);
     
     m_sceneAssistant->add("m_displayPropertiesSurface",
                           "DisplayPropertiesSurface",
@@ -8329,6 +8337,24 @@ const DisplayPropertiesVolume*
 Brain::getDisplayPropertiesVolume() const
 {
     return m_displayPropertiesVolume;
+}
+
+/**
+ * @return The samples display properties.
+ */
+DisplayPropertiesSamples*
+Brain::getDisplayPropertiesSamples()
+{
+    return m_displayPropertiesSamples;
+}
+
+/**
+ * @return The samples display properties.
+ */
+const DisplayPropertiesSamples*
+Brain::getDisplayPropertiesSamples() const
+{
+    return m_displayPropertiesSamples;
 }
 
 /**

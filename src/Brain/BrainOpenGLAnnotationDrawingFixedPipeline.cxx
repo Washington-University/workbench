@@ -55,6 +55,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
+#include "DisplayPropertiesSamples.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
@@ -540,6 +541,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     m_inputs = inputs;
     m_surfaceViewScaling = 1.0f;
     
+    const DisplayPropertiesSamples* dps(m_inputs->m_brain->getDisplayPropertiesSamples());
+    if ( ! dps->isDisplaySamples()) {
+        return;
+    }
+    
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
         
@@ -792,15 +798,24 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
             break;
     }
     
-    /*
-     * User may turn off display of all annotations.
-     * Color bars and other annotations not in a file are always
-     * drawn so continue processing.
-     */
     const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    if ( ! dpa->isDisplayAnnotations()) {
-        drawAnnotationsFromFilesFlag = false;
+    switch (drawingDataType) {
+        case DrawingDataType::ANNOTATIONS:
+            /*
+             * User may turn off display of all annotations.
+             * Color bars and other annotations not in a file are always
+             * drawn so continue processing.
+             */
+            if ( ! dpa->isDisplayAnnotations()) {
+                drawAnnotationsFromFilesFlag = false;
+            }
+            break;
+        case DrawingDataType::INVALID:
+            break;
+        case DrawingDataType::SAMPLES:
+            break;
     }
+    
     
     /*
      * Note: When window annotations are being drawn, the

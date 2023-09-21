@@ -83,6 +83,7 @@ DisplayPropertiesFiberOrientation.h
 DisplayPropertiesFoci.h
 DisplayPropertiesImages.h
 DisplayPropertiesLabels.h
+DisplayPropertiesSamples.h
 DisplayPropertiesSurface.h
 DisplayPropertiesVolume.h
 DisplayPropertyDataBoolean.h
@@ -308,6 +309,7 @@ DisplayPropertiesFiberOrientation.cxx
 DisplayPropertiesFoci.cxx
 DisplayPropertiesImages.cxx
 DisplayPropertiesLabels.cxx
+DisplayPropertiesSamples.cxx
 DisplayPropertiesSurface.cxx
 DisplayPropertiesVolume.cxx
 DisplayPropertyDataBoolean.cxx

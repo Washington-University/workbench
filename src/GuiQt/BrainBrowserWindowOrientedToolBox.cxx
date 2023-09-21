@@ -59,6 +59,7 @@
 #include "LabelSelectionViewController.h"
 #include "MediaOverlaySetViewController.h"
 #include "OverlaySetViewController.h"
+#include "SamplesSelectionViewController.h"
 #include "SceneClass.h"
 #include "ScenePrimitiveArray.h"
 #include "SceneWindowGeometry.h"
@@ -157,6 +158,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_labelSelectionViewController      = NULL;
     m_mediaSelectionViewController      = NULL;
     m_overlaySetViewController          = NULL;
+    m_samplesSelectionViewController    = NULL;
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new WuQTabWidgetWithSizeHint();
@@ -194,6 +196,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_labelTabIndex = -1;
     m_mediaTabIndex = -1;
     m_overlayTabIndex = -1;
+    m_samplesTabIndex = -1;
     m_volumeSurfaceOutlineTabIndex = -1;
     
     if (isOverlayToolBox) {
@@ -302,6 +305,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                            this);
         m_mediaTabIndex = addToTabWidget(m_mediaSelectionViewController,
                                          "Media");
+    }
+    
+    if (isFeaturesToolBox) {
+        m_samplesSelectionViewController = new SamplesSelectionViewController(browserWindowIndex,
+                                                                              objectNamePrefix,
+                                                                              this);
+        m_samplesTabIndex = addToTabWidget(m_samplesSelectionViewController,
+                                           "Samples");
     }
     
     if (isOverlayToolBox) {
@@ -589,6 +600,10 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
                                                      "m_labelSelectionViewController"));
     }
+    if (m_samplesSelectionViewController != NULL) {
+        sceneClass->addClass(m_samplesSelectionViewController->saveToScene(sceneAttributes,
+                                                                           "m_samplesSelectionViewController"));
+    }
 
     bool saveSplitterFlag(false);
     switch (SessionManager::get()->getCaretPreferences()->getIdentificationDisplayMode()) {
@@ -698,7 +713,10 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_labelSelectionViewController->restoreFromScene(sceneAttributes,
                                                           sceneClass->getClass("m_labelSelectionViewController"));
     }
-    
+    if (m_samplesSelectionViewController != NULL) {
+        m_samplesSelectionViewController->restoreFromScene(sceneAttributes,
+                                                           sceneClass->getClass("m_samplesSelectionViewController"));
+    }
     /*
      * Restore current widget size
      */
@@ -782,6 +800,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         bool haveFoci       = false;
         bool haveImages     = false;
         bool haveLabels     = false;
+        bool haveSamples    = false;
         bool haveSurfaces   = false;
         bool haveVolumes    = false;
         
@@ -864,6 +883,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::RGBA:
                     break;
                 case DataFileTypeEnum::SAMPLES:
+                    haveSamples = true;
                     break;
                 case DataFileTypeEnum::SCENE:
                     break;
@@ -919,6 +939,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = true;
                         haveLabels  = false;
+                        haveSamples = false;
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         defaultTabIndex = m_mediaTabIndex;
@@ -929,12 +950,15 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
+                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         defaultTabIndex = m_overlayTabIndex;
+                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
                         defaultTabIndex = m_overlayTabIndex;
+                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
                         defaultTabIndex = m_overlayTabIndex;
@@ -945,6 +969,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         defaultTabIndex = m_overlayTabIndex;
                         enableVolumeSurfaceOutline = (haveSurfaces
                                                       & haveVolumes);
+                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
                         defaultTabIndex = m_chartTabIndex;
@@ -955,6 +980,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
+                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                         defaultTabIndex = m_chartOverlayTabIndex;
@@ -965,6 +991,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
+                        haveSamples = false;
                         break;
                 }
             }
@@ -1030,6 +1057,8 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
         if (m_overlayTabIndex >= 0) m_tabWidget->setTabEnabled(m_overlayTabIndex, enableLayers);
         if (m_mediaTabIndex >= 0) m_tabWidget->setTabEnabled(m_mediaTabIndex, enableMedia);
         if (m_histologyTabIndex >= 0) m_tabWidget->setTabEnabled(m_histologyTabIndex, enableHistology);
+        
+        if (m_samplesTabIndex >= 0) m_tabWidget->setTabEnabled(m_samplesTabIndex, haveSamples);
         
         if (m_annotationTabWidget != NULL) {
             const int32_t numTabs = m_annotationTabWidget->count();

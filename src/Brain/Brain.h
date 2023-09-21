@@ -83,6 +83,7 @@ namespace caret {
     class DisplayPropertiesImages;
     class DisplayPropertiesLabels;
     class DisplayPropertiesSurface;
+    class DisplayPropertiesSamples;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventDataFileReload;
@@ -456,6 +457,10 @@ namespace caret {
         DisplayPropertiesSurface* getDisplayPropertiesSurface();
         
         const DisplayPropertiesSurface* getDisplayPropertiesSurface() const;
+        
+        DisplayPropertiesSamples* getDisplayPropertiesSamples();
+        
+        const DisplayPropertiesSamples* getDisplayPropertiesSamples() const;
         
         DisplayPropertiesImages* getDisplayPropertiesImages();
         
@@ -930,6 +935,8 @@ namespace caret {
          */
         DisplayPropertiesSurface* m_displayPropertiesSurface;
 
+        DisplayPropertiesSamples* m_displayPropertiesSamples;
+        
         /**
          * Display properties for image - DO NOT delete since this
          * is also in the displayProperties std::vector.

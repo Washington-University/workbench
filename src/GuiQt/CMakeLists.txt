@@ -210,6 +210,7 @@ ELSE()
 	RecentFilesTableWidget.h
 	RecentSceneMenu.h
         RegionOfInterestCreateFromBorderDialog.h
+	SamplesSelectionViewController.h
 	ScaleBarWidget.h
         SceneBasePathWidget.h
 	SceneClassInfoWidget.h
@@ -529,6 +530,7 @@ RecentFilesDialog.h
 RecentFilesTableWidget.h
 RecentSceneMenu.h
 RegionOfInterestCreateFromBorderDialog.h
+SamplesSelectionViewController.h
 ScaleBarWidget.h
 SceneBasePathWidget.h
 SceneClassInfoWidget.h
@@ -868,6 +870,7 @@ RecentFilesDialog.cxx
 RecentFilesTableWidget.cxx
 RecentSceneMenu.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
+SamplesSelectionViewController.cxx
 ScaleBarWidget.cxx
 SceneBasePathWidget.cxx
 SceneClassInfoWidget.cxx
