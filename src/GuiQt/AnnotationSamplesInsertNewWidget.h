@@ -65,6 +65,8 @@ namespace caret {
 
         void newFileActionTriggered();
         
+        void saveFileActionTriggered();
+        
         void newSampleActionTriggered();
         
         void newSampleDepthValueChanged(int value);
@@ -90,6 +92,7 @@ namespace caret {
         
         int32_t m_previousNewSampleDepthSpinBoxValue = 3;
         
+        QAction* m_saveFileAction = NULL;
 
         // ADD_NEW_MEMBERS_HERE
 

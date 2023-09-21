@@ -35,12 +35,14 @@
 #include "CaretFileDialog.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
+#include "DataFileException.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
 #include "EventDataFileAdd.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "SamplesFile.h"
@@ -94,6 +96,8 @@ m_browserWindowIndex(browserWindowIndex)
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
     m_fileSelectionComboBox->setFixedWidth(220);
     m_fileSelectionComboBox->setNoFilesText("Click \"New\" to create a file");
+    QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     this, &AnnotationSamplesInsertNewWidget::fileSelectionComboBoxFileSelected);
     
     QAction* newFileAction(new QAction());
     newFileAction->setText("New...");
@@ -103,7 +107,21 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* newFileToolButton(new QToolButton());
     newFileToolButton->setDefaultAction(newFileAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
-    
+
+    const AString saveToolTip("<html>"
+                              "Save the selected file.<br>"
+                              "To change thee name of the file, use the File Menu's"
+                              "Save/Manage Files menu item."
+                              "</html>");
+    m_saveFileAction = new QAction();
+    m_saveFileAction->setText("Save");
+    m_saveFileAction->setToolTip(saveToolTip);
+    QObject::connect(m_saveFileAction, &QAction::triggered,
+                     this, &AnnotationSamplesInsertNewWidget::saveFileActionTriggered);
+    QToolButton* saveFileToolButton(new QToolButton());
+    saveFileToolButton->setDefaultAction(m_saveFileAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(saveFileToolButton);
+
     m_newSampleAction = new QAction();
     m_newSampleAction->setText("Insert New Sample");
     m_newSampleAction->setToolTip(sampleToolTipText);
@@ -140,9 +158,11 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(m_fileSelectionComboBox->getWidget(),
                       0, 1);
     layout->addWidget(newFileToolButton,
-                      0, 2);
+                      0, 2, Qt::AlignHCenter);
     layout->addLayout(samplesLayout,
                       1, 0, 1, 2, Qt::AlignLeft);
+    layout->addWidget(saveFileToolButton,
+                      1, 2, Qt::AlignHCenter);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -211,6 +231,15 @@ AnnotationSamplesInsertNewWidget::updateContent()
     
     m_slicesLabel->setEnabled(annDrawingFlag);
     m_newSampleDepthSpinBox->setEnabled(annDrawingFlag);
+    
+    bool saveEnabledFlag(false);
+    const SamplesFile* samplesFile(getSelectedSamplesFile());
+    if (samplesFile != NULL) {
+        if (samplesFile->isModified()) {
+            saveEnabledFlag = ( ! samplesFile->getFileName().isEmpty());
+        }
+    }
+    m_saveFileAction->setEnabled(saveEnabledFlag);
 }
 
 /**
@@ -221,7 +250,7 @@ AnnotationSamplesInsertNewWidget::updateContent()
 void
 AnnotationSamplesInsertNewWidget::fileSelectionComboBoxFileSelected(CaretDataFile* /*caretDataFile*/)
 {
-    
+    updateContent();
 }
 
 /**
@@ -258,6 +287,7 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
             EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
             m_fileSelectionModel->setSelectedFile(newFile);
             m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
+            newFile->clearModified();
         }
     }
     
@@ -341,3 +371,25 @@ AnnotationSamplesInsertNewWidget::newSampleDepthValueChanged(int value)
      */
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Called to save the selected file.
+ */
+void
+AnnotationSamplesInsertNewWidget::saveFileActionTriggered()
+{
+    SamplesFile* samplesFile(getSelectedSamplesFile());
+    if (samplesFile != NULL) {
+        try {
+            samplesFile->writeFile(samplesFile->getFileName());
+        }
+        catch (const DataFileException& dfe) {
+            WuQMessageBox::critical(this,
+                                    "Save Error",
+                                    dfe.whatString());
+        }
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
