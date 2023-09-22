@@ -104,7 +104,7 @@ m_browserWindowIndex(browserWindowIndex)
                      this, &AnnotationSamplesInsertNewWidget::fileSelectionComboBoxFileSelected);
     
     QAction* newFileAction(new QAction());
-    newFileAction->setText("New...");
+    newFileAction->setText("New File");
     newFileAction->setToolTip("Create a new Samples File");
     QObject::connect(newFileAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newFileActionTriggered);
@@ -113,12 +113,12 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolButtonStyleForQt5Mac(newFileToolButton);
 
     const AString saveToolTip("<html>"
-                              "Save the selected file.<br>"
+                              "Save the selected Samples File.<br>"
                               "To change the name of the file, use the File Menu's "
                               "Save/Manage Files menu item."
                               "</html>");
     m_saveFileAction = new QAction();
-    m_saveFileAction->setText("Save");
+    m_saveFileAction->setText("Save File");
     m_saveFileAction->setToolTip(saveToolTip);
     QObject::connect(m_saveFileAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::saveFileActionTriggered);
