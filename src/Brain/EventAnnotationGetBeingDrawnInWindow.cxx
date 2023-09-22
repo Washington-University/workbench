@@ -93,3 +93,23 @@ EventAnnotationGetBeingDrawnInWindow::setAnnotation(Annotation* annotation,
     m_drawingViewportHeight = drawingViewportHeight;
 }
 
+/**
+ * @return True if annotation drawing is in progress
+ */
+bool
+EventAnnotationGetBeingDrawnInWindow::isAnnotationDrawingInProgress() const
+{
+    return m_annotationDrawingInProgressFlag;
+}
+
+/**
+ * Set annotation drawing is in progress
+ * @param statusFlag
+ *    True if drawing annotation
+ */
+void
+EventAnnotationGetBeingDrawnInWindow::setAnnotationDrawingInProgress(const bool statusFlag)
+{
+    m_annotationDrawingInProgressFlag = statusFlag;
+}
+

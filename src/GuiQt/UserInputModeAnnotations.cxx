@@ -345,9 +345,37 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             EventManager::get()->sendEvent(modeEvent.getPointer());
             if (getUserInputMode() == modeEvent.getUserInputMode()) {
                 annDrawingEvent->setEventProcessed();
+                
+                bool cancelEnabledFlag(false);
+                switch (m_mode) {
+                    case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                        break;
+                    case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                        cancelEnabledFlag = true;
+                        break;
+                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                        cancelEnabledFlag = true;
+                        break;
+                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                        cancelEnabledFlag = true;
+                        break;
+                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                        cancelEnabledFlag = true;
+                        break;
+                    case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                        break;
+                    case Mode::MODE_PASTE:
+                        break;
+                    case Mode::MODE_PASTE_SPECIAL:
+                        break;
+                    case Mode::MODE_SELECT:
+                        break;
+                }
+
                 if (m_newAnnotationCreatingWithMouseDrag) {
                     annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
                                                    m_newAnnotationCreatingWithMouseDrag->getDrawingViewportHeight());
+                    annDrawingEvent->setAnnotationDrawingInProgress(true);
                 }
                 else if (m_newUserSpaceAnnotationBeingCreated) {
                     Annotation* ann(m_newUserSpaceAnnotationBeingCreated->getAnnotation());
@@ -379,7 +407,10 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     }
                     annDrawingEvent->setAnnotation(m_newUserSpaceAnnotationBeingCreated->getAnnotation(),
                                                    m_newUserSpaceAnnotationBeingCreated->getViewportHeight());
+                    annDrawingEvent->setAnnotationDrawingInProgress(true);
                 }
+                
+                annDrawingEvent->setAnnotationDrawingInProgress(cancelEnabledFlag);
             }
         }
     }

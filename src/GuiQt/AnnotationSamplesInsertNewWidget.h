@@ -74,7 +74,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        CaretDataFileSelectionModel* m_fileSelectionModel = NULL;
+        std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox = NULL;
         

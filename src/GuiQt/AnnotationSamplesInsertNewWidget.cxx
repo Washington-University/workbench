@@ -94,9 +94,9 @@ m_browserWindowIndex(browserWindowIndex)
     
     QLabel* fileLabel(new QLabel("File"));
     
-    m_fileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::SAMPLES);
+    m_fileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::SAMPLES));
     m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
+    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
     m_fileSelectionComboBox->setFixedWidth(220);
     m_fileSelectionComboBox->setNoFilesText("Click \"New\" to create a file");
     m_fileSelectionComboBox->setToolTip("New samples are added to this file");
@@ -228,7 +228,7 @@ AnnotationSamplesInsertNewWidget::updateContent()
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     
-    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
+    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
     
     bool annDrawingFlag(false);
     const Annotation* annDraw(annDrawEvent.getAnnotation());
@@ -293,7 +293,7 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
             newFile->setFileName(newFileName);
             EventManager::get()->sendEvent(EventDataFileAdd(newFile).getPointer());
             m_fileSelectionModel->setSelectedFile(newFile);
-            m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
+            m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
             newFile->clearModified();
         }
     }
@@ -330,6 +330,7 @@ AnnotationSamplesInsertNewWidget::newSampleActionTriggered()
                                                                 polyhedronDrawingMode).getPointer());
     
     updateContent();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

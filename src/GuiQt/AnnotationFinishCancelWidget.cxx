@@ -153,13 +153,10 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
 
     AString cancelToolTip;
     AString finishToolTip;
-    bool cancelEnabledFlag(false);
     bool finishEnabledFlag(false);
     bool eraseLastEnabledFlag(false);
     m_annotationNumberOfCoordinates = 0;
     if (annotation != NULL) {
-        cancelEnabledFlag = true;
-        
         cancelToolTip = ("Cancel drawing "
                          + AnnotationTypeEnum::toGuiName(annotation->getType()));
         finishToolTip = ("Finish drawing "
@@ -237,7 +234,7 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
 
-    m_cancelAction->setEnabled(cancelEnabledFlag);
+    m_cancelAction->setEnabled(annDrawEvent.isAnnotationDrawingInProgress());
     m_cancelAction->setToolTip(cancelToolTip);
     
     m_eraseLastCoordinateAction->setEnabled(eraseLastEnabledFlag);
