@@ -83,6 +83,7 @@
 #include "CursorDisplayScoped.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesSamples.h"
 #include "EventBrowserTabClose.h"
 #include "EventBrowserTabCloseInToolBar.h"
 #include "EventBrowserTabDelete.h"
@@ -2677,6 +2678,9 @@ BrainBrowserWindowToolBar::modeInputModeRadioButtonClicked(QAbstractButton* butt
     }
     else if (button == this->modeInputModeSamplesEditRadioButton) {
         inputMode = UserInputModeEnum::Enum::SAMPLES_EDITING;
+        DisplayPropertiesSamples* dps(GuiManager::get()->getBrain()->getDisplayPropertiesSamples());
+        CaretAssert(dps);
+        dps->setDisplaySamples(true);
     }
     else if (button == this->modeInputModeTileTabsManualLayoutRadioButton) {
         inputMode = UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING;

@@ -36,6 +36,7 @@
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
 #include "DataFileException.h"
+#include "DisplayPropertiesSamples.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
@@ -310,6 +311,10 @@ AnnotationSamplesInsertNewWidget::newSampleActionTriggered()
     const AnnotationTypeEnum::Enum annShape(AnnotationTypeEnum::POLYHEDRON);
     EventAnnotationCreateNewType::PolyhedronDrawingMode polyhedronDrawingMode
     = EventAnnotationCreateNewType::PolyhedronDrawingMode::SAMPLES_DRAWING;
+    
+    DisplayPropertiesSamples* dps(GuiManager::get()->getBrain()->getDisplayPropertiesSamples());
+    CaretAssert(dps);
+    dps->setDisplaySamples(true);
     
     EventManager::get()->sendEvent(EventAnnotationCreateNewType(m_browserWindowIndex,
                                                                 m_userInputMode,
