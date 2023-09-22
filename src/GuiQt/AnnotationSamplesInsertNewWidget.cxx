@@ -78,17 +78,19 @@ m_browserWindowIndex(browserWindowIndex)
 {
     CaretAssert(userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING);
     
-    const AString sampleToolTipText("To draw a polyhedron:"
-                                    "Click this button to insert a new polyhedron and then click or drag the mouse to draw "
-                                    "the first face of the polyhedron.  As points are added, points are added on additional "
-                                    "volume slices."
+    const AString sampleToolTipText("<html>"
+                                    "Click this button to initiate the drawing of a sample polyhedron.<br>"
+                                    "Use the <b>Slices</b> control to set the number of slices that the "
+                                    "polyhedron spans.  The <b>Slices</b> value may be negative or positive.  "
+                                    "To draw a polyhedron:"
                                     "<ul>"
                                     "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"
                                     "<li> <i>Drag</i> (move with left button down) the mouse to create curved lines "
                                     "<li> Note that one can intermix clicks and drags while drawing"
                                     "<li> When finished, <i>shift-click</i> the mouse to finalize the polygon (does NOT add "
-                                    "another coordinate) or click the <i>Finish</i> button"
-                                    "</ul>");
+                                    "another coordinate) or click the <b>Finish</b> button"
+                                    "</ul>"
+                                    "</html>");
     
     QLabel* fileLabel(new QLabel("File"));
     
@@ -97,6 +99,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
     m_fileSelectionComboBox->setFixedWidth(220);
     m_fileSelectionComboBox->setNoFilesText("Click \"New\" to create a file");
+    m_fileSelectionComboBox->setToolTip("New samples are added to this file");
     QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &AnnotationSamplesInsertNewWidget::fileSelectionComboBoxFileSelected);
     
@@ -111,7 +114,7 @@ m_browserWindowIndex(browserWindowIndex)
 
     const AString saveToolTip("<html>"
                               "Save the selected file.<br>"
-                              "To change thee name of the file, use the File Menu's"
+                              "To change the name of the file, use the File Menu's "
                               "Save/Manage Files menu item."
                               "</html>");
     m_saveFileAction = new QAction();
@@ -140,7 +143,10 @@ m_browserWindowIndex(browserWindowIndex)
     m_newSampleDepthSpinBox->setValue(m_previousNewSampleDepthSpinBoxValue);
     QObject::connect(m_newSampleDepthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &AnnotationSamplesInsertNewWidget::newSampleDepthValueChanged);
-    m_newSampleDepthSpinBox->setToolTip("Polyhedron spans this number of slices");
+    m_newSampleDepthSpinBox->setToolTip("<html>"
+                                        "Polyhedron spans this number of slices.  "
+                                        "Value may be negative or positive."
+                                        "</html>");
 
     QHBoxLayout* samplesLayout(new QHBoxLayout());
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 2);

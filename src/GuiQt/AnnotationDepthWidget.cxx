@@ -69,6 +69,10 @@ AnnotationDepthWidget::AnnotationDepthWidget(const UserInputModeEnum::Enum userI
 m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
+    const AString toolTipText("<html>"
+                              "Depth, in millimeters, of polyhedron (controls number of slices polyhedron spans).  "
+                              "Value may be negative or positive."
+                              "</html>");
     QLabel* depthLabel = new QLabel("Depth");
     QLabel* mmLabel = new QLabel("(mm)");
     m_millimetersSpinBox = new QDoubleSpinBox();
@@ -76,6 +80,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_millimetersSpinBox->setMaximum(500.0);
     m_millimetersSpinBox->setDecimals(2);
     m_millimetersSpinBox->setValue(3.0);
+    m_millimetersSpinBox->setToolTip(toolTipText);
     QObject::connect(m_millimetersSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
                      this, &AnnotationDepthWidget::millimeterValueChanged);
 
