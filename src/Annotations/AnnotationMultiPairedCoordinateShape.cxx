@@ -111,7 +111,6 @@ AnnotationMultiPairedCoordinateShape::copyHelperAnnotationMultiPairedCoordinateS
     for (const auto& ptr : obj.m_coordinates) {
         std::unique_ptr<AnnotationCoordinate> ac(new AnnotationCoordinate(*ptr));
         m_coordinates.push_back(std::move(ac));
-        m_drawingNewAnnotationStatusFlag = obj.m_drawingNewAnnotationStatusFlag;
     }
     
     setModified();
@@ -126,7 +125,6 @@ AnnotationMultiPairedCoordinateShape::initializeMembersAnnotationMultiPairedCoor
     m_sceneAssistant.reset(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
     }
-    m_drawingNewAnnotationStatusFlag = false;
 }
 
 /**
@@ -1392,22 +1390,3 @@ AnnotationMultiPairedCoordinateShape::restoreSubClassDataFromScene(const SceneAt
     }
 }
 
-/**
- * Set drawing new annotation status
- * @param status
- *    The new status
- */
-void
-AnnotationMultiPairedCoordinateShape::setDrawingNewAnnotationStatus(const bool status)
-{
-    m_drawingNewAnnotationStatusFlag = status;
-}
-
-/**
- * Is a new annotation being drawn?
- */
-bool
-AnnotationMultiPairedCoordinateShape::isDrawingNewAnnotation() const
-{
-    return m_drawingNewAnnotationStatusFlag;
-}

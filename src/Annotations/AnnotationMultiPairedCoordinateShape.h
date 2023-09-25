@@ -79,10 +79,6 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
                 
-        void setDrawingNewAnnotationStatus(const bool status);
-        
-        bool isDrawingNewAnnotation() const;
-        
         /** Subclasses may need  to update the coordinate pairs while drawing the annotation */
         virtual void updateCoordinatesAfterDepthChanged() = 0;
         
@@ -121,8 +117,6 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         std::vector<std::unique_ptr<AnnotationCoordinate>> m_coordinates;
-        
-        bool m_drawingNewAnnotationStatusFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

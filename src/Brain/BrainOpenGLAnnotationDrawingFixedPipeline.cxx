@@ -5822,7 +5822,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
             drawnFlag = true;
         }
         
-        if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
+        if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
+            || multiCoordShape->isDrawingNewAnnotation()) {
             const float sizeHandleWidthInPixels = computePolySizeHandleDiameter(primitive.get());
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
                                                        multiCoordShape,

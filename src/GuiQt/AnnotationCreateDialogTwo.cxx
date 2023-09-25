@@ -447,6 +447,7 @@ AnnotationCreateDialogTwo::okButtonClicked()
     AString errorMessage;
     
     QString userText;
+    CaretAssert(m_annotation);
     if (m_annotationType == AnnotationTypeEnum::TEXT) {
         CaretAssert(m_textEdit);
         userText = m_textEdit->toPlainText();
@@ -502,8 +503,8 @@ AnnotationCreateDialogTwo::okButtonClicked()
         CaretAssert(polyhedron);
         polyhedron->setDepthMillimeters(polyhedronDepthMM);
         polyhedron->updateCoordinatesAfterDepthChanged();
-        polyhedron->setDrawingNewAnnotationStatus(false);
     }
+    m_annotation->setDrawingNewAnnotationStatus(false);
     
     if (m_annotationType == AnnotationTypeEnum::TEXT) {
         AnnotationText* text = dynamic_cast<AnnotationText*>(m_annotation);
@@ -559,6 +560,9 @@ AnnotationCreateDialogTwo::finishAnnotationCreation(const UserInputModeEnum::Enu
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(userInputMode);
     
+    CaretAssert(annotation);
+    annotation->setDrawingNewAnnotationStatus(false);
+    
     /*
      * Add annotation to its file
      */
@@ -566,7 +570,6 @@ AnnotationCreateDialogTwo::finishAnnotationCreation(const UserInputModeEnum::Enu
     undoCommand->setModeCreateAnnotation(annotationFile,
                                          annotation);
     
-    CaretAssert(annotation);
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             break;

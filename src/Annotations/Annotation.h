@@ -471,6 +471,10 @@ namespace caret {
         
         virtual bool validate(AString& messageOut) const;
         
+        void setDrawingNewAnnotationStatus(const bool status);
+        
+        bool isDrawingNewAnnotation() const;
+        
     protected:
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) = 0;
@@ -552,6 +556,8 @@ namespace caret {
         int32_t m_uniqueKey;
         
         AnnotationGroupKey m_annotationGroupKey;
+        
+        bool m_drawingNewAnnotationStatusFlag = false;
         
         /** Stacking order (depth in screen) of tab, greater value is 'in front'*/
         int32_t m_stackingOrder = 1;

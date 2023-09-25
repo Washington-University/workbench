@@ -151,6 +151,8 @@ Annotation::copyHelperAnnotation(const Annotation& obj)
     m_customColorLine[2]  = obj.m_customColorLine[2];
     m_customColorLine[3]  = obj.m_customColorLine[3];
 
+    m_drawingNewAnnotationStatusFlag = obj.m_drawingNewAnnotationStatusFlag;
+
     *m_metaData = *obj.m_metaData;
     
     m_stackingOrder = obj.m_stackingOrder;
@@ -476,6 +478,8 @@ Annotation::initializeAnnotationMembers()
     m_viewportCoordinateSpaceViewport[2] = 0;
     m_viewportCoordinateSpaceViewport[3] = 0;
     
+    m_drawingNewAnnotationStatusFlag = false;
+
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
     m_metaData.reset(new GiftiMetaData());
@@ -3287,3 +3291,22 @@ Annotation::validate(AString& messageOut) const
     return validFlag;
 }
 
+/**
+ * Set drawing new annotation status
+ * @param status
+ *    The new status
+ */
+void
+Annotation::setDrawingNewAnnotationStatus(const bool status)
+{
+    m_drawingNewAnnotationStatusFlag = status;
+}
+
+/**
+ * Is a new annotation being drawn?
+ */
+bool
+Annotation::isDrawingNewAnnotation() const
+{
+    return m_drawingNewAnnotationStatusFlag;
+}

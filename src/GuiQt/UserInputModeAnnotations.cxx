@@ -3111,9 +3111,7 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::NewMouseDragCreateAnnota
     m_annotation = Annotation::newAnnotationOfType(annotationType,
                                                    AnnotationAttributesDefaultTypeEnum::USER);
     AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
-    if (multiPairedCoordShape != NULL) {
-        multiPairedCoordShape->setDrawingNewAnnotationStatus(true);
-    }
+    m_annotation->setDrawingNewAnnotationStatus(true);
     m_annotation->setCoordinateSpace(annotationSpace);
     CaretAssert(m_annotation);
     
@@ -3466,9 +3464,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_annotation = Annotation::newAnnotationOfType(annotationType,
                                                    AnnotationAttributesDefaultTypeEnum::USER);
     AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
-    if (multiPairedCoordShape != NULL) {
-        multiPairedCoordShape->setDrawingNewAnnotationStatus(true);
-    }
+    m_annotation->setDrawingNewAnnotationStatus(true);
     
     AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
     if (polyhedron != NULL) {

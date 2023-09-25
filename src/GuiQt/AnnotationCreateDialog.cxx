@@ -1161,6 +1161,9 @@ AnnotationCreateDialog::finishAnnotationCreation(const UserInputModeEnum::Enum u
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(userInputMode);
     
+    CaretAssert(annotation);
+    annotation->setDrawingNewAnnotationStatus(false);
+
     /*
      * Add annotation to its file
      */
@@ -1168,7 +1171,6 @@ AnnotationCreateDialog::finishAnnotationCreation(const UserInputModeEnum::Enum u
     undoCommand->setModeCreateAnnotation(annotationFile,
                                          annotation);
     
-    CaretAssert(annotation);
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             break;
