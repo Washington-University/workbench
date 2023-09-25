@@ -25,7 +25,6 @@
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
-
 using namespace caret;
 
 
@@ -38,9 +37,15 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param userInputMode
+ *    The user input mode
+ * @param browserWindowIndex
+ *   The window index
  */
-EventAnnotationGetBeingDrawnInWindow::EventAnnotationGetBeingDrawnInWindow(const int32_t browserWindowIndex)
+EventAnnotationGetBeingDrawnInWindow::EventAnnotationGetBeingDrawnInWindow(const UserInputModeEnum::Enum userInputMode,
+                                                                           const int32_t browserWindowIndex)
 : Event(EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW),
+m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     
@@ -51,6 +56,15 @@ m_browserWindowIndex(browserWindowIndex)
  */
 EventAnnotationGetBeingDrawnInWindow::~EventAnnotationGetBeingDrawnInWindow()
 {
+}
+
+/**
+ * @return The user input mode
+ */
+UserInputModeEnum::Enum
+EventAnnotationGetBeingDrawnInWindow::getUserInputMode() const
+{
+    return m_userInputMode;
 }
 
 /**

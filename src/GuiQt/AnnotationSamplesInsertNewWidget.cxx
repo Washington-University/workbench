@@ -225,7 +225,8 @@ AnnotationSamplesInsertNewWidget::receiveEvent(Event* event)
 void
 AnnotationSamplesInsertNewWidget::updateContent()
 {
-    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
+                                                      m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());

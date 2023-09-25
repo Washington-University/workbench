@@ -26,8 +26,7 @@
 #include <memory>
 
 #include "Event.h"
-
-
+#include "UserInputModeEnum.h"
 
 namespace caret {
 
@@ -36,13 +35,16 @@ namespace caret {
     class EventAnnotationGetBeingDrawnInWindow : public Event {
         
     public:
-        EventAnnotationGetBeingDrawnInWindow(const int32_t browserWindowIndex);
+        EventAnnotationGetBeingDrawnInWindow(const UserInputModeEnum::Enum userInputMode,
+                                             const int32_t browserWindowIndex);
         
         virtual ~EventAnnotationGetBeingDrawnInWindow();
         
         EventAnnotationGetBeingDrawnInWindow(const EventAnnotationGetBeingDrawnInWindow&) = delete;
 
         EventAnnotationGetBeingDrawnInWindow& operator=(const EventAnnotationGetBeingDrawnInWindow&) = delete;
+        
+        UserInputModeEnum::Enum getUserInputMode() const;
         
         int32_t getBrowserWindowIndex() const;
         
@@ -60,6 +62,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        const UserInputModeEnum::Enum m_userInputMode;
+        
         const int32_t m_browserWindowIndex;
         
         Annotation* m_annotation = NULL;

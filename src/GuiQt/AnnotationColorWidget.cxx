@@ -277,7 +277,8 @@ AnnotationColorWidget::receiveEvent(Event* /*event*/)
 void
 AnnotationColorWidget::updateContent(std::vector<Annotation*>& annotationsIn)
 {
-    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
+                                                      m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     m_annotationBeingDrawn = annDrawEvent.getAnnotation();
 

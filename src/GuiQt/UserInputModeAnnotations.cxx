@@ -340,7 +340,8 @@ UserInputModeAnnotations::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW) {
         EventAnnotationGetBeingDrawnInWindow* annDrawingEvent(dynamic_cast<EventAnnotationGetBeingDrawnInWindow*>(event));
         CaretAssert(annDrawingEvent);
-        if (annDrawingEvent->getBrowserWindowIndex() == getBrowserWindowIndex()) {
+        if ((annDrawingEvent->getBrowserWindowIndex() == getBrowserWindowIndex())
+            && (annDrawingEvent->getUserInputMode() == getUserInputMode())) {
             EventUserInputModeGet modeEvent(getBrowserWindowIndex());
             EventManager::get()->sendEvent(modeEvent.getPointer());
             if (getUserInputMode() == modeEvent.getUserInputMode()) {

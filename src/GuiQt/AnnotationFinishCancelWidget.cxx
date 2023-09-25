@@ -147,7 +147,8 @@ AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
 void
 AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*annotations*/)
 {
-    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
+                                                      m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     const Annotation* annotation(annDrawEvent.getAnnotation());
 

@@ -749,7 +749,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     /*
      * Get annotation being drawn by the user for this window
      */
-    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_inputs->m_windowIndex);
+    UserInputModeEnum::Enum userInputMode(UserInputModeEnum::Enum::INVALID);
+    switch (drawingDataType) {
+        case DrawingDataType::ANNOTATIONS:
+            userInputMode = UserInputModeEnum::Enum::ANNOTATIONS;
+            break;
+        case DrawingDataType::INVALID:
+            break;
+        case DrawingDataType::SAMPLES:
+            userInputMode = UserInputModeEnum::Enum::SAMPLES_EDITING;
+            break;
+    }
+    CaretAssert(userInputMode != UserInputModeEnum::Enum::INVALID);
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(userInputMode,
+                                                      m_inputs->m_windowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     m_annotationBeingDrawn = NULL;
     m_annotationBeingDrawnViewportHeight = 0;
