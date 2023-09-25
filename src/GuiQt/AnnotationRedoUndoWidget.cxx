@@ -32,6 +32,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -128,6 +129,10 @@ AnnotationRedoUndoWidget::~AnnotationRedoUndoWidget()
 void
 AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
+    const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
+    
     AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
 
@@ -140,8 +145,15 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     setEnabled(( ! annotations.empty())
                || m_redoAction->isEnabled()
                || m_undoAction->isEnabled());
+    
+    if (drawingAnnotationFlag) {
+        /*
+         * Disable redo/undo when drawing an annotation since redo/undo
+         * does not work on the annotation being drawn.
+         */
+        setEnabled(false);
+    }
 }
-
 
 /**
  * Gets called when the redo action is triggered
