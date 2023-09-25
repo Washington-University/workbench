@@ -1169,6 +1169,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                               const bool updateGraphicsObjectToWindowTransformFlag)
 {
     SelectionItemAnnotation* annotationID(m_brain->getSelectionManager()->getAnnotationIdentification());
+    SelectionItemAnnotation* samplesID(m_brain->getSelectionManager()->getSamplesIdentification());
     SelectionItemVolumeMprCrosshair* crosshairID(m_brain->getSelectionManager()->getVolumeMprCrosshairIdentification());
     SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
     SelectionItemVoxelEditing* voxelEditingID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
@@ -1183,6 +1184,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
             break;
         case BrainOpenGLFixedPipeline::MODE_IDENTIFICATION:
             if (annotationID->isEnabledForSelection()
+                || samplesID->isEnabledForSelection()
                 || voxelID->isEnabledForSelection()
                 || crosshairID->isEnabledForSelection()
                 || voxelEditingID->isEnabledForSelection()) {
