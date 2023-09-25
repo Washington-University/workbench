@@ -56,8 +56,12 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesSamples.h"
+#include "DrawingViewportContentModel.h"
+#include "DrawingViewportContentTab.h"
+#include "DrawingViewportContentWindow.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
+#include "EventDrawingViewportContentGet.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -5368,14 +5372,26 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         }
     }
     
-    if (multiPairedCoordShape->getLineWidthPercentage() <= 0.0) {
-        convertObsoleteLineWidthPixelsToPercentageWidth(multiPairedCoordShape);
+    const bool useNewViewportHeightInfoFlag(false);
+    if (useNewViewportHeightInfoFlag) {
+        if (primitive->getNumberOfVertices() > 0) {
+            Vector3D windowXYZ;
+            primitive->getVertexFloatXYZ(0, windowXYZ);
+            setPrimitiveLineWidthInPixels(multiPairedCoordShape,
+                                          windowXYZ,
+                                          primitive.get());
+        }
     }
-    
-    const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiPairedCoordShape));
-    primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                            (multiPairedCoordShape->getLineWidthPercentage()
-                             * lineWidthMultiplier));
+    else {
+        if (multiPairedCoordShape->getLineWidthPercentage() <= 0.0) {
+            convertObsoleteLineWidthPixelsToPercentageWidth(multiPairedCoordShape);
+        }
+        
+        const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiPairedCoordShape));
+        primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                (multiPairedCoordShape->getLineWidthPercentage()
+                                 * lineWidthMultiplier));
+    }
     
     BoundingBox boundingBox;
     primitive->getVertexBounds(boundingBox);
@@ -6943,6 +6959,118 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthFromPercentageHeight(cons
     }
     
     return widthPixels;
+}
+
+/**
+ * Set the line width, in pixels, for drawing the primitive.  If the annotation uses "percentage of viewport" height,
+ * the appropriate viewport height is found so that the line thickness is correct in pixels.
+ * @param annotation
+ *    The annotation
+ * @param windowXY
+ *    XY in window
+ * @param primtive
+ *    The primitive
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const Annotation* annotation,
+                                                                         const Vector3D& windowXY,
+                                                                         GraphicsPrimitive* primitive) const
+{
+    CaretAssert(annotation);
+    CaretAssert(primitive);
+
+    if (annotation->getLineWidthPercentage() < 0.0) {
+        convertObsoleteLineWidthPixelsToPercentageWidth(annotation);
+    }
+    const float lineWidthPercentage(annotation->getLineWidthPercentage());
+    if (lineWidthPercentage > 0.0) {
+        bool modelSpaceFlag(false);
+        bool tabSpaceFlag(false);
+        bool windowSpaceFlag(false);
+        switch (annotation->getCoordinateSpace()) {
+            case AnnotationCoordinateSpaceEnum::CHART:
+                modelSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                modelSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                modelSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::SPACER:
+                tabSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                modelSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::SURFACE:
+                modelSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::TAB:
+                tabSpaceFlag = true;
+                break;
+            case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                CaretAssert(0);
+                break;
+            case AnnotationCoordinateSpaceEnum::WINDOW:
+                windowSpaceFlag = true;
+                break;
+        }
+        
+        float viewportHeight(0.0);
+        if (modelSpaceFlag) {
+            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::MODEL,
+                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                   windowXY);
+            EventManager::get()->sendEvent(vpEvent.getPointer());
+            const DrawingViewportContentModel* vpContent(vpEvent.getDrawingViewportContentModel());
+            if (vpContent != NULL) {
+                viewportHeight = vpContent->getGraphicsViewport().getHeight();
+            }
+        }
+        else if (tabSpaceFlag) {
+            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::TAB,
+                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                   windowXY);
+            EventManager::get()->sendEvent(vpEvent.getPointer());
+            const DrawingViewportContentTab* vpContent(vpEvent.getDrawingViewportContentTab());
+            if (vpContent != NULL) {
+                viewportHeight = vpContent->getAfterAspectLockedGraphicsViewport().getHeight();
+            }
+        }
+        else if (windowSpaceFlag) {
+            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::WINDOW,
+                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                   windowXY);
+            EventManager::get()->sendEvent(vpEvent.getPointer());
+            const DrawingViewportContentWindow* vpContent(vpEvent.getDrawingViewportContentWindow());
+            if (vpContent != NULL) {
+                viewportHeight = vpContent->getAfterAspectLockedGraphicsViewport().getHeight();
+            }
+        }
+        
+        if (viewportHeight > 0) {
+            const float lineWidthPixels(viewportHeight
+                                        * (lineWidthPercentage / 100.0));
+            primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
+                                    lineWidthPixels);
+            std::cout << "Using Viewport Height: " << viewportHeight
+            << " Pixels: " << lineWidthPixels << std::endl;
+        }
+        else {
+            CaretLogSevere("Unable to get viewport height for annotation "
+                           + annotation->toString()
+                           + " at window XY: "
+                           + windowXY.toString());
+            CaretAssert(0);
+        }
+    }
+    else {
+        CaretLogSevere("Invalid line width percentage="
+                       + AString::number(lineWidthPercentage)
+                       + " for annotation: "
+                       + annotation->toString());
+    }
 }
 
 /**

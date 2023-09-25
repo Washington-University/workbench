@@ -494,6 +494,10 @@ namespace caret {
                                const float startXYZ[3],
                                float endXYZ[3]) const;
         
+        void setPrimitiveLineWidthInPixels(const Annotation* annotation,
+                                           const Vector3D& windowXY,
+                                           GraphicsPrimitive* primitive) const;
+        
         void convertObsoleteLineWidthPixelsToPercentageWidth(const Annotation* annotation) const;
         
         float getLineWidthFromPercentageHeight(const float percentageHeight) const;
