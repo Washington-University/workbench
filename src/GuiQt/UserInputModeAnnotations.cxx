@@ -536,22 +536,23 @@ UserInputModeAnnotations::getCursor() const
 {
     
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
-    
+    const CursorEnum::Enum polyDrawCursor(CursorEnum::CURSOR_DRAWING_PEN);
+
     switch (m_mode) {
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             cursor = CursorEnum::CURSOR_CROSS;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-            cursor = CursorEnum::CURSOR_CROSS;
+            cursor = polyDrawCursor;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-            cursor = CursorEnum::CURSOR_CROSS;
+            cursor = polyDrawCursor;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            cursor = CursorEnum::CURSOR_CROSS;
+            cursor = polyDrawCursor;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
-            cursor = CursorEnum::CURSOR_CROSS;
+            cursor = polyDrawCursor;
             break;
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             cursor = CursorEnum::CURSOR_CROSS;
