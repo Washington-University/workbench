@@ -5358,9 +5358,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         if (drawCoordinateCount < 2) {
             drawLinesFlag = false;
         }
-//        if (drawCoordinateCount < 3) {
-//            return false;
-//        }
         primitive->setDrawArrayIndicesSubset(drawStartingCoordinateIndex,
                                              drawCoordinateCount);
     }
@@ -5468,7 +5465,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
             AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
             sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
-//            sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE;
             drawAnnotationMultiPairedCoordShapeSizingHandles(sizeHandleType,
                                                              annotationFile,
                                                              multiPairedCoordShape,
@@ -6092,6 +6088,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     const float topRight[3]    = { halfWidthHeight,   halfWidthHeight, 0.0f };
     const float topLeft[3]     = { -halfWidthHeight,  halfWidthHeight, 0.0f };
 
+    bool drawTwoToneFilledCircleFlag(false);
     bool drawFilledCircleFlag  = false;
     bool drawOutlineCircleFlag = false;
     bool drawSquareFlag        = false;
@@ -6148,7 +6145,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
                 drawSphereFlag = true;
             }
             else {
-                drawFilledCircleFlag = true;
+                drawTwoToneFilledCircleFlag = true;
             }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
@@ -6185,10 +6182,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     }
     
     uint8_t symbolRGBA[4] {
-        m_selectionBoxRGBA[0],
-        m_selectionBoxRGBA[1],
-        m_selectionBoxRGBA[2],
-        m_selectionBoxRGBA[3]
+        m_foregroundRGBA[0],
+        m_foregroundRGBA[1],
+        m_foregroundRGBA[2],
+        m_foregroundRGBA[3]
     };
 
     if (selectionFlag) {
@@ -6204,7 +6201,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
         }
     }
     
-    if (drawFilledCircleFlag) {
+    if (drawTwoToneFilledCircleFlag) {
+        /*
+         * Circle is in foreground color surrounded by background color
+         */
+        GraphicsShape::drawCircleFilled(NULL,
+                                        m_backgroundRGBA,
+                                        (halfWidthHeight * 2 + 5));
+        GraphicsShape::drawCircleFilled(NULL,
+                                        symbolRGBA,
+                                        halfWidthHeight * 2);
+    }
+    else if (drawFilledCircleFlag) {
         GraphicsShape::drawCircleFilled(NULL,
                                         symbolRGBA,
                                         halfWidthHeight * 2);
@@ -6443,7 +6451,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimShapeSizingHandle
     
     if (! m_selectionModeFlag) {
         GraphicsShape::drawBoxOutlineByteColor(handleBottomLeft, handleBottomRight, handleTopRight, handleTopLeft,
-                                               m_selectionBoxRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
+                                               m_foregroundRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
     }
     
     float sizeHandleSize = 5.0;
@@ -6614,7 +6622,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationTwoDimShapeSizingHandle
         std::vector<float> coords;
         coords.insert(coords.end(), handleRotationLineEnd, handleRotationLineEnd + 3);
         coords.insert(coords.end(), handleOffset, handleOffset + 3);
-        GraphicsShape::drawLinesByteColor(coords, m_selectionBoxRGBA,
+        GraphicsShape::drawLinesByteColor(coords, m_foregroundRGBA,
                                           GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION,
                          annotationFile,
@@ -6755,11 +6763,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
     /*
      * Use the foreground color but reduce the intensity and saturation.
      */
-    m_selectionBoxRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
-    m_selectionBoxRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
-    m_selectionBoxRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
-    m_selectionBoxRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
+    m_foregroundRGBA[0] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[0];
+    m_foregroundRGBA[1] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[1];
+    m_foregroundRGBA[2] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[2];
+    m_foregroundRGBA[3] = m_brainOpenGLFixedPipeline->m_foregroundColorByte[3];
     
+    m_backgroundRGBA[0] = m_brainOpenGLFixedPipeline->m_backgroundColorByte[0];
+    m_backgroundRGBA[1] = m_brainOpenGLFixedPipeline->m_backgroundColorByte[1];
+    m_backgroundRGBA[2] = m_brainOpenGLFixedPipeline->m_backgroundColorByte[2];
+    m_backgroundRGBA[3] = m_brainOpenGLFixedPipeline->m_backgroundColorByte[3];
+
     switch (annotation->getType()) {
         case AnnotationTypeEnum::BOX:
             break;
@@ -6767,7 +6780,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
             /*
              * Foreground color is loaded into browser tab by BrainOpenGLFixedPipeline
              */
-            annotation->getLineColorRGBA(m_selectionBoxRGBA);
+            annotation->getLineColorRGBA(m_foregroundRGBA);
             break;
         case AnnotationTypeEnum::COLOR_BAR:
             break;
@@ -6789,10 +6802,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
             break;
     }
     
-    QColor color(m_selectionBoxRGBA[0],
-                 m_selectionBoxRGBA[1],
-                 m_selectionBoxRGBA[2],
-                 m_selectionBoxRGBA[3]);
+    QColor color(m_foregroundRGBA[0],
+                 m_foregroundRGBA[1],
+                 m_foregroundRGBA[2],
+                 m_foregroundRGBA[3]);
     
 #if QT_VERSION >= 0x060000
     float hue = 0.0;
@@ -6818,9 +6831,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setSelectionBoxColor(const Annotation
                       value);
     }
     
-    m_selectionBoxRGBA[0] = static_cast<uint8_t>(color.red());
-    m_selectionBoxRGBA[1] = static_cast<uint8_t>(color.green());
-    m_selectionBoxRGBA[2] = static_cast<uint8_t>(color.blue());
+    m_foregroundRGBA[0] = static_cast<uint8_t>(color.red());
+    m_foregroundRGBA[1] = static_cast<uint8_t>(color.green());
+    m_foregroundRGBA[2] = static_cast<uint8_t>(color.blue());
 }
 
 

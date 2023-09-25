@@ -562,7 +562,10 @@ namespace caret {
         float m_histologySliceThickness = 0.0;
         
         /** Color for selection box and sizing handles */
-        uint8_t m_selectionBoxRGBA[4];
+        uint8_t m_foregroundRGBA[4];
+        
+        /** Background color */
+        uint8_t m_backgroundRGBA[4];
         
         float m_lineWidthMinimum = 1.0f;
         
