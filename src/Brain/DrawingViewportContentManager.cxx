@@ -26,7 +26,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DrawingViewportContentWindow.h"
+#include "DrawingViewportContent.h"
 #include "EventDrawingViewportContentAdd.h"
 #include "EventDrawingViewportContentClear.h"
 #include "EventDrawingViewportContentGet.h"
@@ -53,8 +53,6 @@ using namespace caret;
 DrawingViewportContentManager::DrawingViewportContentManager()
 : CaretObject()
 {
-    m_windowViewports.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS);
-    
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_ADD);
     EventManager::get()->addEventListener(this,
@@ -91,9 +89,17 @@ void
 DrawingViewportContentManager::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_ADD) {
-        EventDrawingViewportContentAdd* edvc(dynamic_cast<EventDrawingViewportContentAdd*>(event));
-        CaretAssert(edvc);
-        addViewport(edvc->getDrawingViewportContent());
+        EventDrawingViewportContentAdd* addEvent(dynamic_cast<EventDrawingViewportContentAdd*>(event));
+        CaretAssert(addEvent);
+        
+        const int32_t numItems(addEvent->getNumberOfDrawingViewportContent());
+        for (int32_t i = 0; i < numItems; i++) {
+            std::unique_ptr<DrawingViewportContent> dvc(addEvent->takeDrawingViewportContent(i));
+            addViewport(dvc);
+        }
+//        DrawingViewportContent newContent(addEvent->getDrawingViewportContent());
+//        CaretAssert(newContent.getViewportContentType() != DrawingViewportContentTypeEnum::INVALID);
+//        addViewport(newContent);
         event->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR) {
@@ -105,8 +111,20 @@ DrawingViewportContentManager::receiveEvent(Event* event)
     else if (event->getEventType() == EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_GET) {
         EventDrawingViewportContentGet* edvc(dynamic_cast<EventDrawingViewportContentGet*>(event));
         CaretAssert(edvc);
-        getViewportTypeAtMouse(edvc);
-        event->setEventProcessed();
+        switch (edvc->getMode()) {
+            case EventDrawingViewportContentGet::Mode::MATCH_CONTENT_TYPE:
+                getViewportTypeInWindow(edvc);
+                event->setEventProcessed();
+                break;
+            case EventDrawingViewportContentGet::Mode::MODEL_TOP_VIEWPORT:
+                getTopMostModelInWindow(edvc);
+                event->setEventProcessed();
+                break;
+            case EventDrawingViewportContentGet::Mode::TESTING:
+                getAllViewportsInWindow(edvc);
+                event->setEventProcessed();
+                break;
+        }
     }
 }
 
@@ -114,10 +132,10 @@ DrawingViewportContentManager::receiveEvent(Event* event)
  * Add  viewport content
  */
 void
-DrawingViewportContentManager::addViewport(DrawingViewportContentBase* viewportContent)
+DrawingViewportContentManager::addViewport(std::unique_ptr<DrawingViewportContent>& viewportContent)
 {
-    CaretAssert(viewportContent);
-
+    CaretAssert(viewportContent->getViewportContentType() != DrawingViewportContentTypeEnum::INVALID);
+    
     const int32_t windowIndex(viewportContent->getWindowIndex());
     if (m_debuFlag) {
         std::cout << "Add viewport: " << viewportContent->toString() << std::endl;
@@ -125,37 +143,7 @@ DrawingViewportContentManager::addViewport(DrawingViewportContentBase* viewportC
     
     if ((windowIndex >= 0)
         && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-        switch (viewportContent->getViewportContentType()) {
-            case DrawingViewportContentTypeEnum::INVALID:
-                CaretAssert(0);
-                break;
-            case DrawingViewportContentTypeEnum::MODEL: /* Yes, fallthrough for model*/
-            case DrawingViewportContentTypeEnum::TAB:
-            {
-                /*
-                 * Add BOTH model and tab to a window
-                 */
-                CaretAssertVectorIndex(m_windowViewports, windowIndex);
-                if (m_windowViewports[windowIndex]) {
-                    m_windowViewports[windowIndex]->addChildViewport(viewportContent);
-                }
-                else {
-                    const AString msg("Trying to add tab to window without viewport, window="
-                                      + AString::number(windowIndex));
-                    CaretAssertMessage(0, msg);
-                    CaretLogSevere(msg);
-                }
-            }
-                break;
-            case DrawingViewportContentTypeEnum::WINDOW:
-            {
-                DrawingViewportContentWindow* window(viewportContent->castToWindow());
-                CaretAssert(window);
-                CaretAssertVectorIndex(m_windowViewports, windowIndex);
-                m_windowViewports[windowIndex].reset(window);
-            }
-                break;
-        }
+        m_windowViewportContent[windowIndex].push_back(std::move(viewportContent));
     }
     else {
         const AString msg("Invalid window index on viewport: "
@@ -179,27 +167,66 @@ DrawingViewportContentManager::clearWindow(const int32_t windowIndex)
         std::cout << "Clearing window: " << windowIndex << std::endl;
     }
     
-    CaretAssertVectorIndex(m_windowViewports, windowIndex);
-    m_windowViewports[windowIndex].reset();
+    m_windowViewportContent[windowIndex].clear();
 }
 
 /**
  * Find the viewport described by the event
  */
 void
-DrawingViewportContentManager::getViewportTypeAtMouse(EventDrawingViewportContentGet* edvc)
+DrawingViewportContentManager::getViewportTypeInWindow(EventDrawingViewportContentGet* edvc)
+{
+    const DrawingViewportContentTypeEnum::Enum contentType(edvc->getContentType());
+    const int32_t windowIndex(edvc->getWindowIndex());
+    const Vector3D windowXY(edvc->getWindowXY());
+    
+    CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    for (const auto& dvc : windowContent) {
+        if (dvc->containsWindowXY(windowXY)
+            && (dvc->getViewportContentType() == contentType)) {
+            edvc->setDrawingViewportContentNew(dvc.get());
+            break;
+        }
+    }
+}
+
+/**
+ * Find the top-most model described by the event
+ */
+void
+DrawingViewportContentManager::getTopMostModelInWindow(EventDrawingViewportContentGet* edvc)
+{
+    const int32_t windowIndex(edvc->getWindowIndex());
+    const Vector3D windowXY(edvc->getWindowXY());
+    
+    DrawingViewportContent* topDrawingViewportContent(NULL);
+    CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    for (auto& dvc : windowContent) {
+        if (dvc->containsWindowXY(windowXY)) {
+            topDrawingViewportContent = dvc.get();
+        }
+    }
+    edvc->setDrawingViewportContentNew(topDrawingViewportContent);
+}
+
+
+/**
+ * Get ALL the viewport described by the event
+ */
+void
+DrawingViewportContentManager::getAllViewportsInWindow(EventDrawingViewportContentGet* edvc)
 {
     const int32_t windowIndex(edvc->getWindowIndex());
     
-    CaretAssertVectorIndex(m_windowViewports, windowIndex);
-    if (m_windowViewports[windowIndex]) {
-        const DrawingViewportContentBase* viewportContent(m_windowViewports[windowIndex]->getViewportTypeAtMouse(edvc->getContentType(), edvc->getMouseXY()));
-        edvc->setDrawingViewportContent(viewportContent);
-    }
-    else {
-        const AString msg("Requesting viewport for non-existant window="
-                          + AString::number(windowIndex));
-        CaretLogSevere(msg);
-        CaretAssertMessage(0, msg);
+    const Vector3D windowXY(edvc->getWindowXY());
+    CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    for (auto& dvc : windowContent) {
+        if (dvc->containsWindowXY(windowXY)) {
+            std::cout << dvc->toString() << std::endl;
+        }
     }
 }
+

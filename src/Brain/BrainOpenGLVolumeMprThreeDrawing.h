@@ -97,6 +97,25 @@ namespace caret {
             MPR_OVERLAY_SLICE,
         };
         
+        class GridInfo {
+        public:
+            GridInfo() : GridInfo(-1, -1, -1, -1) { }
+            
+            GridInfo(const int32_t numberOfRows,
+                     const int32_t numberOfColumns,
+                     const int32_t rowIndex,
+                     const int32_t columnIndex)
+            : m_numberOfRows(numberOfRows),
+            m_numberOfColumns(numberOfColumns),
+            m_rowIndex(rowIndex),
+            m_columnIndex(columnIndex) { }
+            
+            const int32_t m_numberOfRows;
+            const int32_t m_numberOfColumns;
+            const int32_t m_rowIndex;
+            const int32_t m_columnIndex;
+        };
+        
         VolumeMprVirtualSliceView createSliceInfo(const VolumeMappableInterface* underlayVolume,
                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const Vector3D& sliceCoordinates);
@@ -124,6 +143,7 @@ namespace caret {
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const Vector3D& sliceCoordinates,
                                            const GraphicsViewport& viewport,
+                                           const GridInfo& gridInfo,
                                            const bool updateGraphicsObjectToWindowTransformFlag);
         
         void setOrthographicProjection(const GraphicsViewport& viewport);

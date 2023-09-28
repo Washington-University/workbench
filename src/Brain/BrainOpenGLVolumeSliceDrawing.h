@@ -208,6 +208,25 @@ namespace caret {
             std::vector<int64_t> m_sliceOffsets;
         };
         
+        class GridInfo {
+        public:
+            GridInfo() : GridInfo(-1, -1, -1, -1) { }
+            
+            GridInfo(const int32_t numberOfRows,
+                     const int32_t numberOfColumns,
+                     const int32_t rowIndex,
+                     const int32_t columnIndex)
+            : m_numberOfRows(numberOfRows),
+            m_numberOfColumns(numberOfColumns),
+            m_rowIndex(rowIndex),
+            m_columnIndex(columnIndex) { }
+            
+            const int32_t m_numberOfRows;
+            const int32_t m_numberOfColumns;
+            const int32_t m_rowIndex;
+            const int32_t m_columnIndex;
+        };
+
         BrainOpenGLVolumeSliceDrawing(const BrainOpenGLVolumeSliceDrawing&);
         
         BrainOpenGLVolumeSliceDrawing& operator=(const BrainOpenGLVolumeSliceDrawing&);
@@ -238,7 +257,8 @@ namespace caret {
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                            const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                            const float sliceCoordinates[3],
-                                           const int32_t viewport[4]);
+                                           const int32_t viewport[4],
+                                           const GridInfo& gridInfo);
         
         void drawOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                  const float sliceCoordinates[3],

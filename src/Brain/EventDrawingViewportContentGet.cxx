@@ -24,7 +24,7 @@
 #undef __EVENT_DRAWING_VIEWPORT_CONTENT_GET_DECLARE__
 
 #include "CaretAssert.h"
-#include "DrawingViewportContentBase.h"
+#include "DrawingViewportContent.h"
 #include "EventTypeEnum.h"
 
 using namespace caret;
@@ -38,21 +38,121 @@ using namespace caret;
  */
 
 /**
- * Constructor for getting a specific content type in a window at a mouse position
+ * @return New instance to get top-most model at window XY
+ * @param windowIndex
+ *    Index of window
+ * @param windowXY
+ *    Position in window
+ */
+std::unique_ptr<EventDrawingViewportContentGet>
+EventDrawingViewportContentGet::newInstanceGetTopModelViewport(const int32_t windowIndex,
+                                                               const Vector3D& windowXY)
+{
+    std::unique_ptr<EventDrawingViewportContentGet> ptr(new EventDrawingViewportContentGet(Mode::MODEL_TOP_VIEWPORT,
+                                                                                           DrawingViewportContentTypeEnum::INVALID,
+                                                                                           windowIndex,
+                                                                                           windowXY));
+    return ptr;
+}
+
+/**
+ * @return New instance to get content type at window XY
+ * @param windowIndex
+ *    Index of window
+ * @param windowXY
+ *    Position in window
+ * @param contentType
+ *    The content type
+ */
+std::unique_ptr<EventDrawingViewportContentGet>
+EventDrawingViewportContentGet::newInstanceGetContentType(const int32_t windowIndex,
+                                                          const Vector3D& windowXY,
+                                                          const DrawingViewportContentTypeEnum::Enum contentType)
+{
+    std::unique_ptr<EventDrawingViewportContentGet> ptr(new EventDrawingViewportContentGet(Mode::MATCH_CONTENT_TYPE,
+                                                                                           contentType,
+                                                                                           windowIndex,
+                                                                                           windowXY));
+    return ptr;
+}
+
+/**
+ * New instance that prints all viewports at window XY
+ * @param windowIndex
+ *    Index of window
+ * @param windowXY
+ *    Position in window
+ */
+std::unique_ptr<EventDrawingViewportContentGet>
+EventDrawingViewportContentGet::newInstancePrintAllAtWindowXY(const int32_t windowIndex,
+                                                              const Vector3D& windowXY)
+{
+    std::unique_ptr<EventDrawingViewportContentGet> ptr(new EventDrawingViewportContentGet(Mode::TESTING,
+                                                                                           DrawingViewportContentTypeEnum::INVALID,
+                                                                                           windowIndex,
+                                                                                           windowXY));
+    return ptr;
+}
+
+/**
+ * Constructor for getting a specific content type in a window at a window position
  * @param contentType
  *    Content type requested
  * @param windowIndex
  *    Index of window
- * @param mouseXY
- *    Location of mouse in window
+ * @param windowXY
+ *    Location in window
  */
 EventDrawingViewportContentGet::EventDrawingViewportContentGet(const DrawingViewportContentTypeEnum::Enum contentType,
                                                                const int32_t windowIndex,
-                                                               const Vector3D& mouseXY)
+                                                               const Vector3D& windowXY)
+: EventDrawingViewportContentGet(Mode::MATCH_CONTENT_TYPE,
+                                 contentType,
+                                 windowIndex,
+                                 windowXY)
+{
+    
+}
+
+/**
+ * Constructor for getting a specific content type in a window  position
+ * @param contentType
+ *    Content type requested
+ * @param windowIndex
+ *    Index of window
+ * @param windowXY
+ *    Location in window
+ */
+EventDrawingViewportContentGet::EventDrawingViewportContentGet(const int32_t windowIndex,
+                                                               const Vector3D& windowXY)
+: EventDrawingViewportContentGet(Mode::TESTING,
+                                 DrawingViewportContentTypeEnum::INVALID,
+                                 windowIndex,
+                                 windowXY)
+{
+    
+}
+
+/**
+ * Constructor for getting a specific content type in a window  position
+ * @param mode
+ *    The mode
+ * @param contentType
+ *    Content type requested
+ * @param windowIndex
+ *    Index of window
+ * @param windowXY
+ *    Location of XY in window
+ */
+EventDrawingViewportContentGet::EventDrawingViewportContentGet(const Mode mode,
+                                                               const DrawingViewportContentTypeEnum::Enum contentType,
+                                                               const int32_t windowIndex,
+                                                               const Vector3D& windowXY)
 : Event(EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_GET),
+m_mode(mode),
 m_contentType(contentType),
 m_windowIndex(windowIndex),
-m_mouseXY(mouseXY)
+m_windowXY(windowXY)
 {
     
 }
@@ -65,63 +165,14 @@ EventDrawingViewportContentGet::~EventDrawingViewportContentGet()
 }
 
 /**
- * @return The drawing viewport content after the event is processed (NULL if not available)
+ * @return The mode
  */
-const DrawingViewportContentBase*
-EventDrawingViewportContentGet::getDrawingViewportContent() const
+EventDrawingViewportContentGet::Mode
+EventDrawingViewportContentGet::getMode() const
 {
-    return m_drawingViewportContent;
+    return m_mode;
 }
 
-/**
- * @return The MODEL drawing viewport  after this event is processed (NULL if failure or
- * if drawing viewport is not a model drawing viewport)
- */
-const DrawingViewportContentModel*
-EventDrawingViewportContentGet::getDrawingViewportContentModel() const
-{
-    if (m_drawingViewportContent != NULL) {
-        return m_drawingViewportContent->castToModel();
-    }
-    return NULL;
-}
-
-/**
- * @return The TAB drawing viewport  after this event is processed (NULL if failure or
- * if drawing viewport is not a tab drawing viewport)
- */
-const DrawingViewportContentTab*
-EventDrawingViewportContentGet::getDrawingViewportContentTab() const
-{
-    if (m_drawingViewportContent != NULL) {
-        return m_drawingViewportContent->castToTab();
-    }
-    return NULL;
-}
-
-/**
- * @return The WINDOW drawing viewport  after this event is processed (NULL if failure or
- * if drawing viewport is not a window drawing viewport)
- */
-const DrawingViewportContentWindow*
-EventDrawingViewportContentGet::getDrawingViewportContentWindow() const
-{
-    if (m_drawingViewportContent != NULL) {
-        return m_drawingViewportContent->castToWindow();
-    }
-    return NULL;
-}
-
-/**
- * Set the drawing viewport content
- * @param drawingViewportContent
- *    The viewport content
- */
-void
-EventDrawingViewportContentGet::setDrawingViewportContent(const DrawingViewportContentBase* drawingViewportContent)\
-{
-    m_drawingViewportContent = drawingViewportContent;
-}
 
 /**
  * @return Content type desired
@@ -142,11 +193,31 @@ EventDrawingViewportContentGet::getWindowIndex() const
 }
 
 /**
- * @return Location of the mouse in the window
+ * @return Location of  in the window
  */
 const Vector3D
-EventDrawingViewportContentGet::getMouseXY() const
+EventDrawingViewportContentGet::getWindowXY() const
 {
-    return m_mouseXY;
+    return m_windowXY;
+}
+
+/**
+ * The drawing viewport content
+ */
+const DrawingViewportContent*
+EventDrawingViewportContentGet::getDrawingViewportContentNew() const
+{
+    return m_drawingViewportContentNew;
+}
+
+/**
+ * Set the draiwng viewport content
+ * @param drawingViewportContent
+ *   The content
+ */
+void
+EventDrawingViewportContentGet::setDrawingViewportContentNew(const DrawingViewportContent* drawingViewportContent)
+{
+    m_drawingViewportContentNew = drawingViewportContent;
 }
 

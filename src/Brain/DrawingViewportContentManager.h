@@ -25,13 +25,13 @@
 #include <array>
 #include <memory>
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
-#include "DrawingViewportContentBase.h"
+#include "DrawingViewportContent.h"
 #include "EventListenerInterface.h"
 
 
 namespace caret {
-    class DrawingViewportContentWindow;
     class EventDrawingViewportContentGet;
 
     class DrawingViewportContentManager : public CaretObject, public EventListenerInterface {
@@ -53,13 +53,17 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private:
-        void addViewport(DrawingViewportContentBase* viewportContent);
+        void addViewport(std::unique_ptr<DrawingViewportContent>& viewportContent);
         
         void clearWindow(const int32_t windowIndex);
         
-        void getViewportTypeAtMouse(EventDrawingViewportContentGet* edvc);
+        void getViewportTypeInWindow(EventDrawingViewportContentGet* edvc);
         
-        std::vector<std::unique_ptr<DrawingViewportContentWindow>> m_windowViewports;
+        void getTopMostModelInWindow(EventDrawingViewportContentGet* edvc);
+        
+        void getAllViewportsInWindow(EventDrawingViewportContentGet* edvc);
+        
+        std::vector<std::unique_ptr<DrawingViewportContent>> m_windowViewportContent[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         bool m_debuFlag = false;
         

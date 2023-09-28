@@ -93,9 +93,6 @@
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesSurface.h"
 #include "DisplayPropertiesVolume.h"
-#include "DrawingViewportContentModel.h"
-#include "DrawingViewportContentTab.h"
-#include "DrawingViewportContentWindow.h"
 #include "ElapsedTimer.h"
 #include "EventAnnotationBarsGet.h"
 #include "EventBrowserWindowContent.h"
@@ -864,12 +861,15 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
             int32_t windowAfterLockArray[4];
             vpContent->getWindowViewport(windowAfterLockArray);
             
-            DrawingViewportContentWindow*
-               dvcw(new DrawingViewportContentWindow(m_windowIndex,
-                                                     GraphicsViewport(windowBeforeLockArray),
-                                                     GraphicsViewport(windowAfterLockArray)));
-            EventDrawingViewportContentAdd addContentEvent(dvcw);
-            EventManager::get()->sendEvent(addContentEvent.getPointer());
+            /*
+             * Window viewports
+             */
+            EventDrawingViewportContentAdd addViewportEvent;
+            addViewportEvent.addWindowBeforeLock(m_windowIndex,
+                                                 GraphicsViewport(windowBeforeLockArray));
+            addViewportEvent.addWindowAfterLock(m_windowIndex,
+                                                GraphicsViewport(windowAfterLockArray));
+            EventManager::get()->sendEvent(addViewportEvent.getPointer());
         }
         
         /*
@@ -1857,31 +1857,19 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         {
             int32_t tabBeforeLockArray[4];
             viewportContent->getTabViewportBeforeApplyingMargins(tabBeforeLockArray);
-            GraphicsViewport tabBeforeLockViewport(tabBeforeLockArray);
             
             /*
-             * Tab after aspect locked is the same as model's viewport,
-             * initially.  Some models, such as surface montage and
-             * volume montage, will create smaller viewports.  Drawing
-             * for these model types will add additional model viewports.
+             * Window viewports
              */
-            GraphicsViewport tabAfterAspectLockedViewport(modelViewport);
-            
-            DrawingViewportContentTab* dvct(
-                new DrawingViewportContentTab(m_windowIndex,
+            EventDrawingViewportContentAdd addViewportEvent;
+            addViewportEvent.addTabBeforeLock(m_windowIndex,
                                               this->windowTabIndex,
-                                              tabBeforeLockViewport,
-                                              tabAfterAspectLockedViewport));
-            EventDrawingViewportContentAdd addContentEvent(dvct);
-            EventManager::get()->sendEvent(addContentEvent.getPointer());
+                                              GraphicsViewport(tabBeforeLockArray));
+            addViewportEvent.addTabAfterLock(m_windowIndex,
+                                             this->windowTabIndex,
+                                             GraphicsViewport(modelViewport));
+            EventManager::get()->sendEvent(addViewportEvent.getPointer());
 
-            DrawingViewportContentModel* dvcm(
-                new DrawingViewportContentModel(m_windowIndex,
-                                                this->windowTabIndex,
-                                                tabAfterAspectLockedViewport,
-                                                model->getModelType()));
-            EventDrawingViewportContentAdd addContentEventTwo(dvcm);
-            EventManager::get()->sendEvent(addContentEventTwo.getPointer());
         }
         
         this->mode = mode;
@@ -1891,6 +1879,13 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         if(model != NULL) {
             CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
             
+            EventDrawingViewportContentAdd addViewportEvent;
+            addViewportEvent.addModel(m_windowIndex,
+                                      this->windowTabIndex,
+                                      GraphicsViewport(modelViewport),
+                                      model->getModelType());
+            EventManager::get()->sendEvent(addViewportEvent.getPointer());
+
             ModelChart* modelChart = dynamic_cast<ModelChart*>(model);
             ModelChartTwo* modelTwoChart = dynamic_cast<ModelChartTwo*>(model);
             ModelHistology* modelHistology(dynamic_cast<ModelHistology*>(model));
@@ -6733,6 +6728,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     glGetIntegerv(GL_VIEWPORT,
                   savedVP);
     
+
     int32_t numberOfRows = 0;
     int32_t numberOfColumns = 0;
     SurfaceMontageViewport::getNumberOfRowsAndColumns(montageViewports,
@@ -6759,6 +6755,14 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                  subViewportWidth,
                                  horizontalGap);
     
+    EventDrawingViewportContentAdd addViewportEvent;
+    addViewportEvent.addModelSurfaceGrid(m_windowIndex,
+                                         this->windowTabIndex,
+                                         GraphicsViewport(viewport),
+                                         numberOfRows,
+                                         numberOfColumns);
+    EventManager::get()->sendEvent(addViewportEvent.getPointer());
+    
     const int32_t numberOfViewports = static_cast<int32_t>(montageViewports.size());
     for (int32_t ivp = 0; ivp < numberOfViewports; ivp++) {
         SurfaceMontageViewport* mvp = montageViewports[ivp];
@@ -6780,14 +6784,16 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         };
         mvp->setViewport(surfaceViewport);
         
-        DrawingViewportContentModel* dvcm(
-            new DrawingViewportContentModel(m_windowIndex,
-                                            this->windowTabIndex,
-                                            GraphicsViewport(surfaceViewport),
-                                            surfaceMontageModel->getModelType()));
-        EventDrawingViewportContentAdd addContentEvent(dvcm);
-        EventManager::get()->sendEvent(addContentEvent.getPointer());
-
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addModelSurfaceGridCell(m_windowIndex,
+                                                 this->windowTabIndex,
+                                                 GraphicsViewport(viewport),
+                                                 numberOfRows,
+                                                 numberOfColumns,
+                                                 rowFromTop,
+                                                 column);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+        
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
                                                                  mvp->getProjectionViewType(),
                                                                  mvp->getSurface());

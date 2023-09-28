@@ -47,7 +47,6 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
 #include "DisplayPropertiesVolume.h"
-#include "DrawingViewportContentModel.h"
 #include "EventDrawingViewportContentAdd.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -229,6 +228,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                                                 VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                                 browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(axisVP.data()),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
                                     sliceProjectionType,
@@ -244,6 +251,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                                                 VolumeSliceViewPlaneEnum::CORONAL,
                                                                 browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(axisVP.data()),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
                                     sliceProjectionType,
@@ -259,6 +274,14 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceView(const BrainOpenGLViewportContent* 
                                                                 VolumeSliceViewPlaneEnum::AXIAL,
                                                                 browserTabContent->getVolumeSlicePlanesAllViewLayout(),
                                                                 axisVP.data());
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(axisVP.data()),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(viewportContent,
                                     sliceProjectionType,
@@ -330,6 +353,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::AXIAL,
                                               sliceCoordinates,
                                               viewport,
+                                              GridInfo(),
                                               updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
@@ -342,6 +366,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::CORONAL,
                                               sliceCoordinates,
                                               viewport,
+                                              GridInfo(),
                                               updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
@@ -354,6 +379,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawWholeBrainView(const BrainOpenGLViewportCont
                                               VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                               sliceCoordinates,
                                               viewport,
+                                              GridInfo(),
                                               updateGraphicsObjectToWindowTransformFlag);
                 glPopMatrix();
             }
@@ -405,6 +431,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
                                           sliceViewPlane,
                                           sliceCoordinates,
                                           viewport,
+                                          GridInfo(),
                                           updateGraphicsObjectToWindowTransformFlag);
         }
             break;
@@ -427,6 +454,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewType(const BrainOpenGLViewpor
  *    Coordinates of the selected slice.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
+ * @param gridInfo
+ *     Info about montage grid
  * @param updateGraphicsObjectToWindowTransformFlag
  *    If true, update the graphics opbject to window transform
  */
@@ -437,6 +466,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                               const Vector3D& sliceCoordinates,
                                                               const GraphicsViewport& viewport,
+                                                              const GridInfo& gridInfo,
                                                               const bool updateGraphicsObjectToWindowTransformFlag)
 {
     
@@ -456,14 +486,6 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
                        viewport.getWidth(),
                        viewport.getHeight());
             
-            DrawingViewportContentModel* dvcm(
-                  new DrawingViewportContentModel(m_fixedPipelineDrawing->m_windowIndex,
-                                                  m_fixedPipelineDrawing->windowTabIndex,
-                                                  GraphicsViewport(viewport),
-                                                  ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES));
-            EventDrawingViewportContentAdd addContentEvent(dvcm);
-            EventManager::get()->sendEvent(addContentEvent.getPointer());
-
             bool drawViewportBoxFlag(false);
             if (drawViewportBoxFlag) {
                 glMatrixMode(GL_PROJECTION);
@@ -566,6 +588,20 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewProjection(const BrainOpenGLV
     }
 
     if (drawVolumeSlicesFlag) {
+        DrawingViewportContentVolumeSlice vpSlice(gridInfo.m_numberOfRows,
+                                                  gridInfo.m_numberOfColumns,
+                                                  gridInfo.m_rowIndex,
+                                                  gridInfo.m_columnIndex,
+                                                  sliceViewPlane,
+                                                  sliceInfo.m_plane,
+                                                  sliceCoordinates);
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addVolumeSlice(this->m_fixedPipelineDrawing->m_windowIndex,
+                                        m_tabIndex,
+                                        viewport,
+                                        vpSlice);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+
         glPushMatrix();
                 
         /*
@@ -3766,6 +3802,16 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
     
     const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
     
+    {
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addModelVolumeGrid(windowIndex,
+                                            m_tabIndex,
+                                            GraphicsViewport(viewport),
+                                            numRows,
+                                            numCols);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+    }
+
     int32_t vpSizeY        = 0;
     int32_t verticalMargin = 0;
     BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport.getHeight(),
@@ -3890,6 +3936,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
                                                   sliceViewPlane,
                                                   sliceXYZ,
                                                   vp,
+                                                  GridInfo(numRows, numCols, i, j),
                                                   updateGraphicsObjectToWindowTransformFlag);
                 }
             }

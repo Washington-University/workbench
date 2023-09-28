@@ -25,18 +25,19 @@
 
 #include <memory>
 
+#include "DrawingViewportContent.h"
 #include "Event.h"
-
+#include "ModelTypeEnum.h"
 
 
 namespace caret {
 
-    class DrawingViewportContentBase;
+    class GraphicsViewport;
     
     class EventDrawingViewportContentAdd : public Event {
         
     public:
-        EventDrawingViewportContentAdd(DrawingViewportContentBase* drawingViewportContent);
+        EventDrawingViewportContentAdd();
         
         virtual ~EventDrawingViewportContentAdd();
         
@@ -44,12 +45,58 @@ namespace caret {
 
         EventDrawingViewportContentAdd& operator=(const EventDrawingViewportContentAdd&) = delete;
         
-        DrawingViewportContentBase* getDrawingViewportContent() const;
+        int32_t getNumberOfDrawingViewportContent() const;
+        
+        std::unique_ptr<DrawingViewportContent> takeDrawingViewportContent(const int32_t index);
+        
+        void addWindowBeforeLock(const int32_t windowIndex,
+                                 const GraphicsViewport& viewport);
+        
+        void addWindowAfterLock(const int32_t windowIndex,
+                                const GraphicsViewport& viewport);
+        
+        void addTabBeforeLock(const int32_t windowIndex,
+                              const int32_t tabIndex,
+                              const GraphicsViewport& viewport);
+        
+        void addTabAfterLock(const int32_t windowIndex,
+                             const int32_t tabIndex,
+                             const GraphicsViewport& viewport);
+        
+        void addModel(const int32_t windowIndex,
+                      const int32_t tabIndex,
+                      const GraphicsViewport& viewport,
+                      const ModelTypeEnum::Enum modelType);
+        
+        void addModelSurfaceGrid(const int32_t windowIndex,
+                                 const int32_t tabIndex,
+                                 const GraphicsViewport& viewport,
+                                 const int32_t numberOfGridRows,
+                                 const int32_t numberOfGridColumns);
+
+        void addModelSurfaceGridCell(const int32_t windowIndex,
+                                     const int32_t tabIndex,
+                                     const GraphicsViewport& viewport,
+                                     const int32_t numberOfGridRows,
+                                     const int32_t numberOfGridColumns,
+                                     const int32_t gridRow,
+                                     const int32_t gridColumn);
+        
+        void addModelVolumeGrid(const int32_t windowIndex,
+                                const int32_t tabIndex,
+                                const GraphicsViewport& viewport,
+                                const int32_t numberOfGridRows,
+                                const int32_t numberOfGridColumns);
+
+        void addVolumeSlice(const int32_t windowIndex,
+                            const int32_t tabIndex,
+                            const GraphicsViewport& viewport,
+                            const DrawingViewportContentVolumeSlice& volumeSliceInfo);
 
         // ADD_NEW_METHODS_HERE
 
-    private:
-        DrawingViewportContentBase* m_drawingViewportContent;
+    private:        
+        std::vector<std::unique_ptr<DrawingViewportContent>> m_drawingViewportContents;
         
         // ADD_NEW_MEMBERS_HERE
 

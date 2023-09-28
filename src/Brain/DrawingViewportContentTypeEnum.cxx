@@ -31,7 +31,9 @@ using namespace caret;
     
 /**
  * \class caret::DrawingViewportContentTypeEnum 
- * \brief Enumerated type for drawing viewport content
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -110,17 +112,45 @@ DrawingViewportContentTypeEnum::initialize()
                                     "INVALID", 
                                     "Invalid"));
     
+    enumData.push_back(DrawingViewportContentTypeEnum(WINDOW_BEFORE_ASPECT_LOCK, 
+                                    "WINDOW_BEFORE_ASPECT_LOCK", 
+                                    "Window Before Aspect Lock"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(WINDOW_AFTER_ASPECT_LOCK, 
+                                    "WINDOW_AFTER_ASPECT_LOCK", 
+                                    "Window After Aspect Lock"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(SPACER, 
+                                    "SPACER", 
+                                    "Spacer"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(TAB_BEFORE_ASPECT_LOCK, 
+                                    "TAB_BEFORE_ASPECT_LOCK", 
+                                    "Tab Before Aspect Lock"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(TAB_AFTER_ASPECT_LOCK, 
+                                    "TAB_AFTER_ASPECT_LOCK", 
+                                    "Tab After Aspect Lock"));
+    
     enumData.push_back(DrawingViewportContentTypeEnum(MODEL, 
                                     "MODEL", 
                                     "Model"));
     
-    enumData.push_back(DrawingViewportContentTypeEnum(TAB, 
-                                    "TAB", 
-                                    "Tab"));
+    enumData.push_back(DrawingViewportContentTypeEnum(MODEL_SURFACE_GRID, 
+                                    "MODEL_SURFACE_GRID", 
+                                    "Model Surface Grid"));
     
-    enumData.push_back(DrawingViewportContentTypeEnum(WINDOW, 
-                                    "WINDOW", 
-                                    "Window"));
+    enumData.push_back(DrawingViewportContentTypeEnum(MODEL_SURFACE_GRID_CELL, 
+                                    "MODEL_SURFACE_GRID_CELL", 
+                                    "Model Surface Grid Cell"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(MODEL_VOLUME_GRID, 
+                                    "MODEL_VOLUME_GRID", 
+                                    "Model Volume Grid"));
+    
+    enumData.push_back(DrawingViewportContentTypeEnum(MODEL_VOLUME_SLICE,
+                                    "MODEL_VOLUME_SLICE",
+                                    "Model Volume Slice"));
     
 }
 

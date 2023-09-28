@@ -45,7 +45,6 @@
 #include "CiftiMappableDataFile.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
-#include "DrawingViewportContentModel.h"
 #include "ElapsedTimer.h"
 #include "EventDrawingViewportContentAdd.h"
 #include "GapsAndMargins.h"
@@ -275,6 +274,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             /*
              * Draw parasagittal slice
              */
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(paraVP),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
                                     sliceDrawingType,
@@ -287,6 +294,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             /*
              * Draw coronal slice
              */
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(coronalVP),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
                                     sliceDrawingType,
@@ -299,6 +314,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewPlane(const VolumeSlice
             /*
              * Draw axial slice
              */
+            {
+                EventDrawingViewportContentAdd addViewportEvent;
+                addViewportEvent.addModel(this->m_fixedPipelineDrawing->m_windowIndex,
+                                          m_tabIndex,
+                                          GraphicsViewport(axialVP),
+                                          ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+                EventManager::get()->sendEvent(addViewportEvent.getPointer());
+            }
             glPushMatrix();
             drawVolumeSliceViewType(BrainOpenGLVolumeSliceDrawing::AllSliceViewMode::ALL_YES,
                                     sliceDrawingType,
@@ -391,7 +414,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::AXIAL,
                                       sliceCoordinates,
-                                      viewport);
+                                      viewport,
+                                      GridInfo());
         glPopMatrix();
     }
     
@@ -402,7 +426,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::CORONAL,
                                       sliceCoordinates,
-                                      viewport);
+                                      viewport,
+                                      GridInfo());
         glPopMatrix();
     }
     
@@ -413,7 +438,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSlicesForAllStructuresView(const
                                       sliceProjectionType,
                                       VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                       sliceCoordinates,
-                                      viewport);
+                                      viewport,
+                                      GridInfo());
         glPopMatrix();
     }
 }
@@ -457,9 +483,10 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewType(const BrainOpenGLV
             drawVolumeSliceViewProjection(allSliceViewMode,
                                           sliceDrawingType,
                                           sliceProjectionType,
-                                sliceViewPlane,
-                                sliceCoordinates,
-                                viewport);
+                                          sliceViewPlane,
+                                          sliceCoordinates,
+                                          viewport,
+                                          GridInfo());
         }
             break;
     }
@@ -502,6 +529,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
     
     const int32_t windowIndex = m_fixedPipelineDrawing->m_windowIndex;
     
+    {
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addModelVolumeGrid(windowIndex,
+                                            m_tabIndex,
+                                            GraphicsViewport(viewport),
+                                            numRows,
+                                            numCols);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+    }
+
     int32_t vpSizeY        = 0;
     int32_t verticalMargin = 0;
     BrainOpenGLFixedPipeline::createSubViewportSizeAndGaps(viewport[3],
@@ -630,7 +667,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
                                                   sliceProjectionType,
                                                   sliceViewPlane,
                                                   sliceCoordinates,
-                                                  vp);
+                                                  vp,
+                                                  GridInfo(numRows, numCols, i, j));
                     
                     BrainOpenGLVolumeSliceDrawing::drawMontageSliceCoordinates(m_fixedPipelineDrawing,
                                                                                m_browserTabContent,
@@ -672,6 +710,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
  *    Coordinates of the selected slice.
  * @param viewport
  *    The viewport (region of graphics area) for drawing slices.
+ * @param gridInfo
+ *   Info about the grid
  */
 void
 BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
@@ -679,7 +719,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                                                                     const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
                                                                     const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                                     const float sliceCoordinates[3],
-                                                                    const int32_t viewport[4])
+                                                                    const int32_t viewport[4],
+                                                                    const GridInfo& gridInfo)
 {
     bool twoDimSliceViewFlag = false;
     if (m_modelVolume != NULL) {
@@ -700,14 +741,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
                    viewport[1],
                    viewport[2],
                    viewport[3]);
-
-        DrawingViewportContentModel* dvcm(
-              new DrawingViewportContentModel(m_fixedPipelineDrawing->m_windowIndex,
-                                              m_fixedPipelineDrawing->windowTabIndex,
-                                              GraphicsViewport(viewport),
-                                              ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES));
-        EventDrawingViewportContentAdd addContentEvent(dvcm);
-        EventManager::get()->sendEvent(addContentEvent.getPointer());
 
         /*
          * Set the orthographic projection to fit the slice axis
@@ -784,6 +817,20 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewProjection(const BrainO
     GLboolean cullFaceOn = glIsEnabled(GL_CULL_FACE);
     
     if (drawVolumeSlicesFlag) {
+        DrawingViewportContentVolumeSlice vpSlice(gridInfo.m_numberOfRows,
+                                                  gridInfo.m_numberOfColumns,
+                                                  gridInfo.m_rowIndex,
+                                                  gridInfo.m_columnIndex,
+                                                  sliceViewPlane,
+                                                  slicePlane,
+                                                  sliceCoordinates);
+        EventDrawingViewportContentAdd addViewportEvent;
+        addViewportEvent.addVolumeSlice(this->m_fixedPipelineDrawing->m_windowIndex,
+                                        m_tabIndex,
+                                        viewport,
+                                        vpSlice);
+        EventManager::get()->sendEvent(addViewportEvent.getPointer());
+
         /*
          * Disable culling so that both sides of the triangles/quads are drawn.
          */

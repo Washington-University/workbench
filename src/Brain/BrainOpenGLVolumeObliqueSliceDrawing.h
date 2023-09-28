@@ -198,6 +198,25 @@ namespace caret {
             int64_t m_selectionIJK[3];
         };
         
+        class GridInfo {
+        public:
+            GridInfo() : GridInfo(-1, -1, -1, -1) { }
+            
+            GridInfo(const int32_t numberOfRows,
+                     const int32_t numberOfColumns,
+                     const int32_t rowIndex,
+                     const int32_t columnIndex)
+            : m_numberOfRows(numberOfRows),
+            m_numberOfColumns(numberOfColumns),
+            m_rowIndex(rowIndex),
+            m_columnIndex(columnIndex) { }
+            
+            const int32_t m_numberOfRows;
+            const int32_t m_numberOfColumns;
+            const int32_t m_rowIndex;
+            const int32_t m_columnIndex;
+        };
+
         BrainOpenGLVolumeObliqueSliceDrawing(const BrainOpenGLVolumeObliqueSliceDrawing&);
 
         BrainOpenGLVolumeObliqueSliceDrawing& operator=(const BrainOpenGLVolumeObliqueSliceDrawing&);
@@ -226,10 +245,11 @@ namespace caret {
         void drawVolumeSliceViewProjection(const BrainOpenGLVolumeSliceDrawing::AllSliceViewMode allSliceViewMode,
                                            const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType,
                                            const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                 const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                 const float sliceCoordinates[3],
-                                 const int32_t viewport[4]);
-        
+                                           const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                           const float sliceCoordinates[3],
+                                           const int32_t viewport[4],
+                                           const GridInfo& gridInfo);
+
         void drawObliqueSlice(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                               Matrix4x4& transformationMatrix,
                               const Plane& plane);

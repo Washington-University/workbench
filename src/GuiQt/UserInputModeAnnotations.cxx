@@ -65,9 +65,7 @@
 #include "CursorEnum.h"
 #include "CaretPreferences.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "DrawingViewportContentModel.h"
-#include "DrawingViewportContentModel.h"
-#include "DrawingViewportContentWindow.h"
+#include "DrawingViewportContent.h"
 #include "EventDrawingViewportContentGet.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationDrawingFinishCancel.h"
@@ -1848,6 +1846,16 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
 void
 UserInputModeAnnotations::mouseLeftClickWithShift(const MouseEvent& mouseEvent)
 {
+    /*
+     * TESTING
+     */
+    std::unique_ptr<EventDrawingViewportContentGet> testEvent(EventDrawingViewportContentGet::newInstancePrintAllAtWindowXY(getBrowserWindowIndex(),
+                                                                                                                            Vector3D(mouseEvent.getX(),
+                                                                                                                                     mouseEvent.getY(),
+                                                                                                                                     0.0)));
+    EventManager::get()->sendEvent(testEvent->getPointer());
+    
+    
     switch (m_mode) {
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
             break;
@@ -3516,17 +3524,16 @@ m_browserWindowIndex(browserWindowIndex)
         return;
     }
 
-    EventDrawingViewportContentGet viewportEvent(DrawingViewportContentTypeEnum::MODEL,
-                                                 m_browserWindowIndex,
-                                                 Vector3D(mouseEvent.getPressedX(),
-                                                          mouseEvent.getPressedY(),
-                                                          0.0));
-    EventManager::get()->sendEvent(viewportEvent.getPointer());
-    const DrawingViewportContentModel* dvcm(viewportEvent.getDrawingViewportContentModel());
-    if (dvcm != NULL) {
-        m_viewportHeight = dvcm->getGraphicsViewport().getHeight();
+    std::unique_ptr<EventDrawingViewportContentGet> vpEvent(EventDrawingViewportContentGet::newInstanceGetTopModelViewport(m_browserWindowIndex,
+                                                                                                                           Vector3D(mouseEvent.getPressedX(),
+                                                                                                                                    mouseEvent.getPressedY(),
+                                                                                                                                    0.0)));
+    EventManager::get()->sendEvent(vpEvent->getPointer());
+    const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContentNew());
+    if (dvc != NULL) {
+        m_viewportHeight = dvc->getGraphicsViewport().getHeight();
     }
-
+    
     if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
         && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
         m_annotation->setLineColor(CaretColorEnum::RED);

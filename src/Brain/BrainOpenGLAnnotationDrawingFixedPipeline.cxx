@@ -56,9 +56,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesSamples.h"
-#include "DrawingViewportContentModel.h"
-#include "DrawingViewportContentTab.h"
-#include "DrawingViewportContentWindow.h"
+#include "DrawingViewportContent.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
 #include "EventDrawingViewportContentGet.h"
@@ -5385,7 +5383,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         }
     }
     
-    const bool useNewViewportHeightInfoFlag(false);
+    const bool useNewViewportHeightInfoFlag(true);
     if (useNewViewportHeightInfoFlag) {
         if (primitive->getNumberOfVertices() > 0) {
             Vector3D windowXYZ;
@@ -7032,33 +7030,32 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
         
         float viewportHeight(0.0);
         if (modelSpaceFlag) {
-            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::MODEL,
-                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
-                                                   windowXY);
-            EventManager::get()->sendEvent(vpEvent.getPointer());
-            const DrawingViewportContentModel* vpContent(vpEvent.getDrawingViewportContentModel());
-            if (vpContent != NULL) {
-                viewportHeight = vpContent->getGraphicsViewport().getHeight();
+            auto vpEvent(EventDrawingViewportContentGet::newInstanceGetTopModelViewport(m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                                                        windowXY));
+            EventManager::get()->sendEvent(vpEvent->getPointer());
+            const DrawingViewportContent* modelContent(vpEvent->getDrawingViewportContentNew());
+            if (modelContent) {
+                viewportHeight = modelContent->getGraphicsViewport().getHeight();
             }
         }
         else if (tabSpaceFlag) {
-            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::TAB,
-                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
-                                                   windowXY);
-            EventManager::get()->sendEvent(vpEvent.getPointer());
-            const DrawingViewportContentTab* vpContent(vpEvent.getDrawingViewportContentTab());
-            if (vpContent != NULL) {
-                viewportHeight = vpContent->getAfterAspectLockedGraphicsViewport().getHeight();
+            auto vpEvent(EventDrawingViewportContentGet::newInstanceGetContentType(m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                                                   windowXY,
+                                                                                   DrawingViewportContentTypeEnum::TAB_AFTER_ASPECT_LOCK));
+            EventManager::get()->sendEvent(vpEvent->getPointer());
+            const DrawingViewportContent* vpContent(vpEvent->getDrawingViewportContentNew());
+            if (vpContent) {
+                viewportHeight = vpContent->getGraphicsViewport().getHeight();
             }
         }
         else if (windowSpaceFlag) {
-            EventDrawingViewportContentGet vpEvent(DrawingViewportContentTypeEnum::WINDOW,
-                                                   m_brainOpenGLFixedPipeline->m_windowIndex,
-                                                   windowXY);
-            EventManager::get()->sendEvent(vpEvent.getPointer());
-            const DrawingViewportContentWindow* vpContent(vpEvent.getDrawingViewportContentWindow());
-            if (vpContent != NULL) {
-                viewportHeight = vpContent->getAfterAspectLockedGraphicsViewport().getHeight();
+            auto vpEvent(EventDrawingViewportContentGet::newInstanceGetContentType(m_brainOpenGLFixedPipeline->m_windowIndex,
+                                                                                   windowXY,
+                                                                                   DrawingViewportContentTypeEnum::WINDOW_AFTER_ASPECT_LOCK));
+            EventManager::get()->sendEvent(vpEvent->getPointer());
+            const DrawingViewportContent* vpContent(vpEvent->getDrawingViewportContentNew());
+            if (vpContent) {
+                viewportHeight = vpContent->getGraphicsViewport().getHeight();
             }
         }
         
@@ -7067,8 +7064,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
                                         * (lineWidthPercentage / 100.0));
             primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PIXELS,
                                     lineWidthPixels);
-            std::cout << "Using Viewport Height: " << viewportHeight
-            << " Pixels: " << lineWidthPixels << std::endl;
         }
         else {
             CaretLogSevere("Unable to get viewport height for annotation "

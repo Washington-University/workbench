@@ -31,17 +31,28 @@
 
 namespace caret {
 
-    class DrawingViewportContentBase;
-    class DrawingViewportContentModel;
-    class DrawingViewportContentTab;
-    class DrawingViewportContentWindow;
+    class DrawingViewportContent;
 
     class EventDrawingViewportContentGet : public Event {
         
     public:
-        EventDrawingViewportContentGet(const DrawingViewportContentTypeEnum::Enum contentType,
-                                       const int32_t windowIndex,
-                                       const Vector3D& mouseXY);
+        enum class Mode {
+            /** Match the content type exactly */
+            MATCH_CONTENT_TYPE,
+            /** Get the top-most of all model viewports */
+            MODEL_TOP_VIEWPORT,
+            TESTING
+        };
+        
+        static std::unique_ptr<EventDrawingViewportContentGet> newInstanceGetTopModelViewport(const int32_t windowIndex,
+                                                                                              const Vector3D& windowXY);
+        
+        static std::unique_ptr<EventDrawingViewportContentGet> newInstanceGetContentType(const int32_t windowIndex,
+                                                                                         const Vector3D& windowXY,
+                                                                                         const DrawingViewportContentTypeEnum::Enum contentType);
+        
+        static std::unique_ptr<EventDrawingViewportContentGet> newInstancePrintAllAtWindowXY(const int32_t windowIndex,
+                                                                                             const Vector3D& windowXY);
         
         virtual ~EventDrawingViewportContentGet();
         
@@ -49,32 +60,43 @@ namespace caret {
 
         EventDrawingViewportContentGet& operator=(const EventDrawingViewportContentGet&) = delete;
         
-        const DrawingViewportContentBase* getDrawingViewportContent() const;
-
-        const DrawingViewportContentModel* getDrawingViewportContentModel() const;
+        Mode getMode() const;
         
-        const DrawingViewportContentTab* getDrawingViewportContentTab() const;
+        const DrawingViewportContent* getDrawingViewportContentNew() const;
         
-        const DrawingViewportContentWindow* getDrawingViewportContentWindow() const;
-        
-        void setDrawingViewportContent(const DrawingViewportContentBase* drawingViewportContent);
+        void setDrawingViewportContentNew(const DrawingViewportContent* drawingViewportContent);
         
         DrawingViewportContentTypeEnum::Enum getContentType() const;
         
         int32_t getWindowIndex() const;
         
-        const Vector3D getMouseXY() const;
+        const Vector3D getWindowXY() const;
         
         // ADD_NEW_METHODS_HERE
 
     private:
+        EventDrawingViewportContentGet(const int32_t windowIndex,
+                                       const Vector3D& windowXY);
+        
+
+        EventDrawingViewportContentGet(const DrawingViewportContentTypeEnum::Enum contentType,
+                                       const int32_t windowIndex,
+                                       const Vector3D& windowXY);
+        
+        EventDrawingViewportContentGet(const Mode mode,
+                                       const DrawingViewportContentTypeEnum::Enum contentType,
+                                       const int32_t windowIndex,
+                                       const Vector3D& windowXY);
+
+        const Mode m_mode;
+        
         const DrawingViewportContentTypeEnum::Enum m_contentType;
         
         const int32_t m_windowIndex;
         
-        const Vector3D m_mouseXY;
-        
-        const DrawingViewportContentBase* m_drawingViewportContent = NULL;
+        const Vector3D m_windowXY;
+
+        const DrawingViewportContent* m_drawingViewportContentNew = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 

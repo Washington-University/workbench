@@ -35,14 +35,28 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Invalid */
         INVALID,
-        /** */
+        /** Window before aspect lock is applied */
+        WINDOW_BEFORE_ASPECT_LOCK,
+        /** Window after aspect lock is applied */
+        WINDOW_AFTER_ASPECT_LOCK,
+        /** Spacer */
+        SPACER,
+        /** Tab before aspect is locked */
+        TAB_BEFORE_ASPECT_LOCK,
+        /** Tab after aspect is locked */
+        TAB_AFTER_ASPECT_LOCK,
+        /** Model */
         MODEL,
-        /** */
-        TAB,
-        /** */
-        WINDOW
+        /** Model with surface grid */
+        MODEL_SURFACE_GRID,
+        /** Model with surface grid cell*/
+        MODEL_SURFACE_GRID_CELL,
+        /** Model with volume grid */
+        MODEL_VOLUME_GRID,
+        /** Volume slice that may or may not be in a montage */
+        MODEL_VOLUME_SLICE
     };
 
 
