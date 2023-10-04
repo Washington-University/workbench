@@ -65,6 +65,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
+#include "SamplesDrawingSettings.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
@@ -605,6 +606,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
             break;
     }
     
+    const SamplesDrawingSettings* samplesSettings(m_browserTabContent->getSamplesDrawingSettings());
+    
     /*
      * Determine a slice offset to selected slices is in
      * the center of the montage
@@ -676,6 +679,15 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
                                                                                sliceCoord);
                 }
                 sliceIndex -= sliceStep;
+
+                if (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+                    if ( ! samplesSettings->isSliceInLowerUpperOffsetRange(i, j)) {
+                        const uint8_t rgba[4] { 255, 0, 0, 255 };
+                        const float percentageThickness(3.0);
+                        GraphicsShape::drawViewportCrossPercentageLineWidth(rgba,
+                                                                            percentageThickness);
+                    }
+                }
             }
         }
     }

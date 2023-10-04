@@ -64,6 +64,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
+#include "SamplesDrawingSettings.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
@@ -607,6 +608,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
             break;
     }
     
+    const SamplesDrawingSettings* samplesSettings(m_browserTabContent->getSamplesDrawingSettings());
+
     /*
      * Determine a slice offset to selected slices is in
      * the center of the montage
@@ -678,6 +681,15 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
                                                                                sliceCoord);
                 }
                 sliceIndex -= sliceStep;
+                
+                if (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+                    if ( ! samplesSettings->isSliceInLowerUpperOffsetRange(i, j)) {
+                        const uint8_t rgba[4] { 255, 0, 0, 255 };
+                        const float percentageThickness(3.0);
+                        GraphicsShape::drawViewportCrossPercentageLineWidth(rgba,
+                                                                            percentageThickness);
+                    }
+                }
             }
         }
     }
@@ -1848,7 +1860,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawOrientationAxes(const int viewport[4])
          */
         double eyeX = 0.0;
         double eyeY = 0.0;
-        double eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance; //100.0;
+        double eyeZ = BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance;
         const double centerX = 0;
         const double centerY = 0;
         const double centerZ = 0;

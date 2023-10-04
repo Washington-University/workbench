@@ -202,7 +202,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
         
         polyAnnTypeName = AnnotationTypeEnum::toGuiName(m_annotation->getType());
 
-        const SelectionItemAnnotation* annSel = m_selectionManager->getAnnotationIdentification();
+        const SelectionItemAnnotation* annSel(getSelectionItem(m_userInputModeAnnotations));
         if (annSel->isValid()) {
             bool sizeHandleSelectedFlag(false);
             switch (annSel->getSizingHandle()) {
@@ -971,6 +971,41 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinate()
 }
 
 /**
+ * @return Selection item appropriate for input mode
+ */
+const SelectionItemAnnotation*
+UserInputModeAnnotationsContextMenu::getSelectionItem(UserInputModeAnnotations* userInputModeAnnotations)
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    CaretAssert(brain);
+    SelectionManager* selectionManager(brain->getSelectionManager());
+    CaretAssert(selectionManager);
+    SelectionItemAnnotation* selectionItem(selectionManager->getAnnotationIdentification());
+    switch (userInputModeAnnotations->getUserInputMode()) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            selectionItem = selectionManager->getSamplesIdentification();
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+    return selectionItem;
+}
+
+/**
  * Insert a coordinate into a polyline at the given mouse event
  * @param userInputModeAnnotations
  *    Annotations input mode processor
@@ -981,11 +1016,7 @@ void
 UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputModeAnnotations* userInputModeAnnotations,
                                                                      const MouseEvent& mouseEvent)
 {
-    Brain* brain = GuiManager::get()->getBrain();
-    CaretAssert(brain);
-    SelectionManager* selectionManager(brain->getSelectionManager());
-    CaretAssert(selectionManager);
-    const SelectionItemAnnotation* annSel = selectionManager->getAnnotationIdentification();
+    const SelectionItemAnnotation* annSel(getSelectionItem(userInputModeAnnotations));
     if (annSel->isValid()) {
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(userInputModeAnnotations->getUserInputMode());
         std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(mouseEvent.getBrowserWindowIndex());

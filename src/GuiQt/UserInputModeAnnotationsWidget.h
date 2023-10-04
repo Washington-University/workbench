@@ -130,8 +130,6 @@ namespace caret {
         
         AnnotationDeleteWidget* m_deleteWidget = NULL;
         
-        AnnotationDepthWidget* m_depthWidget = NULL;
-        
         AnnotationFinishCancelWidget* m_finishCancelWidget = NULL;
         
         AnnotationRedoUndoWidget* m_redoUndoWidget = NULL;

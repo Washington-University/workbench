@@ -87,8 +87,6 @@ public:
         MULTI_COORD_REMOVE_COORDINATE,
         /** Paste Annotation */
         PASTE_ANNOTATION,
-        /** Depth of polyhedron */
-        POLYHEDRON_DEPTH,
         /** Rotation Angle */
         ROTATION_ANGLE,
         /** Stacking order for annotations (except browser tabs) */

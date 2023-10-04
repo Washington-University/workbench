@@ -59,6 +59,8 @@ namespace caret {
         
         DrawingViewportContentTypeEnum::Enum getViewportContentType() const;
         
+        const DrawingViewportContentVolumeSlice& getVolumeSlice() const;
+        
         int32_t getWindowIndex() const;
         
         int32_t getTabIndex() const;

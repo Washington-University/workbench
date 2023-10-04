@@ -71,20 +71,14 @@ namespace caret {
     private slots:
         void selectImageButtonClicked();
         
-        void polyhedronDepthIndexSpinBoxValueChanged(double value);
-        
     private:
         QWidget* createTextWidget();
         
         QWidget* createImageWidget();
         
-        QWidget* createPolyhedronWidget();
-        
         QWidget* createMetaDataEditorWidget();
         
         void invalidateImage();
-        
-        float convertPolyhedronSlicesToMillimeters() const;
         
         static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
                                              AnnotationFile* annotationFile,
@@ -118,10 +112,6 @@ namespace caret {
         int32_t m_imageWidth  = 0;
         int32_t m_imageHeight = 0;
         
-        QDoubleSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
-        
-        QLabel* m_polyhedronSliceMillimetersDepthLabel = NULL;
-        
         MetaDataCustomEditorWidget* m_metaDataEditorWidget = NULL;
         
         QCheckBox* m_metaDataRequiredCheckBox = NULL;
@@ -132,10 +122,6 @@ namespace caret {
         
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         
-        static float s_previousPolyhedronDepthValueMillimeters;
-        
-        static bool s_previousPolyhedronDepthValueMillimetersValidFlag;
-        
         static bool s_previousMetaDataRequiredCheckedStatus;
         
         // ADD_NEW_MEMBERS_HERE
@@ -144,8 +130,6 @@ namespace caret {
     
 #ifdef __ANNOTATION_CREATE_DIALOG_TWO_DECLARE__
     const int AnnotationCreateDialogTwo::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
-    float AnnotationCreateDialogTwo::s_previousPolyhedronDepthValueMillimeters = 5;
-    bool AnnotationCreateDialogTwo::s_previousPolyhedronDepthValueMillimetersValidFlag = false;
     bool AnnotationCreateDialogTwo::s_previousMetaDataRequiredCheckedStatus = true;
 #endif // __ANNOTATION_CREATE_DIALOG_TWO_DECLARE__;
 

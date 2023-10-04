@@ -178,10 +178,11 @@ namespace caret {
         
         static void drawYellowCrossAtViewportCenter();
         
+        static void drawViewportCrossPercentageLineWidth(const uint8_t rgba[4],
+                                                         const float percentageThickness);
+
         // ADD_NEW_METHODS_HERE
 
-        virtual AString toString() const;
-        
     private:
         enum class Shape {
             CIRCLE_FILLED,

@@ -213,6 +213,16 @@ GraphicsViewport::getViewportF() const
 }
 
 /**
+ * @return Pointer to 4 elements array with X, Y, Width, Height
+ */
+const int32_t*
+GraphicsViewport::toArrayInt4() const
+{
+    return m_viewport.data();
+}
+
+
+/**
  * @return True if the viewport is valid (width and height greater than zero)
  */
 bool

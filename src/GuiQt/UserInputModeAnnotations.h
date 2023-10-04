@@ -180,6 +180,11 @@ namespace caret {
             float getSliceThickness() const { return m_sliceThickness; }
             
         private:
+            bool getSamplesDrawingCoordinates(const MouseEvent& mouseEvent,
+                                              const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                              Vector3D& firstSliceCoordOut,
+                                              Vector3D& lastSliceCoordOut);
+            
             AnnotationFile* m_annotationFile = NULL;
             
             Annotation* m_annotation = NULL;

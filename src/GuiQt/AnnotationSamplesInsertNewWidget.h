@@ -30,7 +30,7 @@
 #include "EventListenerInterface.h"
 #include "UserInputModeEnum.h"
 
-class QAction;
+class QComboBox;
 class QLabel;
 class QSpinBox;
 
@@ -39,6 +39,7 @@ namespace caret {
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
+    class EnumComboBoxTemplate;
     
 
     class AnnotationSamplesInsertNewWidget : public QWidget, public EventListenerInterface {
@@ -69,7 +70,11 @@ namespace caret {
         
         void newSampleActionTriggered();
         
-        void newSampleDepthValueChanged(int value);
+        void samplesDrawingModeEnumComboBoxItemActivated();
+        
+        void lowerSliceOffsetSpinBoxValueChanged(int value);
+        
+        void upperSliceOffsetSpinBoxValueChanged(int value);
         
         // ADD_NEW_METHODS_HERE
 
@@ -88,9 +93,13 @@ namespace caret {
         
         QLabel* m_slicesLabel = NULL;
         
-        QSpinBox* m_newSampleDepthSpinBox = NULL;
+        EnumComboBoxTemplate* m_samplesDrawingModeEnumComboBox = NULL;
         
-        int32_t m_previousNewSampleDepthSpinBoxValue = 3;
+        QLabel* m_lowerSliceOffsetLabel = NULL;
+        QSpinBox* m_lowerSliceOffsetSpinBox = NULL;
+        
+        QLabel* m_upperSliceOffsetLabel = NULL;
+        QSpinBox* m_upperSliceOffsetSpinBox = NULL;
         
         QAction* m_saveFileAction = NULL;
 

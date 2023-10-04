@@ -255,6 +255,24 @@ MouseEvent::getOpenGLWidget() const
 }
 
 /**
+ * @return Point to browser tab content at the current mouse XY
+ */
+BrowserTabContent*
+MouseEvent::getBrowserTabContentAsMouseXY() const
+{
+    return NULL;
+}
+
+/**
+ * @return Point to browser tab content at where the mouse was originall pressed
+ */
+BrowserTabContent*
+MouseEvent::getBrowserTabContentAsMousePressXY() const
+{
+    return NULL;
+}
+
+/**
  * Get a string showing the contents of this mouse event.
  * @return String describing the mouse status.
  */
@@ -349,6 +367,30 @@ int32_t
 MouseEvent::getPressedY() const
 {
     return m_pressY;
+}
+
+/**
+ * @return he mouse XY
+ */
+Vector3D
+MouseEvent::getXY() const
+{
+    Vector3D v(m_x,
+               m_y,
+               0.0);
+    return v;
+}
+
+/**
+ * @return The mouse XY pressed location
+ */
+Vector3D
+MouseEvent::getPressedXY() const
+{
+    Vector3D v(m_pressX,
+               m_pressY,
+               0.0);
+    return v;
 }
 
 /**

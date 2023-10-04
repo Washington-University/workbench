@@ -74,20 +74,9 @@ namespace caret {
                                  const float polyhedronDepth,
                                  AString& errorMessageOut);
         
-        virtual void updateCoordinatesAfterDepthChanged() override;
-        
         Plane getPlane() const;
         
-        float getDepthMillimeters() const;
-        
-        float getDepthSlices(const float sliceThickness) const;
-        
         void setPlane(const Plane& plane);
-        
-        void setDepthMillimeters(const float depth);
-        
-        void setDepthSlices(const float sliceThickness,
-                            const int32_t numberOfSlices);
         
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;
@@ -108,8 +97,7 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void setFromFileReading(const Plane& plane,
-                                const float depth);
+        void setFromFileReading(const Plane& plane);
         
         void copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj);
         
@@ -118,8 +106,6 @@ namespace caret {
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
 
         Plane m_plane;
-        
-        float m_depthMillimeters;
         
         // ADD_NEW_MEMBERS_HERE
 

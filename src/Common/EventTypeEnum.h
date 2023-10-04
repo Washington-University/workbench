@@ -94,6 +94,10 @@ public:
         EVENT_BROWSER_TAB_GET_ALL,
         /** Get ALL VIEWED browser tabs (tabs that are viewed in windows) */
         EVENT_BROWSER_TAB_GET_ALL_VIEWED,
+        /** Get the browser tab at the window's XY */
+        EVENT_BROWSER_TAB_GET_AT_WINDOW_XY,
+        /** Get the window index for the given tab index*/
+        EVENT_BROWSER_TAB_INDEX_GET_WINDOW_INDEX,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Create a new browser tab from code within the GUI so toolbar is updated */

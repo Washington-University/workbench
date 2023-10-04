@@ -64,6 +64,7 @@
 #include "MathFunctions.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
+#include "SamplesDrawingSettings.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionItemVoxelEditing.h"
@@ -3895,6 +3896,8 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
      */
     Vector3D sliceXYZ(selectedXYZ + firstSliceOffsetXYZ);
     
+    const SamplesDrawingSettings* samplesSettings(m_browserTabContent->getSamplesDrawingSettings());
+    
     /*
      * When "middle/center" slice is drawn, need to update
      * the graphics object to window transform
@@ -3958,6 +3961,15 @@ BrainOpenGLVolumeMprTwoDrawing::drawVolumeSliceViewTypeMontage(const BrainOpenGL
             sliceXYZ -= montageSliceCoordStepXYZ;
             
             ++sliceCounter;
+
+            if (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+                if ( ! samplesSettings->isSliceInLowerUpperOffsetRange(i, j)) {
+                    const float percentageThickness(3.0);
+                    const uint8_t rgba[4] { 255, 0, 0, 255 };
+                    GraphicsShape::drawViewportCrossPercentageLineWidth(rgba,
+                                                                        percentageThickness);
+                }
+            }
         }
     }
 }

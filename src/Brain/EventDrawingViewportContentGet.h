@@ -41,7 +41,10 @@ namespace caret {
             MATCH_CONTENT_TYPE,
             /** Get the top-most of all model viewports */
             MODEL_TOP_VIEWPORT,
-            TESTING
+            /** Testing */
+            TESTING,
+            /** Get volume montage slices */
+            VOLUME_MONTAGE_SLICES
         };
         
         static std::unique_ptr<EventDrawingViewportContentGet> newInstanceGetTopModelViewport(const int32_t windowIndex,
@@ -54,6 +57,8 @@ namespace caret {
         static std::unique_ptr<EventDrawingViewportContentGet> newInstancePrintAllAtWindowXY(const int32_t windowIndex,
                                                                                              const Vector3D& windowXY);
         
+        static std::vector<const DrawingViewportContent*> getVolumeMontageSlicesInTab(const int32_t tabIndex);
+        
         virtual ~EventDrawingViewportContentGet();
         
         EventDrawingViewportContentGet(const EventDrawingViewportContentGet&) = delete;
@@ -62,15 +67,19 @@ namespace caret {
         
         Mode getMode() const;
         
-        const DrawingViewportContent* getDrawingViewportContentNew() const;
+        const DrawingViewportContent* getDrawingViewportContent() const;
         
-        void setDrawingViewportContentNew(const DrawingViewportContent* drawingViewportContent);
+        std::vector<const DrawingViewportContent*> getAllDrawingViewportContent() const;
+        
+        void addDrawingViewportContent(const DrawingViewportContent* drawingViewportContent);
         
         DrawingViewportContentTypeEnum::Enum getContentType() const;
         
         int32_t getWindowIndex() const;
         
         const Vector3D getWindowXY() const;
+        
+        int32_t getTabIndex() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -86,6 +95,7 @@ namespace caret {
         EventDrawingViewportContentGet(const Mode mode,
                                        const DrawingViewportContentTypeEnum::Enum contentType,
                                        const int32_t windowIndex,
+                                       const int32_t tabIndex,
                                        const Vector3D& windowXY);
 
         const Mode m_mode;
@@ -94,9 +104,11 @@ namespace caret {
         
         const int32_t m_windowIndex;
         
+        const int32_t m_tabIndex;
+        
         const Vector3D m_windowXY;
 
-        const DrawingViewportContent* m_drawingViewportContentNew = NULL;
+        std::vector<const DrawingViewportContent*> m_drawingViewportContent;
         
         // ADD_NEW_MEMBERS_HERE
 

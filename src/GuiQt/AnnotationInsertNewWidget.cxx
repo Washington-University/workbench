@@ -49,7 +49,6 @@
 #include "CaretUndoStack.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
-#include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -148,18 +147,7 @@ AnnotationInsertNewWidget::~AnnotationInsertNewWidget()
 void
 AnnotationInsertNewWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH) {
-        EventAnnotationGetDrawingPolyhedronSliceDepth* depthEvent(dynamic_cast<EventAnnotationGetDrawingPolyhedronSliceDepth*>(event));
-        CaretAssert(event);
-        if ((depthEvent->getUserInputMode() == m_userInputMode)
-            && (depthEvent->getWindowIndex() == m_browserWindowIndex)) {
-            if (m_newSampleDepthSpinBox != NULL) {
-                depthEvent->setNumberOfSlicesDepth(m_newSampleDepthSpinBox->value());
-                depthEvent->setEventProcessed();
-            }
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE) {
         EventAnnotationGetSelectedInsertNewFile* fileEvent(dynamic_cast<EventAnnotationGetSelectedInsertNewFile*>(event));
         CaretAssert(fileEvent);
         if (fileEvent->getUserInputMode() == m_userInputMode) {

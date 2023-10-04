@@ -35,6 +35,7 @@
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "GraphicsViewport.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 
@@ -1755,13 +1756,57 @@ GraphicsShape::drawYellowCrossAtViewportCenter()
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
+ * Draw an X in the given rgba color with line thickness as percentage of viewport height
+ * @param rgba
+ *    RGBA color components
+ * @param percentageThickness
+ *    Thickness of line as percentage of viewport height [0, 100]
  */
-AString
-GraphicsShape::toString() const
+void
+GraphicsShape::drawViewportCrossPercentageLineWidth(const uint8_t rgba[4],
+                                                    const float percentageThickness)
 {
-    return "GraphicsShape";
+    GraphicsViewport vp(GraphicsViewport::newInstanceCurrentViewport());
+    glPushAttrib(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(vp.getLeftF(),
+            vp.getRightF(),
+            vp.getBottomF(),
+            vp.getTopF(),
+            -1.0,
+            1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    std::vector<float> linesXYZ;
+    linesXYZ.push_back(vp.getLeftF());
+    linesXYZ.push_back(vp.getBottomF());
+    linesXYZ.push_back(0.0);
+    linesXYZ.push_back(vp.getRightF());
+    linesXYZ.push_back(vp.getTopF());
+    linesXYZ.push_back(0.0);
+    linesXYZ.push_back(vp.getLeftF());
+    linesXYZ.push_back(vp.getTopF());
+    linesXYZ.push_back(0.0);
+    linesXYZ.push_back(vp.getRightF());
+    linesXYZ.push_back(vp.getBottomF());
+    linesXYZ.push_back(0.0);
+    GraphicsShape::drawLinesByteColor(linesXYZ,
+                                      rgba,
+                                      GraphicsPrimitive::LineWidthType::PIXELS,
+                                      percentageThickness);
+    
+    
+    glPopMatrix();
+    
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopAttrib();
 }
 
 

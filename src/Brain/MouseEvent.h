@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretObject.h"
+#include "Vector3D.h"
 
 #include <stdint.h>
 
@@ -32,6 +33,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
     class BrainOpenGLWindowContent;
+    class BrowserTabContent;
     
     /**
      * Contains information about a mouse event in the OpenGL region.
@@ -88,6 +90,10 @@ namespace caret {
         
         BrainOpenGLWidget* getOpenGLWidget() const;
 
+        BrowserTabContent* getBrowserTabContentAsMouseXY() const;
+        
+        BrowserTabContent* getBrowserTabContentAsMousePressXY() const;
+        
         int32_t getBrowserWindowIndex() const;
         
         int32_t getDx() const;
@@ -101,6 +107,10 @@ namespace caret {
         int32_t getPressedX() const;
         
         int32_t getPressedY() const;
+        
+        Vector3D getXY() const;
+        
+        Vector3D getPressedXY() const;
         
         int32_t getXyHistoryCount() const;
         

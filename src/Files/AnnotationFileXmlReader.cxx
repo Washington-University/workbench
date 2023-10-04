@@ -940,13 +940,7 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                             p = Plane::fromFormattedString(planeString);
                         }
                         
-                        const float depth(m_streamHelper->getOptionalAttributeFloatValue(polyAtts,
-                                                                                         ELEMENT_POLYHEDRON_DATA,
-                                                                                         ATTRIBUTE_DEPTH,
-                                                                                         0.0));
-
-                        polyhedron->setFromFileReading(p,
-                                                       depth);
+                        polyhedron->setFromFileReading(p);
                         
                         m_stream->skipCurrentElement();
                     }

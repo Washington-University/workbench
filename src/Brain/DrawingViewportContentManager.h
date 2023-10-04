@@ -63,7 +63,11 @@ namespace caret {
         
         void getAllViewportsInWindow(EventDrawingViewportContentGet* edvc);
         
+        void getMontageVolumeSlices(EventDrawingViewportContentGet* edvc);
+        
         std::vector<std::unique_ptr<DrawingViewportContent>> m_windowViewportContent[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        
+        int32_t getWindowIndexFromTabIndex(const int32_t tabIndex) const;
         
         bool m_debuFlag = false;
         

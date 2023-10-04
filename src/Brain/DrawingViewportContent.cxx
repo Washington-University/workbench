@@ -172,6 +172,16 @@ DrawingViewportContent::getViewportContentType() const
 }
 
 /**
+ * @return The volume slice info
+ */
+const DrawingViewportContentVolumeSlice&
+DrawingViewportContent::getVolumeSlice() const
+{
+    return m_volumeSlice;
+}
+
+
+/**
  * @return Index of window
  */
 int32_t
@@ -305,15 +315,15 @@ DrawingViewportContent::toStringWithIndentation(const AString& indentation) cons
     }
     if (showVolumeSliceInfo) {
         txt.appendWithNewLine(indentation
-                              + "  Grid Row="
-                              + AString::number(m_volumeSlice.getRowIndex())
-                              + ", Columns="
-                              + AString::number(m_volumeSlice.getColumnIndex()));
-        txt.appendWithNewLine(indentation
                               + "  Grid Number of Rows="
                               + AString::number(m_volumeSlice.getNumberOfRows())
                               + ", Columns="
                               + AString::number(m_volumeSlice.getNumberOfColumns()));
+        txt.appendWithNewLine(indentation
+                              + "  Grid Row="
+                              + AString::number(m_volumeSlice.getRowIndex())
+                              + ", Columns="
+                              + AString::number(m_volumeSlice.getColumnIndex()));
         txt.appendWithNewLine(indentation
                               + "  Slice View Plane="
                               + VolumeSliceViewPlaneEnum::toName(m_volumeSlice.getVolumeSliceViewPlane()));

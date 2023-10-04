@@ -53,7 +53,6 @@ ELSE()
         AnnotationCreateDialog.h
 	AnnotationCreateDialogTwo.h
         AnnotationDeleteWidget.h
-	AnnotationDepthWidget.h
 	AnnotationFinishCancelWidget.h
         AnnotationFontWidget.h
         AnnotationFormatWidget.h
@@ -326,7 +325,6 @@ AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
 AnnotationCreateDialogTwo.h
 AnnotationDeleteWidget.h
-AnnotationDepthWidget.h
 AnnotationFinishCancelWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
@@ -430,7 +428,6 @@ EnumComboBoxTemplate.h
 EventAnnotationCreateNewType.h
 EventAnnotationDrawingFinishCancel.h
 EventAnnotationGetDrawnInWindow.h
-EventAnnotationGetDrawingPolyhedronSliceDepth.h
 EventAnnotationGetSelectedInsertNewFile.h
 EventBrowserTabCloseInToolBar.h
 EventBrowserTabDeleteInToolBar.h
@@ -667,7 +664,6 @@ AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationCreateDialogTwo.cxx
 AnnotationDeleteWidget.cxx
-AnnotationDepthWidget.cxx
 AnnotationFinishCancelWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
@@ -773,7 +769,6 @@ EventBrowserTabNewInGUI.cxx
 EventAnnotationCreateNewType.cxx
 EventAnnotationDrawingFinishCancel.cxx
 EventAnnotationGetDrawnInWindow.cxx
-EventAnnotationGetDrawingPolyhedronSliceDepth.cxx
 EventAnnotationGetSelectedInsertNewFile.cxx
 EventBrowserWindowDrawingContent.cxx
 EventBrowserWindowCreateTabs.cxx

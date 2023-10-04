@@ -273,8 +273,6 @@ EventDrawingViewportContentAdd::addModelVolumeGrid(const int32_t windowIndex,
                                                    const int32_t numberOfGridRows,
                                                    const int32_t numberOfGridColumns)
 {
-    const int32_t invalidGridRow(-1);
-    const int32_t invalidGridColumn(-1);
     std::unique_ptr<DrawingViewportContent> ptr(new DrawingViewportContent(DrawingViewportContentTypeEnum::MODEL_VOLUME_GRID,
                                                                            windowIndex,
                                                                            tabIndex,

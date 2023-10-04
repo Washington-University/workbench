@@ -188,8 +188,6 @@ AnnotationMultiPairedCoordinateShape::addCoordinatePair(AnnotationCoordinate* ac
     }
     
     CaretAssert(MathFunctions::isEvenNumber(getNumberOfCoordinates()));
-    
-    updateCoordinatesAfterDepthChanged();
 }
 
 /**
@@ -238,6 +236,50 @@ AnnotationMultiPairedCoordinateShape::replaceAllCoordinates(const std::vector<st
     for (const auto& coord : coordinates) {
         AnnotationCoordinate* ac = new AnnotationCoordinate(*coord);
         addCoordinate(ac);
+    }
+}
+
+/**
+ * Insert one coordinate after the first index that is between the two coordinates
+ * by the normalized distance
+ * @param indexOne
+ *    Index of first coordinate
+ * @param indexTwo
+ *    Index of second coordinate
+ * @param normalizedDistanceToNextCoordinate
+ *    Normalized distance from first to second coordinate
+ */
+void
+AnnotationMultiPairedCoordinateShape::insertSingleCoordinate(const int32_t indexOne,
+                                                             const int32_t indexTwo,
+                                                             const float normalizedDistanceToNextCoordinate)
+{
+    CaretAssertVectorIndex(m_coordinates, indexOne);
+    CaretAssertVectorIndex(m_coordinates, indexTwo);
+    const Vector3D xyzOne(m_coordinates[indexOne]->getXYZ());
+    const Vector3D xyzTwo(m_coordinates[indexTwo]->getXYZ());
+    const Vector3D vector((xyzTwo - xyzOne).normal());
+    const float distance((xyzTwo - xyzOne).length() * normalizedDistanceToNextCoordinate);
+    const Vector3D newXYZ(xyzOne + (vector * distance));
+    
+    std::unique_ptr<AnnotationCoordinate> newCoord(new AnnotationCoordinate(m_attributeDefaultType));
+    newCoord->setXYZ(newXYZ);
+    
+    const int32_t numCoords(static_cast<int32_t>(m_coordinates.size()));
+    const int32_t insertIndex(indexOne + 1);
+    if (insertIndex > numCoords) {
+        CaretAssertMessage(0, ("Invalid insertion index="
+                               + AString::number(insertIndex)
+                               + ", number of coords="
+                               + AString::number(numCoords)));
+        return;
+    }
+    else if (insertIndex == numCoords) {
+        m_coordinates.push_back(std::move(newCoord));
+    }
+    else {
+        m_coordinates.insert(m_coordinates.begin() + insertIndex,
+                             std::move(newCoord));
     }
 }
 
@@ -306,52 +348,60 @@ AnnotationMultiPairedCoordinateShape::insertCoordinate(const int32_t insertAfter
         return;
     }
     
-    int32_t indexOne(-1);
-    int32_t indexTwo(-1);
+    int32_t polyOneIndexOne(-1);
+    int32_t polyOneIndexTwo(-1);
+    int32_t polyTwoIndexOne(-1);
+    int32_t polyTwoIndexTwo(-1);
     if (polyhedron != NULL) {
+        /*
+         * The polyhedron consists of a sequence of two polygons
+         * so two coordinates must be inserted
+         */
         if (insertAfterCoordinateIndex < halfNumCoords) {
             /*
-             * FIRST HALF
-             * Polygon allows insertion of coordinate after last or before first
+             * FIRST POLYGON
              */
             if ((insertAfterCoordinateIndex >= 0)
                 && (insertAfterCoordinateIndex < (halfNumCoords - 1))) {
-                indexOne = insertAfterCoordinateIndex;
-                indexTwo = insertAfterCoordinateIndex + 1;
+                polyOneIndexOne = insertAfterCoordinateIndex;
+                polyOneIndexTwo = insertAfterCoordinateIndex + 1;
                 validFlag = true;
             }
             else if (insertAfterCoordinateIndex == -1) {
-                indexOne = halfNumCoords - 1;
-                indexTwo = 0;
+                polyOneIndexOne = halfNumCoords - 1;
+                polyOneIndexTwo = 0;
                 validFlag = true;
             }
             else if (insertAfterCoordinateIndex == (halfNumCoords - 1)) {
-                indexOne = halfNumCoords - 1;
-                indexTwo = 0;
+                polyOneIndexOne = halfNumCoords - 1;
+                polyOneIndexTwo = 0;
                 validFlag = true;
             }
+            polyTwoIndexOne = polyOneIndexOne + halfNumCoords;
+            polyTwoIndexTwo = polyOneIndexTwo + halfNumCoords;
         }
         else {
             /*
-             * SECOND HALF
-             * Polygon allows insertion of coordinate after last or before first
+             * SECOND POLYGON
              */
             if ((insertAfterCoordinateIndex >= halfNumCoords)
                 && (insertAfterCoordinateIndex < (fullNumCoords - 1))) {
-                indexOne = insertAfterCoordinateIndex;
-                indexTwo = insertAfterCoordinateIndex + 1;
+                polyTwoIndexOne = insertAfterCoordinateIndex;
+                polyTwoIndexTwo = insertAfterCoordinateIndex + 1;
                 validFlag = true;
             }
             else if (insertAfterCoordinateIndex == -1) {
-                indexOne = fullNumCoords - 1;
-                indexTwo = halfNumCoords;
+                polyTwoIndexOne = fullNumCoords - 1;
+                polyTwoIndexTwo = halfNumCoords;
                 validFlag = true;
             }
             else if (insertAfterCoordinateIndex == (fullNumCoords - 1)) {
-                indexOne = fullNumCoords - 1;
-                indexTwo = halfNumCoords;
+                polyTwoIndexOne = fullNumCoords - 1;
+                polyTwoIndexTwo = halfNumCoords;
                 validFlag = true;
             }
+            polyOneIndexOne = polyTwoIndexOne - halfNumCoords;
+            polyOneIndexTwo = polyTwoIndexTwo - halfNumCoords;
         }
     }
     else {
@@ -366,60 +416,25 @@ AnnotationMultiPairedCoordinateShape::insertCoordinate(const int32_t insertAfter
         return;
     }
     
-    CaretAssertVectorIndex(m_coordinates, indexOne);
-    CaretAssertVectorIndex(m_coordinates, indexTwo);
+    CaretAssertVectorIndex(m_coordinates, polyOneIndexOne);
+    CaretAssertVectorIndex(m_coordinates, polyOneIndexTwo);
+    CaretAssertVectorIndex(m_coordinates, polyTwoIndexOne);
+    CaretAssertVectorIndex(m_coordinates, polyTwoIndexTwo);
 
-    std::unique_ptr<AnnotationCoordinate> newCoord(new AnnotationCoordinate(m_attributeDefaultType));
-    std::unique_ptr<AnnotationCoordinate> newCoordTwo(new AnnotationCoordinate(m_attributeDefaultType));
-
-    Vector3D xyzOne;
-    m_coordinates[indexOne]->getXYZ(xyzOne);
-    Vector3D xyzTwo;
-    m_coordinates[indexTwo]->getXYZ(xyzTwo);
-    
-    Vector3D newCoordXYZ((xyzOne + xyzTwo) / 2.0);
-    
-    if ((normalizedDistanceToNextCoordinate >= 0.0)
-        && (normalizedDistanceToNextCoordinate <= 1.0)) {
-        Vector3D normalXYZ;
-        MathFunctions::subtractVectors(xyzTwo, xyzOne, normalXYZ);
-        newCoordXYZ = xyzOne + (normalXYZ * normalizedDistanceToNextCoordinate);
-    }
-    newCoord->setXYZ(newCoordXYZ);
-
-    CaretAssert(polyhedron);
-    const Plane plane(polyhedron->getPlane());
-    const Vector3D normalVector(plane.getNormalVector());
-    const float depth(polyhedron->getDepthMillimeters());
-    
-    Vector3D pairXYZ;
-    int32_t indexPair(-1);
-    if (insertAfterCoordinateIndex < halfNumCoords) {
-        indexPair = insertAfterCoordinateIndex + halfNumCoords;
-        pairXYZ   = newCoordXYZ + (normalVector * depth);
-    }
-    else {
-        indexPair = insertAfterCoordinateIndex - halfNumCoords;
-        pairXYZ   = newCoordXYZ - (normalVector * depth);
-    }
-    newCoordTwo->setXYZ(pairXYZ);
+    /*
+     * Insert coordinate into second polygon
+     */
+    insertSingleCoordinate(polyTwoIndexOne,
+                           polyTwoIndexTwo,
+                           normalizedDistanceToNextCoordinate);
     
     /*
-     * Since inserting into vector do last item first since
-     * insertion causes change in vector size
+     * Insert into first polygon AFTER insertion into first polygon
+     * since this insertion shifts the second polygon's coordinates
      */
-    if (indexPair < indexOne) {
-        m_coordinates.insert(m_coordinates.begin() + indexOne + 1,
-                             std::move(newCoord));
-        m_coordinates.insert(m_coordinates.begin() + indexPair + 1,
-                             std::move(newCoordTwo));
-    }
-    else {
-        m_coordinates.insert(m_coordinates.begin() + indexPair + 1,
-                             std::move(newCoordTwo));
-        m_coordinates.insert(m_coordinates.begin() + indexOne + 1,
-                             std::move(newCoord));
-    }
+    insertSingleCoordinate(polyOneIndexOne,
+                           polyOneIndexTwo,
+                           normalizedDistanceToNextCoordinate);
 }
 
 /**

@@ -38,7 +38,6 @@
 #include "AnnotationCoordinatesWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationDeleteWidget.h"
-#include "AnnotationDepthWidget.h"
 #include "AnnotationFinishCancelWidget.h"
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
@@ -198,16 +197,12 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
-    
-    m_depthWidget = new  AnnotationDepthWidget(m_inputModeAnnotations->getUserInputMode(),
-                                               m_browserWindowIndex);
-    
+        
     QWidget* leftWidget(new QWidget());
     QHBoxLayout* leftLayout(new QHBoxLayout(leftWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(leftLayout, 2, 0);
     leftLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
     leftLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    leftLayout->addWidget(m_depthWidget, 0, Qt::AlignTop);
     leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
                               QSizePolicy::Fixed);
     
@@ -556,7 +551,6 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_insertNewWidget != NULL) m_insertNewWidget->updateContent();
     if (m_insertSamplesNewWidget != NULL) m_insertSamplesNewWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
-    if (m_depthWidget != NULL) m_depthWidget->updateContent(selectedAnnotations);
     if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent(selectedAnnotations);
     
     Annotation* coordEditAnnotation = NULL;

@@ -182,6 +182,14 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET_AT_WINDOW_XY,
+                                     "EVENT_BROWSER_TAB_GET_AT_WINDOW_XY",
+                                     "Get the browser tab at the window's XY"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_INDEX_GET_WINDOW_INDEX,
+                                     "EVENT_BROWSER_TAB_INDEX_GET_WINDOW_INDEX",
+                                     "Get index of window containing tab with index"));
+                       
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW_IN_GUI,
                                      "EVENT_BROWSER_TAB_NEW_IN_GUI",
                                      "Create a browser tab from/in the GUI so toolbar is updated"));

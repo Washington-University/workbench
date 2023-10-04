@@ -79,9 +79,6 @@ namespace caret {
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
                 
-        /** Subclasses may need  to update the coordinate pairs while drawing the annotation */
-        virtual void updateCoordinatesAfterDepthChanged() = 0;
-        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -114,6 +111,10 @@ namespace caret {
                                                         int32_t& clockwiseIndexOut,
                                                         int32_t& counterClockwiseIndexOut) const;
         
+        void insertSingleCoordinate(const int32_t indexOne,
+                                    const int32_t indexTwo,
+                                    const float normalizedDistanceToNextCoordinate);
+
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         std::vector<std::unique_ptr<AnnotationCoordinate>> m_coordinates;

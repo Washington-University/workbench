@@ -102,6 +102,8 @@ EventBrainStructureGetAll.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
 EventBrowserTabGetAllViewed.h
+EventBrowserTabGetAtWindowXY.h
+EventBrowserTabIndexGetWindowIndex.h
 EventBrowserTabReopenAvailable.h
 EventBrowserTabValidate.h
 EventBrowserWindowContent.h
@@ -188,6 +190,8 @@ Overlay.h
 OverlaySet.h
 OverlaySetArray.h
 ProjectionViewTypeEnum.h
+SamplesDrawingModeEnum.h
+SamplesDrawingSettings.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
 SelectionItemAnnotation.h
@@ -326,6 +330,8 @@ EventBrainStructureGetAll.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx
 EventBrowserTabGetAllViewed.cxx
+EventBrowserTabGetAtWindowXY.cxx
+EventBrowserTabIndexGetWindowIndex.cxx
 EventBrowserTabReopenAvailable.cxx
 EventBrowserTabValidate.cxx
 EventBrowserWindowContent.cxx
@@ -411,6 +417,8 @@ Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
 ProjectionViewTypeEnum.cxx
+SamplesDrawingModeEnum.cxx
+SamplesDrawingSettings.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
 SelectionItemAnnotation.cxx

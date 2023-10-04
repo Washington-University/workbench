@@ -163,7 +163,7 @@ DrawingViewportContentVolumeSlice::getRowIndex() const
 int32_t
 DrawingViewportContentVolumeSlice::getColumnIndex() const
 {
-    return m_numberOfColumns;
+    return m_columnIndex;
 }
 
 /**

@@ -61,6 +61,7 @@
 #include "EventImageCapture.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
+#include "EventBrowserTabGetAtWindowXY.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
@@ -175,6 +176,7 @@ windowIndex(windowIndex)
      */
     setMouseTracking(true);
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_AT_WINDOW_XY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
@@ -1809,8 +1811,6 @@ BrainOpenGLWidget::performIdentificationSome(const int x,
     CaretLogFine("Performing selection");
     SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     idManager->reset();
-//    idManager->setAllSelectionsEnabled(true);
-//    idManager->getVoxelEditingIdentification()->setEnabledForSelection(false);
     
     if (idViewport != NULL) {
         s_singletonOpenGL->selectModel(this->windowIndex,
@@ -2742,6 +2742,21 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         guiUpdateEvent->setEventProcessed();
         
         getSelectedInputProcessor()->update();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_AT_WINDOW_XY) {
+        EventBrowserTabGetAtWindowXY* tabEvent(dynamic_cast<EventBrowserTabGetAtWindowXY*>(event));
+        CaretAssert(tabEvent);
+        if (tabEvent->getWindowIndex() == this->windowIndex) {
+            const Vector3D mouseXY(tabEvent->getMouseXY());
+            const BrainOpenGLViewportContent* vpContent(getViewportContentAtXY(mouseXY[0],
+                                                                               mouseXY[1]));
+            if (vpContent != NULL) {
+                BrowserTabContent* tabContent(vpContent->getBrowserTabContent());
+                tabEvent->setBrowserTabContent(vpContent,
+                                               tabContent);
+                tabEvent->setEventProcessed();
+            }
+        }
     }
     else {
         

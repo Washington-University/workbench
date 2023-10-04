@@ -101,7 +101,6 @@ void
 AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj)
 {
     m_plane = obj.m_plane;
-    m_depthMillimeters = obj.m_depthMillimeters;
 }
 
 /**
@@ -166,7 +165,6 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
-    m_depthMillimeters = polyhedronDepth;
     m_plane = plane;
     
     const bool debugFlag(false);
@@ -207,58 +205,6 @@ Plane
 AnnotationPolyhedron::getPlane() const
 {
     return m_plane;
-}
-
-/**
- * @return Depth in millimeters from when the annotation was drawn
- */
-float
-AnnotationPolyhedron::getDepthMillimeters() const
-{
-    return m_depthMillimeters;
-}
-
-/**
- * @return Depth in number of slices (converts millimeter depth to slices)
- * @param sliceThickness
- *    Thickness of volume slice
- */
-float
-AnnotationPolyhedron::getDepthSlices(const float sliceThickness) const
-{
-    const float numSlices(AnnotationPolyhedron::millimetersToSlices(sliceThickness,
-                                                                    m_depthMillimeters));
-    return numSlices;
-}
-
-/**
- * Set the depth in slicdes (converts slices to millimeters)
- * @param sliceThickness
- *    Thickness of the volume slices
- * @param numberOfSlices
- *    Thickness of number of slices
- */
-void
-AnnotationPolyhedron::setDepthSlices(const float sliceThickness,
-                                     const int32_t numberOfSlices)
-{
-    const float mm(AnnotationPolyhedron::slicesToMillimeters(sliceThickness,
-                                                             numberOfSlices));
-    setDepthMillimeters(mm);
-}
-
-/**
- * Set depth of polyhedron
- * @param depth
- *    New depth
- */
-void
-AnnotationPolyhedron::setDepthMillimeters(const float depth)
-{
-    if (m_depthMillimeters != depth) {
-        m_depthMillimeters = depth;
-        setModified();
-    }
 }
 
 /**
@@ -358,26 +304,6 @@ AnnotationPolyhedron::setPlane(const Plane& plane)
 }
 
 /**
- * Updates the 'far' coordinates that are 'depth' away from the near coordinates using the depth value.
- */
-void
-AnnotationPolyhedron::updateCoordinatesAfterDepthChanged()
-{
-    const int32_t numCoords(getNumberOfCoordinates());
-    if (numCoords > 0) {
-        const Vector3D offsetVectorXYZ(getPlane().getNormalVector() * getDepthMillimeters());
-        
-        CaretAssert(MathFunctions::isEvenNumber(numCoords));
-        const int32_t halfNumCoords(numCoords / 2);
-        for (int32_t i = 0; i < halfNumCoords; i++) {
-            const Vector3D xyz(getCoordinate(i)->getXYZ());
-            const Vector3D farXYZ(xyz + offsetVectorXYZ);
-            getCoordinate(i + halfNumCoords)->setXYZ(farXYZ);
-        }
-    }
-}
-
-/**
  * Set values while reading file
  * @param plane
  *    The plane from when annotation was drawn
@@ -385,11 +311,9 @@ AnnotationPolyhedron::updateCoordinatesAfterDepthChanged()
  *    The depth value from when annotation was drawn
  */
 void
-AnnotationPolyhedron::setFromFileReading(const Plane& plane,
-                                         const float depth)
+AnnotationPolyhedron::setFromFileReading(const Plane& plane)
 {
     m_plane = plane;
-    m_depthMillimeters = depth;
     setModified();
 }
 

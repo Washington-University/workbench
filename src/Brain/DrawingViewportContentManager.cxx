@@ -97,9 +97,6 @@ DrawingViewportContentManager::receiveEvent(Event* event)
             std::unique_ptr<DrawingViewportContent> dvc(addEvent->takeDrawingViewportContent(i));
             addViewport(dvc);
         }
-//        DrawingViewportContent newContent(addEvent->getDrawingViewportContent());
-//        CaretAssert(newContent.getViewportContentType() != DrawingViewportContentTypeEnum::INVALID);
-//        addViewport(newContent);
         event->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR) {
@@ -124,12 +121,17 @@ DrawingViewportContentManager::receiveEvent(Event* event)
                 getAllViewportsInWindow(edvc);
                 event->setEventProcessed();
                 break;
+            case EventDrawingViewportContentGet::Mode::VOLUME_MONTAGE_SLICES:
+                getMontageVolumeSlices(edvc);
+                break;
         }
     }
 }
 
 /**
  * Add  viewport content
+ * @param viewport
+ *   Viewport to add
  */
 void
 DrawingViewportContentManager::addViewport(std::unique_ptr<DrawingViewportContent>& viewportContent)
@@ -157,6 +159,7 @@ DrawingViewportContentManager::addViewport(std::unique_ptr<DrawingViewportConten
 /**
  * Clear all viewports associated with the window
  * @param windowIndex
+ *    The window index
  */
 void
 DrawingViewportContentManager::clearWindow(const int32_t windowIndex)
@@ -172,6 +175,8 @@ DrawingViewportContentManager::clearWindow(const int32_t windowIndex)
 
 /**
  * Find the viewport described by the event
+ * @param edvc
+ *    The content event
  */
 void
 DrawingViewportContentManager::getViewportTypeInWindow(EventDrawingViewportContentGet* edvc)
@@ -185,7 +190,7 @@ DrawingViewportContentManager::getViewportTypeInWindow(EventDrawingViewportConte
     for (const auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)
             && (dvc->getViewportContentType() == contentType)) {
-            edvc->setDrawingViewportContentNew(dvc.get());
+            edvc->addDrawingViewportContent(dvc.get());
             break;
         }
     }
@@ -193,6 +198,8 @@ DrawingViewportContentManager::getViewportTypeInWindow(EventDrawingViewportConte
 
 /**
  * Find the top-most model described by the event
+ * @param edvc
+ *    The content event
  */
 void
 DrawingViewportContentManager::getTopMostModelInWindow(EventDrawingViewportContentGet* edvc)
@@ -208,12 +215,14 @@ DrawingViewportContentManager::getTopMostModelInWindow(EventDrawingViewportConte
             topDrawingViewportContent = dvc.get();
         }
     }
-    edvc->setDrawingViewportContentNew(topDrawingViewportContent);
+    edvc->addDrawingViewportContent(topDrawingViewportContent);
 }
 
 
 /**
  * Get ALL the viewport described by the event
+ * @param edvc
+ *    The content event
  */
 void
 DrawingViewportContentManager::getAllViewportsInWindow(EventDrawingViewportContentGet* edvc)
@@ -225,8 +234,32 @@ DrawingViewportContentManager::getAllViewportsInWindow(EventDrawingViewportConte
     std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
     for (auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)) {
+            edvc->addDrawingViewportContent(dvc.get());
             std::cout << dvc->toString() << std::endl;
         }
     }
 }
+
+/**
+ * Get all montage viewports
+ * @param edvc
+ *    The content event
+ */
+void
+DrawingViewportContentManager::getMontageVolumeSlices(EventDrawingViewportContentGet* edvc)
+{
+    const int32_t windowIndex(edvc->getWindowIndex());
+    const int32_t tabIndex(edvc->getTabIndex());
+    CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
+    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    for (auto& dvc : windowContent) {
+        if (dvc->getTabIndex() == tabIndex) {
+            if (dvc->getViewportContentType() == DrawingViewportContentTypeEnum::MODEL_VOLUME_SLICE) {
+                edvc->addDrawingViewportContent(dvc.get());
+            }
+        }
+    }
+}
+
+
 

@@ -35,6 +35,7 @@ namespace caret {
     class AnnotationText;
     class BrainOpenGLWidget;
     class BrowserTabContent;
+    class SelectionItemAnnotation;
     class SelectionManager;
     class UserInputModeAnnotations;
 
@@ -109,6 +110,8 @@ namespace caret {
         QMenu* createDuplicateTabSpaceAnnotationMenu();
         
         void processAnnotationOrderOperation(const AnnotationStackingOrderTypeEnum::Enum orderType);
+        
+        static const SelectionItemAnnotation* getSelectionItem(UserInputModeAnnotations* userInputModeAnnotations);
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         

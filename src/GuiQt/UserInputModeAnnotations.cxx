@@ -54,6 +54,7 @@
 #include "AnnotationTextEditorDialog.h"
 #include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
+#include "EventBrowserTabGetAtWindowXY.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
@@ -70,7 +71,6 @@
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
-#include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
 #include "EventAnnotationGetDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
@@ -377,33 +377,6 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     annDrawingEvent->setAnnotationDrawingInProgress(true);
                 }
                 else if (m_newUserSpaceAnnotationBeingCreated) {
-                    Annotation* ann(m_newUserSpaceAnnotationBeingCreated->getAnnotation());
-                    if (ann != NULL) {
-                        /**
-                         * Multi-coord shapes may need coordinates updated while being drawn by user
-                         */
-                        AnnotationMultiPairedCoordinateShape* multiPairCoordShape(ann->castToMultiPairedCoordinateShape());
-                        if (multiPairCoordShape != NULL) {
-                            AnnotationPolyhedron* polyhedron(multiPairCoordShape->castToPolyhedron());
-                            if (polyhedron != NULL) {
-                                if (polyhedron->isDrawingNewAnnotation()) {
-                                    EventAnnotationGetDrawingPolyhedronSliceDepth depthEvent(getUserInputMode(),
-                                                                                             getBrowserWindowIndex());
-                                    EventManager::get()->sendEvent(depthEvent.getPointer());
-                                    if (depthEvent.isMillimetersDepthValid()) {
-                                        polyhedron->setDepthMillimeters(depthEvent.getMillimetersDepth());
-                                        polyhedron->updateCoordinatesAfterDepthChanged();
-                                    }
-                                    else if (depthEvent.isNumberOfSlicesDepthValid()) {
-                                        const float sliceThickness(m_newUserSpaceAnnotationBeingCreated->getSliceThickness());
-                                        polyhedron->setDepthSlices(sliceThickness,
-                                                                   depthEvent.getNumberOfSlicesDepth());
-                                        polyhedron->updateCoordinatesAfterDepthChanged();
-                                    }
-                                }
-                            }
-                        }
-                    }
                     annDrawingEvent->setAnnotation(m_newUserSpaceAnnotationBeingCreated->getAnnotation(),
                                                    m_newUserSpaceAnnotationBeingCreated->getViewportHeight());
                     annDrawingEvent->setAnnotationDrawingInProgress(true);
@@ -3441,105 +3414,162 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(Annotat
 m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
-    const BrainOpenGLViewportContent* viewportContent(mouseEvent.getViewportContent());
-    m_browserTabIndex = ((viewportContent != NULL)
-                         ? viewportContent->getTabIndex()
-                         : -1);
-
-    /*
-     * Try to create annotation coordinate at the mouse location
-     */
-    AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
-                                                                                            annotationSpace));
-    if (ac == NULL) {
-        return;
-    }
-    
-    Plane planeOfVolumeSlice;
     if (annotationType == AnnotationTypeEnum::POLYHEDRON) {
+        Vector3D firstXYZ;
+        Vector3D lastXYZ;
+        if ( ! getSamplesDrawingCoordinates(mouseEvent,
+                                            annotationSpace,
+                                            firstXYZ,
+                                            lastXYZ)) {
+            return;
+        }
+
+        const BrainOpenGLViewportContent* viewportContent(mouseEvent.getViewportContent());
+        m_browserTabIndex = ((viewportContent != NULL)
+                             ? viewportContent->getTabIndex()
+                             : -1);
+        
+        std::unique_ptr<EventDrawingViewportContentGet> vpEvent(EventDrawingViewportContentGet::newInstanceGetTopModelViewport(m_browserWindowIndex,
+                                                                                                                               Vector3D(mouseEvent.getPressedX(),
+                                                                                                                                        mouseEvent.getPressedY(),
+                                                                                                                                        0.0)));
+        Plane planeOfSlice;
+        EventManager::get()->sendEvent(vpEvent->getPointer());
+        const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContent());
+        if (dvc != NULL) {
+            m_viewportHeight = dvc->getGraphicsViewport().getHeight();
+            planeOfSlice     = dvc->getVolumeSlice().getPlane();
+            if ( ! planeOfSlice.isValidPlane()) {
+                return;
+            }
+        }
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         SelectionItemVoxel* voxelID(openGLWidget->performIdentificationVoxel(mouseEvent.getX(),
                                                                              mouseEvent.getY()));
-        if (voxelID->isValid()) {
-            planeOfVolumeSlice = voxelID->getPlane();
-        }
-        if ( ! planeOfVolumeSlice.isValidPlane()) {
-            return;
-        }
         m_sliceThickness = voxelID->getVoxelSizeMillimeters();
-    }
-    
-    m_annotationFile = annotationFile;
-    m_annotation = Annotation::newAnnotationOfType(annotationType,
-                                                   AnnotationAttributesDefaultTypeEnum::USER);
-    AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
-    m_annotation->setDrawingNewAnnotationStatus(true);
-    
-    AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
-    if (polyhedron != NULL) {
-        polyhedron->setPlane(planeOfVolumeSlice);
-        EventAnnotationGetDrawingPolyhedronSliceDepth depthEvent(userInputMode,
-                                                                 browserWindowIndex);
-        EventManager::get()->sendEvent(depthEvent.getPointer());
-        if (depthEvent.getEventProcessCount() > 0) {
-            const int32_t numberOfSlicesDepth(depthEvent.getNumberOfSlicesDepth());
-            polyhedron->setDepthSlices(m_sliceThickness,
-                                       numberOfSlicesDepth);
-        }
-    }
 
-    m_annotation->setCoordinateSpace(annotationSpace);
-    CaretAssert(m_annotation);
-    
-    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
-    AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
-    AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
-    
-    if (twoCoordShape != NULL) {
-        *twoCoordShape->getStartCoordinate() = *ac;
-        *twoCoordShape->getEndCoordinate()   = *ac;
-        delete ac;
-    }
-    else if (oneCoordShape != NULL) {
-        *oneCoordShape->getCoordinate() = *ac;
-        delete ac;
-        oneCoordShape->setWidth(1.0);
-        oneCoordShape->setHeight(1.0);
-    }
-    else if (multiCoordShape != NULL) {
-        multiCoordShape->addCoordinate(ac);
-    }
-    else if (multiPairedCoordShape != NULL) {
+        AnnotationCoordinate* acOne(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
+        acOne->setXYZ(firstXYZ);
+        AnnotationCoordinate* acTwo(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
+        acTwo->setXYZ(lastXYZ);
+
+        m_annotationFile = annotationFile;
+        CaretAssert(annotationType == AnnotationTypeEnum::POLYHEDRON);
+        m_annotation = Annotation::newAnnotationOfType(annotationType,
+                                                       AnnotationAttributesDefaultTypeEnum::USER);
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        CaretAssert(multiPairedCoordShape);
+        m_annotation->setDrawingNewAnnotationStatus(true);
+        
+        AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
+        CaretAssert(polyhedron != NULL);
+        polyhedron->setPlane(planeOfSlice);
+        
+        m_annotation->setCoordinateSpace(annotationSpace);
+        
         /*
          * Add a pair of coordinates.  For polyhedron, the second
          * coordinate will get updated when the polyhedron is requested
          * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
          */
-        AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
-        multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+        multiPairedCoordShape->addCoordinatePair(acOne, acTwo);
+        
+        
+        if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
+            && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
+            m_annotation->setLineColor(CaretColorEnum::RED);
+        }
+        
+        m_validFlag = true;
     }
     else {
-        CaretAssert(0);
-        delete ac;
-        return;
+        const BrainOpenGLViewportContent* viewportContent(mouseEvent.getViewportContent());
+        m_browserTabIndex = ((viewportContent != NULL)
+                             ? viewportContent->getTabIndex()
+                             : -1);
+        
+        /*
+         * Try to create annotation coordinate at the mouse location
+         */
+        AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                                annotationSpace));
+        if (ac == NULL) {
+            return;
+        }
+        
+        Plane planeOfVolumeSlice;
+        if (annotationType == AnnotationTypeEnum::POLYHEDRON) {
+            BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+            SelectionItemVoxel* voxelID(openGLWidget->performIdentificationVoxel(mouseEvent.getX(),
+                                                                                 mouseEvent.getY()));
+            if (voxelID->isValid()) {
+                planeOfVolumeSlice = voxelID->getPlane();
+            }
+            if ( ! planeOfVolumeSlice.isValidPlane()) {
+                return;
+            }
+            m_sliceThickness = voxelID->getVoxelSizeMillimeters();
+        }
+        
+        m_annotationFile = annotationFile;
+        m_annotation = Annotation::newAnnotationOfType(annotationType,
+                                                       AnnotationAttributesDefaultTypeEnum::USER);
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        m_annotation->setDrawingNewAnnotationStatus(true);
+        
+        m_annotation->setCoordinateSpace(annotationSpace);
+        CaretAssert(m_annotation);
+        
+        AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+        AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
+        AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
+        
+        if (twoCoordShape != NULL) {
+            *twoCoordShape->getStartCoordinate() = *ac;
+            *twoCoordShape->getEndCoordinate()   = *ac;
+            delete ac;
+        }
+        else if (oneCoordShape != NULL) {
+            *oneCoordShape->getCoordinate() = *ac;
+            delete ac;
+            oneCoordShape->setWidth(1.0);
+            oneCoordShape->setHeight(1.0);
+        }
+        else if (multiCoordShape != NULL) {
+            multiCoordShape->addCoordinate(ac);
+        }
+        else if (multiPairedCoordShape != NULL) {
+            /*
+             * Add a pair of coordinates.  For polyhedron, the second
+             * coordinate will get updated when the polyhedron is requested
+             * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
+             */
+            AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
+            multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+        }
+        else {
+            CaretAssert(0);
+            delete ac;
+            return;
+        }
+        
+        std::unique_ptr<EventDrawingViewportContentGet> vpEvent(EventDrawingViewportContentGet::newInstanceGetTopModelViewport(m_browserWindowIndex,
+                                                                                                                               Vector3D(mouseEvent.getPressedX(),
+                                                                                                                                        mouseEvent.getPressedY(),
+                                                                                                                                        0.0)));
+        EventManager::get()->sendEvent(vpEvent->getPointer());
+        const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContent());
+        if (dvc != NULL) {
+            m_viewportHeight = dvc->getGraphicsViewport().getHeight();
+        }
+        
+        if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
+            && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
+            m_annotation->setLineColor(CaretColorEnum::RED);
+        }
+        
+        m_validFlag = true;
     }
-
-    std::unique_ptr<EventDrawingViewportContentGet> vpEvent(EventDrawingViewportContentGet::newInstanceGetTopModelViewport(m_browserWindowIndex,
-                                                                                                                           Vector3D(mouseEvent.getPressedX(),
-                                                                                                                                    mouseEvent.getPressedY(),
-                                                                                                                                    0.0)));
-    EventManager::get()->sendEvent(vpEvent->getPointer());
-    const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContentNew());
-    if (dvc != NULL) {
-        m_viewportHeight = dvc->getGraphicsViewport().getHeight();
-    }
-    
-    if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
-        && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
-        m_annotation->setLineColor(CaretColorEnum::RED);
-    }
-
-    m_validFlag = true;
 }
 
 /**
@@ -3604,39 +3634,63 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::updateAnnotation(const MouseEv
     CaretAssertMessage(m_validFlag, "Attempting to update invalid annotation being created by user");
 
     if (m_validFlag) {
-        /*
-         * Try to create annotation coordinate at the mouse location
-         */
-        AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
-                                                                                                m_annotation->getCoordinateSpace()));
-        if (ac == NULL) {
-            return;
-        }
+        CaretAssert(m_annotation);
+        if (m_annotation->getType() == AnnotationTypeEnum::POLYHEDRON) {
+            AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
+            CaretAssert(polyhedron);
+            
+            Vector3D firstXYZ;
+            Vector3D lastXYZ;
+            if ( ! getSamplesDrawingCoordinates(mouseEvent,
+                                                m_annotation->getCoordinateSpace(),
+                                                firstXYZ,
+                                                lastXYZ)) {
+                return;
+            }
+            
+            AnnotationCoordinate* acOne(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
+            acOne->setXYZ(firstXYZ);
+            AnnotationCoordinate* acTwo(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
+            acTwo->setXYZ(lastXYZ);
 
-        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
-        AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
-        AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
-        AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
-        
-        if (twoCoordShape != NULL) {
-            *twoCoordShape->getEndCoordinate()   = *ac;
-            delete ac;
+            polyhedron->addCoordinatePair(acOne,
+                                          acTwo);
         }
-        else if (oneCoordShape != NULL) {
-            *oneCoordShape->getCoordinate() = *ac;
-            delete ac;
-        }
-        else if (multiCoordShape != NULL) {
-            multiCoordShape->addCoordinate(ac);
-        }
-        else if (multiPairedCoordShape != NULL) {
+        else {
             /*
-             * Add a pair of coordinates.  For polyhedron, the second
-             * coordinate will get updated when the polyhedron is requested
-             * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
+             * Try to create annotation coordinate at the mouse location
              */
-            AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
-            multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+            AnnotationCoordinate* ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                                    m_annotation->getCoordinateSpace()));
+            if (ac == NULL) {
+                return;
+            }
+            
+            AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+            AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+            AnnotationOneCoordinateShape* oneCoordShape     = m_annotation->castToOneCoordinateShape();
+            AnnotationTwoCoordinateShape* twoCoordShape     = m_annotation->castToTwoCoordinateShape();
+            
+            if (twoCoordShape != NULL) {
+                *twoCoordShape->getEndCoordinate()   = *ac;
+                delete ac;
+            }
+            else if (oneCoordShape != NULL) {
+                *oneCoordShape->getCoordinate() = *ac;
+                delete ac;
+            }
+            else if (multiCoordShape != NULL) {
+                multiCoordShape->addCoordinate(ac);
+            }
+            else if (multiPairedCoordShape != NULL) {
+                /*
+                 * Add a pair of coordinates.  For polyhedron, the second
+                 * coordinate will get updated when the polyhedron is requested
+                 * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
+                 */
+                AnnotationCoordinate* acTwo(new AnnotationCoordinate(*ac));
+                multiPairedCoordShape->addCoordinatePair(ac, acTwo);
+            }
         }
     }
 }
@@ -3658,3 +3712,53 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::isValid() const
     return m_validFlag;
 }
 
+/**
+ * @return True if the two coordinates are valid for drawing the volume slice
+ * @param mouseEvent
+ *    The mouse event
+ * @param firstSliceCoordOut
+ *    Ouput with first coordinate
+ * @param lastSliceCoordOut
+ *    Ouput with last coordinate
+ */
+bool
+UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(const MouseEvent& mouseEvent,
+                                                                               const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
+                                                                               Vector3D& firstSliceCoordOut,
+                                                                               Vector3D& lastSliceCoordOut)
+{
+    const Vector3D windowXY(mouseEvent.getXY());
+    EventBrowserTabGetAtWindowXY tabEvent(mouseEvent.getBrowserWindowIndex(),
+                                          windowXY);
+    EventManager::get()->sendEvent(tabEvent.getPointer());
+    
+    std::vector<const DrawingViewportContent*> drawingSlices(tabEvent.getSamplesDrawingViewportContents(windowXY));
+    if (drawingSlices.size() == 3) {
+        CaretAssertVectorIndex(drawingSlices, 2);
+        /*
+         * The three slices are:
+         * [0] Slice on which drawing takes place
+         * [1] First Slice Drawn in Montage that allows drawing
+         * [2] Last Slice drawn in Montage that allows drawing
+         */
+        const DrawingViewportContent* firstViewportContent(drawingSlices[1]);
+        const DrawingViewportContent* lastViewportContent(drawingSlices[2]);
+        
+        const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
+        const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
+        
+        /*
+         * Try to create annotation coordinate at the mouse location
+         */
+        std::unique_ptr<AnnotationCoordinate> ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                                                coordinateSpace));
+        if (ac) {
+            Vector3D xyz(ac->getXYZ());
+            firstSlice.getPlane().projectPointToPlane(xyz, firstSliceCoordOut);
+            lastSlice.getPlane().projectPointToPlane(xyz, lastSliceCoordOut);
+            return true;
+        }
+        
+    }
+    return false;
+}

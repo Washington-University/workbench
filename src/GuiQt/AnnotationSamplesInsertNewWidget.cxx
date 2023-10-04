@@ -24,6 +24,7 @@
 #undef __ANNOTATION_SAMPLES_INSERT_NEW_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
@@ -31,21 +32,26 @@
 
 #include "AnnotationPolyhedron.h"
 #include "Brain.h"
+#include "BrowserTabContent.h"
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
 #include "DataFileException.h"
 #include "DisplayPropertiesSamples.h"
+#include "DrawingViewportContent.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
-#include "EventAnnotationGetDrawingPolyhedronSliceDepth.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
 #include "EventDataFileAdd.h"
+#include "EventDrawingViewportContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "SamplesDrawingSettings.h"
 #include "SamplesFile.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -97,7 +103,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_fileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(DataFileTypeEnum::SAMPLES));
     m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
-    m_fileSelectionComboBox->setFixedWidth(220);
     m_fileSelectionComboBox->setNoFilesText("Click \"New\" to create a file");
     m_fileSelectionComboBox->setToolTip("New samples are added to this file");
     QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
@@ -135,41 +140,57 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolButtonStyleForQt5Mac(newSampleToolButton);
     newSampleToolButton->setDefaultAction(m_newSampleAction);
     
-    m_slicesLabel = new QLabel(" Slices");
-    m_newSampleDepthSpinBox = new QSpinBox();
-    m_newSampleDepthSpinBox->setMinimum(-99);
-    m_newSampleDepthSpinBox->setMaximum(99);
-    m_newSampleDepthSpinBox->setSingleStep(1);
-    m_newSampleDepthSpinBox->setValue(m_previousNewSampleDepthSpinBoxValue);
-    QObject::connect(m_newSampleDepthSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                     this, &AnnotationSamplesInsertNewWidget::newSampleDepthValueChanged);
-    m_newSampleDepthSpinBox->setToolTip("<html>"
-                                        "Polyhedron spans this number of slices.  "
-                                        "Value may be negative or positive."
-                                        "</html>");
-
-    QHBoxLayout* samplesLayout(new QHBoxLayout());
+    m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
+    m_samplesDrawingModeEnumComboBox->setup<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>();
+    QObject::connect(m_samplesDrawingModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated);
+    
+    m_lowerSliceOffsetLabel = new QLabel("Lower");
+    m_lowerSliceOffsetSpinBox = new QSpinBox();
+    m_lowerSliceOffsetSpinBox->setMinimum(0);
+    m_lowerSliceOffsetSpinBox->setMaximum(99);
+    m_lowerSliceOffsetSpinBox->setSingleStep(1);
+    QObject::connect(m_lowerSliceOffsetSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &AnnotationSamplesInsertNewWidget::lowerSliceOffsetSpinBoxValueChanged);
+    
+    m_upperSliceOffsetLabel = new QLabel("Upper");
+    m_upperSliceOffsetSpinBox = new QSpinBox();
+    m_upperSliceOffsetSpinBox->setMinimum(0);
+    m_upperSliceOffsetSpinBox->setMaximum(99);
+    m_upperSliceOffsetSpinBox->setSingleStep(1);
+    QObject::connect(m_upperSliceOffsetSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &AnnotationSamplesInsertNewWidget::upperSliceOffsetSpinBoxValueChanged);
+    
+    WuQtUtilities::matchWidgetWidths(m_lowerSliceOffsetSpinBox,
+                                     m_upperSliceOffsetSpinBox);
+    
+    QWidget* samplesWidget(new QWidget());
+    QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 2);
     samplesLayout->addWidget(newSampleToolButton);
-    samplesLayout->addWidget(m_slicesLabel);
-    samplesLayout->addWidget(m_newSampleDepthSpinBox);
+    samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
+    samplesLayout->addSpacing(8);
+    samplesLayout->addWidget(m_upperSliceOffsetLabel);
+    samplesLayout->addWidget(m_upperSliceOffsetSpinBox);
+    samplesLayout->addWidget(m_lowerSliceOffsetLabel);
+    samplesLayout->addWidget(m_lowerSliceOffsetSpinBox);
     samplesLayout->addStretch();
     
-    QGridLayout* layout(new QGridLayout(this));
-    layout->setColumnStretch(0, 0);
-    layout->setColumnStretch(1, 100);
-    layout->setColumnStretch(2, 0);
+    QWidget* fileWidget(new QWidget());
+    QHBoxLayout* fileLayout(new QHBoxLayout(fileWidget));
+    WuQtUtilities::setLayoutSpacingAndMargins(fileLayout, 2, 2);
+    fileLayout->addWidget(fileLabel);
+    fileLayout->addWidget(m_fileSelectionComboBox->getWidget(), 100);
+    fileLayout->addWidget(newFileToolButton);
+    fileLayout->addWidget(saveFileToolButton);
+    
+    fileWidget->setFixedWidth(samplesWidget->sizeHint().width());
+    
+    QVBoxLayout* layout(new QVBoxLayout(this));
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(fileLabel,
-                      0, 0);
-    layout->addWidget(m_fileSelectionComboBox->getWidget(),
-                      0, 1);
-    layout->addWidget(newFileToolButton,
-                      0, 2, Qt::AlignHCenter);
-    layout->addLayout(samplesLayout,
-                      1, 0, 1, 2, Qt::AlignLeft);
-    layout->addWidget(saveFileToolButton,
-                      1, 2, Qt::AlignHCenter);
+    layout->addWidget(fileWidget);
+    layout->addWidget(samplesWidget);
     
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
@@ -195,18 +216,7 @@ AnnotationSamplesInsertNewWidget::~AnnotationSamplesInsertNewWidget()
 void
 AnnotationSamplesInsertNewWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH) {
-        EventAnnotationGetDrawingPolyhedronSliceDepth* depthEvent(dynamic_cast<EventAnnotationGetDrawingPolyhedronSliceDepth*>(event));
-        CaretAssert(event);
-        if ((depthEvent->getUserInputMode() == m_userInputMode)
-            && (depthEvent->getWindowIndex() == m_browserWindowIndex)) {
-            if (m_newSampleDepthSpinBox != NULL) {
-                depthEvent->setNumberOfSlicesDepth(m_newSampleDepthSpinBox->value());
-                depthEvent->setEventProcessed();
-            }
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_GET_SELECTED_INSERT_NEW_FILE) {
         EventAnnotationGetSelectedInsertNewFile* fileEvent(dynamic_cast<EventAnnotationGetSelectedInsertNewFile*>(event));
         CaretAssert(fileEvent);
         if (fileEvent->getUserInputMode() == m_userInputMode) {
@@ -225,21 +235,44 @@ AnnotationSamplesInsertNewWidget::receiveEvent(Event* event)
 void
 AnnotationSamplesInsertNewWidget::updateContent()
 {
+    const BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        const BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            
+            const SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            CaretAssert(samplesSettings);
+            
+            const SamplesDrawingModeEnum::Enum drawingMode(samplesSettings->getDrawingMode());
+
+            m_samplesDrawingModeEnumComboBox->setSelectedItem<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>(drawingMode);
+            QSignalBlocker lowBlocker(m_lowerSliceOffsetSpinBox);
+            m_lowerSliceOffsetSpinBox->setValue(samplesSettings->getLowerSliceOffset());
+
+            QSignalBlocker highBlocker(m_upperSliceOffsetSpinBox);
+            m_upperSliceOffsetSpinBox->setValue(samplesSettings->getUpperSliceOffset());
+            
+            bool enableIndexSpinBoxesFlag(false);
+            switch (drawingMode) {
+                case SamplesDrawingModeEnum::ALL:
+                    break;
+                case SamplesDrawingModeEnum::CUSTOM:
+                    enableIndexSpinBoxesFlag = true;
+                    break;
+            }
+            m_lowerSliceOffsetLabel->setEnabled(enableIndexSpinBoxesFlag);
+            m_lowerSliceOffsetSpinBox->setEnabled(enableIndexSpinBoxesFlag);
+            m_upperSliceOffsetLabel->setEnabled(enableIndexSpinBoxesFlag);
+            m_upperSliceOffsetSpinBox->setEnabled(enableIndexSpinBoxesFlag);
+        }
+    }
+    
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
                                                       m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
-    
-    bool annDrawingFlag(false);
-    const Annotation* annDraw(annDrawEvent.getAnnotation());
-    if (annDraw != NULL) {
-        annDrawingFlag = (annDraw->castToPolyhedron() != NULL);
-    }
-    
-    m_slicesLabel->setEnabled(annDrawingFlag);
-    m_newSampleDepthSpinBox->setEnabled(annDrawingFlag);
-    
+        
     bool saveEnabledFlag(false);
     const SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile != NULL) {
@@ -350,39 +383,65 @@ AnnotationSamplesInsertNewWidget::getSelectedSamplesFile() const
 }
 
 /**
- * Called when the depth value for the new sample is  changed
- * @param value
- *    The new value
+ * Called when mode combo box selection is made
+ * @param index
+ *    Index of item selected
  */
 void
-AnnotationSamplesInsertNewWidget::newSampleDepthValueChanged(int value)
+AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated()
 {
-    /*
-     * Do not allow a zero value
-     * If user transitions to zero from positive one, set to negative one
-     * If user transitions to zero from negative one, set to positive one
-     */
-    if (value == 0) {
-        if (m_previousNewSampleDepthSpinBoxValue > 0) {
-            value = -1;
+    BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            CaretAssert(samplesSettings);
+            const SamplesDrawingModeEnum::Enum drawingMode(m_samplesDrawingModeEnumComboBox->getSelectedItem<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>());
+            samplesSettings->setDrawingMode(drawingMode);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            updateContent();
         }
-        else if (m_previousNewSampleDepthSpinBoxValue < 0) {
-            value = 1;
-        }
-        else {
-            value = 1;
-        }
-        QSignalBlocker blocker(m_newSampleDepthSpinBox);
-        m_newSampleDepthSpinBox->setValue(value);
     }
-    
-    m_previousNewSampleDepthSpinBoxValue = value;
-    
-    /*
-     * Depth value is requested while the annotation is being drawn by graphics
-     * so request a graphics update
-     */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when low slice index spin box value is changed
+ * @param value
+ */
+void
+AnnotationSamplesInsertNewWidget::lowerSliceOffsetSpinBoxValueChanged(int value)
+{
+    BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            CaretAssert(samplesSettings);
+            samplesSettings->setLowerSliceOffset(value);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            updateContent();
+        }
+    }
+}
+
+/**
+ * Called when high slice index spin box value is changed
+ * @param value
+ */
+void
+AnnotationSamplesInsertNewWidget::upperSliceOffsetSpinBoxValueChanged(int value)
+{
+    BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            CaretAssert(samplesSettings);
+            samplesSettings->setUpperSliceOffset(value);
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            updateContent();
+        }
+    }
 }
 
 /**
