@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "DrawingViewportContent.h"
 #include "Event.h"
 #include "Vector3D.h"
 
@@ -54,16 +55,16 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent() const;
         
-        std::vector<const DrawingViewportContent*> getVolumeMontageViewportContent() const;
+        std::vector<std::shared_ptr<DrawingViewportContent>> getVolumeMontageViewportContent() const;
         
-        std::vector<const DrawingViewportContent*> getSamplesDrawingVolumeMontageViewportContents() const;
+        std::vector<std::shared_ptr<DrawingViewportContent>> getSamplesDrawingVolumeMontageViewportContents() const;
         
         void setBrowserTabContent(const BrainOpenGLViewportContent* brainOpenGLViewportContent,
                                   BrowserTabContent* browserTabContent);
 
         bool isWindowXyInSamplesDrawingVolumeSlice(const Vector3D& windowXY) const;
         
-        std::vector<const DrawingViewportContent*> getSamplesDrawingViewportContents(const Vector3D& windowXY) const;
+        std::vector<std::shared_ptr<DrawingViewportContent>> getSamplesDrawingViewportContents(const Vector3D& windowXY) const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -76,7 +77,7 @@ namespace caret {
         
         BrowserTabContent* m_browserTabContent = NULL;
         
-        std::vector<const DrawingViewportContent*> m_volumeMontageViewportContent;
+        std::vector<std::shared_ptr<DrawingViewportContent>> m_volumeMontageViewportContent;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -106,7 +106,7 @@ EventDrawingViewportContentGet::newInstancePrintAllAtWindowXY(const int32_t wind
  * @param tabIndex
  *    Index of tab
  */
-std::vector<const DrawingViewportContent*>
+std::vector<std::shared_ptr<DrawingViewportContent>>
 EventDrawingViewportContentGet::getVolumeMontageSlicesInTab(const int32_t tabIndex)
 {
     EventBrowserTabIndexGetWindowIndex windowIndexEvent(tabIndex);
@@ -127,7 +127,7 @@ EventDrawingViewportContentGet::getVolumeMontageSlicesInTab(const int32_t tabInd
     
     CaretLogSevere("Failed to find window containing tab with index="
                    + AString::number(tabIndex));
-    std::vector<const DrawingViewportContent*> emptyContent;
+    std::vector<std::shared_ptr<DrawingViewportContent>> emptyContent;
     return emptyContent;
 }
 
@@ -254,7 +254,7 @@ EventDrawingViewportContentGet::getTabIndex() const
 /**
  * The drawing viewport content
  */
-const DrawingViewportContent*
+std::shared_ptr<DrawingViewportContent>
 EventDrawingViewportContentGet::getDrawingViewportContent() const
 {
     if (m_drawingViewportContent.empty()) {
@@ -270,7 +270,7 @@ EventDrawingViewportContentGet::getDrawingViewportContent() const
 /**
  * @return All drawing viewport content
  */
-std::vector<const DrawingViewportContent*>
+std::vector<std::shared_ptr<DrawingViewportContent>>
 EventDrawingViewportContentGet::getAllDrawingViewportContent() const
 {
     return m_drawingViewportContent;
@@ -279,10 +279,10 @@ EventDrawingViewportContentGet::getAllDrawingViewportContent() const
 /**
  * Add the draiwng viewport content
  * @param drawingViewportContent
- *   The content
+ *   The content (will take ownership of the item
  */
 void
-EventDrawingViewportContentGet::addDrawingViewportContent(const DrawingViewportContent* drawingViewportContent)
+EventDrawingViewportContentGet::addDrawingViewportContent(std::shared_ptr<DrawingViewportContent>& drawingViewportContent)
 {
     m_drawingViewportContent.push_back(drawingViewportContent);
 }

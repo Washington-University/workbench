@@ -57,7 +57,7 @@ namespace caret {
         static std::unique_ptr<EventDrawingViewportContentGet> newInstancePrintAllAtWindowXY(const int32_t windowIndex,
                                                                                              const Vector3D& windowXY);
         
-        static std::vector<const DrawingViewportContent*> getVolumeMontageSlicesInTab(const int32_t tabIndex);
+        static std::vector<std::shared_ptr<DrawingViewportContent>> getVolumeMontageSlicesInTab(const int32_t tabIndex);
         
         virtual ~EventDrawingViewportContentGet();
         
@@ -67,11 +67,11 @@ namespace caret {
         
         Mode getMode() const;
         
-        const DrawingViewportContent* getDrawingViewportContent() const;
+        std::shared_ptr<DrawingViewportContent> getDrawingViewportContent() const;
         
-        std::vector<const DrawingViewportContent*> getAllDrawingViewportContent() const;
+        std::vector<std::shared_ptr<DrawingViewportContent>> getAllDrawingViewportContent() const;
         
-        void addDrawingViewportContent(const DrawingViewportContent* drawingViewportContent);
+        void addDrawingViewportContent(std::shared_ptr<DrawingViewportContent>& drawingViewportContent);
         
         DrawingViewportContentTypeEnum::Enum getContentType() const;
         
@@ -108,7 +108,7 @@ namespace caret {
         
         const Vector3D m_windowXY;
 
-        std::vector<const DrawingViewportContent*> m_drawingViewportContent;
+        std::vector<std::shared_ptr<DrawingViewportContent>> m_drawingViewportContent;
         
         // ADD_NEW_MEMBERS_HERE
 

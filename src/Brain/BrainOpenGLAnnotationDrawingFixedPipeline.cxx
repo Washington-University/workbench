@@ -7037,7 +7037,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
                                                                                    windowXY,
                                                                                    DrawingViewportContentTypeEnum::TAB_AFTER_ASPECT_LOCK));
             EventManager::get()->sendEvent(vpEvent->getPointer());
-            const DrawingViewportContent* vpContent(vpEvent->getDrawingViewportContent());
+            const std::shared_ptr<DrawingViewportContent> vpContent(vpEvent->getDrawingViewportContent());
             if (vpContent) {
                 viewportHeight = vpContent->getGraphicsViewport().getHeight();
             }
@@ -7047,7 +7047,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
                                                                                    windowXY,
                                                                                    DrawingViewportContentTypeEnum::WINDOW_AFTER_ASPECT_LOCK));
             EventManager::get()->sendEvent(vpEvent->getPointer());
-            const DrawingViewportContent* vpContent(vpEvent->getDrawingViewportContent());
+            const std::shared_ptr<DrawingViewportContent> vpContent(vpEvent->getDrawingViewportContent());
             if (vpContent) {
                 viewportHeight = vpContent->getGraphicsViewport().getHeight();
             }

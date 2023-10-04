@@ -3435,8 +3435,8 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                                                                         0.0)));
         Plane planeOfSlice;
         EventManager::get()->sendEvent(vpEvent->getPointer());
-        const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContent());
-        if (dvc != NULL) {
+        const std::shared_ptr<DrawingViewportContent> dvc(vpEvent->getDrawingViewportContent());
+        if (dvc) {
             m_viewportHeight = dvc->getGraphicsViewport().getHeight();
             planeOfSlice     = dvc->getVolumeSlice().getPlane();
             if ( ! planeOfSlice.isValidPlane()) {
@@ -3558,8 +3558,8 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                                                                         mouseEvent.getPressedY(),
                                                                                                                                         0.0)));
         EventManager::get()->sendEvent(vpEvent->getPointer());
-        const DrawingViewportContent* dvc(vpEvent->getDrawingViewportContent());
-        if (dvc != NULL) {
+        const std::shared_ptr<DrawingViewportContent> dvc(vpEvent->getDrawingViewportContent());
+        if (dvc) {
             m_viewportHeight = dvc->getGraphicsViewport().getHeight();
         }
         
@@ -3732,7 +3732,7 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(c
                                           windowXY);
     EventManager::get()->sendEvent(tabEvent.getPointer());
     
-    std::vector<const DrawingViewportContent*> drawingSlices(tabEvent.getSamplesDrawingViewportContents(windowXY));
+    std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesDrawingViewportContents(windowXY));
     if (drawingSlices.size() == 3) {
         CaretAssertVectorIndex(drawingSlices, 2);
         /*
@@ -3741,8 +3741,8 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(c
          * [1] First Slice Drawn in Montage that allows drawing
          * [2] Last Slice drawn in Montage that allows drawing
          */
-        const DrawingViewportContent* firstViewportContent(drawingSlices[1]);
-        const DrawingViewportContent* lastViewportContent(drawingSlices[2]);
+        auto firstViewportContent(drawingSlices[1]);
+        auto lastViewportContent(drawingSlices[2]);
         
         const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
         const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());

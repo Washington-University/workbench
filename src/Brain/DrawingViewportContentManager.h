@@ -53,7 +53,7 @@ namespace caret {
         virtual void receiveEvent(Event* event);
 
     private:
-        void addViewport(std::unique_ptr<DrawingViewportContent>& viewportContent);
+        void addViewport(std::shared_ptr<DrawingViewportContent>& viewportContent);
         
         void clearWindow(const int32_t windowIndex);
         
@@ -65,7 +65,7 @@ namespace caret {
         
         void getMontageVolumeSlices(EventDrawingViewportContentGet* edvc);
         
-        std::vector<std::unique_ptr<DrawingViewportContent>> m_windowViewportContent[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        std::vector<std::shared_ptr<DrawingViewportContent>> m_windowViewportContent[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         int32_t getWindowIndexFromTabIndex(const int32_t tabIndex) const;
         

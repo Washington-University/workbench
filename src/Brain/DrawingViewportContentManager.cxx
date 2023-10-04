@@ -94,7 +94,7 @@ DrawingViewportContentManager::receiveEvent(Event* event)
         
         const int32_t numItems(addEvent->getNumberOfDrawingViewportContent());
         for (int32_t i = 0; i < numItems; i++) {
-            std::unique_ptr<DrawingViewportContent> dvc(addEvent->takeDrawingViewportContent(i));
+            std::shared_ptr<DrawingViewportContent> dvc(addEvent->takeDrawingViewportContent(i));
             addViewport(dvc);
         }
         event->setEventProcessed();
@@ -134,7 +134,7 @@ DrawingViewportContentManager::receiveEvent(Event* event)
  *   Viewport to add
  */
 void
-DrawingViewportContentManager::addViewport(std::unique_ptr<DrawingViewportContent>& viewportContent)
+DrawingViewportContentManager::addViewport(std::shared_ptr<DrawingViewportContent>& viewportContent)
 {
     CaretAssert(viewportContent->getViewportContentType() != DrawingViewportContentTypeEnum::INVALID);
     
@@ -145,7 +145,7 @@ DrawingViewportContentManager::addViewport(std::unique_ptr<DrawingViewportConten
     
     if ((windowIndex >= 0)
         && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS)) {
-        m_windowViewportContent[windowIndex].push_back(std::move(viewportContent));
+        m_windowViewportContent[windowIndex].push_back(viewportContent);
     }
     else {
         const AString msg("Invalid window index on viewport: "
@@ -186,11 +186,11 @@ DrawingViewportContentManager::getViewportTypeInWindow(EventDrawingViewportConte
     const Vector3D windowXY(edvc->getWindowXY());
     
     CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
-    for (const auto& dvc : windowContent) {
+    std::vector<std::shared_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    for (auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)
             && (dvc->getViewportContentType() == contentType)) {
-            edvc->addDrawingViewportContent(dvc.get());
+            edvc->addDrawingViewportContent(dvc);
             break;
         }
     }
@@ -207,12 +207,12 @@ DrawingViewportContentManager::getTopMostModelInWindow(EventDrawingViewportConte
     const int32_t windowIndex(edvc->getWindowIndex());
     const Vector3D windowXY(edvc->getWindowXY());
     
-    DrawingViewportContent* topDrawingViewportContent(NULL);
+    std::shared_ptr<DrawingViewportContent> topDrawingViewportContent;
     CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    std::vector<std::shared_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
     for (auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)) {
-            topDrawingViewportContent = dvc.get();
+            topDrawingViewportContent = dvc;
         }
     }
     edvc->addDrawingViewportContent(topDrawingViewportContent);
@@ -231,10 +231,10 @@ DrawingViewportContentManager::getAllViewportsInWindow(EventDrawingViewportConte
     
     const Vector3D windowXY(edvc->getWindowXY());
     CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    std::vector<std::shared_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
     for (auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)) {
-            edvc->addDrawingViewportContent(dvc.get());
+            edvc->addDrawingViewportContent(dvc);
             std::cout << dvc->toString() << std::endl;
         }
     }
@@ -251,11 +251,11 @@ DrawingViewportContentManager::getMontageVolumeSlices(EventDrawingViewportConten
     const int32_t windowIndex(edvc->getWindowIndex());
     const int32_t tabIndex(edvc->getTabIndex());
     CaretAssertArrayIndex(m_windowViewportContent, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS, windowIndex);
-    std::vector<std::unique_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
+    std::vector<std::shared_ptr<DrawingViewportContent>>& windowContent(m_windowViewportContent[windowIndex]);
     for (auto& dvc : windowContent) {
         if (dvc->getTabIndex() == tabIndex) {
             if (dvc->getViewportContentType() == DrawingViewportContentTypeEnum::MODEL_VOLUME_SLICE) {
-                edvc->addDrawingViewportContent(dvc.get());
+                edvc->addDrawingViewportContent(dvc);
             }
         }
     }

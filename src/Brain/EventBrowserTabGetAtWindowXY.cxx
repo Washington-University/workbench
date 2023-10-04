@@ -102,17 +102,17 @@ EventBrowserTabGetAtWindowXY::getBrowserTabContent() const
 /**
  * @return Drawing viewports for all volume montage slices in the tab
  */
-std::vector<const DrawingViewportContent*>
+std::vector<std::shared_ptr<DrawingViewportContent>>
 EventBrowserTabGetAtWindowXY::getVolumeMontageViewportContent() const
 {
     return m_volumeMontageViewportContent;
 }
 
-std::vector<const DrawingViewportContent*>
+std::vector<std::shared_ptr<DrawingViewportContent>>
 EventBrowserTabGetAtWindowXY::getSamplesDrawingVolumeMontageViewportContents() const
 {
     const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
-    std::vector<const DrawingViewportContent*> contentsOut;
+    std::vector<std::shared_ptr<DrawingViewportContent>> contentsOut;
     
     for (const auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
@@ -154,19 +154,19 @@ EventBrowserTabGetAtWindowXY::isWindowXyInSamplesDrawingVolumeSlice(const Vector
  * Element 2: The viewport containing the last valid slice in the range
  * If not valid, an empty vector is returned
  */
-std::vector<const DrawingViewportContent*>
+std::vector<std::shared_ptr<DrawingViewportContent>>
 EventBrowserTabGetAtWindowXY::getSamplesDrawingViewportContents(const Vector3D& windowXY) const
 {
-    const DrawingViewportContent* drawingViewportContent(NULL);
-    const DrawingViewportContent* firstViewportContent(NULL);
-    const DrawingViewportContent* lastViewportContent(NULL);
+    std::shared_ptr<DrawingViewportContent> drawingViewportContent;
+    std::shared_ptr<DrawingViewportContent> firstViewportContent;
+    std::shared_ptr<DrawingViewportContent> lastViewportContent;
 
     const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
-    for (const auto& vp : m_volumeMontageViewportContent) {
+    for (auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
         if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
                                                                    volumeSlice.getColumnIndex())) {
-            if (firstViewportContent == NULL) {
+            if ( ! firstViewportContent) {
                 firstViewportContent = vp;
             }
             lastViewportContent = vp;
@@ -176,10 +176,10 @@ EventBrowserTabGetAtWindowXY::getSamplesDrawingViewportContents(const Vector3D& 
         }
     }
 
-    std::vector<const DrawingViewportContent*> dvc;
-    if ((firstViewportContent != NULL)
-        && (lastViewportContent != NULL)
-        && (drawingViewportContent != NULL)) {
+    std::vector<std::shared_ptr<DrawingViewportContent>> dvc;
+    if ((firstViewportContent)
+        && (lastViewportContent)
+        && (drawingViewportContent)) {
         dvc.push_back(drawingViewportContent);
         dvc.push_back(firstViewportContent);
         dvc.push_back(lastViewportContent);
