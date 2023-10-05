@@ -91,8 +91,6 @@ namespace caret {
         
         QAction* m_newSampleAction = NULL;
         
-        QLabel* m_slicesLabel = NULL;
-        
         EnumComboBoxTemplate* m_samplesDrawingModeEnumComboBox = NULL;
         
         QLabel* m_lowerSliceOffsetLabel = NULL;

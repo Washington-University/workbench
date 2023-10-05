@@ -89,6 +89,7 @@
 #include "MediaOverlaySet.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
+#include "AnnotationSamplesCreateDialog.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
@@ -3607,18 +3608,63 @@ void
 UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
 {
     if (m_validFlag) {
-        BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-        AnnotationCreateDialogTwo dialog(m_userInputMode,
-                                         m_browserWindowIndex,
-                                         m_browserTabIndex,
-                                         m_annotationFile,
-                                         m_annotation,
-                                         m_viewportHeight,
-                                         m_sliceThickness,
-                                         window);
-        if (dialog.exec()) {
-            m_annotationFile = NULL;
-            m_annotation     = NULL;
+        bool annotationsFlag(false);
+        bool samplesFlag(false);
+        switch (m_userInputMode) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+                annotationsFlag = true;
+                break;
+            case UserInputModeEnum::Enum::BORDERS:
+                break;
+            case UserInputModeEnum::Enum::FOCI:
+                break;
+            case UserInputModeEnum::Enum::IMAGE:
+                break;
+            case UserInputModeEnum::Enum::INVALID:
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+                samplesFlag = true;
+                break;
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                break;
+            case UserInputModeEnum::Enum::VIEW:
+                break;
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                break;
+        }
+        
+        if (annotationsFlag) {
+            BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+            AnnotationCreateDialogTwo dialog(m_userInputMode,
+                                             m_browserWindowIndex,
+                                             m_browserTabIndex,
+                                             m_annotationFile,
+                                             m_annotation,
+                                             m_viewportHeight,
+                                             m_sliceThickness,
+                                             window);
+            if (dialog.exec()) {
+                m_annotationFile = NULL;
+                m_annotation     = NULL;
+            }
+        }
+        else if (samplesFlag) {
+            BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+            AnnotationSamplesCreateDialog dialog(m_userInputMode,
+                                                 m_browserWindowIndex,
+                                                 m_browserTabIndex,
+                                                 m_annotationFile,
+                                                 m_annotation,
+                                                 m_viewportHeight,
+                                                 m_sliceThickness,
+                                                 window);
+            if (dialog.exec()) {
+                m_annotationFile = NULL;
+                m_annotation     = NULL;
+            }
+        }
+        else {
+            CaretAssertMessage(0, "Has a new annotations type mode been added?");
         }
     }
 }

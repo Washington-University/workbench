@@ -101,7 +101,7 @@ namespace caret {
 
         const int32_t m_tabIndex;
         
-        SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL;
+        SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL_SLICES;
         
         mutable int32_t m_lowSliceIndex = 0;
         

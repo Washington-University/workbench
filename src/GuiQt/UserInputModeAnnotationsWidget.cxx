@@ -202,7 +202,6 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     QHBoxLayout* leftLayout(new QHBoxLayout(leftWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(leftLayout, 2, 0);
     leftLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
-    leftLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
                               QSizePolicy::Fixed);
     

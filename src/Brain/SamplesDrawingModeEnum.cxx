@@ -106,13 +106,13 @@ SamplesDrawingModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(SamplesDrawingModeEnum(ALL,
-                                              "ALL",
-                                              "All"));
+    enumData.push_back(SamplesDrawingModeEnum(ALL_SLICES,
+                                              "ALL_SLICES",
+                                              "All Slices"));
     
-    enumData.push_back(SamplesDrawingModeEnum(CUSTOM,
-                                              "CUSTOM",
-                                              "Custom"));
+    enumData.push_back(SamplesDrawingModeEnum(EXCLUDE,
+                                              "EXCLUDE",
+                                              "Exclude"));
 }
 
 /**
@@ -386,11 +386,11 @@ SamplesDrawingModeEnum::getToolTip()
                   + toGuiName(e)
                   + " - ");
         switch (e) {
-            case ALL:
-                s.append("Sample appears on all viewed slices");
+            case ALL_SLICES:
+                s.append("Sample appears on all slices");
                 break;
-            case CUSTOM:
-                s.append("Sample appears on range from Low through High");
+            case EXCLUDE:
+                s.append("Sample is excluded from slices");
                 break;
         }
         txt.appendWithNewLine(s);

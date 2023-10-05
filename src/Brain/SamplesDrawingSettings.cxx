@@ -196,10 +196,10 @@ SamplesDrawingSettings::isSliceInLowerUpperOffsetRange(const int32_t sliceRow,
     
     if (tabContent != NULL) {
         switch (m_drawingMode) {
-            case SamplesDrawingModeEnum::ALL:
+            case SamplesDrawingModeEnum::ALL_SLICES:
                 inRangeFlag = true;
                 break;
-            case SamplesDrawingModeEnum::CUSTOM:
+            case SamplesDrawingModeEnum::EXCLUDE:
                 switch (tabContent->getVolumeSliceDrawingType()) {
                     case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
                     {
@@ -244,10 +244,10 @@ SamplesDrawingSettings::getLowSliceIndex() const
     }
     
     switch (m_drawingMode) {
-        case SamplesDrawingModeEnum::ALL:
+        case SamplesDrawingModeEnum::ALL_SLICES:
             m_lowSliceIndex = minValue;
             break;
-        case SamplesDrawingModeEnum::CUSTOM:
+        case SamplesDrawingModeEnum::EXCLUDE:
             break;
     }
     
@@ -272,10 +272,10 @@ SamplesDrawingSettings::getHighSliceIndex() const
     }
     
     switch (m_drawingMode) {
-        case SamplesDrawingModeEnum::ALL:
+        case SamplesDrawingModeEnum::ALL_SLICES:
             m_highSliceIndex = maxValue;
             break;
-        case SamplesDrawingModeEnum::CUSTOM:
+        case SamplesDrawingModeEnum::EXCLUDE:
             break;
     }
     

@@ -146,19 +146,25 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_samplesDrawingModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated);
     
+    const QString lowerToolTip("<html>Inhibit drawing on slices starting from bottom-right</html>");
     m_lowerSliceOffsetLabel = new QLabel("Lower");
+    m_lowerSliceOffsetLabel->setToolTip(lowerToolTip);
     m_lowerSliceOffsetSpinBox = new QSpinBox();
     m_lowerSliceOffsetSpinBox->setMinimum(0);
     m_lowerSliceOffsetSpinBox->setMaximum(99);
     m_lowerSliceOffsetSpinBox->setSingleStep(1);
+    m_lowerSliceOffsetSpinBox->setToolTip(lowerToolTip);
     QObject::connect(m_lowerSliceOffsetSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &AnnotationSamplesInsertNewWidget::lowerSliceOffsetSpinBoxValueChanged);
     
+    const QString upperToolTip("<html>Inhibit drawing on slices starting from top-left</html>");
     m_upperSliceOffsetLabel = new QLabel("Upper");
+    m_upperSliceOffsetLabel->setToolTip(upperToolTip);
     m_upperSliceOffsetSpinBox = new QSpinBox();
     m_upperSliceOffsetSpinBox->setMinimum(0);
     m_upperSliceOffsetSpinBox->setMaximum(99);
     m_upperSliceOffsetSpinBox->setSingleStep(1);
+    m_upperSliceOffsetSpinBox->setToolTip(upperToolTip);
     QObject::connect(m_upperSliceOffsetSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &AnnotationSamplesInsertNewWidget::upperSliceOffsetSpinBoxValueChanged);
     
@@ -254,9 +260,9 @@ AnnotationSamplesInsertNewWidget::updateContent()
             
             bool enableIndexSpinBoxesFlag(false);
             switch (drawingMode) {
-                case SamplesDrawingModeEnum::ALL:
+                case SamplesDrawingModeEnum::ALL_SLICES:
                     break;
-                case SamplesDrawingModeEnum::CUSTOM:
+                case SamplesDrawingModeEnum::EXCLUDE:
                     enableIndexSpinBoxesFlag = true;
                     break;
             }
@@ -264,12 +270,21 @@ AnnotationSamplesInsertNewWidget::updateContent()
             m_lowerSliceOffsetSpinBox->setEnabled(enableIndexSpinBoxesFlag);
             m_upperSliceOffsetLabel->setEnabled(enableIndexSpinBoxesFlag);
             m_upperSliceOffsetSpinBox->setEnabled(enableIndexSpinBoxesFlag);
+
+            EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
+                                                              m_browserWindowIndex);
+            EventManager::get()->sendEvent(annDrawEvent.getPointer());
+            const bool noDrawingFlag(annDrawEvent.getAnnotation() == NULL);
+            m_samplesDrawingModeEnumComboBox->getWidget()->setEnabled(noDrawingFlag);
+            const bool enableRangeFlag((drawingMode == SamplesDrawingModeEnum::EXCLUDE)
+                                        && noDrawingFlag);
+            m_lowerSliceOffsetLabel->setEnabled(enableRangeFlag);
+            m_lowerSliceOffsetSpinBox->setEnabled(enableRangeFlag);
+            m_upperSliceOffsetLabel->setEnabled(enableRangeFlag);
+            m_upperSliceOffsetSpinBox->setEnabled(enableRangeFlag);
         }
     }
     
-    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
-                                                      m_browserWindowIndex);
-    EventManager::get()->sendEvent(annDrawEvent.getPointer());
     
     m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel.get());
         

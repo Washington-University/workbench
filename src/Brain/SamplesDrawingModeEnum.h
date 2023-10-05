@@ -36,9 +36,9 @@ public:
      */
     enum Enum {
         /** All displayed slices */
-        ALL,
-        /** Custom slice range */
-        CUSTOM
+        ALL_SLICES,
+        /** Exclude slice range */
+        EXCLUDE
     };
 
 
