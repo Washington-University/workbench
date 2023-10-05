@@ -1304,6 +1304,13 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
              */
             setViewingTransformation(sliceViewPlane,
                                      mprSliceView);
+            
+            /*
+             * Only set for two-d view, 3D view (VIEW -> ALL) is set when surfaces are drawn
+             */
+            m_fixedPipelineDrawing->setupScaleBarDrawingInformation(m_browserTabContent,
+                                                                    m_orthographicBounds[0],
+                                                                    m_orthographicBounds[1]);
             break;
     }
 
