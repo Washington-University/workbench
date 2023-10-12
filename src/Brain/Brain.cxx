@@ -123,6 +123,7 @@
 #include "PaletteGroupUserCustomPalettes.h"
 #include "RgbaFile.h"
 #include "SamplesFile.h"
+#include "SamplesMetaDataManager.h"
 #include "Scene.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -9156,6 +9157,14 @@ Brain::getActiveScene() const
     return m_activeScene;
 }
 
-
-
+SamplesMetaDataManager*
+Brain::getSamplesMetaDataManager() const
+{
+    if ( ! m_samplesMetaDataManager) {
+        m_samplesMetaDataManager.reset(new SamplesMetaDataManager());
+    }
+    
+    CaretAssert(m_samplesMetaDataManager);
+    return m_samplesMetaDataManager.get();
+}
 

@@ -65,6 +65,8 @@
 #include "CziImageFile.h"
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
+#include "DingOntologyTermsDialog.h"
+#include "DingOntologyTermsFile.h"
 #include "DisplayPropertiesImages.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
@@ -99,6 +101,7 @@
 #include "ProgressReportingDialog.h"
 #include "RecentFilesDialog.h"
 #include "RecentSceneMenu.h"
+#include "SamplesMetaDataManager.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -1739,6 +1742,10 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDevelopCziFileTransformTesting()));
+    
+    m_developerShowDingOntologyTermsDialogAction = new QAction("Ding Ontology Terms...");
+    QObject::connect(m_developerShowDingOntologyTermsDialogAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processDevelopShowDingOntologyTermsDialog);
 }
 
 /**
@@ -1798,7 +1805,9 @@ BrainBrowserWindow::createMenuDevelop()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(developerMenuAboutToShow()));
     
-        
+    menu->addAction(m_developerShowDingOntologyTermsDialogAction);
+    menu->addSeparator();
+    
     const bool showPaletteEditorFlag(false);
     if (showPaletteEditorFlag) {
         menu->addAction(m_dataPaletteEditorDialogAction);
@@ -3004,6 +3013,25 @@ BrainBrowserWindow::processDevelopExportVtkFile()
         else {
             WuQMessageBox::errorOk(this, "Displayed model does not support exporting to VTK File at this time.");
         }
+    }
+}
+
+/**
+ * Show the ding ontology terms dialog
+ */
+void
+BrainBrowserWindow::processDevelopShowDingOntologyTermsDialog()
+{
+    const SamplesMetaDataManager* samplesMetaDataManager(GuiManager::get()->getBrain()->getSamplesMetaDataManager());
+    CaretAssert(samplesMetaDataManager);
+    const DingOntologyTermsFile* dingOntologyTermsFile(samplesMetaDataManager->getDingOntologyTermsFile());
+    if (dingOntologyTermsFile != NULL) {
+        DingOntologyTermsDialog dingDialog(dingOntologyTermsFile,
+                                           this);
+        dingDialog.exec();
+    }
+    else {
+        WuQMessageBox::errorOk(this, "Ding ontology terms file is invalid");
     }
 }
 

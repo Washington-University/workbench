@@ -30,6 +30,7 @@
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QTextEdit>
@@ -55,6 +56,8 @@
 #include "CaretLogger.h"
 #include "CaretPointer.h"
 #include "DataFileException.h"
+#include "DingOntologyTermsDialog.h"
+#include "DingOntologyTermsFile.h"
 #include "DisplayPropertiesAnnotation.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileAdd.h"
@@ -68,6 +71,7 @@
 #include "ModelVolume.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
+#include "SamplesMetaDataManager.h"
 #include "SelectionItemVoxel.h"
 #include "WuQtUtilities.h"
 #include "WuQMessageBox.h"
@@ -118,6 +122,10 @@ m_annotation(annotation),
 m_viewportHeight(viewportHeight),
 m_volumeSliceThickness(volumeSliceThickness)
 {
+    m_samplesMetaDataManager = GuiManager::get()->getBrain()->getSamplesMetaDataManager();
+    CaretAssert(m_samplesMetaDataManager);
+    m_dingOntologyTermsFile = m_samplesMetaDataManager->getDingOntologyTermsFile();
+
     CaretAssert(m_annotationFile);
     CaretAssert(m_annotation);
     
@@ -219,10 +227,21 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
     m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata");
     m_metaDataRequiredCheckBox->setChecked(s_previousMetaDataRequiredCheckedStatus);
     
+    QPushButton* dingButton(new QPushButton("Ding..."));
+    QObject::connect(dingButton, &QPushButton::clicked,
+                     this, &AnnotationSamplesCreateDialog::selectDingOntologyNameButtonClicked);
+    if (m_dingOntologyTermsFile == NULL) {
+        dingButton->setEnabled(false);
+    }
+    else if (m_dingOntologyTermsFile->isEmpty()) {
+        dingButton->setEnabled(false);
+    }
+    
     QGroupBox* groupBox(new QGroupBox("Metadata"));
     QVBoxLayout* groupLayout = new QVBoxLayout(groupBox);
     groupLayout->addWidget(m_metaDataEditorWidget);
     groupLayout->addWidget(m_metaDataRequiredCheckBox, 0, Qt::AlignLeft);
+    groupLayout->addWidget(dingButton);
     
     return groupBox;
 }
@@ -353,6 +372,16 @@ AnnotationSamplesCreateDialog::selectImageButtonClicked()
     }
 }
 
+/**
+ * Called to select a ding ontololgy term
+ */
+void
+AnnotationSamplesCreateDialog::selectDingOntologyNameButtonClicked()
+{
+    DingOntologyTermsDialog dingDialog(m_dingOntologyTermsFile,
+                                       this);
+    dingDialog.exec();
+}
 
 /**
  * Gets called when the OK button is clicked.

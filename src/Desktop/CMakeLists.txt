@@ -43,6 +43,7 @@ ENDIF (UNIX)
 # Help can be excluded
 #
 SET (RESOURCES_QRC_FILE
+     ../Resources/Data/data_resources.qrc
      ../Resources/General/general_resources.qrc
      ../Resources/Gui/gui_resources.qrc)
 IF (WORKBENCH_INCLUDE_HELP_HTML_RESOURCES)

@@ -26,7 +26,10 @@ set (EXE_NAME wb_command)
 #
 # Resources
 #
-SET (RESOURCES_QRC_FILE ../Resources/General/general_resources.qrc)
+SET (RESOURCES_QRC_FILE 
+   ../Resources/Data/data_resources.qrc
+   ../Resources/General/general_resources.qrc)
+
 IF (Qt6_FOUND)
     QT6_ADD_RESOURCES(IMAGE_RCS_SRCS ${RESOURCES_QRC_FILE})
 ENDIF (Qt6_FOUND)

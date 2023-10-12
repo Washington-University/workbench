@@ -73,6 +73,7 @@ CiftiParcelReorderingModel.h
 CiftiParcelSeriesFile.h
 CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
+CommaSeparatedValuesFile.h
 ConnectivityDataLoaded.h
 ControlPointFile.h
 CziDistanceFile.h
@@ -84,6 +85,7 @@ CziImageResolutionChangeModeEnum.h
 CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
+DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h
@@ -242,6 +244,7 @@ CiftiParcelReorderingModel.cxx
 CiftiParcelSeriesFile.cxx
 CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
+CommaSeparatedValuesFile.cxx
 ConnectivityDataLoaded.cxx
 ControlPointFile.cxx
 CziDistanceFile.cxx
@@ -253,6 +256,7 @@ CziImageResolutionChangeModeEnum.cxx
 CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
+DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventCaretMappableDataFilesGet.cxx

@@ -38,9 +38,11 @@ class QTextEdit;
 namespace caret {
     class Annotation;
     class AnnotationFile;
+    class DingOntologyTermsFile;
     class GiftiMetaData;
     class MetaDataCustomEditorWidget;
     class MouseEvent;
+    class SamplesMetaDataManager;
 
     class AnnotationSamplesCreateDialog : public WuQDialogModal {
         
@@ -70,6 +72,8 @@ namespace caret {
 
     private slots:
         void selectImageButtonClicked();
+        
+        void selectDingOntologyNameButtonClicked();
         
     private:
         QWidget* createTextWidget();
@@ -119,6 +123,10 @@ namespace caret {
         std::unique_ptr<GiftiMetaData> m_annotationMetaData;
         
         std::vector<AString> m_requiredMetaDataNames;
+        
+        SamplesMetaDataManager* m_samplesMetaDataManager = NULL;
+
+        const DingOntologyTermsFile* m_dingOntologyTermsFile = NULL;
         
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         

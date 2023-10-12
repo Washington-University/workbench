@@ -250,6 +250,7 @@ namespace caret {
 
         void processDevelopExportVtkFile();
         void processDevelopCziFileTransformTesting();
+        void processDevelopShowDingOntologyTermsDialog();
         void developerMenuAboutToShow();
         
         void processProjectFoci();
@@ -442,6 +443,7 @@ namespace caret {
         QAction* m_developerGraphicsTimingDurationAction;
         QAction* m_developerExportVtkFileAction;
         QAction* m_developerCziFileTransformTestingAction;
+        QAction* m_developerShowDingOntologyTermsDialogAction;
         QAction* m_developerOpenMPTestingAction;
         
         QAction* m_overlayToolBoxAction;

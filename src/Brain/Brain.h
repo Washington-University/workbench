@@ -108,6 +108,7 @@ namespace caret {
     class PaletteGroupUserCustomPalettes;
     class RgbaFile;
     class SamplesFile;
+    class SamplesMetaDataManager;
     class SceneClassAssistant;
     class Scene;
     class SceneFile;
@@ -514,6 +515,8 @@ namespace caret {
                                                                                 AString& baseDirectoryOut) const;
         
         const Scene* getActiveScene() const;
+        
+        SamplesMetaDataManager* getSamplesMetaDataManager() const;
         
     private:
         /**
@@ -1013,6 +1016,9 @@ namespace caret {
         std::shared_ptr<PaletteGroupStandardPalettes> m_palettesStandardGroup;
         
         std::shared_ptr<PaletteGroupUserCustomPalettes> m_palettesUserCustomGroup;
+        
+        mutable std::unique_ptr<SamplesMetaDataManager> m_samplesMetaDataManager;
+        
     };
 
 } // namespace

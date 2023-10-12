@@ -192,6 +192,7 @@ OverlaySetArray.h
 ProjectionViewTypeEnum.h
 SamplesDrawingModeEnum.h
 SamplesDrawingSettings.h
+SamplesMetaDataManager.h
 SelectionItemDataTypeEnum.h
 SelectionItem.h
 SelectionItemAnnotation.h
@@ -419,6 +420,7 @@ OverlaySetArray.cxx
 ProjectionViewTypeEnum.cxx
 SamplesDrawingModeEnum.cxx
 SamplesDrawingSettings.cxx
+SamplesMetaDataManager.cxx
 SelectionItemDataTypeEnum.cxx
 SelectionItem.cxx
 SelectionItemAnnotation.cxx
