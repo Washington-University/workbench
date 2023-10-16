@@ -37,21 +37,35 @@ using namespace caret;
  * \ingroup Xml
  */
 
-/**
- * @return True if the metadata element with the given name supports pre-defined values
- */
-bool
-GiftiMetaDataElementValues::hasValuesForElement(const QString& metaDataName)
+GiftiMetaDataElementDataTypeEnum::Enum
+GiftiMetaDataElementValues::getDataTypeForElement(const QString& metaDataName)
 {
-    const QStringList valuesList(getValuesForElement(metaDataName));
-    return ( ! valuesList.isEmpty());
+    GiftiMetaDataElementDataTypeEnum::Enum dataType(GiftiMetaDataElementDataTypeEnum::TEXT);
+    
+    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE) {
+        dataType = GiftiMetaDataElementDataTypeEnum::DATE;
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT) {
+        dataType = GiftiMetaDataElementDataTypeEnum::COMMENT;
+    }
+    else if ((metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)
+             || (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID)) {
+        dataType = GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM;
+    }
+    else {
+        const QStringList valuesList(getValuesForElement(metaDataName));
+        if ( ! valuesList.isEmpty()) {
+            dataType = GiftiMetaDataElementDataTypeEnum::LIST;
+        }
+    }
+    return dataType;
 }
 
 /**
  * Any values defined here are automatically used in MetaDataCustomEditorWidget
  * and displayed as a list of radio buttons or a combo box depending upon the
  * number of elements.
- * 
+ *
  * @return A list of values that are valid for the given element. If the element
  * does not support pre-defined values, an empty list is returned.  A QStringList
  * is used since it

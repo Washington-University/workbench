@@ -24,10 +24,12 @@
 #include <map>
 #include <set>
 
+#include <QDate>
 #include <QWidget>
 #include "AString.h"
 
 class QComboBox;
+class QDateEdit;
 class QGridLayout;
 class QLabel;
 class QLineEdit;
@@ -79,18 +81,17 @@ namespace caret {
             const AString m_metaDataName;
             
             GiftiMetaData* m_metaData;
+
+            QComboBox* m_valueComboBox = NULL;
+            
+            QDateEdit* m_valueDateEdit = NULL;
             
             QLineEdit* m_valueLineEdit = NULL;
             
             QToolButton* m_toolButton = NULL;
+
+            static const QString s_dateFormatString;
         };
-        
-//        enum {
-//            COLUMN_DELETE = 0,
-//            COLUMN_NAME   = 1,
-//            COLUMN_VALUE  = 2,
-//            COLUMN_BUTTON = 3
-//        };
         
         MetaDataCustomEditorWidget(const MetaDataCustomEditorWidget&);
 
@@ -114,7 +115,10 @@ namespace caret {
     };
     
 #ifdef __META_DATA_CUSTOM_EDITOR_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    /**
+     * Format for date editing, 2 digits for day, 3 letters for month, 4 digits for year
+     */
+    const QString MetaDataCustomEditorWidget::MetaDataWidgetRow::s_dateFormatString = "dd MMM yyyy";
 #endif // __META_DATA_CUSTOM_EDITOR_WIDGET_DECLARE__
 
 } // namespace

@@ -24,6 +24,7 @@ endif()
 ADD_LIBRARY(Xml
 GiftiException.h
 GiftiMetaData.h
+GiftiMetaDataElementDataTypeEnum.h
 GiftiMetaDataElementValues.h
 GiftiMetaDataXmlElements.h
 GiftiXmlElements.h
@@ -40,6 +41,7 @@ XmlWriter.h
 
 GiftiException.cxx
 GiftiMetaData.cxx
+GiftiMetaDataElementDataTypeEnum.cxx
 GiftiMetaDataElementValues.cxx
 GiftiXmlElements.cxx
 

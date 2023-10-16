@@ -28,7 +28,7 @@
 #include <QStringList>
 
 #include "CaretObject.h"
-
+#include "GiftiMetaDataElementDataTypeEnum.h"
 
 
 namespace caret {
@@ -36,7 +36,7 @@ namespace caret {
     class GiftiMetaDataElementValues : public CaretObject {
         
     public:
-        static bool hasValuesForElement(const QString& metaDataName);
+        static GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForElement(const QString& metaDataName);
         
         static QStringList getValuesForElement(const QString& metaDataName);
         

@@ -26,6 +26,8 @@
 #include <set>
 
 #include <QAction>
+#include <QComboBox>
+#include <QDateEdit>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QComboBox>
@@ -158,7 +160,24 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
 {
     const QString metaDataValue(m_metaData->get(metaDataName));
     
-    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
+    bool dingFlag(false);
+    bool listPopupFlag(false);
+    switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
+        case GiftiMetaDataElementDataTypeEnum::COMMENT:
+            break;
+        case GiftiMetaDataElementDataTypeEnum::DATE:
+            break;
+        case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
+            dingFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LIST:
+            listPopupFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::TEXT:
+            break;
+    }
+    
+    if (dingFlag) {
         const SamplesMetaDataManager* smdm(GuiManager::get()->getBrain()->getSamplesMetaDataManager());
         CaretAssert(smdm);
         DingOntologyTermsDialog dotd(smdm->getDingOntologyTermsFile(),
@@ -167,16 +186,27 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             const QString shorthandID(dotd.getAbbreviatedName());
             const QString description(dotd.getDescriptiveName());
             
-            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
-                            shorthandID);
-            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
-                            description);
-            
-            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
-            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
+                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
+                                shorthandID);
+                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
+                                description);
+                
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
+            }
+            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
+                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
+                                shorthandID);
+                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
+                                description);
+                
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+            }
         }
     }
-    else {
+    else if (listPopupFlag) {
         QStringList dataSelectionValues;
         
         dataSelectionValues = GiftiMetaDataElementValues::getValuesForElement(metaDataName);
@@ -185,7 +215,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                            + metaDataName);
             CaretAssert(0);
         }
-            
+        
         if (dataSelectionValues.size() > 10) {
             WuQDataEntryDialog ded("Choose " + metaDataName,
                                    parentDialogWidget);
@@ -201,7 +231,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                     comboBox->setCurrentIndex(index);
                 }
             }
-
+            
             if (ded.exec() == WuQDataEntryDialog::Accepted) {
                 const QString value(comboBox->currentText().trimmed());
                 m_metaData->set(metaDataName,
@@ -240,7 +270,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                     m_metaData->set(metaDataName,
                                     value);
                     updateValueInMetaDataWidgetRow(metaDataName);
-
+                    
                     /*
                      * If sample type is "Tile" and sample ID is emtpy,
                      * set sample ID to T1
@@ -351,10 +381,57 @@ m_metaData(metaData)
     
     QLabel* nameLabel(new QLabel(metaDataName + ":"));
     
-    m_valueLineEdit = new QLineEdit();
+    m_valueComboBox = NULL;
+    m_valueDateEdit = NULL;
+    m_valueLineEdit = NULL;
     
     m_toolButton = NULL;
-    if (GiftiMetaDataElementValues::hasValuesForElement(metaDataName)) {
+    
+    const bool useComboBoxForListsFlag(true);
+    bool useComboBoxFlag(false);
+    bool useDateEditFlag(false);
+    bool useLineEditFlag(false);
+    bool useToolButtonFlag(false);
+    switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
+        case GiftiMetaDataElementDataTypeEnum::COMMENT:
+            CaretAssert(0); /* Should never get here */
+            break;
+        case GiftiMetaDataElementDataTypeEnum::DATE:
+            useDateEditFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
+            useLineEditFlag   = true;
+            useToolButtonFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LIST:
+            if (useComboBoxForListsFlag) {
+                useComboBoxFlag = true;
+            }
+            else {
+                useLineEditFlag   = true;
+                useToolButtonFlag = true;
+            }
+            break;
+        case GiftiMetaDataElementDataTypeEnum::TEXT:
+            useLineEditFlag   = true;
+            break;
+    }
+    
+    if (useComboBoxFlag) {
+        const QStringList comboBoxValuesList(GiftiMetaDataElementValues::getValuesForElement(metaDataName));
+        m_valueComboBox = new QComboBox();
+        m_valueComboBox->addItem(""); /* empty item for 'no value' */
+        m_valueComboBox->addItems(comboBoxValuesList);
+    }
+    if (useDateEditFlag) {
+        m_valueDateEdit = new QDateEdit();
+        m_valueDateEdit->setDisplayFormat(s_dateFormatString);
+        m_valueDateEdit->setCalendarPopup(true);
+    }
+    if (useLineEditFlag) {
+        m_valueLineEdit = new QLineEdit();
+    }
+    if (useToolButtonFlag) {
         m_toolButton = new QToolButton();
         m_toolButton->setText("Choose...");
         QObject::connect(m_toolButton, &QToolButton::clicked,
@@ -363,8 +440,18 @@ m_metaData(metaData)
     
     gridLayout->addWidget(nameLabel,
                           gridLayoutRow, gridLayoutNameColumn);
-    gridLayout->addWidget(m_valueLineEdit,
-                          gridLayoutRow, gridLayoutValueColumn);
+    if (m_valueComboBox != NULL) {
+        gridLayout->addWidget(m_valueComboBox,
+                              gridLayoutRow, gridLayoutValueColumn);
+    }
+    if (m_valueDateEdit != NULL) {
+        gridLayout->addWidget(m_valueDateEdit,
+                              gridLayoutRow, gridLayoutValueColumn);
+    }
+    if (m_valueLineEdit != NULL) {
+        gridLayout->addWidget(m_valueLineEdit,
+                              gridLayoutRow, gridLayoutValueColumn);
+    }
     if (m_toolButton != NULL) {
         gridLayout->addWidget(m_toolButton,
                               gridLayoutRow, gridLayoutButtonColumn);
@@ -385,8 +472,24 @@ void
 MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
 {
     CaretAssert(m_metaData);
-    const QString value(m_metaData->get(m_metaDataName));
-    m_valueLineEdit->setText(value);
+    const QString value(m_metaData->get(m_metaDataName).trimmed());
+    if (m_valueComboBox != NULL) {
+        int32_t itemIndex(m_valueComboBox->findData(value));
+        if (itemIndex < 0) {
+            itemIndex = 0;
+        }
+        CaretAssert(itemIndex >= 0);
+        if (itemIndex < m_valueComboBox->count()) {
+            m_valueComboBox->setCurrentIndex(itemIndex);
+        }
+    }
+    if (m_valueDateEdit != NULL) {
+        m_valueDateEdit->setDate(QDate::fromString(value,
+                                                   s_dateFormatString));
+    }
+    if (m_valueLineEdit != NULL) {
+        m_valueLineEdit->setText(value);
+    }
 }
 
 
@@ -407,7 +510,18 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::toolButtonClicked()
 void
 MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
 {
+    QString text;
+    if (m_valueComboBox != NULL) {
+        text = m_valueComboBox->currentText().trimmed();
+    }
+    if (m_valueDateEdit != NULL) {
+        const QDate date(m_valueDateEdit->date());
+        text = date.toString(s_dateFormatString);
+    }
+    if (m_valueLineEdit != NULL) {
+        text = m_valueLineEdit->text().trimmed();
+    }
     m_metaData->set(m_metaDataName,
-                    m_valueLineEdit->text().trimmed());
+                    text);
 }
 
