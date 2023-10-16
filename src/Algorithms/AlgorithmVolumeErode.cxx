@@ -211,7 +211,7 @@ AlgorithmVolumeErode::AlgorithmVolumeErode(ProgressObject* myProgObj, const Volu
             } else {
                 *(volOut->getMapPaletteColorMapping(i)) = *(volIn->getMapPaletteColorMapping(i));
             }
-            volOut->setMapName(i, volIn->getMapName(i) + " dilate " + AString::number(distance));
+            volOut->setMapName(i, volIn->getMapName(i) + " erode " + AString::number(distance));
         }
         for (int s = 0; s < myDims[3]; ++s)
         {
@@ -230,7 +230,7 @@ AlgorithmVolumeErode::AlgorithmVolumeErode(ProgressObject* myProgObj, const Volu
         } else {
             *(volOut->getMapPaletteColorMapping(0)) = *(volIn->getMapPaletteColorMapping(subvol));
         }
-        volOut->setMapName(0, volIn->getMapName(subvol) + " dilate " + AString::number(distance));
+        volOut->setMapName(0, volIn->getMapName(subvol) + " erode " + AString::number(distance));
         for (int c = 0; c < myDims[4]; ++c)
         {
             erodeFrame(volIn, subvol, c, distance, volOut, 0, roiVol);
