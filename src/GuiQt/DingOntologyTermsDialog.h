@@ -78,6 +78,8 @@ namespace caret {
                 
         void abbreviatedNameCompleterActivated(const QString& text);
         
+        void descriptiveNameCompleterActivated(const QString& text);
+        
         void abbeviatedTextLineEditChanged(const QString& text);
         
     private:
@@ -110,9 +112,13 @@ namespace caret {
         
         QLineEdit* m_descriptiveNameLineEdit = NULL;
         
-        QCompleter* m_abbreviatedNameCompleter;
+        QCompleter* m_abbreviatedNameCompleter = NULL;
+        
+        QCompleter* m_descriptiveNameCompleter = NULL;
         
         int32_t m_abbreviatedNameCompleterColumnIndex = -1;
+        
+        int32_t m_descriptiveNameCompleterColumnIndex = -1;
         
         // ADD_NEW_MEMBERS_HERE
 

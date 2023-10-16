@@ -27,9 +27,12 @@
 #include <QWidget>
 #include "AString.h"
 
+class QComboBox;
+class QGridLayout;
 class QLabel;
 class QLineEdit;
 class QTextEdit;
+class QToolButton;
 
 namespace caret {
 
@@ -52,34 +55,54 @@ namespace caret {
         void saveMetaData();
         
     private:
-        MetaDataCustomEditorWidget(const MetaDataCustomEditorWidget&);
-
-        MetaDataCustomEditorWidget& operator=(const MetaDataCustomEditorWidget&);
-        
-        enum {
-            COLUMN_DELETE = 0,
-            COLUMN_NAME   = 1,
-            COLUMN_VALUE  = 2
-        };
-
         class MetaDataWidgetRow {
         public:
-            MetaDataWidgetRow(const AString& metaDataName,
+            MetaDataWidgetRow(MetaDataCustomEditorWidget* editorWidget,
+                              QGridLayout* gridLayout,
+                              const int32_t gridLayoutRow,
+                              const int32_t gridLayoutNameColumn,
+                              const int32_t gridLayoutValueColumn,
+                              const int32_t gridLayoutButtonColumn,
+                              const AString& metaDataName,
                               GiftiMetaData* metaData);
             
             ~MetaDataWidgetRow();
             
             void saveToMetaData();
             
+            void toolButtonClicked();
+            
+            void updateValueWidget();
+            
+            MetaDataCustomEditorWidget* m_editorWidget = NULL;
+            
             const AString m_metaDataName;
             
             GiftiMetaData* m_metaData;
             
-            QLabel* m_nameLabel;
+            QLineEdit* m_valueLineEdit = NULL;
             
-            QLineEdit* m_valueLineEdit;
+            QToolButton* m_toolButton = NULL;
         };
+        
+//        enum {
+//            COLUMN_DELETE = 0,
+//            COLUMN_NAME   = 1,
+//            COLUMN_VALUE  = 2,
+//            COLUMN_BUTTON = 3
+//        };
+        
+        MetaDataCustomEditorWidget(const MetaDataCustomEditorWidget&);
 
+        MetaDataCustomEditorWidget& operator=(const MetaDataCustomEditorWidget&);
+        
+        MetaDataWidgetRow* getMetaDataWidgetRow(const QString& metaDataName);
+        
+        void updateValueInMetaDataWidgetRow(const QString& metaDataName);
+        
+        void metaDataButtonClicked(const AString& metaDataName,
+                                   QWidget* parentDialogWidget);
+        
         GiftiMetaData* m_metaData = NULL;
         
         std::vector<MetaDataWidgetRow*> m_metaDataWidgetRows;

@@ -93,6 +93,20 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     QObject::connect(m_abbreviatedNameCompleter, QOverload<const QString &>::of(&QCompleter::activated),
                      this, &DingOntologyTermsDialog::abbreviatedNameCompleterActivated);
     
+    const bool descriptiveNameCompleterFlag(false);
+    m_descriptiveNameCompleter = NULL;
+    if (descriptiveNameCompleterFlag) {
+        m_descriptiveNameCompleterColumnIndex = 2;
+        m_descriptiveNameCompleter = new QCompleter(this);
+        m_descriptiveNameCompleter->setModel(m_dingOntologyTermsFile->getTableModel());
+        m_descriptiveNameCompleter->setCompletionRole(Qt::EditRole);
+        m_descriptiveNameCompleter->setCompletionRole(m_dingOntologyTermsFile->getDescriptiveNameItemRole());
+        m_descriptiveNameCompleter->setCompletionColumn(m_descriptiveNameCompleterColumnIndex);
+        m_descriptiveNameCompleter->setCaseSensitivity(Qt::CaseInsensitive);
+        QObject::connect(m_descriptiveNameCompleter, QOverload<const QString &>::of(&QCompleter::activated),
+                         this, &DingOntologyTermsDialog::descriptiveNameCompleterActivated);
+    }
+    
 
     m_tabWidget = new QTabWidget();
     m_treeViewTabIndex  = m_tabWidget->addTab(treeWidget, "Hierarchy");
@@ -102,12 +116,17 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     
     QLabel* abbreviatedNameLabel(new QLabel(DingOntologyTermsFile::getAbbreviatedNameTitle() + ":"));
     m_abbreviatedNameLineEdit = new QLineEdit();
-    m_abbreviatedNameLineEdit->setCompleter(m_abbreviatedNameCompleter);
+    if (m_abbreviatedNameCompleter != NULL) {
+        m_abbreviatedNameLineEdit->setCompleter(m_abbreviatedNameCompleter);
+    }
     QObject::connect(m_abbreviatedNameLineEdit, &QLineEdit::textChanged,
                      this, &DingOntologyTermsDialog::abbeviatedTextLineEditChanged);
     
     QLabel* descriptiveNameLabel(new QLabel(DingOntologyTermsFile::getDescriptiveNameTitle() + ":"));
     m_descriptiveNameLineEdit  = new QLineEdit();
+    if (m_descriptiveNameCompleter != NULL) {
+        m_descriptiveNameLineEdit->setCompleter(m_descriptiveNameCompleter);
+    }
     
     QGridLayout* namesLayout(new QGridLayout());
     namesLayout->setColumnStretch(0, 0);
@@ -266,6 +285,78 @@ DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
         QList<QStandardItem*> matchingItems(tableModel->findItems(text,
                                                                   Qt::MatchStartsWith,
                                                                   m_abbreviatedNameCompleterColumnIndex));
+        if (matchingItems.size() == 1) {
+            /*
+             * Update the line edits with selected names
+             */
+            const QStandardItem* item(matchingItems.first());
+            const QString abbrevName(m_dingOntologyTermsFile->getAbbreviatedName(item));
+            const QString descripName(m_dingOntologyTermsFile->getDescriptiveName(item));
+            m_abbreviatedNameLineEdit->setText(abbrevName);
+            m_descriptiveNameLineEdit->setText(descripName);
+            
+            /*
+             * Select row in the table model
+             */
+            m_tableView->selectRow(item->row());
+        }
+    }
+    
+    /*
+     * Highlighting item in tree does not work at this time
+     */
+    const bool highlightMatchingTreeModelItemFlag(false);
+    if (highlightMatchingTreeModelItemFlag) {
+        const QStandardItemModel* treeModel(m_dingOntologyTermsFile->getTreeModel());
+        if (treeModel != NULL) {
+            const int32_t numCols(treeModel->columnCount());
+            for (int32_t iCol = 0; iCol < numCols; iCol++) {
+                QList<QStandardItem*> matchingItems(treeModel->findItems(text,
+                                                                         Qt::MatchStartsWith | Qt::MatchRecursive,
+                                                                         iCol));
+                if (matchingItems.size() == 1) {
+                    const QStandardItem* item(matchingItems.first());
+                    m_treeView->scrollTo(item->index());
+                    
+                    std::cout << "Tree view item in row " << item->row() << " column " << iCol << std::endl;
+                    break;
+                }
+                if ( ! matchingItems.isEmpty()) {
+                    std::cout << "Table matched " << matchingItems.size() << " items" << std::endl;
+                    for (int32_t i = 0; i < matchingItems.size(); i++) {
+                        std::cout << matchingItems[i]->index().row() <<
+                        ", " << matchingItems[i]->column() << std::endl;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Called when the user chooses an item in the descriptive name completer
+ * @param Text
+ *    Text that was selected
+ */
+void
+DingOntologyTermsDialog::descriptiveNameCompleterActivated(const QString& text)
+{
+    const QStandardItemModel* tableModel(m_dingOntologyTermsFile->getTableModel());
+    if (tableModel != NULL) {
+        /*
+         * We need to use Qt::MatchStartsWith because we match to
+         * getAbbreviatedNameItemRole() which only contains the abbreviated name
+         * BUT the completions are in the third column and contain the
+         * abbreviated name followed by the descriptive name.
+         */
+        QList<QStandardItem*> matchingItems(tableModel->findItems(text,
+                                                                  //Qt::MatchWildcard,
+                                                                  Qt::MatchContains,
+//                                                                  Qt::MatchStartsWith,
+                                                                  m_descriptiveNameCompleterColumnIndex));
+        if ( ! matchingItems.empty()) {
+            std::cout << "Descriptive matched " << matchingItems.size() << " items" << std::endl;
+        }
         if (matchingItems.size() == 1) {
             /*
              * Update the line edits with selected names

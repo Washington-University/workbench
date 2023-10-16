@@ -212,13 +212,31 @@ namespace GiftiMetaDataXmlElements {
     /** name of histogram number of buckets */
     static const AString HISTOGRAM_NUMBER_OF_BUCKETS = "HistogramNumberOfBuckets";
     
+    static const AString SAMPLES_ALT_SHORTHAND_ID = "Alt_Shorthand_id";
+    
+    static const AString SAMPLES_ALT_ATLAS_DESCRIPTION = "Alt_Atlas_description";
+    
     static const AString SAMPLES_CASE_ID = "Case_id";
+    
+    static const AString SAMPLES_DING_DESCRIPTION = "Ding_description";
+    
+    static const AString SAMPLES_DISSECTION_DATE = "Dissection_date";
+    
+    static const AString SAMPLES_DONOR_ID = "Donor_id";
+    
+    static const AString SAMPLES_LOCATION_ID = "Location";
+    
+    static const AString SAMPLES_SAMPLE_ID = "Sample_id";
+
+    static const AString SAMPLES_SAMPLE_SLAB_FACE = "Slab_face";
+    
+    static const AString SAMPLES_SAMPLE_TYPE = "Sample_type";
+
+    static const AString SAMPLES_SHORTHAND_ID = "Shorthand_id";
     
     static const AString SAMPLES_SLAB_ID = "Slab_id";
     
-    static const AString SAMPLES_SAMPLE_ID = "Sample_id";
-    
-    static const AString SAMPLES_LOCATION_ID = "Location";
+    static const AString SAMPLES_STRUCTURE = "Structure";
     
 
 } // namespace

@@ -62,6 +62,8 @@ namespace caret {
 
         int32_t getAbbreviatedNameItemRole() const;
         
+        int32_t getDescriptiveNameItemRole() const;
+        
         /** @return Title for the abbreviated name data */
         static QString getAbbreviatedNameTitle() { return "Abbreviation"; }
 

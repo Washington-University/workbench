@@ -1802,9 +1802,18 @@ Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annota
         case AnnotationTypeEnum::POLYHEDRON:
             if (polyhedronSamplesFlag) {
                 names.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DONOR_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_STRUCTURE);
                 names.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE);
                 names.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
+                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
                 names.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
             }
             break;

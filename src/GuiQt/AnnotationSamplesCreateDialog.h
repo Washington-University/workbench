@@ -29,20 +29,13 @@
 #include "UserInputModeEnum.h"
 #include "WuQDialogModal.h"
 
-class QButtonGroup;
 class QCheckBox;
-class QDoubleSpinBox;
-class QSpinBox;
-class QTextEdit;
 
 namespace caret {
     class Annotation;
     class AnnotationFile;
-    class DingOntologyTermsFile;
     class GiftiMetaData;
     class MetaDataCustomEditorWidget;
-    class MouseEvent;
-    class SamplesMetaDataManager;
 
     class AnnotationSamplesCreateDialog : public WuQDialogModal {
         
@@ -70,19 +63,8 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-    private slots:
-        void selectImageButtonClicked();
-        
-        void selectDingOntologyNameButtonClicked();
-        
     private:
-        QWidget* createTextWidget();
-        
-        QWidget* createImageWidget();
-        
         QWidget* createMetaDataEditorWidget();
-        
-        void invalidateImage();
         
         static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
                                              AnnotationFile* annotationFile,
@@ -106,16 +88,6 @@ namespace caret {
         
         AnnotationTypeEnum::Enum m_annotationType;
         
-        QTextEdit* m_textEdit = NULL;
-        
-        QLabel* m_imageFileNameLabel = NULL;
-        
-        QLabel* m_imageThumbnailLabel = NULL;
-        
-        std::vector<uint8_t> m_imageRgbaBytes;
-        int32_t m_imageWidth  = 0;
-        int32_t m_imageHeight = 0;
-        
         MetaDataCustomEditorWidget* m_metaDataEditorWidget = NULL;
         
         QCheckBox* m_metaDataRequiredCheckBox = NULL;
@@ -123,10 +95,6 @@ namespace caret {
         std::unique_ptr<GiftiMetaData> m_annotationMetaData;
         
         std::vector<AString> m_requiredMetaDataNames;
-        
-        SamplesMetaDataManager* m_samplesMetaDataManager = NULL;
-
-        const DingOntologyTermsFile* m_dingOntologyTermsFile = NULL;
         
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
         

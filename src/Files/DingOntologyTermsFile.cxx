@@ -87,6 +87,14 @@ DingOntologyTermsFile::getAbbreviatedNameItemRole() const
     return m_abbreviatedNameItemRole;
 }
 
+/**
+ * @return Role value for the descriptive name
+ */
+int32_t
+DingOntologyTermsFile::getDescriptiveNameItemRole() const
+{
+    return m_descriptiveNameItemRole;
+}
 
 /**
  * Create the standard item model that can be loaded into a QTreeView

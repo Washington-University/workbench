@@ -28,19 +28,29 @@
 #include <QAction>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QSignalMapper>
+#include <QStackedWidget>
 #include <QTextDocument>
 #include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "DingOntologyTermsDialog.h"
 #include "GiftiMetaData.h"
+#include "GiftiMetaDataElementValues.h"
 #include "GiftiMetaDataXmlElements.h"
+#include "GuiManager.h"
+#include "SamplesMetaDataManager.h"
+#include "StructureEnum.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -74,6 +84,7 @@ m_metaData(metaData)
     bool hasCommentMetaDataFlag(false);
     const int32_t COLUMN_LABEL(0);
     const int32_t COLUMN_VALUE(1);
+    const int32_t COLUMN_BUTTON(2);
     int32_t rowIndex(0);
     QGridLayout* gridLayout(new QGridLayout(this));
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
@@ -84,14 +95,16 @@ m_metaData(metaData)
             hasCommentMetaDataFlag = true;
         }
         else {
-            MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(name,
+            MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(this,
+                                                          gridLayout,
+                                                          rowIndex,
+                                                          COLUMN_LABEL,
+                                                          COLUMN_VALUE,
+                                                          COLUMN_BUTTON,
+                                                          name,
                                                           m_metaData));
+            mdwr->updateValueWidget();
             m_metaDataWidgetRows.push_back(mdwr);
-            
-            gridLayout->addWidget(mdwr->m_nameLabel,
-                                  rowIndex, COLUMN_LABEL);
-            gridLayout->addWidget(mdwr->m_valueLineEdit,
-                                  rowIndex, COLUMN_VALUE);
             ++rowIndex;
         }
     }
@@ -104,7 +117,7 @@ m_metaData(metaData)
         gridLayout->addWidget(commentLabel,
                               rowIndex, COLUMN_LABEL);
         gridLayout->addWidget(m_commentTextEditor,
-                              rowIndex, COLUMN_VALUE);
+                              rowIndex, COLUMN_VALUE, 1, 2);
         ++rowIndex;
     }
 }
@@ -133,6 +146,156 @@ MetaDataCustomEditorWidget::saveMetaData()
 }
 
 /**
+ * Called when the user clicks a meta data button
+ * @param metaDataName
+ *    Name of metadata element
+ * @param parentDialogWidget
+ *    Parent for any dialogs
+ */
+void
+MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
+                                                  QWidget* parentDialogWidget)
+{
+    const QString metaDataValue(m_metaData->get(metaDataName));
+    
+    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
+        const SamplesMetaDataManager* smdm(GuiManager::get()->getBrain()->getSamplesMetaDataManager());
+        CaretAssert(smdm);
+        DingOntologyTermsDialog dotd(smdm->getDingOntologyTermsFile(),
+                                     this);
+        if (dotd.exec() == DingOntologyTermsDialog::Accepted) {
+            const QString shorthandID(dotd.getAbbreviatedName());
+            const QString description(dotd.getDescriptiveName());
+            
+            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
+                            shorthandID);
+            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
+                            description);
+            
+            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
+            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+        }
+    }
+    else {
+        QStringList dataSelectionValues;
+        
+        dataSelectionValues = GiftiMetaDataElementValues::getValuesForElement(metaDataName);
+        if (dataSelectionValues.empty()) {
+            CaretLogSevere("Metadata not supported for selection: "
+                           + metaDataName);
+            CaretAssert(0);
+        }
+            
+        if (dataSelectionValues.size() > 10) {
+            WuQDataEntryDialog ded("Choose " + metaDataName,
+                                   parentDialogWidget);
+            QComboBox* comboBox(ded.addComboBox("Choose", dataSelectionValues));
+            
+            /*
+             * Initialize combo box with metadata value selected
+             */
+            if ( ! metaDataValue.isEmpty()) {
+                const int32_t index(comboBox->findText(metaDataValue,
+                                                       Qt::MatchFixedString));
+                if (index >= 0) {
+                    comboBox->setCurrentIndex(index);
+                }
+            }
+
+            if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                const QString value(comboBox->currentText().trimmed());
+                m_metaData->set(metaDataName,
+                                value);
+                updateValueInMetaDataWidgetRow(metaDataName);
+                
+                /*
+                 * If sample type is "Tile" and sample ID is emtpy,
+                 * set sample ID to T1
+                 */
+                if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
+                    if (value == "Tile") {
+                        const QString sampleIdText(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
+                        if (sampleIdText.isEmpty()) {
+                            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
+                                            "T1");
+                            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+                        }
+                    }
+                }
+            }
+        }
+        else if (dataSelectionValues.size() > 0) {
+            WuQDataEntryDialog ded("Choose " + metaDataName,
+                                   parentDialogWidget);
+            for (const QString& text : dataSelectionValues) {
+                const bool defaultButtonFlag(text == metaDataValue);
+                ded.addRadioButton(text,
+                                   defaultButtonFlag);
+            }
+            if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                const int32_t buttonIndex(ded.getRadioButtonSelected());
+                if (buttonIndex >= 0) {
+                    CaretAssert(buttonIndex < dataSelectionValues.size());
+                    const QString value(dataSelectionValues[buttonIndex]);
+                    m_metaData->set(metaDataName,
+                                    value);
+                    updateValueInMetaDataWidgetRow(metaDataName);
+
+                    /*
+                     * If sample type is "Tile" and sample ID is emtpy,
+                     * set sample ID to T1
+                     */
+                    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
+                        if (value == "Tile") {
+                            const QString sampleIdText(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
+                            if (sampleIdText.isEmpty()) {
+                                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
+                                                "T1");
+                                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Update the value in the meta data widget row with the given name
+ * @param metaDataName
+ *    The metadata name
+ */
+void
+MetaDataCustomEditorWidget::updateValueInMetaDataWidgetRow(const QString& metaDataName)
+{
+    MetaDataWidgetRow* mdwr(getMetaDataWidgetRow(metaDataName));
+    if (mdwr != NULL) {
+        mdwr->updateValueWidget();
+    }
+    else {
+        CaretLogSevere("Failed to find metadata widget row with name: "
+                       + metaDataName);
+    }
+}
+
+/**
+ * @return Metadata widget row with the given name
+ * @param metaDataName
+ *
+ */
+MetaDataCustomEditorWidget::MetaDataWidgetRow*
+MetaDataCustomEditorWidget::getMetaDataWidgetRow(const QString& metaDataName)
+{
+    for (MetaDataWidgetRow* mdwr : m_metaDataWidgetRows) {
+        if (mdwr->m_metaDataName == metaDataName) {
+            return mdwr;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Validate the the required metadata (values must not be empty)
  * @param requiredMetaDataNames
  *    Names of required metadata
@@ -153,27 +316,89 @@ MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AS
 
 /**
  * Constructor.
+ * @param editorWidget
+ *    Editor widget that contains this metadata row
+ * @param gridLayout
+ *    The grid layout for widgets
+ * @param gridLayoutRow
+ *    Row in the grid layout
+ * @param gridLayoutNameColumn
+ *    Column for the name
+ * @param gridLayoutValueColumn
+ *    Column for the value
+ * @param gridLayoutButtonColumn
+ *    Column for button
  * @param metaDataName
  *   The  name of the metadata
  * @param metaData
  *   The metadata.
  */
-MetaDataCustomEditorWidget::MetaDataWidgetRow::MetaDataWidgetRow(const AString& metaDataName,
+MetaDataCustomEditorWidget::MetaDataWidgetRow::MetaDataWidgetRow(MetaDataCustomEditorWidget* editorWidget,
+                                                                 QGridLayout* gridLayout,
+                                                                 const int32_t gridLayoutRow,
+                                                                 const int32_t gridLayoutNameColumn,
+                                                                 const int32_t gridLayoutValueColumn,
+                                                                 const int32_t gridLayoutButtonColumn,
+                                                                 const AString& metaDataName,
                                                                  GiftiMetaData* metaData)
-: m_metaDataName(metaDataName),
+: m_editorWidget(editorWidget),
+m_metaDataName(metaDataName),
 m_metaData(metaData)
 {
     CaretAssert(m_metaData);
     
-    m_nameLabel = new QLabel(metaDataName + ":");
+    const QString value(metaData->get(metaDataName));
+    
+    QLabel* nameLabel(new QLabel(metaDataName + ":"));
     
     m_valueLineEdit = new QLineEdit();
-    m_valueLineEdit->setText(metaData->get(metaDataName));
+    
+    m_toolButton = NULL;
+    if (GiftiMetaDataElementValues::hasValuesForElement(metaDataName)) {
+        m_toolButton = new QToolButton();
+        m_toolButton->setText("Choose...");
+        QObject::connect(m_toolButton, &QToolButton::clicked,
+                         [=]() { toolButtonClicked(); });
+    }
+    
+    gridLayout->addWidget(nameLabel,
+                          gridLayoutRow, gridLayoutNameColumn);
+    gridLayout->addWidget(m_valueLineEdit,
+                          gridLayoutRow, gridLayoutValueColumn);
+    if (m_toolButton != NULL) {
+        gridLayout->addWidget(m_toolButton,
+                              gridLayoutRow, gridLayoutButtonColumn);
+    }
 }
 
+/**
+ * Destructor
+ */
 MetaDataCustomEditorWidget::MetaDataWidgetRow::~MetaDataWidgetRow()
 {
-    
+}
+
+/**
+ * Update the value widget with the value from the metadata
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
+{
+    CaretAssert(m_metaData);
+    const QString value(m_metaData->get(m_metaDataName));
+    m_valueLineEdit->setText(value);
+}
+
+
+/**
+ * Called when the tool button is clicked
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::toolButtonClicked()
+{
+    CaretAssert(m_editorWidget);
+    m_editorWidget->metaDataButtonClicked(m_metaDataName,
+                                          m_toolButton);
 }
 
 /**
