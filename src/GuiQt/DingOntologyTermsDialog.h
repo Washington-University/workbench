@@ -25,11 +25,13 @@
 
 #include <memory>
 
+#include <QModelIndex>
+
 #include "WuQDialogModal.h"
 
 class QCompleter;
 class QLineEdit;
-class QModelIndex;
+class QSpinBox;
 class QStandardItem;
 class QStandardItemModel;
 class QTabWidget;
@@ -72,6 +74,10 @@ namespace caret {
         
         void tableViewItemDoubleClicked(const QModelIndex& index);
         
+        void treeViewExpandToLevelSpinBoxValueChanged(int value);
+        
+        void treeViewItemExpanded(const QModelIndex& index);
+        
         void treeViewItemClicked(const QModelIndex& index);
         
         void treeViewItemDoubleClicked(const QModelIndex& index);
@@ -96,6 +102,8 @@ namespace caret {
         
         void setAbbreviatedAndDescriptiveNameLineEdits(const QStandardItem* item);
         
+        int32_t getTreeViewItemDepth(const QModelIndex& index) const;
+        
         const DingOntologyTermsFile* m_dingOntologyTermsFile;
     
         int32_t m_tableViewTabIndex = -1;
@@ -107,6 +115,8 @@ namespace caret {
         QTableView* m_tableView = NULL;
         
         QTreeView* m_treeView = NULL;
+        
+        QSpinBox* m_treeViewExpandToLevelSpinBox = NULL;
         
         QLineEdit* m_abbreviatedNameLineEdit = NULL;
         
@@ -120,12 +130,17 @@ namespace caret {
         
         int32_t m_descriptiveNameCompleterColumnIndex = -1;
         
+        static QModelIndex s_previousSelectedModelIndex;
+        
+        static int32_t s_previousTreeViewExpansionDepth;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __DING_ONTOLOGY_TERMS_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int32_t DingOntologyTermsDialog::s_previousTreeViewExpansionDepth = 1;
+    QModelIndex DingOntologyTermsDialog::s_previousSelectedModelIndex;
 #endif // __DING_ONTOLOGY_TERMS_DIALOG_DECLARE__
 
 } // namespace

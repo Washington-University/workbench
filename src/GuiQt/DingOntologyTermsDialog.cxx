@@ -23,12 +23,15 @@
 #include "DingOntologyTermsDialog.h"
 #undef __DING_ONTOLOGY_TERMS_DIALOG_DECLARE__
 
+#include <deque>
+
 #include <QCompleter>
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSortFilterProxyModel>
+#include <QSpinBox>
 #include <QStandardItemModel>
 #include <QStringListModel>
 #include <QTabWidget>
@@ -93,9 +96,9 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     QObject::connect(m_abbreviatedNameCompleter, QOverload<const QString &>::of(&QCompleter::activated),
                      this, &DingOntologyTermsDialog::abbreviatedNameCompleterActivated);
     
-    const bool descriptiveNameCompleterFlag(false);
+    const bool useDescriptiveNameCompleterFlag(false);
     m_descriptiveNameCompleter = NULL;
-    if (descriptiveNameCompleterFlag) {
+    if (useDescriptiveNameCompleterFlag) {
         m_descriptiveNameCompleterColumnIndex = 2;
         m_descriptiveNameCompleter = new QCompleter(this);
         m_descriptiveNameCompleter->setModel(m_dingOntologyTermsFile->getTableModel());
@@ -143,8 +146,15 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     
     setCentralWidget(dialogWidget, SCROLL_AREA_NEVER);
     
-    m_tabWidget->setCurrentIndex(m_tableViewTabIndex);
+    m_tabWidget->setCurrentIndex(m_treeViewTabIndex);
     tabBarClicked(m_tabWidget->currentIndex());
+    
+    CaretAssert(m_treeViewExpandToLevelSpinBox);
+    m_treeViewExpandToLevelSpinBox->setValue(s_previousTreeViewExpansionDepth);
+    treeViewExpandToLevelSpinBoxValueChanged(m_treeViewExpandToLevelSpinBox->value());
+    if (s_previousSelectedModelIndex.isValid()) {
+        m_treeView->setCurrentIndex(s_previousSelectedModelIndex);
+    }
 }
 
 /**
@@ -171,12 +181,24 @@ DingOntologyTermsDialog::createTreeWidget()
 {
     QStandardItemModel* treeModel(m_dingOntologyTermsFile->getTreeModel());
     m_treeView = new QTreeView();
+    m_treeView->header()->hide();
     m_treeView->setModel(treeModel);
     QObject::connect(m_treeView, &QTreeView::clicked,
                      this, &DingOntologyTermsDialog::treeViewItemClicked);
     QObject::connect(m_treeView, &QTreeView::doubleClicked,
                      this, &DingOntologyTermsDialog::treeViewItemDoubleClicked);
+    QObject::connect(m_treeView, &QTreeView::expanded,
+                     this, &DingOntologyTermsDialog::treeViewItemExpanded);
+    
     m_treeView->expandAll();
+    
+    QLabel* expandToLevelLabel(new QLabel("Expand to Level"));
+    m_treeViewExpandToLevelSpinBox = new QSpinBox();
+    m_treeViewExpandToLevelSpinBox->setMinimum(1);
+    m_treeViewExpandToLevelSpinBox->setMaximum(1000);
+    m_treeViewExpandToLevelSpinBox->setSingleStep(1);
+    QObject::connect(m_treeViewExpandToLevelSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
+                     this, &DingOntologyTermsDialog::treeViewExpandToLevelSpinBoxValueChanged);
     
     QToolButton* collapseAllToolButton(new QToolButton());
     collapseAllToolButton->setText("Collapse All");
@@ -188,7 +210,13 @@ DingOntologyTermsDialog::createTreeWidget()
     QObject::connect(expandAllToolButton, &QToolButton::clicked,
                      m_treeView, &QTreeView::expandAll);
     
+    collapseAllToolButton->setVisible(false);
+    expandAllToolButton->setVisible(false);
+    
     QHBoxLayout* expandCollapseLayout(new QHBoxLayout());
+    expandCollapseLayout->addWidget(expandToLevelLabel);
+    expandCollapseLayout->addWidget(m_treeViewExpandToLevelSpinBox);
+    expandCollapseLayout->addStretch();
     expandCollapseLayout->addWidget(collapseAllToolButton);
     expandCollapseLayout->addWidget(expandAllToolButton);
     
@@ -317,16 +345,7 @@ DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
                 if (matchingItems.size() == 1) {
                     const QStandardItem* item(matchingItems.first());
                     m_treeView->scrollTo(item->index());
-                    
-                    std::cout << "Tree view item in row " << item->row() << " column " << iCol << std::endl;
                     break;
-                }
-                if ( ! matchingItems.isEmpty()) {
-                    std::cout << "Table matched " << matchingItems.size() << " items" << std::endl;
-                    for (int32_t i = 0; i < matchingItems.size(); i++) {
-                        std::cout << matchingItems[i]->index().row() <<
-                        ", " << matchingItems[i]->column() << std::endl;
-                    }
                 }
             }
         }
@@ -350,9 +369,7 @@ DingOntologyTermsDialog::descriptiveNameCompleterActivated(const QString& text)
          * abbreviated name followed by the descriptive name.
          */
         QList<QStandardItem*> matchingItems(tableModel->findItems(text,
-                                                                  //Qt::MatchWildcard,
                                                                   Qt::MatchContains,
-//                                                                  Qt::MatchStartsWith,
                                                                   m_descriptiveNameCompleterColumnIndex));
         if ( ! matchingItems.empty()) {
             std::cout << "Descriptive matched " << matchingItems.size() << " items" << std::endl;
@@ -410,6 +427,43 @@ void
 DingOntologyTermsDialog::tabBarClicked(int /*index*/)
 {
 }
+
+/**
+ * Called when expand to level spin box values is changed
+ */
+void
+DingOntologyTermsDialog::treeViewExpandToLevelSpinBoxValueChanged(int value)
+{
+    m_treeView->expandToDepth(value - 1);
+}
+
+int32_t
+DingOntologyTermsDialog::getTreeViewItemDepth(const QModelIndex& index) const
+{
+    int32_t depth(0);
+    
+    QModelIndex modelIndex(index);
+    while (modelIndex.isValid()) {
+        modelIndex = modelIndex.parent();
+        if (modelIndex.isValid()) {
+            ++depth;
+        }
+    }
+    
+    return depth;
+}
+
+
+/**
+ * Called when an item is expanded in the tree view
+ * @param index
+ *    Index of item expanded
+ */
+void
+DingOntologyTermsDialog::treeViewItemExpanded(const QModelIndex& /*index*/)
+{
+}
+
 
 /**
  * Called when an item is clicked in the tree view
@@ -529,6 +583,9 @@ DingOntologyTermsDialog::getItemAtModelIndex(const QStandardItemModel* model,
 void
 DingOntologyTermsDialog::okButtonClicked()
 {
+    s_previousTreeViewExpansionDepth = m_treeViewExpandToLevelSpinBox->value();
+    s_previousSelectedModelIndex     = m_treeView->currentIndex();
+    
     AString errorMessage;
     if (getAbbreviatedName().isEmpty()) {
         errorMessage.appendWithNewLine("Abbreviated Name is invalid.");
