@@ -359,6 +359,10 @@ namespace caret {
                                         const Plane& plane,
                                         const uint8_t foregroundRGBA[4]);
 
+        void drawPolyhedronName(AnnotationPolyhedron* polyhedron,
+                                const std::vector<float>& verticesXYZ,
+                                const uint8_t rgba[4]);
+        
         bool drawMultiCoordinateShape(AnnotationFile* annotationFile,
                                       AnnotationMultiCoordinateShape* multiCoordShape,
                                       const Surface* surfaceDisplayed);
@@ -523,6 +527,8 @@ namespace caret {
         Inputs* m_inputs;
         
         float m_surfaceViewScaling;
+        
+        bool m_displaySampleNamesFlag = false;
         
         /**
          * Dummy annotation file is used for annotations that 

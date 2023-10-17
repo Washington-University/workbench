@@ -98,6 +98,8 @@ namespace caret {
         
         QCheckBox* m_displaySamplesCheckBox;
         
+        QCheckBox* m_displaySampleNamesCheckBox;
+        
         static std::set<SamplesSelectionViewController*> s_allSamplesSelectionViewControllers;
         
         // ADD_NEW_MEMBERS_HERE

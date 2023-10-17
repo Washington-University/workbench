@@ -547,6 +547,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     if ( ! dps->isDisplaySamples()) {
         return;
     }
+    m_displaySampleNamesFlag = dps->isDisplaySampleNames();
     
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
@@ -565,6 +566,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     
     m_volumeSpacePlane = Plane();
     m_inputs = NULL;
+    m_displaySampleNamesFlag = false;
 }
 
 /**
@@ -5459,7 +5461,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             if (drawLinesFlag) {
                 GraphicsEngineDataOpenGL::draw(primitive.get());
             }
-            drawnFlag = true;
+            
+            if (polyhedron != NULL) {
+                if (m_displaySampleNamesFlag) {
+                    const std::vector<float>& xyz(primitive->getFloatXYZ());
+                    drawPolyhedronName(polyhedron,
+                                       xyz,
+                                       foregroundRGBA);
+                }
+            }
         }
                 
         if (drawEditableSizingHandlesFlag
@@ -5503,6 +5513,64 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                   boundingBox);
     
     return drawnFlag;
+}
+
+/**
+ * Draw the polyhedron name
+ * @param polyhedron
+ *    The polyhedron
+ * @param verticesXYZ
+ *    Vertices for drawing the polyhedron
+ * @param rgba
+ *    RGBA colors used to draw polyhedron
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationPolyhedron* polyhedron,
+                                                              const std::vector<float>& verticesXYZ,
+                                                              const uint8_t rgba[4])
+{
+    if (polyhedron == NULL) {
+        return;
+    }
+    const int32_t numVertices(polyhedron->getNumberOfCoordinates());
+    if (numVertices < 1) {
+        return;
+    }
+    
+    const AString polyhedronName(polyhedron->getName());
+    if (polyhedronName.isEmpty()) {
+        return;
+    }
+    
+    Vector3D viewportXYZ(0.0, 0.0, 0.0);
+    for (int32_t i = 0; i < numVertices; i++) {
+        const int32_t i3(i * 3);
+        viewportXYZ += Vector3D(&verticesXYZ[i3]);
+    }
+    viewportXYZ /= numVertices;
+    
+    
+    const float textPercentageHeight(7.0);
+    
+    AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+    annText.setText(polyhedronName);
+    annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
+    annText.setFontPercentViewportSize(textPercentageHeight);
+    annText.setTextColor(CaretColorEnum::CUSTOM);
+    annText.setCustomTextColor(rgba);
+    
+    
+    glPushAttrib(GL_DEPTH_BITS);
+    glDisable(GL_DEPTH_TEST);
+    BrainOpenGLTextRenderInterface::DrawingFlags flags;
+    flags.setDrawSubstitutedText(false);
+    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(viewportXYZ[0],
+                                                                            viewportXYZ[1],
+                                                                            viewportXYZ[2],
+                                                                            annText,
+                                                                            flags);
+    glPopAttrib();
 }
 
 /**

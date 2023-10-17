@@ -99,11 +99,20 @@ m_browserWindowIndex(browserWindowIndex)
     macroManager->addMacroSupportToObject(m_displaySamplesCheckBox,
                                           "Enable display of samples");
     
-        
+    m_displaySampleNamesCheckBox = new QCheckBox("Display Sample Names");
+    m_displaySampleNamesCheckBox->setToolTip("Disables/enables display of sample names in all windows");
+    QObject::connect(m_displaySampleNamesCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(checkBoxToggled()));
+    m_displaySampleNamesCheckBox->setObjectName(objectNamePrefix
+                                            + "DisplaySampleNames");
+    macroManager->addMacroSupportToObject(m_displaySampleNamesCheckBox,
+                                          "Enable display of sample names");
+
     m_sceneAssistant = new SceneClassAssistant();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_displaySamplesCheckBox);
+    layout->addWidget(m_displaySampleNamesCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(), 100);
@@ -186,6 +195,7 @@ SamplesSelectionViewController::updateSampleSelections()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     m_displaySamplesCheckBox->setChecked(dpa->isDisplaySamples());
+    m_displaySampleNamesCheckBox->setChecked(dpa->isDisplaySampleNames());
     
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<SamplesFile*> samplesFiles(brain->getAllSamplesFiles());
@@ -230,6 +240,7 @@ SamplesSelectionViewController::checkBoxToggled()
     }
 
     dpa->setDisplaySamples(m_displaySamplesCheckBox->isChecked());
+    dpa->setDisplaySampleNames(m_displaySampleNamesCheckBox->isChecked());
     
     updateOtherSampleViewControllers();
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

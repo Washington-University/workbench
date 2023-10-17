@@ -56,7 +56,9 @@ m_parentBrain(parentBrain)
     
     m_sceneAssistant->add("m_displaySamples",
                           &m_displaySamples);
-    
+    m_sceneAssistant->add("m_displaySampleNames",
+                          &m_displaySampleNames);
+
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
 }
@@ -123,6 +125,7 @@ void
 DisplayPropertiesSamples::resetPrivate()
 {
     m_displaySamples = true;
+    m_displaySampleNames = true;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
@@ -167,6 +170,27 @@ void
 DisplayPropertiesSamples::setDisplaySamples(const bool status)
 {
     m_displaySamples = status;
+}
+
+/**
+ * @return Status for displaying sample names
+ */
+bool
+DisplayPropertiesSamples::isDisplaySampleNames() const
+{
+    return m_displaySampleNames;
+}
+
+/**
+ * Set the display status for samples
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesSamples::setDisplaySampleNames(const bool status)
+{
+    m_displaySampleNames = status;
 }
 
 /**

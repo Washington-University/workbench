@@ -47,6 +47,10 @@ namespace caret {
         
         void setDisplaySamples(const bool status);
         
+        bool isDisplaySampleNames() const;
+        
+        void setDisplaySampleNames(const bool status);
+        
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
         void setDisplayGroupForTab(const int32_t browserTabIndex,
@@ -77,6 +81,8 @@ namespace caret {
         Brain* m_parentBrain;
         
         bool m_displaySamples;
+        
+        bool m_displaySampleNames;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
