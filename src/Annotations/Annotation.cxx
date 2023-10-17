@@ -2203,7 +2203,46 @@ Annotation::invalidateTextSubstitution()
 AString
 Annotation::getName() const
 {
-    return m_name;
+    AString nameOut(m_name);
+    
+    AString suffixName;
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+        {
+            /*
+             * Since it is difficult to detect a change in metadata,
+             * we just add the shorthand id to the annotation name here.
+             */
+            CaretAssert(m_metaData);
+            const AString shortHandID(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID));
+            if ( ! shortHandID.isEmpty()) {
+                nameOut = shortHandID;
+            }
+        }
+            break;
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
+
+    return nameOut;
 }
 
 
