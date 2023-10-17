@@ -179,9 +179,6 @@ AnnotationInsertNewWidget::createAnnotationsWidgets()
     QToolButton* shapePolyLineToolButton = createShapeToolButton(AnnotationTypeEnum::POLYLINE,
                                                                  m_shapeActionGroup);
     m_polyLineToolButton = shapePolyLineToolButton;
-    QToolButton* shapePolyhedronToolButton = createShapeToolButton(AnnotationTypeEnum::POLYHEDRON,
-                                                                   m_shapeActionGroup);
-    m_polyhedronToolButton = shapePolyhedronToolButton;
     
     QToolButton* shapeOvalToolButton     = createShapeToolButton(AnnotationTypeEnum::OVAL,
                                                                  m_shapeActionGroup);
@@ -228,8 +225,6 @@ AnnotationInsertNewWidget::createAnnotationsWidgets()
         shapeOvalToolButton->setMaximumSize(mw, mh);
         shapePolygonToolButton->setMaximumSize(mw, mh);
         shapePolyLineToolButton->setMaximumSize(mw, mh);
-        shapePolyhedronToolButton->setMaximumSize(mw, mh);
-        shapePolyhedronToolButton->setMaximumSize(mw, mh);
         shapeTextToolButton->setMaximumSize(mw, mh);
         
         chartSpaceToolButton->setMaximumSize(mw, mh);
@@ -312,12 +307,10 @@ AnnotationInsertNewWidget::createAnnotationsWidgets()
                               3, 6);
         gridLayout->addWidget(shapePolyLineToolButton,
                               3, 7);
-        gridLayout->addWidget(shapePolyhedronToolButton,
-                              3, 8);
         gridLayout->addWidget(shapeOvalToolButton,
-                              3, 9);
+                              3, 8);
         gridLayout->addWidget(shapeTextToolButton,
-                              3, 10);
+                              3, 9);
     }
     else {
         QLabel* insertLabel = new QLabel("Insert New");
@@ -497,7 +490,6 @@ AnnotationInsertNewWidget::itemSelectedFromFileSelectionMenu()
 void
 AnnotationInsertNewWidget::enableDisableShapeActions()
 {
-    bool polyhedronValidFlag(false);
     QAction* spaceAction = m_spaceActionGroup->checkedAction();
     if (spaceAction) {
         CaretAssert(spaceAction);
@@ -506,9 +498,7 @@ AnnotationInsertNewWidget::enableDisableShapeActions()
         AnnotationCoordinateSpaceEnum::Enum annSpace = AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
                                                                                                       &spaceValidFlag);
         CaretAssert(spaceValidFlag);
-        polyhedronValidFlag = (annSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC);
     }
-    m_polyhedronToolButton->setEnabled(polyhedronValidFlag);
 }
 
 /**

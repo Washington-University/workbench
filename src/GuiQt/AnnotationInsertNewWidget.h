@@ -115,8 +115,6 @@ namespace caret {
         
         QToolButton* m_polyLineToolButton = NULL;
         
-        QToolButton* m_polyhedronToolButton = NULL;
-        
         QAction* m_newSampleAction = NULL;
         
         QSpinBox* m_newSampleDepthSpinBox = NULL;
