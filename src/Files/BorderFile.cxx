@@ -21,11 +21,13 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <limits>
 #include <memory>
 #include <utility>
 #include <vector>
 
+#include <QDir>
 #include <QFile>
 #include <QStringList>
 #include <QTextStream>
@@ -1477,8 +1479,8 @@ void BorderFile::writeFile(const AString& filename, const int& version)
     checkFileWritability(filename);
     
     setFileName(filename);
-    QFile::remove(filename);//delete it if it exists, to play better with file symlinks
-    
+    //QFile::remove(filename);//delete it if it exists, to play better with file symlinks
+    remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
     switch (version)
     {
         case 3:

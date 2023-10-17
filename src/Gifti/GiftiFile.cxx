@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <cstdio>
 #include <memory>
 #include <set>
 #include <sstream>
@@ -37,6 +38,7 @@
 
 #include "XmlSaxParser.h"
 
+#include <QDir>
 #include <QFile>
 
 using namespace caret;
@@ -896,7 +898,9 @@ GiftiFile::writeFile(const AString& filename)
     try {
         this->setFileName(filename);
         
-        QFile::remove(filename);
+        //QFile::remove(filename);
+        remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
+
         
         /*FileInformation fileInfo(filename);
         if (fileInfo.exists()) {

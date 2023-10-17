@@ -30,9 +30,11 @@
 #include "CaretLogger.h"
 #include "DataFileException.h"
 
+#include <QDir>
 #include <QFile>
 #include "zlib.h"
 
+#include <cstdio>
 #include <algorithm>
 
 using namespace caret;
@@ -174,7 +176,8 @@ void ZFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
             mode = "rb";
             break;
         case CaretBinaryFile::WRITE_TRUNCATE:
-            QFile::remove(filename);//attempt to remove file rather than truncating, to improve behavior with file symlinks
+            //QFile::remove(filename);//attempt to remove file rather than truncating, to improve behavior with file symlinks
+            remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
             mode = "wb";//you have to do "w+b" in order to ask it to not truncate, which zlib doesn't support anyway
             break;
         default:
@@ -291,7 +294,11 @@ void QFileImpl::open(const QString& filename, const CaretBinaryFile::OpenMode& o
     if (opmode & CaretBinaryFile::WRITE) mode |= QIODevice::WriteOnly;
     if (opmode & CaretBinaryFile::TRUNCATE) mode |= QIODevice::Truncate;//expect QFile to recognize silliness like TRUNCATE by itself
     m_file.setFileName(filename);
-    if (mode & QIODevice::Truncate) m_file.remove();//attempt to delete the existing file rather than truncating, to improve behavior with file symlinks
+    if (mode & QIODevice::Truncate)
+    {
+        //m_file.remove();//attempt to delete the existing file rather than truncating, to improve behavior with file symlinks
+        remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
+    }
     if (!m_file.open(mode))
     {
         if (!m_file.exists())

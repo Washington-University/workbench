@@ -25,8 +25,10 @@
 #include "FileInformation.h"
 #include "NiftiIO.h"
 
+#include <QDir>
 #include <QFile>
 
+#include <cstdio>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -86,7 +88,8 @@ FloatMatrix AffineFile::read34(const AString& filename)
 
 void AffineFile::write44(const FloatMatrix& out, const AString& filename)
 {
-    QFile::remove(filename);
+    //QFile::remove(filename);
+    remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
     ofstream affineFile(filename.toStdString());
     if (!affineFile.good())
     {

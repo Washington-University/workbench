@@ -25,8 +25,10 @@
 #include "FileInformation.h"
 #include "NiftiIO.h"
 
+#include <QDir>
 #include <QFile>
 
+#include <cstdio>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -107,7 +109,8 @@ namespace
     //write as 12-parameter, because there may be nobody else using this format
     void writeFileRaw(const AString& filename, const vector<FloatMatrix> matrixList, const bool inverse = false)
     {
-        QFile::remove(filename);
+        //QFile::remove(filename);
+        remove(QDir::toNativeSeparators(filename).toLocal8Bit());//QFile::remove inappropriately checks file permissions and refuses to try deleting (when folder permissions may allow it)
         ofstream outFile(filename.toStdString());
         for (auto matrix : matrixList)
         {
