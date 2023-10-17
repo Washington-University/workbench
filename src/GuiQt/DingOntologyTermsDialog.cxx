@@ -203,15 +203,12 @@ DingOntologyTermsDialog::createTreeWidget()
     QToolButton* collapseAllToolButton(new QToolButton());
     collapseAllToolButton->setText("Collapse All");
     QObject::connect(collapseAllToolButton, &QToolButton::clicked,
-                     m_treeView, &QTreeView::collapseAll);
+                     this, &DingOntologyTermsDialog::treeViewCollapseAllButtonClicked);
     
     QToolButton* expandAllToolButton(new QToolButton());
     expandAllToolButton->setText("Expand All");
     QObject::connect(expandAllToolButton, &QToolButton::clicked,
-                     m_treeView, &QTreeView::expandAll);
-    
-    collapseAllToolButton->setVisible(false);
-    expandAllToolButton->setVisible(false);
+                     this, &DingOntologyTermsDialog::treeViewExpandAllButtonClicked);
     
     QHBoxLayout* expandCollapseLayout(new QHBoxLayout());
     expandCollapseLayout->addWidget(expandToLevelLabel);
@@ -437,6 +434,42 @@ DingOntologyTermsDialog::treeViewExpandToLevelSpinBoxValueChanged(int value)
     m_treeView->expandToDepth(value - 1);
 }
 
+/**
+ * Called when collapse all button is clicked
+ */
+void
+DingOntologyTermsDialog::treeViewCollapseAllButtonClicked(bool)
+{
+    CaretAssert(m_treeView);
+
+    /*
+     * QTreeView::collapseAll() collapse one level too deep
+     * so set the tree depth
+     */
+    QSignalBlocker blocker(m_treeViewExpandToLevelSpinBox);
+    m_treeViewExpandToLevelSpinBox->setValue(1);
+    
+    /*
+     * Needed to apply the new depth value
+     */
+    treeViewExpandToLevelSpinBoxValueChanged(m_treeViewExpandToLevelSpinBox->value());
+}
+
+/**
+ * Called when expand all button is clicked
+ */
+void
+DingOntologyTermsDialog::treeViewExpandAllButtonClicked(bool)
+{
+    CaretAssert(m_treeView);
+    m_treeView->expandAll();
+}
+
+/**
+ * @return Depth in tree of an item in the tree
+ * @param index
+ *    Model index of item
+ */
 int32_t
 DingOntologyTermsDialog::getTreeViewItemDepth(const QModelIndex& index) const
 {

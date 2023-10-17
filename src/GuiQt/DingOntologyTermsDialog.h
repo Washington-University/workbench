@@ -82,6 +82,10 @@ namespace caret {
         
         void treeViewItemDoubleClicked(const QModelIndex& index);
                 
+        void treeViewCollapseAllButtonClicked(bool);
+        
+        void treeViewExpandAllButtonClicked(bool);
+        
         void abbreviatedNameCompleterActivated(const QString& text);
         
         void descriptiveNameCompleterActivated(const QString& text);

@@ -113,7 +113,7 @@ m_metaData(metaData)
     
     m_commentTextEditor = NULL;
     if (hasCommentMetaDataFlag) {
-        QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
+        QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT + ":"));
         m_commentTextEditor = new QTextEdit();
         m_commentTextEditor->setText(m_metaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
         gridLayout->addWidget(commentLabel,
