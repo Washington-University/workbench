@@ -425,7 +425,7 @@ m_metaData(metaData)
     }
     if (useDateEditFlag) {
         m_valueDateEdit = new QDateEdit();
-        m_valueDateEdit->setDisplayFormat(s_dateFormatString);
+        m_valueDateEdit->setDisplayFormat(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
         m_valueDateEdit->setCalendarPopup(true);
     }
     if (useLineEditFlag) {
@@ -474,7 +474,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
     CaretAssert(m_metaData);
     const QString value(m_metaData->get(m_metaDataName).trimmed());
     if (m_valueComboBox != NULL) {
-        int32_t itemIndex(m_valueComboBox->findData(value));
+        int32_t itemIndex(m_valueComboBox->findText(value));
         if (itemIndex < 0) {
             itemIndex = 0;
         }
@@ -485,7 +485,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
     }
     if (m_valueDateEdit != NULL) {
         m_valueDateEdit->setDate(QDate::fromString(value,
-                                                   s_dateFormatString));
+                                                   GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT));
     }
     if (m_valueLineEdit != NULL) {
         m_valueLineEdit->setText(value);
@@ -516,7 +516,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
     }
     if (m_valueDateEdit != NULL) {
         const QDate date(m_valueDateEdit->date());
-        text = date.toString(s_dateFormatString);
+        text = date.toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
     }
     if (m_valueLineEdit != NULL) {
         text = m_valueLineEdit->text().trimmed();

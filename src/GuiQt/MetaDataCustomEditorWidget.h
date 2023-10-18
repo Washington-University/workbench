@@ -89,8 +89,6 @@ namespace caret {
             QLineEdit* m_valueLineEdit = NULL;
             
             QToolButton* m_toolButton = NULL;
-
-            static const QString s_dateFormatString;
         };
         
         MetaDataCustomEditorWidget(const MetaDataCustomEditorWidget&);
@@ -115,10 +113,6 @@ namespace caret {
     };
     
 #ifdef __META_DATA_CUSTOM_EDITOR_WIDGET_DECLARE__
-    /**
-     * Format for date editing, 2 digits for day, 3 letters for month, 4 digits for year
-     */
-    const QString MetaDataCustomEditorWidget::MetaDataWidgetRow::s_dateFormatString = "dd MMM yyyy";
 #endif // __META_DATA_CUSTOM_EDITOR_WIDGET_DECLARE__
 
 } // namespace

@@ -143,11 +143,21 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
                                                                          polyhedronSamplesFlag);
     m_annotationMetaData.reset(new GiftiMetaData());
     for (const auto& name : m_requiredMetaDataNames) {
-        m_annotationMetaData->set(name, "");
+        const auto iter(s_previousMetaDataNamesAndValues.find(name));
+        AString value;
+        if (iter != s_previousMetaDataNamesAndValues.end()) {
+            value = iter->second;
+        }
+        if ((name == GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE)
+            && value.isEmpty()) {
+            /* If no dissection date, default to current date */
+            value = QDate::currentDate().toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
+        }
+        m_annotationMetaData->set(name, value);
     }
 
-    m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
-    m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
+//    m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
+//    m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
 
     m_metaDataEditorWidget = new MetaDataCustomEditorWidget(m_requiredMetaDataNames,
                                                             m_annotationMetaData.get());
@@ -192,6 +202,9 @@ AnnotationSamplesCreateDialog::okButtonClicked()
         }
     }
     
+    if (m_metaDataEditorWidget != NULL) {
+        s_previousMetaDataNamesAndValues = m_annotationMetaData->getAsMap();
+    }
     if ( ! errorMessage.isEmpty()) {
         WuQMessageBox::errorOk(this,
                                errorMessage);

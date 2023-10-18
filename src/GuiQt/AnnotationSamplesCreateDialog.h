@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <memory>
 
 #include "AnnotationCoordinateInformation.h"
@@ -100,6 +101,7 @@ namespace caret {
         
         static bool s_previousMetaDataRequiredCheckedStatus;
         
+        static std::map<AString, AString> s_previousMetaDataNamesAndValues;
         // ADD_NEW_MEMBERS_HERE
 
     };
@@ -107,6 +109,7 @@ namespace caret {
 #ifdef __ANNOTATION_SAMPLES_CREATE_DIALOG_DECLARE__
     const int AnnotationSamplesCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
     bool AnnotationSamplesCreateDialog::s_previousMetaDataRequiredCheckedStatus = true;
+    std::map<AString, AString> AnnotationSamplesCreateDialog::s_previousMetaDataNamesAndValues;
 #endif // __ANNOTATION_SAMPLES_CREATE_DIALOG_DECLARE__;
 
 } // namespace

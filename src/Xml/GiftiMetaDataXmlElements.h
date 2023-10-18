@@ -238,6 +238,9 @@ namespace GiftiMetaDataXmlElements {
     
     static const AString SAMPLES_STRUCTURE = "Structure";
     
+    /** Used for converting a QDate to a string */
+    const AString METADATA_QT_DATE_FORMAT = "dd MMM yyyy";
+
 
 } // namespace
 
