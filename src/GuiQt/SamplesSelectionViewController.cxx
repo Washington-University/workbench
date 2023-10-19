@@ -219,7 +219,7 @@ SamplesSelectionViewController::updateSampleSelections()
 QWidget*
 SamplesSelectionViewController::createSelectionWidget()
 {
-    m_selectionViewController = new DisplayGroupAndTabItemViewController(DataFileTypeEnum::ANNOTATION,
+    m_selectionViewController = new DisplayGroupAndTabItemViewController(DataFileTypeEnum::SAMPLES,
                                                                          m_browserWindowIndex);
     return m_selectionViewController;
 }

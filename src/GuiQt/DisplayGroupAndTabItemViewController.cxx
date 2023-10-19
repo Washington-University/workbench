@@ -160,6 +160,9 @@ DisplayGroupAndTabItemViewController::itemsWereSelected()
             if (m_dataFileType == DataFileTypeEnum::ANNOTATION) {
                 processAnnotationDataSelection(itemInterfacesVector);
             }
+            else if (m_dataFileType == DataFileTypeEnum::SAMPLES) {
+                processAnnotationDataSelection(itemInterfacesVector);
+            }
         }
     }
     
@@ -234,9 +237,16 @@ DisplayGroupAndTabItemViewController::processAnnotationDataSelection(const std::
     if ( ! annotationSet.empty()) {
         std::vector<Annotation*> selectedAnnotations(annotationSet.begin(),
                                                      annotationSet.end());
-        AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
-        annMan->setAnnotationsForEditing(m_browserWindowIndex,
-                                         selectedAnnotations);
+        if (m_dataFileType == DataFileTypeEnum::ANNOTATION) {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::ANNOTATIONS);
+            annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                             selectedAnnotations);
+        }
+        else if (m_dataFileType == DataFileTypeEnum::SAMPLES) {
+            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING);
+            annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                             selectedAnnotations);
+        }
     }
 }
 

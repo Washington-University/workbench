@@ -341,7 +341,27 @@ void
 AnnotationManager::setAnnotationsForEditing(const int32_t windowIndex,
                                             const std::vector<Annotation*>& selectedAnnotations)
 {
+    /*
+     * If only one annotation for selection
+     */
+    bool oneDeselectFlag(false);
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        if (selectedAnnotations[0]->isSelectedForEditing(windowIndex)) {
+            /*
+             * Annotation is selected so we want to turn off its
+             * selection status which was done by call
+             * to deselectAllAnnotationsForEditing().
+             */
+            oneDeselectFlag = true;
+        }
+    }
+    
     deselectAllAnnotationsForEditing(windowIndex);
+    
+    if (oneDeselectFlag) {
+        return;
+    }
     
     std::set<Annotation*> uniqueAnnotationsSet;
     for (std::vector<Annotation*>::const_iterator annIter = selectedAnnotations.begin();
