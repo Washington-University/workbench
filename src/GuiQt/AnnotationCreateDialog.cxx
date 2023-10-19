@@ -831,17 +831,21 @@ QWidget*
 AnnotationCreateDialog::createMetaDataEditorWidget()
 {
     const bool polyhedronSamplesFlag(true);
-    m_requiredMetaDataNames = Annotation::getDefaultMetaDataNamesForType(m_newAnnotationInfo.m_annotationType,
-                                                                         polyhedronSamplesFlag);
+    std::vector<AString> metaDataNames;
+    Annotation::getDefaultMetaDataNamesForType(m_newAnnotationInfo.m_annotationType,
+                                               polyhedronSamplesFlag,
+                                               metaDataNames,
+                                               m_requiredMetaDataNames);
     m_annotationMetaData.reset(new GiftiMetaData());
-    for (const auto& name : m_requiredMetaDataNames) {
+    for (const auto& name : metaDataNames) {
         m_annotationMetaData->set(name, "");
     }
 
     m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "Choose 1 of: Desired, Actual");
     m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
 
-    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(m_requiredMetaDataNames,
+    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
+                                                            m_requiredMetaDataNames,
                                                             m_annotationMetaData.get());
 
     m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata");

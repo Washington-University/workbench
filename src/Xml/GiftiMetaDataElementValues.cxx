@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "GiftiMetaDataXmlElements.h"
-#include "StructureEnum.h"
+#include "HemisphereEnum.h"
 
 using namespace caret;
 
@@ -93,11 +93,11 @@ GiftiMetaDataElementValues::getValuesForElement(const QString& metaDataName)
         metaDataValues.push_back("Right");
         metaDataValues.push_back("Other");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_STRUCTURE) {
-        std::vector<StructureEnum::Enum> structureEnums;
-        StructureEnum::getAllEnums(structureEnums);
-        for (const StructureEnum::Enum s : structureEnums) {
-            metaDataValues.push_back(StructureEnum::toGuiName(s));
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE) {
+        std::vector<HemisphereEnum::Enum> hemisphereEnums;
+        HemisphereEnum::getAllEnums(hemisphereEnums);
+        for (const HemisphereEnum::Enum h : hemisphereEnums) {
+            metaDataValues.push_back(HemisphereEnum::toGuiAbbreviatedName(h));
         }
     }
     return metaDataValues;

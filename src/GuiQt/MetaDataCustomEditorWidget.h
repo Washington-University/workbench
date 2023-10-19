@@ -46,6 +46,7 @@ namespace caret {
 
     public:
         MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
+                                   const std::vector<AString>& requiredMetaDataNames,
                                    GiftiMetaData* metaData,
                                    QWidget* parent = 0);
         
@@ -68,7 +69,8 @@ namespace caret {
                               const int32_t gridLayoutValueColumn,
                               const int32_t gridLayoutButtonColumn,
                               const AString& metaDataName,
-                              GiftiMetaData* metaData);
+                              GiftiMetaData* metaData,
+                              const bool requiredMetaDataFlag);
             
             ~MetaDataWidgetRow();
             

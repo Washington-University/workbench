@@ -139,10 +139,13 @@ QWidget*
 AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
 {
     const bool polyhedronSamplesFlag(true);
-    m_requiredMetaDataNames = Annotation::getDefaultMetaDataNamesForType(m_annotationType,
-                                                                         polyhedronSamplesFlag);
+    std::vector<AString> metaDataNames;
+    Annotation::getDefaultMetaDataNamesForType(m_annotationType,
+                                               polyhedronSamplesFlag,
+                                               metaDataNames,
+                                               m_requiredMetaDataNames);
     m_annotationMetaData.reset(new GiftiMetaData());
-    for (const auto& name : m_requiredMetaDataNames) {
+    for (const auto& name : metaDataNames) {
         const auto iter(s_previousMetaDataNamesAndValues.find(name));
         AString value;
         if (iter != s_previousMetaDataNamesAndValues.end()) {
@@ -150,19 +153,38 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
         }
         if ((name == GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE)
             && value.isEmpty()) {
-            /* If no dissection date, default to current date */
-            value = QDate::currentDate().toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
+            /*
+             * Default to an old date
+             */
+            const int year(1900);
+            const int month(1);
+            const int day(1);
+            value = QDate(year, month, day).toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
         }
+        
+        /*
+         * These items are NOT restored from previous dialot
+         */
+        if ((name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION)) {
+            value = "";
+        }
+        
         m_annotationMetaData->set(name, value);
     }
 
 //    m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
 //    m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
 
-    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(m_requiredMetaDataNames,
+    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
+                                                            m_requiredMetaDataNames,
                                                             m_annotationMetaData.get());
 
-    m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata");
+    m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata (* indicates required metadata elements)");
     m_metaDataRequiredCheckBox->setChecked(s_previousMetaDataRequiredCheckedStatus);
         
     QGroupBox* groupBox(new QGroupBox("Metadata"));

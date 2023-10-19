@@ -70,14 +70,15 @@ using namespace caret;
  * Constructor.
  * @param metaDataNames
  *    Names of metadata shown in editor
- * @param commentEditorStatus
- *    Whether or not to show comment editor
+ * @param requiredMetaDataNames
+ *    Names of required metadata names
  * @param metaData
  *    Metadata instance
  * @param parent
  *    Parent widget.
  */
 MetaDataCustomEditorWidget::MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
+                                                       const std::vector<AString>& requiredMetaDataNames,
                                                        GiftiMetaData* metaData,
                                                        QWidget* parent)
 : QWidget(parent),
@@ -91,7 +92,10 @@ m_metaData(metaData)
     QGridLayout* gridLayout(new QGridLayout(this));
     gridLayout->setColumnStretch(COLUMN_LABEL, 0);
     gridLayout->setColumnStretch(COLUMN_VALUE, 100);
-    for (const auto& name : metaDataNames) {
+    for (AString name : metaDataNames) {
+        const bool requiredMetaDataFlag(std::find(requiredMetaDataNames.begin(),
+                                                  requiredMetaDataNames.end(),
+                                                  name) != requiredMetaDataNames.end());
         if (name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT) {
             /* Comment uses a text editor, below */
             hasCommentMetaDataFlag = true;
@@ -104,7 +108,8 @@ m_metaData(metaData)
                                                           COLUMN_VALUE,
                                                           COLUMN_BUTTON,
                                                           name,
-                                                          m_metaData));
+                                                          m_metaData,
+                                                          requiredMetaDataFlag));
             mdwr->updateValueWidget();
             m_metaDataWidgetRows.push_back(mdwr);
             ++rowIndex;
@@ -376,6 +381,8 @@ MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AS
  *   The  name of the metadata
  * @param metaData
  *   The metadata.
+ * @param requiredMetaDataFlag
+ *    True if meta data name is required
  */
 MetaDataCustomEditorWidget::MetaDataWidgetRow::MetaDataWidgetRow(MetaDataCustomEditorWidget* editorWidget,
                                                                  QGridLayout* gridLayout,
@@ -384,7 +391,8 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::MetaDataWidgetRow(MetaDataCustomE
                                                                  const int32_t gridLayoutValueColumn,
                                                                  const int32_t gridLayoutButtonColumn,
                                                                  const AString& metaDataName,
-                                                                 GiftiMetaData* metaData)
+                                                                 GiftiMetaData* metaData,
+                                                                 const bool requiredMetaDataFlag)
 : m_editorWidget(editorWidget),
 m_metaDataName(metaDataName),
 m_metaData(metaData)
@@ -393,7 +401,9 @@ m_metaData(metaData)
     
     const QString value(metaData->get(metaDataName));
     
-    QLabel* nameLabel(new QLabel(metaDataName + ":"));
+    QLabel* nameLabel(new QLabel(metaDataName
+                                 + (requiredMetaDataFlag ? "*" : "")
+                                 + ":"));
     
     m_valueComboBox = NULL;
     m_valueDateEdit = NULL;

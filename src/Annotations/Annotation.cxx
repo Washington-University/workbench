@@ -1779,12 +1779,19 @@ Annotation::getMetaData() const
  *    The type of annotation
  * @param polyhedronSamplesFlag
  *    If polyhedron type, true if this polyhedron is used in Edit Samples Mode
+ * @param metaDataNames
+ *    Output with the default metadata names
+ * @param requiredMetaDataNames
+ *    Output with required metadata names (this is a subset of metaDataNames)
  */
-std::vector<AString>
+void
 Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
-                                           const bool polyhedronSamplesFlag)
+                                           const bool polyhedronSamplesFlag,
+                                           std::vector<AString>& metaDataNames,
+                                           std::vector<AString>& requiredMetaDataNames)
 {
-    std::vector<AString> names;
+    metaDataNames.clear();
+    requiredMetaDataNames.clear();
     
     switch (annotationType) {
         case AnnotationTypeEnum::BOX:
@@ -1801,20 +1808,31 @@ Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annota
             break;
         case AnnotationTypeEnum::POLYHEDRON:
             if (polyhedronSamplesFlag) {
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DONOR_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_STRUCTURE);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-                names.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
-                names.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DONOR_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
+
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DONOR_ID);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
+                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
             }
             break;
         case AnnotationTypeEnum::POLYGON:
@@ -1826,8 +1844,6 @@ Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annota
         case AnnotationTypeEnum::TEXT:
             break;
     }
-
-    return names;
 }
 
 /**

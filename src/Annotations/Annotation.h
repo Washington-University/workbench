@@ -336,8 +336,10 @@ namespace caret {
         
         const GiftiMetaData* getMetaData() const;
         
-        static std::vector<AString> getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
-                                                                   const bool polyhedronSamplesFlag);
+        static void getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
+                                                   const bool polyhedronSamplesFlag,
+                                                   std::vector<AString>& metaDataNames,
+                                                   std::vector<AString>& requiredMetaDataNames);
         
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         

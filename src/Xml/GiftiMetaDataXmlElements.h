@@ -224,6 +224,8 @@ namespace GiftiMetaDataXmlElements {
     
     static const AString SAMPLES_DONOR_ID = "Donor_id";
     
+    static const AString SAMPLES_HEMISPHERE = "Hemisphere";
+    
     static const AString SAMPLES_LOCATION_ID = "Location";
     
     static const AString SAMPLES_SAMPLE_ID = "Sample_id";
@@ -235,8 +237,6 @@ namespace GiftiMetaDataXmlElements {
     static const AString SAMPLES_SHORTHAND_ID = "Shorthand_id";
     
     static const AString SAMPLES_SLAB_ID = "Slab_id";
-    
-    static const AString SAMPLES_STRUCTURE = "Structure";
     
     /** Used for converting a QDate to a string */
     const AString METADATA_QT_DATE_FORMAT = "dd MMM yyyy";

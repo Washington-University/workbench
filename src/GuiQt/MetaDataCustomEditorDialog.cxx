@@ -62,8 +62,12 @@ MetaDataCustomEditorDialog::MetaDataCustomEditorDialog(Annotation* annotation,
     CaretAssert(annotation);
     
     const bool polyhedronSamplesFlag(true);
-    const std::vector<AString> metaDataNames(Annotation::getDefaultMetaDataNamesForType(annotation->getType(),
-                                                                                        polyhedronSamplesFlag));
+    std::vector<AString> metaDataNames;
+    std::vector<AString> requiredMetaDataNames;
+    Annotation::getDefaultMetaDataNamesForType(annotation->getType(),
+                                               polyhedronSamplesFlag,
+                                               metaDataNames,
+                                               requiredMetaDataNames);
     initializeDialog(("Edit Annotation Metadata: "
                       + annotation->getName()),
                      metaDataNames,
@@ -148,7 +152,9 @@ MetaDataCustomEditorDialog::initializeDialog(const AString& dialogTitle,
     
     setWindowTitle(dialogTitle);
     
+    std::vector<AString> dummyRequiredMetaNames;
     m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
+                                                            dummyRequiredMetaNames,
                                                             metaData,
                                                             this);
     
