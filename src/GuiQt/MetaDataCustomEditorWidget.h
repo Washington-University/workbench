@@ -54,6 +54,8 @@ namespace caret {
         bool validateAndSaveRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
                                              AString& errorMessageOut);
 
+        bool isMetaDataModified() const;
+        
         void saveMetaData();
         
     private:
@@ -75,6 +77,10 @@ namespace caret {
             void toolButtonClicked();
             
             void updateValueWidget();
+            
+            QString getAsText() const;
+            
+            bool isModified() const;
             
             MetaDataCustomEditorWidget* m_editorWidget = NULL;
             

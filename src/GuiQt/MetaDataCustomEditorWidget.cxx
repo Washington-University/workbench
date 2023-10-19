@@ -148,6 +148,20 @@ MetaDataCustomEditorWidget::saveMetaData()
 }
 
 /**
+ * @return true if the names and values been modified, else false.
+ */
+bool
+MetaDataCustomEditorWidget::isMetaDataModified() const
+{
+    for (auto& mdwr : m_metaDataWidgetRows) {
+        if (mdwr->isModified()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Called when the user clicks a meta data button
  * @param metaDataName
  *    Name of metadata element
@@ -505,10 +519,10 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::toolButtonClicked()
 }
 
 /**
- * Save the value to the metadata
+ * @return value from gui as text
  */
-void
-MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
+QString
+MetaDataCustomEditorWidget::MetaDataWidgetRow::getAsText() const
 {
     QString text;
     if (m_valueComboBox != NULL) {
@@ -521,7 +535,28 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
     if (m_valueLineEdit != NULL) {
         text = m_valueLineEdit->text().trimmed();
     }
+    return text;
+}
+
+/**
+ * @return True if metadata is modifiedf
+ */
+bool
+MetaDataCustomEditorWidget::MetaDataWidgetRow::isModified() const
+{
+    if (m_metaData->get(m_metaDataName) != getAsText()) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Save the value to the metadata
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
+{
     m_metaData->set(m_metaDataName,
-                    text);
+                    getAsText());
 }
 

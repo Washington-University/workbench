@@ -51,6 +51,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
+#include "MetaDataCustomEditorDialog.h"
 #include "MetaDataEditorDialog.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
@@ -639,10 +640,18 @@ UserInputModeAnnotationsContextMenu::setAnnotationText()
 void
 UserInputModeAnnotationsContextMenu::editMetaDataDialog()
 {
-    CaretAssert(m_annotation);
-    MetaDataEditorDialog dialog(m_annotation,
-                                this);
-    dialog.exec();
+    if (m_userInputModeAnnotations->getUserInputMode() == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        CaretAssert(m_annotation);
+        MetaDataCustomEditorDialog dialog(m_annotation,
+                                          this);
+        dialog.exec();
+    }
+    else {
+        CaretAssert(m_annotation);
+        MetaDataEditorDialog dialog(m_annotation,
+                                    this);
+        dialog.exec();
+    }
 }
 
 /**
