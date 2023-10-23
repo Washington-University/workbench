@@ -140,7 +140,7 @@ m_browserWindowIndex(browserWindowIndex)
                 sizeLabel = new QLabel("Size");
             }
             QGridLayout* layout = new QGridLayout(this);
-            WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+            WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
             int32_t row(0);
             if (sizeLabel != NULL) {
                 layout->addWidget(sizeLabel, row, 0, 1, 2, Qt::AlignHCenter);

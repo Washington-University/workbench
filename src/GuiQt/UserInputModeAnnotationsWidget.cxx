@@ -184,7 +184,8 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
     
-    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+    m_fontWidget                 = new AnnotationFontWidget(Qt::Horizontal,
+                                                            AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                             m_inputModeAnnotations->getUserInputMode(),
                                                             m_browserWindowIndex);
     
@@ -338,7 +339,8 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_lineArrowTipsWidget        = new AnnotationLineArrowTipsWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                      m_browserWindowIndex);
     
-    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+    m_fontWidget                 = new AnnotationFontWidget(Qt::Vertical,
+                                                            AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                             m_inputModeAnnotations->getUserInputMode(),
                                                             m_browserWindowIndex);
     

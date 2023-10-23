@@ -105,7 +105,7 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
     
     QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     switch (orientation) {
         case Qt::Horizontal:
             gridLayout->addWidget(new QLabel("Drawing"),

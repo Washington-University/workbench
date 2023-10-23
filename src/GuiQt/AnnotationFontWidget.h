@@ -47,7 +47,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationFontWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+        AnnotationFontWidget(const Qt::Orientation orientation,
+                             const AnnotationWidgetParentEnum::Enum parentWidgetType,
                              const UserInputModeEnum::Enum userInputMode,
                              const int32_t browserWindowIndex,
                              QWidget* parent = 0);

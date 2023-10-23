@@ -64,6 +64,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param orientation
+ *    Orientation of the widget
  * @param parentWidgetType
  *    Type of parent widget
  * @param userInputMode
@@ -73,7 +75,8 @@ using namespace caret;
  * @param parent
  *     Parent for this widget.
  */
-AnnotationFontWidget::AnnotationFontWidget(const AnnotationWidgetParentEnum::Enum parentWidgetType,
+AnnotationFontWidget::AnnotationFontWidget(const Qt::Orientation orientation,
+                                           const AnnotationWidgetParentEnum::Enum parentWidgetType,
                                            const UserInputModeEnum::Enum userInputMode,
                                            const int32_t browserWindowIndex,
                                            QWidget* parent)
@@ -230,29 +233,61 @@ m_browserWindowIndex(browserWindowIndex)
             QLabel* sizeLabel  = new QLabel("Size");
             QLabel* styleLabel = new QLabel("Style");
             
-            QHBoxLayout* stylesLayout = new QHBoxLayout();
-            WuQtUtilities::setLayoutSpacingAndMargins(stylesLayout, 0, 0);
-            stylesLayout->addWidget(boldFontToolButton);
-            stylesLayout->addWidget(italicFontToolButton);
-            stylesLayout->addWidget(underlineFontToolButton);
-            stylesLayout->addStretch();
-            
-            QGridLayout* fontNameSizeLayout = new QGridLayout(this);
-            WuQtUtilities::setLayoutSpacingAndMargins(fontNameSizeLayout, 2, 0);
-            fontNameSizeLayout->setColumnStretch(0, 0);
-            fontNameSizeLayout->setColumnStretch(1, 0);
-            fontNameSizeLayout->setColumnStretch(2, 0);
-            fontNameSizeLayout->setColumnStretch(3, 100);
-            fontNameSizeLayout->addWidget(fontLabel, 0, 0);
-            fontNameSizeLayout->addWidget(m_fontNameComboBox->getWidget(),
-                                          0, 1, 1, 3);
-            fontNameSizeLayout->addWidget(sizeLabel, 1, 0);
-            fontNameSizeLayout->addWidget(m_fontSizeSpinBox->getWidget(),
-                                          1, 1);
-            fontNameSizeLayout->addWidget(styleLabel, 2, 0);
-            fontNameSizeLayout->addLayout(stylesLayout, 2, 1);
-            fontNameSizeLayout->addWidget(textColorLabel, 1, 2);
-            fontNameSizeLayout->addWidget(m_textColorToolButton, 2, 2);
+            switch (orientation) {
+                case Qt::Horizontal:
+                {
+                    QHBoxLayout* topLayout(new QHBoxLayout());
+                    WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 2, 0);
+                    topLayout->addWidget(fontLabel);
+                    topLayout->addWidget(m_fontNameComboBox->getWidget());
+                    topLayout->addWidget(textColorLabel);
+                    topLayout->addWidget(m_textColorToolButton);
+                    topLayout->addStretch();
+                    
+                    QHBoxLayout* bottomLayout(new QHBoxLayout());
+                    WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
+                    bottomLayout->addWidget(sizeLabel);
+                    bottomLayout->addWidget(m_fontSizeSpinBox->getWidget());
+                    bottomLayout->addWidget(styleLabel);
+                    bottomLayout->addWidget(boldFontToolButton);
+                    bottomLayout->addWidget(italicFontToolButton);
+                    bottomLayout->addWidget(underlineFontToolButton);
+                    bottomLayout->addStretch();
+                    
+                    QVBoxLayout* layout(new QVBoxLayout(this));
+                    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
+                    layout->addLayout(topLayout);
+                    layout->addLayout(bottomLayout);
+                }
+                    break;
+                case Qt::Vertical:
+                {
+                    QHBoxLayout* stylesLayout = new QHBoxLayout();
+                    WuQtUtilities::setLayoutSpacingAndMargins(stylesLayout, 0, 0);
+                    stylesLayout->addWidget(boldFontToolButton);
+                    stylesLayout->addWidget(italicFontToolButton);
+                    stylesLayout->addWidget(underlineFontToolButton);
+                    stylesLayout->addStretch();
+                    
+                    QGridLayout* fontNameSizeLayout = new QGridLayout(this);
+                    WuQtUtilities::setLayoutSpacingAndMargins(fontNameSizeLayout, 2, 0);
+                    fontNameSizeLayout->setColumnStretch(0, 0);
+                    fontNameSizeLayout->setColumnStretch(1, 0);
+                    fontNameSizeLayout->setColumnStretch(2, 0);
+                    fontNameSizeLayout->setColumnStretch(3, 100);
+                    fontNameSizeLayout->addWidget(fontLabel, 0, 0);
+                    fontNameSizeLayout->addWidget(m_fontNameComboBox->getWidget(),
+                                                  0, 1, 1, 3);
+                    fontNameSizeLayout->addWidget(sizeLabel, 1, 0);
+                    fontNameSizeLayout->addWidget(m_fontSizeSpinBox->getWidget(),
+                                                  1, 1);
+                    fontNameSizeLayout->addWidget(styleLabel, 2, 0);
+                    fontNameSizeLayout->addLayout(stylesLayout, 2, 1);
+                    fontNameSizeLayout->addWidget(textColorLabel, 1, 2);
+                    fontNameSizeLayout->addWidget(m_textColorToolButton, 2, 2);
+                }
+                    break;
+            }
         }
             break;
         case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
