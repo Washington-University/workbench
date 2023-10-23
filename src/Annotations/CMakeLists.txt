@@ -42,6 +42,7 @@ AnnotationCoordinate.h
 AnnotationCoordinateSpaceEnum.h
 AnnotationDistributeEnum.h
 AnnotationEditingSelectionInformation.h
+AnnotationFontAttributes.h
 AnnotationFontAttributesInterface.h
 AnnotationGroup.h
 AnnotationGroupKey.h
@@ -102,6 +103,7 @@ AnnotationCoordinate.cxx
 AnnotationCoordinateSpaceEnum.cxx
 AnnotationDistributeEnum.cxx
 AnnotationEditingSelectionInformation.cxx
+AnnotationFontAttributes.cxx
 AnnotationGroup.cxx
 AnnotationGroupKey.cxx
 AnnotationGroupTypeEnum.cxx

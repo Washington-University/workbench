@@ -33,6 +33,7 @@ namespace caret {
     class Annotation;
     class AnnotationCoordinate;
     class AnnotationFile;
+    class AnnotationFontAttributesInterface;
     class AnnotationGroup;
     class AnnotationImage;
     class AnnotationMultiCoordinateShape;
@@ -101,6 +102,10 @@ namespace caret {
         
         void readTextDataElement(AnnotationText* textAnnotation,
                                  const QString& annotationTextElementName);
+        
+        void readFontAttibutes(AnnotationFontAttributesInterface* fontAttributes,
+                               const AString& elementName,
+                               const QXmlStreamAttributes& attributes);
         
         CaretPointer<QXmlStreamReader> m_stream;
         

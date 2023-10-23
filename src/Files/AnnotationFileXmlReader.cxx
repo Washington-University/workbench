@@ -944,6 +944,14 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         
                         m_stream->skipCurrentElement();
                     }
+                    else if (elementName == ELEMENT_FONT_ATTRIBUTES) {
+                        AnnotationFontAttributesInterface* fontAttributesInterface(dynamic_cast<AnnotationFontAttributesInterface*>(annotation));
+                        if (fontAttributesInterface != NULL) {
+                            readFontAttibutes(fontAttributesInterface,
+                                              elementName,
+                                              m_stream->attributes());
+                        }
+                    }
                     else {
                         /*
                          * Issue warning (instead of fatal error) if unrecognized element found.
@@ -1608,4 +1616,99 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     }
 }
 
+/**
+ * Read the font attributes from the given XML stream attributes
+ * @param fontAttributes
+ *    The font attributes
+ * @param attributes
+ *    The XML stream attributes
+ */
+void
+AnnotationFileXmlReader::readFontAttibutes(AnnotationFontAttributesInterface* fontAttributes,
+                                           const AString& elementName,
+                                           const QXmlStreamAttributes& attributes)
+{
+    CaretAssert(fontAttributes);
+    
+    {
+        const QString valueString = m_streamHelper->getRequiredAttributeStringValue(attributes,
+                                                                                    elementName,
+                                                                                    ATTRIBUTE_TEXT_FONT_NAME);
+        bool valid = false;
+        AnnotationTextFontNameEnum::Enum fontName = AnnotationTextFontNameEnum::fromName(valueString,
+                                                                                         &valid);
+        if (valid) {
+            fontAttributes->setFont(fontName);
+        }
+        else {
+            m_streamHelper->throwDataFileException("Invalid value "
+                                                   + valueString
+                                                   + " for attribute "
+                                                   + ATTRIBUTE_TEXT_FONT_NAME);
+        }
+    }
+
+    fontAttributes->setFontPercentViewportSize(m_streamHelper->getRequiredAttributeFloatValue(attributes,
+                                                                                              elementName,
+                                                                                              ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE));
+
+    {
+        /*
+         * Text color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    elementName,
+                                                                                    ATTRIBUTE_TEXT_CARET_COLOR,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            bool valid = false;
+            CaretColorEnum::Enum value = CaretColorEnum::fromName(valueString,
+                                                                  &valid);
+            if (valid) {
+                fontAttributes->setTextColor(value);
+            }
+            else {
+                m_streamHelper->throwDataFileException("Invalid value "
+                                                       + valueString
+                                                       + " for attribute "
+                                                       + ATTRIBUTE_TEXT_CARET_COLOR);
+            }
+        }
+    }
+
+    {
+        /*
+         * Custom color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    elementName,
+                                                                                    ATTRIBUTE_TEXT_CUSTOM_RGBA,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            std::vector<float> rgba;
+            AString::toNumbers(valueString, rgba);
+            if (rgba.size() == 4) {
+                fontAttributes->setCustomTextColor(&rgba[0]);
+            }
+            else {
+                m_streamHelper->throwDataFileException(ATTRIBUTE_TEXT_CUSTOM_RGBA
+                                                       + " must contain 4 elements but "
+                                                       + valueString
+                                                       + " contains "
+                                                       + QString::number(rgba.size())
+                                                       + " elements");
+            }
+        }
+    }
+
+    fontAttributes->setBoldStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+                                                                                      elementName,
+                                                                                      ATTRIBUTE_TEXT_FONT_BOLD));
+    fontAttributes->setItalicStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+                                                                                        elementName,
+                                                                                        ATTRIBUTE_TEXT_FONT_ITALIC));
+    fontAttributes->setUnderlineStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
+                                                                                           elementName,
+                                                                                           ATTRIBUTE_TEXT_FONT_UNDERLINE));
+}
 

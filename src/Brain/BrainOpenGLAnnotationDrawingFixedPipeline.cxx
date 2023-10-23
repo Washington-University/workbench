@@ -36,6 +36,7 @@
 #include "AnnotationColorBarNumericText.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationFile.h"
+#include "AnnotationFontAttributes.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
 #include "AnnotationManager.h"
@@ -5466,8 +5467,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 if (m_displaySampleNamesFlag) {
                     const std::vector<float>& xyz(primitive->getFloatXYZ());
                     drawPolyhedronName(polyhedron,
-                                       xyz,
-                                       foregroundRGBA);
+                                       xyz);
                 }
             }
         }
@@ -5521,13 +5521,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
  *    The polyhedron
  * @param verticesXYZ
  *    Vertices for drawing the polyhedron
- * @param rgba
- *    RGBA colors used to draw polyhedron
  */
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationPolyhedron* polyhedron,
-                                                              const std::vector<float>& verticesXYZ,
-                                                              const uint8_t rgba[4])
+                                                              const std::vector<float>& verticesXYZ)
 {
     if (polyhedron == NULL) {
         return;
@@ -5549,17 +5546,22 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationPolyhedr
     }
     viewportXYZ /= numVertices;
     
-    
-    const float textPercentageHeight(7.0);
+    const AnnotationFontAttributes* fontAttributes(polyhedron->getFontAttributes());
+    CaretAssert(fontAttributes);
     
     AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+    annText.setFont(fontAttributes->getFont());
     annText.setText(polyhedronName);
     annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
     annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-    annText.setFontPercentViewportSize(textPercentageHeight);
-    annText.setTextColor(CaretColorEnum::CUSTOM);
+    annText.setFontPercentViewportSize(fontAttributes->getFontPercentViewportSize());
+    annText.setTextColor(fontAttributes->getTextColor());
+    uint8_t rgba[4];
+    fontAttributes->getCustomTextColor(rgba);
     annText.setCustomTextColor(rgba);
-    
+    annText.setBoldStyleEnabled(fontAttributes->isBoldStyleEnabled());
+    annText.setItalicStyleEnabled(fontAttributes->isItalicStyleEnabled());
+    annText.setUnderlineStyleEnabled(fontAttributes->isUnderlineStyleEnabled());
     
     glPushAttrib(GL_DEPTH_BITS);
     glDisable(GL_DEPTH_TEST);

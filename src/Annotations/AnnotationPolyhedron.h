@@ -21,16 +21,17 @@
  */
 /*LICENSE_END*/
 
-
+#include "AnnotationFontAttributesInterface.h"
 #include "AnnotationMultiPairedCoordinateShape.h"
-#include "CaretPointer.h"
 #include "Plane.h"
 
 namespace caret {
 
+    class AnnotationFontAttributes;
     class Plane;
     
-    class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape {
+    class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape,
+           public AnnotationFontAttributesInterface {
         
     public:
         class Edge {
@@ -78,6 +79,10 @@ namespace caret {
         
         void setPlane(const Plane& plane);
         
+        AnnotationFontAttributes* getFontAttributes();
+        
+        const AnnotationFontAttributes* getFontAttributes() const;
+        
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;
         
@@ -87,6 +92,50 @@ namespace caret {
         static float millimetersToSlices(const float sliceThickness,
                                          const float millimeters);
         
+        virtual AnnotationTextFontNameEnum::Enum getFont() const override;
+        
+        virtual void setFont(const AnnotationTextFontNameEnum::Enum font) override;
+        
+        virtual float getFontPercentViewportSize() const override;
+        
+        virtual void setFontPercentViewportSize(const float fontPercentViewportHeight) override;
+        
+        virtual CaretColorEnum::Enum getTextColor() const override;
+        
+        virtual void setTextColor(const CaretColorEnum::Enum color) override;
+        
+        virtual void getTextColorRGBA(float rgbaOut[4]) const override;
+        
+        virtual void getTextColorRGBA(uint8_t rgbaOut[4]) const override;
+        
+        virtual void getCustomTextColor(float rgbaOut[4]) const override;
+        
+        virtual void getCustomTextColor(uint8_t rgbaOut[4]) const override;
+        
+        virtual void setCustomTextColor(const float rgba[4]) override;
+        
+        virtual void setCustomTextColor(const uint8_t rgba[4]) override;
+        
+        virtual bool isBoldStyleEnabled() const override;
+        
+        virtual void setBoldStyleEnabled(const bool enabled) override;
+        
+        virtual bool isItalicStyleEnabled() const override;
+        
+        virtual void setItalicStyleEnabled(const bool enabled) override;
+        
+        virtual bool isUnderlineStyleEnabled() const override;
+        
+        virtual void setUnderlineStyleEnabled(const bool enabled) override;
+        
+        bool isFontTooSmallWhenLastDrawn() const override;
+        
+        void setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const override;
+               
+        virtual bool isModified() const override;
+       
+        virtual void clearModified() override;
+               
        // ADD_NEW_METHODS_HERE
           
     protected: 
@@ -103,9 +152,11 @@ namespace caret {
         
         void initializeMembersAnnotationPolyhedron();
         
-        CaretPointer<SceneClassAssistant> m_sceneAssistant;
+        std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Plane m_plane;
+        
+        std::unique_ptr<AnnotationFontAttributes> m_fontAttributes;
         
         // ADD_NEW_MEMBERS_HERE
 

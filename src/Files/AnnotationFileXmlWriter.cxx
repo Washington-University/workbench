@@ -534,6 +534,40 @@ AnnotationFileXmlWriter::writeText(const AnnotationText* text)
     m_stream->writeEndElement();
 }
 
+/**
+ * Write the font attributes
+ * @param fontAttributes
+ *   The font attributres
+ */
+void
+AnnotationFileXmlWriter::writeFontAttributes(const AnnotationFontAttributesInterface* fontAttributes)
+{
+    CaretAssert(fontAttributes);
+    
+    QXmlStreamAttributes attributes;
+    
+    attributes.append(ATTRIBUTE_TEXT_FONT_NAME,
+                      AnnotationTextFontNameEnum::toName(fontAttributes->getFont()));
+    attributes.append(ATTRIBUTE_TEXT_FONT_PERCENT_VIEWPORT_SIZE,
+                      AString::number(fontAttributes->getFontPercentViewportSize()));
+    attributes.append(ATTRIBUTE_TEXT_CARET_COLOR,
+                      CaretColorEnum::toName(fontAttributes->getTextColor()));
+    float rgba[4];
+    fontAttributes->getCustomTextColor(rgba);
+    attributes.append(ATTRIBUTE_TEXT_CUSTOM_RGBA,
+                      realArrayToString(rgba, 4));
+    attributes.append(ATTRIBUTE_TEXT_FONT_BOLD,
+                      AString::fromBool(fontAttributes->isBoldStyleEnabled()));
+    attributes.append(ATTRIBUTE_TEXT_FONT_ITALIC,
+                      AString::fromBool(fontAttributes->isItalicStyleEnabled()));
+    attributes.append(ATTRIBUTE_TEXT_FONT_UNDERLINE,
+                      AString::fromBool(fontAttributes->isUnderlineStyleEnabled()));
+    
+    m_stream->writeStartElement(ELEMENT_FONT_ATTRIBUTES);
+    m_stream->writeAttributes(attributes);
+    m_stream->writeEndElement();
+}
+
 /*
  * Get the annotation's properties in XML attributes.
  *
@@ -728,6 +762,8 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
         m_stream->writeAttribute(ATTRIBUTE_PLANE,
                                  polyhedron->getPlane().toFormattedString());
         m_stream->writeEndElement();
+
+        writeFontAttributes(polyhedron);        
     }
     
     writeAnnotationMetaData(shape);

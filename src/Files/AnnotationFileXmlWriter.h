@@ -34,6 +34,7 @@ namespace caret {
     class AnnotationBox;
     class AnnotationCoordinate;
     class AnnotationFile;
+    class AnnotationFontAttributesInterface;
     class AnnotationGroup;
     class AnnotationImage;
     class AnnotationLine;
@@ -117,6 +118,8 @@ namespace caret {
         void writeText(const AnnotationText* text);
         
         void writeAnnotationMetaData(const Annotation* annotation);
+        
+        void writeFontAttributes(const AnnotationFontAttributesInterface* fontAttributes);
         
         CaretPointer<QXmlStreamWriter> m_stream;
         

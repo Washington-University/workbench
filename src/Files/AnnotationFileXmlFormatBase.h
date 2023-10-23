@@ -161,6 +161,8 @@ namespace caret {
         
         static const QString ELEMENT_COORDINATE_MEDIA_FILE_NAME;
         
+        static const QString ELEMENT_FONT_ATTRIBUTES;
+        
         static const QString ELEMENT_GROUP;
         
         static const QString ELEMENT_IMAGE;
@@ -305,6 +307,8 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_COORDINATE_MEDIA_FILE_NAME = "mediaFileName";
     
+    const QString AnnotationFileXmlFormatBase::ELEMENT_FONT_ATTRIBUTES = "fontAttributes";
+
     const QString AnnotationFileXmlFormatBase::ELEMENT_GROUP = "group";
     
     const QString AnnotationFileXmlFormatBase::ELEMENT_IMAGE = "image";

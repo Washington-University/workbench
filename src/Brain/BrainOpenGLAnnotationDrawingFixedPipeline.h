@@ -360,8 +360,7 @@ namespace caret {
                                         const uint8_t foregroundRGBA[4]);
 
         void drawPolyhedronName(AnnotationPolyhedron* polyhedron,
-                                const std::vector<float>& verticesXYZ,
-                                const uint8_t rgba[4]);
+                                const std::vector<float>& verticesXYZ);
         
         bool drawMultiCoordinateShape(AnnotationFile* annotationFile,
                                       AnnotationMultiCoordinateShape* multiCoordShape,

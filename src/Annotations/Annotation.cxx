@@ -1863,6 +1863,7 @@ Annotation::initializeProperties()
     bool fillColorFlag = true;
     bool lineArrowsFlag = false;
     bool scaleBarFlag = false;
+    bool textAttributesFlag = false;
     bool textFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
@@ -1885,6 +1886,7 @@ Annotation::initializeProperties()
             break;
         case AnnotationTypeEnum::POLYHEDRON:
             fillColorFlag = false;
+            textAttributesFlag = true;
             break;
         case AnnotationTypeEnum::POLYGON:
             fillColorFlag = false;
@@ -1904,10 +1906,10 @@ Annotation::initializeProperties()
     setProperty(Property::LINE_ARROWS, lineArrowsFlag);
     setProperty(Property::TEXT_ALIGNMENT, textFlag);
     setProperty(Property::TEXT_EDIT, textFlag);
-    setProperty(Property::TEXT_COLOR, colorBarFlag | scaleBarFlag | textFlag);
-    setProperty(Property::TEXT_FONT_NAME, colorBarFlag | scaleBarFlag | textFlag);
-    setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | scaleBarFlag | textFlag);
-    setProperty(Property::TEXT_FONT_STYLE, textFlag);
+    setProperty(Property::TEXT_COLOR, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
+    setProperty(Property::TEXT_FONT_NAME, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
+    setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
+    setProperty(Property::TEXT_FONT_STYLE, textFlag | textAttributesFlag);
     setProperty(Property::TEXT_ORIENTATION, textFlag);
     
     resetProperty(Property::SCENE_CONTAINS_ATTRIBUTES);

@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include "AnnotationCoordinate.h"
+#include "AnnotationFontAttributes.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
@@ -51,7 +52,8 @@ using namespace caret;
  */
 AnnotationPolyhedron::AnnotationPolyhedron(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType)
 : AnnotationMultiPairedCoordinateShape(AnnotationTypeEnum::POLYHEDRON,
-                                       attributeDefaultType)
+                                       attributeDefaultType),
+AnnotationFontAttributesInterface()
 {
     initializeMembersAnnotationPolyhedron();
 }
@@ -69,7 +71,8 @@ AnnotationPolyhedron::~AnnotationPolyhedron()
  *    Object that is copied.
  */
 AnnotationPolyhedron::AnnotationPolyhedron(const AnnotationPolyhedron& obj)
-: AnnotationMultiPairedCoordinateShape(obj)
+: AnnotationMultiPairedCoordinateShape(obj),
+AnnotationFontAttributesInterface()
 {
     this->initializeMembersAnnotationPolyhedron();
     this->copyHelperAnnotationPolyhedron(obj);
@@ -101,6 +104,7 @@ void
 AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj)
 {
     m_plane = obj.m_plane;
+    *m_fontAttributes = *obj.m_fontAttributes;
 }
 
 /**
@@ -109,7 +113,10 @@ AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron&
 void
 AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
 {
-    m_sceneAssistant.grabNew(new SceneClassAssistant());
+    /* Do not add font attribute to scene since it is written to file */
+    m_fontAttributes.reset(new AnnotationFontAttributes(m_attributeDefaultType));
+    
+    m_sceneAssistant.reset(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
     }
     resetProperty(Property::COPY_CUT_PASTE);
@@ -304,6 +311,26 @@ AnnotationPolyhedron::setPlane(const Plane& plane)
 }
 
 /**
+ * @return Pointer to the font attributes
+ */
+AnnotationFontAttributes*
+AnnotationPolyhedron::getFontAttributes()
+{
+    CaretAssert(m_fontAttributes);
+    return m_fontAttributes.get();
+}
+
+/**
+ * @return Pointer to the font attributes
+ */
+const AnnotationFontAttributes*
+AnnotationPolyhedron::getFontAttributes() const
+{
+    CaretAssert(m_fontAttributes);
+    return m_fontAttributes.get();
+}
+
+/**
  * Set values while reading file
  * @param plane
  *    The plane from when annotation was drawn
@@ -315,6 +342,229 @@ AnnotationPolyhedron::setFromFileReading(const Plane& plane)
 {
     m_plane = plane;
     setModified();
+}
+
+/**
+ * @return The font.
+ */
+AnnotationTextFontNameEnum::Enum
+AnnotationPolyhedron::getFont() const
+{
+    return m_fontAttributes->getFont();
+}
+
+/**
+ * Set the font for an annotation.
+ 
+ * @param font
+ *    Font for the annotation.
+ */
+void
+AnnotationPolyhedron::setFont(const AnnotationTextFontNameEnum::Enum font)
+{
+    m_fontAttributes->setFont(font);
+}
+
+/**
+ * @return Size of font as a percentage of the viewport height.
+ *
+ * Range is zero to one hundred.
+ */
+float
+AnnotationPolyhedron::getFontPercentViewportSize() const
+{
+    return m_fontAttributes->getFontPercentViewportSize();
+}
+
+/**
+ * Set the size of the font as a percentage of the viewport height.
+ *
+ * @param fontPercentViewportHeight
+ *    New value for percentage of viewport height.
+ *    Range is zero to one hundred.
+ */
+void
+AnnotationPolyhedron::setFontPercentViewportSize(const float fontPercentViewportHeight)
+{
+    m_fontAttributes->setFontPercentViewportSize(fontPercentViewportHeight);
+}
+
+/**
+ * @return The foreground color.
+ */
+CaretColorEnum::Enum
+AnnotationPolyhedron::getTextColor() const
+{
+    return m_fontAttributes->getTextColor();
+}
+
+/**
+ * Set the foreground color.
+ *
+ * @param color
+ *     New value for foreground color.
+ */
+void
+AnnotationPolyhedron::setTextColor(const CaretColorEnum::Enum color)
+{
+    m_fontAttributes->setTextColor(color);
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+AnnotationPolyhedron::getTextColorRGBA(float rgbaOut[4]) const
+{
+    m_fontAttributes->getTextColorRGBA(rgbaOut);
+}
+
+/**
+ * Get the foreground color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+AnnotationPolyhedron::getTextColorRGBA(uint8_t rgbaOut[4]) const
+{
+    m_fontAttributes->getTextColorRGBA(rgbaOut);
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationPolyhedron::getCustomTextColor(float rgbaOut[4]) const
+{
+    m_fontAttributes->getCustomTextColor(rgbaOut);
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationPolyhedron::getCustomTextColor(uint8_t rgbaOut[4]) const
+{
+    m_fontAttributes->getCustomTextColor(rgbaOut);
+}
+
+/**
+ * Set the foreground color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationPolyhedron::setCustomTextColor(const float rgba[4])
+{
+    m_fontAttributes->setCustomTextColor(rgba);
+}
+
+/**
+ * Set the foreground color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationPolyhedron::setCustomTextColor(const uint8_t rgba[4])
+{
+    m_fontAttributes->setCustomTextColor(rgba);
+}
+
+/**
+ * @return
+ *    Is bold enabled ?
+ */
+bool
+AnnotationPolyhedron::isBoldStyleEnabled() const
+{
+    return m_fontAttributes->isBoldStyleEnabled();
+}
+
+/**
+ * Set bold enabled.
+ *
+ * @param enabled
+ *     New status for bold enabled.
+ */
+void
+AnnotationPolyhedron::setBoldStyleEnabled(const bool enabled)
+{
+    m_fontAttributes->setBoldStyleEnabled(enabled);
+}
+
+/**
+ * @return
+ *    Is italic enabled ?
+ */
+bool
+AnnotationPolyhedron::isItalicStyleEnabled() const
+{
+    return m_fontAttributes->isItalicStyleEnabled();
+}
+
+/**
+ * Set italic enabled.
+ *
+ * @param enabled
+ *     New status for italic enabled.
+ */
+void
+AnnotationPolyhedron::setItalicStyleEnabled(const bool enabled)
+{
+    m_fontAttributes->setItalicStyleEnabled(enabled);
+}
+
+/**
+ * @return
+ *    Is underline enabled ?
+ */
+bool
+AnnotationPolyhedron::isUnderlineStyleEnabled() const
+{
+    return m_fontAttributes->isUnderlineStyleEnabled();
+}
+
+/**
+ * Set underline enabled.
+ *
+ * @param enabled
+ *     New status for underline enabled.
+ */
+void
+AnnotationPolyhedron::setUnderlineStyleEnabled(const bool enabled)
+{
+    m_fontAttributes->setUnderlineStyleEnabled(enabled);
+}
+
+/**
+ * @return Is the font too small when it is last drawn
+ * that may cause an OpenGL error and, as a result,
+ * the text is not seen by the user.
+ */
+bool
+AnnotationPolyhedron::isFontTooSmallWhenLastDrawn() const
+{
+    return m_fontAttributes->isFontTooSmallWhenLastDrawn();
+}
+
+void
+AnnotationPolyhedron::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) const
+{
+    m_fontAttributes->setFontTooSmallWhenLastDrawn(tooSmallFontFlag);
 }
 
 /**
@@ -355,6 +605,28 @@ AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                         getCoordinate(i + farOffset)->getXYZ(),
                                         getCoordinate(iNext + farOffset)->getXYZ()));
     }
+}
+
+/**
+ * @return True if this instance is modified
+ */
+bool
+AnnotationPolyhedron::isModified() const
+{
+    if (m_fontAttributes->isModified()) {
+        return true;
+    }
+    return AnnotationMultiPairedCoordinateShape::isModified();
+}
+
+/**
+ * Clear this instance's modification status
+ */
+void
+AnnotationPolyhedron::clearModified()
+{
+    m_fontAttributes->clearModified();
+    AnnotationMultiPairedCoordinateShape::clearModified();
 }
 
 /**

@@ -184,6 +184,10 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
     
+    m_fontWidget                 = new AnnotationFontWidget(AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
+                                                            m_inputModeAnnotations->getUserInputMode(),
+                                                            m_browserWindowIndex);
+    
     m_insertSamplesNewWidget     = new AnnotationSamplesInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                         m_browserWindowIndex);
     
@@ -198,37 +202,31 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
         
-    QWidget* leftWidget(new QWidget());
-    QHBoxLayout* leftLayout(new QHBoxLayout(leftWidget));
-    WuQtUtilities::setLayoutSpacingAndMargins(leftLayout, 2, 0);
-    leftLayout->addWidget(m_colorWidget, 0, Qt::AlignTop);
-    leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
-                              QSizePolicy::Fixed);
+//    leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
+//                              QSizePolicy::Fixed);
     
-    QGridLayout* rightLayout(new QGridLayout());
-    WuQtUtilities::setLayoutSpacingAndMargins(rightLayout, 2, 0);
-    rightLayout->addWidget(m_insertSamplesNewWidget,
-                           0, 0, 1, 5, Qt::AlignLeft);
-    rightLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(),
-                           1, 0, 1, 5);
-    rightLayout->addWidget(m_finishCancelWidget,
-                           2, 0, Qt::AlignTop);
-    rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                           2, 1);
-    rightLayout->addWidget(m_deleteWidget,
-                           2, 2, Qt::AlignTop);
-    rightLayout->addWidget(WuQtUtilities::createVerticalLineWidget(),
-                           2, 3);
-    rightLayout->addWidget(m_redoUndoWidget,
-                           2, 4, Qt::AlignTop);
+    QHBoxLayout* topLayout(new QHBoxLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 2, 0);
+    topLayout->addWidget(m_colorWidget, 0);
+    topLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    topLayout->addWidget(m_insertSamplesNewWidget, 100);
     
-    QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(2, 2, 2, 2);
-    layout->setSpacing(8);
-    layout->addWidget(leftWidget, 0, Qt::AlignTop);
-    layout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    layout->addLayout(rightLayout);
-    layout->addStretch();
+    QHBoxLayout* bottomLayout(new QHBoxLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
+    bottomLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomLayout->addWidget(m_finishCancelWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
+    bottomLayout->addStretch();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    layout->addLayout(topLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addLayout(bottomLayout);
 }
 
 /**

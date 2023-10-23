@@ -261,6 +261,7 @@ namespace caret {
 
         friend class AnnotationFileXmlReader;
         friend class AnnotationFileXmlWriter;
+        friend class AnnotationFontAttributes;
     };
     
 #ifdef __ANNOTATION_TEXT_DECLARE__
