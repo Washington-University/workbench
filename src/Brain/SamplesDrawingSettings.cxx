@@ -80,6 +80,7 @@ SamplesDrawingSettings::~SamplesDrawingSettings()
  */
 SamplesDrawingSettings::SamplesDrawingSettings(const SamplesDrawingSettings& obj)
 : CaretObject(obj),
+SceneableInterface(obj),
 m_tabIndex(obj.m_tabIndex)
 {
     this->copyHelperSamplesDrawingSettings(obj);
