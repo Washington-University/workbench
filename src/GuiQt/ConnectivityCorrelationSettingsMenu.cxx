@@ -104,6 +104,8 @@ m_settings(settings)
     widgetAction->setDefaultWidget(optionsWidget);
     
     addAction(widgetAction);
+
+    updateMenu();
 }
 
 /**
@@ -129,6 +131,7 @@ ConnectivityCorrelationSettingsMenu::modeButtonClicked(QAbstractButton *button)
         mode = ConnectivityCorrelationModeEnum::COVARIANCE;
     }
     m_settings->setMode(mode);
+    updateMenu();
 }
 
 /**
@@ -152,3 +155,22 @@ ConnectivityCorrelationSettingsMenu::optionNoDemeanCheckBoxClicked(bool checked)
 {
     m_settings->setCorrelationNoDemeanEnabled(checked);
 }
+
+/**
+ * Update the menu
+ */
+void
+ConnectivityCorrelationSettingsMenu::updateMenu()
+{
+    bool enableOptionsFlag(false);
+    switch (m_settings->getMode()) {
+        case ConnectivityCorrelationModeEnum::CORRELATION:
+            enableOptionsFlag = true;
+            break;
+        case ConnectivityCorrelationModeEnum::COVARIANCE:
+            break;
+    }
+    m_optionFisherZCheckBox->setEnabled(enableOptionsFlag);
+    m_optionNoDemeanCheckBox->setEnabled(enableOptionsFlag);
+}
+

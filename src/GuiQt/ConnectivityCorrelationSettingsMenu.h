@@ -59,6 +59,8 @@ namespace caret {
         void optionNoDemeanCheckBoxClicked(bool checked);
         
     private:
+        void updateMenu();
+        
         ConnectivityCorrelationSettings* m_settings;
         
         QRadioButton* m_modeCorrelationRadioButton;
