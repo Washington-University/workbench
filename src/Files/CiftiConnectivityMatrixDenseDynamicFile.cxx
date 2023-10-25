@@ -31,7 +31,10 @@
 #include "CaretOMP.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiFile.h"
+#include "ConnectivityCorrelation.h"
+#include "ConnectivityCorrelationSettings.h"
 #include "FileInformation.h"
+#include "MathFunctions.h"
 #include "SceneClassAssistant.h"
 #include "dot_wrapper.h"
 
@@ -66,9 +69,14 @@ m_cacheDataFlag(false)
 {
     CaretAssert(m_parentDataSeriesFile);
 
+    m_correlationSettings.reset(new ConnectivityCorrelationSettings());
+    
     m_sceneAssistant.grabNew(new SceneClassAssistant());
     m_sceneAssistant->add("m_enabledAsLayer",
                           &m_enabledAsLayer);
+    m_sceneAssistant->add("m_correlationSettings",
+                          "ConnectivityCorrelationSettings",
+                          m_correlationSettings.get());
 }
 
 /**
@@ -268,6 +276,27 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
         return;
     }
     
+    std::vector<float> dataVector(m_numberOfBrainordinates);
+    ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
+    if (connCorrelation == NULL) {
+        std::fill(dataVector.begin(),
+                  dataVector.end(),
+                  0.0);
+        return;
+    }
+    
+    connCorrelation->getCorrelationForBrainordinate(index,
+                                                    dataVector);
+
+    if ( ! m_testConnectivityCorrelationFlag) {
+        for (int32_t i = 0; i < m_numberOfBrainordinates; i++) {
+            CaretAssertVectorIndex(dataVector, i);
+            dataOut[i] = dataVector[i];
+        }
+        return;
+    }
+
+    
     std::vector<float> rowData(m_numberOfTimePoints);
     m_parentDataSeriesCiftiFile->getRow(&rowData[0], index);
     const float mean = m_rowData[index].m_mean;
@@ -287,6 +316,12 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
         
         dataOut[iRow] = coefficient;
     }
+    
+    const bool sameFlag(MathFunctions::compareArrays(&dataOut[0], &dataVector[0], m_numberOfBrainordinates, 0.001));
+    std::cout << "getProcessedDataForRow() comparison " << AString::fromBool(sameFlag) << std::endl;
+//    for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {
+//        std::cout << dataOut[i] << ", " << dataVector[i] << std::endl;
+//    }
 }
 
 /**
@@ -316,6 +351,24 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
         return;
     }
     
+    std::vector<float> connCorrData;
+    {
+        ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
+        if (connCorrelation == NULL) {
+            std::fill(connCorrData.begin(),
+                      connCorrData.end(),
+                      0.0);
+            return;
+        }
+        connCorrelation->getCorrelationForBrainordinateData(rowAverageDataInOut,
+                                                            connCorrData);
+    }
+    
+    if ( ! m_testConnectivityCorrelationFlag) {
+        rowAverageDataInOut = connCorrData;
+        return;
+    }
+    
     float mean = 0.0;
     float sumSquared = 0.0;
     computeDataMeanAndSumSquared(&rowAverageDataInOut[0],
@@ -341,6 +394,16 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
     }
     
     rowAverageDataInOut = processedRowAverageData;
+    
+    if (connCorrData.size() == rowAverageDataInOut.size()) {
+        if (connCorrData.size() == m_numberOfBrainordinates) {
+            const bool sameFlag(MathFunctions::compareArrays(&rowAverageDataInOut[0], &connCorrData[0], m_numberOfBrainordinates, 0.001));
+            std::cout << "processRowAverageData() comparison " << AString::fromBool(sameFlag) << std::endl;
+//            for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {
+//                std::cout << rowAverageDataInOut[i] << ", " << connCorrData[i] << std::endl;
+//            }
+        }
+    }
 }
 
 
@@ -381,40 +444,6 @@ CiftiConnectivityMatrixDenseDynamicFile::preComputeRowMeanAndSumSquared()
                                          m_rowData[iRow].m_mean,
                                          m_rowData[iRow].m_sqrt_ssxx);
         }
-        
-//        double sum = 0.0;
-//        double sumSquared = 0.0;
-//        if (m_cacheDataFlag) {
-//            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
-//                CaretAssertVectorIndex(m_rowData[iRow].m_data, iPoint);
-//                const float d = m_rowData[iRow].m_data[iPoint];
-//                sum        += d;
-//                sumSquared += (d * d);
-//            }
-//        }
-//        else {
-//            std::vector<float> data(m_numberOfTimePoints);
-//            m_parentDataSeriesCiftiFile->getRow(&data[0], iRow);
-//            for (int32_t iPoint = 0; iPoint < m_numberOfTimePoints; iPoint++) {
-//                CaretAssertVectorIndex(data, iPoint);
-//                const float d = data[iPoint];
-//                sum        += d;
-//                sumSquared += (d * d);
-//            }
-//        }
-//        
-//        const float mean       = (sum / numPointsFloat);
-//        const float ssxx = (sumSquared - (numPointsFloat * mean * mean));
-//        CaretAssert(ssxx >= 0.0);
-//        
-//        const float meanDiff = std::fabs(mean - m_rowData[iRow].m_mean);
-//        const float ssDiff   = std::fabs(std::sqrt(ssxx) - m_rowData[iRow].m_sqrt_ssxx);
-//        if ((meanDiff > 0.0001) || (ssDiff > 0.0001)) {
-//            std::cout << "Mean/SS diff" << std::endl;
-//        }
-//        
-//        m_rowData[iRow].m_mean = mean;
-//        m_rowData[iRow].m_sqrt_ssxx = std::sqrt(ssxx);
     }
 }
 
@@ -508,60 +537,6 @@ CiftiConnectivityMatrixDenseDynamicFile::correlation(const std::vector<float>& d
 }
 
 /**
- * Correlation from https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
- *
- * @param rowIndex
- *     Index of a row
- * @param otherRowIndex
- *     Index of another row
- * @param numberOfPoints
- *     Number of points int the two arrays
- * @return
- *     The correlation coefficient computed on the two arrays.
- */
-float
-CiftiConnectivityMatrixDenseDynamicFile::correlation(const int32_t rowIndex,
-                                                     const int32_t otherRowIndex,
-                                                     const int32_t numberOfPoints) const
-{
-    const double numFloat = numberOfPoints;
-    double xySum = 0.0;
-    
-    CaretAssertVectorIndex(m_rowData, rowIndex);
-    CaretAssertVectorIndex(m_rowData, otherRowIndex);
-    const RowData& data = m_rowData[rowIndex];
-    const RowData& otherData = m_rowData[otherRowIndex];
-    
-    if (m_cacheDataFlag) {
-        for (int i = 0; i < numberOfPoints; i++) {
-            CaretAssertVectorIndex(data.m_data, i);
-            CaretAssertVectorIndex(otherData.m_data, i);
-            xySum += data.m_data[i] * otherData.m_data[i];
-        }
-    }
-    else {
-        std::vector<float> dataVector(m_numberOfTimePoints);
-        std::vector<float> otherDataVector(m_numberOfTimePoints);
-        m_parentDataSeriesCiftiFile->getRow(&dataVector[0], rowIndex);
-        m_parentDataSeriesCiftiFile->getRow(&otherDataVector[0], otherRowIndex);
-        
-        for (int i = 0; i < numberOfPoints; i++) {
-            CaretAssertVectorIndex(dataVector, i);
-            CaretAssertVectorIndex(otherDataVector, i);
-            xySum += dataVector[i] * otherDataVector[i];
-        }
-    }
-    
-    const double ssxy = xySum - (numFloat * data.m_mean * otherData.m_mean);
-    
-    float correlationCoefficient = 0.0;
-    if ((data.m_sqrt_ssxx > 0.0)
-        && (otherData.m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (data.m_sqrt_ssxx * otherData.m_sqrt_ssxx));
-    }
-    return correlationCoefficient;
-}
-/**
  * Save subclass data to the scene.
  *
  * @param sceneAttributes
@@ -601,5 +576,71 @@ CiftiConnectivityMatrixDenseDynamicFile::restoreSubClassDataFromScene(const Scen
                                      sceneClass);
 }
 
+/**
+ * @return Pointer to connectivity correlation or NULL if not valid
+ */
+ConnectivityCorrelation*
+CiftiConnectivityMatrixDenseDynamicFile::getConnectivityCorrelation() const
+{
+    if ( ! m_connectivityCorrelationFailedFlag) {
+        if (m_connectivityCorrelation == NULL) {
+            /*
+             * Need data and timepoint count from parent file
+             */
+            CaretAssert(m_parentDataSeriesFile);
+            CaretAssert(m_numberOfTimePoints >= 2);
+            CaretAssert(m_numberOfBrainordinates >= 2);
+            const int64_t numData(m_numberOfBrainordinates
+                                  * m_numberOfTimePoints);
+            m_dataSeriesMatrixData.resize(numData);
+            
+            CaretAssert(m_parentDataSeriesCiftiFile);
+            for (int64_t iRow = 0; iRow < m_numberOfBrainordinates; iRow++) {
+                const int64_t offset(iRow * m_numberOfTimePoints);
+                CaretAssertVectorIndex(m_dataSeriesMatrixData,
+                                       (offset + (m_numberOfTimePoints - 1)));
+                m_parentDataSeriesCiftiFile->getRow(&m_dataSeriesMatrixData[offset],
+                                                    iRow);
+            }
+            const int64_t nextBrainordinateStride(m_numberOfTimePoints);
+            const int64_t nextTimePointStride(1);
+            AString errorMessage;
+            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(&m_dataSeriesMatrixData[0],
+                                                                               m_numberOfBrainordinates,
+                                                                               nextBrainordinateStride,
+                                                                               m_numberOfTimePoints,
+                                                                               nextTimePointStride,
+                                                                               errorMessage);
+            if (cc != NULL) {
+                m_connectivityCorrelation.reset(cc);
+            }
+            else {
+                m_connectivityCorrelationFailedFlag = true;
+                CaretLogSevere("Failed to create connectvity correlation for "
+                               + m_parentDataSeriesFile->getFileNameNoPath());
+            }
+        }
+    }
+    
+    return m_connectivityCorrelation.get();
+}
+
+/**
+ * @return The correlation settings
+ */
+ConnectivityCorrelationSettings*
+CiftiConnectivityMatrixDenseDynamicFile::getCorrelationSettings()
+{
+    return m_correlationSettings.get();
+}
+
+/**
+ * @return The correlation settings (const method)
+ */
+const ConnectivityCorrelationSettings*
+CiftiConnectivityMatrixDenseDynamicFile::getCorrelationSettings() const
+{
+    return m_correlationSettings.get();
+}
 
 

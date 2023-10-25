@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityCorrelation.h"
+#include "ConnectivityCorrelationSettings.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
@@ -54,6 +55,7 @@ m_parentVolumeFile(parentVolumeFile)
     CaretAssert(m_parentVolumeFile);
     
     m_connectivityDataLoaded.reset(new ConnectivityDataLoaded());
+    m_correlationSettings.reset(new ConnectivityCorrelationSettings());
 
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_dataLoadingEnabledFlag",
@@ -63,6 +65,9 @@ m_parentVolumeFile(parentVolumeFile)
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
+    m_sceneAssistant->add("m_correlationSettings",
+                          "ConnectivityCorrelationSettings",
+                          m_correlationSettings.get());
 }
 
 /**
@@ -773,3 +778,20 @@ VolumeDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
     }
 }
 
+/**
+ * @return The correlation settings
+ */
+ConnectivityCorrelationSettings*
+VolumeDynamicConnectivityFile::getCorrelationSettings()
+{
+    return m_correlationSettings.get();
+}
+
+/**
+ * @return The correlation settings (const method)
+ */
+const ConnectivityCorrelationSettings*
+VolumeDynamicConnectivityFile::getCorrelationSettings() const
+{
+    return m_correlationSettings.get();
+}

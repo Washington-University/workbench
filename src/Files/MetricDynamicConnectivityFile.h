@@ -32,6 +32,7 @@
 namespace caret {
 
     class ConnectivityCorrelation;
+    class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
     class MetricDynamicConnectivityFile : public MetricFile {
@@ -89,6 +90,10 @@ namespace caret {
         MetricFile* newMetricFileFromLoadedData(const AString& directoryName,
                                                 AString& errorMessageOut);
         
+        ConnectivityCorrelationSettings* getCorrelationSettings();
+        
+        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -127,6 +132,8 @@ namespace caret {
         std::unique_ptr<ConnectivityDataLoaded> m_connectivityDataLoaded;
         
         bool m_connectivityCorrelationFailedFlag = false;
+        
+        mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
         
         // ADD_NEW_MEMBERS_HERE
 

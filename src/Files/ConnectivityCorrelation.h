@@ -65,7 +65,9 @@ namespace caret {
 
         void getCorrelationForBrainordinateROI(const std::vector<int64_t>& brainordinateIndices,
                                                std::vector<float>& dataOut);
-        
+
+        void getCorrelationForBrainordinateData(const std::vector<float>& brainordinateData,
+                                                std::vector<float>& dataOut);
 
 
         // ADD_NEW_METHODS_HERE

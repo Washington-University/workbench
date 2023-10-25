@@ -26,6 +26,8 @@
 
 namespace caret {
     class CiftiBrainordinateDataSeriesFile;
+    class ConnectivityCorrelation;
+    class ConnectivityCorrelationSettings;
     class SceneClassAssistant;
     
     class CiftiConnectivityMatrixDenseDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
@@ -49,6 +51,10 @@ namespace caret {
         
         const CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile() const;
         
+        ConnectivityCorrelationSettings* getCorrelationSettings();
+        
+        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
+
     private:
         CiftiConnectivityMatrixDenseDynamicFile(const CiftiConnectivityMatrixDenseDynamicFile&);
 
@@ -83,10 +89,6 @@ namespace caret {
             float m_sqrt_ssxx;
         };
         
-        float correlation(const int32_t rowIndex,
-                          const int32_t otherRowIndex,
-                          const int32_t numberOfPoints) const;
-        
         float correlation(const std::vector<float>& data,
                           const float mean,
                           const float sumSquared,
@@ -99,6 +101,8 @@ namespace caret {
                                           const int32_t dataLength,
                                           float& meanOut,
                                           float& sumSquaredOut) const;
+        
+        ConnectivityCorrelation* getConnectivityCorrelation() const;
         
         CiftiBrainordinateDataSeriesFile* m_parentDataSeriesFile;
         
@@ -117,6 +121,16 @@ namespace caret {
         const bool m_cacheDataFlag;
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
+        
+        mutable std::unique_ptr<ConnectivityCorrelation> m_connectivityCorrelation;
+        
+        mutable bool m_connectivityCorrelationFailedFlag = false;
+        
+        mutable std::vector<float> m_dataSeriesMatrixData;
+
+        mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
+        
+        bool m_testConnectivityCorrelationFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 

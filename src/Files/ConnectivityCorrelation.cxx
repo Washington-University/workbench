@@ -26,6 +26,7 @@
 #undef __CONNECTIVITY_CORRELATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretOMP.h"
 #include "dot_wrapper.h"
 
@@ -36,7 +37,7 @@ using namespace caret;
 /**
  * \class caret::ConnectivityCorrelation
  * \brief Computes connectivity correlations
- * \ingroup Common
+ * \ingroup Files
  *
  * Correlation from https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
  */
@@ -325,6 +326,71 @@ ConnectivityCorrelation::initializeWithTimePoints(const std::vector<const float*
 
     return true;
 }
+
+/**
+ * Get the correlation for the given brainordinate data
+ * @param brainordinateData
+ *    The data that should contain "number of timepoints" elements
+ * @param dataOut
+ *    Output with correlation
+ */
+void
+ConnectivityCorrelation::getCorrelationForBrainordinateData(const std::vector<float>& brainordinateData,
+                                                            std::vector<float>& dataOut)
+{
+    dataOut.resize(m_numberOfBrainordinates);
+    std::fill(dataOut.begin(), dataOut.end(), 0.0);
+    
+    const int64_t numTimePointsInData(brainordinateData.size());
+    if (numTimePointsInData != m_numberOfTimePoints) {
+        CaretLogSevere(AString::number(numTimePointsInData)
+                       + " points in data but number of timepoints should be "
+                       + AString::number(m_numberOfTimePoints));
+        return;
+    }
+    
+    double sum(0.0);
+    double sumSquared(0.0);
+    for (int64_t j = 0; j < m_numberOfTimePoints; j++) {
+        CaretAssertVectorIndex(brainordinateData, j);
+        const float d = brainordinateData[j];
+        sum        += d;
+        sumSquared += (d * d);
+    }
+    const float mean = (sum / m_numberOfTimePoints);
+    const float ssxxSquared = (sumSquared - (m_numberOfTimePoints * mean * mean));
+    const float ssxx = std::sqrt(ssxxSquared);
+    
+    const float* dataPtr = &brainordinateData[0];
+#pragma omp CARET_PARFOR schedule(dynamic)
+    for (int32_t iBrain = 0; iBrain < m_numberOfBrainordinates; iBrain++) {
+        CaretAssertVectorIndex(dataOut, iBrain);
+        switch (m_dataType) {
+            case DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA:
+                dataOut[iBrain] = correlationBrainordinateContiguousDataAux(dataPtr,
+                                                                            mean,
+                                                                            ssxx,
+                                                                            iBrain);
+                break;
+            case DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA:
+                dataOut[iBrain] = correlationBrainordinateNonContiguousDataAux(dataPtr,
+                                                                               mean,
+                                                                               ssxx,
+                                                                               iBrain);
+                break;
+            case DataTypeEnum::INVALID:
+                CaretAssert(0);
+                break;
+            case DataTypeEnum::TIMEPOINTS:
+                dataOut[iBrain] = correlationTimePointDataAux(dataPtr,
+                                                              mean,
+                                                              ssxx,
+                                                              iBrain);
+                break;
+        }
+    }
+}
+
 
 /**
  * Get correlation from the given brainordinate ROI to all other brainordinates

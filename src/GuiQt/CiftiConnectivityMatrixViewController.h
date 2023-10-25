@@ -36,6 +36,7 @@ class QToolButton;
 
 namespace caret {
 
+    class CiftiConnectivityMatrixDenseDynamicFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
     class MetricDynamicConnectivityFile;
@@ -62,6 +63,8 @@ namespace caret {
         
         void fiberOrientationFileComboBoxActivated(int);
         
+        void optionsButtonClicked(int);
+        
     private:
         CiftiConnectivityMatrixViewController(const CiftiConnectivityMatrixViewController&);
 
@@ -77,6 +80,7 @@ namespace caret {
         
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
+                            CiftiConnectivityMatrixDenseDynamicFile* &ciftiDenseDynConnFileOut,
                             CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
                             MetricDynamicConnectivityFile* &metricDynConnFileOut,
                             VolumeDynamicConnectivityFile* &volDynConnFileOut);
@@ -91,6 +95,8 @@ namespace caret {
         
         std::vector<QToolButton*> m_fileCopyToolButtons;
         
+        std::vector<QToolButton*> m_optionsToolButtons;
+        
         std::vector<QComboBox*> m_fiberOrientationFileComboBoxes;
         
         QGridLayout* m_gridLayout;
@@ -101,6 +107,8 @@ namespace caret {
         
         QSignalMapper* m_signalMapperFileCopyToolButton;
         
+        QSignalMapper* m_signalMapperOptionsToolButton;
+        
         QSignalMapper* m_signalMapperFiberOrientationFileComboBox;
         
         static std::set<CiftiConnectivityMatrixViewController*> s_allCiftiConnectivityMatrixViewControllers;
@@ -108,6 +116,7 @@ namespace caret {
         static int COLUMN_ENABLE_CHECKBOX;
         static int COLUMN_LAYER_CHECKBOX;
         static int COLUMN_COPY_BUTTON;
+        static int COLUMN_OPTIONS_BUTTON;
         static int COLUMN_NAME_LINE_EDIT;
         static int COLUMN_ORIENTATION_FILE_COMBO_BOX;
         
@@ -118,8 +127,9 @@ namespace caret {
     int CiftiConnectivityMatrixViewController::COLUMN_ENABLE_CHECKBOX = 0;
     int CiftiConnectivityMatrixViewController::COLUMN_LAYER_CHECKBOX  = 1;
     int CiftiConnectivityMatrixViewController::COLUMN_COPY_BUTTON     = 2;
-    int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT  = 3;
-    int CiftiConnectivityMatrixViewController::COLUMN_ORIENTATION_FILE_COMBO_BOX  = 4;
+    int CiftiConnectivityMatrixViewController::COLUMN_OPTIONS_BUTTON  = 3;
+    int CiftiConnectivityMatrixViewController::COLUMN_NAME_LINE_EDIT  = 4;
+    int CiftiConnectivityMatrixViewController::COLUMN_ORIENTATION_FILE_COMBO_BOX = 5;
 #endif // __CIFTI_CONNECTIVITY_MATRIX_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

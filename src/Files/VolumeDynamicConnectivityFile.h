@@ -31,6 +31,7 @@
 
 namespace caret {
     class ConnectivityCorrelation;
+    class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
     class VolumeDynamicConnectivityFile : public VolumeFile {
@@ -83,6 +84,10 @@ namespace caret {
         
         VolumeFile* newVolumeFileFromLoadedData(const AString& directoryName,
                                                 AString& errorMessageOut);
+        
+        ConnectivityCorrelationSettings* getCorrelationSettings();
+        
+        const ConnectivityCorrelationSettings* getCorrelationSettings() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -160,6 +165,8 @@ namespace caret {
         bool m_dataLoadingEnabledFlag = true;
         
         std::unique_ptr<ConnectivityDataLoaded> m_connectivityDataLoaded;
+        
+        mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
         
         // ADD_NEW_MEMBERS_HERE
 

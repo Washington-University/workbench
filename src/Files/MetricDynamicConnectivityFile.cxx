@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityCorrelation.h"
+#include "ConnectivityCorrelationSettings.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
@@ -52,7 +53,8 @@ m_parentMetricFile(parentMetricFile)
     CaretAssert(m_parentMetricFile);
     
     m_connectivityDataLoaded.reset(new ConnectivityDataLoaded());
-    
+    m_correlationSettings.reset(new ConnectivityCorrelationSettings());
+
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_dataLoadingEnabledFlag",
                           &m_dataLoadingEnabledFlag);
@@ -61,6 +63,9 @@ m_parentMetricFile(parentMetricFile)
     m_sceneAssistant->add("m_connectivityDataLoaded",
                           "ConnectivityDataLoaded",
                           m_connectivityDataLoaded.get());
+    m_sceneAssistant->add("m_correlationSettings",
+                          "ConnectivityCorrelationSettings",
+                          m_correlationSettings.get());
 }
 
 /**
@@ -681,3 +686,20 @@ MetricDynamicConnectivityFile::restoreFileDataFromScene(const SceneAttributes* s
     }
 }
 
+/**
+ * @return The correlation settings
+ */
+ConnectivityCorrelationSettings*
+MetricDynamicConnectivityFile::getCorrelationSettings()
+{
+    return m_correlationSettings.get();
+}
+
+/**
+ * @return The correlation settings (const method)
+ */
+const ConnectivityCorrelationSettings*
+MetricDynamicConnectivityFile::getCorrelationSettings() const
+{
+    return m_correlationSettings.get();
+}
