@@ -384,6 +384,8 @@ const float* VolumeBase::VolumeStorage::getFrame(const int64_t brickIndex, const
 
 void VolumeBase::VolumeStorage::setFrame(const float* frameIn, const int64_t brickIndex, const int64_t component)
 {
+    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);
+    CaretAssert(component >= 0 && component < m_dimensions[4]);
     int64_t start = brickIndex * m_mult[2] + component * m_mult[3];
     for (int64_t i = 0; i < m_mult[2]; ++i)
     {

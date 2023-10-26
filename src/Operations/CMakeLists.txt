@@ -100,6 +100,7 @@ OperationSurfaceSetCoordinates.h
 OperationSurfaceSphereTriangularPatches.h
 OperationSurfaceVertexAreas.h
 OperationVolumeCapturePlane.h
+OperationVolumeComponentsToFrames.h
 OperationVolumeCopyExtensions.h
 OperationVolumeCreate.h
 OperationVolumeLabelExportTable.h
@@ -195,6 +196,7 @@ OperationSurfaceSetCoordinates.cxx
 OperationSurfaceSphereTriangularPatches.cxx
 OperationSurfaceVertexAreas.cxx
 OperationVolumeCapturePlane.cxx
+OperationVolumeComponentsToFrames.cxx
 OperationVolumeCopyExtensions.cxx
 OperationVolumeCreate.cxx
 OperationVolumeLabelExportTable.cxx

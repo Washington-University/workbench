@@ -221,6 +221,7 @@
 #include "OperationSurfaceSphereTriangularPatches.h"
 #include "OperationSurfaceVertexAreas.h"
 #include "OperationVolumeCapturePlane.h"
+#include "OperationVolumeComponentsToFrames.h"
 #include "OperationVolumeCopyExtensions.h"
 #include "OperationVolumeCreate.h"
 #include "OperationVolumeLabelExportTable.h"
@@ -481,6 +482,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceSphereTriangularPatches()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceVertexAreas()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCapturePlane()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeComponentsToFrames()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCopyExtensions()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeCreate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelExportTable()));
