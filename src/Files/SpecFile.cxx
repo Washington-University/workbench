@@ -1922,6 +1922,9 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            allowedFlag = false;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

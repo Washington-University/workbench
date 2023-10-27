@@ -118,6 +118,14 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_ROW);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA;
+            lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
+            validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_BRAINORDINATE_MAPPABLE;

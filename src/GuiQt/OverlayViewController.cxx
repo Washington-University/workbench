@@ -998,6 +998,9 @@ OverlayViewController::menuConstructionAboutToShow()
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                    dynConnFlag = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

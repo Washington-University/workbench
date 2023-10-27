@@ -444,6 +444,16 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                             overlayRGBV);
                 }
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                {
+                    CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);
+                    isColoringValid = assignCiftiMappableConnectivityMatrixColoring(brainStructure,
+                                                                                    cmf,
+                                                                                    selectedMapIndex,
+                                                                                    numNodes,
+                                                                                    overlayRGBV);
+                }
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 {
                     CiftiParcelLabelFile* cplf = dynamic_cast<CiftiParcelLabelFile*>(selectedMapFile);

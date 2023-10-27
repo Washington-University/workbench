@@ -347,6 +347,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             caretDataFile = new CiftiConnectivityMatrixParcelDenseFile();
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            CaretAssertMessage(0, "Never create a parcel dynamic file");
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             caretDataFile = new CiftiParcelLabelFile();
             break;

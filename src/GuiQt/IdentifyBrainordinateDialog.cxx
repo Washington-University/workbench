@@ -102,6 +102,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     std::vector<DataFileTypeEnum::Enum> allDataFileTypes;
     DataFileTypeEnum::getAllEnums(allDataFileTypes,
                                   (DataFileTypeEnum::OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC
+                                   | DataFileTypeEnum::OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC
                                    | DataFileTypeEnum::OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC
                                    | DataFileTypeEnum::OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC));
     
@@ -139,6 +140,9 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
                 parcelSourceDimension = PARCEL_SOURCE_LOADING_DIMENSION;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                parcelSourceDimension = PARCEL_SOURCE_LOADING_DIMENSION;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
                 parcelSourceDimension = PARCEL_SOURCE_LOADING_DIMENSION;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:

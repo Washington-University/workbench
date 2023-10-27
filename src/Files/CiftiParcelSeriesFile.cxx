@@ -25,7 +25,10 @@
 
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiFile.h"
 #include "CiftiParcelReorderingModel.h"
+#include "DataFileException.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
@@ -63,9 +66,19 @@ CiftiParcelSeriesFile::CiftiParcelSeriesFile()
  */
 CiftiParcelSeriesFile::~CiftiParcelSeriesFile()
 {
-    
+    CiftiMappableDataFile::clear();
+    m_lazyInitializedParcelDynamicFile.reset();
 }
 
+/**
+ * Clear the file.
+ */
+void
+CiftiParcelSeriesFile::clear()
+{
+    CiftiMappableDataFile::clear();
+    m_lazyInitializedParcelDynamicFile.reset();
+}
 /**
  * @return Is charting enabled for this file?
  */
@@ -206,6 +219,11 @@ CiftiParcelSeriesFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
     sceneClass->addBooleanArray("m_chartingEnabledForTab",
                                 m_chartingEnabledForTab,
                                 BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    
+    if (m_lazyInitializedParcelDynamicFile) {
+        sceneClass->addClass(m_lazyInitializedParcelDynamicFile->saveToScene(sceneAttributes,
+                                                                             "m_lazyInitializedParcelDynamicFile"));
+    }
 }
 
 /**
@@ -246,6 +264,15 @@ CiftiParcelSeriesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                                  false);
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             m_chartingEnabledForTab[i] = chartingEnabled;
+        }
+    }
+    
+    const SceneClass* dynamicFileSceneClass = sceneClass->getClass("m_lazyInitializedParcelDynamicFile");
+    if (dynamicFileSceneClass != NULL) {
+        CiftiConnectivityMatrixParcelDynamicFile* parcelDynamicFile(getConnectivityMatrixParcelDynamicFile());
+        if (parcelDynamicFile != NULL) {
+            parcelDynamicFile->restoreFromScene(sceneAttributes,
+                                                dynamicFileSceneClass);
         }
     }
 }
@@ -341,4 +368,100 @@ CiftiParcelSeriesFile::createParcelReordering(const CiftiParcelLabelFile* parcel
                                                            errorMessageOut);
 }
 
+/**
+ * @return The parcel dynamic file or NULL if creation of the file failed
+ */
+CiftiConnectivityMatrixParcelDynamicFile*
+CiftiParcelSeriesFile::getConnectivityMatrixParcelDynamicFile()
+{
+    if (m_creatingParcelDynamicFileFailedFlag) {
+        return NULL;
+    }
+    
+    if (m_lazyInitializedParcelDynamicFile) {
+        return m_lazyInitializedParcelDynamicFile.get();
+    }
+    
+    m_lazyInitializedParcelDynamicFile.reset(new CiftiConnectivityMatrixParcelDynamicFile(this));
+    
+    try {
+        m_lazyInitializedParcelDynamicFile->readFile(getFileName());
+        m_lazyInitializedParcelDynamicFile->updateAfterReading(getCiftiFile());
+        
+        /*
+         * Palette for dynamic file is in my CIFTI file metadata
+         */
+        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+        const AString encodedPaletteColorMappingString = fileMetaData->get(s_paletteColorMappingNameInMetaData);
+        if ( ! encodedPaletteColorMappingString.isEmpty()) {
+            if (m_lazyInitializedParcelDynamicFile->getNumberOfMaps() > 0) {
+                PaletteColorMapping* pcm = m_lazyInitializedParcelDynamicFile->getMapPaletteColorMapping(0);
+                CaretAssert(pcm);
+                pcm->decodeFromStringXML(encodedPaletteColorMappingString);
+            }
+        }
+        
+        m_lazyInitializedParcelDynamicFile->clearModified();
+    }
+    catch (const DataFileException& dfe) {
+        m_lazyInitializedParcelDynamicFile.reset();
+        m_creatingParcelDynamicFileFailedFlag = true;
+        
+        CaretLogSevere("ERROR initializing dense dynamic file for "
+                       + getFileName()
+                       + ": "
+                       + dfe.whatString());
+    }
+
+    return m_lazyInitializedParcelDynamicFile.get();
+}
+
+/**
+ * Read the file.
+ *
+ * @param ciftiMapFileName
+ *    Name of the file to read.
+ * @throw
+ *    DataFileException if there is an error reading the file.
+ */
+void
+CiftiParcelSeriesFile::readFile(const AString& ciftiMapFileName)
+{
+    CiftiMappableDataFile::readFile(ciftiMapFileName);
+}
+
+/**
+ * Write the file.
+ *
+ * @param ciftiMapFileName
+ *    Name of the file to write.
+ * @throw
+ *    DataFileException if there is an error writing the file.
+ */
+void
+CiftiParcelSeriesFile::writeFile(const AString& ciftiMapFileName)
+{
+    /*
+     * Put the child dynamic data-series file's palette in the file's metadata.
+     */
+    if (m_lazyInitializedParcelDynamicFile) {
+        GiftiMetaData* fileMetaData = m_ciftiFile->getCiftiXML().getFileMetaData();
+        CaretAssert(fileMetaData);
+        if (m_lazyInitializedParcelDynamicFile->getNumberOfMaps() > 0) {
+            fileMetaData->set(s_paletteColorMappingNameInMetaData,
+                              m_lazyInitializedParcelDynamicFile->getMapPaletteColorMapping(0)->encodeInXML());
+        }
+        else {
+            fileMetaData->remove(s_paletteColorMappingNameInMetaData);
+        }
+    }
+    
+    CiftiMappableDataFile::writeFile(ciftiMapFileName);
+    
+    clearModified();
+    
+    if (m_lazyInitializedParcelDynamicFile) {
+        m_lazyInitializedParcelDynamicFile->clearModified();
+    }
+}
 

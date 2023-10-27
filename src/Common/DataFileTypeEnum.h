@@ -61,6 +61,8 @@ public:
         CONNECTIVITY_PARCEL,
         /** Connectivity - Parcel Dense*/
         CONNECTIVITY_PARCEL_DENSE,
+        /** Connectivity - Parcel Dynamic (correlate from parcel-series)*/
+        CONNECTIVITY_PARCEL_DYNAMIC,
         /** Connectivity - Parcel Label*/
         CONNECTIVITY_PARCEL_LABEL,
         /** Connectivity - Parcel Scalar */
@@ -112,12 +114,14 @@ public:
         OPTIONS_NONE = 0,
         /** Include the dense dynamic data file type */
         OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC = 1,
+        /** Include the parcel dynamic data file type */
+        OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC = 2,
         /** Include the metric dynamic data file type */
-        OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC = 2,
+        OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC = 4,
         /** Include the volume dynamic data file type */
-        OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC = 4,
+        OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC = 8,
         /** Include the unknown data file type */
-        OPTIONS_INCLUDE_UNKNOWN = 8
+        OPTIONS_INCLUDE_UNKNOWN = 16
     };
     
     ~DataFileTypeEnum();

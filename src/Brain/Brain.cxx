@@ -52,6 +52,7 @@
 #include "CiftiConnectivityMatrixDenseFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixDenseParcelFile.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
@@ -917,6 +918,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
@@ -2851,6 +2854,9 @@ Brain::addReadOrReloadConnectivityParcelSeriesFile(const FileModeAddReadReload f
         m_connectivityParcelSeriesFiles.push_back(clf);
     }
     
+    if (clf != NULL) {
+        initializeParcelSeriesFile(clf);
+    }
     return clf;
 }
 
@@ -3558,6 +3564,8 @@ Brain::addReadOrReloadConnectivityMatrixParcelDenseFile(const FileModeAddReadRel
 
 /**
  * Initialize a data series file's dense connectivity
+ * @param dataSeriesFile
+ *    The data series file
  */
 void
 Brain::initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSeriesFile)
@@ -3568,6 +3576,24 @@ Brain::initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSerie
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     CiftiConnectivityMatrixDenseDynamicFile* denseDynFile = dataSeriesFile->getConnectivityMatrixDenseDynamicFile();
     denseDynFile->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+}
+
+/**
+ * Initialize a data series file's dense connectivity
+ * @param parcelSeriesFile
+ *   The parcel series file
+ */
+void
+Brain::initializeParcelSeriesFile(CiftiParcelSeriesFile* parcelSeriesFile)
+{
+    /*
+     * Enable dynamic connectivity using preferences
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    CiftiConnectivityMatrixParcelDynamicFile* parcelDynFile(parcelSeriesFile->getConnectivityMatrixParcelDynamicFile());
+    if (parcelDynFile != NULL) {
+        parcelDynFile->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+    }
 }
 
 /**
@@ -4371,6 +4397,27 @@ Brain::getConnectivityParcelSeriesFiles(std::vector<CiftiParcelSeriesFile*>& con
 }
 
 /**
+ * Get ALL connectivity matrix parcel dynamic files.
+ * @param parcelDynamicFilesOut
+ *   Contains all connectivity parcel dynamic files on exit.
+ */
+void
+Brain::getConnectivityParcelDenseDynamicFiles(std::vector<CiftiConnectivityMatrixParcelDynamicFile*>& parcelDynamicFilesOut) const
+{
+    parcelDynamicFilesOut.clear();
+    
+    for (auto psf : m_connectivityParcelSeriesFiles) {
+        CaretAssert(psf);
+        CiftiConnectivityMatrixParcelDynamicFile* parcelDynFile(psf->getConnectivityMatrixParcelDynamicFile());
+        if (parcelDynFile != NULL) {
+            if (parcelDynFile->isDataValid()) {
+                parcelDynamicFilesOut.push_back(parcelDynFile);
+            }
+        }
+    }
+}
+
+/**
  * @return Number of connectivity fiber orientation files.
  */
 int32_t
@@ -4737,6 +4784,9 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                     m_connectivityMatrixParcelDenseFiles.push_back(file);
                 }
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                    CaretAssertMessage(0, "Parcel Dynamic Files should never be added to Brain.");
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 {
                     CiftiParcelLabelFile* file = dynamic_cast<CiftiParcelLabelFile*>(caretDataFile);
@@ -4755,6 +4805,7 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                 {
                     CiftiParcelSeriesFile* file = dynamic_cast<CiftiParcelSeriesFile*>(caretDataFile);
                     CaretAssert(file);
+                    initializeParcelSeriesFile(file);
                     m_connectivityParcelSeriesFiles.push_back(file);
                 }
                     break;
@@ -5816,6 +5867,9 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                reloadFlag = true;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -6128,6 +6182,9 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityMatrixParcelDenseFile(fileMode,
                                                                           caretDataFile,
                                                                           dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                CaretAssertMessage(0, "Parcel Dynamic files are never read by the Brain.");
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 caretDataFileRead  = addReadOrReloadConnectivityParcelLabelFile(fileMode,
@@ -7599,9 +7656,13 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityParcelScalarFiles.begin(),
                            m_connectivityParcelScalarFiles.end());
     
-    allDataFilesOut.insert(allDataFilesOut.end(),
-                           m_connectivityParcelSeriesFiles.begin(),
-                           m_connectivityParcelSeriesFiles.end());
+    for (auto psf : m_connectivityParcelSeriesFiles) {
+        allDataFilesOut.push_back(psf);
+        auto pdf(psf->getConnectivityMatrixParcelDynamicFile());
+        if (pdf != NULL) {
+            allDataFilesOut.push_back(pdf);
+        }
+    }
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityScalarDataSeriesFiles.begin(),
@@ -7760,6 +7821,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -7850,6 +7913,9 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            canBeRemovedFlag = false;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;

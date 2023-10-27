@@ -53,6 +53,8 @@
 #include "ChartTwoOverlaySet.h"
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiParcelSeriesFile.h"
 #include "ClippingPlaneGroup.h"
 #include "GroupAndNameHierarchyGroup.h"
 #include "GroupAndNameHierarchyModel.h"
@@ -2754,6 +2756,13 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                        break;
+                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                    {
+                        CiftiConnectivityMatrixParcelDynamicFile* dynFile = dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(overlayDataFile);
+                        CaretAssert(dynFile);
+                        displayedDataFiles.insert(dynFile->getParentParcelSeriesFile());
+                    }
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                         break;

@@ -252,6 +252,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "pdconn.nii"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_DYNAMIC,
+                                        "CONNECTIVITY_PARCEL_DYNAMIC",
+                                        "CIFTI - Parcel Dynamic",
+                                        "CIFTI PARCEL DYNAMIC",
+                                        false,
+                                        "parcel_dynconn")); /* this file is never written */
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL_LABEL,
                                         "CONNECTIVITY_PARCEL_LABEL",
                                         "CIFTI - Parcel Label",
@@ -817,6 +824,9 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                validFlag = includeNonWritableFileTypesFlag;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -1123,6 +1133,7 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
     allEnums.clear();
     
     const bool includeDenseDynamicFlag  = (options & OPTIONS_INCLUDE_CONNECTIVITY_DENSE_DYNAMIC);
+    const bool includeParcelDynamicFlag = (options & OPTIONS_INCLUDE_CONNECTIVITY_PARCEL_DYNAMIC);
     const bool includeMetricDynamicFlag = (options & OPTIONS_INCLUDE_METRIC_DENSE_DYNAMIC);
     const bool includeVolumeDynamicFlag = (options & OPTIONS_INCLUDE_VOLUME_DENSE_DYNAMIC);
     const bool includeUnknownFlag       = (options & OPTIONS_INCLUDE_UNKNOWN);
@@ -1151,6 +1162,11 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                if ( ! includeParcelDynamicFlag) {
+                    addEnumFlag = false;
+                }
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;

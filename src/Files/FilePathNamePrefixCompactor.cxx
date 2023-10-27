@@ -156,6 +156,9 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                fileSpecialPrefix = "parceldynconn - ";
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

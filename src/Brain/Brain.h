@@ -64,6 +64,7 @@ namespace caret {
     class CiftiConnectivityMatrixDenseParcelFile;
     class CiftiConnectivityMatrixParcelFile;
     class CiftiConnectivityMatrixParcelDenseFile;
+    class CiftiConnectivityMatrixParcelDynamicFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
     class CiftiMappableDataFile;
@@ -332,6 +333,8 @@ namespace caret {
         const CiftiParcelSeriesFile* getConnectivityParcelSeriesFile(int32_t indx) const;
         
         void getConnectivityParcelSeriesFiles(std::vector<CiftiParcelSeriesFile*>& connectivityParcelSeriesFilesOut) const;
+        
+        void getConnectivityParcelDenseDynamicFiles(std::vector<CiftiConnectivityMatrixParcelDynamicFile*>& parcelDynamicFilesOut) const;
         
         int32_t getNumberOfConnectivityFiberOrientationFiles() const;
         
@@ -813,6 +816,8 @@ namespace caret {
         AString convertFilePathNameToAbsolutePathName(const AString& filename) const;
         
         void initializeDenseDataSeriesFile(CiftiBrainordinateDataSeriesFile* dataSeriesFile);
+        
+        void initializeParcelSeriesFile(CiftiParcelSeriesFile* parcelSeriesFile);
         
         void initializeVolumeFile(VolumeFile* volumeFile);
         

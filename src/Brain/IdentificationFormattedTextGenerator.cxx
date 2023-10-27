@@ -1002,6 +1002,9 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            parcelDataFlag = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

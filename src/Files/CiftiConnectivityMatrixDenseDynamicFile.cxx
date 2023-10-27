@@ -396,7 +396,7 @@ CiftiConnectivityMatrixDenseDynamicFile::processRowAverageData(std::vector<float
     rowAverageDataInOut = processedRowAverageData;
     
     if (connCorrData.size() == rowAverageDataInOut.size()) {
-        if (connCorrData.size() == m_numberOfBrainordinates) {
+        if (static_cast<int32_t>(connCorrData.size()) == m_numberOfBrainordinates) {
             const bool sameFlag(MathFunctions::compareArrays(&rowAverageDataInOut[0], &connCorrData[0], m_numberOfBrainordinates, 0.001));
             std::cout << "processRowAverageData() comparison " << AString::fromBool(sameFlag) << std::endl;
 //            for (int64_t i = 0; i < m_numberOfBrainordinates; i++) {

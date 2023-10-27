@@ -850,6 +850,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                     haveConnFiles = true;
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                    haveConnFiles = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                     haveLabels = true;
                     break;

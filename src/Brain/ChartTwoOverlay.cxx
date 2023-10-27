@@ -1380,6 +1380,8 @@ ChartTwoOverlay::isAllMapsSupported() const
                         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                             supportedFlag = true;
                             break;
+                        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                            break;
                         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                             break;
                         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:

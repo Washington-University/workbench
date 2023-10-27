@@ -29,6 +29,7 @@
 
 namespace caret {
 
+    class CiftiConnectivityMatrixParcelDynamicFile;
     class CiftiParcelLabelFile;
     class CiftiParcelReordering;
     class CiftiParcelReorderingModel;
@@ -42,6 +43,8 @@ namespace caret {
         CiftiParcelSeriesFile();
         
         virtual ~CiftiParcelSeriesFile();
+        
+        virtual void clear() override;
         
         virtual bool isLineSeriesChartingEnabled(const int32_t tabIndex) const;
         
@@ -76,6 +79,11 @@ namespace caret {
         virtual const CiftiParcelReordering* getParcelReordering(const CiftiParcelLabelFile* parcelLabelFile,
                                                                  const int32_t parcelLabelFileMapIndex) const;
         
+        CiftiConnectivityMatrixParcelDynamicFile* getConnectivityMatrixParcelDynamicFile();
+        
+        virtual void readFile(const AString& ciftiMapFileName) override;
+        
+        virtual void writeFile(const AString& filename) override;
 
     private:
         CiftiParcelSeriesFile(const CiftiParcelSeriesFile&);
@@ -101,10 +109,15 @@ namespace caret {
         
         std::unique_ptr<CiftiParcelReorderingModel> m_parcelReorderingModel;
         
+        std::unique_ptr<CiftiConnectivityMatrixParcelDynamicFile> m_lazyInitializedParcelDynamicFile;
+        
+        bool m_creatingParcelDynamicFileFailedFlag = false;
+
+        static const AString s_paletteColorMappingNameInMetaData;
     };
     
 #ifdef __CIFTI_PARCEL_SERIES_FILE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString CiftiParcelSeriesFile::s_paletteColorMappingNameInMetaData = "__DYNAMIC_FILE_PALETTE_COLOR_MAPPING__";
 #endif // __CIFTI_PARCEL_SERIES_FILE_DECLARE__
 
 } // namespace

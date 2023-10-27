@@ -37,6 +37,7 @@ class QToolButton;
 namespace caret {
 
     class CiftiConnectivityMatrixDenseDynamicFile;
+    class CiftiConnectivityMatrixParcelDynamicFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
     class MetricDynamicConnectivityFile;
@@ -81,6 +82,7 @@ namespace caret {
         void getFileAtIndex(const int32_t indx,
                             CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
                             CiftiConnectivityMatrixDenseDynamicFile* &ciftiDenseDynConnFileOut,
+                            CiftiConnectivityMatrixParcelDynamicFile* &ciftiParcelDynConnFileOut,
                             CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
                             MetricDynamicConnectivityFile* &metricDynConnFileOut,
                             VolumeDynamicConnectivityFile* &volDynConnFileOut);

@@ -1,5 +1,5 @@
-#ifndef __CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_H__
-#define __CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_H__
+#ifndef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DYNAMIC_FILE_H__
+#define __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DYNAMIC_FILE_H__
 
 /*LICENSE_START*/
 /*
@@ -25,17 +25,17 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 
 namespace caret {
-    class CiftiBrainordinateDataSeriesFile;
+    class CiftiParcelSeriesFile;
     class ConnectivityCorrelation;
     class ConnectivityCorrelationSettings;
     class SceneClassAssistant;
     
-    class CiftiConnectivityMatrixDenseDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
+    class CiftiConnectivityMatrixParcelDynamicFile : public CiftiMappableConnectivityMatrixDataFile {
         
     public:
-        CiftiConnectivityMatrixDenseDynamicFile(CiftiBrainordinateDataSeriesFile* parentDataSeriesFile);
+        CiftiConnectivityMatrixParcelDynamicFile(CiftiParcelSeriesFile* parentParcelSeriesFile);
         
-        virtual ~CiftiConnectivityMatrixDenseDynamicFile();
+        virtual ~CiftiConnectivityMatrixParcelDynamicFile();
         
         bool isDataValid() const;
 
@@ -47,18 +47,18 @@ namespace caret {
         
         void updateAfterReading(const CiftiFile* ciftiFile);
         
-        CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile();
+        CiftiParcelSeriesFile* getParentParcelSeriesFile();
         
-        const CiftiBrainordinateDataSeriesFile* getParentBrainordinateDataSeriesFile() const;
+        const CiftiParcelSeriesFile* getParentParcelSeriesFile() const;
         
         ConnectivityCorrelationSettings* getCorrelationSettings();
         
         const ConnectivityCorrelationSettings* getCorrelationSettings() const;
 
     private:
-        CiftiConnectivityMatrixDenseDynamicFile(const CiftiConnectivityMatrixDenseDynamicFile&);
+        CiftiConnectivityMatrixParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile&);
 
-        CiftiConnectivityMatrixDenseDynamicFile& operator=(const CiftiConnectivityMatrixDenseDynamicFile&);
+        CiftiConnectivityMatrixParcelDynamicFile& operator=(const CiftiConnectivityMatrixParcelDynamicFile&);
         
     protected:
         virtual void getDataForColumn(float* dataOut, const int64_t& index) const;
@@ -78,17 +78,6 @@ namespace caret {
                                                   const SceneClass* sceneClass);
         
     private:
-        class RowData {
-        public:
-            RowData() { }
-            
-            ~RowData() { }
-            
-            std::vector<float> m_data;
-            float m_mean;
-            float m_sqrt_ssxx;
-        };
-        
         float correlation(const std::vector<float>& data,
                           const float mean,
                           const float sumSquared,
@@ -104,21 +93,17 @@ namespace caret {
         
         ConnectivityCorrelation* getConnectivityCorrelation() const;
         
-        CiftiBrainordinateDataSeriesFile* m_parentDataSeriesFile;
+        CiftiParcelSeriesFile* m_parentParcelSeriesFile;
         
-        CiftiFile* m_parentDataSeriesCiftiFile;
+        CiftiFile* m_parentParcelSeriesCiftiFile;
         
-        int32_t m_numberOfBrainordinates;
+        int32_t m_numberOfParcels;
         
         int32_t m_numberOfTimePoints;
-        
-        std::vector<RowData> m_rowData;
         
         bool m_validDataFlag;
         
         bool m_enabledAsLayer;
-        
-        const bool m_cacheDataFlag;
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
@@ -126,19 +111,19 @@ namespace caret {
         
         mutable bool m_connectivityCorrelationFailedFlag = false;
         
-        mutable std::vector<float> m_dataSeriesMatrixData;
+        mutable std::vector<float> m_parcelSeriesMatrixData;
 
         mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
         
-        bool m_testConnectivityCorrelationFlag = false;
+        bool m_testConnectivityCorrelationFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_DECLARE__
+#ifdef __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DYNAMIC_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_DECLARE__
+#endif // __CIFTI_CONNECTIVITY_MATRIX_PARCEL_DYNAMIC_FILE_DECLARE__
 
 } // namespace
-#endif  //__CIFTI_CONNECTIVITY_MATRIX_DENSE_DYNAMIC_FILE_H__
+#endif  //__CIFTI_CONNECTIVITY_MATRIX_PARCEL_DYNAMIC_FILE_H__

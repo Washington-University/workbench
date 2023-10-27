@@ -169,6 +169,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                isMappableFile = true;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 isMappableFile = true;
                 break;

@@ -91,6 +91,9 @@ SceneableInterface()
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            supportsIdentificationAttributesFlag = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             supportsIdentificationAttributesFlag = true;
             break;

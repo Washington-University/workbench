@@ -198,6 +198,15 @@ VolumeMappableInterface()
             m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
             m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
+            m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
+            m_colorMappingMethod           = COLOR_MAPPING_METHOD_PALETTE;
+            m_paletteColorMappingSource    = PALETTE_COLOR_MAPPING_SOURCE_FROM_MAP;
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
+            m_paletteNormalizationModesSupported.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            m_fileMapDataType              = FILE_MAP_DATA_TYPE_MATRIX;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN;
@@ -279,8 +288,10 @@ VolumeMappableInterface()
         CaretAssert(m_paletteColorMappingSource != PALETTE_COLOR_MAPPING_SOURCE_INVALID);
     }
 
+    printMappingsForDebugging(getFileName(), "In constructor before call to setupCiftiReadingMappingDirection");
     setupCiftiReadingMappingDirection();
-    
+    printMappingsForDebugging(getFileName(), "In constructor after call to setupCiftiReadingMappingDirection");
+
     m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel(this));
     
     m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
@@ -795,6 +806,10 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
             expectedAlongColumnMapType = CiftiMappingType::PARCELS;
             expectedAlongRowMapType = CiftiMappingType::BRAIN_MODELS;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            expectedAlongColumnMapType = CiftiMappingType::PARCELS;
+            expectedAlongRowMapType = CiftiMappingType::SERIES;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             expectedAlongColumnMapType = CiftiMappingType::PARCELS;
             expectedAlongRowMapType = CiftiMappingType::LABELS;
@@ -903,6 +918,109 @@ CiftiMappableDataFile::setupCiftiReadingMappingDirection()
     }
 }
 
+/**
+ * Print the column and row mappings for debugging
+ * @param filename
+ *    Name of file
+ * @param message
+ *    Message printed after name of file
+ */
+void
+CiftiMappableDataFile::printMappingsForDebugging(const AString& filename,
+                                                 const AString& message)
+{
+    bool testFlag(false);
+    if ( ! testFlag) {
+        return;
+    }
+    
+    std::cout << DataFileTypeEnum::toName(getDataFileType()) << " " << filename << std::endl;
+    if ( ! message.isEmpty()) {
+        std::cout << "   " << message << std::endl;
+    }
+
+    AString dataMappingName;
+    switch (m_dataMappingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            dataMappingName = "DATA_ACCESS_METHOD_INVALID";
+            break;
+        case DATA_ACCESS_NONE:
+            dataMappingName = "DATA_ACCESS_NONE";
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            dataMappingName = "DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN";
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            dataMappingName = "DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW";
+            break;
+    }
+    std::cout << "   m_dataMappingAccessMethod=" << dataMappingName << std::endl;
+    
+    AString dataReadingName;
+    switch (m_dataReadingAccessMethod) {
+        case DATA_ACCESS_METHOD_INVALID:
+            dataReadingName = "DATA_ACCESS_METHOD_INVALID";
+            break;
+        case DATA_ACCESS_NONE:
+            dataReadingName = "DATA_ACCESS_NONE";
+            break;
+        case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            dataReadingName = "DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN";
+            break;
+        case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            dataReadingName = "DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW";
+            break;
+    }
+    std::cout << "   m_dataReadingAccessMethod=" << dataReadingName << std::endl;
+
+    if (m_ciftiFile == NULL) {
+        return;
+    }
+    
+    const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
+
+    AString mappingName("INVALID");
+    if (m_dataMappingDirectionForCiftiXML != S_CIFTI_XML_ALONG_INVALID) {
+        switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
+            case CiftiMappingType::BRAIN_MODELS:
+                mappingName = "BRAIN_MODELS";
+                break;
+            case CiftiMappingType::LABELS:
+                mappingName = "LABELS";
+                break;
+            case CiftiMappingType::PARCELS:
+                mappingName = "PARCELS";
+                break;
+            case CiftiMappingType::SCALARS:
+                mappingName = "SCALARS";
+                break;
+            case CiftiMappingType::SERIES:
+                mappingName = "SERIES";
+                break;
+        }
+    }
+    
+    AString readingName;
+    switch (ciftiXML.getMappingType(m_dataReadingDirectionForCiftiXML)) {
+        case CiftiMappingType::BRAIN_MODELS:
+            readingName = "BRAIN_MODELS";
+            break;
+        case CiftiMappingType::LABELS:
+            readingName = "LABELS";
+            break;
+        case CiftiMappingType::PARCELS:
+            readingName = "PARCELS";
+            break;
+        case CiftiMappingType::SCALARS:
+            readingName = "SCALARS";
+            break;
+        case CiftiMappingType::SERIES:
+            readingName = "SERIES";
+            break;
+    }
+    
+    std::cout << "   Mapping: " << mappingName << " Reading: " << readingName << std::endl;
+}
 
 /**
  * Initialize the CIFTI file.
@@ -915,12 +1033,14 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
 {
     CaretAssert(m_ciftiFile);
     
+    printMappingsForDebugging(filename, "In initializeAfterReading before setupCiftiReadingMappingDirection()");
     setupCiftiReadingMappingDirection();
-    
+    printMappingsForDebugging(filename, "In initializeAfterReading after setupCiftiReadingMappingDirection()");
+
     validateMappingTypes(filename);
     
     const CiftiXML& ciftiXML = m_ciftiFile->getCiftiXML();
-    
+        
     if (m_dataMappingDirectionForCiftiXML != S_CIFTI_XML_ALONG_INVALID) {
         switch (ciftiXML.getMappingType(m_dataMappingDirectionForCiftiXML)) {
             case CiftiMappingType::BRAIN_MODELS:
@@ -2045,6 +2165,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
         {
@@ -5413,6 +5535,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            useMapData = true;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
             useMapData = true;
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:

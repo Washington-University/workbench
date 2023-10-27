@@ -42,6 +42,7 @@
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "ConnectivityCorrelationSettingsMenu.h"
 #include "CursorDisplayScoped.h"
 #include "EventDataFileAdd.h"
@@ -409,6 +410,7 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         QComboBox* comboBox = m_fiberOrientationFileComboBoxes[i];
         CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
         CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+        CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
         CiftiFiberTrajectoryFile* trajFile = NULL;
         MetricDynamicConnectivityFile* metricDynConnFile(NULL);
         VolumeDynamicConnectivityFile* volDynConnFile = NULL;
@@ -417,6 +419,7 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
             getFileAtIndex(i,
                            matrixFile,
                            ciftiDenseDynConnFile,
+                           ciftiParcelDynConnFile,
                            trajFile,
                            metricDynConnFile,
                            volDynConnFile);
@@ -474,6 +477,7 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     VolumeDynamicConnectivityFile* volDynConnFile(NULL);
     MetricDynamicConnectivityFile* metricDynConnFile(NULL);
@@ -481,6 +485,7 @@ CiftiConnectivityMatrixViewController::enabledCheckBoxClicked(int indx)
     getFileAtIndex(indx,
                    matrixFile,
                    ciftiDenseDynConnFile,
+                   ciftiParcelDynConnFile,
                    trajFile,
                    metricDynConnFile,
                    volDynConnFile);
@@ -519,6 +524,7 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     MetricDynamicConnectivityFile* metricDynConnFile(NULL);
     VolumeDynamicConnectivityFile* volDynConnFile(NULL);
@@ -526,6 +532,7 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
     getFileAtIndex(indx,
                    matrixFile,
                    ciftiDenseDynConnFile,
+                   ciftiParcelDynConnFile,
                    trajFile,
                    metricDynConnFile,
                    volDynConnFile);
@@ -534,6 +541,10 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
         CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(matrixFile);
         if (dynConnFile != NULL) {
             dynConnFile->setEnabledAsLayer(newStatus);
+        }
+        CiftiConnectivityMatrixParcelDynamicFile* parcelDynConnFile(dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(matrixFile));
+        if (parcelDynConnFile != NULL) {
+            parcelDynConnFile->setEnabledAsLayer(newStatus);
         }
     }
     else if (metricDynConnFile != NULL) {
@@ -563,6 +574,10 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
  *    The index.
  * @param ciftiMatrixFileOut
  *    If there is a CIFTI matrix file at the given index, this will be non-NULL.
+ * @param ciftiDenseDynConnFileOut
+ *    If ther eis a CIFTI dense dyn conn file at the given index, this will be non-NULL
+ * @param ciftiParcelDynConnFileOut
+ *    If ther eis a CIFTI parcel dyn conn file at the given index, this will be non-NULL
  * @param ciftiTrajFileOut
  *    If there is a CIFTI trajectory file at the given index, this will be non-NULL.
  * @param metricDynConnFileOut
@@ -574,6 +589,7 @@ void
 CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
                                                       CiftiMappableConnectivityMatrixDataFile* &ciftiMatrixFileOut,
                                                       CiftiConnectivityMatrixDenseDynamicFile* &ciftiDenseDynConnFileOut,
+                                                      CiftiConnectivityMatrixParcelDynamicFile* &ciftiParcelDynConnFileOut,
                                                       CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
                                                       MetricDynamicConnectivityFile* &metricDynConnFileOut,
                                                       VolumeDynamicConnectivityFile* &volDynConnFileOut)
@@ -584,6 +600,7 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
     
     ciftiMatrixFileOut  = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(mapFilePointer);
     ciftiDenseDynConnFileOut = dynamic_cast<CiftiConnectivityMatrixDenseDynamicFile*>(mapFilePointer);
+    ciftiParcelDynConnFileOut = dynamic_cast<CiftiConnectivityMatrixParcelDynamicFile*>(mapFilePointer);
     ciftiTrajFileOut    = dynamic_cast<CiftiFiberTrajectoryFile*>(mapFilePointer);
     metricDynConnFileOut = dynamic_cast<MetricDynamicConnectivityFile*>(mapFilePointer);
     volDynConnFileOut   = dynamic_cast<VolumeDynamicConnectivityFile*>(mapFilePointer);
@@ -607,6 +624,9 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
         /* OK */
     }
     else if (ciftiDenseDynConnFileOut != NULL) {
+        /* OK */
+    }
+    else if (ciftiParcelDynConnFileOut != NULL) {
         /* OK */
     }
     else if (ciftiTrajFileOut != NULL) {
@@ -637,6 +657,7 @@ CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated(int
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     MetricDynamicConnectivityFile* metricDynConnFile(NULL);
     VolumeDynamicConnectivityFile* volDynConnFile(NULL);
@@ -644,6 +665,7 @@ CiftiConnectivityMatrixViewController::fiberOrientationFileComboBoxActivated(int
     getFileAtIndex(indx,
                    matrixFile,
                    ciftiDenseDynConnFile,
+                   ciftiParcelDynConnFile,
                    trajFile,
                    metricDynConnFile,
                    volDynConnFile);
@@ -688,6 +710,7 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     MetricDynamicConnectivityFile* metricDynConnFile(NULL);
     VolumeDynamicConnectivityFile* volDynConnFile(NULL);
@@ -695,6 +718,7 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     getFileAtIndex(indx,
                    matrixFile,
                    ciftiDenseDynConnFile,
+                   ciftiParcelDynConnFile,
                    trajFile,
                    metricDynConnFile,
                    volDynConnFile);
@@ -721,6 +745,9 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         else {
             errorFlag = true;
         }
+    }
+    else if (ciftiParcelDynConnFile != NULL) {
+        WuQMessageBox::errorOk(this, "Saving parcel not supported");
     }
     else if (volDynConnFile != NULL) {
         VolumeFile* newVolumeFile = volDynConnFile->newVolumeFileFromLoadedData(directoryName,
@@ -799,6 +826,7 @@ CiftiConnectivityMatrixViewController::optionsButtonClicked(int indx)
 
     CiftiMappableConnectivityMatrixDataFile* matrixFile = NULL;
     CiftiConnectivityMatrixDenseDynamicFile* ciftiDenseDynConnFile = NULL;
+    CiftiConnectivityMatrixParcelDynamicFile* ciftiParcelDynConnFile(NULL);
     CiftiFiberTrajectoryFile* trajFile = NULL;
     MetricDynamicConnectivityFile* metricDynConnFile(NULL);
     VolumeDynamicConnectivityFile* volDynConnFile(NULL);
@@ -806,12 +834,16 @@ CiftiConnectivityMatrixViewController::optionsButtonClicked(int indx)
     getFileAtIndex(indx,
                    matrixFile,
                    ciftiDenseDynConnFile,
+                   ciftiParcelDynConnFile,
                    trajFile,
                    metricDynConnFile,
                    volDynConnFile);
     ConnectivityCorrelationSettings* settings(NULL);
     if (ciftiDenseDynConnFile != NULL) {
         settings = ciftiDenseDynConnFile->getCorrelationSettings();
+    }
+    else if (ciftiParcelDynConnFile != NULL) {
+        settings = ciftiParcelDynConnFile->getCorrelationSettings();
     }
     else if (metricDynConnFile != NULL) {
         settings = metricDynConnFile->getCorrelationSettings();

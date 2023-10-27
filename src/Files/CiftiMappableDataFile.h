@@ -534,6 +534,9 @@ namespace caret {
         
         virtual void groupAndNameHierarchyItemStatusChanged() override;
 
+        void printMappingsForDebugging(const AString& filename,
+                                       const AString& message);
+        
     private:
         
         CiftiMappableDataFile(const CiftiMappableDataFile&);

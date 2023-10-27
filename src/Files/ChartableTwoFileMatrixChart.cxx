@@ -115,6 +115,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 m_matrixDataFileType = MatrixDataFileType::PARCEL_LABEL;
                 break;

@@ -835,6 +835,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -930,6 +932,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
@@ -1261,6 +1265,8 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
@@ -1374,6 +1380,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;

@@ -103,6 +103,9 @@ CiftiMappableConnectivityMatrixDataFile::clearPrivate()
     if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
         m_chartLoadingDimension = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
     }
+    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC) {
+        m_chartLoadingDimension = ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN;
+    }
 }
 
 /**
@@ -1248,15 +1251,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         m_loadedRowData = columnAverage;
         dataWasLoadedFlag = true;
     }
-//    if (userCancelled) {
-//        m_loadedRowData.clear();
-//        m_loadedRowData.resize(dataCount, 0.0);
-//    }
     if (dataWasLoadedFlag) {
-//        progressEvent.setProgress(numberOfVoxelIndices - 1,
-//                                  "Averaging voxel data");
-//        EventManager::get()->sendEvent(progressEvent.getPointer());
-        
         const int32_t numberOfVoxelIndices = static_cast<int32_t>(voxelIndices.size());
         m_rowLoadedTextForMapName = ("Averaged Voxel Count: "
                                      + AString::number(numberOfVoxelIndices));
@@ -1372,6 +1367,7 @@ CiftiMappableConnectivityMatrixDataFile::setChartMatrixLoadingDimension(const Ch
     
     resetDataLoadingMembers();
     
+    printMappingsForDebugging(getFileName(), "Start of setChartMatrixLoadingDimension");
     switch (m_chartLoadingDimension) {
         case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
@@ -1382,7 +1378,8 @@ CiftiMappableConnectivityMatrixDataFile::setChartMatrixLoadingDimension(const Ch
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             break;
     }
-    
+    printMappingsForDebugging(getFileName(), "End of setChartMatrixLoadingDimension()");
+
     initializeAfterReading(getFileName());
     
     resetLoadedRowDataToEmpty();

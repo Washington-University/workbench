@@ -1207,6 +1207,9 @@ SceneFile::getAllDataFileNamesFromAllScenes() const
                                         break;
                                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                                         break;
+                                    case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                                        validDiskFileFlag = false;
+                                        break;
                                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                                         break;
                                     case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
