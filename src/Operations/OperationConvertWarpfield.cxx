@@ -41,6 +41,7 @@ OperationParameters* OperationConvertWarpfield::getParameters()
 
     OptionalParameter* fromWorld = ret->createOptionalParameter(1, "-from-world", "input is a NIFTI 'world' warpfield");
     fromWorld->addStringParameter(1, "input", "the input warpfield");
+    fromWorld->createOptionalParameter(2, "-absolute", "warpfield was written in absolute convention, rather than relative");
     
     OptionalParameter* fromITK = ret->createOptionalParameter(5, "-from-itk", "input is an ITK warpfield");
     fromITK->addStringParameter(1, "input", "the input warpfield");
@@ -96,7 +97,7 @@ void OperationConvertWarpfield::useParameters(OperationParameters* myParams, Pro
     if (!haveInput) throw OperationException("you must specify a -from option");
     if (fromWorld->m_present)
     {
-        myWarp.readWorld(fromWorld->getString(1));
+        myWarp.readWorld(fromWorld->getString(1), fromWorld->getOptionalParameter(2)->m_present);
     }
     if (fromITK->m_present)
     {

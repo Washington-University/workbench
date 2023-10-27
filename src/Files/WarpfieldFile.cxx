@@ -81,10 +81,36 @@ namespace
     }
 }
 
-void WarpfieldFile::readWorld(const AString& warpname)
+void WarpfieldFile::readWorld(const AString& warpname, const bool absolute)
 {
     CaretPointer<VolumeFile> newFile(new VolumeFile());
     genericWarpfieldRead(*newFile, warpname);
+    if (absolute)
+    {
+        vector<int64_t> dims = newFile->getDimensions();
+        int64_t numVox = dims[0] * dims[1] * dims[2];
+        vector<vector<float> > scratchFrames(3, vector<float>(numVox, 0.0f));
+        #pragma omp CARET_PARFOR schedule(dynamic)
+        for (int64_t k = 0; k < dims[2]; ++k)
+        {
+            for (int64_t j = 0; j < dims[1]; ++j)
+            {
+                for (int64_t i = 0; i < dims[0]; ++i)
+                {
+                    Vector3D voxCoord = newFile->getVolumeSpace().indexToSpace(i, j, k);
+                    int64_t flatIndex = newFile->getIndex(i, j, k);
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        scratchFrames[axis][flatIndex] = newFile->getValue(i, j, k, axis) - voxCoord[axis];
+                    }
+                }
+            }
+        }
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            newFile->setFrame(scratchFrames[axis].data(), axis);
+        }
+    }
     m_warpfield = newFile;//drop the previous warpfield, and replace with the new one
 }
 
@@ -128,7 +154,7 @@ void WarpfieldFile::readFnirt(const AString& warpName, const AString& sourceName
     Vector3D fslX, fslY, fslZ, fslOff;
     refFSL.getAffineVectors(fslX, fslY, fslZ, fslOff);
     int64_t numVox = dims[0] * dims[1] * dims[2];
-    vector<vector<float>> scratchFrames(3, vector<float>(numVox, 0.0f));
+    vector<vector<float> > scratchFrames(3, vector<float>(numVox, 0.0f));
     #pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t k = 0; k < dims[2]; ++k)
     {

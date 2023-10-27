@@ -33,7 +33,7 @@ namespace caret {
     public:
         const VolumeFile* getWarpfield() const { return m_warpfield.getPointer(); }
         CaretPointer<VolumeFile> generateAbsolute() const;
-        void readWorld(const AString& warpname);
+        void readWorld(const AString& warpname, const bool absolute = false);
         void readITK(const AString& warpname);
         void readFnirt(const AString& warpName, const AString& sourceName, const bool& absolute = false);
         void writeWorld(const AString& warpname) const;//for completeness
