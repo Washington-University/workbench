@@ -287,9 +287,7 @@ VolumeMappableInterface()
         CaretAssert(m_paletteColorMappingSource != PALETTE_COLOR_MAPPING_SOURCE_INVALID);
     }
 
-    printMappingsForDebugging(getFileName(), "In constructor before call to setupCiftiReadingMappingDirection");
     setupCiftiReadingMappingDirection();
-    printMappingsForDebugging(getFileName(), "In constructor after call to setupCiftiReadingMappingDirection");
 
     m_classNameHierarchy.grabNew(new GroupAndNameHierarchyModel(this));
     
@@ -1032,9 +1030,7 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
 {
     CaretAssert(m_ciftiFile);
     
-    printMappingsForDebugging(filename, "In initializeAfterReading before setupCiftiReadingMappingDirection()");
     setupCiftiReadingMappingDirection();
-    printMappingsForDebugging(filename, "In initializeAfterReading after setupCiftiReadingMappingDirection()");
 
     validateMappingTypes(filename);
     

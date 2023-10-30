@@ -1371,7 +1371,6 @@ CiftiMappableConnectivityMatrixDataFile::setChartMatrixLoadingDimension(const Ch
     
     resetDataLoadingMembers();
     
-    printMappingsForDebugging(getFileName(), "Start of setChartMatrixLoadingDimension");
     switch (m_chartLoadingDimension) {
         case ChartMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN:
             m_dataReadingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
@@ -1382,7 +1381,6 @@ CiftiMappableConnectivityMatrixDataFile::setChartMatrixLoadingDimension(const Ch
             m_dataMappingAccessMethod      = DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW;
             break;
     }
-    printMappingsForDebugging(getFileName(), "End of setChartMatrixLoadingDimension()");
 
     initializeAfterReading(getFileName());
     
