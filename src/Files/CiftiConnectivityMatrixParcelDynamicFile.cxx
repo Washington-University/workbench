@@ -170,6 +170,8 @@ CiftiConnectivityMatrixParcelDynamicFile::updateAfterReading(const CiftiFile* ci
      */
     const CiftiXML& ciftiXML = getCiftiFile()->getCiftiXML();
     
+    CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS);
+    CaretAssert(ciftiXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SERIES);
     m_numberOfParcels    = ciftiXML.getParcelsMap(CiftiXML::ALONG_COLUMN).getLength();
     m_numberOfTimePoints = ciftiXML.getSeriesMap(CiftiXML::ALONG_ROW).getLength();
     
@@ -258,8 +260,8 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(float* dataOut,
     if (connCorrelation != NULL) {
         connCorrelation->getCorrelationForBrainordinate(index,
                                                         dataVector);
+        CaretAssert(static_cast<int32_t>(dataVector.size()) == m_numberOfParcels);
     }
-    
     
     for (int32_t i = 0; i < m_numberOfParcels; i++) {
         CaretAssertVectorIndex(dataVector, i);
@@ -294,11 +296,12 @@ CiftiConnectivityMatrixParcelDynamicFile::processRowAverageData(std::vector<floa
         return;
     }
     
-    std::vector<float> connData(m_numberOfTimePoints, 0.0);
+    std::vector<float> connData(m_numberOfParcels, 0.0);
     ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
     if (connCorrelation != NULL) {
         connCorrelation->getCorrelationForBrainordinateData(rowAverageDataInOut,
                                                             connData);
+        CaretAssert(static_cast<int32_t>(connData.size()) == m_numberOfParcels);
     }
 
     rowAverageDataInOut = connData;
@@ -362,6 +365,7 @@ CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelation() const
                                   * m_numberOfTimePoints);
             m_parcelSeriesMatrixData.resize(numData);
             
+            std::vector<const float*> parcelDataPointers;
             CaretAssert(m_parentParcelSeriesCiftiFile);
             for (int64_t iRow = 0; iRow < m_numberOfParcels; iRow++) {
                 const int64_t offset(iRow * m_numberOfTimePoints);
@@ -369,16 +373,15 @@ CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelation() const
                                        (offset + (m_numberOfTimePoints - 1)));
                 m_parentParcelSeriesCiftiFile->getRow(&m_parcelSeriesMatrixData[offset],
                                                     iRow);
+                parcelDataPointers.push_back(&m_parcelSeriesMatrixData[offset]);
             }
+            
             const int64_t nextParcelStride(m_numberOfTimePoints);
             const int64_t nextTimePointStride(1);
             AString errorMessage;
-            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(&m_parcelSeriesMatrixData[0],
-                                                                               m_numberOfParcels,
-                                                                               nextParcelStride,
-                                                                               m_numberOfTimePoints,
-                                                                               nextTimePointStride,
-                                                                               errorMessage);
+            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceParcels(parcelDataPointers,
+                                                                                      m_numberOfTimePoints,
+                                                                                      errorMessage);
             if (cc != NULL) {
                 m_connectivityCorrelation.reset(cc);
             }

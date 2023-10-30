@@ -194,6 +194,7 @@ namespace caret {
         ChartMatrixLoadingDimensionEnum::Enum m_chartLoadingDimension;
         
         friend class CiftiBrainordinateScalarFile;
+        friend class CiftiParcelScalarFile;
 
     };
     

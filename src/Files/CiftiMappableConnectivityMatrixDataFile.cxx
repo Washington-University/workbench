@@ -465,7 +465,8 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelAtCoordinateWh
     }
     
     int64_t ijk[3];
-    if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+    if ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+        || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC)) {
         enclosingVoxel(xyz[0], xyz[1], xyz[2], ijk[0], ijk[1], ijk[2]);
     }
     else {
@@ -512,7 +513,8 @@ CiftiMappableConnectivityMatrixDataFile::getRowColumnIndexForVoxelIndexWhenLoadi
     /*
      * Get the mapping type
      */
-    const bool indexValidFlag = ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+    const bool indexValidFlag = (((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+                                  || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC))
                                  ? indexValid(ijk[0], ijk[1], ijk[2])
                                  : indexValidForDataLoading(ijk[0], ijk[1], ijk[2]));
     if (indexValidFlag) {
@@ -807,7 +809,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         
         if (rowIndex >= 0) {
             int64_t dataCount = m_ciftiFile->getNumberOfColumns();
-            if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+            if ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+                || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC)) {
                 /* 
                  * Dense dynamic is special case where number of rows equals number of brainordinates.
                  * Number of columns is number of time points
@@ -1061,7 +1064,8 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
     
     if (rowIndex >= 0) {
         int64_t dataCount = m_ciftiFile->getNumberOfColumns();
-        if (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC) {
+        if ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+            || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC)) {
             /*
              * Dense dynamic is special case where number of rows equals number of brainordinates.
              * Number of columns is number of time points

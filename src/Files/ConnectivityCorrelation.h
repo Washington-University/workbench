@@ -51,6 +51,10 @@ namespace caret {
                                                                   const int64_t nextBrainordinateStride,
                                                                   AString& errorMessageOut);
         
+        static ConnectivityCorrelation* newInstanceParcels(const std::vector<const float*> parcelDataPointers,
+                                                           const int64_t numberOfDataElementsPerParcel,
+                                                           AString& errorMessageOut);
+        
         /**
          * Destructor
          */
@@ -59,6 +63,9 @@ namespace caret {
         ConnectivityCorrelation(const ConnectivityCorrelation&) = delete;
         
         ConnectivityCorrelation& operator=(const ConnectivityCorrelation&) = delete;
+        
+        void getCorrelationForParcel(const int64_t parcelIndex,
+                                     std::vector<float>& dataOut);
         
         void getCorrelationForBrainordinate(const int64_t brainordinateIndex,
                                             std::vector<float>& dataOut);

@@ -26,11 +26,14 @@
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "ChartMatrixDisplayProperties.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
 #include "CiftiXML.h"
+#include "DataFileException.h"
 #include "FastStatistics.h"
+#include "FileInformation.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
@@ -48,6 +51,132 @@ using namespace caret;
  * \ingroup Files
  *
  */
+
+/**
+ * Create a Cifti Parcel Scalar File using the currently loaded row in a Cifti
+ * connectivity parcel dynamic file
+ *
+ * @param sourceParcelDynamicFile
+ *    The parcel dynamic file.
+ * @param destinationDirectory
+ *    Directory in which file is placed if the input matrix file is not
+ *    in a valid local (user's file system) directory.
+ * @param errorMessageOut
+ *    Will describe problem if there is an error.
+ * @return
+ *    Pointer to the newly created Cifti Parcel Scalar File.  If there is an error,
+ *    NULL will be returned and errorMessageOut will describe the problem.
+ */
+
+CiftiParcelScalarFile*
+CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile* sourceParcelDynamicFile,
+                                                                  const AString& destinationDirectory,
+                                                                  AString& errorMessageOut)
+{
+    CaretAssert(sourceParcelDynamicFile);
+    errorMessageOut.clear();
+    
+    const CiftiFile* sourceCiftiFile = sourceParcelDynamicFile->m_ciftiFile;
+    
+    if (sourceParcelDynamicFile->getNumberOfMaps() <= 0) {
+        errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (No Maps).";
+        return NULL;
+    }
+    
+    std::vector<float> data;
+    sourceParcelDynamicFile->getMapData(0, data);
+    if (data.empty()) {
+        errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (mapData empty).";
+        return NULL;
+    }
+    
+    CiftiParcelScalarFile* parcelScalarFile(NULL);
+
+    try {
+        CiftiFile* ciftiFile = new CiftiFile();
+        
+        /*
+         * Copy XML from matrix file
+         * and update to be a scalar file.
+         */
+        const CiftiXML& sourceCiftiMatrixXML = sourceCiftiFile->getCiftiXML();
+        CiftiXML ciftiScalarXML = sourceCiftiMatrixXML;
+        
+        CaretAssert(sourceCiftiMatrixXML.getMappingType(CiftiXML::ALONG_COLUMN) == CiftiMappingType::PARCELS);
+        CiftiParcelsMap parcelsMap = sourceCiftiMatrixXML.getParcelsMap(CiftiXML::ALONG_COLUMN);
+
+        CiftiScalarsMap scalarsMap;
+        scalarsMap.setLength(1);
+        scalarsMap.setMapName(0,
+                              sourceParcelDynamicFile->getMapName(0));
+        ciftiScalarXML.setMap(CiftiXML::ALONG_ROW,
+                              scalarsMap);
+        ciftiScalarXML.setMap(CiftiXML::ALONG_COLUMN,
+                              parcelsMap);
+        ciftiFile->setCiftiXML(ciftiScalarXML);
+        
+        /*
+         * Add data to the file
+         */
+        ciftiFile->setColumn(&data[0],
+                             0);
+        
+        /*
+         * Create a scalar file
+         */
+        parcelScalarFile = new CiftiParcelScalarFile();
+        parcelScalarFile->m_ciftiFile.grabNew(ciftiFile);
+        
+        
+        
+        /*
+         * May need to convert a remote path to a local path
+         */
+        FileInformation initialFileNameInfo(sourceParcelDynamicFile->getFileName());
+        const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
+                                                                                      parcelScalarFile->getDataFileType());
+        
+        /*
+         * Create name of scalar file with row/column information
+         */
+        FileInformation scalarFileInfo(scalarFileName);
+        AString thePath, theName, theExtension;
+        scalarFileInfo.getFileComponents(thePath,
+                                         theName,
+                                         theExtension);
+        theName.append("_" + sourceParcelDynamicFile->getRowLoadedText());
+        const AString newFileName = FileInformation::assembleFileComponents(thePath,
+                                                                            theName,
+                                                                            theExtension);
+        parcelScalarFile->setFileName(newFileName);
+        
+        parcelScalarFile->initializeAfterReading(newFileName);
+        
+        /*
+         * Need to copy color palette since it may be the default
+         */
+        PaletteColorMapping* scalarPalette = parcelScalarFile->getMapPaletteColorMapping(0);
+        CaretAssert(scalarPalette);
+        const PaletteColorMapping* densePalette = sourceParcelDynamicFile->getMapPaletteColorMapping(0);
+        CaretAssert(densePalette);
+        scalarPalette->copy(*densePalette,
+                            true);
+        
+        parcelScalarFile->updateAfterFileDataChanges();
+        parcelScalarFile->setModified();
+        
+        return parcelScalarFile;
+    }
+    catch (const DataFileException& de) {
+        if (parcelScalarFile != NULL) {
+            delete parcelScalarFile;
+            parcelScalarFile = NULL;
+        }
+        errorMessageOut = de.whatString();
+    }
+    
+    return NULL;
+}
 
 /**
  * Constructor.

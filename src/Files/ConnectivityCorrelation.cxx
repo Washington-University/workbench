@@ -83,8 +83,7 @@ ConnectivityCorrelation::newInstance(const float* data,
     std::vector<const float*> brainordinateDataPointers;
     for (int64_t i = 0; i < numberOfBrainordinates; i++) {
         const int64_t offset = i * nextBrainordinateStride;
-        brainordinateDataPointers.push_back(data
-                                            + offset);
+        brainordinateDataPointers.push_back(&data[offset]);
     }
     
     CaretAssert(numberOfBrainordinates == static_cast<int64_t>(brainordinateDataPointers.size()));
@@ -180,6 +179,38 @@ ConnectivityCorrelation::newInstanceTimePoints(const std::vector<const float*>& 
         instanceOut = NULL;
     }
     
+    return instanceOut;
+}
+
+/**
+ * Create a new instance for correlating data associated with parcels
+ * @param parcelDataPointers
+ *    Pointers to the first data element for each parcel (assumes all elements are consecutive in each parcel)
+ * @param numberOfDataElementsPerParcel
+ *    Number of data elements for each parcel
+ * @param errorMessageOut
+ *    Contains error info if failure to create new instance
+ * @return
+ *    Pointer to new instnace or NULL if there is an error
+ */
+ConnectivityCorrelation*
+ConnectivityCorrelation::newInstanceParcels(const std::vector<const float*> parcelDataPointers,
+                                            const int64_t numberOfDataElementsPerParcel,
+                                            AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
+    const int64_t nextTimePointStride(1);
+    const bool validFlag(instanceOut->initializeWithBrainordinates(parcelDataPointers,
+                                                                   numberOfDataElementsPerParcel,
+                                                                   nextTimePointStride,
+                                                                   errorMessageOut));
+    if ( ! validFlag) {
+        delete instanceOut;
+        instanceOut = NULL;
+    }
+
     return instanceOut;
 }
 

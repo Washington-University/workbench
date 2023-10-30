@@ -43,6 +43,7 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiParcelScalarFile.h"
 #include "ConnectivityCorrelationSettingsMenu.h"
 #include "CursorDisplayScoped.h"
 #include "EventDataFileAdd.h"
@@ -358,7 +359,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
             layerCheckBox->setChecked(false);
         }
         
-        lineEdit->setText(files[i]->getFileName());  // displayNames[i]);
+        lineEdit->setText(files[i]->getFileName());
     }
 
 
@@ -451,15 +452,6 @@ CiftiConnectivityMatrixViewController::updateFiberOrientationComboBoxes()
         else {
             comboBox->clear();
         }
-        
-//        const bool showComboBox = (trajFile != NULL);
-//        m_fiberOrientationFileComboBoxes[i]->setVisible(showComboBox);
-//        m_fiberOrientationFileComboBoxes[i]->setEnabled(showComboBox);
-//        std::cout << "Show Orientation File Combo Box: "
-//        << i
-//        << ": "
-//        << qPrintable(AString::fromBool(showComboBox))
-//        << std::endl;
     }
 }
 
@@ -563,7 +555,6 @@ CiftiConnectivityMatrixViewController::layerCheckBoxClicked(int indx)
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-    //updateOtherCiftiConnectivityMatrixViewControllers();
 }
 
 /**
@@ -610,16 +601,6 @@ CiftiConnectivityMatrixViewController::getFileAtIndex(const int32_t indx,
         name = mapFilePointer->getFileNameNoPath();
     }
 
-//    std::cout << "File at index: "
-//    << indx
-//    << " name: "
-//    << qPrintable(name)
-//    << " cifti-matrix-ptr: "
-//    << (long)ciftiMatrixFileOut
-//    << " cifti-traj-ptr: "
-//    << (long)ciftiTrajFileOut
-//    << std::endl;
-    
     if (ciftiMatrixFileOut != NULL) {
         /* OK */
     }
@@ -728,7 +709,24 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
     AString errorMessage;
     
     const AString directoryName = GuiManager::get()->getBrain()->getCurrentDirectory();
-    if (matrixFile != NULL) {
+    if (ciftiParcelDynConnFile != NULL) {
+        CiftiParcelScalarFile* parcelScalarFile(CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(ciftiParcelDynConnFile,
+                                                                                                                  directoryName,
+                                                                                                                  errorMessage));
+        if (parcelScalarFile != NULL) {
+            EventDataFileAdd dataFileAdd(parcelScalarFile);
+            EventManager::get()->sendEvent(dataFileAdd.getPointer());
+            
+            if (dataFileAdd.isError()) {
+                errorMessage = dataFileAdd.getErrorMessage();
+                errorFlag = true;
+            }
+        }
+        else {
+            errorFlag = true;
+        }
+    }
+    else if (matrixFile != NULL) {
         CiftiBrainordinateScalarFile* scalarFile =
         CiftiBrainordinateScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(matrixFile,
                                                                                       directoryName,
@@ -745,9 +743,6 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
         else {
             errorFlag = true;
         }
-    }
-    else if (ciftiParcelDynConnFile != NULL) {
-        WuQMessageBox::errorOk(this, "Saving parcel not supported");
     }
     else if (volDynConnFile != NULL) {
         VolumeFile* newVolumeFile = volDynConnFile->newVolumeFileFromLoadedData(directoryName,
@@ -891,13 +886,11 @@ CiftiConnectivityMatrixViewController::receiveEvent(Event* event)
         dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-//        if (uiEvent->isUpdateForWindow(this->browserWindowIndex)) {
-            if (uiEvent->isConnectivityUpdate()
-                || uiEvent->isToolBoxUpdate()) {
-                this->updateViewController();
-                uiEvent->setEventProcessed();
-            }
-//        }
+        if (uiEvent->isConnectivityUpdate()
+            || uiEvent->isToolBoxUpdate()) {
+            this->updateViewController();
+            uiEvent->setEventProcessed();
+        }
     }
 }
 
