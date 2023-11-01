@@ -1040,6 +1040,12 @@ AnnotationFile::removeAnnotationPrivate(Annotation* annotation,
                 m_annotationGroups.erase(groupIter);
             }
             
+            removedAnnotationPointer->setDeselectedForEditing();
+            AnnotationPolyhedron* polyhedron(removedAnnotationPointer->castToPolyhedron());
+            if (polyhedron != NULL) {
+                Annotation::unlockPolyhedronInAnyWindow(polyhedron);
+            }
+            
             setModified();
             return true;
         }

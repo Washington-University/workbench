@@ -5461,6 +5461,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         else {
             if (drawLinesFlag) {
                 GraphicsEngineDataOpenGL::draw(primitive.get());
+                drawnFlag = true;
             }
             
             if (polyhedron != NULL) {

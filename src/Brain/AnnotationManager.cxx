@@ -127,6 +127,7 @@ AnnotationManager::reset()
     m_annotationsExceptBrowserTabsRedoUndoStack->clear();
     m_browserTabAnnotationsRedoUndoStack->clear();
     m_samplesAnnotationsRedoUndoStack->clear();
+    Annotation::unlockAllPolyhedronsInAllWindows();
 }
 
 /**
@@ -258,6 +259,8 @@ AnnotationManager::deselectAllAnnotationsForEditing(const int32_t windowIndex)
                 sf->setAllAnnotationsSelectedForEditing(windowIndex,
                                                         false);
             }
+//            Annotation::setSelectionLockedPolyhedronInWindow(windowIndex,
+//                                                             NULL);
         }
             break;
         case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:

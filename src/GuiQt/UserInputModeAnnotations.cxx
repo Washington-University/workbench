@@ -2162,6 +2162,8 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
             break;
     }
     
+    m_annotationUnderMousePolyLineCoordinateIndex = -1;
+    
     setAnnotationUnderMouse(mouseEvent,
                             NULL);
 }
@@ -2700,6 +2702,10 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
             deselectAnnotationsForEditingInAnnotationManager();
             break;
         case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            /*
+             * Need to unlock polyhedron in window
+             */
+            Annotation::unlockPolyhedronInWindow(getBrowserWindowIndex());
             deselectAnnotationsForEditingInAnnotationManager();
             break;
         case UserInputModeEnum::Enum::VIEW:
@@ -2756,6 +2762,11 @@ UserInputModeAnnotations::processSelectAllAnnotations()
                                                           getBrowserWindowIndex());
             EventManager::get()->sendEvent(getDrawnEvent.getPointer());
             getDrawnEvent.getAnnotations(annotationsSelected);
+            
+            /*
+             * Need to unlock annotation in window
+             */
+            Annotation::unlockPolyhedronInWindow(getBrowserWindowIndex());
             
             deselectAnnotationsForEditingInAnnotationManager();
             AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());

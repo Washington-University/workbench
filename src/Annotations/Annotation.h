@@ -121,6 +121,17 @@ namespace caret {
             VIEWPORT_ANNOTATION
         };
         
+        static AnnotationPolyhedron* getSelectionLockedPolyhedronInWindow(const int32_t windowIndex);
+        
+        static void setSelectionLockedPolyhedronInWindow(const int32_t windowIndex,
+                                                         AnnotationPolyhedron* annotationPolyhedron);
+        
+        static void unlockPolyhedronInAnyWindow(AnnotationPolyhedron* annotationPolyhedron);
+
+        static void unlockPolyhedronInWindow(const int32_t windowIndex);
+        
+        static void unlockAllPolyhedronsInAllWindows();
+        
         Annotation(const AnnotationTypeEnum::Enum type,
                    const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
         
@@ -599,6 +610,9 @@ namespace caret {
         
         static float s_userDefaultLineWidthPercentage;
         
+        static std::array<AnnotationPolyhedron*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS>
+        s_selectionLockedPolyhedronInWindow;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class AnnotationFile;
@@ -624,6 +638,10 @@ namespace caret {
     float Annotation::s_userDefaultLineWidthPixelsObsolete = 3.0f;
     
     float Annotation::s_userDefaultLineWidthPercentage = 1.0f;
+    
+    std::array<AnnotationPolyhedron*, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS>
+       Annotation::s_selectionLockedPolyhedronInWindow =
+          { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 #endif // __ANNOTATION_DECLARE__
 
 } // namespace

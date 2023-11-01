@@ -85,6 +85,14 @@ Annotation::~Annotation()
 {
     delete m_displayGroupAndTabItemHelper;
     delete m_sceneAssistant;
+
+    if (m_type == AnnotationTypeEnum::POLYHEDRON) {
+        for (uint32_t i = 0; i < s_selectionLockedPolyhedronInWindow.size(); i++) {
+            if (this == s_selectionLockedPolyhedronInWindow[i]) {
+                s_selectionLockedPolyhedronInWindow[i] = NULL;
+            }
+        }
+    }
 }
 
 /**
@@ -2414,6 +2422,20 @@ Annotation::isSelectedForEditing(const int32_t windowIndex) const
 {
     CaretAssert((windowIndex >= 0)
                 && (windowIndex < static_cast<int32_t>(m_selectedForEditingInWindowFlag.size())));
+    const AnnotationPolyhedron* thisPolyhedron(castToPolyhedron());
+
+    if (thisPolyhedron != NULL) {
+        const AnnotationPolyhedron* lockedPolyhedron(getSelectionLockedPolyhedronInWindow(windowIndex));
+        if (lockedPolyhedron != NULL) {
+            if (thisPolyhedron == lockedPolyhedron) {
+                m_selectedForEditingInWindowFlag.set(windowIndex);
+            }
+            else {
+                m_selectedForEditingInWindowFlag.reset(windowIndex);
+            }
+        }
+    }
+
     return m_selectedForEditingInWindowFlag.test(windowIndex);
 }
 
@@ -2444,6 +2466,19 @@ Annotation::setSelectedForEditing(const int32_t windowIndex,
     }
     else {
         m_selectedForEditingInWindowFlag.reset(windowIndex);
+    }
+    
+    const AnnotationPolyhedron* thisPolyhedron(castToPolyhedron());
+    if (thisPolyhedron != NULL) {
+        const AnnotationPolyhedron* lockedPolyhedron(getSelectionLockedPolyhedronInWindow(windowIndex));
+        if (lockedPolyhedron != NULL) {
+            if (thisPolyhedron == lockedPolyhedron) {
+                m_selectedForEditingInWindowFlag.set(windowIndex);
+            }
+            else {
+                m_selectedForEditingInWindowFlag.reset(windowIndex);
+            }
+        }
     }
 }
 
@@ -3376,3 +3411,70 @@ Annotation::isDrawingNewAnnotation() const
 {
     return m_drawingNewAnnotationStatusFlag;
 }
+
+/**
+ * @return The polyhedron locked for selection in the given window
+ * @param windowIndex
+ *    Index of window
+ */
+AnnotationPolyhedron*
+Annotation::getSelectionLockedPolyhedronInWindow(const int32_t windowIndex)
+{
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+    return s_selectionLockedPolyhedronInWindow[windowIndex];
+}
+
+/**
+ * @return Set the polyhedron locked for selection in the given window
+ * @param windowIndex
+ *    Index of window
+ * @param annotationPolyhedron
+ *    The polyhedron
+ */
+void
+Annotation::setSelectionLockedPolyhedronInWindow(const int32_t windowIndex,
+                                                 AnnotationPolyhedron* annotationPolyhedron)
+{
+    CaretAssert((windowIndex >= 0)
+                && (windowIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS));
+    s_selectionLockedPolyhedronInWindow[windowIndex] = annotationPolyhedron;
+}
+
+/**
+ * Unlock this polyhedron in any windows such as when polyedron is deleted
+ * @param annotationPolyhedron
+ *    The polyhedron
+ */
+void
+Annotation::unlockPolyhedronInAnyWindow(AnnotationPolyhedron* annotationPolyhedron)
+{
+    for (uint32_t i = 0; i < s_selectionLockedPolyhedronInWindow.size(); i++) {
+        if (annotationPolyhedron == s_selectionLockedPolyhedronInWindow[i]) {
+            s_selectionLockedPolyhedronInWindow[i] = NULL;
+        }
+    }
+}
+
+/**
+ * Unlock all polyhedrons in any windows, such as when new scene/spec is loaded
+ */
+void
+Annotation::unlockAllPolyhedronsInAllWindows()
+{
+    s_selectionLockedPolyhedronInWindow.fill(NULL);
+}
+
+/**
+ * Unlock the the locked polyhedron in the given window
+ * @param windowIndex
+ *    Index of window
+ */
+void
+Annotation::unlockPolyhedronInWindow(const int32_t windowIndex)
+{
+    setSelectionLockedPolyhedronInWindow(windowIndex,
+                                         NULL);
+}
+
+

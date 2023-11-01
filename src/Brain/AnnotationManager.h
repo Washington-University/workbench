@@ -44,6 +44,7 @@ namespace caret {
     class AnnotationClipboard;
     class AnnotationFile;
     class AnnotationGroupKey;
+    class AnnotationPolyhedron;
     class AnnotationRedoUndoCommand;
     class AnnotationEditingSelectionInformation;
     class Brain;
@@ -211,6 +212,7 @@ namespace caret {
         CaretPointer<CaretUndoStack> m_browserTabAnnotationsRedoUndoStack;
         
         CaretPointer<CaretUndoStack> m_samplesAnnotationsRedoUndoStack;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

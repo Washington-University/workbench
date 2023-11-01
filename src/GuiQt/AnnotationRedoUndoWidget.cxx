@@ -29,6 +29,7 @@
 #include <QToolButton>
 
 #include "AnnotationManager.h"
+#include "AnnotationPolyhedron.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
@@ -68,6 +69,40 @@ m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     QLabel* titleLabel = new QLabel("Edit");
+
+    QToolButton* lockToolButton(NULL);
+    switch (userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+        case UserInputModeEnum::Enum::FOCI:
+        case UserInputModeEnum::Enum::IMAGE:
+        case UserInputModeEnum::Enum::INVALID:
+        case UserInputModeEnum::Enum::VIEW:
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            const AString lockToolTip("<html>"
+                                      "Lock the selected annotation.  Once locked, no other "
+                                      "annotations can be selected.  Lock must be turned off "
+                                      "to deselect the locked annotation."
+                                      "</html>");
+            m_lockAction = new QAction(this);
+            m_lockAction->setCheckable(true);
+            m_lockAction->setText("Lock");
+            m_lockAction->setToolTip(lockToolTip);
+            QObject::connect(m_lockAction, &QAction::toggled,
+                             this, &AnnotationRedoUndoWidget::lockActionToggled);
+
+            lockToolButton = new QToolButton();
+            lockToolButton->setDefaultAction(m_lockAction);
+            WuQtUtilities::setToolButtonStyleForQt5Mac(lockToolButton);
+        }
+            break;
+    }
     
     m_redoAction = WuQtUtilities::createAction("Redo",
                                                "Redo ToolTip",
@@ -97,6 +132,10 @@ m_browserWindowIndex(browserWindowIndex)
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(undoToolButton,
                                   1, 1, Qt::AlignHCenter);
+            if (lockToolButton != NULL) {
+                gridLayout->addWidget(lockToolButton,
+                                      1, 2, Qt::AlignHCenter);
+            }
             break;
         case Qt::Vertical:
             gridLayout->addWidget(titleLabel,
@@ -105,6 +144,10 @@ m_browserWindowIndex(browserWindowIndex)
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(undoToolButton,
                                   2, 0, Qt::AlignHCenter);
+            if (lockToolButton != NULL) {
+                gridLayout->addWidget(lockToolButton,
+                                      3, 0, Qt::AlignHCenter);
+            }
             break;
     }
     
@@ -129,6 +172,8 @@ AnnotationRedoUndoWidget::~AnnotationRedoUndoWidget()
 void
 AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotations)
 {
+    m_selectedAnnotations = annotations;
+    
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
                                                       m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
@@ -143,6 +188,40 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     m_undoAction->setEnabled(undoStack->canUndo());
     m_undoAction->setToolTip(undoStack->undoText());
     
+    if (m_lockAction != NULL) {
+        m_lockAction->setEnabled(false);
+        bool lockCheckedFlag(false);
+        switch (m_userInputMode) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            case UserInputModeEnum::Enum::BORDERS:
+            case UserInputModeEnum::Enum::FOCI:
+            case UserInputModeEnum::Enum::IMAGE:
+            case UserInputModeEnum::Enum::INVALID:
+            case UserInputModeEnum::Enum::VIEW:
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                CaretAssert(0);
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            {
+                lockCheckedFlag = Annotation::getSelectionLockedPolyhedronInWindow(m_browserWindowIndex);
+
+                if (annotations.size() == 1) {
+                    CaretAssertVectorIndex(annotations, 0);
+                    CaretAssert(annotations[0]);
+                    AnnotationPolyhedron* polyhedron(annotations[0]->castToPolyhedron());
+                    if (polyhedron != NULL) {
+                        m_lockAction->setEnabled(true);
+
+                        lockCheckedFlag = Annotation::getSelectionLockedPolyhedronInWindow(m_browserWindowIndex);
+                    }
+                }
+            }
+                break;
+        }
+        QSignalBlocker blocker(m_lockAction);
+        m_lockAction->setChecked(lockCheckedFlag);
+    }
     setEnabled(( ! annotations.empty())
                || m_redoAction->isEnabled()
                || m_undoAction->isEnabled());
@@ -196,3 +275,47 @@ AnnotationRedoUndoWidget::undoActionTriggered()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Gets called when the lock action is triggered
+ */
+void
+AnnotationRedoUndoWidget::lockActionToggled(bool checked)
+{
+    if (checked) {
+        switch (m_userInputMode) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            case UserInputModeEnum::Enum::BORDERS:
+            case UserInputModeEnum::Enum::FOCI:
+            case UserInputModeEnum::Enum::IMAGE:
+            case UserInputModeEnum::Enum::INVALID:
+            case UserInputModeEnum::Enum::VIEW:
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                CaretAssert(0);
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            {
+                if (m_selectedAnnotations.size() == 1) {
+                    CaretAssertVectorIndex(m_selectedAnnotations, 0);
+                    CaretAssert(m_selectedAnnotations[0]);
+                    AnnotationPolyhedron* polyhedron(m_selectedAnnotations[0]->castToPolyhedron());
+                    if (polyhedron != NULL) {
+                        if (polyhedron == Annotation::getSelectionLockedPolyhedronInWindow(m_browserWindowIndex)) {
+                            Annotation::unlockPolyhedronInWindow(m_browserWindowIndex);
+                        }
+                        else {
+                            Annotation::setSelectionLockedPolyhedronInWindow(m_browserWindowIndex,
+                                                                             polyhedron);
+                        }
+                    }
+                }
+            }
+                break;
+        }
+    }
+    else {
+        Annotation::setSelectionLockedPolyhedronInWindow(m_browserWindowIndex, NULL);
+    }
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}

@@ -46,6 +46,8 @@ namespace caret {
         void updateContent(const std::vector<Annotation*>& annotations);
         
     private slots:
+        void lockActionToggled(bool checked);
+        
         void redoActionTriggered();
         
         void undoActionTriggered();
@@ -62,9 +64,13 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QAction* m_redoAction;
+        QAction* m_lockAction = NULL;
         
-        QAction* m_undoAction;
+        QAction* m_redoAction = NULL;
+        
+        QAction* m_undoAction = NULL;
+        
+        std::vector<Annotation*> m_selectedAnnotations;
         
         // ADD_NEW_MEMBERS_HERE
 
