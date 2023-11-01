@@ -31,16 +31,18 @@
 
 
 namespace caret {
+    class BrowserTabContent;
     class SceneClassAssistant;
 
     class SamplesDrawingSettings : public CaretObject, public SceneableInterface {
         
     public:
-        SamplesDrawingSettings(const int32_t tabIndex);
+        SamplesDrawingSettings(BrowserTabContent* parentBrowserTabContent);
         
         virtual ~SamplesDrawingSettings();
         
-        SamplesDrawingSettings(const SamplesDrawingSettings& obj);
+        /* implmentation requires management of the parent browser tab content */
+        SamplesDrawingSettings(const SamplesDrawingSettings& obj) = delete;
 
         SamplesDrawingSettings& operator=(const SamplesDrawingSettings& obj);
         
@@ -99,7 +101,7 @@ namespace caret {
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        const int32_t m_tabIndex;
+        const BrowserTabContent* m_parentBrowserTabContent;
         
         SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL_SLICES;
         

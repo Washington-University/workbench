@@ -205,7 +205,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
                                                              m_tabNumber);
     
-    m_samplesDrawingSettings.reset(new SamplesDrawingSettings(m_tabNumber));
+    m_samplesDrawingSettings.reset(new SamplesDrawingSettings(this));
     
     m_mouseLeftDragMode = MouseLeftDragModeEnum::INVALID;
     

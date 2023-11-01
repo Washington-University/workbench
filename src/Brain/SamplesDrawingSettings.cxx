@@ -46,13 +46,17 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param tabIndex
- *    Index of tab that contains these settings
+ * @param parentBrowserTabContent
+ *    Browser tab content that 'owns' this instance
+ *    Note: We just need the index of the browser tab but the index may change from the original value
+ *    in the BrowserTabContent's constructor to the tab index when restoring the scene.  Thus, we can
+ *    just call BrowserTabContent::getTabNumber() and always get the correct tab index.
  */
-SamplesDrawingSettings::SamplesDrawingSettings(const int32_t tabIndex)
+SamplesDrawingSettings::SamplesDrawingSettings(BrowserTabContent* parentBrowserTabContent)
 : CaretObject(),
-m_tabIndex(tabIndex)
+m_parentBrowserTabContent(parentBrowserTabContent)
 {
+    CaretAssert(m_parentBrowserTabContent);
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add<SamplesDrawingModeEnum, SamplesDrawingModeEnum::Enum>("m_drawingMode",
                                                                                 &m_drawingMode);
@@ -71,19 +75,6 @@ m_tabIndex(tabIndex)
  */
 SamplesDrawingSettings::~SamplesDrawingSettings()
 {
-}
-
-/**
- * Copy constructor.
- * @param obj
- *    Object that is copied.
- */
-SamplesDrawingSettings::SamplesDrawingSettings(const SamplesDrawingSettings& obj)
-: CaretObject(obj),
-SceneableInterface(obj),
-m_tabIndex(obj.m_tabIndex)
-{
-    this->copyHelperSamplesDrawingSettings(obj);
 }
 
 /**
@@ -149,7 +140,7 @@ SamplesDrawingSettings::getSliceRange() const
     minMaxSliceIndices.first  = 0;
     minMaxSliceIndices.second = 0;
 
-    EventBrowserTabGet tabEvent(m_tabIndex);
+    EventBrowserTabGet tabEvent(m_parentBrowserTabContent->getTabNumber());
     EventManager::get()->sendEvent(tabEvent.getPointer());
     const BrowserTabContent* tabContent(tabEvent.getBrowserTab());
     if (tabContent != NULL) {
@@ -191,7 +182,7 @@ SamplesDrawingSettings::isSliceInLowerUpperOffsetRange(const int32_t sliceRow,
 {
     bool inRangeFlag(false);
     
-    EventBrowserTabGet tabEvent(m_tabIndex);
+    EventBrowserTabGet tabEvent(m_parentBrowserTabContent->getTabNumber());
     EventManager::get()->sendEvent(tabEvent.getPointer());
     const BrowserTabContent* tabContent(tabEvent.getBrowserTab());
     
