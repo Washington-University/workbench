@@ -86,9 +86,21 @@ m_browserWindowIndex(browserWindowIndex)
         case UserInputModeEnum::Enum::SAMPLES_EDITING:
         {
             const AString lockToolTip("<html>"
-                                      "Lock the selected annotation.  Once locked, no other "
-                                      "annotations can be selected.  Lock must be turned off "
-                                      "to deselect the locked annotation."
+                                      "Lock the selected polyhedron.  Lock is enabled when there "
+                                      "is one and only one polyhedron selected.  "
+                                      "Once locked, no other "
+                                      "polyhedrons can be selected.  "
+                                      "This feature may be useful when polyhedrons overlap or are "
+                                      "very close to each other.  "
+                                      "Lock must be turned off "
+                                      "to deselect the locked polyhedron or select a different polyhedron.<br><br>"
+                                      "Lock is turned off by:"
+                                      "<ul>"
+                                      "<li> Clicking the <b>Lock</b> button"
+                                      "<li> Changing to a different Mode"
+                                      "<li> Cutting or Deleting the polyhedron"
+                                      "<li> Deselect All or Select All is selected from the Edit or Right-Click Menu"
+                                      "</ul>"
                                       "</html>");
             m_lockAction = new QAction(this);
             m_lockAction->setCheckable(true);

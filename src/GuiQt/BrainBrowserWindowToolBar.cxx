@@ -3670,6 +3670,8 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
                 inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
             }
             else if (inputModeEvent->isSetUserInputMode()) {
+                Annotation::unlockPolyhedronInWindow(this->browserWindowIndex);
+                
                 UserInputModeAbstract* newUserInputProcessor = NULL;
                 switch (inputModeEvent->getUserInputMode()) {
                     case UserInputModeEnum::Enum::INVALID:
