@@ -296,7 +296,8 @@ public:
                                      const float p2[3],
                                      const float point[3],
                                      float pointOnLineOut[3],
-                                     float& p1ToPointOnLineNormalizedDistanceOut);
+                                     float& p1ToPointOnLineNormalizedDistanceOut,
+                                     float& distanceFromPointToPointOnLine);
     
     static bool arraysEqual(
                     const float a[],

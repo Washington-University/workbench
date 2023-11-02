@@ -2615,17 +2615,19 @@ BrainOpenGLVolumeMprThreeDrawing::applySliceThicknessToIntersections(const Volum
                         << std::endl;
                     }
                     float distanceToLine(-1.0);
+                    float firstPointToPointOnLineNormalizedDistance(-1.0);
                     Vector3D pointOnLineXYZ;
                     MathFunctions::nearestPointOnLine3D(p1,
                                                         p2,
                                                         sliceCoordinates,
                                                         pointOnLineXYZ,
+                                                        firstPointToPointOnLineNormalizedDistance,
                                                         distanceToLine);
                     if (m_debugFlag) {
-                        std::cout << "Point on line, distance: "
+                        std::cout << "Point on line, first point normalized distance: "
                         << AString::fromNumbers(pointOnLineXYZ)
                         << ",  "
-                        << distanceToLine
+                        << firstPointToPointOnLineNormalizedDistance
                         << std::endl;
                     }
                     const Vector3D rayDirection((p2 - p1).normal());

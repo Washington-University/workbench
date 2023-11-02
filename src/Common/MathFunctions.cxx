@@ -1781,6 +1781,7 @@ MathFunctions::distanceToLine3D(
  * @param point - coordinate for which distance to line is sought.
  * @param pointOnLineOut - Point on line nearest to 'point'.
  * @param p1ToPointOnLineNormalizedDistanceOut - 'Normalized' distance from 'p1' to to 'pointOnLineOut'
+ * @param distanceFromPointToPointOnLine - Distance from 'point' to 'pointOnLineOut'
  * @return Distance from point to the line (p1, p2).
  *
  */
@@ -1789,7 +1790,8 @@ MathFunctions::nearestPointOnLine3D(const float p1[3],
                                     const float p2[3],
                                     const float point[3],
                                     float pointOnLineOut[3],
-                                    float& p1ToPointOnLineNormalizedDistanceOut)
+                                    float& p1ToPointOnLineNormalizedDistanceOut,
+                                    float& distanceFromPointToPointOnLine)
 {
     /*
      * Distance of 'point' to the line (one leg of triangle)
@@ -1839,6 +1841,9 @@ MathFunctions::nearestPointOnLine3D(const float p1[3],
     pointOnLineOut[2] = p1[2] + p1ToP2Vector[2] * normalizedDistance;
     
     p1ToPointOnLineNormalizedDistanceOut = normalizedDistance;
+    
+    distanceFromPointToPointOnLine = MathFunctions::distance3D(point,
+                                                               pointOnLineOut);
 }
 
 /**

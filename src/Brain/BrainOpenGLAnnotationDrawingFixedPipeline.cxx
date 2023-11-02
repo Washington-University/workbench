@@ -1227,7 +1227,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                 
                 if (annotationID->isOtherScreenDepthCloserToViewer(depth)) {
                     
-                    float firstPointToPointOnLineNormalizedDisance(0.0);
+                    float firstPointToPointOnLineNormalizedDistance(0.0);
+                    float distFromPointToPointOnLine(-1.0);
                     if (selectionInfo.m_polyLineCoordinateIndex >= 0) {
                         const AnnotationMultiCoordinateShape* multiCoordShape = selectionInfo.m_annotation->castToMultiCoordinateShape();
                         const AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(selectionInfo.m_annotation->castToMultiPairedCoordinateShape());
@@ -1244,18 +1245,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                             glGetIntegerv(GL_VIEWPORT,
                                           viewport);
 
-                            const float mouseXYZ[3] {
+                            const Vector3D mouseXYZ(
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseX - viewport[0]),
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseY - viewport[1]),
-                                0.0
-                            };
+                                0.0);
                             
-                            float pointOnLine[3];
+                            Vector3D pointOnLine;
                             MathFunctions::nearestPointOnLine3D(selectionInfo.m_coordsInWindowXYZ[indexOne],
                                                                 selectionInfo.m_coordsInWindowXYZ[indexTwo],
                                                                 mouseXYZ,
                                                                 pointOnLine,
-                                                                firstPointToPointOnLineNormalizedDisance);
+                                                                firstPointToPointOnLineNormalizedDistance,
+                                                                distFromPointToPointOnLine);
                         }
                         else if (multiPairedCoordShape != NULL) {
                             const int32_t numCoords(multiPairedCoordShape->getNumberOfCoordinates());
@@ -1270,18 +1271,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                             glGetIntegerv(GL_VIEWPORT,
                                           viewport);
                             
-                            const float mouseXYZ[3] {
+                            const Vector3D mouseXYZ(
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseX - viewport[0]),
                                 static_cast<float>(m_brainOpenGLFixedPipeline->mouseY - viewport[1]),
-                                0.0
-                            };
+                                0.0);
                             
-                            float pointOnLine[3];
+                            Vector3D pointOnLine;
                             MathFunctions::nearestPointOnLine3D(selectionInfo.m_coordsInWindowXYZ[indexOne],
                                                                 selectionInfo.m_coordsInWindowXYZ[indexTwo],
                                                                 mouseXYZ,
                                                                 pointOnLine,
-                                                                firstPointToPointOnLineNormalizedDisance);
+                                                                firstPointToPointOnLineNormalizedDistance,
+                                                                distFromPointToPointOnLine);
                         }
                     }
                     
@@ -1289,7 +1290,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                                                 selectionInfo.m_annotation,
                                                 selectionInfo.m_sizingHandle,
                                                 selectionInfo.m_polyLineCoordinateIndex,
-                                                firstPointToPointOnLineNormalizedDisance,
+                                                firstPointToPointOnLineNormalizedDistance,
+                                                distFromPointToPointOnLine,
                                                 selectionInfo.m_coordsInWindowXYZ);
                     annotationID->setBrain(m_inputs->m_brain);
                     annotationID->setScreenXYZ(selectionInfo.m_windowXYZ);

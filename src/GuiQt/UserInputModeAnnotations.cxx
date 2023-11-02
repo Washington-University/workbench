@@ -2166,6 +2166,7 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
     
     setAnnotationUnderMouse(mouseEvent,
                             NULL);
+    resetAnnotationUnderMouse();
 }
 
 /**

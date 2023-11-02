@@ -125,6 +125,11 @@ SelectionItemAnnotation::getNormalizedRangeFromCoordIndexToNextCoordIndex() cons
     return m_normalizedRangeFromCoordIndexToNextCoordIndex;
 }
 
+float
+SelectionItemAnnotation::getDistanceFromMouseToPointOnLine() const
+{
+    return m_distanceFromMouseToPointOnLine;
+}
 
 /**
  * @return The annotation's coordinates converted to window coordinates
@@ -158,6 +163,7 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
                                        const AnnotationSizingHandleTypeEnum::Enum annotationSizingHandle,
                                        const int32_t polyLineCoordinateIndex,
                                        const float normalizedRangeFromCoordIndexToNextCoordIndex,
+                                       const float distanceFromMouseToPointOnLine,
                                        const std::vector<Vector3D>& coordsInWindowXYZ)
 {
     CaretAssert(annotationFile);
@@ -167,6 +173,7 @@ SelectionItemAnnotation::setAnnotation(AnnotationFile* annotationFile,
     m_sizingHandle   = annotationSizingHandle;
     m_polyLineCoordinateIndex = polyLineCoordinateIndex;
     m_normalizedRangeFromCoordIndexToNextCoordIndex = normalizedRangeFromCoordIndexToNextCoordIndex;
+    m_distanceFromMouseToPointOnLine = distanceFromMouseToPointOnLine;
     m_coordsInWindowXYZ       = coordsInWindowXYZ;
     
     if (annotation != NULL) {
@@ -227,7 +234,8 @@ SelectionItemAnnotation::toString() const
     text += ("Annotation type=" + AnnotationTypeEnum::toGuiName(m_annotation->getType())
              + "   sizeHandleType=" + AnnotationSizingHandleTypeEnum::toGuiName(m_sizingHandle)
              + "   m_polyLineCoordinateIndex=" + AString::number(m_polyLineCoordinateIndex)
-             + "   m_normalizedRangeFromCoordIndexToNextCoordIndex=" + AString::number(m_normalizedRangeFromCoordIndexToNextCoordIndex, 'f', 3));
+             + "   m_normalizedRangeFromCoordIndexToNextCoordIndex=" + AString::number(m_normalizedRangeFromCoordIndexToNextCoordIndex, 'f', 3)
+             + "   m_distanceFromMouseToPointOnLine=" + AString::number(m_distanceFromMouseToPointOnLine));
     
     AnnotationText* textAnn = dynamic_cast<AnnotationText*>(m_annotation);
     if (textAnn != NULL) {
