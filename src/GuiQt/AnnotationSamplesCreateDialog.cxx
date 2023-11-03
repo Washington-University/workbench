@@ -59,6 +59,8 @@ using namespace caret;
 
 /**
  * Dialog constructor.
+ * This dialog will add the annotation to the file if OK is clicked or destroy the annotation if
+ * Cancel is clicked.
  *
  * @param annotationFile
  *     The annotation file.
@@ -255,7 +257,19 @@ AnnotationSamplesCreateDialog::okButtonClicked()
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
-    WuQDialog::okButtonClicked();
+    WuQDialogModal::okButtonClicked();
+}
+
+/**
+ * Called if user clicks the cancel button
+ */
+void
+AnnotationSamplesCreateDialog::cancelButtonClicked()
+{
+    delete m_annotation;
+    m_annotation = NULL;
+    
+    WuQDialogModal::cancelButtonClicked();
 }
 
 /**

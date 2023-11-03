@@ -3670,10 +3670,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
                                                  m_viewportHeight,
                                                  m_sliceThickness,
                                                  window);
-            if (dialog.exec()) {
-                m_annotationFile = NULL;
-                m_annotation     = NULL;
-            }
+            dialog.exec();
+            m_annotationFile = NULL;
+            m_annotation     = NULL;
         }
         else {
             CaretAssertMessage(0, "Has a new annotations type mode been added?");

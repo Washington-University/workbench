@@ -58,7 +58,9 @@ namespace caret {
                 
         virtual ~AnnotationSamplesCreateDialog();
 
-        virtual void okButtonClicked();
+        virtual void okButtonClicked() override;
+        
+        virtual void cancelButtonClicked() override;
         
         Annotation* getAnnotationThatWasCreated();
         
