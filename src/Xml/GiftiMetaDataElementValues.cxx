@@ -49,7 +49,10 @@ GiftiMetaDataElementValues::getDataTypeForElement(const QString& metaDataName)
         dataType = GiftiMetaDataElementDataTypeEnum::COMMENT;
     }
     else if ((metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)
-             || (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID)) {
+             || (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID)) {
+        dataType = GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME;
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
         dataType = GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM;
     }
     else {
@@ -121,12 +124,73 @@ GiftiMetaDataElementValues::~GiftiMetaDataElementValues()
 }
 
 /**
- * Get a description of this object's content.
- * @return String describing this object's content.
+ * Process label's text to find the id and description
+ * @param text
+ *    The label's text
+ * @param idOut
+ *    Output with ID
+ * @param descriptionOut
+ *    Output with description
+ *
+ *
+ From David's email (Nov 3, 2023):
+     Unfortunately, we don’t currently have consistency across different labeling schemes. For example, the following four examples are each distinct
+        For Ding ontology: <abbreviation>: <name>
+           CaH: Head of Caudate
+        For SARM-6: <abbreviation>
+           CdH
+           CdT
+        For Saleem: <abbreviation> <name>
+           cd caudate nucleus
+        For Yerkes19_Parcellations: <shorthand_id>_<parcellation_id>
+           3b_LV00
+ 
+     Here’s my suggestion for handling such cases:
+       - Have a ‘Choose’ option for just the ‘id’
+       - If the id field contains only one character string without spaces,
+        have the label fill in both the id and the name/description
+       - If the id field contains multiple character strings with spaces:
+          - Use the first character string for the shorthand_id but exclude any final character that is
+           NOT an alphanumeric OR an underscore ‘_’
+          - Use all subsequent text for the name/description
+ *
+     We may encounter label tables in the future that don’t behave well following these rules, but we can cross that bridge later.
  */
-AString 
-GiftiMetaDataElementValues::toString() const
+void
+GiftiMetaDataElementValues::processLabelForIdDescription(const AString& labelText,
+                                                         AString& idOut,
+                                                         AString& descriptionOut)
 {
-    return "GiftiMetaDataElementValues";
+    idOut          = "";
+    descriptionOut = "";
+    
+    const AString text(labelText.trimmed());
+    if ( ! labelText.isEmpty()) {
+        const int32_t firstSpaceIndex(text.indexOf(" "));
+        if (firstSpaceIndex > 0) {
+            idOut = text.left(firstSpaceIndex);
+            descriptionOut = text.mid(firstSpaceIndex + 1);
+            
+            const int32_t lastCharIndex(descriptionOut.length() - 1);
+            if (lastCharIndex > 0) {
+                const QChar lastChar(descriptionOut[lastCharIndex]);
+                if (lastChar.isDigit()
+                    || lastChar.isLetter()
+                    || (lastChar == '_')) {
+                    /* ok */
+                }
+                else {
+                    descriptionOut.resize(lastCharIndex);
+                }
+            }
+        }
+        else {
+            /*
+             * No spaces so both id and description are the same
+             */
+            idOut = text;
+            descriptionOut = text;
+        }
+    }
 }
 

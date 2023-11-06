@@ -32,6 +32,7 @@
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -158,6 +159,34 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(const std::vector<
  *    Types of the data file.
  */
 CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                              const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+                                                                         StructureEnum::ALL,
+                                                                         FILE_MODE_DATA_FILE_TYPE_ENUM);
+    model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
+                                  dataFileTypes.begin(),
+                                  dataFileTypes.end());
+    model->m_volumeTypes.insert(model->m_volumeTypes.end(),
+                                volumeTypes.begin(),
+                                volumeTypes.end());
+    
+    return model;
+}
+
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * selects files of the given Data File Types for the given structure.
+ *
+ * @param structure
+ *    Structure for files.   Files with the identical structure are used
+ *    as well as those files with structure 'ALL'.
+ * @param dataFileTypes
+ *    Types of the data file.
+ */
+CaretDataFileSelectionModel*
 CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(const StructureEnum::Enum structure,
                                                                          const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
 {
@@ -171,6 +200,33 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(const S
     return model;
     
 }
+
+///**
+// * Create a new instance of a Caret Data File Selection Model that
+// * selects files of the given Data File Types.
+// *
+// * @param dataFileTypes
+// *    Types of the data file.
+// * @param volumeTypes
+// *    Types of volumnes
+// */
+//CaretDataFileSelectionModel*
+//CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+//                                                              const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes)
+//{
+//    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
+//                                                                         structure,
+//                                                                         FILE_MODE_DATA_FILE_TYPE_ENUM);
+//    model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
+//                                  dataFileTypes.begin(),
+//                                  dataFileTypes.end());
+//    model->m_volumeTypes.insert(model->m_volumeTypes.end(),
+//                                volumeTypes.begin(),
+//                                volumeTypes.end());
+//    
+//    return model;
+//    
+//}
 
 
 /**
@@ -245,6 +301,7 @@ CaretDataFileSelectionModel::copyHelperCaretDataFileSelectionModel(const CaretDa
 {
     m_structure     = obj.m_structure;
     m_dataFileTypes = obj.m_dataFileTypes;
+    m_volumeTypes   = obj.m_volumeTypes;
     m_selectedFile  = obj.m_selectedFile;
     m_overrideOfAvailableFilesValid = obj.m_overrideOfAvailableFilesValid;
     m_overrideOfAvailableFiles      = obj.m_overrideOfAvailableFiles;
@@ -297,7 +354,29 @@ CaretDataFileSelectionModel::getAvailableFiles() const
     switch (m_fileMode) {
         case FILE_MODE_DATA_FILE_TYPE_ENUM:
         {
-            caretDataFiles = EventCaretDataFilesGet::getCaretDataFilesForTypes(m_dataFileTypes);
+            std::vector<CaretDataFile*> unfilteredFiles = EventCaretDataFilesGet::getCaretDataFilesForTypes(m_dataFileTypes);
+            if (m_volumeTypes.empty()) {
+                caretDataFiles = unfilteredFiles;
+            }
+            else {
+                /*
+                 * Filter volume volume files based upon volume type
+                 */
+                for (auto& cdf :unfilteredFiles) {
+                    if (cdf->getDataFileType() == DataFileTypeEnum::VOLUME) {
+                        VolumeFile* vf(dynamic_cast<VolumeFile*>(cdf));
+                        CaretAssert(vf);
+                        if (std::find(m_volumeTypes.begin(),
+                                      m_volumeTypes.end(),
+                                      vf->getType()) != m_volumeTypes.end()) {
+                            caretDataFiles.push_back(cdf);
+                        }
+                    }
+                    else {
+                        caretDataFiles.push_back(cdf);
+                    }
+                }
+            }
         }
             break;
         case FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE:

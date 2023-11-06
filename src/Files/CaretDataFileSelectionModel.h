@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "CaretVolumeExtension.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
@@ -40,6 +41,9 @@ namespace caret {
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(const DataFileTypeEnum::Enum dataFileType);
         
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
+        
+        static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                                             const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes);
         
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypesInStructure(
                                                                              const StructureEnum::Enum structure,
@@ -136,6 +140,8 @@ namespace caret {
         StructureEnum::Enum m_structure;
         
         std::vector<DataFileTypeEnum::Enum> m_dataFileTypes;
+        
+        std::vector<SubvolumeAttributes::VolumeType> m_volumeTypes;
         
         mutable CaretDataFile* m_selectedFile;
         

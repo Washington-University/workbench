@@ -116,6 +116,35 @@ CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorOb
 }
 
 /**
+ * Constructor that creates a selection object with a model for the selected
+ * data file types.
+ *
+ * @param dataFileTypes
+ *    File types for selection
+ * @param volumeTypes
+ *    If not empty, only volume file that are one of these types are included
+ * @param options
+ *    Options for this instance.
+ * @param parent
+ *    Parent of this instance.
+ */
+CaretMappableDataFileAndMapSelectorObject::CaretMappableDataFileAndMapSelectorObject(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                                                     const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes,
+                                                                                     const Options options,
+                                                                                     QObject* parent)
+: QObject(parent)
+{
+    
+    m_model = new CaretMappableDataFileAndMapSelectionModel(dataFileTypes,
+                                                            volumeTypes);
+    
+    initializeConstruction(options);
+    
+    m_needToDestroyModelFlag = true;
+}
+
+
+/**
  * Destructor.
  */
 CaretMappableDataFileAndMapSelectorObject::~CaretMappableDataFileAndMapSelectorObject()

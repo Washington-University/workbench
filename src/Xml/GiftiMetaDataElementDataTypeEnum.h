@@ -41,6 +41,8 @@ public:
         DATE,
         /** Element is a term from the Ding Ontology */
         DING_ONTOLOGY_TERM,
+        /** Label that is used for both ID and Name */
+        LABEL_ID_NAME,
         /** Element has a list of values provided by GiftiMetaDataElementValues::getValuesForElement() */
         LIST,
         /** Everything else is single line of text */

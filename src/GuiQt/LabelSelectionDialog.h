@@ -1,5 +1,5 @@
-#ifndef __GIFTI_META_DATA_ELEMENT_VALUES_H__
-#define __GIFTI_META_DATA_ELEMENT_VALUES_H__
+#ifndef __LABEL_SELECTION_DIALOG_H__
+#define __LABEL_SELECTION_DIALOG_H__
 
 /*LICENSE_START*/
 /*
@@ -25,43 +25,40 @@
 
 #include <memory>
 
-#include <QStringList>
-
-#include "CaretObject.h"
-#include "GiftiMetaDataElementDataTypeEnum.h"
-
+#include "WuQDialogModal.h"
 
 namespace caret {
 
-    class GiftiMetaDataElementValues : public CaretObject {
+    class LabelSelectionWidget;
+    
+    class LabelSelectionDialog : public WuQDialogModal {
         
-    public:
-        static GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForElement(const QString& metaDataName);
-        
-        static QStringList getValuesForElement(const QString& metaDataName);
-        
-        virtual ~GiftiMetaDataElementValues();
-        
-        GiftiMetaDataElementValues(const GiftiMetaDataElementValues&) = delete;
+        Q_OBJECT
 
-        GiftiMetaDataElementValues& operator=(const GiftiMetaDataElementValues&) = delete;
+    public:
+        LabelSelectionDialog(const QString& saveRestoreStateName = "",
+                             QWidget* parent = 0);
         
-        static void processLabelForIdDescription(const AString& labelText,
-                                                 AString& idOut,
-                                                 AString& descriptionOut);
+        virtual ~LabelSelectionDialog();
+        
+        LabelSelectionDialog(const LabelSelectionDialog&) = delete;
+
+        LabelSelectionDialog& operator=(const LabelSelectionDialog&) = delete;
+        
+        AString getSelectedLabel() const;
 
         // ADD_NEW_METHODS_HERE
 
     private:
-        GiftiMetaDataElementValues();
+        LabelSelectionWidget* m_labelSelectionWidget = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __GIFTI_META_DATA_ELEMENT_VALUES_DECLARE__
+#ifdef __LABEL_SELECTION_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GIFTI_META_DATA_ELEMENT_VALUES_DECLARE__
+#endif // __LABEL_SELECTION_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__GIFTI_META_DATA_ELEMENT_VALUES_H__
+#endif  //__LABEL_SELECTION_DIALOG_H__

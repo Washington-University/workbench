@@ -23,6 +23,7 @@
 
 
 #include "CaretObject.h"
+#include "CaretVolumeExtension.h"
 #include "DataFileTypeEnum.h"
 #include "SceneableInterface.h"
 
@@ -41,6 +42,9 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
         
+        CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                  const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes);
+               
         virtual ~CaretMappableDataFileAndMapSelectionModel();
         
         CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFileAndMapSelectionModel& obj);
@@ -75,6 +79,8 @@ namespace caret {
         
         void setSelectedFile(CaretMappableDataFile* selectedFile);
         
+        void setSelectedFileName(const AString& filename);
+        
         void setSelectedMapIndex(const int32_t mapIndex);
 
         // ADD_NEW_METHODS_HERE
@@ -108,7 +114,8 @@ namespace caret {
         
         void copyHelperCaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFileAndMapSelectionModel& obj);
 
-        void performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
+        void performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                 const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes);
 
         void validateDataFileTypes();
         
@@ -119,6 +126,8 @@ namespace caret {
         SceneClassAssistant* m_sceneAssistant;
 
         std::vector<DataFileTypeEnum::Enum> m_dataFileTypes;
+        
+        std::vector<SubvolumeAttributes::VolumeType> m_volumeTypes;
         
         CaretDataFileSelectionModel* m_caretDataFileSelectionModel;
         

@@ -52,7 +52,9 @@ m_mode(Mode::MAP_TO_SAME_BRAINORDINATES),
 m_mappableDataFile(caretMappableDataFile)
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
-    performConstruction(dataFileTypesVector);
+    std::vector<SubvolumeAttributes::VolumeType> volumeTypes;
+    performConstruction(dataFileTypesVector,
+                        volumeTypes);
 }
 
 
@@ -69,7 +71,9 @@ m_mappableDataFile(NULL)
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
     dataFileTypesVector.push_back(dataFileType);
-    performConstruction(dataFileTypesVector);
+    std::vector<SubvolumeAttributes::VolumeType> volumeTypes;
+    performConstruction(dataFileTypesVector,
+                        volumeTypes);
 }
 
 /**
@@ -83,7 +87,28 @@ CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionM
 m_mode(Mode::MATCH_DATA_FILE_TYPES),
 m_mappableDataFile(NULL)
 {
-    performConstruction(dataFileTypes);
+    std::vector<SubvolumeAttributes::VolumeType> volumeTypes;
+    performConstruction(dataFileTypes,
+                        volumeTypes);
+}
+
+/**
+ * Constructor for instance that will contain files of the given data types.
+ * Volume are limited to the given types
+ *
+ * @param dataFileTypes
+ *    Types of data files available for selection.
+ * @param volumeTypes
+ *    If not empty, volumes must be one of these types
+ */
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                                                     const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes)
+: CaretObject(),
+m_mode(Mode::MATCH_DATA_FILE_TYPES),
+m_mappableDataFile(NULL)
+{
+    performConstruction(dataFileTypes,
+                        volumeTypes);
 }
 
 /**
@@ -219,11 +244,15 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
  *
  * @param dataFileTypes
  *    Types of data files available for selection.
+ * @param volumeTypes
+ *    If not empty, volumes must be one of these types
  */
 void
-CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes)
+CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                               const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes)
 {
     m_dataFileTypes = dataFileTypes;
+    m_volumeTypes   = volumeTypes;
     
     switch (m_mode) {
         case Mode::MAP_TO_SAME_BRAINORDINATES:
@@ -232,7 +261,8 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector
             break;
         case Mode::MATCH_DATA_FILE_TYPES:
             validateDataFileTypes();
-            m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes);
+            m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes,
+                                                                                                          volumeTypes);
             break;
     }
     
@@ -435,6 +465,33 @@ CaretMappableDataFileAndMapSelectionModel::setSelectedFile(CaretMappableDataFile
 }
 
 /**
+ * Set the selected file by name
+ *
+ * @param filename
+ *    Name of file.
+ */
+void
+CaretMappableDataFileAndMapSelectionModel::setSelectedFileName(const AString& filename)
+{
+    std::vector<CaretDataFile*> files(m_caretDataFileSelectionModel->getAvailableFiles());
+    for (CaretDataFile* cdf : files) {
+        CaretAssert(cdf);
+        if (filename == cdf->getFileName()) {
+            m_caretDataFileSelectionModel->setSelectedFile(cdf);
+            return;
+        }
+    }
+    for (CaretDataFile* cdf : files) {
+        CaretAssert(cdf);
+        if (cdf->getFileName().endsWith(filename)) {
+            m_caretDataFileSelectionModel->setSelectedFile(cdf);
+            return;
+        }
+    }
+}
+
+
+/**
  * Set the selected map index
  *
  * @param mapIndex
@@ -443,7 +500,13 @@ CaretMappableDataFileAndMapSelectionModel::setSelectedFile(CaretMappableDataFile
 void
 CaretMappableDataFileAndMapSelectionModel::setSelectedMapIndex(const int32_t mapIndex)
 {
-    m_selectedMapIndex = mapIndex;
+    const CaretMappableDataFile* cdf(getSelectedFile());
+    if (cdf != NULL) {
+        if ((mapIndex >= 0)
+            && (mapIndex < cdf->getNumberOfMaps())) {
+            m_selectedMapIndex = mapIndex;
+        }
+    }
 }
 
 /**

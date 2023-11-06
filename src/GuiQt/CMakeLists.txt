@@ -167,6 +167,8 @@ ELSE()
         ImageSelectionViewController.h
         InformationDisplayDialog.h
         InformationDisplayPropertiesDialog.h
+	LabelSelectionDialog.h
+	LabelSelectionWidget.h
         LabelSelectionViewController.h
     	LockAspectWarningDialog.h
         MacApplication.h
@@ -486,6 +488,8 @@ ImageSelectionViewController.h
 InformationDisplayDialog.h
 InformationDisplayPropertiesDialog.h
 KeyEvent.h
+LabelSelectionDialog.h
+LabelSelectionWidget.h
 LabelSelectionViewController.h
 LockAspectWarningDialog.h
 MacApplication.h
@@ -827,6 +831,8 @@ ImageSelectionViewController.cxx
 InformationDisplayDialog.cxx
 InformationDisplayPropertiesDialog.cxx
 KeyEvent.cxx
+LabelSelectionDialog.cxx
+LabelSelectionWidget.cxx
 LabelSelectionViewController.cxx
 LockAspectWarningDialog.cxx
 MacApplication.cxx

@@ -118,6 +118,10 @@ GiftiMetaDataElementDataTypeEnum::initialize()
                                                         "DING_ONTOLOGY_TERM",
                                                         "Ding Ontology"));
 
+    enumData.push_back(GiftiMetaDataElementDataTypeEnum(LABEL_ID_NAME,
+                                                        "LABEL_ID_NAME",
+                                                        "Label ID and Name"));
+    
     enumData.push_back(GiftiMetaDataElementDataTypeEnum(LIST,
                                     "LIST", 
                                     "List"));

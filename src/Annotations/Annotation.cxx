@@ -1825,6 +1825,8 @@ Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annota
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);

@@ -228,6 +228,10 @@ namespace GiftiMetaDataXmlElements {
     
     static const AString SAMPLES_LOCATION_ID = "Location";
     
+    static const AString SAMPLES_ORIG_ATLAS_NAME = "Orig_atlas_name";
+    
+    static const AString SAMPLES_ORIG_SHORTHAND_ID = "Orig_shorthand_id";
+    
     static const AString SAMPLES_SAMPLE_ID = "Sample_id";
 
     static const AString SAMPLES_SAMPLE_SLAB_FACE = "Slab_face";

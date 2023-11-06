@@ -51,6 +51,7 @@
 #include "GiftiMetaDataElementValues.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
+#include "LabelSelectionDialog.h"
 #include "SamplesMetaDataManager.h"
 #include "StructureEnum.h"
 #include "WuQDataEntryDialog.h"
@@ -180,6 +181,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     const QString metaDataValue(m_metaData->get(metaDataName));
     
     bool dingFlag(false);
+    bool labelPopupFlag(false);
     bool listPopupFlag(false);
     switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
         case GiftiMetaDataElementDataTypeEnum::COMMENT:
@@ -188,6 +190,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             break;
         case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
             dingFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME:
+            labelPopupFlag = true;
             break;
         case GiftiMetaDataElementDataTypeEnum::LIST:
             listPopupFlag = true;
@@ -205,15 +210,6 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             const QString shorthandID(dotd.getAbbreviatedName());
             const QString description(dotd.getDescriptiveName());
             
-            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
-                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
-                                shorthandID);
-                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
-                                description);
-                
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
-            }
             if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
                 m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
                                 shorthandID);
@@ -222,6 +218,46 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                 
                 updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
                 updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+            }
+        }
+    }
+    else if (labelPopupFlag) {
+        LabelSelectionDialog labelDialog("MetaDataCustomEditorWidget",
+                                         parentDialogWidget);
+        if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
+            const AString labelText(labelDialog.getSelectedLabel().trimmed());
+            if ( ! labelText.isEmpty()) {
+                if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
+                    AString id, description;
+                    GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
+                                                                             id,
+                                                                             description);
+                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
+                                    id);
+                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
+                                    description);
+                    
+                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
+                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
+                }
+                else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID) {
+                    AString id, description;
+                    GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
+                                                                             id,
+                                                                             description);
+                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID,
+                                    id);
+                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME,
+                                    description);
+                    
+                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID);
+                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME);
+                }
+                else {
+                    m_metaData->set(metaDataName,
+                                    labelText);
+                    updateValueInMetaDataWidgetRow(metaDataName);
+                }
             }
         }
     }
@@ -424,6 +460,10 @@ m_metaData(metaData)
             useDateEditFlag = true;
             break;
         case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
+            useLineEditFlag   = true;
+            useToolButtonFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME:
             useLineEditFlag   = true;
             useToolButtonFlag = true;
             break;

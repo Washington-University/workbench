@@ -24,6 +24,7 @@
 
 #include <QObject>
 
+#include "CaretVolumeExtension.h"
 #include "DataFileTypeEnum.h"
 
 class QComboBox;
@@ -53,6 +54,11 @@ namespace caret {
                                                   QObject* parent);
         
         CaretMappableDataFileAndMapSelectorObject(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                  const Options options,
+                                                  QObject* parent);
+        
+        CaretMappableDataFileAndMapSelectorObject(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
+                                                  const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes,
                                                   const Options options,
                                                   QObject* parent);
         
