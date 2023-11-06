@@ -80,11 +80,21 @@ using namespace caret;
  */
 MetaDataCustomEditorWidget::MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
                                                        const std::vector<AString>& requiredMetaDataNames,
-                                                       GiftiMetaData* metaData,
+                                                       GiftiMetaData* userMetaData,
                                                        QWidget* parent)
 : QWidget(parent),
-m_metaData(metaData)
+m_userMetaData(userMetaData)
 {
+    CaretAssert(m_userMetaData);
+    
+    /*
+     * Copy user's metadata to the editor's metadata.
+     * We don't modify the user's metadata until it is saved so that
+     * the user may cancel editing of metadata.
+     */
+    m_editorMetaData.reset(new GiftiMetaData(*m_userMetaData));
+    m_editorMetaData->clearModified();
+    
     bool hasCommentMetaDataFlag(false);
     const int32_t COLUMN_LABEL(0);
     const int32_t COLUMN_VALUE(1);
@@ -109,7 +119,7 @@ m_metaData(metaData)
                                                           COLUMN_VALUE,
                                                           COLUMN_BUTTON,
                                                           name,
-                                                          m_metaData,
+                                                          m_editorMetaData.get(),
                                                           requiredMetaDataFlag));
             mdwr->updateValueWidget();
             m_metaDataWidgetRows.push_back(mdwr);
@@ -121,7 +131,7 @@ m_metaData(metaData)
     if (hasCommentMetaDataFlag) {
         QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT + ":"));
         m_commentTextEditor = new QTextEdit();
-        m_commentTextEditor->setText(m_metaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
+        m_commentTextEditor->setText(m_editorMetaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
         gridLayout->addWidget(commentLabel,
                               rowIndex, COLUMN_LABEL);
         gridLayout->addWidget(m_commentTextEditor,
@@ -148,8 +158,18 @@ MetaDataCustomEditorWidget::saveMetaData()
     }
 
     if (m_commentTextEditor != NULL) {
-        m_metaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT,
+        m_editorMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT,
                         m_commentTextEditor->toPlainText());
+    }
+    
+    /*
+     * Copy metadata from editor copy to the user's metadata
+     */
+    const bool modStatus(m_userMetaData->isModified()
+                         || m_editorMetaData->isModified());
+    *m_userMetaData = *m_editorMetaData;
+    if (modStatus) {
+        m_userMetaData->setModified();
     }
 }
 
@@ -178,7 +198,7 @@ void
 MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                                                   QWidget* parentDialogWidget)
 {
-    const QString metaDataValue(m_metaData->get(metaDataName));
+    const QString metaDataValue(m_editorMetaData->get(metaDataName));
     
     bool dingFlag(false);
     bool labelPopupFlag(false);
@@ -211,9 +231,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             const QString description(dotd.getDescriptiveName());
             
             if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
-                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
+                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
                                 shorthandID);
-                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
+                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
                                 description);
                 
                 updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
@@ -232,9 +252,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                     GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
                                                                              id,
                                                                              description);
-                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
+                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
                                     id);
-                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
+                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
                                     description);
                     
                     updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
@@ -245,16 +265,16 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                     GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
                                                                              id,
                                                                              description);
-                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID,
+                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID,
                                     id);
-                    m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME,
+                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME,
                                     description);
                     
                     updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID);
                     updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME);
                 }
                 else {
-                    m_metaData->set(metaDataName,
+                    m_editorMetaData->set(metaDataName,
                                     labelText);
                     updateValueInMetaDataWidgetRow(metaDataName);
                 }
@@ -289,7 +309,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             
             if (ded.exec() == WuQDataEntryDialog::Accepted) {
                 const QString value(comboBox->currentText().trimmed());
-                m_metaData->set(metaDataName,
+                m_editorMetaData->set(metaDataName,
                                 value);
                 updateValueInMetaDataWidgetRow(metaDataName);
                 
@@ -299,9 +319,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                  */
                 if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
                     if (value == "Tile") {
-                        const QString sampleIdText(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
+                        const QString sampleIdText(m_editorMetaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
                         if (sampleIdText.isEmpty()) {
-                            m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
+                            m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
                                             "T1");
                             updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
                         }
@@ -322,7 +342,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                 if (buttonIndex >= 0) {
                     CaretAssert(buttonIndex < dataSelectionValues.size());
                     const QString value(dataSelectionValues[buttonIndex]);
-                    m_metaData->set(metaDataName,
+                    m_editorMetaData->set(metaDataName,
                                     value);
                     updateValueInMetaDataWidgetRow(metaDataName);
                     
@@ -332,9 +352,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                      */
                     if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
                         if (value == "Tile") {
-                            const QString sampleIdText(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
+                            const QString sampleIdText(m_editorMetaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
                             if (sampleIdText.isEmpty()) {
-                                m_metaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
+                                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
                                                 "T1");
                                 updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
                             }
@@ -393,10 +413,10 @@ bool
 MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
                                                             AString& errorMessageOut)
 {
-    CaretAssert(m_metaData);
+    CaretAssert(m_editorMetaData);
     saveMetaData();
-    return m_metaData->validateRequiredMetaData(requiredMetaDataNames,
-                                                errorMessageOut);
+    return m_userMetaData->validateRequiredMetaData(requiredMetaDataNames,
+                                                      errorMessageOut);
 }
 
 /**
@@ -555,7 +575,6 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
         m_valueLineEdit->setText(value);
     }
 }
-
 
 /**
  * Called when the tool button is clicked

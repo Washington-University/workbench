@@ -47,7 +47,7 @@ namespace caret {
     public:
         MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
                                    const std::vector<AString>& requiredMetaDataNames,
-                                   GiftiMetaData* metaData,
+                                   GiftiMetaData* userMetaData,
                                    QWidget* parent = 0);
         
         virtual ~MetaDataCustomEditorWidget();
@@ -110,7 +110,9 @@ namespace caret {
         void metaDataButtonClicked(const AString& metaDataName,
                                    QWidget* parentDialogWidget);
         
-        GiftiMetaData* m_metaData = NULL;
+        GiftiMetaData* m_userMetaData = NULL;
+        
+        std::unique_ptr<GiftiMetaData> m_editorMetaData;
         
         std::vector<MetaDataWidgetRow*> m_metaDataWidgetRows;
 
