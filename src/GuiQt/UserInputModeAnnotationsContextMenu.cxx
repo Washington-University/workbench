@@ -97,6 +97,29 @@ m_newAnnotationCreatedByContextMenu(NULL)
     CaretAssert(m_userInputModeAnnotations);
     CaretAssert(selectionManager);
     
+    bool samplesModeFlag(false);
+    switch (m_userInputModeAnnotations->getUserInputMode()) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            samplesModeFlag = true;
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+    
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
     std::vector<AnnotationAndFile> selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
@@ -413,38 +436,42 @@ m_newAnnotationCreatedByContextMenu(NULL)
      */
     addSeparator();
 
-    /*
-     * Order Operations
-     */
-    QAction* bringToFrontAction = addAction("Bring to Front");
-    QObject::connect(bringToFrontAction, &QAction::triggered,
-                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_TO_FRONT); });
-    QAction* bringForwardAction = addAction("Bring Forward");
-    QObject::connect(bringForwardAction, &QAction::triggered,
-                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_FORWARD); });
-    QAction* sendToBackAction = addAction("Send to Back");
-    QObject::connect(sendToBackAction, &QAction::triggered,
-                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_TO_BACK); });
-    QAction* sendBackwardAction = addAction("Send Backward");
-    QObject::connect(sendBackwardAction, &QAction::triggered,
-                     this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_BACKWARD); });
+    if ( ! samplesModeFlag) {
+        /*
+         * Order Operations
+         */
+        QAction* bringToFrontAction = addAction("Bring to Front");
+        QObject::connect(bringToFrontAction, &QAction::triggered,
+                         this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_TO_FRONT); });
+        QAction* bringForwardAction = addAction("Bring Forward");
+        QObject::connect(bringForwardAction, &QAction::triggered,
+                         this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::BRING_FORWARD); });
+        QAction* sendToBackAction = addAction("Send to Back");
+        QObject::connect(sendToBackAction, &QAction::triggered,
+                         this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_TO_BACK); });
+        QAction* sendBackwardAction = addAction("Send Backward");
+        QObject::connect(sendBackwardAction, &QAction::triggered,
+                         this, [=]() { processAnnotationOrderOperation(AnnotationStackingOrderTypeEnum::SEND_BACKWARD); });
+        
+        bringToFrontAction->setEnabled(oneAnnotationSelectedFlag);
+        bringForwardAction->setEnabled(oneAnnotationSelectedFlag);
+        sendToBackAction->setEnabled(oneAnnotationSelectedFlag);
+        sendBackwardAction->setEnabled(oneAnnotationSelectedFlag);
+        
+        /*
+         * Separator
+         */
+        addSeparator();
+    }
     
-    bringToFrontAction->setEnabled(oneAnnotationSelectedFlag);
-    bringForwardAction->setEnabled(oneAnnotationSelectedFlag);
-    sendToBackAction->setEnabled(oneAnnotationSelectedFlag);
-    sendBackwardAction->setEnabled(oneAnnotationSelectedFlag);
-
-    /*
-     * Separator
-     */
-    addSeparator();
-    
-    /*
-     * Edit Text
-     */
-    QAction* editTextAction = addAction("Edit Text...",
-                                        this, SLOT(setAnnotationText()));
-    editTextAction->setEnabled(m_textAnnotation != NULL);
+    if ( ! samplesModeFlag) {
+        /*
+         * Edit Text
+         */
+        QAction* editTextAction = addAction("Edit Text...",
+                                            this, SLOT(setAnnotationText()));
+        editTextAction->setEnabled(m_textAnnotation != NULL);
+    }
     
     
     /*
@@ -455,69 +482,72 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                             &UserInputModeAnnotationsContextMenu::editMetaDataDialog);
     editMetaDataAction->setEnabled(oneAnnotationSelectedFlag);
     
-    /*
-     * Separator
-     */
-    addSeparator();
+    if ( ! samplesModeFlag) {
+        /*
+         * Separator
+         */
+        addSeparator();
+        
+        /*
+         * Turn off display in tabs
+         */
+        QAction* turnOffTabDisplayAction = addAction("Turn Off Chart/Stereotaxic/Surface Annotation Display in Other Tabs",
+                                                     this, SLOT(turnOffDisplayInOtherTabs()));
+        
+        /*
+         * Separator
+         */
+        addSeparator();
+        
+        /*
+         * Turn on display in tabs
+         */
+        QAction* turnOnTabDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Tabs",
+                                                    this, SLOT(turnOnDisplayInAllTabs()));
+        turnOffTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
+        turnOnTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
+        
+        /*
+         * Turn on/off display in groups
+         */
+        QAction* turnOnGroupDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Groups",
+                                                      this, SLOT(turnOnDisplayInAllGroups()));
+        turnOnGroupDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
+        QMenu* turnOnInDisplayGroupMenu = createTurnOnInDisplayGroupMenu();
+        turnOnInDisplayGroupMenu->setEnabled(haveThreeDimCoordAnnotationsFlag);
+        addMenu(turnOnInDisplayGroupMenu);
+    }
     
-    /*
-     * Turn off display in tabs
-     */
-    QAction* turnOffTabDisplayAction = addAction("Turn Off Chart/Stereotaxic/Surface Annotation Display in Other Tabs",
-                                              this, SLOT(turnOffDisplayInOtherTabs()));
-
-    /*
-     * Separator
-     */
-    addSeparator();
-    
-    /*
-     * Turn on display in tabs
-     */
-    QAction* turnOnTabDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Tabs",
-                                              this, SLOT(turnOnDisplayInAllTabs()));
-    turnOffTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
-    turnOnTabDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
-    
-    /*
-     * Turn on/off display in groups
-     */
-    QAction* turnOnGroupDisplayAction = addAction("Turn On Chart/Stereotaxic/Surface Annotation Display in All Groups",
-                                                this, SLOT(turnOnDisplayInAllGroups()));
-    turnOnGroupDisplayAction->setEnabled(haveThreeDimCoordAnnotationsFlag);
-    QMenu* turnOnInDisplayGroupMenu = createTurnOnInDisplayGroupMenu();
-    turnOnInDisplayGroupMenu->setEnabled(haveThreeDimCoordAnnotationsFlag);
-    addMenu(turnOnInDisplayGroupMenu);
-
-    /*
-     * Separator
-     */
-    addSeparator();
-    
-    /*
-     * Group annotations
-     */
-    QAction* groupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::GROUP),
-                                     this, SLOT(applyGroupingGroup()));
-    groupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                   AnnotationGroupingModeEnum::GROUP));
-    
-    /*
-     * Ungroup annotations
-     */
-    QAction* ungroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::UNGROUP),
-                                     this, SLOT(applyGroupingUngroup()));
-    ungroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                     AnnotationGroupingModeEnum::UNGROUP));
-    
-    /*
-     * Regroup annotations
-     */
-    QAction* regroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::REGROUP),
-                                       this, SLOT(applyGroupingRegroup()));
-    regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
-                                                                     AnnotationGroupingModeEnum::REGROUP));
-    
+    if ( ! samplesModeFlag) {
+        /*
+         * Separator
+         */
+        addSeparator();
+        
+        /*
+         * Group annotations
+         */
+        QAction* groupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::GROUP),
+                                         this, SLOT(applyGroupingGroup()));
+        groupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                       AnnotationGroupingModeEnum::GROUP));
+        
+        /*
+         * Ungroup annotations
+         */
+        QAction* ungroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::UNGROUP),
+                                           this, SLOT(applyGroupingUngroup()));
+        ungroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                         AnnotationGroupingModeEnum::UNGROUP));
+        
+        /*
+         * Regroup annotations
+         */
+        QAction* regroupAction = addAction(AnnotationGroupingModeEnum::toGuiName(AnnotationGroupingModeEnum::REGROUP),
+                                           this, SLOT(applyGroupingRegroup()));
+        regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
+                                                                         AnnotationGroupingModeEnum::REGROUP));
+    }
 }
 
 /**
