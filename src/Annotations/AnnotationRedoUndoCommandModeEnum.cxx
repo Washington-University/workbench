@@ -197,7 +197,11 @@ AnnotationRedoUndoCommandModeEnum::initialize()
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_REMOVE_COORDINATE,
                                                          "MULTI_COORD_REMOVE_COORDINATE",
                                                          "Remove Poly Coordinate"));
-
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(POLYHEDRON_RESET_RANGE_TO_PLANES,
+                                                         "POLYHEDRON_RESET_RANGE_TO_PLANES",
+                                                         "Reset Polyhedron Range to Planes"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(ROTATION_ANGLE,
                                                          "ROTATION_ANGLE",
                                                          "Rotation Angle"));

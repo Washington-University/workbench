@@ -235,7 +235,6 @@ DrawingViewportContentManager::getAllViewportsInWindow(EventDrawingViewportConte
     for (auto& dvc : windowContent) {
         if (dvc->containsWindowXY(windowXY)) {
             edvc->addDrawingViewportContent(dvc);
-            std::cout << dvc->toString() << std::endl;
         }
     }
 }

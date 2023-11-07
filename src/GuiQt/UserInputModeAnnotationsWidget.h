@@ -49,6 +49,7 @@ namespace caret {
     class AnnotationRedoUndoWidget;
     class AnnotationRotationWidget;
     class AnnotationSamplesInsertNewWidget;
+    class AnnotationSamplesModifyWidget;
     class AnnotationTextAlignmentWidget;
     class AnnotationTextEditorWidget;
     class AnnotationTextOrientationWidget;
@@ -128,6 +129,8 @@ namespace caret {
         
         AnnotationSamplesInsertNewWidget* m_insertSamplesNewWidget = NULL;
         
+        AnnotationSamplesModifyWidget* m_modifiySamplesWidget = NULL;
+
         AnnotationDeleteWidget* m_deleteWidget = NULL;
         
         AnnotationFinishCancelWidget* m_finishCancelWidget = NULL;

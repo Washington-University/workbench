@@ -206,6 +206,62 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
 }
 
 /**
+ * Reset the coordinates so that they extend between the two planes
+ * @param planeOne
+ *    The first plane
+ * @param planeTwo
+ *    The second plane
+ * @param errorMessageOut
+ *    Output with error information
+ * @return
+ *    True if successful, false if error.
+ */
+bool
+AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
+                                         const Plane& planeTwo,
+                                         AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    if ( ! planeOne.isValidPlane()) {
+        errorMessageOut.appendWithNewLine("First plane is invalid.");
+    }
+    if ( ! planeTwo.isValidPlane()) {
+        errorMessageOut.appendWithNewLine("Second plane is invalid.");
+    }
+    if ( ! errorMessageOut.isEmpty()) {
+        return false;
+    }
+    
+    const int32_t numCoordPairs(getNumberOfCoordinates() / 2);
+    for (int32_t i = 0; i < numCoordPairs; i++) {
+        const Vector3D xyzOne(getCoordinate(i)->getXYZ());
+        const Vector3D xyzTwo(getCoordinate(i + numCoordPairs)->getXYZ());
+        
+        const Vector3D rayVector((xyzTwo - xyzOne).normal());
+        
+        Vector3D intersectionOneXYZ, intersectionTwoXYZ;
+        float intersectionOneDistance(0.0), intersectionTwoDistance(0.0);
+        if (planeOne.rayIntersection(xyzOne,
+                                     rayVector,
+                                     intersectionOneXYZ,
+                                     intersectionOneDistance)
+            && planeTwo.rayIntersection(xyzTwo,
+                                        rayVector,
+                                        intersectionTwoXYZ,
+                                        intersectionTwoDistance)) {
+            getCoordinate(i)->setXYZ(intersectionOneXYZ);
+            getCoordinate(i + numCoordPairs)->setXYZ(intersectionTwoXYZ);
+        }
+    }
+    
+    setModified();
+    
+    return true;
+}
+
+
+/**
  * @return The plane from when polyhedron was drawn
  */
 Plane

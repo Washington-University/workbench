@@ -352,6 +352,20 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             }
         }
             break;
+        case AnnotationRedoUndoCommandModeEnum::POLYHEDRON_RESET_RANGE_TO_PLANES:
+        {
+            AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+            const AnnotationPolyhedron* polyhedronValue(annotationValue->castToPolyhedron());
+            if ((polyhedron != NULL)
+                && (polyhedronValue != NULL)) {
+                std::vector<std::unique_ptr<AnnotationCoordinate>> coords(polyhedronValue->getCopyOfAllCoordinates());
+                polyhedron->replaceAllCoordinatesNotConst(coords);
+            }
+            else {
+                CaretAssert(0);
+            }
+        }
+            break;
         case AnnotationRedoUndoCommandModeEnum::ROTATION_ANGLE:
             {
                 AnnotationOneCoordinateShape* twoDimAnn = dynamic_cast<AnnotationOneCoordinateShape*>(annotation);
@@ -1974,6 +1988,52 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t in
                                                   redoAnnotation,
                                                   undoAnnotation);
     m_annotationMementos.push_back(am);
+}
+
+/**
+ * Reset the polyhedron so that it extends between the two planes
+ * @param planeOne
+ *    The first plane
+ * @param planeTwo
+ *    The second plane
+ * @param annotation
+ *    The annotation that is modified
+ */
+bool
+AnnotationRedoUndoCommand::setModePolyhedronResetRangeToPlane(const Plane& planeOne,
+                                                              const Plane& planeTwo,
+                                                              Annotation* annotation,
+                                                              AString& errorMessageOut)
+{
+    errorMessageOut.clear();
+    
+    m_mode = AnnotationRedoUndoCommandModeEnum::INVALID;
+    Annotation* redoAnnotation = annotation->clone();
+    CaretAssert(redoAnnotation);
+    
+    AnnotationPolyhedron* polyhedron(redoAnnotation->castToPolyhedron());
+    if (polyhedron != NULL) {
+        if ( ! polyhedron->resetRangeToPlanes(planeOne,
+                                              planeTwo,
+                                              errorMessageOut)) {
+            return false;
+        }
+    }
+    else {
+        CaretAssert(0);
+        errorMessageOut = "Annotation for reset range is not a polyhedron";
+        return false;
+    }
+    
+    m_mode = AnnotationRedoUndoCommandModeEnum::POLYHEDRON_RESET_RANGE_TO_PLANES;
+    setDescription("Reset Polyhedron Range to Planes");
+    Annotation* undoAnnotation = annotation->clone();
+    AnnotationMemento* am = new AnnotationMemento(annotation,
+                                                  redoAnnotation,
+                                                  undoAnnotation);
+    m_annotationMementos.push_back(am);
+    
+    return true;
 }
 
 /**

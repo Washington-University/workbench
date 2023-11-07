@@ -188,6 +188,40 @@ EventBrowserTabGetAtWindowXY::getSamplesDrawingViewportContents(const Vector3D& 
 }
 
 /**
+ * @return If the range of slices valid for samples range reset is valid, the following is returned:
+ * Element 0: The viewport containing the first valid slice in the range
+ * Element 1: The viewport containing the last valid slice in the range (will be dfifferent than element 0)
+ * If not valid, an empty vector is returned
+ */
+std::vector<std::shared_ptr<DrawingViewportContent>>
+EventBrowserTabGetAtWindowXY::getSamplesResetExtentViewportContents() const
+{
+    std::shared_ptr<DrawingViewportContent> firstViewportContent;
+    std::shared_ptr<DrawingViewportContent> lastViewportContent;
+    
+    const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
+    for (auto& vp : m_volumeMontageViewportContent) {
+        const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
+        if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
+                                                                   volumeSlice.getColumnIndex())) {
+            if ( ! firstViewportContent) {
+                firstViewportContent = vp;
+            }
+            lastViewportContent = vp;
+        }
+    }
+    
+    std::vector<std::shared_ptr<DrawingViewportContent>> dvc;
+    if ((firstViewportContent)
+        && (lastViewportContent)
+        && (firstViewportContent != lastViewportContent)) {
+        dvc.push_back(firstViewportContent);
+        dvc.push_back(lastViewportContent);
+    }
+    return dvc;
+}
+
+/**
  * Set the browser tab content
  * @param brainOpenGLViewportContent
  *    The brain opengl viewport content containing mouse

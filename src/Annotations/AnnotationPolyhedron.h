@@ -75,6 +75,10 @@ namespace caret {
                                  const float polyhedronDepth,
                                  AString& errorMessageOut);
         
+        bool resetRangeToPlanes(const Plane& planeOne,
+                                const Plane& planeTwo,
+                                AString& errorMessageOut);
+
         Plane getPlane() const;
         
         void setPlane(const Plane& plane);

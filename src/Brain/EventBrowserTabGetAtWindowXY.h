@@ -66,6 +66,8 @@ namespace caret {
         
         std::vector<std::shared_ptr<DrawingViewportContent>> getSamplesDrawingViewportContents(const Vector3D& windowXY) const;
         
+        std::vector<std::shared_ptr<DrawingViewportContent>> getSamplesResetExtentViewportContents() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

@@ -42,7 +42,6 @@
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
-#include "AnnotationSamplesInsertNewWidget.h"
 #include "AnnotationLine.h"
 #include "AnnotationLineArrowTipsWidget.h"
 #include "AnnotationManager.h"
@@ -50,6 +49,8 @@
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoWidget.h"
 #include "AnnotationRotationWidget.h"
+#include "AnnotationSamplesInsertNewWidget.h"
+#include "AnnotationSamplesModifyWidget.h"
 #include "AnnotationText.h"
 #include "AnnotationTextAlignmentWidget.h"
 #include "AnnotationTextEditorWidget.h"
@@ -203,6 +204,10 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
         
+    m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget(Qt::Vertical, // Qt::Horizontal,
+                                                                     m_inputModeAnnotations->getUserInputMode(),
+                                                                     m_browserWindowIndex);
+    
 //    leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
 //                              QSizePolicy::Fixed);
     
@@ -211,6 +216,7 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     topLayout->addWidget(m_colorWidget, 0);
     topLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topLayout->addWidget(m_insertSamplesNewWidget, 100);
+    
     
     QHBoxLayout* bottomLayout(new QHBoxLayout());
     WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
@@ -221,6 +227,8 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     bottomLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomLayout->addWidget(m_modifiySamplesWidget, 0, Qt::AlignTop);
     bottomLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -561,6 +569,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_backgroundTypeWidget != NULL) m_backgroundTypeWidget->updateContent(browserTabAnnotations);
     if (m_formatWidget != NULL) m_formatWidget->updateContent(selectedAnnotations);
     if (m_redoUndoWidget != NULL) m_redoUndoWidget->updateContent(selectedAnnotations);
+    if (m_modifiySamplesWidget != NULL) m_modifiySamplesWidget->updateContent(selectedAnnotations);
 }
 
 

@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_REDO_UNDO_WIDGET_H__
-#define __ANNOTATION_REDO_UNDO_WIDGET_H__
+#ifndef __ANNOTATION_SAMPLES_MODIFY_WIDGET_H__
+#define __ANNOTATION_SAMPLES_MODIFY_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -28,53 +28,57 @@
 
 #include "UserInputModeEnum.h"
 
+class QToolButton;
+
 namespace caret {
     class Annotation;
+    class AnnotationPolyhedron;
 
-    class AnnotationRedoUndoWidget : public QWidget {
+    class AnnotationSamplesModifyWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        AnnotationRedoUndoWidget(const Qt::Orientation orientation,
+        AnnotationSamplesModifyWidget(const Qt::Orientation orientation,
                                  const UserInputModeEnum::Enum userInputMode,
                                  const int32_t browserWindowIndex,
                                  QWidget* parent = 0);
         
-        virtual ~AnnotationRedoUndoWidget();
+        virtual ~AnnotationSamplesModifyWidget();
         
         void updateContent(const std::vector<Annotation*>& annotations);
         
     private slots:
-        void redoActionTriggered();
+        void lockActionToggled(bool checked);
         
-        void undoActionTriggered();
+        void moreActionTriggered();
         
-
         // ADD_NEW_METHODS_HERE
 
     private:
-        AnnotationRedoUndoWidget(const AnnotationRedoUndoWidget&);
+        AnnotationSamplesModifyWidget(const AnnotationSamplesModifyWidget&);
 
-        AnnotationRedoUndoWidget& operator=(const AnnotationRedoUndoWidget&);
+        AnnotationSamplesModifyWidget& operator=(const AnnotationSamplesModifyWidget&);
         
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         
-        QAction* m_redoAction = NULL;
+        QAction* m_lockAction = NULL;
         
-        QAction* m_undoAction = NULL;
+        QToolButton* m_moreToolButton = NULL;
         
-        std::vector<Annotation*> m_selectedAnnotations;
+        QAction* m_moreAction = NULL;
+        
+        AnnotationPolyhedron* m_polyhedronSelected = NULL;
         
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __ANNOTATION_REDO_UNDO_WIDGET_DECLARE__
+#ifdef __ANNOTATION_SAMPLES_MODIFY_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_REDO_UNDO_WIDGET_DECLARE__
+#endif // __ANNOTATION_SAMPLES_MODIFY_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_REDO_UNDO_WIDGET_H__
+#endif  //__ANNOTATION_SAMPLES_MODIFY_WIDGET_H__

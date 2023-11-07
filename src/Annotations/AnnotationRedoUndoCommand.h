@@ -35,6 +35,7 @@ namespace caret {
 
     class AnnotationFile;
     class Annotation;
+    class Plane;
     
     class AnnotationRedoUndoCommand : public CaretUndoCommand {
         
@@ -140,6 +141,11 @@ namespace caret {
         
         void setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,
                                                   Annotation* annotation);
+        
+        bool setModePolyhedronResetRangeToPlane(const Plane& planeOne,
+                                                const Plane& planeTwo,
+                                                Annotation* annotation,
+                                                AString& errorMessageOut);
         
         void setModeRotationAngle(const float newRotationAngle,
                                   const std::vector<Annotation*>& annotations);

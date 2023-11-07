@@ -87,6 +87,8 @@ public:
         MULTI_COORD_REMOVE_COORDINATE,
         /** Paste Annotation */
         PASTE_ANNOTATION,
+        /** Reset a polyhedron's range*/
+        POLYHEDRON_RESET_RANGE_TO_PLANES,
         /** Rotation Angle */
         ROTATION_ANGLE,
         /** Stacking order for annotations (except browser tabs) */
