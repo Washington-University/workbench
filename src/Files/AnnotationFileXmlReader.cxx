@@ -931,16 +931,26 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         
                         const QXmlStreamAttributes polyAtts(m_stream->attributes());
 
-                        const AString planeString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
-                                                                                                  ELEMENT_POLYHEDRON_DATA,
-                                                                                                  ATTRIBUTE_PLANE,
-                                                                                                  ""));
-                        Plane p;
-                        if ( ! planeString.isEmpty()) {
-                            p = Plane::fromFormattedString(planeString);
+                        const AString planeOneString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
+                                                                                                     ELEMENT_POLYHEDRON_DATA,
+                                                                                                     ATTRIBUTE_PLANE_ONE,
+                                                                                                     ""));
+                        Plane planeOne;
+                        if ( ! planeOneString.isEmpty()) {
+                            planeOne = Plane::fromFormattedString(planeOneString);
                         }
-                        
-                        polyhedron->setFromFileReading(p);
+
+                        const AString planeTwoString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
+                                                                                                     ELEMENT_POLYHEDRON_DATA,
+                                                                                                     ATTRIBUTE_PLANE_TWO,
+                                                                                                     ""));
+                        Plane planeTwo;
+                        if ( ! planeTwoString.isEmpty()) {
+                            planeTwo = Plane::fromFormattedString(planeTwoString);
+                        }
+
+                        polyhedron->setFromFileReading(planeOne,
+                                                       planeTwo);
                         
                         m_stream->skipCurrentElement();
                     }

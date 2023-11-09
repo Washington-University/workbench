@@ -5154,7 +5154,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     
     float absAngle(-10000.0);
     if (m_volumeSpacePlane.isValidPlane()) {
-        const Plane annPlane(polyhedron->getPlane());
+        const Plane annPlane(polyhedron->getPlaneOne());
         if (annPlane.isValidPlane()) {
             absAngle = std::fabs(Plane::angleDegreesOfPlaneNormalVectors(m_volumeSpacePlane,
                                                                          annPlane));

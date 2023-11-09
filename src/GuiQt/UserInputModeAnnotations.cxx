@@ -3430,10 +3430,14 @@ m_browserWindowIndex(browserWindowIndex)
     if (annotationType == AnnotationTypeEnum::POLYHEDRON) {
         Vector3D firstXYZ;
         Vector3D lastXYZ;
+        Plane firstPlane;
+        Plane lastPlane;
         if ( ! getSamplesDrawingCoordinates(mouseEvent,
                                             annotationSpace,
                                             firstXYZ,
-                                            lastXYZ)) {
+                                            lastXYZ,
+                                            firstPlane,
+                                            lastPlane)) {
             return;
         }
 
@@ -3446,15 +3450,15 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                                                                Vector3D(mouseEvent.getPressedX(),
                                                                                                                                         mouseEvent.getPressedY(),
                                                                                                                                         0.0)));
-        Plane planeOfSlice;
+//        Plane planeOfSlice;
         EventManager::get()->sendEvent(vpEvent->getPointer());
         const std::shared_ptr<DrawingViewportContent> dvc(vpEvent->getDrawingViewportContent());
         if (dvc) {
             m_viewportHeight = dvc->getGraphicsViewport().getHeight();
-            planeOfSlice     = dvc->getVolumeSlice().getPlane();
-            if ( ! planeOfSlice.isValidPlane()) {
-                return;
-            }
+//            planeOfSlice     = dvc->getVolumeSlice().getPlane();
+//            if ( ! planeOfSlice.isValidPlane()) {
+//                return;
+//            }
         }
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         SelectionItemVoxel* voxelID(openGLWidget->performIdentificationVoxel(mouseEvent.getX(),
@@ -3476,7 +3480,9 @@ m_browserWindowIndex(browserWindowIndex)
         
         AnnotationPolyhedron* polyhedron(multiPairedCoordShape->castToPolyhedron());
         CaretAssert(polyhedron != NULL);
-        polyhedron->setPlane(planeOfSlice);
+        polyhedron->setPlanes(firstPlane,
+                              lastPlane);
+//        polyhedron->setPlane(planeOfSlice);
         
         m_annotation->setCoordinateSpace(annotationSpace);
         
@@ -3698,10 +3704,14 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::updateAnnotation(const MouseEv
             
             Vector3D firstXYZ;
             Vector3D lastXYZ;
+            Plane firstPlane;
+            Plane lastPlane;
             if ( ! getSamplesDrawingCoordinates(mouseEvent,
                                                 m_annotation->getCoordinateSpace(),
                                                 firstXYZ,
-                                                lastXYZ)) {
+                                                lastXYZ,
+                                                firstPlane,
+                                                lastPlane)) {
                 return;
             }
             
@@ -3777,13 +3787,22 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::isValid() const
  *    Ouput with first coordinate
  * @param lastSliceCoordOut
  *    Ouput with last coordinate
+ * @param firstPlaneOut
+ *    Output with first plane
+ * @param lastPlaneOut
+ *    Output with last plane
  */
 bool
 UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(const MouseEvent& mouseEvent,
                                                                                const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                                                Vector3D& firstSliceCoordOut,
-                                                                               Vector3D& lastSliceCoordOut)
+                                                                               Vector3D& lastSliceCoordOut,
+                                                                               Plane& firstPlaneOut,
+                                                                               Plane& lastPlaneOut)
 {
+    firstPlaneOut = Plane();
+    lastPlaneOut  = Plane();
+    
     const Vector3D windowXY(mouseEvent.getXY());
     EventBrowserTabGetAtWindowXY tabEvent(mouseEvent.getBrowserWindowIndex(),
                                           windowXY);
@@ -3813,6 +3832,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(c
             Vector3D xyz(ac->getXYZ());
             firstSlice.getPlane().projectPointToPlane(xyz, firstSliceCoordOut);
             lastSlice.getPlane().projectPointToPlane(xyz, lastSliceCoordOut);
+            
+            firstPlaneOut = firstSlice.getPlane();
+            lastPlaneOut  = lastSlice.getPlane();
             return true;
         }
         

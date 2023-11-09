@@ -29,6 +29,9 @@
 #include "AnnotationFontAttributes.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "GiftiMetaData.h"
+#include "HtmlStringBuilder.h"
+#include "HtmlTableBuilder.h"
 #include "MathFunctions.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -103,7 +106,8 @@ AnnotationPolyhedron::operator=(const AnnotationPolyhedron& obj)
 void
 AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj)
 {
-    m_plane = obj.m_plane;
+    m_planeOne = obj.m_planeOne;
+    m_planeTwo = obj.m_planeTwo;
     *m_fontAttributes = *obj.m_fontAttributes;
 }
 
@@ -172,7 +176,8 @@ AnnotationPolyhedron::finishNewPolyhedron(const Plane& plane,
         return false;
     }
     
-    m_plane = plane;
+    m_planeOne = plane;
+    m_planeTwo = plane;
     
     const bool debugFlag(false);
     
@@ -255,19 +260,30 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
         }
     }
     
+    m_planeOne = planeOne;
+    m_planeTwo = planeTwo;
+    
     setModified();
     
     return true;
 }
 
-
 /**
- * @return The plane from when polyhedron was drawn
+ * @return The first plane from when polyhedron was drawn
  */
 Plane
-AnnotationPolyhedron::getPlane() const
+AnnotationPolyhedron::getPlaneOne() const
 {
-    return m_plane;
+    return m_planeOne;
+}
+
+/**
+ * @return The second plane from when polyhedron was drawn
+ */
+Plane
+AnnotationPolyhedron::getPlaneTwo() const
+{
+    return m_planeTwo;
 }
 
 /**
@@ -351,18 +367,22 @@ AnnotationPolyhedron::millimetersToSlices(const float sliceThickness,
 }
 
 /**
- * Set plane for the polyhedron SHOULD BE DONE BEFORE ADDING ANY COORDINATES
- * @param plane
- *    New plane
+ * Set plane for the polyhedron
+ * @param planeOne
+ *    First slice plane from when annotation was created
+ * @param planeTwo
+ *    First slice plane from when annotation was created
  */
 void
-AnnotationPolyhedron::setPlane(const Plane& plane)
+AnnotationPolyhedron::setPlanes(const Plane& planeOne,
+                                const Plane& planeTwo)
 {
     if (getNumberOfCoordinates() > 0) {
         CaretLogSevere("Changing plane of polyhedron after coordinates have been added.  "
                        "Plane should be set before adding any coordinates.");
     }
-    m_plane = plane;
+    m_planeOne = planeOne;
+    m_planeTwo = planeTwo;
     setModified();
 }
 
@@ -394,9 +414,11 @@ AnnotationPolyhedron::getFontAttributes() const
  *    The depth value from when annotation was drawn
  */
 void
-AnnotationPolyhedron::setFromFileReading(const Plane& plane)
+AnnotationPolyhedron::setFromFileReading(const Plane& planeOne,
+                                         const Plane& planeTwo)
 {
-    m_plane = plane;
+    m_planeOne = planeOne;
+    m_planeTwo = planeTwo;
     setModified();
 }
 
@@ -728,3 +750,71 @@ AnnotationPolyhedron::restoreSubClassDataFromScene(const SceneAttributes* sceneA
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
 }
+
+/**
+ * @return Information about the polyhedron in HTML format
+ */
+AString
+AnnotationPolyhedron::getPolyhedronInformationHtml() const
+{
+    const int32_t numberOfColumns(3);
+    HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
+                                  numberOfColumns);
+    
+    AString abcdText, pointOnPlaneXyzText;
+    if (m_planeOne.toAbcdAndPointXYZ(abcdText,
+                                     pointOnPlaneXyzText)) {
+        tableBuilder.addRow("Plane One",
+                            abcdText,
+                            pointOnPlaneXyzText);
+    }
+    else {
+        tableBuilder.addRow("Plane One",
+                            "Invalid");
+    }
+
+    if (m_planeTwo.toAbcdAndPointXYZ(abcdText,
+                                     pointOnPlaneXyzText)) {
+        tableBuilder.addRow("Plane Two",
+                            abcdText,
+                            pointOnPlaneXyzText);
+    }
+    else {
+        tableBuilder.addRow("Plane Two",
+                            "Invalid");
+    }
+
+    const int32_t numCoords(getNumberOfCoordinates() / 2);
+    for (int32_t i = 0; i < numCoords; i++) {
+        const AnnotationCoordinate* acOne(getCoordinate(i));
+        const AnnotationCoordinate* acTwo(getCoordinate(i + numCoords));
+        tableBuilder.addRow("Coord " + AString::number(i + 1),
+                            acOne->getXYZ().toString(),
+                            acTwo->getXYZ().toString());
+    }
+    
+    HtmlStringBuilder html;
+    
+    html.add(tableBuilder.getAsHtmlTable());
+    html.add(getMetadataInformationHtml());
+    
+    return html.toStringWithHtmlBody();
+}
+
+/**
+ * @return metadata for polyhedron in HTML format
+ */
+AString
+AnnotationPolyhedron::getMetadataInformationHtml() const
+{
+    const bool polyhedronSamplesFlag(true);
+    std::vector<AString> metaDataNames;
+    std::vector<AString> requiredMetaDataNames;
+    Annotation::getDefaultMetaDataNamesForType(getType(),
+                                               polyhedronSamplesFlag,
+                                               metaDataNames,
+                                               requiredMetaDataNames);
+
+    return getMetaData()->toFormattedHtml(metaDataNames);
+}
+

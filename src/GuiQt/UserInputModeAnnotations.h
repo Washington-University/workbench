@@ -42,6 +42,7 @@ namespace caret {
     class AnnotationOneCoordinateShape;
     class BrowserTabContent;
     class KeyEvent;
+    class Plane;
     class SelectionItemAnnotation;
     class UserInputModeAnnotationsWidget;
     
@@ -183,7 +184,9 @@ namespace caret {
             bool getSamplesDrawingCoordinates(const MouseEvent& mouseEvent,
                                               const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                               Vector3D& firstSliceCoordOut,
-                                              Vector3D& lastSliceCoordOut);
+                                              Vector3D& lastSliceCoordOut,
+                                              Plane& firstPlaneOut,
+                                              Plane& lastPlaneOut);
             
             AnnotationFile* m_annotationFile = NULL;
             

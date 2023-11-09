@@ -41,6 +41,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -199,13 +200,19 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
     std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesResetExtentViewportContents());
     QMenu menu(m_moreToolButton);
     QAction* infoAction(menu.addAction("Info..."));
+    
     QAction* resetSliceRangeAction(menu.addAction("Reset Slice Range..."));
     resetSliceRangeAction->setEnabled(drawingSlices.size() == 2);
     
     QAction* actionSelected(menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0))));
     
     if (actionSelected == infoAction) {
-        
+        const AString html(m_polyhedronSelected->getPolyhedronInformationHtml());
+        WuQTextEditorDialog::runNonModal("Sample Information",
+                                         html,
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         m_moreToolButton);
     }
     else if (actionSelected == resetSliceRangeAction) {
         const AString msg("This operation will update the range of the selected sample "

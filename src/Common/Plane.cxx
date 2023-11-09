@@ -605,22 +605,24 @@ Plane::toString() const
 AString
 Plane::toFormattedString() const
 {
+    if ( ! isValidPlane()) {
+        return "";
+    }
+    
     /*
      * Default vector to all zeros (invalid plane)
      */
     std::vector<float> v(8, 0.0);
     
-    if (isValidPlane()) {
-        CaretAssertVectorIndex(v, 7);
-        v[0] = m_A;
-        v[1] = m_B;
-        v[2] = m_C;
-        v[3] = m_D;
-        v[4] = m_pointOnPlane[0];
-        v[5] = m_pointOnPlane[1];
-        v[6] = m_pointOnPlane[2];
-        v[7] = (m_validPlaneFlag ? 1.0 : 0.0);
-    }
+    CaretAssertVectorIndex(v, 7);
+    v[0] = m_A;
+    v[1] = m_B;
+    v[2] = m_C;
+    v[3] = m_D;
+    v[4] = m_pointOnPlane[0];
+    v[5] = m_pointOnPlane[1];
+    v[6] = m_pointOnPlane[2];
+    v[7] = (m_validPlaneFlag ? 1.0 : 0.0);
     
     const AString separator(" ");
     const char    floatingPointFormat('f');
@@ -632,6 +634,39 @@ Plane::toFormattedString() const
     
     return s;
 }
+
+/**
+ * Get text representations of ABCD and point on plane
+ * @param abcdOut
+ *    Output with ABCD
+ * @param pointXyzOut
+ *    Output with point on plane
+ * @return True if valid, else false.
+ */
+bool
+Plane::toAbcdAndPointXYZ(AString& abcdOut,
+                         AString& pointXyzOut) const
+{
+    if (isValidPlane()) {
+        abcdOut = ("A="
+                      + AString::number(m_A)
+                      + ", B="
+                      + AString::number(m_B)
+                      +", C="
+                      + AString::number(m_C)
+                      +", D="
+                      + AString::number(m_D));
+        pointXyzOut = ("Point on Plane: "
+                       + AString::fromNumbers(m_pointOnPlane, 3));
+        return true;
+    }
+    
+    abcdOut = "";
+    pointXyzOut   = "";
+    
+    return false;
+}
+
 
 /**
  * Unit test the class.

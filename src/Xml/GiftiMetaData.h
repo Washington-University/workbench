@@ -114,6 +114,8 @@ public:
  
     AString toFormattedString(const AString& indentation);
 
+    AString toFormattedHtml(const std::vector<AString>& metaDataNames) const;
+    
     void writeAsXML(XmlWriter& xmlWriter);
 
     void writeCiftiXML1(QXmlStreamWriter& xmlWriter) const;

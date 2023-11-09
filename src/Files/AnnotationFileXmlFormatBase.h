@@ -101,7 +101,9 @@ namespace caret {
         
         static const QString ATTRIBUTE_LINE_START_ARROW;
         
-        static const QString ATTRIBUTE_PLANE;
+        static const QString ATTRIBUTE_PLANE_ONE;
+        
+        static const QString ATTRIBUTE_PLANE_TWO;
         
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
@@ -247,7 +249,9 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_LINE_START_ARROW = "startArrow";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE = "plane";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_ONE = "plane";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_TWO = "planeTwo";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     

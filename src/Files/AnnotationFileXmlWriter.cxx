@@ -759,8 +759,16 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
     const AnnotationPolyhedron* polyhedron(shape->castToPolyhedron());
     if (polyhedron != NULL) {
         m_stream->writeStartElement(ELEMENT_POLYHEDRON_DATA);
-        m_stream->writeAttribute(ATTRIBUTE_PLANE,
-                                 polyhedron->getPlane().toFormattedString());
+        m_stream->writeAttribute(ATTRIBUTE_PLANE_ONE,
+                                 polyhedron->getPlaneOne().toFormattedString());
+        
+        /*
+         * Note: plane two may not be valid for some older polyhedrons
+         */
+        if (polyhedron->getPlaneTwo().isValidPlane()) {
+            m_stream->writeAttribute(ATTRIBUTE_PLANE_TWO,
+                                     polyhedron->getPlaneTwo().toFormattedString());
+        }
         m_stream->writeEndElement();
 
         writeFontAttributes(polyhedron);        

@@ -110,6 +110,9 @@ namespace caret {
         
         AString toFormattedString() const;
         
+        bool toAbcdAndPointXYZ(AString& abcdOut,
+                               AString& pointXyzOut) const;
+        
         static void unitTest(std::ostream& stream,
                       const bool isVerbose);
         

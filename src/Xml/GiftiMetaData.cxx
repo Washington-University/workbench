@@ -26,10 +26,8 @@
 #include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
-
-//#include "NiftiUtilities.h"
-
 #include "GiftiXmlElements.h"
+#include "HtmlTableBuilder.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -481,6 +479,40 @@ GiftiMetaData::toFormattedString(const AString& indentation)
 {
     return (indentation + this->toString());
 }
+
+/**
+ * @return The metadata names and values in an HTML table format
+ * @param metaDataName
+ *    This metadata names are listed first
+ */
+AString
+GiftiMetaData::toFormattedHtml(const std::vector<AString>& metaDataNames) const
+{
+    const int32_t numberOfColumns(2);
+    HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
+                                  numberOfColumns);
+    tableBuilder.addRow("Metadata");
+
+    const std::vector<AString> allNames(getAllMetaDataNames());
+    
+    for (auto& name : metaDataNames) {
+        tableBuilder.addRow(name,
+                            get(name));
+    }
+    
+    for (auto& name : allNames) {
+        if (std::find(metaDataNames.begin(),
+                      metaDataNames.end(),
+                      name) == metaDataNames.end()) {
+            if (name != GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID) {
+                tableBuilder.addRow(name,
+                                    get(name));
+            }
+        }
+    }
+    return tableBuilder.getAsHtmlTable();
+}
+
 
 /**
  * Write the metadata in GIFTI XML format.

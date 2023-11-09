@@ -79,9 +79,12 @@ namespace caret {
                                 const Plane& planeTwo,
                                 AString& errorMessageOut);
 
-        Plane getPlane() const;
+        Plane getPlaneOne() const;
         
-        void setPlane(const Plane& plane);
+        Plane getPlaneTwo() const;
+               
+        void setPlanes(const Plane& planeOne,
+                       const Plane& planeTwo);
         
         AnnotationFontAttributes* getFontAttributes();
         
@@ -140,6 +143,10 @@ namespace caret {
        
         virtual void clearModified() override;
                
+        AString getPolyhedronInformationHtml() const;
+             
+        AString getMetadataInformationHtml() const;
+               
        // ADD_NEW_METHODS_HERE
           
     protected: 
@@ -150,7 +157,8 @@ namespace caret {
                                                   const SceneClass* sceneClass);
 
     private:
-        void setFromFileReading(const Plane& plane);
+        void setFromFileReading(const Plane& planeOne,
+                                const Plane& planeTwo);
         
         void copyHelperAnnotationPolyhedron(const AnnotationPolyhedron& obj);
         
@@ -158,8 +166,10 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        Plane m_plane;
+        Plane m_planeOne;
         
+        Plane m_planeTwo;
+               
         std::unique_ptr<AnnotationFontAttributes> m_fontAttributes;
         
         // ADD_NEW_MEMBERS_HERE
