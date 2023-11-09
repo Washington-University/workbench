@@ -41,7 +41,6 @@ namespace caret {
     class AnnotationFile;
     class BrowserTabContent;
     class GiftiMetaData;
-    class MetaDataCustomEditorWidget;
     class MouseEvent;
     class Plane;
     class SelectionItemVoxel;
@@ -77,10 +76,6 @@ namespace caret {
 
     private slots:
         void selectImageButtonClicked();
-        
-        void polyhedronDepthIndexSpinBoxValueChanged(double value);
-        
-        void polyhedronDepthMillimetersSpinBoxValueChanged(double value);
         
     private:
         /** Dialogs mode */
@@ -162,19 +157,13 @@ namespace caret {
         
         QWidget* createImageWidget();
         
-        QWidget* createPolyhedronWidget();
-        
         QWidget* createMetaDataEditorWidget();
         
         void invalidateImage();
         
-        float convertPolyhedronSlicesToMillimeters() const;
-        
         static Annotation* createAnnotation(const UserInputModeEnum::Enum userInputMode,
                                             NewAnnotationInfo& newAnnotationInfo,
                                             const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
-                                            const Plane& polyedronPlane,
-                                            const float polyhedronDepthMM,
                                             AString& errorMessageOut);
         
         static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
@@ -204,38 +193,15 @@ namespace caret {
         std::vector<uint8_t> m_imageRgbaBytes;
         int32_t m_imageWidth;
         int32_t m_imageHeight;
-        
-        QDoubleSpinBox* m_polyhedronSliceIndexDepthSpinBox = NULL;
-        
-        QDoubleSpinBox* m_polyhedronSliceMillimetersDepthSpinBox = NULL;
-        
-        QLabel* m_polyhedronSliceMillimetersDepthLabel = NULL;
-        
-        MetaDataCustomEditorWidget* m_metaDataEditorWidget = NULL;
-        
-        QCheckBox* m_metaDataRequiredCheckBox = NULL;
-        
-        std::unique_ptr<GiftiMetaData> m_annotationMetaData;
-        
-        std::vector<AString> m_requiredMetaDataNames;
-        
+                
         static const int s_MAXIMUM_THUMB_NAIL_SIZE;
-        
-        static float s_previousPolyhedronDepthValueMillimeters;
-        
-        static bool s_previousPolyhedronDepthValueMillimetersValidFlag;
-        
-        static bool s_previousMetaDataRequiredCheckedStatus;
-        
+                
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __ANNOTATION_CREATE_DIALOG_DECLARE__
     const int AnnotationCreateDialog::s_MAXIMUM_THUMB_NAIL_SIZE = 128;
-    float AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimeters = 5;
-    bool AnnotationCreateDialog::s_previousPolyhedronDepthValueMillimetersValidFlag = false;
-    bool AnnotationCreateDialog::s_previousMetaDataRequiredCheckedStatus = true;
 #endif // __ANNOTATION_CREATE_DIALOG_DECLARE__;
 
 } // namespace

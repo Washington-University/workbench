@@ -37,7 +37,6 @@
 #include "AnnotationBrowserTab.h"
 #include "AnnotationClipboard.h"
 #include "AnnotationCreateDialog.h"
-#include "AnnotationCreateDialogTwo.h"
 #include "AnnotationColorBar.h"
 #include "AnnotationCoordinate.h"
 #include "AnnotationCoordinateInformation.h"
@@ -1359,7 +1358,7 @@ void
 UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation()
 {
     if (m_newUserSpaceAnnotationBeingCreated) {
-        m_newUserSpaceAnnotationBeingCreated->finishAnnotation();
+        m_newUserSpaceAnnotationBeingCreated->finishSamplesAnnotation();
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         m_newUserSpaceAnnotationBeingCreated.reset();
@@ -3623,37 +3622,12 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
  * Finish creation of the annotation and add it to its file
  */
 void
-UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
+UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
 {
     if (m_validFlag) {
-        bool annotationsFlag(false);
-        bool samplesFlag(false);
-        switch (m_userInputMode) {
-            case UserInputModeEnum::Enum::ANNOTATIONS:
-                annotationsFlag = true;
-                break;
-            case UserInputModeEnum::Enum::BORDERS:
-                break;
-            case UserInputModeEnum::Enum::FOCI:
-                break;
-            case UserInputModeEnum::Enum::IMAGE:
-                break;
-            case UserInputModeEnum::Enum::INVALID:
-                break;
-            case UserInputModeEnum::Enum::SAMPLES_EDITING:
-                samplesFlag = true;
-                break;
-            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
-                break;
-            case UserInputModeEnum::Enum::VIEW:
-                break;
-            case UserInputModeEnum::Enum::VOLUME_EDIT:
-                break;
-        }
-        
-        if (annotationsFlag) {
-            BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-            AnnotationCreateDialogTwo dialog(m_userInputMode,
+        CaretAssert(m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING);
+        BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+        AnnotationSamplesCreateDialog dialog(m_userInputMode,
                                              m_browserWindowIndex,
                                              m_browserTabIndex,
                                              m_annotationFile,
@@ -3661,28 +3635,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishAnnotation()
                                              m_viewportHeight,
                                              m_sliceThickness,
                                              window);
-            if (dialog.exec()) {
-                m_annotationFile = NULL;
-                m_annotation     = NULL;
-            }
-        }
-        else if (samplesFlag) {
-            BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-            AnnotationSamplesCreateDialog dialog(m_userInputMode,
-                                                 m_browserWindowIndex,
-                                                 m_browserTabIndex,
-                                                 m_annotationFile,
-                                                 m_annotation,
-                                                 m_viewportHeight,
-                                                 m_sliceThickness,
-                                                 window);
-            dialog.exec();
-            m_annotationFile = NULL;
-            m_annotation     = NULL;
-        }
-        else {
-            CaretAssertMessage(0, "Has a new annotations type mode been added?");
-        }
+        dialog.exec();
+        m_annotationFile = NULL;
+        m_annotation     = NULL;
     }
 }
 

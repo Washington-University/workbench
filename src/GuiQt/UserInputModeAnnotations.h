@@ -166,7 +166,7 @@ namespace caret {
             
             void eraseLastCoordinate();
             
-            void finishAnnotation();
+            void finishSamplesAnnotation();
             
             void updateAnnotation(const MouseEvent& mouseEvent);
             

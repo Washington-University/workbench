@@ -71,10 +71,6 @@ namespace caret {
         
         virtual const AnnotationPolyhedron* castToPolyhedron() const override;
         
-        bool finishNewPolyhedron(const Plane& plane,
-                                 const float polyhedronDepth,
-                                 AString& errorMessageOut);
-        
         bool resetRangeToPlanes(const Plane& planeOne,
                                 const Plane& planeTwo,
                                 AString& errorMessageOut);
