@@ -287,7 +287,7 @@ DingOntologyTermsDialog::createTableWidget()
  *    New text
  */
 void
-DingOntologyTermsDialog::abbeviatedTextLineEditChanged(const QString& text)
+DingOntologyTermsDialog::abbeviatedTextLineEditChanged(const QString& /*text*/)
 {
 }
 

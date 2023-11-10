@@ -495,8 +495,8 @@ AnnotationInsertNewWidget::enableDisableShapeActions()
         CaretAssert(spaceAction);
         const int spaceInt = spaceAction->data().toInt();
         bool spaceValidFlag = false;
-        AnnotationCoordinateSpaceEnum::Enum annSpace = AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
-                                                                                                      &spaceValidFlag);
+        AnnotationCoordinateSpaceEnum::fromIntegerCode(spaceInt,
+                                                       &spaceValidFlag);
         CaretAssert(spaceValidFlag);
     }
 }
