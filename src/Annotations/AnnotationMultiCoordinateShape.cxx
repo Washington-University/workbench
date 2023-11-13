@@ -1248,19 +1248,6 @@ AnnotationMultiCoordinateShape::saveSubClassDataToScene(const SceneAttributes* s
 {
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
-    
-    std::vector<SceneClass*> coordClasses;
-    
-    for (const auto& ptr : m_coordinates) {
-        const AString name("Coord_" + AString::number(m_coordinates.size()));
-        SceneClass* sc = ptr->saveToScene(sceneAttributes, name);
-        coordClasses.push_back(sc);
-    }
-    
-    SceneClassArray* coordArray = new SceneClassArray("m_coordinates",
-                                                      coordClasses);
-    
-    sceneClass->addChild(coordArray);
 }
 
 /**
@@ -1279,21 +1266,6 @@ void
 AnnotationMultiCoordinateShape::restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
                                                  const SceneClass* sceneClass)
 {
-    m_coordinates.clear();
-    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
-    
-    const SceneClassArray* coordArray = sceneClass->getClassArray("m_coordinates");
-    if (coordArray != NULL) {
-        const int32_t numCoords = coordArray->getNumberOfArrayElements();
-        for (int32_t i = 0; i < numCoords; i++) {
-            const SceneClass* coordClass = coordArray->getClassAtIndex(i);
-            CaretAssert(coordClass);
-            std::unique_ptr<AnnotationCoordinate> ac(new AnnotationCoordinate(m_attributeDefaultType));
-            ac->restoreFromScene(sceneAttributes,
-                                 coordClass);
-            m_coordinates.push_back(std::move(ac));
-        }
-    }
 }
