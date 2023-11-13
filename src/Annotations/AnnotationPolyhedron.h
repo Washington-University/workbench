@@ -143,6 +143,8 @@ namespace caret {
              
         AString getMetadataInformationHtml() const;
                
+        float computePolyhedronVolume(AString& errorMessageOut) const;
+               
        // ADD_NEW_METHODS_HERE
           
     protected: 

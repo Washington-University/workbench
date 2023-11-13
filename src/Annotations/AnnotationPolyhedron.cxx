@@ -27,12 +27,14 @@
 
 #include "AnnotationCoordinate.h"
 #include "AnnotationFontAttributes.h"
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
 #include "HtmlStringBuilder.h"
 #include "HtmlTableBuilder.h"
 #include "MathFunctions.h"
+#include "Matrix4x4.h"
 #include "Plane.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -732,6 +734,18 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
     html.add(tableBuilder.getAsHtmlTable());
     html.add(getMetadataInformationHtml());
     
+    AString errorMessage;
+    const float polyhedronVolume(computePolyhedronVolume(errorMessage));
+    if (polyhedronVolume != 0.0) {
+        html.addParagraph();
+        html.add("Polyhedron Volume : "
+                 + AString::number(polyhedronVolume));
+    }
+    else {
+        html.addParagraph();
+        html.add("Polyhedron Volume Failed: "
+                 + errorMessage);
+    }
     return html.toStringWithHtmlBody();
 }
 
@@ -750,5 +764,114 @@ AnnotationPolyhedron::getMetadataInformationHtml() const
                                                requiredMetaDataNames);
 
     return getMetaData()->toFormattedHtml(metaDataNames);
+}
+
+/**
+ * @return Volume of the polyhedron.  Will be negative if there is a failure to compute the volume.
+ * @param errorMessageOut
+ *   Contains error message if failure to compute polyhedron volume.
+ */
+float
+AnnotationPolyhedron::computePolyhedronVolume(AString& errorMessageOut) const
+{
+    const float invalidVolumeErrorValue(-1.0);
+    
+    errorMessageOut.clear();
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    const int32_t numCoordPairs(numCoords / 2);
+    if (numCoordPairs < 3) {
+        errorMessageOut = ("There must be at least 3 coordinate pairs to compute volume.  "
+                           "This polyhedron contains "
+                           + AString::number(numCoordPairs)
+                           + " coordinate pairs.");
+        return invalidVolumeErrorValue;
+    }
+    
+    if ( ! m_planeOne.isValidPlane()) {
+        errorMessageOut = "First plane in polyhedron is invalid.";
+        return invalidVolumeErrorValue;
+    }
+    
+    /*
+     * Get matrix that rotates plane to align with the Z-axis
+     */
+    const Vector3D zAxis(0.0, 0.0, 1.0);
+    const Matrix4x4 matrix(Matrix4x4::rotationTo(m_planeOne.getNormalVector(),
+                                                 zAxis));
+    
+    /*
+     * Rotate coordinates to align with Z-axis
+     * and split coordinates into the two "end" polygons
+     */
+    std::vector<Vector3D> polygonOne;
+    std::vector<Vector3D> polygonTwo;
+    for (int32_t i = 0; i < numCoords; i++) {
+        const Vector3D xyzOrig(getCoordinate(i)->getXYZ());
+        Vector3D xyz(xyzOrig);
+        matrix.multiplyPoint3(xyz);
+        
+        if (i < numCoordPairs) {
+            polygonOne.push_back(xyz);
+        }
+        else {
+            polygonTwo.push_back(xyz);
+        }
+    }
+    
+    CaretAssert(polygonOne.size() == polygonTwo.size());
+    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonOne.size()));
+    
+    const int32_t numSteps(4);
+    const float stepPercentage(1.0 / static_cast<float>(numSteps));
+    
+    /*
+     * Compute the step, in XYZ, for each vertex
+     * between the two "end" polygons
+     */
+    std::vector<Vector3D> stepXYZ;
+    for (int32_t i = 0; i < numCoordPairs; i++) {
+        CaretAssertVectorIndex(polygonOne, i);
+        CaretAssertVectorIndex(polygonTwo, i);
+        const Vector3D dxyz(polygonTwo[i] - polygonOne[i]);
+        const float stepDistance(dxyz.length() * stepPercentage);
+        stepXYZ.push_back(dxyz.normal() * stepDistance);
+    }
+    
+    /*
+     * Z-coordinates should be same in each polygon
+     */
+    const float deltaZ(std::fabs(polygonTwo[0][2] - polygonOne[0][2]));
+    const float stepDelta(deltaZ / static_cast<float>(numSteps));
+
+    /*
+     * Increment through the poyhedron from end to end
+     * and compute volume of each sliver.
+     */
+    float volume(0.0);
+    for (int32_t iStep = 0; iStep < numSteps; iStep++) {
+        std::vector<Vector3D> p1;
+        std::vector<Vector3D> p2;
+        for (int32_t iCoord = 0; iCoord < numCoordPairs; iCoord++) {
+            CaretAssertVectorIndex(polygonOne, iCoord);
+            CaretAssertVectorIndex(stepXYZ, iCoord);
+            const Vector3D v1(polygonOne[iCoord]
+                              + (iStep * stepXYZ[iCoord]));
+            const Vector3D v2(v1 + stepXYZ[iCoord]);
+            p1.push_back(v1);
+            p2.push_back(v2);
+        }
+        
+        const float areaOne(MathFunctions::polygonArea(p1));
+        const float areaTwo(MathFunctions::polygonArea(p2));
+        const float stepVolume(((areaOne + areaTwo) / 2.0)
+                               * stepDelta);
+        volume += stepVolume;
+    }
+
+    /*
+     * Note: Total volume may be
+     */
+    return volume;
 }
 
