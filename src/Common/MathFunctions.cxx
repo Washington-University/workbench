@@ -2809,3 +2809,47 @@ MathFunctions::compareValuesEqual(const float* data,
     return true;
 }
 
+/**
+ * @return Area of a 2D polygon computed using the "Shoelace Formula".
+ * The polygon may be concave.
+ * https://en.wikipedia.org/wiki/Shoelace_formula
+ * @param xy
+ *    The XY-coordinates
+ */
+float
+MathFunctions::polygonArea(const std::vector<Vector3D>& xy)
+{
+    double area2(0.0);
+    const int32_t num(xy.size());
+    if (num >= 3) {
+        for (int32_t i = 0; i < num; i++) {
+            const int32_t iNext((i == (num - 1))
+                                ? 0
+                                : i + 1);
+            CaretAssertVectorIndex(xy, i);
+            CaretAssertVectorIndex(xy, iNext);
+            const Vector3D& xyOne = xy[i];
+            const Vector3D& xyTwo = xy[iNext];
+            
+            /*
+             * Note: Determinate is double the signed area
+             */
+            const double det((xyOne[0] * xyTwo[1])
+                           - (xyOne[1] * xyTwo[0]));
+            area2 += det;
+        }
+    }
+    else {
+        CaretLogSevere("Polygon contains fewer than three vertices="
+                       + AString::number(num));
+    }
+    
+    /*
+     * Note: Area will be negative if polygons are clockwise-oriented
+     * so always use positive area
+     */
+    const float area(std::fabs(area2 / 2.0));
+    
+    return area;
+}
+

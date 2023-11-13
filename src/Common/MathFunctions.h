@@ -38,7 +38,7 @@
 
 
 #include "CaretObject.h"
-
+#include "Vector3D.h"
 
 #include <stdint.h>
 
@@ -444,6 +444,8 @@ public:
     static void expandLinePixels3D(double u[3],
                                    double v[3],
                                    const double extraSpacePixels);
+    
+    static float polygonArea(const std::vector<Vector3D>& xy);
     
 };
 
