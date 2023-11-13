@@ -24,6 +24,7 @@
 
 #include "CaretObject.h"
 #include "Matrix4x4Interface.h"
+#include "Vector3D.h"
 #include <stdint.h>
 #include <vector>
 
@@ -50,6 +51,9 @@ public:
 
     virtual ~Matrix4x4();
 
+    static Matrix4x4 rotationTo(const Vector3D& fromVector,
+                                const Vector3D& toVector);
+    
 private:
     void copyHelper(const Matrix4x4& o);
 

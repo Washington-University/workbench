@@ -50,6 +50,11 @@
 
 #include <QStringList>
 
+#include <glm/ext/vector_float4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ControlPoint3D.h"
@@ -2790,5 +2795,38 @@ bool
 Matrix4x4::isModified() const
 {
     return this->modifiedFlag;
+}
+
+/**
+ * @return Matrix that rotates 'fromVector' to align with 'toVector'
+ * @param fromVector
+ *    Vector that is aligned with toVector
+ * @param toVector
+ *    The 'align to' vector
+ * Note: Computation is performed using OpenGL Math's quaternion and
+ * the quaternion is copied to the output matrix.
+ */
+Matrix4x4
+Matrix4x4::rotationTo(const Vector3D& fromVector,
+                      const Vector3D& toVector)
+{
+    glm::vec3 fromVec(fromVector[0], fromVector[1], fromVector[2]);
+    glm::vec3 toVec(toVector[0], toVector[1], toVector[2]);
+    
+    /*
+     * Use quaterion for calculation
+     */
+    glm::quat quaternion(glm::rotation(fromVec, toVec));
+    
+    glm::mat4 matrix(glm::mat4_cast(quaternion));
+    
+    Matrix4x4 m44;
+    for (int32_t iRow = 0; iRow < 3; iRow++) {
+        for (int32_t iCol = 0; iCol < 3; iCol++) {
+            m44.setMatrixElement(iRow, iCol, matrix[iRow][iCol]);
+        }
+    }
+    
+    return m44;
 }
 
