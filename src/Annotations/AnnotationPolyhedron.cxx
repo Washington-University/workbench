@@ -748,6 +748,7 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
                                 warningMessage,
                                 errorMessage)) {
         html.addLineBreak();
+        html.addLineBreak();
         html.add("Polyhedron Volume "
                  + AString::number(polyhedronVolume));
         html.addLineBreak();

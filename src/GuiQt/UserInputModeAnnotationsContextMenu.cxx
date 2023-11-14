@@ -1054,63 +1054,97 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
 }
 
 /**
- * Reset the slice range of a polyhedron
+ * Reset the slice range of a polyhedron.  This method is static so that it can be used by other parts of the GUI.
+ * @param polyhedron
+ *    The polyhedron
+ * @param browserWindowIndex
+ *    Index of window containing the polyhedron
+ * @param mouseXY
+ *    Location of mouse (used to find browser tab containing the polyhedron)
+ * @param extraMessageInfo
+ *    Text added to warning message
+ * @param parentWidgetForErrorMessage
+ *    Widget used for error messages
  */
-void
-UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected()
+bool
+UserInputModeAnnotationsContextMenu::processPolyhedronResetSliceRange(AnnotationPolyhedron* polyhedron,
+                                                                      const int32_t browserWindowIndex,
+                                                                      const Vector3D& mouseXY,
+                                                                      const AString& extraMessageInfo,
+                                                                      QWidget* parentWidgetForErrorMessage)
 {
-    if (m_polyhedronAnnotation != NULL) {
-        EventBrowserTabGetAtWindowXY tabEvent(m_userInputModeAnnotations->getBrowserWindowIndex(),
-                                              m_mouseEvent.getXY());
-        EventManager::get()->sendEvent(tabEvent.getPointer());
-        
-        std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesResetExtentViewportContents());
-        
-        if ((tabEvent.getBrowserTabContent() != NULL)
-            && (drawingSlices.size() == 2)) {
-            const AString msg("This operation will update the range of the selected sample "
-                              "to match the selected volume slices.  Do you want to continue?");
-            if (WuQMessageBox::warningOkCancel(m_parentOpenGLWidget,
-                                               msg)) {
-                CaretAssertVectorIndex(drawingSlices, 1);
-                /*
-                 * The two slices are:
-                 * [0] First Slice Drawn in Montage that allows drawing
-                 * [1] Last Slice drawn in Montage that allows drawing
-                 */
-                auto firstViewportContent(drawingSlices[0]);
-                auto lastViewportContent(drawingSlices[1]);
-                
-                const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
-                const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
-                
-                const Plane firstPlane(firstSlice.getPlane());
-                const Plane lastPlane(lastSlice.getPlane());
-                
-                AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode()));
-                
-                AString errorMessage;
-                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-                if (undoCommand->setModePolyhedronResetRangeToPlane(firstPlane,
-                                                                    lastPlane,
-                                                                    m_polyhedronAnnotation,
-                                                                    errorMessage)) {
-                    if ( ! annotationManager->applyCommand(undoCommand,
-                                                           errorMessage)) {
-                        WuQMessageBox::errorOk(m_parentOpenGLWidget,
-                                               errorMessage);
-                    }
-                }
-                else {
-                    WuQMessageBox::errorOk(m_parentOpenGLWidget,
+    CaretAssert(polyhedron);
+    EventBrowserTabGetAtWindowXY tabEvent(browserWindowIndex,
+                                          mouseXY);
+    EventManager::get()->sendEvent(tabEvent.getPointer());
+    
+    std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesResetExtentViewportContents());
+    
+    if ((tabEvent.getBrowserTabContent() != NULL)
+        && (drawingSlices.size() == 2)) {
+        const AString msg("This operation will update the range of the selected sample "
+                          "to match the selected volume slices. "
+                          + extraMessageInfo
+                          + " \nDo you want to continue?");
+        if (WuQMessageBox::warningOkCancel(parentWidgetForErrorMessage,
+                                           msg)) {
+            CaretAssertVectorIndex(drawingSlices, 1);
+            /*
+             * The two slices are:
+             * [0] First Slice Drawn in Montage that allows drawing
+             * [1] Last Slice drawn in Montage that allows drawing
+             */
+            auto firstViewportContent(drawingSlices[0]);
+            auto lastViewportContent(drawingSlices[1]);
+            
+            const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
+            const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
+            
+            const Plane firstPlane(firstSlice.getPlane());
+            const Plane lastPlane(lastSlice.getPlane());
+            
+            AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING));
+            
+            AString errorMessage;
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            if (undoCommand->setModePolyhedronResetRangeToPlane(firstPlane,
+                                                                lastPlane,
+                                                                polyhedron,
+                                                                errorMessage)) {
+                if ( ! annotationManager->applyCommand(undoCommand,
+                                                       errorMessage)) {
+                    WuQMessageBox::errorOk(parentWidgetForErrorMessage,
                                            errorMessage);
+                    return false;
                 }
+            }
+            else {
+                WuQMessageBox::errorOk(parentWidgetForErrorMessage,
+                                       errorMessage);
+                return false;
             }
         }
     }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    return true;
+}
+/**
+ * Reset the slice range of a polyhedron
+ */
+void
+UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected()
+{
+    if (m_polyhedronAnnotation != NULL) {
+        const AString extraMessageInfo;
+        processPolyhedronResetSliceRange(m_polyhedronAnnotation,
+                                         m_userInputModeAnnotations->getBrowserWindowIndex(),
+                                         m_mouseEvent.getXY(),
+                                         extraMessageInfo,
+                                         m_parentOpenGLWidget);
+    }
 }
 
 /**

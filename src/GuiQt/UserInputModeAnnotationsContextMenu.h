@@ -58,6 +58,11 @@ namespace caret {
         static void insertPolylineCoordinateAtMouse(UserInputModeAnnotations* userInputModeAnnotations,
                                                     const MouseEvent& mouseEvent);
         
+        static bool processPolyhedronResetSliceRange(AnnotationPolyhedron* polyhedron,
+                                                     const int32_t browserWindowIndex,
+                                                     const Vector3D& mouseXY,
+                                                     const AString& extraMessageInfo,
+                                                     QWidget* parentWidgetForErrorMessage);
         // ADD_NEW_METHODS_HERE
 
     private slots:

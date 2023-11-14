@@ -32,11 +32,14 @@
 #include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
+#include "BrainOpenGLViewportContent.h"
 #include "CaretAssert.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "UserInputModeAnnotationsContextMenu.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
@@ -193,6 +196,8 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
     
     QAction* infoAction(menu.addAction("Info..."));
     
+    QAction* resetSliceRangeAction(menu.addAction("Reset Slice Range..."));
+    
     QAction* actionSelected(menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0))));
     
     if (actionSelected == infoAction) {
@@ -202,6 +207,28 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
                                          WuQTextEditorDialog::TextMode::HTML,
                                          WuQTextEditorDialog::WrapMode::NO,
                                          m_moreToolButton);
+    }
+    else if (actionSelected == resetSliceRangeAction) {
+        BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+        if (window != NULL) {
+            const BrainOpenGLViewportContent* viewportContent(window->getViewportContentForSelectedTab());
+            if (viewportContent != NULL) {
+                int32_t modelViewport[4];
+                viewportContent->getModelViewport(modelViewport);
+                const Vector3D viewportCenter(modelViewport[0] + (modelViewport[2] / 2),
+                                              modelViewport[1] + (modelViewport[3] / 2),
+                                              0.0);
+                
+                const AString extraMessageInfo(window->isTileTabsSelected()
+                                               ? "\nEnsure that the selected tab contains the sample polyhedron. "
+                                               : "");
+                UserInputModeAnnotationsContextMenu::processPolyhedronResetSliceRange(m_polyhedronSelected,
+                                                                                      m_browserWindowIndex,
+                                                                                      viewportCenter,
+                                                                                      extraMessageInfo,
+                                                                                      m_moreToolButton);
+            }
+        }
     }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
