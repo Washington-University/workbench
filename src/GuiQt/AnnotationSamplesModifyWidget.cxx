@@ -31,16 +31,12 @@
 
 #include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
-#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "CaretUndoStack.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
-#include "EventBrowserTabGetAtWindowXY.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "WuQMessageBox.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
@@ -193,16 +189,9 @@ AnnotationSamplesModifyWidget::updateContent(const std::vector<Annotation*>& ann
 void
 AnnotationSamplesModifyWidget::moreActionTriggered()
 {
-    EventBrowserTabGetAtWindowXY tabEvent(m_browserWindowIndex,
-                                          Vector3D());
-    EventManager::get()->sendEvent(tabEvent.getPointer());
-    
-    std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesResetExtentViewportContents());
     QMenu menu(m_moreToolButton);
-    QAction* infoAction(menu.addAction("Info..."));
     
-    QAction* resetSliceRangeAction(menu.addAction("Reset Slice Range..."));
-    resetSliceRangeAction->setEnabled(drawingSlices.size() == 2);
+    QAction* infoAction(menu.addAction("Info..."));
     
     QAction* actionSelected(menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0))));
     
@@ -213,46 +202,6 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
                                          WuQTextEditorDialog::TextMode::HTML,
                                          WuQTextEditorDialog::WrapMode::NO,
                                          m_moreToolButton);
-    }
-    else if (actionSelected == resetSliceRangeAction) {
-        const AString msg("This operation will update the range of the selected sample "
-                          "to match the selected volume slices.  Do you want to continue?");
-        if (WuQMessageBox::warningOkCancel(m_moreToolButton,
-                                           msg)) {
-            CaretAssertVectorIndex(drawingSlices, 1);
-            /*
-             * The two slices are:
-             * [0] First Slice Drawn in Montage that allows drawing
-             * [1] Last Slice drawn in Montage that allows drawing
-             */
-            auto firstViewportContent(drawingSlices[0]);
-            auto lastViewportContent(drawingSlices[1]);
-            
-            const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
-            const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
-            
-            const Plane firstPlane(firstSlice.getPlane());
-            const Plane lastPlane(lastSlice.getPlane());
-            
-            AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode));
-
-            AString errorMessage;
-            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-            if (undoCommand->setModePolyhedronResetRangeToPlane(firstPlane,
-                                                                lastPlane,
-                                                                m_polyhedronSelected,
-                                                                errorMessage)) {
-                if ( ! annotationManager->applyCommand(undoCommand,
-                                                       errorMessage)) {
-                    WuQMessageBox::errorOk(m_moreToolButton,
-                                           errorMessage);
-                }
-            }
-            else {
-                WuQMessageBox::errorOk(m_moreToolButton,
-                                       errorMessage);
-            }
-        }
     }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

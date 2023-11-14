@@ -45,7 +45,9 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGetAll.h"
+#include "EventBrowserTabGetAtWindowXY.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -58,6 +60,7 @@
 #include "UserInputModeAnnotations.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditorDialog.h"
 
 using namespace caret;
 
@@ -130,6 +133,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
     m_annotation     = NULL;
     m_polyAnnCoordinateSelected = -1;
     
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputModeAnnotations->getUserInputMode(),
+                                                      m_userInputModeAnnotations->getBrowserWindowIndex());
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
+    const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
+
     bool allSelectedAnnotationsDeletableFlag = true;
     if (selectedAnnotations.empty()) {
         allSelectedAnnotationsDeletableFlag = false;
@@ -201,7 +209,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     
     const AnnotationPolygon*  polygon(NULL);
     const AnnotationPolyLine* polyline(NULL);
-    const AnnotationPolyhedron* polyhedron(NULL);
+    m_polyhedronAnnotation = NULL;
     AString polyAnnTypeName("ERROR");
     int32_t polyAnnNumberOfCoordinates(-1);
     bool polyAnnInsertAllowedFlag(false);
@@ -222,8 +230,11 @@ m_newAnnotationCreatedByContextMenu(NULL)
         
         polygon = m_annotation->castToPolygon();
         polyline = m_annotation->castToPolyline();
-        polyhedron = m_annotation->castToPolyhedron();
-        
+        m_polyhedronAnnotation = m_annotation->castToPolyhedron();
+        if (drawingAnnotationFlag) {
+            m_polyhedronAnnotation = NULL;
+        }
+
         polyAnnTypeName = AnnotationTypeEnum::toGuiName(m_annotation->getType());
 
         const SelectionItemAnnotation* annSel(getSelectionItem(m_userInputModeAnnotations));
@@ -282,7 +293,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
                             polyAnnRemoveCoordinateAllowedFlag = true;
                         }
                     }
-                    else if (polyhedron != NULL) {
+                    else if (m_polyhedronAnnotation != NULL) {
                         /*
                          * Note: Polyhedron contains pairs of coordinates so 8 is really 4 coordinates
                          */
@@ -414,7 +425,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
                 insertValidFlag = true;
             }
         }
-        else if (polyhedron != NULL) {
+        else if (m_polyhedronAnnotation != NULL) {
             if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
                 insertValidFlag = true;
             }
@@ -430,6 +441,13 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                                         + " Coordinate",
                                                     this, &UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected);
     removePolylineCoordinateAction->setEnabled(polyAnnRemoveCoordinateAllowedFlag);
+    
+    if (samplesModeFlag) {
+        QAction* resetSliceRangeAction = addAction("Reset Slice Range...",
+                                                   this,
+                                                   &UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected);
+        resetSliceRangeAction->setEnabled(m_polyhedronAnnotation != NULL);
+    }
     
     /*
      * Separator
@@ -473,6 +491,13 @@ m_newAnnotationCreatedByContextMenu(NULL)
         editTextAction->setEnabled(m_textAnnotation != NULL);
     }
     
+    
+    if (samplesModeFlag) {
+        QAction* polyhedronInformationAction(addAction("Information...",
+                                                 this,
+                                                 &UserInputModeAnnotationsContextMenu::polyhedronInformationSelected));
+        polyhedronInformationAction->setEnabled(m_polyhedronAnnotation != NULL);
+    }
     
     /*
      * Edit Metadata
@@ -547,6 +572,35 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                            this, SLOT(applyGroupingRegroup()));
         regroupAction->setEnabled(annotationManager->isGroupingModeValid(browserWindexIndex,
                                                                          AnnotationGroupingModeEnum::REGROUP));
+    }
+    
+    if (samplesModeFlag) {
+//        EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputModeAnnotations->getUserInputMode(),
+//                                                          m_userInputModeAnnotations->getBrowserWindowIndex());
+//        EventManager::get()->sendEvent(annDrawEvent.getPointer());
+//        const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
+//
+//        if ( ! drawingAnnotationFlag) {
+//            if (polyhedron != NULL) {
+////                CaretAssertVectorIndex(annotations, 0);
+////                CaretAssert(annotations[0]);
+////                m_polyhedronSelected = annotations[0]->castToPolyhedron();
+//            }
+//        }
+        
+        const Annotation* lockedAnnotation(Annotation::getSelectionLockedPolyhedronInWindow(m_userInputModeAnnotations->getBrowserWindowIndex()));
+        addSeparator();
+        
+        QAction* lockAction(addAction("Lock",
+                                      this,
+                                      &UserInputModeAnnotationsContextMenu::lockPolyhedronSelected));
+        lockAction->setEnabled((m_polyhedronAnnotation != NULL)
+                               && (m_polyhedronAnnotation != lockedAnnotation));
+        
+        QAction* unlockAction(addAction("Unlock",
+                                        this,
+                                        &UserInputModeAnnotationsContextMenu::unlockPolyhedronSelected));
+        unlockAction->setEnabled(lockedAnnotation != NULL);
     }
 }
 
@@ -997,6 +1051,108 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
+}
+
+/**
+ * Reset the slice range of a polyhedron
+ */
+void
+UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected()
+{
+    if (m_polyhedronAnnotation != NULL) {
+        EventBrowserTabGetAtWindowXY tabEvent(m_userInputModeAnnotations->getBrowserWindowIndex(),
+                                              m_mouseEvent.getXY());
+        EventManager::get()->sendEvent(tabEvent.getPointer());
+        
+        std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesResetExtentViewportContents());
+        
+        if ((tabEvent.getBrowserTabContent() != NULL)
+            && (drawingSlices.size() == 2)) {
+            const AString msg("This operation will update the range of the selected sample "
+                              "to match the selected volume slices.  Do you want to continue?");
+            if (WuQMessageBox::warningOkCancel(m_parentOpenGLWidget,
+                                               msg)) {
+                CaretAssertVectorIndex(drawingSlices, 1);
+                /*
+                 * The two slices are:
+                 * [0] First Slice Drawn in Montage that allows drawing
+                 * [1] Last Slice drawn in Montage that allows drawing
+                 */
+                auto firstViewportContent(drawingSlices[0]);
+                auto lastViewportContent(drawingSlices[1]);
+                
+                const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
+                const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
+                
+                const Plane firstPlane(firstSlice.getPlane());
+                const Plane lastPlane(lastSlice.getPlane());
+                
+                AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode()));
+                
+                AString errorMessage;
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                if (undoCommand->setModePolyhedronResetRangeToPlane(firstPlane,
+                                                                    lastPlane,
+                                                                    m_polyhedronAnnotation,
+                                                                    errorMessage)) {
+                    if ( ! annotationManager->applyCommand(undoCommand,
+                                                           errorMessage)) {
+                        WuQMessageBox::errorOk(m_parentOpenGLWidget,
+                                               errorMessage);
+                    }
+                }
+                else {
+                    WuQMessageBox::errorOk(m_parentOpenGLWidget,
+                                           errorMessage);
+                }
+            }
+        }
+    }
+
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Polyhedron information selected
+ */
+void
+UserInputModeAnnotationsContextMenu::polyhedronInformationSelected()
+{
+    if (m_polyhedronAnnotation != NULL) {
+        const AString html(m_polyhedronAnnotation->getPolyhedronInformationHtml());
+        WuQTextEditorDialog::runNonModal("Sample Information",
+                                         html,
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         m_parentOpenGLWidget);
+    }
+}
+
+/**
+ * Lock polyhedron
+ */
+void
+UserInputModeAnnotationsContextMenu::lockPolyhedronSelected()
+{
+    if (m_polyhedronAnnotation != NULL) {
+        Annotation::setSelectionLockedPolyhedronInWindow(m_userInputModeAnnotations->getBrowserWindowIndex(),
+                                                         m_polyhedronAnnotation);
+    }
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Unlock polyhedron
+ */
+void
+UserInputModeAnnotationsContextMenu::unlockPolyhedronSelected()
+{
+    Annotation::setSelectionLockedPolyhedronInWindow(m_userInputModeAnnotations->getBrowserWindowIndex(),
+                                                     NULL);
+    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

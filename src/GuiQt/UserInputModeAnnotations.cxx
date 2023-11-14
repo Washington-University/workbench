@@ -3763,36 +3763,37 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(c
                                           windowXY);
     EventManager::get()->sendEvent(tabEvent.getPointer());
     
-    std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesDrawingViewportContents(windowXY));
-    if (drawingSlices.size() == 3) {
-        CaretAssertVectorIndex(drawingSlices, 2);
-        /*
-         * The three slices are:
-         * [0] Slice on which drawing takes place
-         * [1] First Slice Drawn in Montage that allows drawing
-         * [2] Last Slice drawn in Montage that allows drawing
-         */
-        auto firstViewportContent(drawingSlices[1]);
-        auto lastViewportContent(drawingSlices[2]);
-        
-        const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
-        const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
-        
-        /*
-         * Try to create annotation coordinate at the mouse location
-         */
-        std::unique_ptr<AnnotationCoordinate> ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
-                                                                                                                coordinateSpace));
-        if (ac) {
-            Vector3D xyz(ac->getXYZ());
-            firstSlice.getPlane().projectPointToPlane(xyz, firstSliceCoordOut);
-            lastSlice.getPlane().projectPointToPlane(xyz, lastSliceCoordOut);
+    if (tabEvent.getBrowserTabContent() != NULL) {
+        std::vector<std::shared_ptr<DrawingViewportContent>> drawingSlices(tabEvent.getSamplesDrawingViewportContents(windowXY));
+        if (drawingSlices.size() == 3) {
+            CaretAssertVectorIndex(drawingSlices, 2);
+            /*
+             * The three slices are:
+             * [0] Slice on which drawing takes place
+             * [1] First Slice Drawn in Montage that allows drawing
+             * [2] Last Slice drawn in Montage that allows drawing
+             */
+            auto firstViewportContent(drawingSlices[1]);
+            auto lastViewportContent(drawingSlices[2]);
             
-            firstPlaneOut = firstSlice.getPlane();
-            lastPlaneOut  = lastSlice.getPlane();
-            return true;
+            const DrawingViewportContentVolumeSlice& firstSlice(firstViewportContent->getVolumeSlice());
+            const DrawingViewportContentVolumeSlice& lastSlice(lastViewportContent->getVolumeSlice());
+            
+            /*
+             * Try to create annotation coordinate at the mouse location
+             */
+            std::unique_ptr<AnnotationCoordinate> ac(AnnotationCoordinateInformation::createCoordinateInSpaceFromXY(mouseEvent,
+                                                                                                                    coordinateSpace));
+            if (ac) {
+                Vector3D xyz(ac->getXYZ());
+                firstSlice.getPlane().projectPointToPlane(xyz, firstSliceCoordOut);
+                lastSlice.getPlane().projectPointToPlane(xyz, lastSliceCoordOut);
+                
+                firstPlaneOut = firstSlice.getPlane();
+                lastPlaneOut  = lastSlice.getPlane();
+                return true;
+            }
         }
-        
     }
     return false;
 }

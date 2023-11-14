@@ -32,6 +32,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationFile;
+    class AnnotationPolyhedron;
     class AnnotationText;
     class BrainOpenGLWidget;
     class BrowserTabContent;
@@ -98,6 +99,14 @@ namespace caret {
         
         void removePolylineCoordinateSelected();
         
+        void resetPolyhedronSliceRangeSelected();
+        
+        void polyhedronInformationSelected();
+        
+        void lockPolyhedronSelected();
+        
+        void unlockPolyhedronSelected();
+        
     private:
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 
@@ -132,9 +141,11 @@ namespace caret {
         
         std::vector<std::pair<AnnotationFile*, Annotation*>> m_tabSpaceFileAndAnnotations;
         
-        Annotation* m_annotation;
+        Annotation* m_annotation = NULL;
         
-        AnnotationText* m_textAnnotation;
+        AnnotationPolyhedron* m_polyhedronAnnotation = NULL;
+        
+        AnnotationText* m_textAnnotation = NULL;
         
         int32_t m_polyAnnCoordinateSelected;
         

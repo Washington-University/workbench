@@ -199,6 +199,7 @@ EventBrowserTabGetAtWindowXY::getSamplesResetExtentViewportContents() const
     std::shared_ptr<DrawingViewportContent> firstViewportContent;
     std::shared_ptr<DrawingViewportContent> lastViewportContent;
     
+    CaretAssert(m_browserTabContent);
     const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
     for (auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
