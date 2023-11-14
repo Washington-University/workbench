@@ -41,6 +41,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "Plane.h"
 
 using namespace caret;
 using namespace std;
@@ -2851,5 +2852,37 @@ MathFunctions::polygonArea(const std::vector<Vector3D>& xy)
     const float area(std::fabs(area2 / 2.0));
     
     return area;
+}
+
+/**
+ * @return True if the given points are coplanar.
+ * @param xyz
+ *    The points
+ * Note: If there are three or fewer points, true is always returned.
+ */
+bool
+MathFunctions::arePointsCoplanar(const std::vector<Vector3D>& xyz)
+{
+    const int32_t numPoints(xyz.size());
+    if (numPoints <= 3) {
+        return true;
+    }
+    
+    CaretAssertVectorIndex(xyz, 2);
+    Plane plane(xyz[0],
+                xyz[1],
+                xyz[2]);
+    
+    if (plane.isValidPlane()) {
+        const float tolerance(0.01);
+        for (int32_t i = 3; i < numPoints; i++) {
+            CaretAssertVectorIndex(xyz, i);
+            if (plane.absoluteDistanceToPlane(xyz[i]) > tolerance) {
+                return false;
+            }
+        }
+    }
+    
+    return true;
 }
 

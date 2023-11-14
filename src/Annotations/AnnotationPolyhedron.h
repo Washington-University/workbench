@@ -145,6 +145,13 @@ namespace caret {
                
         float computePolyhedronVolume(AString& errorMessageOut) const;
                
+        bool computePolyhedronVolume(float& volumeOut,
+                                     float& endOneAreaOut,
+                                     float& endTwoAreaOut,
+                                     float& endToEndDistanceOut,
+                                     AString& warningMessageOut,
+                                     AString& errorMessageOut) const;
+               
        // ADD_NEW_METHODS_HERE
           
     protected: 

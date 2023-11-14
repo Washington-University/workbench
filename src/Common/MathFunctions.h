@@ -447,6 +447,8 @@ public:
     
     static float polygonArea(const std::vector<Vector3D>& xy);
     
+    static bool arePointsCoplanar(const std::vector<Vector3D>& xyz);
+    
 };
 
 } // namespace

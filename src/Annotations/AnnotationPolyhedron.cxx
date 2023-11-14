@@ -725,8 +725,8 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
         const AnnotationCoordinate* acOne(getCoordinate(i));
         const AnnotationCoordinate* acTwo(getCoordinate(i + numCoords));
         tableBuilder.addRow("Coord " + AString::number(i + 1),
-                            acOne->getXYZ().toString(),
-                            acTwo->getXYZ().toString());
+                            acOne->getXYZ().toString(6),
+                            acTwo->getXYZ().toString(6));
     }
     
     HtmlStringBuilder html;
@@ -734,18 +734,45 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
     html.add(tableBuilder.getAsHtmlTable());
     html.add(getMetadataInformationHtml());
     
+    float endOnePolygonArea(0.0);
+    float endTwoPolygonArea(0.0);
+    float endToEndDistance(0.0);
+    float polyhedronVolume(0.0);
+    AString warningMessage;
     AString errorMessage;
-    const float polyhedronVolume(computePolyhedronVolume(errorMessage));
-    if (polyhedronVolume != 0.0) {
-        html.addParagraph();
-        html.add("Polyhedron Volume : "
+    
+    if (computePolyhedronVolume(polyhedronVolume,
+                                endOnePolygonArea,
+                                endTwoPolygonArea,
+                                endToEndDistance,
+                                warningMessage,
+                                errorMessage)) {
+        html.addLineBreak();
+        html.add("Polyhedron Volume "
                  + AString::number(polyhedronVolume));
+        html.addLineBreak();
+        html.addLineBreak();
+        html.add("Polyhedron End One Area "
+                 + AString::number(endOnePolygonArea));
+        html.addLineBreak();
+        html.add("Polyhedron End Two Area "
+                 + AString::number(endTwoPolygonArea));
+        html.addLineBreak();
+        html.add("Distance Between Ends "
+                 + AString::number(endToEndDistance));
+        html.addLineBreak();
+        if ( ! warningMessage.isEmpty()) {
+            html.addLineBreak();
+            html.add("Polyhedron Volume Warnings: "
+                     + warningMessage);
+        }
     }
     else {
-        html.addParagraph();
+        html.addLineBreak();
         html.add("Polyhedron Volume Failed: "
                  + errorMessage);
     }
+    
     return html.toStringWithHtmlBody();
 }
 
@@ -765,6 +792,103 @@ AnnotationPolyhedron::getMetadataInformationHtml() const
 
     return getMetaData()->toFormattedHtml(metaDataNames);
 }
+
+/**
+ * Compute the volume and other measurements of the polyhedron
+ * @param volumeOut
+ *    Output containing the volume of the polyhedron
+ * @param endOneAreaOut
+ *    Output containing the area of one end of the polyhedron
+ * @param endTwoAreaOut
+ *    Output containing the area of the other end of the polyhedron
+ * @param endToEndDistanceOut
+ *    Output containing the distance between the two ends of the polyhedron
+ * @param warningMessageOut
+ *    Output containing containing possible problems even though there is not an error
+ * @param errorMessageOut
+ *    Output containing a message describing the fatal error
+ * @return
+ *    True if successful, otherwise false with errorMessageOut describing the error.
+ */
+bool
+AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
+                                              float& endOneAreaOut,
+                                              float& endTwoAreaOut,
+                                              float& endToEndDistanceOut,
+                                              AString& warningMessageOut,
+                                              AString& errorMessageOut) const
+{
+    volumeOut = 0.0;
+    endOneAreaOut = 0.0;
+    endTwoAreaOut = 0.0;
+    endToEndDistanceOut = 0.0;
+    warningMessageOut = "";
+    errorMessageOut   = "";
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    const int32_t numCoordPairs(numCoords / 2);
+    if (numCoordPairs < 3) {
+        errorMessageOut = ("There must be at least 3 coordinate pairs to compute volume.  "
+                           "This polyhedron contains "
+                           + AString::number(numCoordPairs)
+                           + " coordinate pairs.");
+        return false;
+    }
+    
+    if ( ! m_planeOne.isValidPlane()) {
+        errorMessageOut = "First plane in polyhedron is invalid.";
+        return false;
+    }
+    
+    /*
+     * Get matrix that rotates plane to align with the Z-axis
+     */
+    const Vector3D zAxis(0.0, 0.0, 1.0);
+    const Matrix4x4 matrix(Matrix4x4::rotationTo(m_planeOne.getNormalVector(),
+                                                 zAxis));
+    
+    /*
+     * Rotate coordinates to align with Z-axis
+     * and split coordinates into the two "end" polygons
+     */
+    std::vector<Vector3D> polygonOne;
+    std::vector<Vector3D> polygonTwo;
+    for (int32_t i = 0; i < numCoords; i++) {
+        const Vector3D xyzOrig(getCoordinate(i)->getXYZ());
+        Vector3D xyz(xyzOrig);
+        matrix.multiplyPoint3(xyz);
+        
+        if (i < numCoordPairs) {
+            polygonOne.push_back(xyz);
+        }
+        else {
+            polygonTwo.push_back(xyz);
+        }
+    }
+    
+    if ( ! MathFunctions::arePointsCoplanar(polygonOne)) {
+        warningMessageOut.appendWithNewLine("Coordinates in end one may not be coplanar");
+    }
+    if ( ! MathFunctions::arePointsCoplanar(polygonTwo)) {
+        warningMessageOut.appendWithNewLine(" Coordinates in end two may not be coplanar");
+    }
+
+    CaretAssert(polygonOne.size() == polygonTwo.size());
+    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonOne.size()));
+        
+    /*
+     * Areas of the two ends and distance in between
+     */
+    endOneAreaOut = MathFunctions::polygonArea(polygonOne);
+    endTwoAreaOut = MathFunctions::polygonArea(polygonTwo);
+    endToEndDistanceOut = std::fabs(polygonTwo[0][2] - polygonOne[0][2]);
+    
+    const float averageArea((endOneAreaOut + endTwoAreaOut) / 2.0);
+    volumeOut = averageArea * endToEndDistanceOut;
+    
+    return true;
+}
+
 
 /**
  * @return Volume of the polyhedron.  Will be negative if there is a failure to compute the volume.
@@ -843,6 +967,10 @@ AnnotationPolyhedron::computePolyhedronVolume(AString& errorMessageOut) const
      */
     const float deltaZ(std::fabs(polygonTwo[0][2] - polygonOne[0][2]));
     const float stepDelta(deltaZ / static_cast<float>(numSteps));
+
+    std::cout << "Polygon One Area: " << MathFunctions::polygonArea(polygonOne);
+    std::cout << "Polygon Two Area: " << MathFunctions::polygonArea(polygonTwo);
+    std::cout << "Depth: " << deltaZ << std::endl;
 
     /*
      * Increment through the poyhedron from end to end
