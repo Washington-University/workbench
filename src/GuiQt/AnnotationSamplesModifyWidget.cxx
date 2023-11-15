@@ -194,7 +194,7 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
 {
     QMenu menu(m_moreToolButton);
     
-    QAction* infoAction(menu.addAction("Info..."));
+    QAction* infoAction(menu.addAction("Information..."));
     
     QAction* resetSliceRangeAction(menu.addAction("Reset Slice Range..."));
     

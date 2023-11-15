@@ -867,88 +867,28 @@ AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
         }
     }
     
+    CaretAssert(polygonOne.size() == polygonTwo.size());
+    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonOne.size()));
+    
     if ( ! MathFunctions::arePointsCoplanar(polygonOne)) {
         warningMessageOut.appendWithNewLine("Coordinates in end one may not be coplanar");
     }
     if ( ! MathFunctions::arePointsCoplanar(polygonTwo)) {
         warningMessageOut.appendWithNewLine(" Coordinates in end two may not be coplanar");
     }
-
-    CaretAssert(polygonOne.size() == polygonTwo.size());
-    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonOne.size()));
-        
-    /*
-     * Areas of the two ends and distance in between
-     */
-    endOneAreaOut = MathFunctions::polygonArea(polygonOne);
-    endTwoAreaOut = MathFunctions::polygonArea(polygonTwo);
-    endToEndDistanceOut = std::fabs(polygonTwo[0][2] - polygonOne[0][2]);
-    
-    const float averageArea((endOneAreaOut + endTwoAreaOut) / 2.0);
-    volumeOut = averageArea * endToEndDistanceOut;
-    
-    return true;
-}
-
-
-/**
- * @return Volume of the polyhedron.  Will be negative if there is a failure to compute the volume.
- * @param errorMessageOut
- *   Contains error message if failure to compute polyhedron volume.
- */
-float
-AnnotationPolyhedron::computePolyhedronVolume(AString& errorMessageOut) const
-{
-    const float invalidVolumeErrorValue(-1.0);
-    
-    errorMessageOut.clear();
-    
-    const int32_t numCoords(getNumberOfCoordinates());
-    const int32_t numCoordPairs(numCoords / 2);
-    if (numCoordPairs < 3) {
-        errorMessageOut = ("There must be at least 3 coordinate pairs to compute volume.  "
-                           "This polyhedron contains "
-                           + AString::number(numCoordPairs)
-                           + " coordinate pairs.");
-        return invalidVolumeErrorValue;
-    }
-    
-    if ( ! m_planeOne.isValidPlane()) {
-        errorMessageOut = "First plane in polyhedron is invalid.";
-        return invalidVolumeErrorValue;
-    }
     
     /*
-     * Get matrix that rotates plane to align with the Z-axis
+     * Absolute distance between ends
      */
-    const Vector3D zAxis(0.0, 0.0, 1.0);
-    const Matrix4x4 matrix(Matrix4x4::rotationTo(m_planeOne.getNormalVector(),
-                                                 zAxis));
+    const float absDeltaZ(std::fabs(polygonTwo[0][2] - polygonOne[0][2]));
     
-    /*
-     * Rotate coordinates to align with Z-axis
-     * and split coordinates into the two "end" polygons
-     */
-    std::vector<Vector3D> polygonOne;
-    std::vector<Vector3D> polygonTwo;
-    for (int32_t i = 0; i < numCoords; i++) {
-        const Vector3D xyzOrig(getCoordinate(i)->getXYZ());
-        Vector3D xyz(xyzOrig);
-        matrix.multiplyPoint3(xyz);
-        
-        if (i < numCoordPairs) {
-            polygonOne.push_back(xyz);
-        }
-        else {
-            polygonTwo.push_back(xyz);
-        }
-    }
-    
-    CaretAssert(polygonOne.size() == polygonTwo.size());
-    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonOne.size()));
-    
-    const int32_t numSteps(4);
+    const int32_t numSteps(static_cast<int32_t>(absDeltaZ * 50.0));
     const float stepPercentage(1.0 / static_cast<float>(numSteps));
+    
+    /*
+     * Z-coordinates should be same in each polygon
+     */
+    const float stepDelta(absDeltaZ / static_cast<float>(numSteps));
     
     /*
      * Compute the step, in XYZ, for each vertex
@@ -963,16 +903,10 @@ AnnotationPolyhedron::computePolyhedronVolume(AString& errorMessageOut) const
         stepXYZ.push_back(dxyz.normal() * stepDistance);
     }
     
-    /*
-     * Z-coordinates should be same in each polygon
-     */
-    const float deltaZ(std::fabs(polygonTwo[0][2] - polygonOne[0][2]));
-    const float stepDelta(deltaZ / static_cast<float>(numSteps));
-
-    std::cout << "Polygon One Area: " << MathFunctions::polygonArea(polygonOne);
-    std::cout << "Polygon Two Area: " << MathFunctions::polygonArea(polygonTwo);
-    std::cout << "Depth: " << deltaZ << std::endl;
-
+    endOneAreaOut = MathFunctions::polygonArea(polygonOne);
+    endTwoAreaOut = MathFunctions::polygonArea(polygonTwo);
+    endToEndDistanceOut = absDeltaZ;
+    
     /*
      * Increment through the poyhedron from end to end
      * and compute volume of each sliver.
@@ -997,10 +931,8 @@ AnnotationPolyhedron::computePolyhedronVolume(AString& errorMessageOut) const
                                * stepDelta);
         volume += stepVolume;
     }
-
-    /*
-     * Note: Total volume may be
-     */
-    return volume;
+    
+    volumeOut = volume;
+    
+    return true;
 }
-
