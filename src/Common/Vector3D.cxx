@@ -20,6 +20,8 @@
 
 #include <cmath>
 
+#include <QStringList>
+
 #include "MathFunctions.h"
 #include "Vector3D.h"
 
@@ -309,4 +311,39 @@ Vector3D::toString(const int32_t precision) const
                                           precision)
                    + ")");
 
+}
+
+/**
+ * Read three values from a string and numeric values in Vector3D
+ * @param s
+ *    The string with values separated by a comma
+ * @param validFlag
+ *   If not NULL, will be set to true if conversion from string to
+ *   Vector3D was successful.
+ */
+Vector3D
+Vector3D::fromString(const AString& s,
+                     bool* validFlag)
+{
+    if (validFlag != NULL) {
+        *validFlag = false;
+    }
+    
+    Vector3D xyz;
+    xyz.fill(0.0);
+    
+    const QStringList stringList(s.split(",",
+                                         Qt::SkipEmptyParts));
+    if (stringList.size() == 3) {
+        bool xValid(false), yValid(false), zValid(false);
+        xyz[0] = stringList.at(0).toFloat(&xValid);
+        xyz[1] = stringList.at(1).toFloat(&yValid);
+        xyz[2] = stringList.at(2).toFloat(&zValid);
+        
+        if (validFlag != NULL) {
+            *validFlag = (xValid && yValid && zValid);
+        }
+    }
+
+    return xyz;
 }
