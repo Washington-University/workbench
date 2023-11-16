@@ -891,6 +891,9 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
     readAnnotationAttributes(annotation,
                              annotationElementName,
                              attributes);
+
+    AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+
     bool done(false);
     while ( ! done) {
         const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
@@ -917,6 +920,14 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         }
                         
                         m_stream->skipCurrentElement();
+                        
+                        if (polyhedron != NULL) {
+                            /*
+                             * XYZ for names is not in older polyhedrons.  This call
+                             * will initialize name XYZ to center of coords on each plane
+                             */
+                            polyhedron->resetPlaneOneTwoNameStereotaxicXYZ();
+                        }
                     }
                     else if (elementName == GiftiXmlElements::TAG_METADATA) {
                         /*
@@ -926,7 +937,6 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         m_streamHelper->readMetaData(annotation->getMetaData());
                     }
                     else if (elementName == ELEMENT_POLYHEDRON_DATA) {
-                        AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
                         CaretAssert(polyhedron);
                         
                         const QXmlStreamAttributes polyAtts(m_stream->attributes());
@@ -948,9 +958,47 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         if ( ! planeTwoString.isEmpty()) {
                             planeTwo = Plane::fromFormattedString(planeTwoString);
                         }
-
+                        
                         polyhedron->setFromFileReading(planeOne,
                                                        planeTwo);
+                        
+
+
+                        const AString planeOneNameXyzString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
+                                                                                                            ELEMENT_POLYHEDRON_DATA,
+                                                                                                            ATTRIBUTE_PLANE_ONE_NAME_XYZ,
+                                                                                                            ""));
+                        if ( ! planeOneNameXyzString.isEmpty()) {
+                            bool validFlag(false);
+                            const Vector3D xyz(Vector3D::fromString(planeOneNameXyzString,
+                                                                    &validFlag));
+                            if (validFlag) {
+                                polyhedron->setPlaneOneNameStereotaxicXYZ(xyz);
+                            }
+                            else {
+                                annotationFile->addFileReadWarning("Failed to convert \""
+                                                                   + planeOneNameXyzString
+                                                                   + "\" to a Vector3D");
+                            }
+                        }
+
+                        const AString planeTwoNameXyzString(m_streamHelper->getOptionalAttributeStringValue(polyAtts,
+                                                                                                            ELEMENT_POLYHEDRON_DATA,
+                                                                                                            ATTRIBUTE_PLANE_TWO_NAME_XYZ,
+                                                                                                            ""));
+                        if ( ! planeTwoNameXyzString.isEmpty()) {
+                            bool validFlag(false);
+                            const Vector3D xyz(Vector3D::fromString(planeTwoNameXyzString,
+                                                                    &validFlag));
+                            if (validFlag) {
+                                polyhedron->setPlaneTwoNameStereotaxicXYZ(xyz);
+                            }
+                            else {
+                                annotationFile->addFileReadWarning("Failed to convert \""
+                                                                   + planeTwoNameXyzString
+                                                                   + "\" to a Vector3D");
+                            }
+                        }
                         
                         m_stream->skipCurrentElement();
                     }
@@ -983,6 +1031,11 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                     break;
             }
         }
+    }
+    
+    if (polyhedron != NULL) {
+        /* Setting name xyz sets modified status so clear it */
+        polyhedron->clearModified();
     }
 }
 

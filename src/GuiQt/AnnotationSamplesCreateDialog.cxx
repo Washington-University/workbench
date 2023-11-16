@@ -246,6 +246,11 @@ AnnotationSamplesCreateDialog::okButtonClicked()
         annMetaData->replace(*m_annotationMetaData.get());
     }
     
+    AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
+    if (polyhedron != NULL) {
+        polyhedron->resetPlaneOneTwoNameStereotaxicXYZ();
+    }
+    
     finishAnnotationCreation(m_userInputMode,
                              m_annotationFile,
                              m_annotation,

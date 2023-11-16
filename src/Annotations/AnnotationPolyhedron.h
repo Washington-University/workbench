@@ -24,6 +24,7 @@
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationMultiPairedCoordinateShape.h"
 #include "Plane.h"
+#include "Vector3D.h"
 
 namespace caret {
 
@@ -150,6 +151,16 @@ namespace caret {
                                      AString& warningMessageOut,
                                      AString& errorMessageOut) const;
                
+       Vector3D getPlaneOneNameStereotaxicXYZ() const;
+       
+       Vector3D getPlaneTwoNameStereotaxicXYZ() const;
+               
+       void setPlaneOneNameStereotaxicXYZ(const Vector3D& xyz);
+       
+       void setPlaneTwoNameStereotaxicXYZ(const Vector3D& xyz);
+               
+       void resetPlaneOneTwoNameStereotaxicXYZ();
+               
        // ADD_NEW_METHODS_HERE
           
     protected: 
@@ -172,6 +183,10 @@ namespace caret {
         Plane m_planeOne;
         
         Plane m_planeTwo;
+               
+        Vector3D m_planeOneNameStereotaxicXYZ;
+               
+        Vector3D m_planeTwoNameStereotaxicXYZ;
                
         std::unique_ptr<AnnotationFontAttributes> m_fontAttributes;
         

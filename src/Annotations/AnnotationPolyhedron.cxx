@@ -110,6 +110,8 @@ AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron&
 {
     m_planeOne = obj.m_planeOne;
     m_planeTwo = obj.m_planeTwo;
+    m_planeOneNameStereotaxicXYZ = obj.m_planeOneNameStereotaxicXYZ;
+    m_planeTwoNameStereotaxicXYZ = obj.m_planeTwoNameStereotaxicXYZ;
     *m_fontAttributes = *obj.m_fontAttributes;
 }
 
@@ -198,6 +200,19 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
     
     m_planeOne = planeOne;
     m_planeTwo = planeTwo;
+    
+    const Vector3D nameOneToTwoVector((m_planeTwoNameStereotaxicXYZ
+                                       - m_planeOneNameStereotaxicXYZ).normal());
+    Vector3D newNameOneXYZ;
+    Vector3D newNameTwoXYZ;
+    if (planeOne.rayIntersection(m_planeOneNameStereotaxicXYZ, nameOneToTwoVector, newNameOneXYZ)
+        && planeTwo.rayIntersection(m_planeOneNameStereotaxicXYZ, nameOneToTwoVector, newNameTwoXYZ)) {
+        m_planeOneNameStereotaxicXYZ = newNameOneXYZ;
+        m_planeTwoNameStereotaxicXYZ = newNameTwoXYZ;
+    }
+    else {
+        resetPlaneOneTwoNameStereotaxicXYZ();
+    }
     
     setModified();
     
@@ -720,6 +735,11 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
                             "Invalid");
     }
 
+    tableBuilder.addRow("Plane One Text",
+                        m_planeOneNameStereotaxicXYZ.toString(6));
+    tableBuilder.addRow("Plane Two Text",
+                        m_planeTwoNameStereotaxicXYZ.toString(6));
+
     const int32_t numCoords(getNumberOfCoordinates() / 2);
     for (int32_t i = 0; i < numCoords; i++) {
         const AnnotationCoordinate* acOne(getCoordinate(i));
@@ -935,4 +955,76 @@ AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
     volumeOut = volume;
     
     return true;
+}
+
+/**
+ * @return XYZ for polyhedron name when drawn on first plane
+ */
+Vector3D
+AnnotationPolyhedron::getPlaneOneNameStereotaxicXYZ() const
+{
+    return m_planeOneNameStereotaxicXYZ;
+}
+
+/**
+ * @return XYZ for polyhedron name when drawn on second plane
+ */
+Vector3D
+AnnotationPolyhedron::getPlaneTwoNameStereotaxicXYZ() const
+{
+    return m_planeTwoNameStereotaxicXYZ;
+}
+
+/**
+ * Set the XYZ for polyhedron name when drawn on first plane
+ * @param xyz
+ *    New XYZ
+ */
+void
+AnnotationPolyhedron::setPlaneOneNameStereotaxicXYZ(const Vector3D& xyz)
+{
+    if (xyz != m_planeOneNameStereotaxicXYZ) {
+        m_planeOneNameStereotaxicXYZ = xyz;
+        setModified();
+    }
+}
+
+/**
+ * Set the XYZ for polyhedron name when drawn on first plane
+ * @param xyz
+ *    New XYZ
+ */
+void
+AnnotationPolyhedron::setPlaneTwoNameStereotaxicXYZ(const Vector3D& xyz)
+{
+    if (xyz != m_planeTwoNameStereotaxicXYZ) {
+        m_planeTwoNameStereotaxicXYZ = xyz;
+        setModified();
+    }
+}
+
+/**
+ * Reset the positions of the name stereotaxic coordinates using the
+ * polyhedron coordinates.
+ */
+void
+AnnotationPolyhedron::resetPlaneOneTwoNameStereotaxicXYZ()
+{
+    Vector3D nameOneXYZ(0.0, 0.0, 0.0);
+    Vector3D nameTwoXYZ(0.0, 0.0, 0.0);
+    
+    const int32_t numCoordPairs(getNumberOfCoordinates() / 2);
+    if (numCoordPairs >= 1) {
+        for (int32_t i = 0; i < numCoordPairs; i++) {
+            nameOneXYZ += getCoordinate(i)->getXYZ();
+            nameTwoXYZ += getCoordinate(i + numCoordPairs)->getXYZ();
+        }
+        
+        const float floatNumCoords(numCoordPairs);
+        nameOneXYZ /= floatNumCoords;
+        nameTwoXYZ /= floatNumCoords;
+    }
+
+    m_planeOneNameStereotaxicXYZ = nameOneXYZ;
+    m_planeTwoNameStereotaxicXYZ = nameTwoXYZ;
 }

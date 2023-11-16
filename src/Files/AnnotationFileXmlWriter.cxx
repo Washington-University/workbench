@@ -769,6 +769,12 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
             m_stream->writeAttribute(ATTRIBUTE_PLANE_TWO,
                                      polyhedron->getPlaneTwo().toFormattedString());
         }
+        
+        m_stream->writeAttribute(ATTRIBUTE_PLANE_ONE_NAME_XYZ,
+                                 AString::fromNumbers(polyhedron->getPlaneOneNameStereotaxicXYZ()));
+        m_stream->writeAttribute(ATTRIBUTE_PLANE_TWO_NAME_XYZ,
+                                 AString::fromNumbers(polyhedron->getPlaneTwoNameStereotaxicXYZ()));
+
         m_stream->writeEndElement();
 
         writeFontAttributes(polyhedron);        

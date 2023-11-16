@@ -663,6 +663,15 @@ AnnotationMultiPairedCoordinateShape::applyCoordinatesSizeAndRotationFromOther(c
     setCoordinateSpace(otherAnn->getCoordinateSpace());
     setTabIndex(otherAnn->getTabIndex());
     setWindowIndex(otherAnn->getWindowIndex());
+    
+    AnnotationPolyhedron* thisPolyhedron(castToPolyhedron());
+    const AnnotationPolyhedron* otherPolyhedron(otherAnn->castToPolyhedron());
+    if ((thisPolyhedron != NULL)
+        && (otherPolyhedron != NULL)) {
+        thisPolyhedron->setPlaneOneNameStereotaxicXYZ(otherPolyhedron->getPlaneOneNameStereotaxicXYZ());
+        thisPolyhedron->setPlaneTwoNameStereotaxicXYZ(otherPolyhedron->getPlaneTwoNameStereotaxicXYZ());
+    }
+    
     setModified();
 }
 
@@ -741,6 +750,12 @@ AnnotationMultiPairedCoordinateShape::isSizeHandleValid(const AnnotationSizingHa
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            validFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+            validFlag = true;
+            break;
     }
     
     return validFlag;
@@ -811,6 +826,10 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationSurfaceSpace(const
         }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
             break;
     }
     
@@ -914,6 +933,10 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationTabOrWindowSpace(c
                 }
                 break;
             case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+                break;
+            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
                 break;
         }
         
@@ -1030,6 +1053,10 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationChartSpace(const A
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+            break;
     }
     if ((validFlag)
         && (startIndex >= 0)
@@ -1115,6 +1142,10 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationHistologySpace(con
             }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
             break;
     }
     if ((validFlag)
@@ -1202,6 +1233,10 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationMediaSpace(const A
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+            break;
     }
     if ((validFlag)
         && (startIndex >= 0)
@@ -1240,54 +1275,75 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationMediaSpace(const A
 bool
 AnnotationMultiPairedCoordinateShape::applySpatialModificationStereotaxicSpace(const AnnotationSpatialModification& spatialModification)
 {
-    bool validFlag = false;
-    const int32_t coordIndex(spatialModification.m_polyLineCoordinateIndex);
-    const int32_t numCoords(getNumberOfCoordinates());
-    if ((coordIndex >= 0)
-        && (coordIndex < numCoords)) {
-        switch (spatialModification.m_sizingHandleType) {
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-                /* No dragging entire annotation in stereotaxic space */
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
-                validFlag = true;
-                break;
-            case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
-                break;
+    bool modifiedFlag(false);
+    switch (spatialModification.m_sizingHandleType) {
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_BOTTOM_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_LEFT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_BOX_TOP_RIGHT:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_END:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
+            /* No dragging entire annotation in stereotaxic space */
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
+        {
+            const int32_t coordIndex(spatialModification.m_polyLineCoordinateIndex);
+            const int32_t numCoords(getNumberOfCoordinates());
+            if ((coordIndex >= 0)
+                && (coordIndex < numCoords)) {
+                AnnotationCoordinate* ac = getCoordinate(coordIndex);
+                ac->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+                setModified();
+                modifiedFlag = true;
+            }
         }
-        if (validFlag) {
-            AnnotationCoordinate* ac = getCoordinate(coordIndex);
-            ac->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+        {
+            AnnotationPolyhedron* polyhedron(castToPolyhedron());
+            if (polyhedron != NULL) {
+                const Vector3D xyz(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[0],
+                                   spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[1],
+                                   spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2]);
+                polyhedron->setPlaneOneNameStereotaxicXYZ(xyz);
+                modifiedFlag = true;
+            }
         }
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+        {
+            AnnotationPolyhedron* polyhedron(castToPolyhedron());
+            if (polyhedron != NULL) {
+                const Vector3D xyz(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[0],
+                                   spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[1],
+                                   spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2]);
+                polyhedron->setPlaneTwoNameStereotaxicXYZ(xyz);
+                modifiedFlag = true;
+            }
+        }
+            break;
     }
-    
-    if (validFlag) {
-        setModified();
-    }
-    
-    return validFlag;
+
+    return modifiedFlag;
 }
 
 /**

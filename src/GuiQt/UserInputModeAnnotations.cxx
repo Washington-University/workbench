@@ -623,6 +623,12 @@ UserInputModeAnnotations::getCursor() const
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                         break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+                        cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                        break;
+                    case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
+                        cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                        break;
                 }
             }
             break;

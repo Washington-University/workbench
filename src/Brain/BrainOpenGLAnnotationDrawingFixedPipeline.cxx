@@ -5198,6 +5198,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                            foregroundRGBA));
     CaretAssert(primitive);
     
+    const Vector3D polyhedronNameOneXYZ((polyhedron != NULL)
+                                        ? polyhedron->getPlaneOneNameStereotaxicXYZ()
+                                        : Vector3D());
+    const Vector3D polyhedronNameTwoXYZ((polyhedron != NULL)
+                                        ? polyhedron->getPlaneTwoNameStereotaxicXYZ()
+                                        : Vector3D());
+    Vector3D polyhedronNameXYZ;
+    AnnotationSizingHandleTypeEnum::Enum polyhedronNameSizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
+    
     /*
      * Note: A multi-paired coordinate annotations contains 'two sets' of coordinates
      * that are stored as a single set of coordinates.  The total number of coordinates
@@ -5251,6 +5260,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                             xyzToDraw.push_back(xyz);
                         }
                     }
+                    
+                    polyhedronNameXYZ = polyhedronNameOneXYZ;
+                    polyhedronNameSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE;
                 }
                     break;
                 case 1:
@@ -5267,6 +5279,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                             xyzToDraw.push_back(xyz);
                         }
                     }
+                    
+                    polyhedronNameXYZ = polyhedronNameTwoXYZ;
+                    polyhedronNameSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO;
                 }
                     break;
                 case 2:
@@ -5294,6 +5309,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                 }
                             }
                         }
+                        
+                        if (polyhedron != NULL) {
+                            m_volumeSpacePlane.lineSegmentIntersectPlane(polyhedronNameOneXYZ,
+                                                                         polyhedronNameTwoXYZ,
+                                                                         polyhedronNameXYZ);
+                        }
+                        polyhedronNameSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
                     }
                     break;
             }
@@ -5459,6 +5481,18 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 GraphicsEngineDataOpenGL::draw(idPrim.get());
                 drawnFlag = true;
             }
+            
+            if (polyhedron != NULL) {
+                if (m_displaySampleNamesFlag) {
+                    const bool selectionFlag(true);
+                    drawPolyhedronName(annotationFile,
+                                       polyhedron,
+                                       windowVertexXYZ,
+                                       polyhedronNameXYZ,
+                                       polyhedronNameSizeHandleType,
+                                       selectionFlag);
+                }
+            }
         }
         else {
             if (drawLinesFlag) {
@@ -5468,9 +5502,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             
             if (polyhedron != NULL) {
                 if (m_displaySampleNamesFlag) {
-                    const std::vector<float>& xyz(primitive->getFloatXYZ());
-                    drawPolyhedronName(polyhedron,
-                                       xyz);
+                    const bool selectionFlag(false);
+                    drawPolyhedronName(annotationFile,
+                                       polyhedron,
+                                       windowVertexXYZ,
+                                       polyhedronNameXYZ,
+                                       polyhedronNameSizeHandleType,
+                                       selectionFlag);
                 }
             }
         }
@@ -5520,62 +5558,118 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
 
 /**
  * Draw the polyhedron name
+ * @param annotationFile
+ *    File containing the polyhedron
  * @param polyhedron
  *    The polyhedron
+ * @param verticesWindowXYZ
+ *    Vertices of the polyhedron in window coords
  * @param verticesXYZ
  *    Vertices for drawing the polyhedron
+ * @param sizeHandleType
+ *    SIze handle if selection mode
+ * @param selectionFlag
+ *    True if in selection mode
  */
 void
-BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationPolyhedron* polyhedron,
-                                                              const std::vector<float>& verticesXYZ)
+BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* annotationFile,
+                                                              AnnotationPolyhedron* polyhedron,
+                                                              const std::vector<Vector3D>& verticesWindowXYZ,                                                              const Vector3D& nameXYZ,
+                                                              const AnnotationSizingHandleTypeEnum::Enum sizeHandleType,
+                                                              const bool selectionFlag)
 {
     if (polyhedron == NULL) {
         return;
     }
-    const int32_t numVertices(polyhedron->getNumberOfCoordinates());
-    if (numVertices < 1) {
+    if (polyhedron->getNumberOfCoordinates() < 1) {
         return;
     }
-    
     const AString polyhedronName(polyhedron->getName());
     if (polyhedronName.isEmpty()) {
         return;
     }
+
+    AnnotationCoordinate ac(*polyhedron->getCoordinate(0));
+    ac.setXYZ(nameXYZ);
     
-    Vector3D viewportXYZ(0.0, 0.0, 0.0);
-    for (int32_t i = 0; i < numVertices; i++) {
-        const int32_t i3(i * 3);
-        viewportXYZ += Vector3D(&verticesXYZ[i3]);
+    Vector3D viewportXYZ;
+    Surface* surfaceDisplayed(NULL);
+    if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                            &ac,
+                                            surfaceDisplayed,
+                                            viewportXYZ)) {
+        const AnnotationFontAttributes* fontAttributes(polyhedron->getFontAttributes());
+        CaretAssert(fontAttributes);
+        
+        AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        annText.setFont(fontAttributes->getFont());
+        annText.setText(polyhedronName);
+        annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        annText.setFontPercentViewportSize(fontAttributes->getFontPercentViewportSize());
+        annText.setTextColor(fontAttributes->getTextColor());
+        uint8_t rgba[4];
+        fontAttributes->getCustomTextColor(rgba);
+        annText.setCustomTextColor(rgba);
+        annText.setBoldStyleEnabled(fontAttributes->isBoldStyleEnabled());
+        annText.setItalicStyleEnabled(fontAttributes->isItalicStyleEnabled());
+        annText.setUnderlineStyleEnabled(fontAttributes->isUnderlineStyleEnabled());
+        
+        glPushAttrib(GL_DEPTH_BITS);
+        glDisable(GL_DEPTH_TEST);
+        BrainOpenGLTextRenderInterface::DrawingFlags flags;
+        flags.setDrawSubstitutedText(false);
+        
+        Vector3D bottomLeft, bottomRight, topRight, topLeft;
+        m_brainOpenGLFixedPipeline->getTextRenderer()->getBoundsForTextAtViewportCoords(annText,
+                                                                                        m_textDrawingFlags,
+                                                                                        viewportXYZ[0], viewportXYZ[1], viewportXYZ[2],
+                                                                                        m_modelSpaceViewport[2], m_modelSpaceViewport[3],
+                                                                                        bottomLeft, bottomRight, topRight, topLeft);
+
+        const Vector3D selectionCenterXYZ((bottomLeft + bottomRight + topLeft + topRight) / 4.0);
+        const int32_t invalidPolyLineCoordinateIndex(-1);
+
+        if (selectionFlag) {
+            if ((sizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE)
+                || (sizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO)) {
+                uint8_t selectionColorRGBA[4];
+                getIdentificationColor(selectionColorRGBA);
+                
+                m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                        polyhedron,
+                                                        sizeHandleType,
+                                                        invalidPolyLineCoordinateIndex,
+                                                        selectionCenterXYZ,
+                                                        verticesWindowXYZ));
+                
+                GraphicsShape::drawBoxFilledByteColor(bottomLeft, bottomRight, topRight, topLeft,
+                                                      selectionColorRGBA);
+            }
+        }
+        else {
+            m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(viewportXYZ[0],
+                                                                                    viewportXYZ[1],
+                                                                                    viewportXYZ[2],
+                                                                                    annText,
+                                                                                    flags);
+            
+            if (polyhedron->isItemSelectedForEditingInWindow(m_inputs->m_windowIndex)) {
+                if ((sizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE)
+                    || (sizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO)) {
+                    const float lineThickness(2.0);
+                    const float innerSpacing = 2.0f + (lineThickness / 2.0f);
+                    
+                    MathFunctions::expandBox(bottomLeft, bottomRight, topRight, topLeft,
+                                             innerSpacing, innerSpacing);
+                    
+                    GraphicsShape::drawBoxOutlineByteColor(bottomLeft, bottomRight, topRight, topLeft,
+                                                           m_foregroundRGBA, GraphicsPrimitive::LineWidthType::PIXELS, 2.0f);
+                }
+            }
+        }
+        glPopAttrib();
     }
-    viewportXYZ /= numVertices;
-    
-    const AnnotationFontAttributes* fontAttributes(polyhedron->getFontAttributes());
-    CaretAssert(fontAttributes);
-    
-    AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-    annText.setFont(fontAttributes->getFont());
-    annText.setText(polyhedronName);
-    annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
-    annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::TOP);
-    annText.setFontPercentViewportSize(fontAttributes->getFontPercentViewportSize());
-    annText.setTextColor(fontAttributes->getTextColor());
-    uint8_t rgba[4];
-    fontAttributes->getCustomTextColor(rgba);
-    annText.setCustomTextColor(rgba);
-    annText.setBoldStyleEnabled(fontAttributes->isBoldStyleEnabled());
-    annText.setItalicStyleEnabled(fontAttributes->isItalicStyleEnabled());
-    annText.setUnderlineStyleEnabled(fontAttributes->isUnderlineStyleEnabled());
-    
-    glPushAttrib(GL_DEPTH_BITS);
-    glDisable(GL_DEPTH_TEST);
-    BrainOpenGLTextRenderInterface::DrawingFlags flags;
-    flags.setDrawSubstitutedText(false);
-    m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(viewportXYZ[0],
-                                                                            viewportXYZ[1],
-                                                                            viewportXYZ[2],
-                                                                            annText,
-                                                                            flags);
-    glPopAttrib();
 }
 
 /**
@@ -6247,6 +6341,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
             drawOutlineCircleFlag = true;
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE:
+            break;
+        case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO:
             break;
     }
     

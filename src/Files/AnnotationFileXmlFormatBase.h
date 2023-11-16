@@ -105,6 +105,10 @@ namespace caret {
         
         static const QString ATTRIBUTE_PLANE_TWO;
         
+        static const QString ATTRIBUTE_PLANE_ONE_NAME_XYZ;
+        
+        static const QString ATTRIBUTE_PLANE_TWO_NAME_XYZ;
+        
         static const QString ATTRIBUTE_ROTATION_ANGLE;
         
         static const QString ATTRIBUTE_SPACER_TAB_INDEX;
@@ -252,6 +256,10 @@ namespace caret {
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_ONE = "plane";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_TWO = "planeTwo";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_ONE_NAME_XYZ = "planeOneNameXYZ";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_TWO_NAME_XYZ = "planeTwoNameXYZ";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     

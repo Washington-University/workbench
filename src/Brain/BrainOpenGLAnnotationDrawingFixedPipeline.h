@@ -359,8 +359,12 @@ namespace caret {
                                         const Plane& plane,
                                         const uint8_t foregroundRGBA[4]);
 
-        void drawPolyhedronName(AnnotationPolyhedron* polyhedron,
-                                const std::vector<float>& verticesXYZ);
+        void drawPolyhedronName(AnnotationFile* annotationFile,
+                                AnnotationPolyhedron* polyhedron,
+                                const std::vector<Vector3D>& verticesWindowXYZ,
+                                const Vector3D& nameXYZ,
+                                const AnnotationSizingHandleTypeEnum::Enum sizeHandleType,
+                                const bool selectionFlag);
         
         bool drawMultiCoordinateShape(AnnotationFile* annotationFile,
                                       AnnotationMultiCoordinateShape* multiCoordShape,
