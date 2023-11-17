@@ -26,6 +26,7 @@
 #undef __SESSION_MANAGER_DECLARE__
 
 #include <QImageReader>
+#include <QNetworkProxyFactory>
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
@@ -154,6 +155,21 @@ SessionManager::SessionManager()
     Brain* brain = new Brain(m_caretPreferences);
     m_brains.push_back(brain);
     m_movieRecorder.reset(new MovieRecorder());
+    
+    switch (ApplicationInformation::getApplicationType()) {
+        case ApplicationTypeEnum::APPLICATION_TYPE_COMMAND_LINE:
+            break;
+        case ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE:
+            /*
+             * Enables the use of the platform-specific proxy settings, and only those.
+             * This should allow use of a proxy when uploading to BALSA.
+             */
+            QNetworkProxyFactory::setUseSystemConfiguration(true);
+            break;
+        case ApplicationTypeEnum::APPLICATION_TYPE_INVALID:
+            break;
+    }
+    
 }
 
 /**

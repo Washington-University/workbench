@@ -30,6 +30,7 @@
 #include <QImageReader>
 #include <QImageWriter>
 #include <QLabel>
+#include <QNetworkProxyFactory>
 #include <QStyle>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -190,6 +191,17 @@ AboutWorkbenchDialog::displayMoreInformation()
         styleName = appStyle->objectName();
     }
     informationData.push_back(QString("Style Name: " + styleName));
+    
+    informationData.push_back("Network Proxies:");
+    QList<QNetworkProxy> proxies(QNetworkProxyFactory::systemProxyForQuery());
+    if (proxies.isEmpty()) {
+        informationData.push_back("   None");
+    }
+    else {
+        for (const auto& proxy : proxies) {
+            informationData.push_back("   Host: " + proxy.hostName());
+        }
+    }
     
     std::vector<AString> imageReadExtensions, imageWriteExtensions;
     ImageFile::getQtSupportedImageFileExtensions(imageReadExtensions,
