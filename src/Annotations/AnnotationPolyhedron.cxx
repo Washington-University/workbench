@@ -203,10 +203,16 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
     
     const Vector3D nameOneToTwoVector((m_planeTwoNameStereotaxicXYZ
                                        - m_planeOneNameStereotaxicXYZ).normal());
-    Vector3D newNameOneXYZ;
-    Vector3D newNameTwoXYZ;
-    if (planeOne.rayIntersection(m_planeOneNameStereotaxicXYZ, nameOneToTwoVector, newNameOneXYZ)
-        && planeTwo.rayIntersection(m_planeOneNameStereotaxicXYZ, nameOneToTwoVector, newNameTwoXYZ)) {
+    Vector3D newNameOneXYZ, newNameTwoXYZ;
+    float distanceOne(0.0), distanceTwo(0.0);
+    if (planeOne.rayIntersection(m_planeOneNameStereotaxicXYZ,
+                                 nameOneToTwoVector,
+                                 newNameOneXYZ,
+                                 distanceOne)
+        && planeTwo.rayIntersection(m_planeTwoNameStereotaxicXYZ,
+                                    nameOneToTwoVector,
+                                    newNameTwoXYZ,
+                                    distanceTwo)) {
         m_planeOneNameStereotaxicXYZ = newNameOneXYZ;
         m_planeTwoNameStereotaxicXYZ = newNameTwoXYZ;
     }
@@ -217,6 +223,24 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
     setModified();
     
     return true;
+}
+
+/**
+ * Apply (copy) for reset range from an undo/redo command
+ * @param polyhedron
+ *    The copy from polyhedron
+ */
+void
+AnnotationPolyhedron::applyRedoUndoForResetRangeToPlane(const AnnotationPolyhedron* polyhedron)
+{
+    CaretAssert(polyhedron);
+    m_planeOne = polyhedron->m_planeOne;
+    m_planeTwo = polyhedron->m_planeTwo;
+    m_planeOneNameStereotaxicXYZ = polyhedron->m_planeOneNameStereotaxicXYZ;
+    m_planeTwoNameStereotaxicXYZ = polyhedron->m_planeTwoNameStereotaxicXYZ;
+    std::vector<std::unique_ptr<AnnotationCoordinate>> coords(polyhedron->getCopyOfAllCoordinates());
+    replaceAllCoordinatesNotConst(coords);
+    setModified();
 }
 
 /**

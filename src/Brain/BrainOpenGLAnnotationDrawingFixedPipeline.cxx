@@ -5574,7 +5574,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
 void
 BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* annotationFile,
                                                               AnnotationPolyhedron* polyhedron,
-                                                              const std::vector<Vector3D>& verticesWindowXYZ,                                                              const Vector3D& nameXYZ,
+                                                              const std::vector<Vector3D>& verticesWindowXYZ,
+                                                              const Vector3D& nameXYZ,
                                                               const AnnotationSizingHandleTypeEnum::Enum sizeHandleType,
                                                               const bool selectionFlag)
 {
@@ -5669,6 +5670,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* an
             }
         }
         glPopAttrib();
+    }
+    else {
+        CaretLogSevere("Failed to draw polyhedron name \""
+                       + polyhedronName
+                       + "\" at "
+                       + nameXYZ.toString());
     }
 }
 

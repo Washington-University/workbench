@@ -358,8 +358,7 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             const AnnotationPolyhedron* polyhedronValue(annotationValue->castToPolyhedron());
             if ((polyhedron != NULL)
                 && (polyhedronValue != NULL)) {
-                std::vector<std::unique_ptr<AnnotationCoordinate>> coords(polyhedronValue->getCopyOfAllCoordinates());
-                polyhedron->replaceAllCoordinatesNotConst(coords);
+                polyhedron->applyRedoUndoForResetRangeToPlane(polyhedronValue);
             }
             else {
                 CaretAssert(0);
