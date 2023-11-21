@@ -99,10 +99,6 @@ namespace caret {
         
         bool rayIntersection(const float rayOrigin[3],
                              const float rayVector[3],
-                             float intersectionXYZandDistance[4]) const;
-        
-        bool rayIntersection(const float rayOrigin[3],
-                             const float rayVector[3],
                              Vector3D& intersectionOutXYZ,
                              float& distanceOut) const;
         

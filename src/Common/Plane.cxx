@@ -506,16 +506,18 @@ Plane::projectPointToPlane(const float pointIn[3]) const
  *     Origin of the ray
  * @param rayVector
  *     Vector defining the ray.
- * @param intersectionXYZandDistance
- *     Coordinate of where the ray intersects the plane (XYZ) and the
- *     distance of the ray origin from the plane.
+ * @param intersectionOutXYZ
+ *     Coordinate of where the ray intersects the plane (XYZ)
+ * @param distanceOut
+ *     Distance of the ray origin from the plane.
  * @return
  *     True if the ray intersects the plane, else false.
  */
 bool
 Plane::rayIntersection(const float rayOrigin[3],
                        const float rayVector[3],
-                       float intersectionXYZandDistance[4]) const
+                       Vector3D& intersectionOutXYZ,
+                       float& distanceOut) const
 {
     /* Convert the ray into a unit vector
      *
@@ -530,47 +532,16 @@ Plane::rayIntersection(const float rayOrigin[3],
     if (denom != 0) {
         const double t = -(m_A * rayOrigin[0] + m_B * rayOrigin[1] + m_C * rayOrigin[2] + m_D) / denom;
         
-        intersectionXYZandDistance[0] = (float)(rayOrigin[0] + ray[0] * t);
-        intersectionXYZandDistance[1] = (float)(rayOrigin[1] + ray[1] * t);
-        intersectionXYZandDistance[2] = (float)(rayOrigin[2] + ray[2] * t);
+        intersectionOutXYZ[0] = (float)(rayOrigin[0] + ray[0] * t);
+        intersectionOutXYZ[1] = (float)(rayOrigin[1] + ray[1] * t);
+        intersectionOutXYZ[2] = (float)(rayOrigin[2] + ray[2] * t);
         
-        intersectionXYZandDistance[3] = (float)t;
+        distanceOut = (float)t;
         
         return true;
     }
     
     return false;
-}
-
-/**
- * Determine if and where a ray intersects the plane.
- *
- * @param rayOrigin
- *     Origin of the ray
- * @param rayVector
- *     Vector defining the ray.
- * @param intersectionOutXYZ
- *     Coordinate of where the ray intersects the plane (XYZ)
- * @param distanceOut
- *     Distance of the ray origin from the plane.
- * @return
- *     True if the ray intersects the plane, else false.
- */
-bool
-Plane::rayIntersection(const float rayOrigin[3],
-                       const float rayVector[3],
-                       Vector3D& intersectionOutXYZ,
-                       float& distanceOut) const
-{
-    float xyzAndDistance[4];
-    const float resultFlag(rayIntersection(rayOrigin,
-                                           rayVector,
-                                           xyzAndDistance));
-    intersectionOutXYZ.set(xyzAndDistance[0],
-                           xyzAndDistance[1],
-                           xyzAndDistance[2]);
-    distanceOut = xyzAndDistance[3];
-    return resultFlag;
 }
 
 

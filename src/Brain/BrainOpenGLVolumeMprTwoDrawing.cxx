@@ -2008,15 +2008,13 @@ BrainOpenGLVolumeMprTwoDrawing::getVolumeSideIntersection(const VolumeMappableIn
     volume->indexToSpace(cIJK, cXYZ);
     volume->indexToSpace(dIJK, dXYZ);
     
-    float xyzAndDistance[4];
+    float distance(0.0);
     Plane plane(aXYZ, bXYZ, cXYZ);
     if (plane.rayIntersection(rayOrigin,
                               rayVector,
-                              xyzAndDistance)) {
-        intersectionXYZOut[0] = xyzAndDistance[0];
-        intersectionXYZOut[1] = xyzAndDistance[1];
-        intersectionXYZOut[2] = xyzAndDistance[2];
-        
+                              intersectionXYZOut,
+                              distance)) {
+
         bool insideFlag(false);
         
         const float degenerateTolerance(0.001);
