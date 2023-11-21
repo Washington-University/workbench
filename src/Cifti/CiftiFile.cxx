@@ -275,7 +275,7 @@ void CiftiFile::setCiftiXML(const CiftiXML& xml, const bool useOldMetadata)
     {
         if (xmlDims[i] < 1) throw DataFileException("cifti xml dimensions must be greater than zero");
     }
-    m_readingImpl.grabNew(NULL);//drop old implementation, as it is now invalid due to XML (and therefore matrix size) change
+    m_readingImpl.grabNew(NULL);//drop old matrix/file, as it is now invalid due to XML (and therefore matrix size) change
     m_writingImpl.grabNew(NULL);
     if (useOldMetadata)
     {
@@ -296,6 +296,7 @@ void CiftiFile::setCiftiXML(const CiftiXML& xml, const bool useOldMetadata)
     } else {
         m_xml = xml;
     }
+    m_xml.clearMutablesModified(); //IO logic uses modified status, so ensure it starts unmodified
     m_dims = xmlDims;
     m_xmlBroken = false;
 }
@@ -411,6 +412,7 @@ void CiftiFile::verifyWriteImpl()
         }
         m_writingImpl.grabNew(new CiftiOnDiskImpl(m_writingFile, m_xml, m_onDiskVersion, shouldSwap(m_endianPref),
                                                   m_writingDataType, m_doWriteScaling, m_minScalingVal, m_maxScalingVal));//this constructor makes new file for writing
+        m_xml.clearMutablesModified(); //we just wrote this version of the xml, so mark it as not modified
         if (m_readingImpl != NULL)
         {
             copyImplData(m_readingImpl, m_writingImpl, m_dims);
