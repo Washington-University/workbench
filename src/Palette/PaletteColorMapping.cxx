@@ -1899,7 +1899,14 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* stat
     float mappingMostPositive  = 0.0;
     switch (this->getScaleMode()) {
         case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+            /*
+             * This mode maps (most-negative, zero) and (zero, most positive)
+             * Since data minimums may not be zero, override these minimums
+             * to zero.  The colorbar also does this.
+             */
             statistics->getNonzeroRanges(mappingMostNegative, mappingLeastNegative, mappingLeastPositive, mappingMostPositive);
+            mappingLeastNegative = 0.0;
+            mappingLeastPositive = 0.0;
             break;
         case PaletteScaleModeEnum::MODE_AUTO_SCALE_ABSOLUTE_PERCENTAGE:
         {
