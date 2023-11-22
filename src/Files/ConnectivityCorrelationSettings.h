@@ -51,6 +51,8 @@ namespace caret {
         
         bool operator==(const ConnectivityCorrelationSettings& obj) const;
         
+        bool operator!=(const ConnectivityCorrelationSettings& obj) const;
+        
         ConnectivityCorrelationModeEnum::Enum getMode() const;
         
         void setMode(const ConnectivityCorrelationModeEnum::Enum mode);

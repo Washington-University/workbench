@@ -23,6 +23,7 @@
 
 #define __CONNECTIVITY_CORRELATION_DECLARE__
 #include "ConnectivityCorrelation.h"
+#include "ConnectivityCorrelationSettings.h"
 #undef __CONNECTIVITY_CORRELATION_DECLARE__
 
 #include "CaretAssert.h"
@@ -45,6 +46,8 @@ using namespace caret;
 /**
  * Create new instance for data that is in one contiguous "chunk" of memory
  *
+ * @param settings
+ *    The settings for the correlation and covariance operations
  * @param data
  *    Points to first timepoint for first brainordinate
  * @param numberOfBrainordinates
@@ -71,7 +74,8 @@ using namespace caret;
  *     nextTimePointStride     = dim[0] * dim[1] * dim[3] (sizeof a 'brick')
  */
 ConnectivityCorrelation*
-ConnectivityCorrelation::newInstance(const float* data,
+ConnectivityCorrelation::newInstance(const ConnectivityCorrelationSettings& settings,
+                                     const float* data,
                                      const int64_t numberOfBrainordinates,
                                      const int64_t nextBrainordinateStride,
                                      const int64_t numberOfTimePoints,
@@ -93,7 +97,8 @@ ConnectivityCorrelation::newInstance(const float* data,
      * for brainordinates is faster when each brainordinates timepoint's are in a
      * contigous section of memory (nextTimePointStride == 1).
      */
-    ConnectivityCorrelation* instanceOut = newInstanceBrainordinates(brainordinateDataPointers,
+    ConnectivityCorrelation* instanceOut = newInstanceBrainordinates(settings,
+                                                                     brainordinateDataPointers,
                                                                      numberOfTimePoints,
                                                                      nextTimePointStride,
                                                                      errorMessageOut);
@@ -104,6 +109,8 @@ ConnectivityCorrelation::newInstance(const float* data,
 /**
  * Create a new instance where each chunk of memory contains all timepoints for one brainordinate.
  *
+ * @param settings
+ *    The settings for the correlation and covariance operations
  * @param brainordinateDataPointers
  *    Each element points to all timepoints for one brainordinate
  * @param numberOfTimePoints
@@ -117,7 +124,8 @@ ConnectivityCorrelation::newInstance(const float* data,
  *    Pointer to new instance or NULL if there is an error.
  */
 ConnectivityCorrelation*
-ConnectivityCorrelation::newInstanceBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+ConnectivityCorrelation::newInstanceBrainordinates(const ConnectivityCorrelationSettings& settings,
+                                                   const std::vector<const float*>& brainordinateDataPointers,
                                                    const int64_t numberOfTimePoints,
                                                    const int64_t nextTimePointStride,
                                                    AString& errorMessageOut)
@@ -125,8 +133,10 @@ ConnectivityCorrelation::newInstanceBrainordinates(const std::vector<const float
     errorMessageOut.clear();
     
     ConnectivityCorrelation* instanceOut = ((nextTimePointStride == 1)
-                                            ? new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA)
-                                            : new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA));
+                                            ? new ConnectivityCorrelation(settings,
+                                                                          DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA)
+                                            : new ConnectivityCorrelation(settings,
+                                                                          DataTypeEnum::BRAINORDINATES_NON_CONTIGUOUS_DATA));
     const bool validFlag = instanceOut->initializeWithBrainordinates(brainordinateDataPointers,
                                                                      numberOfTimePoints,
                                                                      nextTimePointStride,
@@ -142,6 +152,8 @@ ConnectivityCorrelation::newInstanceBrainordinates(const std::vector<const float
 /**
  * Create a new instance where each chunk of memory contains one timepoint for all brainordinates
  *
+ * @param settings
+ *    The settings for the correlation and covariance operations
  * @param timePointDataPointers
  *    Each element points to all brainordinates for one timepoint
  * @param numberOfBrainordinates
@@ -162,14 +174,16 @@ ConnectivityCorrelation::newInstanceBrainordinates(const std::vector<const float
  *     numberOfTimePoints      = number of maps in file (each map is one time point)
  */
 ConnectivityCorrelation*
-ConnectivityCorrelation::newInstanceTimePoints(const std::vector<const float*>& timePointDataPointers,
+ConnectivityCorrelation::newInstanceTimePoints(const ConnectivityCorrelationSettings& settings,
+                                               const std::vector<const float*>& timePointDataPointers,
                                                const int64_t numberOfBrainordinates,
                                                const int64_t nextBrainordinateStride,
                                                AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
-    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(DataTypeEnum::TIMEPOINTS);
+    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(settings,
+                                                                       DataTypeEnum::TIMEPOINTS);
     const bool validFlag = instanceOut->initializeWithTimePoints(timePointDataPointers,
                                                                  numberOfBrainordinates,
                                                                  nextBrainordinateStride,
@@ -184,6 +198,8 @@ ConnectivityCorrelation::newInstanceTimePoints(const std::vector<const float*>& 
 
 /**
  * Create a new instance for correlating data associated with parcels
+ * @param settings
+ *    The settings for the correlation and covariance operations
  * @param parcelDataPointers
  *    Pointers to the first data element for each parcel (assumes all elements are consecutive in each parcel)
  * @param numberOfDataElementsPerParcel
@@ -194,13 +210,15 @@ ConnectivityCorrelation::newInstanceTimePoints(const std::vector<const float*>& 
  *    Pointer to new instnace or NULL if there is an error
  */
 ConnectivityCorrelation*
-ConnectivityCorrelation::newInstanceParcels(const std::vector<const float*> parcelDataPointers,
+ConnectivityCorrelation::newInstanceParcels(const ConnectivityCorrelationSettings& settings,
+                                            const std::vector<const float*> parcelDataPointers,
                                             const int64_t numberOfDataElementsPerParcel,
                                             AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
-    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
+    ConnectivityCorrelation* instanceOut = new ConnectivityCorrelation(settings,
+                                                                       DataTypeEnum::BRAINORDINATES_CONTIGUOUS_DATA);
     const int64_t nextTimePointStride(1);
     const bool validFlag(instanceOut->initializeWithBrainordinates(parcelDataPointers,
                                                                    numberOfDataElementsPerParcel,
@@ -217,14 +235,27 @@ ConnectivityCorrelation::newInstanceParcels(const std::vector<const float*> parc
 /**
  * Constructor
  *
+ * @param settings
+ *    The settings for the correlation and covariance operations
  * @param dataType
  *     Type of data (brainordinate or timepoint)
  *
  */
-ConnectivityCorrelation::ConnectivityCorrelation(const DataTypeEnum dataType)
-: m_dataType(dataType)
+ConnectivityCorrelation::ConnectivityCorrelation(const ConnectivityCorrelationSettings& settings,
+                                                 const DataTypeEnum dataType)
+: m_settings(settings),
+m_dataType(dataType)
 {
-    
+    m_fisherZFlag = false;
+    m_noDemeanFlag = false;
+    switch (m_settings.getMode()) {
+        case ConnectivityCorrelationModeEnum::CORRELATION:
+            m_fisherZFlag  = m_settings.isCorrelationFisherZEnabled();
+            m_noDemeanFlag = m_settings.isCorrelationNoDemeanEnabled();
+            break;
+        case ConnectivityCorrelationModeEnum::COVARIANCE:
+            break;
+    }
 }
 
 /**
@@ -388,7 +419,7 @@ ConnectivityCorrelation::getCorrelationForBrainordinateData(const std::vector<fl
         sum        += d;
         sumSquared += (d * d);
     }
-    const float mean = (sum / m_numberOfTimePoints);
+    const float mean(computeMean(sum, m_numberOfTimePoints));
     const float ssxxSquared = (sumSquared - (m_numberOfTimePoints * mean * mean));
     const float ssxx = std::sqrt(ssxxSquared);
     
@@ -422,6 +453,36 @@ ConnectivityCorrelation::getCorrelationForBrainordinateData(const std::vector<fl
     }
 }
 
+/**
+ * @return The settings
+ */
+const
+ConnectivityCorrelationSettings*
+ConnectivityCorrelation::getSettings() const
+{
+    return &m_settings;
+}
+
+/**
+ * Compute the mean and perhaps override with no-demean option
+ * @param dataSum
+ *    Sum of the items
+ * @param numberOfItems
+ *    Number of items
+ * @return Mean value or zero if no-demean
+ */
+float
+ConnectivityCorrelation::computeMean(const float dataSum,
+                                     const float numberOfItems) const
+{
+    float meanOut(0.0);
+    if (numberOfItems > 0.0) {
+        if ( ! m_noDemeanFlag) {
+            meanOut = dataSum / numberOfItems;
+        }
+    }
+    return meanOut;
+}
 
 /**
  * Get correlation from the given brainordinate ROI to all other brainordinates
@@ -460,7 +521,7 @@ ConnectivityCorrelation::getCorrelationForBrainordinateROI(const std::vector<int
                 sum        += d;
                 sumSquared += (d * d);
             }
-            const float mean = (sum / m_numberOfTimePoints);
+            const float mean(computeMean(sum, m_numberOfTimePoints));
             const float ssxxSquared = (sumSquared - (m_numberOfTimePoints * mean * mean));
             const float ssxx = std::sqrt(ssxxSquared);
             
@@ -596,13 +657,16 @@ ConnectivityCorrelation::correlationBrainordinateContiguousDataAux(const float* 
                          toGroup->m_data,
                          m_numberOfTimePoints);
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
+    const double ssxy = (m_noDemeanFlag
+                         ? xySum
+                         : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
     if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
         correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
+    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -629,9 +693,11 @@ ConnectivityCorrelation::correlationBrainordinateNonContiguousData(const int64_t
     CaretAssertVectorIndex(m_meanSSData, fromBrainordinateIndex);
     const BrainordinateMeanSS* fromMeanSS = m_meanSSData[fromBrainordinateIndex].get();
     
-    
+    const float fromMean(m_noDemeanFlag
+                         ? 0.0
+                         : fromMeanSS->m_mean);
     return correlationBrainordinateNonContiguousDataAux(&data[0],
-                                                        fromMeanSS->m_mean,
+                                                        fromMean,
                                                         fromMeanSS->m_sqrt_ssxx,
                                                         toBrainordinateIndex);
 }
@@ -674,13 +740,16 @@ ConnectivityCorrelation::correlationBrainordinateNonContiguousDataAux(const floa
         toOffset   += toStride;
     }
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
+    const double ssxy = (m_noDemeanFlag
+                         ? xySum
+                         : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
     if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
         correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
+    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -752,13 +821,16 @@ ConnectivityCorrelation::correlationTimePointDataAux(const float* fromBrainordin
         xySum += (fromBrainordinateData[i] * tpd->m_data[toOffset]);
     }
     
-    const double ssxy = xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean);
+    const double ssxy = (m_noDemeanFlag
+                         ? xySum
+                         : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
     if ((fromBrainordinateSSXX > 0.0)
         && (toMeanSS->m_sqrt_ssxx > 0.0)) {
         correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
     }
+    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -813,7 +885,7 @@ ConnectivityCorrelation::computeBrainordinateMeanAndSumSquared()
         }
 
 
-        const float mean = (sum / numTimePointsFloat);
+        const float mean(computeMean(sum, numTimePointsFloat));
         const float ssxxSquared = (sumSquared - (numTimePointsFloat * mean * mean));
         const float ssxx = std::sqrt(ssxxSquared);
         
@@ -825,4 +897,26 @@ ConnectivityCorrelation::computeBrainordinateMeanAndSumSquared()
     
     CaretAssert(static_cast<int64_t>(m_meanSSData.size()) == m_numberOfBrainordinates);
 }
+
+/**
+ * Finalize the coefficient by limiting +/- one and possibly apply Fisher-Z
+ */
+float
+ConnectivityCorrelation::finalizeCoefficient(const float coefficient) const
+{
+    float r(coefficient);
+
+    if (m_fisherZFlag) {
+        if (r > 0.999999) r = 0.999999;//prevent inf
+        if (r < -0.999999) r = -0.999999;//prevent -inf
+        r = 0.5 * std::log((1 + r) / (1 - r));
+    }
+    else {
+        if (r > 1.0) r = 1.0;//don't output anything silly
+        if (r < -1.0) r = -1.0;
+    }
+
+    return r;
+}
+
 

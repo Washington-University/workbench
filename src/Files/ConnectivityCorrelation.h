@@ -27,31 +27,37 @@
 
 #include "CaretAssert.h"
 #include "CaretObject.h"
-
+#include "ConnectivityCorrelationSettings.h"
 
 namespace caret {
 
+    class ConnectivityCorrelationSettings;
+    
     class ConnectivityCorrelation : public CaretObject {
         
     public:
-        static ConnectivityCorrelation* newInstance(const float* data,
+        static ConnectivityCorrelation* newInstance(const ConnectivityCorrelationSettings& settings,
+                                                    const float* data,
                                                     const int64_t numberOfBrainordinates,
                                                     const int64_t nextBrainordinateStride,
                                                     const int64_t numberOfTimePoints,
                                                     const int64_t nextTimePointStride,
                                                     AString& errorMessageOut);
 
-        static ConnectivityCorrelation* newInstanceBrainordinates(const std::vector<const float*>& brainordinateDataPointers,
+        static ConnectivityCorrelation* newInstanceBrainordinates(const ConnectivityCorrelationSettings& settings,
+                                                                  const std::vector<const float*>& brainordinateDataPointers,
                                                                   const int64_t numberOfTimePoints,
                                                                   const int64_t nextTimePointStride,
                                                                   AString& errorMessageOut);
 
-        static ConnectivityCorrelation* newInstanceTimePoints(const std::vector<const float*>& timePointDataPointers,
-                                                                  const int64_t numberOfBrainordinates,
-                                                                  const int64_t nextBrainordinateStride,
-                                                                  AString& errorMessageOut);
+        static ConnectivityCorrelation* newInstanceTimePoints(const ConnectivityCorrelationSettings& settings,
+                                                              const std::vector<const float*>& timePointDataPointers,
+                                                              const int64_t numberOfBrainordinates,
+                                                              const int64_t nextBrainordinateStride,
+                                                              AString& errorMessageOut);
         
-        static ConnectivityCorrelation* newInstanceParcels(const std::vector<const float*> parcelDataPointers,
+        static ConnectivityCorrelation* newInstanceParcels(const ConnectivityCorrelationSettings& settings,
+                                                           const std::vector<const float*> parcelDataPointers,
                                                            const int64_t numberOfDataElementsPerParcel,
                                                            AString& errorMessageOut);
         
@@ -64,9 +70,6 @@ namespace caret {
         
         ConnectivityCorrelation& operator=(const ConnectivityCorrelation&) = delete;
         
-        void getCorrelationForParcel(const int64_t parcelIndex,
-                                     std::vector<float>& dataOut);
-        
         void getCorrelationForBrainordinate(const int64_t brainordinateIndex,
                                             std::vector<float>& dataOut);
 
@@ -76,6 +79,7 @@ namespace caret {
         void getCorrelationForBrainordinateData(const std::vector<float>& brainordinateData,
                                                 std::vector<float>& dataOut);
 
+        const ConnectivityCorrelationSettings* getSettings() const;
 
         // ADD_NEW_METHODS_HERE
         
@@ -87,7 +91,8 @@ namespace caret {
             TIMEPOINTS
         };
         
-        ConnectivityCorrelation(const DataTypeEnum dataType);
+        ConnectivityCorrelation(const ConnectivityCorrelationSettings& settings,
+                                const DataTypeEnum dataType);
         
         /**
          * Contains timepoints for one brainordinate
@@ -242,6 +247,13 @@ namespace caret {
                                           const float fromBrainordinateSSXX,
                                           const int64_t toBrainordinateIndex) const;
 
+        float computeMean(const float dataSum,
+                          const float numberOfItems) const;
+        
+        float finalizeCoefficient(const float coefficient) const;
+        
+        const ConnectivityCorrelationSettings m_settings;
+        
         DataTypeEnum m_dataType = DataTypeEnum::INVALID;
         
         int64_t m_numberOfBrainordinates = -1;
@@ -253,6 +265,10 @@ namespace caret {
         std::vector<std::unique_ptr<TimePointData>> m_timePointData;
         
         std::vector<std::unique_ptr<BrainordinateMeanSS>> m_meanSSData;
+        
+        bool m_noDemeanFlag = false;
+        
+        bool m_fisherZFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

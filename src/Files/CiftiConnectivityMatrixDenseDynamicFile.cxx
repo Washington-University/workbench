@@ -284,7 +284,7 @@ CiftiConnectivityMatrixDenseDynamicFile::getProcessedDataForRow(float* dataOut,
                   0.0);
         return;
     }
-    
+        
     connCorrelation->getCorrelationForBrainordinate(index,
                                                     dataVector);
 
@@ -583,6 +583,16 @@ ConnectivityCorrelation*
 CiftiConnectivityMatrixDenseDynamicFile::getConnectivityCorrelation() const
 {
     if ( ! m_connectivityCorrelationFailedFlag) {
+        /**
+         * Need to recreate correlation algorithm if settins have changed
+         */
+        if (m_connectivityCorrelation != NULL) {
+            if (*m_correlationSettings != *m_connectivityCorrelation->getSettings()) {
+                m_connectivityCorrelation.reset();
+                CaretLogFine("Recreating correlation algorithm for "
+                             + getFileName());
+            }
+        }
         if (m_connectivityCorrelation == NULL) {
             /*
              * Need data and timepoint count from parent file
@@ -605,7 +615,8 @@ CiftiConnectivityMatrixDenseDynamicFile::getConnectivityCorrelation() const
             const int64_t nextBrainordinateStride(m_numberOfTimePoints);
             const int64_t nextTimePointStride(1);
             AString errorMessage;
-            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(&m_dataSeriesMatrixData[0],
+            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(*m_correlationSettings,
+                                                                               &m_dataSeriesMatrixData[0],
                                                                                m_numberOfBrainordinates,
                                                                                nextBrainordinateStride,
                                                                                m_numberOfTimePoints,

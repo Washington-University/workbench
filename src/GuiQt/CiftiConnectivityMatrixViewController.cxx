@@ -44,6 +44,7 @@
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiParcelScalarFile.h"
+#include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "ConnectivityCorrelationSettingsMenu.h"
 #include "CursorDisplayScoped.h"
 #include "EventDataFileAdd.h"
@@ -323,9 +324,17 @@ CiftiConnectivityMatrixViewController::updateViewController()
         const CiftiFiberTrajectoryFile* trajFile = dynamic_cast<const CiftiFiberTrajectoryFile*>(files[i]);
         const VolumeDynamicConnectivityFile* volDynConnFile = dynamic_cast<VolumeDynamicConnectivityFile*>(files[i]);
         const MetricDynamicConnectivityFile* metricDynConnFile = dynamic_cast<MetricDynamicConnectivityFile*>(files[i]);
-        
+        const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
+        const CiftiConnectivityMatrixParcelDynamicFile* parcelDynConnFile = dynamic_cast<const CiftiConnectivityMatrixParcelDynamicFile*>(files[i]);
+
         bool checkStatus = false;
-        if (matrixFile != NULL) {
+        if (dynConnFile != NULL) {
+            checkStatus = dynConnFile->isMapDataLoadingEnabled(0);
+        }
+        else if (parcelDynConnFile != NULL) {
+            checkStatus = parcelDynConnFile->isMapDataLoadingEnabled(0);
+        }
+        else if (matrixFile != NULL) {
             checkStatus = matrixFile->isMapDataLoadingEnabled(0);
         }
         else if (trajFile != NULL) {
@@ -345,21 +354,29 @@ CiftiConnectivityMatrixViewController::updateViewController()
         checkBox->setProperty(FILE_POINTER_PROPERTY_NAME,
                               QVariant::fromValue((void*)files[i]));
 
-        const CiftiConnectivityMatrixDenseDynamicFile* dynConnFile = dynamic_cast<const CiftiConnectivityMatrixDenseDynamicFile*>(files[i]);
+        bool dynFileFlag(false);
         if (dynConnFile != NULL) {
+            dynFileFlag = true;
             layerCheckBox->setChecked(dynConnFile->isEnabledAsLayer());
         }
         else if (volDynConnFile != NULL) {
+            dynFileFlag = true;
             layerCheckBox->setChecked(volDynConnFile->isEnabledAsLayer());
         }
         else if (metricDynConnFile != NULL) {
+            dynFileFlag = true;
             layerCheckBox->setChecked(metricDynConnFile->isEnabledAsLayer());
+        }
+        else if (parcelDynConnFile != NULL) {
+            dynFileFlag = true;
+            layerCheckBox->setChecked(parcelDynConnFile->isEnabledAsLayer());
         }
         else {
             layerCheckBox->setChecked(false);
         }
         
         lineEdit->setText(files[i]->getFileName());
+        optionsToolButton->setEnabled(dynFileFlag);
     }
 
 
@@ -391,6 +408,7 @@ CiftiConnectivityMatrixViewController::updateViewController()
         m_fileNameLineEdits[i]->setVisible(showRow);
         m_fiberOrientationFileComboBoxes[i]->setVisible(showOrientationComboBox);
         m_fiberOrientationFileComboBoxes[i]->setEnabled(showOrientationComboBox);
+        m_optionsToolButtons[i]->setVisible(showRow);
     }
     
     updateFiberOrientationComboBoxes();

@@ -462,6 +462,17 @@ ConnectivityCorrelation*
 MetricDynamicConnectivityFile::getConnectivityCorrelation()
 {
     if ( ! m_connectivityCorrelationFailedFlag) {
+        /**
+         * Need to recreate correlation algorithm if settins have changed
+         */
+        if (m_connectivityCorrelation != NULL) {
+            if (*m_correlationSettings != *m_connectivityCorrelation->getSettings()) {
+                m_connectivityCorrelation.reset();
+                CaretLogFine("Recreating correlation algorithm for "
+                             + getFileName());
+            }
+        }
+        
         if (m_connectivityCorrelation == NULL) {
             /*
              * Need data and timepoint count from parent file
@@ -477,7 +488,8 @@ MetricDynamicConnectivityFile::getConnectivityCorrelation()
             }
             const int64_t brainordinateStride(1);
             AString errorMessage;
-            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceTimePoints(timePointData,
+            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceTimePoints(*m_correlationSettings,
+                                                                                         timePointData,
                                                                                          m_numberOfVertices,
                                                                                          brainordinateStride,
                                                                                          errorMessage);

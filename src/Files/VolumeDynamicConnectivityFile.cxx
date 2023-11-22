@@ -520,6 +520,16 @@ VolumeDynamicConnectivityFile::getConnectivityCorrelation()
 {
     if ( ! m_connectivityCorrelationFailedFlag) {
         if (m_voxelData != NULL) {
+            /**
+             * Need to recreate correlation algorithm if settins have changed
+             */
+            if (m_connectivityCorrelation != NULL) {
+                if (*m_correlationSettings != *m_connectivityCorrelation->getSettings()) {
+                    m_connectivityCorrelation.reset();
+                    CaretLogFine("Recreating correlation algorithm for "
+                                 + getFileName());
+                }
+            }
             if (m_connectivityCorrelation == NULL) {
                 /*
                  * Need data and timepoint count from parent volume
@@ -540,7 +550,8 @@ VolumeDynamicConnectivityFile::getConnectivityCorrelation()
                 const int64_t nextTimePointStride(voxelCount);      // Each group element is in separate IJK 'brick'
                 
                 AString errorMessage;
-                ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(parentVoxels,
+                ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstance(*m_correlationSettings,
+                                                                                   parentVoxels,
                                                                                    numberOfBrainordinates,
                                                                                    nextBrainordinateStride,
                                                                                    numberOfTimePoints,

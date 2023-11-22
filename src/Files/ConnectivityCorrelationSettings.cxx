@@ -132,6 +132,20 @@ ConnectivityCorrelationSettings::operator==(const ConnectivityCorrelationSetting
 }
 
 /**
+ * Inequality operator.
+ * @param obj
+ *    Instance compared to this for equality.
+ * @return
+ *    True if this instance and 'obj' instance are considered equal.
+ */
+bool
+ConnectivityCorrelationSettings::operator!=(const ConnectivityCorrelationSettings& obj) const
+{
+    return ( ! (*this == obj));
+}
+
+
+/**
  * @return The mode
  */
 ConnectivityCorrelationModeEnum::Enum
