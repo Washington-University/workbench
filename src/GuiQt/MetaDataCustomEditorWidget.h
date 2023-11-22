@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <map>
+#include <memory>
 #include <set>
 
 #include <QDate>
