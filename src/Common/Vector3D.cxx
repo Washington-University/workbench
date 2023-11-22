@@ -332,8 +332,13 @@ Vector3D::fromString(const AString& s,
     Vector3D xyz;
     xyz.fill(0.0);
     
+#if QT_VERSION >= 0x060000
     const QStringList stringList(s.split(",",
                                          Qt::SkipEmptyParts));
+#else
+    const QStringList stringList(s.split(",",
+                                         QString::SkipEmptyParts));
+#endif
     if (stringList.size() == 3) {
         bool xValid(false), yValid(false), zValid(false);
         xyz[0] = stringList.at(0).toFloat(&xValid);
