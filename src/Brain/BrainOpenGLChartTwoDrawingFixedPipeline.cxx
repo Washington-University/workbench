@@ -487,14 +487,16 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                 GraphicsPrimitive* primitive = matrixChart->getMatrixChartingGraphicsPrimitive(triangleMode,
                                                                                                CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
                                                                                                chartOverlay->getMatrixOpacity());
-                if (primitive->isValid()) {
-                    BoundingBox boundingBox;
-                    if (primitive->getVertexBounds(boundingBox)) {
-                        matrixChartsToDraw.push_back(MatrixChartDrawingInfo(matrixChart,
-                                                                            primitive,
-                                                                            chartOverlay,
-                                                                            triangleMode,
-                                                                            chartOverlay->getMatrixOpacity()));
+                if (primitive != NULL) {
+                    if (primitive->isValid()) {
+                        BoundingBox boundingBox;
+                        if (primitive->getVertexBounds(boundingBox)) {
+                            matrixChartsToDraw.push_back(MatrixChartDrawingInfo(matrixChart,
+                                                                                primitive,
+                                                                                chartOverlay,
+                                                                                triangleMode,
+                                                                                chartOverlay->getMatrixOpacity()));
+                        }
                     }
                 }
             }

@@ -1644,6 +1644,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                           + ") OpenGL Maximum dim="
                                           + AString::number(maximumWidthHeight));
                         CaretLogSevere(msg);
+                        return NULL;
                     }
                 }
             }
@@ -1660,6 +1661,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                       "Version="
                                       + GraphicsUtilitiesOpenGL::getVersion());
                     CaretLogSevere(msg);
+                    return NULL;
                 }
             }
         }

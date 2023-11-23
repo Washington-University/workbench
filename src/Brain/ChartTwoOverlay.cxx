@@ -641,9 +641,17 @@ ChartTwoOverlay::getBounds(BoundingBox& boundingBoxOut) const
         case ChartTwoDataTypeEnum::CHART_DATA_TYPE_MATRIX:
         {
             const ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
-            validFlag = matrixChart->getMatrixChartingGraphicsPrimitive(getMatrixTriangularViewingMode(),
-                                                                        CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
-                                                                        getMatrixOpacity())->getVertexBounds(boundingBoxOut);
+            {
+                GraphicsPrimitive* prim(matrixChart->getMatrixChartingGraphicsPrimitive(getMatrixTriangularViewingMode(),
+                                                                                        CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
+                                                                                        getMatrixOpacity()));
+                if (prim != NULL) {
+                    validFlag = prim->getVertexBounds(boundingBoxOut);
+                }
+            }
+//            validFlag = matrixChart->getMatrixChartingGraphicsPrimitive(getMatrixTriangularViewingMode(),
+//                                                                        CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
+//                                                                        getMatrixOpacity())->getVertexBounds(boundingBoxOut);
         }
             break;
     }
