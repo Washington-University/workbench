@@ -93,6 +93,8 @@ namespace caret {
 
         virtual void getSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        virtual void readFile(const AString& ciftiMapFileName) override;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

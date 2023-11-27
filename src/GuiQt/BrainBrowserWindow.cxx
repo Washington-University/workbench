@@ -5138,7 +5138,7 @@ BrainBrowserWindow::showDataFileReadWarningsDialog()
         WuQTextEditorDialog::runNonModal("Data File Warnings",
                                          messages,
                                          WuQTextEditorDialog::TextMode::HTML,
-                                         WuQTextEditorDialog::WrapMode::NO,
+                                         WuQTextEditorDialog::WrapMode::YES,
                                          this);
     }
 }

@@ -36,6 +36,7 @@
 #include "EventMapYokingSelectMap.h"
 #include "EventMapYokingValidation.h"
 #include "FastStatistics.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "NodeAndVoxelColoring.h"
 #include "SceneClassAssistant.h"
 
@@ -658,4 +659,39 @@ CiftiScalarDataSeriesFile::restoreFileDataFromScene(const SceneAttributes* scene
     }
 }
 
-
+/**
+ * Read the file.
+ *
+ * @param ciftiMapFileName
+ *    Name of the file to read.
+ * @throw
+ *    DataFileException if there is an error reading the file.
+ */
+void
+CiftiScalarDataSeriesFile::readFile(const AString& ciftiMapFileName)
+{
+    CiftiMappableDataFile::readFile(ciftiMapFileName);
+    
+    CaretAssert(m_ciftiFile);
+    
+    /*
+     * Verify texture dimensions are supported
+     */
+    int32_t numMatrixRows(0);
+    int32_t numMatrixColumns(0);
+    helpMapFileGetMatrixDimensions(numMatrixRows,
+                                   numMatrixColumns);
+    const int32_t maximumWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+    if ((numMatrixRows > maximumWidthHeight)
+        || (numMatrixColumns > maximumWidthHeight)) {
+        AString text("Matrix dimensions exceed OpenGL capabilities.  "
+                     "Number of rows="
+                     + AString::number(numMatrixRows)
+                     + ", columns="
+                     + AString::number(numMatrixColumns)
+                     + ".  OpenGL maximum dimension="
+                     + AString::number(maximumWidthHeight)
+                     + ".  While this file is selectable as an overlay, it will not be displayed as a matrix.");
+        addFileReadWarning(text);
+    }
+}
