@@ -96,11 +96,12 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     QObject::connect(m_abbreviatedNameCompleter, QOverload<const QString &>::of(&QCompleter::activated),
                      this, &DingOntologyTermsDialog::abbreviatedNameCompleterActivated);
     
-    const bool useDescriptiveNameCompleterFlag(false);
+    const bool useDescriptiveNameCompleterFlag(true);
     m_descriptiveNameCompleter = NULL;
     if (useDescriptiveNameCompleterFlag) {
         m_descriptiveNameCompleterColumnIndex = 2;
         m_descriptiveNameCompleter = new QCompleter(this);
+        m_descriptiveNameCompleter->setFilterMode(Qt::MatchContains);
         m_descriptiveNameCompleter->setModel(m_dingOntologyTermsFile->getTableModel());
         m_descriptiveNameCompleter->setCompletionRole(Qt::EditRole);
         m_descriptiveNameCompleter->setCompletionRole(m_dingOntologyTermsFile->getDescriptiveNameItemRole());
@@ -310,7 +311,17 @@ DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
         QList<QStandardItem*> matchingItems(tableModel->findItems(text,
                                                                   Qt::MatchStartsWith,
                                                                   m_abbreviatedNameCompleterColumnIndex));
-        if (matchingItems.size() == 1) {
+        
+        /*
+         * There may be multiple items that match but use the first item.
+         * If the user types CaH, these items will appear and there will
+         * be four matches:
+         * CaH - head of caudate
+         * CaHdl - dorsolateral part of CaH
+         * CaHr - rostral pole of CaH
+         * CaHvm - ventromedial part of CaH
+         */
+        if (matchingItems.size() >= 1) {
             /*
              * Update the line edits with selected names
              */
@@ -368,10 +379,7 @@ DingOntologyTermsDialog::descriptiveNameCompleterActivated(const QString& text)
         QList<QStandardItem*> matchingItems(tableModel->findItems(text,
                                                                   Qt::MatchContains,
                                                                   m_descriptiveNameCompleterColumnIndex));
-        if ( ! matchingItems.empty()) {
-            std::cout << "Descriptive matched " << matchingItems.size() << " items" << std::endl;
-        }
-        if (matchingItems.size() == 1) {
+        if (matchingItems.size() >= 1) {
             /*
              * Update the line edits with selected names
              */
