@@ -39,6 +39,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "MetaDataCustomEditorDialog.h"
 #include "UserInputModeAnnotationsContextMenu.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
@@ -192,7 +193,11 @@ AnnotationSamplesModifyWidget::updateContent(const std::vector<Annotation*>& ann
 void
 AnnotationSamplesModifyWidget::moreActionTriggered()
 {
+    CaretAssert(m_polyhedronSelected);
+    
     QMenu menu(m_moreToolButton);
+    
+    QAction* editMetadataAction(menu.addAction("Edit Metadata..."));
     
     QAction* infoAction(menu.addAction("Information..."));
     
@@ -200,7 +205,12 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
     
     QAction* actionSelected(menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0))));
     
-    if (actionSelected == infoAction) {
+    if (actionSelected == editMetadataAction) {
+        MetaDataCustomEditorDialog dialog(m_polyhedronSelected,
+                                          m_moreToolButton);
+        dialog.exec();
+    }
+    else if (actionSelected == infoAction) {
         const AString html(m_polyhedronSelected->getPolyhedronInformationHtml());
         WuQTextEditorDialog::runNonModal("Sample Information",
                                          html,
