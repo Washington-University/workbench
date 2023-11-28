@@ -173,15 +173,15 @@ m_browserWindowIndex(browserWindowIndex)
     
     QWidget* samplesWidget(new QWidget());
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
-    WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
+    WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 2);
     samplesLayout->addWidget(newSampleToolButton);
+    samplesLayout->addStretch();
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
-    samplesLayout->addSpacing(8);
+    samplesLayout->addSpacing(4);
     samplesLayout->addWidget(m_upperSliceOffsetLabel);
     samplesLayout->addWidget(m_upperSliceOffsetSpinBox);
     samplesLayout->addWidget(m_lowerSliceOffsetLabel);
     samplesLayout->addWidget(m_lowerSliceOffsetSpinBox);
-    samplesLayout->addStretch();
     
     QWidget* fileWidget(new QWidget());
     QHBoxLayout* fileLayout(new QHBoxLayout(fileWidget));
@@ -191,14 +191,12 @@ m_browserWindowIndex(browserWindowIndex)
     fileLayout->addWidget(newFileToolButton);
     fileLayout->addWidget(saveFileToolButton);
     
-    fileWidget->setFixedWidth(samplesWidget->sizeHint().width());
-    
     QVBoxLayout* layout(new QVBoxLayout(this));
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(fileWidget);
     layout->addWidget(samplesWidget);
     
-    setSizePolicy(QSizePolicy::Fixed,
+    setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH);

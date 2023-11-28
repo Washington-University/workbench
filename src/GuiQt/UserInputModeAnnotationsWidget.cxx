@@ -214,16 +214,15 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                      m_inputModeAnnotations->getUserInputMode(),
                                                                      m_browserWindowIndex);
     
-//    leftWidget->setSizePolicy(leftWidget->sizePolicy().horizontalPolicy(),
-//                              QSizePolicy::Fixed);
-    
-    QHBoxLayout* topLayout(new QHBoxLayout());
+    QWidget* topWidget(new QWidget());
+    QHBoxLayout* topLayout(new QHBoxLayout(topWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 2, 0);
     topLayout->addWidget(m_colorWidget, 0);
     topLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topLayout->addWidget(m_insertSamplesNewWidget, 100);
     
-    QHBoxLayout* bottomLayout(new QHBoxLayout());
+    QWidget* bottomWidget(new QWidget());
+    QHBoxLayout* bottomLayout(new QHBoxLayout(bottomWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
     bottomLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -234,13 +233,20 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     bottomLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_modifiySamplesWidget, 0, Qt::AlignTop);
-    bottomLayout->addStretch();
+    
+    /*
+     * Do not let top row of widgets become wider that
+     * the bottom row of widgets
+     */
+    bottomWidget->setSizePolicy(QSizePolicy::Fixed,
+                                QSizePolicy::Fixed);
+    topWidget->setFixedWidth(bottomWidget->sizeHint().width());
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addLayout(topLayout);
+    layout->addWidget(topWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addLayout(bottomLayout);
+    layout->addWidget(bottomWidget);
     if (showSamplesLabelFlag) {
         layout->addWidget(new QLabel("Samples"), 0, Qt::AlignHCenter);
     }
