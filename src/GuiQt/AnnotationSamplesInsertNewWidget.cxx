@@ -173,7 +173,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     QWidget* samplesWidget(new QWidget());
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
-    WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
     samplesLayout->addWidget(newSampleToolButton);
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
     samplesLayout->addSpacing(8);
@@ -185,7 +185,7 @@ m_browserWindowIndex(browserWindowIndex)
     
     QWidget* fileWidget(new QWidget());
     QHBoxLayout* fileLayout(new QHBoxLayout(fileWidget));
-    WuQtUtilities::setLayoutSpacingAndMargins(fileLayout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(fileLayout, 2, 0);
     fileLayout->addWidget(fileLabel);
     fileLayout->addWidget(m_fileSelectionComboBox->getWidget(), 100);
     fileLayout->addWidget(newFileToolButton);
@@ -194,7 +194,7 @@ m_browserWindowIndex(browserWindowIndex)
     fileWidget->setFixedWidth(samplesWidget->sizeHint().width());
     
     QVBoxLayout* layout(new QVBoxLayout(this));
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
     layout->addWidget(fileWidget);
     layout->addWidget(samplesWidget);
     

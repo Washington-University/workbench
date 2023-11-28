@@ -109,6 +109,16 @@ m_browserWindowIndex(browserWindowIndex)
     switch (orientation) {
         case Qt::Horizontal:
             gridLayout->addWidget(new QLabel("Drawing"),
+                                  0, 0, 1, 3, Qt::AlignHCenter);
+            gridLayout->addWidget(m_finishToolButton,
+                                  1, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(cancelToolButton,
+                                  1, 1, Qt::AlignHCenter);
+            gridLayout->addWidget(eraseLastCoordinateToolButton,
+                                  1, 2, Qt::AlignHCenter);
+            break;
+        case Qt::Vertical:
+            gridLayout->addWidget(new QLabel("Drawing"),
                                   0, 0, 1, 2, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
                                   1, 0, Qt::AlignHCenter);
@@ -116,14 +126,6 @@ m_browserWindowIndex(browserWindowIndex)
                                   2, 0, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
                                   1, 1, 2, 1, Qt::AlignCenter);
-            break;
-        case Qt::Vertical:
-            gridLayout->addWidget(m_finishToolButton,
-                                  0, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(cancelToolButton,
-                                  1, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(eraseLastCoordinateToolButton,
-                                  2, 0, Qt::AlignHCenter);
             break;
     }
     

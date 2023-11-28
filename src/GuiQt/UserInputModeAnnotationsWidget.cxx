@@ -181,6 +181,8 @@ UserInputModeAnnotationsWidget::receiveEvent(Event* event)
 void
 UserInputModeAnnotationsWidget::createSamplesEditingWidget()
 {
+    const bool showSamplesLabelFlag(true);
+    
     m_colorWidget                = new AnnotationColorWidget(m_inputModeAnnotations->getUserInputMode(),
                                                              AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET,
                                                              m_browserWindowIndex);
@@ -200,11 +202,15 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
+    m_finishCancelWidget         = new AnnotationFinishCancelWidget((showSamplesLabelFlag
+                                                                     ? Qt::Horizontal
+                                                                     : Qt::Vertical),
                                                                     m_inputModeAnnotations->getUserInputMode(),
                                                                     m_browserWindowIndex);
         
-    m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget(Qt::Vertical, // Qt::Horizontal,
+    m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget((showSamplesLabelFlag
+                                                                      ? Qt::Horizontal
+                                                                      : Qt::Vertical),
                                                                      m_inputModeAnnotations->getUserInputMode(),
                                                                      m_browserWindowIndex);
     
@@ -216,7 +222,6 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     topLayout->addWidget(m_colorWidget, 0);
     topLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     topLayout->addWidget(m_insertSamplesNewWidget, 100);
-    
     
     QHBoxLayout* bottomLayout(new QHBoxLayout());
     WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
@@ -236,6 +241,9 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     layout->addLayout(topLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(bottomLayout);
+    if (showSamplesLabelFlag) {
+        layout->addWidget(new QLabel("Samples"), 0, Qt::AlignHCenter);
+    }
 }
 
 /**
