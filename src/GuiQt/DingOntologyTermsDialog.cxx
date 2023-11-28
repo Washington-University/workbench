@@ -300,6 +300,11 @@ DingOntologyTermsDialog::abbeviatedTextLineEditChanged(const QString& /*text*/)
 void
 DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
 {
+    const bool debugFlag(false);
+    if (debugFlag) {
+        std::cout << "Abbreviated Completer Text: " << text.toStdString() << std::endl;
+    }
+    
     const QStandardItemModel* tableModel(m_dingOntologyTermsFile->getTableModel());
     if (tableModel != NULL) {
         /*
@@ -312,6 +317,16 @@ DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
                                                                   Qt::MatchStartsWith,
                                                                   m_abbreviatedNameCompleterColumnIndex));
         
+        if (debugFlag) {
+            const int32_t numItems(matchingItems.size());
+            for (int32_t i = 0; i < numItems; i++) {
+                const QStandardItem* item(matchingItems.at(i));
+                const QString abbrevName(m_dingOntologyTermsFile->getAbbreviatedName(item));
+                const QString descripName(m_dingOntologyTermsFile->getDescriptiveName(item));
+                std::cout << "   Matching: " << abbrevName.toStdString()
+                << " ---- " << descripName.toStdString() << std::endl;
+            }
+        }
         /*
          * There may be multiple items that match but use the first item.
          * If the user types CaH, these items will appear and there will
@@ -323,18 +338,38 @@ DingOntologyTermsDialog::abbreviatedNameCompleterActivated(const QString& text)
          */
         if (matchingItems.size() >= 1) {
             /*
+             * Default to first item
+             */
+            const QStandardItem* matchedItem(matchingItems.first());
+
+            /*
+             * Look for an exact match
+             */
+            const int32_t numItems(matchingItems.size());
+            for (int32_t i = 0; i < numItems; i++) {
+                const QStandardItem* item(matchingItems.at(i));
+                const QString abbrevName(m_dingOntologyTermsFile->getAbbreviatedName(item));
+                
+                if (text.trimmed() == abbrevName.trimmed()) {
+                    matchedItem = item;
+                    break;
+                }
+            }
+            
+            CaretAssert(matchedItem);
+            
+            /*
              * Update the line edits with selected names
              */
-            const QStandardItem* item(matchingItems.first());
-            const QString abbrevName(m_dingOntologyTermsFile->getAbbreviatedName(item));
-            const QString descripName(m_dingOntologyTermsFile->getDescriptiveName(item));
+            const QString abbrevName(m_dingOntologyTermsFile->getAbbreviatedName(matchedItem));
+            const QString descripName(m_dingOntologyTermsFile->getDescriptiveName(matchedItem));
             m_abbreviatedNameLineEdit->setText(abbrevName);
             m_descriptiveNameLineEdit->setText(descripName);
             
             /*
              * Select row in the table model
              */
-            m_tableView->selectRow(item->row());
+            m_tableView->selectRow(matchedItem->row());
         }
     }
     
