@@ -68,7 +68,10 @@ MetaDataCustomEditorDialog::MetaDataCustomEditorDialog(Annotation* annotation,
                                                polyhedronSamplesFlag,
                                                metaDataNames,
                                                requiredMetaDataNames);
-    initializeDialog(("Edit Annotation Metadata: "
+    const AString titlePrefix((annotation->getType() == AnnotationTypeEnum::POLYHEDRON)
+                              ? "Edit Sample Metadata: "
+                              : "Edit Annotation Metadata: ");
+    initializeDialog((titlePrefix
                       + annotation->getName()),
                      metaDataNames,
                      annotation->getMetaData());
