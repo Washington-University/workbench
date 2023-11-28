@@ -304,16 +304,18 @@ LabelSelectionWidget::restoreSelections(const QString& selectionName)
 void
 LabelSelectionWidget::saveSelections(const QString& selectionName)
 {
-    CaretAssert( ! selectionName.isEmpty());
-    
-    const QString filename(m_fileSelector->getModel()->getSelectedFile()->getFileName());
-    const int32_t mapIndex(m_fileSelector->getModel()->getSelectedMapIndex());
-    const QString labelName(getSelectedLabel());
-    
-    const QString stateString(filename
-                              + s_stateSeparator
-                              + QString::number(mapIndex)
-                              + s_stateSeparator
-                              + labelName);
-    s_previousStates[selectionName] = stateString;
+    if (m_fileSelector->getModel()->getSelectedFile() != NULL) {
+        CaretAssert( ! selectionName.isEmpty());
+        
+        const QString filename(m_fileSelector->getModel()->getSelectedFile()->getFileName());
+        const int32_t mapIndex(m_fileSelector->getModel()->getSelectedMapIndex());
+        const QString labelName(getSelectedLabel());
+        
+        const QString stateString(filename
+                                  + s_stateSeparator
+                                  + QString::number(mapIndex)
+                                  + s_stateSeparator
+                                  + labelName);
+        s_previousStates[selectionName] = stateString;
+    }
 }
