@@ -125,13 +125,15 @@ m_dingOntologyTermsFile(dingOntologyTermsFile)
     }
     QObject::connect(m_abbreviatedNameLineEdit, &QLineEdit::textChanged,
                      this, &DingOntologyTermsDialog::abbeviatedTextLineEditChanged);
+    m_abbreviatedNameLineEdit->setToolTip("Enter text to find matches");
     
     QLabel* descriptiveNameLabel(new QLabel(DingOntologyTermsFile::getDescriptiveNameTitle() + ":"));
     m_descriptiveNameLineEdit  = new QLineEdit();
     if (m_descriptiveNameCompleter != NULL) {
         m_descriptiveNameLineEdit->setCompleter(m_descriptiveNameCompleter);
     }
-    
+    m_descriptiveNameLineEdit->setToolTip("Enter text to find matches");
+
     QGridLayout* namesLayout(new QGridLayout());
     namesLayout->setColumnStretch(0, 0);
     namesLayout->setColumnStretch(1, 100);
