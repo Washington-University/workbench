@@ -45,6 +45,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "MetaDataCustomEditorWidget.h"
+#include "SamplesFile.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -99,6 +100,8 @@ m_volumeSliceThickness(volumeSliceThickness)
     CaretAssert(m_annotation);
     
     m_annotationType = annotation->getType();
+    
+    initializeMetaData(annotationFile);
     
     QWidget* metaDataWidget = ((m_annotationType == AnnotationTypeEnum::POLYHEDRON)
                                ? createMetaDataEditorWidget()
@@ -196,6 +199,82 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
     
     return groupBox;
 }
+
+/**
+ * Initialize the metadata
+ * @param toolbarSamplesFile
+ *    Samples file seledted in toolbar
+ */
+void
+AnnotationSamplesCreateDialog::initializeMetaData(AnnotationFile* toolbarSamplesFile)
+{
+    /*
+     * The default values for a newly drawn sample default to the FIRST OF:
+     *   - The most recently drawn sample since wb_view was started
+     *   - The last sample in the selected sample file in the Edit Samples Toolbar
+     *   - The last sample in the most recently loaded sample file (this will likely
+     *     never happen since there will always be a file in the Edit Samples Toolbar).
+     *   - Empty
+     */
+    
+    /*
+     * Values have been initialized
+     */
+    if ( ! s_previousMetaDataNamesAndValues.empty()) {
+        return;
+    }
+    
+    /*
+     * Default to file in toolbar but it may be NULL
+     */
+    AnnotationFile* samplesFile(toolbarSamplesFile);
+    
+    if (samplesFile == NULL) {
+        /*
+         * Find the last (most recent) samples file
+         */
+        Brain* brain(GuiManager::get()->getBrain());
+        std::vector<SamplesFile*> loadedFiles(brain->getAllSamplesFiles());
+        const int32_t numLoadedFiles(loadedFiles.size());
+        if (numLoadedFiles > 0) {
+            CaretAssertVectorIndex(loadedFiles, numLoadedFiles - 1);
+            samplesFile = loadedFiles[numLoadedFiles - 1];
+        }
+    }
+
+    if (samplesFile != NULL) {
+        /*
+         * Find last annotation in the samples file
+         */
+        std::vector<Annotation*> allAnnotations;
+        samplesFile->getAllAnnotations(allAnnotations);
+        const int32_t numAnn(allAnnotations.size());
+        if (numAnn > 0) {
+            CaretAssertVectorIndex(allAnnotations, numAnn - 1);
+            const Annotation* ann(allAnnotations[numAnn - 1]);
+            CaretAssert(ann);
+            
+            const bool polyhedronSamplesFlag(true);
+            std::vector<AString> metadataNames;
+            std::vector<AString> requiredMetaDataNames;
+            Annotation::getDefaultMetaDataNamesForType(m_annotationType,
+                                                       polyhedronSamplesFlag,
+                                                       metadataNames,
+                                                       m_requiredMetaDataNames);
+
+            /*
+             * Load metadata from annotation to the 'previous' metadata
+             * used to initialize the new annotation's metadata
+             */
+            const GiftiMetaData* metadata(ann->getMetaData());
+            for (const AString& name : metadataNames) {
+                s_previousMetaDataNamesAndValues.insert(std::make_pair(name,
+                                                                       metadata->get(name)));
+            }
+        }
+    }
+}
+
 
 /**
  * Gets called when the OK button is clicked.

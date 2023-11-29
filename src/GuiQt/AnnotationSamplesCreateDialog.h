@@ -69,6 +69,8 @@ namespace caret {
     private:
         QWidget* createMetaDataEditorWidget();
         
+        void initializeMetaData(AnnotationFile* toolbarSamplesFile);
+        
         static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
                                              AnnotationFile* annotationFile,
                                              Annotation* annotation,
