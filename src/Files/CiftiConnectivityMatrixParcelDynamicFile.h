@@ -67,7 +67,7 @@ namespace caret {
                 
         virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
         
-        virtual void getProcessedDataForRow(float* dataOut, const int64_t& index) const;
+        virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const override;
         
         virtual void processRowAverageData(std::vector<float>& rowAverageData);
         

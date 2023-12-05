@@ -331,6 +331,8 @@ ConnectivityCorrelation::initializeWithBrainordinates(const std::vector<const fl
     
     computeBrainordinateMeanAndSumSquared();
     
+    printDebugData();
+    
     return true;
 }
 
@@ -649,6 +651,7 @@ ConnectivityCorrelation::correlationBrainordinateContiguousDataAux(const float* 
     
     CaretAssertVectorIndex(m_brainordinateData, toBrainordinateIndex);
     const BrainordinateData* toGroup   = m_brainordinateData[toBrainordinateIndex].get();
+    CaretAssert(toGroup->m_dataStride == 1);
     
     CaretAssertVectorIndex(m_meanSSData, toBrainordinateIndex);
     const BrainordinateMeanSS* toMeanSS   = m_meanSSData[toBrainordinateIndex].get();
@@ -662,11 +665,28 @@ ConnectivityCorrelation::correlationBrainordinateContiguousDataAux(const float* 
                          : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
-    if ((fromBrainordinateSSXX > 0.0)
-        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+    switch (m_settings.getMode()) {
+        case ConnectivityCorrelationModeEnum::CORRELATION:
+            if ((fromBrainordinateSSXX > 0.0)
+                && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+                correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+            }
+            correlationCoefficient = finalizeCoefficient(correlationCoefficient);
+            break;
+        case ConnectivityCorrelationModeEnum::COVARIANCE:
+        {
+            xySum = 0.0;
+            for (int32_t i = 0; i < m_numberOfTimePoints; i++) {
+                xySum += ((fromBrainordinateData[i] - fromBrainordinateMean)
+                          * (toGroup->m_data[i] - toMeanSS->m_mean));
+            }
+            correlationCoefficient = (xySum / static_cast<float>(m_numberOfTimePoints));
+        }
+//            correlationCoefficient = (xySum / static_cast<float>(m_numberOfTimePoints));
+//            CaretAssert(m_numberOfBrainordinates >= 1);
+//            correlationCoefficient = (xySum / static_cast<float>(m_numberOfBrainordinates));
+            break;
     }
-    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -745,11 +765,20 @@ ConnectivityCorrelation::correlationBrainordinateNonContiguousDataAux(const floa
                          : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
-    if ((fromBrainordinateSSXX > 0.0)
-        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+    switch (m_settings.getMode()) {
+        case ConnectivityCorrelationModeEnum::CORRELATION:
+            if ((fromBrainordinateSSXX > 0.0)
+                && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+                correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+            }
+            correlationCoefficient = finalizeCoefficient(correlationCoefficient);
+            break;
+        case ConnectivityCorrelationModeEnum::COVARIANCE:
+            correlationCoefficient = (ssxy / static_cast<float>(m_numberOfTimePoints));
+            CaretAssert(m_numberOfBrainordinates >= 1);
+            correlationCoefficient = (xySum / static_cast<float>(m_numberOfBrainordinates));
+            break;
     }
-    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -826,11 +855,20 @@ ConnectivityCorrelation::correlationTimePointDataAux(const float* fromBrainordin
                          : (xySum - (m_numberOfTimePoints * fromBrainordinateMean * toMeanSS->m_mean)));
     
     float correlationCoefficient = 0.0;
-    if ((fromBrainordinateSSXX > 0.0)
-        && (toMeanSS->m_sqrt_ssxx > 0.0)) {
-        correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+    switch (m_settings.getMode()) {
+        case ConnectivityCorrelationModeEnum::CORRELATION:
+            if ((fromBrainordinateSSXX > 0.0)
+                && (toMeanSS->m_sqrt_ssxx > 0.0)) {
+                correlationCoefficient = (ssxy / (fromBrainordinateSSXX * toMeanSS->m_sqrt_ssxx));
+                correlationCoefficient = finalizeCoefficient(correlationCoefficient);
+            }
+            break;
+        case ConnectivityCorrelationModeEnum::COVARIANCE:
+            correlationCoefficient = (ssxy / static_cast<float>(m_numberOfTimePoints));
+            CaretAssert(m_numberOfBrainordinates >= 1);
+            correlationCoefficient = (xySum / static_cast<float>(m_numberOfBrainordinates));
+            break;
     }
-    correlationCoefficient = finalizeCoefficient(correlationCoefficient);
     return correlationCoefficient;
 }
 
@@ -917,6 +955,20 @@ ConnectivityCorrelation::finalizeCoefficient(const float coefficient) const
     }
 
     return r;
+}
+
+void
+ConnectivityCorrelation::printDebugData()
+{
+    std::cout << "ConnectivityCorrelation:" << std::endl;
+    std::cout << "   Number of data sets: " << m_meanSSData.size() << std::endl;
+    const int32_t numToPrint(std::min(50,
+                                      static_cast<int32_t>(m_meanSSData.size())));
+    for (int32_t i = 0; i < numToPrint; i++) {
+        const auto& m(m_meanSSData[i]);
+        std::cout << "   " << i << ": u=" << m->m_mean
+        << ", SS=" << m->m_sqrt_ssxx << std::endl;
+    }
 }
 
 

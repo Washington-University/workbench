@@ -247,7 +247,7 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForColumn(float* /*dat
  *     Index of the row.
  */
 void
-CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(float* dataOut,
+CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(std::vector<float>& dataOut,
                                                                 const int64_t& index) const
 {
     if ((m_numberOfParcels <= 0)
@@ -255,6 +255,7 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(float* dataOut,
         return;
     }
     
+    CaretAssert(m_numberOfParcels == static_cast<int64_t>(dataOut.size()));
     std::vector<float> dataVector(m_numberOfParcels, 0.0);
     ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
     if (connCorrelation != NULL) {
@@ -265,6 +266,7 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(float* dataOut,
     
     for (int32_t i = 0; i < m_numberOfParcels; i++) {
         CaretAssertVectorIndex(dataVector, i);
+        CaretAssertVectorIndex(dataOut, i);
         dataOut[i] = dataVector[i];
     }
 }
@@ -279,6 +281,9 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(float* dataOut,
 void
 CiftiConnectivityMatrixParcelDynamicFile::processRowAverageData(std::vector<float>& rowAverageDataInOut)
 {
+    return;
+    CaretAssertToDoFatal();
+    
     if ((m_numberOfParcels <= 0)
         || (m_numberOfTimePoints <= 0)) {
         return;

@@ -76,6 +76,7 @@ CiftiParcelScalarFile.h
 CiftiScalarDataSeriesFile.h
 CommaSeparatedValuesFile.h
 ConnectivityCorrelation.h
+ConnectivityCorrelationTwo.h
 ConnectivityCorrelationModeEnum.h
 ConnectivityCorrelationSettings.h
 ConnectivityDataLoaded.h
@@ -251,6 +252,7 @@ CiftiParcelScalarFile.cxx
 CiftiScalarDataSeriesFile.cxx
 CommaSeparatedValuesFile.cxx
 ConnectivityCorrelation.cxx
+ConnectivityCorrelationTwo.cxx
 ConnectivityCorrelationModeEnum.cxx
 ConnectivityCorrelationSettings.cxx
 ConnectivityDataLoaded.cxx

@@ -252,6 +252,8 @@ namespace caret {
         
         float finalizeCoefficient(const float coefficient) const;
         
+        void printDebugData();
+        
         const ConnectivityCorrelationSettings m_settings;
         
         DataTypeEnum m_dataType = DataTypeEnum::INVALID;

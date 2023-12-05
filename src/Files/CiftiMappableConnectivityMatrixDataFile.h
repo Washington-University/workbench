@@ -126,7 +126,7 @@ namespace caret {
         
         virtual void getProcessedDataForColumn(float* dataOut, const int64_t& index) const;
         
-        virtual void getProcessedDataForRow(float* dataOut, const int64_t& index) const;
+        virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const;
         
         virtual void getDataForColumn(float* dataOut, const int64_t& index) const;
         
@@ -151,11 +151,10 @@ namespace caret {
                                                     std::vector<int64_t>& rowIndicesOut,
                                                     std::vector<int64_t>& columnIndicesOut);
         
-        void getRowColumnAverageForIndices(const std::vector<int64_t>& rowIndices,
+        bool getRowColumnAverageForIndices(const std::vector<int64_t>& rowIndices,
                                            const std::vector<int64_t>& columnIndices,
-                                           std::vector<float>& rowAverageOut,
-                                           std::vector<float>& columnAverageOut);
-        
+                                           std::vector<float>& dataAverageOut);
+    
         void getRowColumnIndicesForVoxelsWhenLoading(const int64_t volumeDimensionIJK[3],
                                                      const std::vector<VoxelIJK>& voxelIndices,
                                                      std::vector<int64_t>& rowIndicesOut,
