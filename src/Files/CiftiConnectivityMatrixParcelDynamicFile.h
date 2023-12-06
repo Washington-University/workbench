@@ -26,7 +26,7 @@
 
 namespace caret {
     class CiftiParcelSeriesFile;
-    class ConnectivityCorrelation;
+    class ConnectivityCorrelationTwo;
     class ConnectivityCorrelationSettings;
     class SceneClassAssistant;
     
@@ -69,8 +69,6 @@ namespace caret {
         
         virtual void getProcessedDataForRow(std::vector<float>& dataOut, const int64_t& index) const override;
         
-        virtual void processRowAverageData(std::vector<float>& rowAverageData);
-        
         virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
         
@@ -91,7 +89,7 @@ namespace caret {
                                           float& meanOut,
                                           float& sumSquaredOut) const;
         
-        ConnectivityCorrelation* getConnectivityCorrelation() const;
+        ConnectivityCorrelationTwo* getConnectivityCorrelationTwo() const;
         
         CiftiParcelSeriesFile* m_parentParcelSeriesFile;
         
@@ -107,13 +105,15 @@ namespace caret {
         
         CaretPointer<SceneClassAssistant> m_sceneAssistant;
         
-        mutable std::unique_ptr<ConnectivityCorrelation> m_connectivityCorrelation;
-        
+        mutable std::unique_ptr<ConnectivityCorrelationTwo> m_connectivityCorrelationTwo;
+
         mutable bool m_connectivityCorrelationFailedFlag = false;
         
         mutable std::vector<float> m_parcelSeriesMatrixData;
 
         mutable std::unique_ptr<ConnectivityCorrelationSettings> m_correlationSettings;
+                
+        mutable std::vector<float> m_dataSeriesMatrixData;
         
         bool m_testConnectivityCorrelationFlag = true;
         

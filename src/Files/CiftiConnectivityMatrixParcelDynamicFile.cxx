@@ -31,8 +31,8 @@
 #include "CaretOMP.h"
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiFile.h"
-#include "ConnectivityCorrelation.h"
 #include "ConnectivityCorrelationSettings.h"
+#include "ConnectivityCorrelationTwo.h"
 #include "FileInformation.h"
 #include "MathFunctions.h"
 #include "SceneClassAssistant.h"
@@ -257,59 +257,13 @@ CiftiConnectivityMatrixParcelDynamicFile::getProcessedDataForRow(std::vector<flo
     
     CaretAssert(m_numberOfParcels == static_cast<int64_t>(dataOut.size()));
     std::vector<float> dataVector(m_numberOfParcels, 0.0);
-    ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
-    if (connCorrelation != NULL) {
-        connCorrelation->getCorrelationForBrainordinate(index,
-                                                        dataVector);
+    ConnectivityCorrelationTwo* connCorrelationTwo(getConnectivityCorrelationTwo());
+    if ( connCorrelationTwo != NULL) {
+        connCorrelationTwo->computeForDataSetIndex(index,
+                                                   dataVector);
         CaretAssert(static_cast<int32_t>(dataVector.size()) == m_numberOfParcels);
     }
-    
-    for (int32_t i = 0; i < m_numberOfParcels; i++) {
-        CaretAssertVectorIndex(dataVector, i);
-        CaretAssertVectorIndex(dataOut, i);
-        dataOut[i] = dataVector[i];
-    }
-}
-
-/**
- * Some file types may perform additional processing of row average data and
- * can override this method.
- *
- * @param rowAverageDataInOut
- *     The row average data.
- */
-void
-CiftiConnectivityMatrixParcelDynamicFile::processRowAverageData(std::vector<float>& rowAverageDataInOut)
-{
-    return;
-    CaretAssertToDoFatal();
-    
-    if ((m_numberOfParcels <= 0)
-        || (m_numberOfTimePoints <= 0)) {
-        return;
-    }
-    
-    const int32_t dataLength = static_cast<int32_t>(rowAverageDataInOut.size());
-    if (dataLength != m_numberOfTimePoints) {
-        CaretLogWarning("Data length incorrect.  Is "
-                        + AString::number(dataLength)
-                        + " but should be "
-                        + AString::number(m_numberOfTimePoints));
-        return;
-    }
-    if (dataLength <= 0) {
-        return;
-    }
-    
-    std::vector<float> connData(m_numberOfParcels, 0.0);
-    ConnectivityCorrelation* connCorrelation(getConnectivityCorrelation());
-    if (connCorrelation != NULL) {
-        connCorrelation->getCorrelationForBrainordinateData(rowAverageDataInOut,
-                                                            connData);
-        CaretAssert(static_cast<int32_t>(connData.size()) == m_numberOfParcels);
-    }
-
-    rowAverageDataInOut = connData;
+    dataOut = dataVector;
 }
 
 /**
@@ -355,21 +309,21 @@ CiftiConnectivityMatrixParcelDynamicFile::restoreSubClassDataFromScene(const Sce
 /**
  * @return Pointer to connectivity correlation or NULL if not valid
  */
-ConnectivityCorrelation*
-CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelation() const
+ConnectivityCorrelationTwo*
+CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelationTwo() const
 {
     if ( ! m_connectivityCorrelationFailedFlag) {
         /**
          * Need to recreate correlation algorithm if settins have changed
          */
-        if (m_connectivityCorrelation != NULL) {
-            if (*m_correlationSettings != *m_connectivityCorrelation->getSettings()) {
-                m_connectivityCorrelation.reset();
+        if (m_connectivityCorrelationTwo != NULL) {
+            if (*m_correlationSettings != *m_connectivityCorrelationTwo->getSettings()) {
+                m_connectivityCorrelationTwo.reset();
                 CaretLogFine("Recreating correlation algorithm for "
                              + getFileName());
             }
         }
-        if (m_connectivityCorrelation == NULL) {
+        if (m_connectivityCorrelationTwo == NULL) {
             /*
              * Need data and timepoint count from parent file
              */
@@ -378,28 +332,28 @@ CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelation() const
             CaretAssert(m_numberOfParcels >= 2);
             const int64_t numData(m_numberOfParcels
                                   * m_numberOfTimePoints);
-            m_parcelSeriesMatrixData.resize(numData);
+            m_dataSeriesMatrixData.resize(numData);
             
-            std::vector<const float*> parcelDataPointers;
+            std::vector<const float*> rowDataPointers;
             CaretAssert(m_parentParcelSeriesCiftiFile);
             for (int64_t iRow = 0; iRow < m_numberOfParcels; iRow++) {
                 const int64_t offset(iRow * m_numberOfTimePoints);
-                CaretAssertVectorIndex(m_parcelSeriesMatrixData,
+                CaretAssertVectorIndex(m_dataSeriesMatrixData,
                                        (offset + (m_numberOfTimePoints - 1)));
-                m_parentParcelSeriesCiftiFile->getRow(&m_parcelSeriesMatrixData[offset],
-                                                    iRow);
-                parcelDataPointers.push_back(&m_parcelSeriesMatrixData[offset]);
+                m_parentParcelSeriesCiftiFile->getRow(&m_dataSeriesMatrixData[offset],
+                                                      iRow);
+                rowDataPointers.push_back(&m_dataSeriesMatrixData[offset]);
             }
             
-            const int64_t nextParcelStride(m_numberOfTimePoints);
             const int64_t nextTimePointStride(1);
             AString errorMessage;
-            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceParcels(*m_correlationSettings,
-                                                                                      parcelDataPointers,
-                                                                                      m_numberOfTimePoints,
-                                                                                      errorMessage);
+            ConnectivityCorrelationTwo* cc = ConnectivityCorrelationTwo::newInstance(*m_correlationSettings,
+                                                                                     rowDataPointers,
+                                                                                     m_numberOfTimePoints,
+                                                                                     nextTimePointStride,
+                                                                                     errorMessage);
             if (cc != NULL) {
-                m_connectivityCorrelation.reset(cc);
+                m_connectivityCorrelationTwo.reset(cc);
             }
             else {
                 m_connectivityCorrelationFailedFlag = true;
@@ -409,7 +363,7 @@ CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelation() const
         }
     }
     
-    return m_connectivityCorrelation.get();
+    return m_connectivityCorrelationTwo.get();
 }
 
 /**

@@ -331,7 +331,7 @@ ConnectivityCorrelation::initializeWithBrainordinates(const std::vector<const fl
     
     computeBrainordinateMeanAndSumSquared();
     
-    printDebugData();
+    /*printDebugData();*/
     
     return true;
 }
