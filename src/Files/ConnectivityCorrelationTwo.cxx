@@ -55,7 +55,8 @@ using namespace caret;
  * @return Pointer to new instance or NULL if there is an error.
  */
 ConnectivityCorrelationTwo*
-ConnectivityCorrelationTwo::newInstance(const ConnectivityCorrelationSettings& settings,
+ConnectivityCorrelationTwo::newInstance(const AString& ownerName,
+                                        const ConnectivityCorrelationSettings& settings,
                                         const std::vector<const float*>& dataSetPointers,
                                         const int64_t numberOfDataElements,
                                         const int64_t dataStride,
@@ -77,7 +78,8 @@ ConnectivityCorrelationTwo::newInstance(const ConnectivityCorrelationSettings& s
         return NULL;
     }
     
-    return new ConnectivityCorrelationTwo(settings,
+    return new ConnectivityCorrelationTwo(ownerName,
+                                          settings,
                                           dataSetPointers,
                                           numberOfDataElements,
                                           dataStride);
@@ -86,6 +88,8 @@ ConnectivityCorrelationTwo::newInstance(const ConnectivityCorrelationSettings& s
 
 /**
  * Constructor.
+ * @param ownerName
+ *    Name of file that owns this instance
  * @param settings
  *    The settings for the various operations
  * @param dataSetPointers
@@ -96,11 +100,13 @@ ConnectivityCorrelationTwo::newInstance(const ConnectivityCorrelationSettings& s
  *    The offset of each element in one data pointer.  In most cases, the data is contiguous, this value is one.  In instance
  *    where the data is in the columns of a matrix, this value is the number of columns.
  */
-ConnectivityCorrelationTwo::ConnectivityCorrelationTwo(const ConnectivityCorrelationSettings& settings,
+ConnectivityCorrelationTwo::ConnectivityCorrelationTwo(const AString& ownerName,
+                                                       const ConnectivityCorrelationSettings& settings,
                                                        const std::vector<const float*>& dataSetPointers,
                                                        const int64_t numberOfDataElements,
                                                        const int64_t dataStride)
 : CaretObject(),
+m_ownerName(ownerName),
 m_settings(settings),
 m_numberOfDataSets(dataSetPointers.size()),
 m_numberOfDataElements(numberOfDataElements),
@@ -219,10 +225,39 @@ ConnectivityCorrelationTwo::computeForDataSet(const DataSet& dataSet,
         CaretAssertMessage(0, "Shrinking dataOut, this is probably wrong");
     }
     
+    double sum(0.0);
+    std::vector<float> firstNonZeroData;
+    for (int64_t i = 0; i < m_numberOfDataElements; i++) {
+        int64_t offset(i * m_dataStride);
+        const float d(dataSet.m_dataElements[offset]);
+        sum += d;
+        if (d != 0.0) {
+            if (static_cast<int64_t>(firstNonZeroData.size() < 5)) {
+                firstNonZeroData.push_back(d);
+            }
+        }
+    }
+
+    if (m_debugFlag) {
+        std::cout << "   File: " << m_ownerName << std::endl;
+        std::cout << "   Data Set Index: " << dataSet.m_dataSetIndex
+        << " u=" << dataSet.m_mean
+        << " ss=" << dataSet.m_sqrtSumSquared
+        << " Sum=" << sum
+        << " DataSet Count=" << m_numberOfDataSets << std::endl;
+        std::cout << "   Data: ";
+        for (float d : firstNonZeroData) {
+            std::cout << " " << d;
+        }
+        std::cout << std::endl;
+    }
+    
     dataOut.resize(m_numberOfDataSets);
     std::fill(dataOut.begin(),
               dataOut.end(),
               0.0);
+    
+    
     
     bool correlationModeFlag(false);
     switch (m_settings.getMode()) {

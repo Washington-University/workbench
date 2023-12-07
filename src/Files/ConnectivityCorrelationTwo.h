@@ -35,7 +35,8 @@ namespace caret {
     class ConnectivityCorrelationTwo : public CaretObject {
         
     public:
-        static ConnectivityCorrelationTwo* newInstance(const ConnectivityCorrelationSettings& settings,
+        static ConnectivityCorrelationTwo* newInstance(const AString& ownerName,
+                                                       const ConnectivityCorrelationSettings& settings,
                                                        const std::vector<const float*>& dataSetPointers,
                                                        const int64_t numberOfDataElements,
                                                        const int64_t dataStride,
@@ -85,7 +86,8 @@ namespace caret {
             const float   m_sqrtSumSquared;
         };
         
-        ConnectivityCorrelationTwo(const ConnectivityCorrelationSettings& settings,
+        ConnectivityCorrelationTwo(const AString& ownerName,
+                                   const ConnectivityCorrelationSettings& settings,
                                    const std::vector<const float*>& dataSetPointers,
                                    const int64_t numberOfDataElements,
                                    const int64_t dataStride);
@@ -113,6 +115,8 @@ namespace caret {
                             std::vector<float>& dataOut) const;
         
         void printDebugData();
+        
+        const AString m_ownerName;
         
         const ConnectivityCorrelationSettings m_settings;
         

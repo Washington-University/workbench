@@ -347,7 +347,8 @@ CiftiConnectivityMatrixParcelDynamicFile::getConnectivityCorrelationTwo() const
             
             const int64_t nextTimePointStride(1);
             AString errorMessage;
-            ConnectivityCorrelationTwo* cc = ConnectivityCorrelationTwo::newInstance(*m_correlationSettings,
+            ConnectivityCorrelationTwo* cc = ConnectivityCorrelationTwo::newInstance(getFileName(),
+                                                                                     *m_correlationSettings,
                                                                                      rowDataPointers,
                                                                                      m_numberOfTimePoints,
                                                                                      nextTimePointStride,

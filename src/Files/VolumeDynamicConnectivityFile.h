@@ -27,10 +27,8 @@
 
 #include "VolumeFile.h"
 
-
-
 namespace caret {
-    class ConnectivityCorrelation;
+    class ConnectivityCorrelationTwo;
     class ConnectivityCorrelationSettings;
     class ConnectivityDataLoaded;
     
@@ -91,12 +89,7 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+    protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass) override;
 
@@ -113,32 +106,31 @@ namespace caret {
                                    const int64_t k,
                                    std::vector<float>& dataOut) const;
 
-        inline int64_t getVoxelOffset(const int64_t i,
-                                      const int64_t j,
-                                      const int64_t k,
-                                      const int64_t timePointIndex) const {
-            const int64_t offset = (i
-                                    + (j * m_dimI)
-                                    + (k * m_sliceStride)
-                                    + (timePointIndex * m_timePointIndexStride));
-            return offset;
-        }
+//        inline int64_t getVoxelOffset(const int64_t i,
+//                                      const int64_t j,
+//                                      const int64_t k,
+//                                      const int64_t timePointIndex) const {
+//            const int64_t offset = (i
+//                                    + (j * m_dimI)
+//                                    + (k * m_sliceStride)
+//                                    + (timePointIndex * m_timePointIndexStride));
+//            return offset;
+//        }
         
         bool loadConnectivityForVoxelIndex(const int64_t ijk[3]);
         
         bool getConnectivityForVoxelIndex(const int64_t ijk[3],
                                           std::vector<float>& voxelsOut) ;
         
-        ConnectivityCorrelation* getConnectivityCorrelation();
+        ConnectivityCorrelationTwo* getConnectivityCorrelationTwo() const;
         
-
         const VolumeFile* m_parentVolumeFile;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
-        std::unique_ptr<ConnectivityCorrelation> m_connectivityCorrelation;
-
-        bool m_connectivityCorrelationFailedFlag = false;
+        mutable std::unique_ptr<ConnectivityCorrelationTwo> m_connectivityCorrelationTwo;
+        
+        mutable bool m_connectivityCorrelationFailedFlag = false;
         
         float* m_voxelData = NULL;
         
