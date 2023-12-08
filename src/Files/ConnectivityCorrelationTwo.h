@@ -50,6 +50,9 @@ namespace caret {
         
         const ConnectivityCorrelationSettings* getSettings() const;
         
+        void computeAverageForDataSetIndices(const std::vector<int64_t> dataSetIndices,
+                                             std::vector<float>& dataOut) const;
+        
         void computeForDataSetIndex(const int64_t dataSetIndex,
                                     std::vector<float>& dataOut) const;
         

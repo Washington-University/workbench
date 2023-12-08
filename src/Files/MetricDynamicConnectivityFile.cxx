@@ -25,7 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ConnectivityCorrelation.h"
+#include "ConnectivityCorrelationTwo.h"
 #include "ConnectivityCorrelationSettings.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileException.h"
@@ -94,7 +94,6 @@ MetricDynamicConnectivityFile::clearPrivateData()
     m_numberOfVertices = 0;
     m_validDataFlag = false;
     m_enabledAsLayer = false;
-    m_connectivityCorrelation.reset();
     m_connectivityDataLoaded->reset();
 }
 
@@ -356,27 +355,20 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
                                                               const StructureEnum::Enum structure,
                                                               const std::vector<int32_t>& nodeIndices)
 {
-    bool validFlag(false);
-    
     if ( ! isDataValid()) {
-        return validFlag;
+        return false;
     }
     if ( ! m_dataLoadingEnabledFlag) {
-        return validFlag;
+        return false;
     }
     if (getStructure() != structure) {
-        return validFlag;
+        return false;
     }
     if (getNumberOfNodes() != surfaceNumberOfNodes) {
-        return validFlag;
+        return false;
     }
     if (nodeIndices.size() < 2) {
-        return validFlag;
-    }
-    
-    ConnectivityCorrelation* connCorrelation = getConnectivityCorrelation();
-    if (connCorrelation == NULL) {
-        return validFlag;
+        return false;
     }
     
     clearVertexValues();
@@ -387,16 +379,20 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
 
     std::vector<int64_t> nodeIndices64(nodeIndices.begin(), nodeIndices.end());
     std::vector<float> data(getNumberOfNodes());
-    connCorrelation->getCorrelationForBrainordinateROI(nodeIndices64,
-                                                       data);
+    
+    const ConnectivityCorrelationTwo* connCorrTwo(getConnectivityCorrelationTwo());
+    if (connCorrTwo == NULL) {
+        return false;
+    }
+    connCorrTwo->computeAverageForDataSetIndices(nodeIndices64,
+                                                 data);
     const int64_t numData = static_cast<int64_t>(data.size());
-    validFlag = (numData == getNumberOfNodes());
+    const bool validFlag(numData == getNumberOfNodes());
     if (validFlag) {
         for (int64_t i = 0; i < numData; i++) {
             dataPointer[i] = data[i];
         }
     }
-    
     
     m_connectivityDataLoaded->setSurfaceAverageNodeLoading(getStructure(),
                                                            getNumberOfNodes(),
@@ -433,12 +429,10 @@ MetricDynamicConnectivityFile::getConnectivityForVertexIndex(const int32_t verte
     bool validFlag(false);
     if ((vertexIndex >= 0)
         && (vertexIndex < getNumberOfNodes())) {
-        ConnectivityCorrelation* connCorrelation = getConnectivityCorrelation();
         
-        if (connCorrelation) {
-            connCorrelation->getCorrelationForBrainordinate(vertexIndex,
-                                                            vertexDataOut);
-            CaretAssert(m_numberOfVertices == static_cast<int64_t>(vertexDataOut.size()));
+        const ConnectivityCorrelationTwo* connCoorTwo(getConnectivityCorrelationTwo());
+        if (connCoorTwo != NULL) {
+            connCoorTwo->computeForDataSetIndex(vertexIndex, vertexDataOut);
             validFlag = true;
         }
     }
@@ -458,53 +452,72 @@ MetricDynamicConnectivityFile::getConnectivityForVertexIndex(const int32_t verte
 /**
  * @return Pointer to connectivity correlation or NULL if not valid
  */
-ConnectivityCorrelation*
-MetricDynamicConnectivityFile::getConnectivityCorrelation()
+ConnectivityCorrelationTwo*
+MetricDynamicConnectivityFile::getConnectivityCorrelationTwo() const
 {
     if ( ! m_connectivityCorrelationFailedFlag) {
         /**
          * Need to recreate correlation algorithm if settins have changed
          */
-        if (m_connectivityCorrelation != NULL) {
-            if (*m_correlationSettings != *m_connectivityCorrelation->getSettings()) {
-                m_connectivityCorrelation.reset();
+        if (m_connectivityCorrelationTwo != NULL) {
+            if (*m_correlationSettings != *m_connectivityCorrelationTwo->getSettings()) {
+                m_connectivityCorrelationTwo.reset();
                 CaretLogFine("Recreating correlation algorithm for "
                              + getFileName());
             }
         }
-        
-        if (m_connectivityCorrelation == NULL) {
-            /*
-             * Need data and timepoint count from parent file
-             */
-            CaretAssert(m_parentMetricFile);
-            const int32_t numberOfTimePoints = m_parentMetricFile->getNumberOfMaps();
-            CaretAssert(numberOfTimePoints >= 2);
-            std::vector<const float*> timePointData;
-            for (int32_t i = 0; i < numberOfTimePoints; i++) {
-                const float* dataPtr = m_parentMetricFile->getValuePointerForColumn(i);
-                CaretAssert(dataPtr);
-                timePointData.push_back(dataPtr);
-            }
-            const int64_t brainordinateStride(1);
-            AString errorMessage;
-            ConnectivityCorrelation* cc = ConnectivityCorrelation::newInstanceTimePoints(*m_correlationSettings,
-                                                                                         timePointData,
-                                                                                         m_numberOfVertices,
-                                                                                         brainordinateStride,
+        if (m_connectivityCorrelationTwo == NULL) {
+            const int64_t numberOfVertices(m_parentMetricFile->getNumberOfNodes());
+            const int64_t numberOfTimePoints(m_parentMetricFile->getNumberOfMaps());
+            if ((numberOfVertices > 1)
+                && (numberOfTimePoints > 1)) {
+                
+                /*
+                 * Need to copy metric data so that data in in one block of memory
+                 * Metric keeps each timepoint in separate pieces of memory
+                 */
+                CaretAssert(m_parentMetricFile);
+                const int64_t dataSize(numberOfVertices * numberOfTimePoints);
+                m_metricDataCopy.reserve(dataSize);
+                std::vector<const float*> brainordinateDataPointers;
+                for (int64_t i = 0; i < numberOfVertices; i++) {
+                    for (int64_t j = 0; j < numberOfTimePoints; j++) {
+                        m_metricDataCopy.push_back(m_parentMetricFile->getValue(i, j));
+                    }
+                    
+                    const int64_t offset(i * numberOfTimePoints);
+                    CaretAssertVectorIndex(m_metricDataCopy, offset);
+                    const float* dataPtr(&m_metricDataCopy[offset]);
+                    CaretAssert(dataPtr);
+                    brainordinateDataPointers.push_back(dataPtr);
+                }
+                
+                const int64_t nextBrainordinateStride(1);
+                AString errorMessage;
+                ConnectivityCorrelationTwo* cc = ConnectivityCorrelationTwo::newInstance(getFileName(),
+                                                                                         *m_correlationSettings,
+                                                                                         brainordinateDataPointers,
+                                                                                         numberOfTimePoints,
+                                                                                         nextBrainordinateStride,
                                                                                          errorMessage);
-            if (cc != NULL) {
-                m_connectivityCorrelation.reset(cc);
+                if (cc != NULL) {
+                    m_connectivityCorrelationTwo.reset(cc);
+                }
+                else {
+                    m_connectivityCorrelationFailedFlag = true;
+                }
             }
             else {
                 m_connectivityCorrelationFailedFlag = true;
                 CaretLogSevere("Failed to create connectvity correlation for "
-                               + m_parentMetricFile->getFileNameNoPath());
+                               + m_parentMetricFile->getFileNameNoPath()
+                               + " Number of vertices=" + AString::number(numberOfVertices)
+                               + ", Number of timepoints=" + AString::number(numberOfTimePoints));
             }
         }
     }
     
-    return m_connectivityCorrelation.get();
+    return m_connectivityCorrelationTwo.get();
 }
 
 /**

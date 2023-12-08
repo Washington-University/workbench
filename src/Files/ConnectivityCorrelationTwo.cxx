@@ -193,6 +193,62 @@ ConnectivityCorrelationTwo::getSettings() const
 }
 
 /**
+ * Compute correlation/covariance for the given data set indices and output the
+ * average of the computations.
+ * @param dataSetIndices
+ *    Index of the data set
+ * @param dataOut
+ *    Output with computed data.  Number of elements is same length as the
+ *    Number of data sets.
+ */
+void
+ConnectivityCorrelationTwo::computeAverageForDataSetIndices(const std::vector<int64_t> dataSetIndices,
+                                                            std::vector<float>& dataOut) const
+{
+    const int64_t numData(dataOut.size());
+    if ((numData != m_numberOfDataSets)
+        || (numData < 1)) {
+        CaretLogSevere("Incorrection number of data="
+                       + AString::number(numData)
+                       + " but should be="
+                       + AString::number(m_numberOfDataSets)
+                       + " for "
+                       + m_ownerName);
+        std::fill(dataOut.begin(),
+                  dataOut.end(),
+                  0.0);
+        return;
+    }
+    
+    if (dataSetIndices.size() < 1) {
+        std::fill(dataOut.begin(),
+                  dataOut.end(),
+                  0.0);
+        return;
+    }
+
+    std::vector<double> sum(numData, 0.0);
+    std::vector<float> data(numData, 0.0);
+    for (int64_t index : dataSetIndices) {
+        computeForDataSetIndex(index,
+                               data);
+        for (int64_t i = 0; i < numData; i++) {
+            CaretAssertVectorIndex(data, i);
+            CaretAssertVectorIndex(sum, i);
+            sum[i] += data[i];
+        }
+    }
+    
+    const double numIndicesFloat(dataSetIndices.size());
+    for (int64_t i = 0; i < numData; i++) {
+        CaretAssertVectorIndex(dataOut, i);
+        CaretAssertVectorIndex(sum, i);
+        dataOut[i] = sum[i] / numIndicesFloat;
+    }
+}
+
+
+/**
  * Compute correlation/covariance for the given data set index to all other data sets
  * @param dataSetIndex
  *    Index of the data set
