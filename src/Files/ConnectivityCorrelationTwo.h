@@ -21,9 +21,7 @@
  */
 /*LICENSE_END*/
 
-
-
-#include <memory>
+#include <vector>
 
 #include "CaretAssert.h"
 #include "CaretObject.h"
@@ -106,16 +104,6 @@ namespace caret {
                                       const int64_t dataStride,
                                       float& meanOut,
                                       float& sqrtSumSquaredOut) const;
-
-        /*
-         This method moved from public to private as it is probably not needed
-         It was used for average but that computation was wrong as it averaged
-         * before computation of statistics.
-         */
-        void computeForData(const float* dataPtr,
-                            const int64_t numberOfDataElements,
-                            const int64_t dataStride,
-                            std::vector<float>& dataOut) const;
         
         void printDebugData();
         
@@ -129,7 +117,7 @@ namespace caret {
         
         const int64_t m_dataStride;
         
-        std::vector<DataSet> m_dataSets;
+        std::vector<DataSet*> m_dataSets;
         
         bool m_debugFlag = false;
         

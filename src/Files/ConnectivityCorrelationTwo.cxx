@@ -25,14 +25,15 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
+#include "dot_wrapper.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::ConnectivityCorrelationTwo 
  * \brief Correlation and covariance
@@ -112,6 +113,10 @@ m_numberOfDataSets(dataSetPointers.size()),
 m_numberOfDataElements(numberOfDataElements),
 m_dataStride(dataStride)
 {
+    m_dataSets.resize(m_numberOfDataSets,
+                      NULL);
+
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int32_t dataSetIndex = 0; dataSetIndex < m_numberOfDataSets; dataSetIndex++) {
         CaretAssertVectorIndex(dataSetPointers, dataSetIndex);
         const float* dataPtr(dataSetPointers[dataSetIndex]);
@@ -125,12 +130,12 @@ m_dataStride(dataStride)
                                  mean,
                                  sqrtSumSquared);
         
-        m_dataSets.emplace_back(dataSetIndex,
-                                dataPtr,
-                                m_numberOfDataElements,
-                                m_dataStride,
-                                mean,
-                                sqrtSumSquared);
+        m_dataSets[dataSetIndex] = new DataSet(dataSetIndex,
+                                               dataPtr,
+                                               m_numberOfDataElements,
+                                               m_dataStride,
+                                               mean,
+                                               sqrtSumSquared);
     }
 
     if (m_debugFlag) {
@@ -159,6 +164,10 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
                                                      float& meanOut,
                                                      float& sqrtSumSquaredOut) const
 {
+    /*
+     * NOTE: Do not use OpenMP here.  OpenMP is used
+     * in the method that calls this method.
+     */
     double sum(0.0);
     double sumSQ(0.0);
     for (int64_t j = 0; j < numberOfDataElements; j++) {
@@ -181,6 +190,10 @@ ConnectivityCorrelationTwo::computeMeanAndSumSquared(const float* dataPtr,
  */
 ConnectivityCorrelationTwo::~ConnectivityCorrelationTwo()
 {
+    for (DataSet* ds : m_dataSets) {
+        delete ds;
+    }
+    m_dataSets.clear();
 }
 
 /**
@@ -227,11 +240,24 @@ ConnectivityCorrelationTwo::computeAverageForDataSetIndices(const std::vector<in
         return;
     }
 
+    /*
+     * Note: OpenMP is not used here.
+     * OpenMP is used in 'computeForDataSet()'
+     */
     std::vector<double> sum(numData, 0.0);
     std::vector<float> data(numData, 0.0);
     for (int64_t index : dataSetIndices) {
-        computeForDataSetIndex(index,
-                               data);
+        CaretAssertVectorIndex(m_dataSets,
+                               index);
+        const DataSet* dataSet(m_dataSets[index]);
+        CaretAssert(dataSet);
+        computeForDataSet(*dataSet,
+                          data);
+        
+        /*
+         * Using OpenMP on a loop like this showed
+         * no reduction in time
+         */
         for (int64_t i = 0; i < numData; i++) {
             CaretAssertVectorIndex(data, i);
             CaretAssertVectorIndex(sum, i);
@@ -262,7 +288,10 @@ ConnectivityCorrelationTwo::computeForDataSetIndex(const int64_t dataSetIndex,
 {
     CaretAssertVectorIndex(m_dataSets,
                            dataSetIndex);
-    computeForDataSet(m_dataSets[dataSetIndex], dataOut);
+    const DataSet* dataSet(m_dataSets[dataSetIndex]);
+    CaretAssert(dataSet);
+    computeForDataSet(*dataSet,
+                      dataOut);
 }
 
 /**
@@ -280,41 +309,12 @@ ConnectivityCorrelationTwo::computeForDataSet(const DataSet& dataSet,
     if (m_numberOfDataSets < static_cast<int64_t>(dataOut.size())) {
         CaretAssertMessage(0, "Shrinking dataOut, this is probably wrong");
     }
-    
-    double sum(0.0);
-    std::vector<float> firstNonZeroData;
-    for (int64_t i = 0; i < m_numberOfDataElements; i++) {
-        int64_t offset(i * m_dataStride);
-        const float d(dataSet.m_dataElements[offset]);
-        sum += d;
-        if (d != 0.0) {
-            if (static_cast<int64_t>(firstNonZeroData.size() < 5)) {
-                firstNonZeroData.push_back(d);
-            }
-        }
-    }
-
-    if (m_debugFlag) {
-        std::cout << "   File: " << m_ownerName << std::endl;
-        std::cout << "   Data Set Index: " << dataSet.m_dataSetIndex
-        << " u=" << dataSet.m_mean
-        << " ss=" << dataSet.m_sqrtSumSquared
-        << " Sum=" << sum
-        << " DataSet Count=" << m_numberOfDataSets << std::endl;
-        std::cout << "   Data: ";
-        for (float d : firstNonZeroData) {
-            std::cout << " " << d;
-        }
-        std::cout << std::endl;
-    }
-    
+        
     dataOut.resize(m_numberOfDataSets);
     std::fill(dataOut.begin(),
               dataOut.end(),
               0.0);
-    
-    
-    
+     
     bool correlationModeFlag(false);
     switch (m_settings.getMode()) {
         case ConnectivityCorrelationModeEnum::CORRELATION:
@@ -323,6 +323,8 @@ ConnectivityCorrelationTwo::computeForDataSet(const DataSet& dataSet,
         case ConnectivityCorrelationModeEnum::COVARIANCE:
             break;
     }
+
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int64_t i = 0; i < m_numberOfDataSets; i++) {
         if (correlationModeFlag
             && (i == dataSet.m_dataSetIndex)) {
@@ -330,69 +332,13 @@ ConnectivityCorrelationTwo::computeForDataSet(const DataSet& dataSet,
             dataOut[i] = 1.0;
         }
         else {
+            const DataSet* otherDataSet(m_dataSets[i]);
+            CaretAssert(otherDataSet);
             dataOut[i] = computeForDataSets(dataSet,
-                                            m_dataSets[i]);
+                                            *otherDataSet);
         }
     }
 }
-
-/**
- * Compute correlation/covariance for the given data to all other data sets
- * @param dataPtr
- *    Pointer to data.  Must be the same number of elements as passed to constructor (sams as other data sets)
- * @param numberOfDataElements
- *    Number of elements in data
- * @param dataStride
- *    The offset of each element in one data pointer.  In most cases, the data is contiguous, this value is one.  In instance
- *    where the data is in the columns of a matrix, this value is the number of columns.
- * @param dataOut
- *    Output with computed data.  Number of elements is same length as the
- *    Number of data sets.
- */
-void
-ConnectivityCorrelationTwo::computeForData(const float* dataPtr,
-                                           const int64_t numberOfDataElements,
-                                           const int64_t dataStride,
-                                           std::vector<float>& dataOut) const
-{
-    CaretAssertToDoFatal(); /* This method is probably not needed anymore */
-    dataOut.resize(m_numberOfDataSets);
-
-    if (numberOfDataElements != m_numberOfDataElements) {
-        const AString msg("Data is wrong size="
-                          + AString::number(numberOfDataElements)
-                          + ".  Should be size="
-                          + AString::number(m_numberOfDataElements));
-        CaretLogSevere(msg);
-        CaretAssertMessage(0, msg);
-        
-        std::fill(dataOut.begin(),
-                  dataOut.end(),
-                  0.0);
-        return;
-    }
-    
-    float mean(0.0);
-    float sqrtSumSquared(0.0);
-    
-    computeMeanAndSumSquared(dataPtr,
-                             numberOfDataElements,
-                             dataStride,
-                             mean,
-                             sqrtSumSquared);
-    
-    const int64_t invalidDataSetIndex(-1);
-    DataSet dataSet(invalidDataSetIndex,
-                    dataPtr,
-                    numberOfDataElements,
-                    dataStride,
-                    mean,
-                    sqrtSumSquared);
-    
-    computeForDataSet(dataSet,
-                      dataOut);
-}
-
 
 /**
  * Compute between the two given data sets
@@ -416,12 +362,15 @@ ConnectivityCorrelationTwo::computeForDataSets(const DataSet& a,
         case ConnectivityCorrelationModeEnum::CORRELATION:
         {
             double xySum(0.0);
+            
             if ((a.m_dataStride == 1)
                 && (b.m_dataStride == 1)) {
-                /* Replace with dsdot() */
-                for (int64_t i = 0; i < a.m_numDataElements; i++) {
-                    xySum += (a.get(i) * b.get(i));
-                }
+                /*
+                 * "dsdot" requires contiguous data
+                 */
+                xySum = dsdot(a.m_dataElements,
+                              b.m_dataElements,
+                              m_numberOfDataElements);
             }
             else {
                 for (int64_t i = 0; i < a.m_numDataElements; i++) {
@@ -475,9 +424,10 @@ ConnectivityCorrelationTwo::printDebugData()
     const int32_t numToPrint(std::min(50,
                                       static_cast<int32_t>(m_dataSets.size())));
     for (int32_t i = 0; i < numToPrint; i++) {
-        const auto& m(m_dataSets[i]);
-        std::cout << "   " << i << "u=" << m.m_mean
-        << ", SS=" << m.m_sqrtSumSquared << std::endl;
+        const DataSet* ds(m_dataSets[i]);
+        CaretAssert(ds);
+        std::cout << "   " << i << "u=" << ds->m_mean
+        << ", SS=" << ds->m_sqrtSumSquared << std::endl;
     }
 }
 
