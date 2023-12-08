@@ -273,13 +273,23 @@ namespace caret {
         AString getTextDistanceToMostRecentIdentificationSymbol(const IdentificationManager* idManager,
                                                                 const float selectionXYZ[3]) const;
         
+        AString xyToText(const float xy[2],
+                         const int32_t precisionDigits = -1) const;
+        
+        AString xyzToText(const float xyz[3],
+                          const int32_t precisionDigits = -1) const;
+        
+        AString dataValueToText(const float value,
+                                const int32_t precisionDigits = -1) const;
+        
         const AString m_noDataText;
         
+        static const int32_t s_dataValueDigitsRightOfDecimal;
         friend class DataToolTipsManager;
     };
     
 #ifdef __IDENTIFICATION_FORMATTED_TEXT_GENERATOR_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t IdentificationFormattedTextGenerator::s_dataValueDigitsRightOfDecimal = 4;
 #endif // __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
 
 } // namespace

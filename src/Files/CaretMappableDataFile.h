@@ -509,11 +509,13 @@ namespace caret {
                                                          const int nodeIndex,
                                                          const int32_t numberOfNodes,
                                                          const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
                                                          AString& textOut) const;
         
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
                                                          const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
                                                          int64_t ijkOut[3],
                                                          AString& textOut) const;
         

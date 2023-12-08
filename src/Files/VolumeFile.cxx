@@ -2726,6 +2726,7 @@ bool
 VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                 const float xyz[3],
                                                 const AString& dataValueSeparator,
+                                                const int32_t digitsRightOfDecimal,
                                                 int64_t ijkOut[3],
                                                 AString& textOut) const
 {
@@ -2764,7 +2765,7 @@ VolumeFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapI
                                   + ")");
             }
             else {
-                valuesText.append(AString::number(value, 'f', 3));
+                valuesText.append(AString::number(value, 'f', digitsRightOfDecimal));
             }
         }
         else {

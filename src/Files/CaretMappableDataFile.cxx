@@ -1603,6 +1603,8 @@ const CiftiXML CaretMappableDataFile::getCiftiXML() const
  *    Number of nodes in the surface.
  * @param dataValueSeparator
  *    Separator between multiple data values
+ * @param digitsRightOfDecimal
+ *    Digits right of decimal for real data
  * @param textOut
  *    Output containing identification information.
  */
@@ -1612,6 +1614,7 @@ CaretMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
                                                            const int /*nodeIndex*/,
                                                            const int32_t /*numberOfNodes*/,
                                                            const AString& /*dataValueSeparator*/,
+                                                           const int32_t /*digitsRightOfDecimal*/,
                                                            AString& textOut) const
 {
     textOut.clear();
@@ -1636,6 +1639,7 @@ bool
 CaretMappableDataFile::getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& /*mapIndices*/,
                                                            const float* /*xyz[3]*/,
                                                            const AString& /*dataValueSeparator*/,
+                                                           const int32_t /*digitsRightOfDecimal*/,
                                                            int64_t* /*ijkOut[3]*/,
                                                            AString& textOut) const
 {

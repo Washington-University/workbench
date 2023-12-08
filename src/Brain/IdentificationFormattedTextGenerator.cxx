@@ -635,15 +635,8 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
     const VolumeMappableInterface* idVolumeFile = idVolumeVoxel->getVolumeFile();
     const VoxelIJK ijk(idVolumeVoxel->getVoxelIJK());
     const Vector3D xyz(idVolumeVoxel->getVoxelXYZ());
-    const float x(xyz[0]);
-    const float y(xyz[1]);
-    const float z(xyz[2]);
 
-    const QString xyzText(AString::number(x, 'f', 2)
-                          + ", "
-                          + AString::number(y, 'f', 2)
-                          + ", "
-                          + AString::number(z, 'f', 2));
+    const QString xyzText(xyzToText(xyz));
     
     const QString ijkText("Voxel IJK ("
                           + AString::fromNumbers(ijk.m_ijk, 3, ", ")
@@ -802,7 +795,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                 }
                             }
                             else {
-                                text += AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
+                                text += dataValueToText(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
                             }
                         }
                         else if (ciftiFile != NULL) {
@@ -838,6 +831,7 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                         if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                                            xyz,
                                                                            separator,
+                                                                           s_dataValueDigitsRightOfDecimal,
                                                                            voxelIJK,
                                                                            textValue)) {
                             AString typeIJKText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
@@ -952,11 +946,7 @@ IdentificationFormattedTextGenerator::generateSurfaceVertexIdentificationText(Ht
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
         const float* xyz = surface->getCoordinate(nodeNumber);
-        const QString xyzText(AString::number(xyz[0])
-                              + ", "
-                              + AString::number(xyz[1])
-                              + ", "
-                              + AString::number(xyz[2]));
+        const QString xyzText(xyzToText(xyz));
         htmlTableBuilder.addHeaderRow(("VERTEX " + QString::number(nodeNumber)),
                                       xyzText,
                                       StructureEnum::toGuiName(surface->getStructure()));
@@ -1118,6 +1108,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                                                                          nodeNumber,
                                                                          surface->getNumberOfNodes(),
                                                                          separator,
+                                                                         s_dataValueDigitsRightOfDecimal,
                                                                          textValue);
             if (valid) {
                 AString labelText;
@@ -1214,7 +1205,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                 if (k >= 1) {
                     text.append("<br>");
                 }
-                text.append(AString::number(metricFile->getValue(nodeNumber, mapIndex)));
+                text.append(dataValueToText(metricFile->getValue(nodeNumber, mapIndex)));
             }
             scalarHtmlTableBuilder.addRow(text,
                                           metricFile->getFileNameNoPath(),
@@ -1231,7 +1222,7 @@ IdentificationFormattedTextGenerator::generateSurfaceDataIdentificationText(Html
                         if (k >= 1) {
                             text.append("<br>");
                         }
-                        text += (" " + AString::number(metricDynConnFile->getValue(nodeNumber, mapIndex)));
+                        text += (" " + dataValueToText(metricDynConnFile->getValue(nodeNumber, mapIndex)));
                     }
                     scalarHtmlTableBuilder.addRow(text,
                                                   metricDynConnFile->getFileNameNoPath(),
@@ -1476,17 +1467,19 @@ IdentificationFormattedTextGenerator::generateChartTwoLineLayerNearestIdentifica
             if (toolTipFlag) {
                 idText.addLine(true,
                                "XY Start",
-                               AString::fromNumbers(xyz1, 2, ", "));
+                               xyToText(xyz1));
                 if (nextIndex >= 0) {
                     idText.addLine(true,
                                    "XY End ",
-                                   AString::fromNumbers(xyz2, 2, ", "));
+                                   xyToText(xyz2));
                 }
             }
             else {
-                AString text("XY Start:" + AString::fromNumbers(xyz1, 2, ", "));
+                AString text("XY Start:" +
+                             xyToText(xyz1));
                 if (nextIndex >= 0) {
-                    text.append(" XY End:" + AString::fromNumbers(xyz2, 2, ", "));
+                    text.append(" XY End:"
+                                + xyToText(xyz2));
                 }
                 htmlTableBuilder.addRow(text,
                                         boldText,
@@ -1563,17 +1556,19 @@ IdentificationFormattedTextGenerator::generateChartTwoLineLayerIdentificationTex
             if (toolTipFlag) {
                 idText.addLine(true,
                                "XY Start",
-                               AString::fromNumbers(xyz1, 2, ", "));
+                               xyToText(xyz1));
                 if (nextIndex >= 0) {
                     idText.addLine(true,
                                    "XY End ",
-                                   AString::fromNumbers(xyz2, 2, ", "));
+                                   xyToText(xyz2));
                 }
             }
             else {
-                AString text("XY Start:" + AString::fromNumbers(xyz1, 2, ", "));
+                AString text("XY Start:"
+                             + xyToText(xyz1));
                 if (nextIndex >= 0) {
-                    text.append(" XY End:" + AString::fromNumbers(xyz2, 2, ", "));
+                    text.append(" XY End:"
+                                + xyToText(xyz2));
                 }
                 htmlTableBuilder.addRow(text,
                                         boldText,
@@ -1643,14 +1638,16 @@ IdentificationFormattedTextGenerator::generateChartTwoLineSeriesIdentificationTe
             if (toolTipFlag) {
                 idText.addLine(true,
                                "XY Start",
-                               AString::fromNumbers(xyz1, 2, ", "));
+                               xyToText(xyz1));
                 idText.addLine(true,
                                "XY End ",
-                               AString::fromNumbers(xyz2, 2, ", "));
+                               xyToText(xyz2));
             }
             else {
-                htmlTableBuilder.addRow(("XY Start:" + AString::fromNumbers(xyz1, 2, ", "))
-                                        + ("XY End:" + AString::fromNumbers(xyz2, 2, ", ")),
+                htmlTableBuilder.addRow(("XY Start:"
+                                         + xyToText(xyz1))
+                                        + ("XY End:"
+                                           + xyToText(xyz2)),
                                         boldText,
                                         chartMapFile->getFileNameNoPath());
             }
@@ -1662,10 +1659,11 @@ IdentificationFormattedTextGenerator::generateChartTwoLineSeriesIdentificationTe
             if (toolTipFlag) {
                 idText.addLine(true,
                                "XY",
-                               AString::fromNumbers(xyz, 2, ", "));
+                               xyToText(xyz));
             }
             else {
-                htmlTableBuilder.addRow(("XY:" + AString::fromNumbers(xyz, 2, ", ")),
+                htmlTableBuilder.addRow(("XY:"
+                                         + xyToText(xyz)),
                                         boldText,
                                         chartMapFile->getFileNameNoPath());
             }
@@ -1754,7 +1752,7 @@ IdentificationFormattedTextGenerator::generateChartTwoMatrixIdentificationText(H
                 if ( ! rowData.empty()) {
                     if (colIndex < static_cast<int32_t>(rowData.size())) {
                         CaretAssertVectorIndex(rowData, colIndex);
-                        dataValueText = AString::number(rowData[colIndex], 'f', 3);
+                        dataValueText = dataValueToText(rowData[colIndex]);
                     }
                 }
             }
@@ -1883,7 +1881,8 @@ IdentificationFormattedTextGenerator::generateChartDataSourceText(HtmlTableBuild
         {
             float voxelXYZ[3];
             chartDataSource->getVolumeVoxel(voxelXYZ);
-            columnOne = ("Voxel XYZ " + AString::fromNumbers(voxelXYZ, 3, ","));
+            columnOne = ("Voxel XYZ " +
+                         xyzToText(voxelXYZ));
         }
             break;
     }
@@ -1975,7 +1974,8 @@ IdentificationFormattedTextGenerator::generateMapFileSelectorText(HtmlTableBuild
         {
             float voxelXYZ[3];
             mapFileDataSelector->getVolumeVoxelXYZ(voxelXYZ);
-            htmlTableBuilder.addRow("Voxel XYZ: " + AString::fromNumbers(voxelXYZ, 3, ","));
+            htmlTableBuilder.addRow("Voxel XYZ: " +
+                                    xyzToText(voxelXYZ));
         }
             break;
     }
@@ -2034,7 +2034,7 @@ IdentificationFormattedTextGenerator::generateSurfaceBorderIdentifcationText(Htm
             indentFlag = true;
             idText.addLine(indentFlag,
                            "XYZ",
-                           AString::fromNumbers(xyz, 3, ","));
+                           xyzToText(xyz));
         }
         else {
             const AString numberIndexText = ("("
@@ -2042,7 +2042,7 @@ IdentificationFormattedTextGenerator::generateSurfaceBorderIdentifcationText(Htm
                                              + ","
                                              + AString::number(idSurfaceBorder->getBorderPointIndex()));
 
-            htmlTableBuilder.addRow(AString::fromNumbers(xyz, 3, ","),
+            htmlTableBuilder.addRow(xyzToText(xyz),
                                           ("BORDER " + numberIndexText),
                                           ("Name: " + border->getName()
                                            + "<br>Class: " + border->getClassName()));
@@ -2106,7 +2106,7 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
     float xyzStereo[3];
     spi->getStereotaxicXYZ(xyzStereo);
     const AString stereoXYZText((spi->isStereotaxicXYZValid()
-                                 ? AString::fromNumbers(xyzStereo, 3, ",")
+                                 ? xyzToText(xyzStereo)
                                  : "Invalid"));
     if (toolTipFlag) {
         bool indentFlag = false;
@@ -2155,7 +2155,7 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
     spi->getStereotaxicXYZ(xyzStereo);
     
     const AString stereoXYZText((spi->isStereotaxicXYZValid()
-                                 ? AString::fromNumbers(xyzStereo, 3, ",")
+                                 ? xyzToText(xyzStereo)
                                  : "Invalid"));
     
     if (toolTipFlag) {
@@ -2191,7 +2191,7 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                     }
                     if ( ! xyzProjName.isEmpty()) {
                         projectedXYZText = (xyzProjName +
-                                            AString::fromNumbers(xyzProj, 3, ", "));
+                                            xyzToText(xyzProj));
                     }
                     
                 }
@@ -2494,7 +2494,7 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                         
                         idText.addLine(indentFlag,
                                        "Anatomy Surface",
-                                       AString::fromNumbers(vertexXYZ, 3, ", ", 'f', 2));
+                                       xyzToText(vertexXYZ));
                         if (surface == anatSurface) {
                             showSurfaceFlag = false;
                         }
@@ -2516,7 +2516,7 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                 idText.addLine(indentFlag,
                                (SurfaceTypeEnum::toGuiName(surface->getSurfaceType())
                                 + " Surface"),
-                               AString::fromNumbers(xyz, 3, ", "));
+                               xyzToText(xyz));
             }
             
             if (dataToolTipsManager->isShowTopEnabledLayer()) {
@@ -2537,6 +2537,7 @@ IdentificationFormattedTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                                      surfaceNodeIndex,
                                                                      surfaceNumberOfNodes,
                                                                      " ",
+                                                                     s_dataValueDigitsRightOfDecimal,
                                                                      textValue);
                         if ( ! textValue.isEmpty()) {
                             idText.addLine(indentFlag,
@@ -2662,14 +2663,14 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
                     const Vector3D xyz(voxelSelection->getVoxelXYZ());
                     idText.addLine(indentFlag,
                                    "Underlay Value",
-                                   AString::number(value, 'f'));
+                                   dataValueToText(value));
                     indentFlag = true;
                     idText.addLine(indentFlag,
                                    "IJK: ",
                                    AString::fromNumbers(ijk.m_ijk, 3, ", "));
                     idText.addLine(indentFlag,
                                    "XYZ",
-                                   AString::fromNumbers(xyz, 3, ", ", 'f', 1));
+                                   xyzToText(xyz));
                     voxelXYZ.set(xyz[0], xyz[1], xyz[2]);
                     voxelXYZValidFlag = true;
                 }
@@ -2692,6 +2693,7 @@ IdentificationFormattedTextGenerator::generateVolumeToolTip(const Identification
                 mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                              xyz,
                                                              " ",
+                                                             s_dataValueDigitsRightOfDecimal,
                                                              ijk,
                                                              textValue);
                 if ( ! textValue.isEmpty()) {
@@ -2826,7 +2828,7 @@ IdentificationFormattedTextGenerator::getTextDistanceToMostRecentIdentificationS
             const Vector3D xyz(lastIdItem->getStereotaxicXYZ());
             const float distance((xyz - Vector3D(selectionXYZ)).length());
             const AString text("Distance to Most Recent ID Symbol: "
-                               + AString::number(distance, 'f', 4));
+                               + dataValueToText(distance));
             return text;
         }
     }
@@ -2929,6 +2931,73 @@ IdentificationFormattedTextGenerator::createHtmlTableBuilder(const int32_t numbe
                                                                numberOfColumns));
     return htb;
 }
+
+/**
+ * Convert XY coordinates to text
+ * @param xy
+ *    The XY coordinates
+ * @param precisionDigits
+ *    Optional number of digits right of decimal.  When zero or greater, it specifies the number of digits
+ *    right of the decimal.  If negative, the default number of digits right of decimal are used.
+ * @return
+ *    Text representation of the coordinates
+ */
+AString
+IdentificationFormattedTextGenerator::xyToText(const float xy[2],
+                                               const int32_t precisionDigits) const
+{
+    const int32_t defaultDigitsRightOfDecimal(2);
+    const int32_t digits((precisionDigits >= 0)
+                         ? precisionDigits
+                         : defaultDigitsRightOfDecimal);
+    
+    return AString::fromNumbers(xy,
+                                2,       /* number of elements */
+                                ", ",    /* separator between elements */
+                                'f',     /* floating point format */
+                                digits); /* digits right of decimal */
+}
+
+/**
+ * Convert XYZ coordinates to text
+ * @param xyx
+ *    The XYZ coordinates
+ * @param precisionDigits
+ *    Optional number of digits right of decimal.  When zero or greater, it specifies the number of digits
+ *    right of the decimal.  If negative, the default number of digits right of decimal are used.
+ * @return
+ *    Text representation of the coordinates
+ */
+AString
+IdentificationFormattedTextGenerator::xyzToText(const float xyz[3],
+                                                const int32_t precisionDigits) const
+{
+    const int32_t defaultDigitsRightOfDecimal(2);
+    const int32_t digits((precisionDigits >= 0)
+                         ? precisionDigits
+                         : defaultDigitsRightOfDecimal);
+    
+    return AString::fromNumbers(xyz,
+                                3,       /* number of elements */
+                                ", ",    /* separator between elements */
+                                'f',     /* floating point format */
+                                digits); /* digits right of decimal */
+}
+
+AString
+IdentificationFormattedTextGenerator::dataValueToText(const float value,
+                                                      const int32_t precisionDigits) const
+{
+    const int32_t defaultDigitsRightOfDecimal(4);
+    const int32_t digits((precisionDigits >= 0)
+                         ? precisionDigits
+                         : defaultDigitsRightOfDecimal);
+    
+    return AString::number(value,
+                           'f',     /* floating point format */
+                           digits); /* digits right of decimal */
+}
+
 
 
 /* =============================================================================================*/

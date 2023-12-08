@@ -175,6 +175,7 @@ namespace caret {
                                                          const int nodeIndex,
                                                          const int32_t numberOfNodes,
                                                          const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
                                                          AString& textOut) const override;
 
     private:

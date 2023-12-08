@@ -504,6 +504,7 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                         if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                                       xyz,
                                                                            " ",
+                                                                           4,
                                                                       voxelIJK,
                                                                       textValue)) {
                             AString boldText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
@@ -670,6 +671,7 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                                                                             nodeNumber,
                                                                             surface->getNumberOfNodes(),
                                                                          " ",
+                                                                         4,
                                                                             textValue);
             if (valid) {
                 idText.addLine(true,
@@ -1749,6 +1751,7 @@ IdentificationSimpleTextGenerator::generateSurfaceToolTip(const Brain* brain,
                                                                      surfaceNodeIndex,
                                                                      surfaceNumberOfNodes,
                                                                      " ",
+                                                                     4,
                                                                      textValue);
                         if ( ! textValue.isEmpty()) {
                             idText.addLine(indentFlag,
@@ -1872,6 +1875,7 @@ IdentificationSimpleTextGenerator::generateVolumeToolTip(const BrowserTabContent
                 mapFile->getVolumeVoxelIdentificationForMaps(mapIndices,
                                                              xyz,
                                                              " ",
+                                                             4,
                                                              ijk,
                                                              textValue);
                 if ( ! textValue.isEmpty()) {

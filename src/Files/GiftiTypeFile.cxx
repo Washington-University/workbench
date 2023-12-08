@@ -1339,16 +1339,19 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
  *    Number of nodes in the surface.
  * @param dataValueSeparator
  *    Separator between multiple data values
+ * @param digitsRightOfDecimal
+ *    Digits right of decimal for real data
  * @param textOut
  *    Output containing identification information.
  */
 bool
 GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
-                                                           const StructureEnum::Enum structure,
-                                                           const int nodeIndex,
-                                                           const int32_t numberOfNodes,
-                                                           const AString& dataValueSeparator,
-                                                           AString& textOut) const
+                                                   const StructureEnum::Enum structure,
+                                                   const int nodeIndex,
+                                                   const int32_t numberOfNodes,
+                                                   const AString& dataValueSeparator,
+                                                   const int32_t digitsRightOfDecimal,
+                                                   AString& textOut) const
 {
     textOut.clear();
     
@@ -1436,7 +1439,7 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                     if ( ! valuesText.isEmpty()) {
                         valuesText.append(dataValueSeparator);
                     }
-                    valuesText.append(AString::number(value, 'f', 3));
+                    valuesText.append(AString::number(value, 'f', digitsRightOfDecimal));
                 }
                 
                 if ( ! valuesText.isEmpty()) {

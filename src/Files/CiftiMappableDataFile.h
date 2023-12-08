@@ -396,6 +396,7 @@ namespace caret {
         virtual bool getMapVolumeVoxelValues(const std::vector<int32_t> mapIndices,
                                              const float xyz[3],
                                              const AString& dataValueSeparator,
+                                             const int32_t digitsRightOfDecimal,
                                              int64_t ijkOut[3],
                                              std::vector<float>& numericalValuesOut,
                                              std::vector<bool>& numericalValuesOutValid,
@@ -419,6 +420,7 @@ namespace caret {
         virtual bool getVolumeVoxelIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const float xyz[3],
                                                          const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
                                                          int64_t ijkOut[3],
                                                          AString& textOut) const override;
         
@@ -441,17 +443,19 @@ namespace caret {
                                              const int nodeIndex,
                                              const int32_t numberOfNodes,
                                              const AString& dataValueSeparator,
+                                             const int32_t digitsRightOfDecimal,
                                              std::vector<float>& numericalValuesOut,
                                              std::vector<bool>& numericalValuesOutValid,
                                              AString& textValueOut) const;
         
         virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
-                                                            const StructureEnum::Enum structure,
-                                                            const int nodeIndex,
-                                                            const int32_t numberOfNodes,
-                                                            const AString& dataValueSeparator,
-                                                            AString& textOut) const override;
-        
+                                                         const StructureEnum::Enum structure,
+                                                         const int nodeIndex,
+                                                         const int32_t numberOfNodes,
+                                                         const AString& dataValueSeparator,
+                                                         const int32_t digitsRightOfDecimal,
+                                                         AString& textOut) const override;
+
         int32_t getMappingSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
         
         bool getSeriesDataForSurfaceNode(const StructureEnum::Enum structure,
