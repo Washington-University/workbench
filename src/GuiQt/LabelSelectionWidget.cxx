@@ -85,6 +85,8 @@ s_saveRestoreStateName(saveRestoreStateName)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 caretDataFile = df;
                 break;
