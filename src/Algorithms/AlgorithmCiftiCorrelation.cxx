@@ -178,9 +178,9 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     {
         if (ciftiRoiMode)
         {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, ciftiRoi, weights, fisherZ, memLimitGB, noDemean, covariance);
         } else {
-            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean);
+            AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB, noDemean, covariance);
         }
     } else {
         AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB, noDemean, covariance);
