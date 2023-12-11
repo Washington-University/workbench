@@ -146,6 +146,7 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             validMatrixRowColumnSelectionDimensions.push_back(ChartTwoMatrixLoadingDimensionEnum::CHART_MATRIX_LOADING_BY_COLUMN);
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_ROW_DATA;
             lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_ROW_SCALAR_DATA;
             matrixType = ChartTwoMatrixContentTypeEnum::MATRIX_CONTENT_SCALARS;
