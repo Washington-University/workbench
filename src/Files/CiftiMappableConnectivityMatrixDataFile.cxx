@@ -951,10 +951,18 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const
                                            nodeIndices,
                                            rowIndices,
                                            columnIndices);
-    if (rowIndices.empty()
-        && columnIndices.empty()) {
-        return;
+
+    int64_t dataCount = m_ciftiFile->getNumberOfColumns();
+    if ((getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC)
+        || (getDataFileType() == DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC)) {
+        /*
+         * Dense dynamic is special case where number of rows equals number of brainordinates.
+         * Number of columns is number of time points
+         */
+        dataCount = m_ciftiFile->getNumberOfRows();
     }
+
+    m_loadedRowData.resize(dataCount);
     
     std::vector<float> dataAverage(m_loadedRowData.size());
     const bool dataWasLoadedFlag(getRowColumnAverageForIndices(rowIndices,
