@@ -289,7 +289,7 @@ namespace caret {
     };
     
 #ifdef __IDENTIFICATION_FORMATTED_TEXT_GENERATOR_DECLARE__
-    const int32_t IdentificationFormattedTextGenerator::s_dataValueDigitsRightOfDecimal = 4;
+    const int32_t IdentificationFormattedTextGenerator::s_dataValueDigitsRightOfDecimal = 5;
 #endif // __IDENTIFICATION_SIMPLE_TEXT_GENERATOR_DECLARE__
 
 } // namespace

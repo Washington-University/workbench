@@ -2988,10 +2988,9 @@ AString
 IdentificationFormattedTextGenerator::dataValueToText(const float value,
                                                       const int32_t precisionDigits) const
 {
-    const int32_t defaultDigitsRightOfDecimal(4);
     const int32_t digits((precisionDigits >= 0)
                          ? precisionDigits
-                         : defaultDigitsRightOfDecimal);
+                         : s_dataValueDigitsRightOfDecimal);
     
     return AString::number(value,
                            'f',     /* floating point format */
