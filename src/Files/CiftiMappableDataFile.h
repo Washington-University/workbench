@@ -890,6 +890,8 @@ namespace caret {
         /** Controls lazy initialization of m_brainordinateMapping */
         mutable bool m_brainordinateMappingCachedFlag = false;
         
+        mutable bool m_matrixDimensionsTooLargeFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
         
     };

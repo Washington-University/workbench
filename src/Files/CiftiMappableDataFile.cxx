@@ -1746,9 +1746,9 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                      */
                     gridMode = MatrixGridMode::FILLED_TRIANGLES;
                     
-                    static bool firstTimeFlag(true);
-                    if (firstTimeFlag) {
-                        firstTimeFlag = true;
+                    if ( ! m_matrixDimensionsTooLargeFlag) {
+                        m_matrixDimensionsTooLargeFlag = true;
+                        
                         const QString msg("Matrix dimensions for file "
                                           + getFileName()
                                           + " are too big for OpenGL Texture.\n"
@@ -1759,8 +1759,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                           + ") OpenGL Maximum dim="
                                           + AString::number(maximumWidthHeight));
                         CaretLogSevere(msg);
-                        return NULL;
                     }
+                    
+                    /** Matrix too big to draw */
+                    return NULL;
                 }
             }
             else {
