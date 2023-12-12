@@ -63,7 +63,7 @@ m_settings(settings)
     modeButtonGroup->addButton(m_modeCorrelationRadioButton);
     modeButtonGroup->addButton(m_modeCovarianceRadioButton);
     modeButtonGroup->setExclusive(true);
-    QObject::connect(modeButtonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(modeButtonGroup, static_cast<void(QButtonGroup::*)(QAbstractButton *)>(&QButtonGroup::buttonClicked),
                      this, &ConnectivityCorrelationSettingsMenu::modeButtonClicked);
     
     switch (settings->getMode()) {
