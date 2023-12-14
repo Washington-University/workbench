@@ -170,6 +170,9 @@ namespace caret {
         static void getDataFileContentInformationForGenericCiftiFile(const AString& filename,
                                                                      DataFileContentInformation& dataFileInformation);
         
+        static bool isMatrixTooLargeForOpenGL(const int64_t numberOfRows,
+                                              const int64_t numberOfColumns);
+        
         virtual void clear();
         
         virtual bool isEmpty() const;
@@ -767,6 +770,14 @@ namespace caret {
 
         const CiftiBrainModelsMap* getBrainordinateMapping() const;
         
+        GraphicsPrimitiveV3fT2f* createMatrixPrimitive(std::vector<uint8_t>& matrixRGBA,
+                                                       const int64_t numberOfColumns,
+                                                       const int64_t numberOfRows,
+                                                       const float xLeft,
+                                                       const float xRight,
+                                                       const float yBottom,
+                                                       const float yTop) const;
+
         /**
          * Point to the CIFTI file object.
          */
@@ -890,7 +901,8 @@ namespace caret {
         /** Controls lazy initialization of m_brainordinateMapping */
         mutable bool m_brainordinateMappingCachedFlag = false;
         
-        mutable bool m_matrixDimensionsTooLargeFlag = false;
+        /** Prevents logging 'too large' message more than once for a file */
+        mutable bool m_matrixDimensionsTooLargeLoggedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
         

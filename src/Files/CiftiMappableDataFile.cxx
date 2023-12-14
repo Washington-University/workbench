@@ -57,9 +57,11 @@
 #include "GiftiMetaData.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fT2f.h"
+#include "GraphicsTextureRectangle.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "Histogram.h"
+#include "ImageFile.h"
 #include "MapFileDataSelector.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
@@ -1738,16 +1740,10 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                  */
                 helpMapFileGetMatrixDimensions(numMatrixRows,
                                                numMatrixColumns);
-                const int32_t maximumWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
-                if ((numMatrixRows > maximumWidthHeight)
-                    || (numMatrixColumns > maximumWidthHeight)) {
-                    /*
-                     * Dimensions too big, must use triangles
-                     */
-                    gridMode = MatrixGridMode::FILLED_TRIANGLES;
-                    
-                    if ( ! m_matrixDimensionsTooLargeFlag) {
-                        m_matrixDimensionsTooLargeFlag = true;
+                if (CiftiMappableDataFile::isMatrixTooLargeForOpenGL(numMatrixRows,
+                                                                     numMatrixColumns)) {
+                    if ( ! m_matrixDimensionsTooLargeLoggedFlag) {
+                        m_matrixDimensionsTooLargeLoggedFlag = true;
                         
                         const QString msg("Matrix dimensions for file "
                                           + getFileName()
@@ -1755,9 +1751,7 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                                           "Matrix dim("
                                           + AString::number(numMatrixRows)
                                           + ", "
-                                          + AString::number(numMatrixColumns)
-                                          + ") OpenGL Maximum dim="
-                                          + AString::number(maximumWidthHeight));
+                                          + AString::number(numMatrixColumns));
                         CaretLogSevere(msg);
                     }
                     
@@ -2032,27 +2026,13 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
                         const float matrixRight(matrixLeft + (xAxisStep * (numberOfColumns)));
                         const float matrixBottom(yAxisStart);
                         const float matrixTop(matrixBottom + (yAxisStep * (numberOfRows)));
-                        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
-                        GraphicsTextureSettings textureSettings(&matrixTextureRGBA[0],
-                                                                numberOfColumns,
-                                                                numberOfRows,
-                                                                1, /* slices */
-                                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
-                                                                GraphicsTextureSettings::PixelFormatType::RGBA,
-                                                                GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
-                                                                GraphicsTextureSettings::WrappingType::CLAMP,
-                                                                GraphicsTextureSettings::MipMappingType::DISABLED,
-                                                                GraphicsTextureSettings::CompressionType::DISABLED,
-                                                                GraphicsTextureMagnificationFilterEnum::NEAREST,
-                                                                GraphicsTextureMinificationFilterEnum::NEAREST,
-                                                                textureBorderColorRGBA);
-
-                        matrixTexturePrimitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
-                                                                                       textureSettings);
-                        matrixTexturePrimitive->addVertex(matrixLeft, matrixTop, 0, 1);  /* Top Left */
-                        matrixTexturePrimitive->addVertex(matrixLeft, matrixBottom, 0, 0);  /* Bottom Left */
-                        matrixTexturePrimitive->addVertex(matrixRight, matrixTop, 1, 1);  /* Top Right */
-                        matrixTexturePrimitive->addVertex(matrixRight, matrixBottom, 1, 0);  /* Bottom Right */
+                        matrixTexturePrimitive = createMatrixPrimitive(matrixTextureRGBA,
+                                                                       numberOfColumns,
+                                                                       numberOfRows,
+                                                                       matrixLeft,
+                                                                       matrixRight,
+                                                                       matrixBottom,
+                                                                       matrixTop);
                         matrixPrimitive = matrixTexturePrimitive;
                     }
                         break;
@@ -2097,6 +2077,260 @@ CiftiMappableDataFile::getMatrixChartingGraphicsPrimitive(const ChartTwoMatrixTr
     return matrixPrimitive;
 }
 
+/**
+ * Create a matrix graphics primitive
+ * @param matrixRGBA
+ *    The matrix RGBA color components (one per cell)
+ * @param numberOfColumns
+ *    Number of columns in the matrix
+ * @param numberOfRows
+ *    Number of rows in the matrix
+ * @param xLeft
+ *    Coordinate at left edge of matrix
+ * @param xRight
+ *    Coordinate at right edge of matrix
+ * @param yBottom
+ *    Coordinate at bottom edge of matrix
+ * @param yTop
+ *    Coordinate at top edge of matrix
+ */
+GraphicsPrimitiveV3fT2f*
+CiftiMappableDataFile::createMatrixPrimitive(std::vector<uint8_t>& matrixRGBA,
+                                             const int64_t numberOfColumns,
+                                             const int64_t numberOfRows,
+                                             const float xLeft,
+                                             const float xRight,
+                                             const float yBottom,
+                                             const float yTop) const
+{
+    GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
+
+    const int32_t maximumWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
+    const bool columnsTooBigFlag(numberOfColumns > maximumWidthHeight);
+    const bool rowsTooBigFlag(numberOfRows > maximumWidthHeight);
+    
+    if (columnsTooBigFlag
+        && rowsTooBigFlag) {
+        /* This method should never be called if these conditions are met */
+        CaretAssertMessage(0, "Matrix TOO BIG");
+        return NULL;
+    }
+    else if (columnsTooBigFlag) {
+        /*
+         * OpenGL maximum texture is square and there are too many columns to fit
+         * in the square so rearrange the rectangle by moving pieces of it into the square
+         */
+        const int32_t numPieces(std::ceil(static_cast<double>(numberOfColumns)
+                                          / static_cast<double>(maximumWidthHeight)));
+        const int32_t textureWidth(maximumWidthHeight);
+        const int32_t textureHeight(numberOfRows * numPieces);
+        
+        const GraphicsTextureRectangle sourceRectangle(&matrixRGBA[0],
+                                                       numberOfColumns,
+                                                       numberOfRows);
+        /*
+         * Put the memory in a shared pointer, memory must remain valid,
+         * Shared pointer is passed to primitive
+         */
+        uint8_t* textureRGBA = new uint8_t[textureWidth * textureHeight * 4];
+        std::shared_ptr<uint8_t> textureSharedPtrRGBA(textureRGBA);
+
+        GraphicsTextureRectangle textureRectangle(&textureRGBA[0],
+                                                  textureWidth,
+                                                  textureHeight);
+        std::vector<Vector3D> triangleXYZ;
+        std::vector<Vector3D> triangleSTR;
+        
+        int64_t sourceX(0);
+        int64_t sourceY(0);
+        const int64_t height(numberOfRows);
+        for (int32_t k = 0; k < numPieces; k++) {
+            sourceX = (k * maximumWidthHeight);
+            int64_t width(numberOfColumns - sourceX);
+            if (width > maximumWidthHeight) {
+                width = maximumWidthHeight;
+            }
+            
+            const int64_t destX(0);
+            const int64_t destY(k * numberOfRows);
+            
+            std::vector<Vector3D> xyz;
+            std::vector<Vector3D> str;
+            textureRectangle.copy(sourceRectangle,
+                                  textureRectangle,
+                                  sourceX,
+                                  sourceY,
+                                  width,
+                                  height,
+                                  destX,
+                                  destY,
+                                  xyz,
+                                  str);
+            triangleXYZ.insert(triangleXYZ.end(),
+                               xyz.begin(),
+                               xyz.end());
+            triangleSTR.insert(triangleSTR.end(),
+                               str.begin(),
+                               str.end());
+            
+        }
+        
+        CaretAssert(triangleXYZ.size() == triangleSTR.size());
+        
+        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        GraphicsTextureSettings textureSettings(textureSharedPtrRGBA,
+                                                textureWidth,
+                                                textureHeight,
+                                                1, /* slices */
+                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                GraphicsTextureSettings::WrappingType::CLAMP,
+                                                GraphicsTextureSettings::MipMappingType::DISABLED,
+                                                GraphicsTextureSettings::CompressionType::DISABLED,
+                                                GraphicsTextureMagnificationFilterEnum::NEAREST,
+                                                GraphicsTextureMinificationFilterEnum::NEAREST,
+                                                textureBorderColorRGBA);
+        
+        primitiveOut = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                             textureSettings);
+        
+        const int32_t numVertices(triangleXYZ.size());
+        for (int32_t i = 0; i < numVertices; i++) {
+            CaretAssertVectorIndex(triangleXYZ, i);
+            CaretAssertVectorIndex(triangleSTR, i);
+            const Vector3D& xyz = triangleXYZ[i];
+            const Vector3D& str = triangleSTR[i];
+            primitiveOut->addVertex(xyz[0], xyz[1], str[0], str[1]);
+        }
+    }
+    else if (rowsTooBigFlag) {
+        /*
+         * OpenGL maximum texture is square and there are too many rows to fit
+         * in the square so rearrange the rectangle by moving pieces of it into the square
+         */
+        const int32_t numPieces(std::ceil(static_cast<double>(numberOfRows)
+                                          / static_cast<double>(maximumWidthHeight)));
+        const int32_t textureHeight(maximumWidthHeight);
+        const int32_t textureWidth(numberOfColumns * numPieces);
+        
+        const GraphicsTextureRectangle sourceRectangle(&matrixRGBA[0],
+                                                       numberOfColumns,
+                                                       numberOfRows);
+        
+        /*
+         * Put the memory in a shared pointer, memory must remain valid,
+         * Shared pointer is passed to primitive
+         */
+        uint8_t* textureRGBA = new uint8_t[textureWidth * textureHeight * 4];
+        std::shared_ptr<uint8_t> textureSharedPtrRGBA(textureRGBA);
+
+        GraphicsTextureRectangle textureRectangle(&textureRGBA[0],
+                                                  textureWidth,
+                                                  textureHeight);
+        std::vector<Vector3D> triangleXYZ;
+        std::vector<Vector3D> triangleSTR;
+        
+        int64_t sourceX(0);
+        int64_t sourceY(0);
+        const int64_t width(numberOfColumns);
+        for (int32_t k = 0; k < numPieces; k++) {
+            sourceY = (k * maximumWidthHeight);
+            int64_t height(numberOfRows - sourceY);
+            if (height > maximumWidthHeight) {
+                height = maximumWidthHeight;
+            }
+            
+            const int64_t destX(k * numberOfColumns);
+            const int64_t destY(0);
+            
+            std::vector<Vector3D> xyz;
+            std::vector<Vector3D> str;
+            textureRectangle.copy(sourceRectangle,
+                                  textureRectangle,
+                                  sourceX,
+                                  sourceY,
+                                  width,
+                                  height,
+                                  destX,
+                                  destY,
+                                  xyz,
+                                  str);
+            triangleXYZ.insert(triangleXYZ.end(),
+                               xyz.begin(),
+                               xyz.end());
+            triangleSTR.insert(triangleSTR.end(),
+                               str.begin(),
+                               str.end());
+            
+        }
+        
+        CaretAssert(triangleXYZ.size() == triangleSTR.size());
+        
+        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        GraphicsTextureSettings textureSettings(textureSharedPtrRGBA,
+                                                textureWidth,
+                                                textureHeight,
+                                                1, /* slices */
+                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                GraphicsTextureSettings::WrappingType::CLAMP,
+                                                GraphicsTextureSettings::MipMappingType::DISABLED,
+                                                GraphicsTextureSettings::CompressionType::DISABLED,
+                                                GraphicsTextureMagnificationFilterEnum::NEAREST,
+                                                GraphicsTextureMinificationFilterEnum::NEAREST,
+                                                textureBorderColorRGBA);
+        
+        primitiveOut = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES,
+                                                             textureSettings);
+        
+        const int32_t numVertices(triangleXYZ.size());
+        for (int32_t i = 0; i < numVertices; i++) {
+            CaretAssertVectorIndex(triangleXYZ, i);
+            CaretAssertVectorIndex(triangleSTR, i);
+            const Vector3D& xyz = triangleXYZ[i];
+            const Vector3D& str = triangleSTR[i];
+            primitiveOut->addVertex(xyz[0], xyz[1], str[0], str[1]);
+        }
+    }
+    else {
+        /*
+         * Put the memory in a shared pointer, memory must remain valid,
+         * Shared pointer is passed to primitive
+         */
+        const int64_t numBytes(matrixRGBA.size());
+        uint8_t* textureRGBA = new uint8_t[numBytes];
+        std::copy(matrixRGBA.begin(), matrixRGBA.end(), textureRGBA);
+        std::shared_ptr<uint8_t> textureSharedPtrRGBA(textureRGBA);
+
+        const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
+        GraphicsTextureSettings textureSettings(textureSharedPtrRGBA,
+                                                numberOfColumns,
+                                                numberOfRows,
+                                                1, /* slices */
+                                                GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                                GraphicsTextureSettings::PixelFormatType::RGBA,
+                                                GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                                GraphicsTextureSettings::WrappingType::CLAMP,
+                                                GraphicsTextureSettings::MipMappingType::DISABLED,
+                                                GraphicsTextureSettings::CompressionType::DISABLED,
+                                                GraphicsTextureMagnificationFilterEnum::NEAREST,
+                                                GraphicsTextureMinificationFilterEnum::NEAREST,
+                                                textureBorderColorRGBA);
+        
+        primitiveOut = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
+                                                             textureSettings);
+        primitiveOut->addVertex(xLeft,  yTop, 0, 1);  /* Top Left */
+        primitiveOut->addVertex(xLeft,  yBottom, 0, 0);  /* Bottom Left */
+        primitiveOut->addVertex(xRight, yTop, 1, 1);  /* Top Right */
+        primitiveOut->addVertex(xRight, yBottom, 1, 0);  /* Bottom Right */
+    }
+    
+    CaretAssert(primitiveOut);
+    
+    return primitiveOut;
+}
 
 /**
  * Get the matrix RGBA coloring for this matrix data creator.
@@ -7682,6 +7916,43 @@ CiftiMappableDataFile::helpMapFileGetMatrixDimensions(int32_t& numberOfRowsOut,
     numberOfColumnsOut = m_ciftiFile->getNumberOfColumns();
 }
 
+/**
+ * @return True if the matrix is too large to display with OpenGL.
+ * @param numberOfRows
+ *    Number of rows in matrix
+ * @param numberOfColumns
+ *    Number of columns in matrix
+ */
+bool
+CiftiMappableDataFile::isMatrixTooLargeForOpenGL(const int64_t numberOfRows,
+                                                 const int64_t numberOfColumns)
+{
+    const int64_t maxDim(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+    
+    /*
+     * Packed textures will split a rectangular matrix into pieces
+     * so that it fits in the square texture
+     */
+    const bool allowPackedTexturesFlag(true);
+    if (allowPackedTexturesFlag) {
+        const int64_t numCells(numberOfRows * numberOfColumns);
+        const int64_t maxTextureSize(maxDim * maxDim);
+        if (numCells >= maxTextureSize) {
+            /* too big */
+            return true;
+        }
+    }
+    else {
+        if ((numberOfRows > maxDim)
+            || (numberOfColumns > maxDim)) {
+            /* one dimension is too big */
+            return true;
+        }
+    }
+    
+    /* ok */
+    return false;
+}
 
 /**
  * Help load matrix chart data and order in the given row indices

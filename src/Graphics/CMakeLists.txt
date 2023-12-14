@@ -47,6 +47,7 @@ GraphicsRegionSelectionBox.h
 GraphicsShape.h
 GraphicsTextureMagnificationFilterEnum.h
 GraphicsTextureMinificationFilterEnum.h
+GraphicsTextureRectangle.h
 GraphicsTextureSettings.h
 GraphicsUtilitiesOpenGL.h
 GraphicsViewport.h
@@ -79,6 +80,7 @@ GraphicsRegionSelectionBox.cxx
 GraphicsShape.cxx
 GraphicsTextureMagnificationFilterEnum.cxx
 GraphicsTextureMinificationFilterEnum.cxx
+GraphicsTextureRectangle.cxx
 GraphicsTextureSettings.cxx
 GraphicsUtilitiesOpenGL.cxx
 GraphicsViewport.cxx

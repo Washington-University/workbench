@@ -681,9 +681,8 @@ CiftiScalarDataSeriesFile::readFile(const AString& ciftiMapFileName)
     int32_t numMatrixColumns(0);
     helpMapFileGetMatrixDimensions(numMatrixRows,
                                    numMatrixColumns);
-    const int32_t maximumWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
-    if ((numMatrixRows > maximumWidthHeight)
-        || (numMatrixColumns > maximumWidthHeight)) {
+    if (CiftiMappableDataFile::isMatrixTooLargeForOpenGL(numMatrixRows, numMatrixColumns)) {
+        const int32_t maximumWidthHeight(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
         AString text("Matrix dimensions exceed OpenGL capabilities.  "
                      "Number of rows="
                      + AString::number(numMatrixRows)
