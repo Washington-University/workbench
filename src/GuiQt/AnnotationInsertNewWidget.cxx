@@ -685,8 +685,13 @@ AnnotationInsertNewWidget::createShapeToolButton(const AnnotationTypeEnum::Enum 
                                   "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"
                                   "<li> <i>Drag</i> (move with left button down) the mouse to create curved lines "
                                   "<li> Note that one can intermix clicks and drags while drawing"
-                                  "<li> When finished, <i>shift-click</i> the mouse to finalize the polygon (does NOT add "
-                                  "another coordinate)"
+                                  "<li> To remove the most recently entered coordinate, click the <b>X</b> "
+                                  "button in the <b>Drawing</b> section of the Toolbar"
+                                  "<li> When finished, <i>click</i> the <b>Finish</b> button in the <b>Drawing</b> "
+                                  "section of the Toolbar OR <i>shift-click</i> the mouse to conclude drawing of "
+                                  "the polygon"
+                                  "<li> To cancel drawing of the polygon, <i>click</i> the <b>Cancel</b> button "
+                                  "in the <b>Drawing</b> section of the Toolbar"
                                   "</ul>");
     AString typeText;
     AString clickText;
