@@ -216,6 +216,8 @@ namespace GiftiMetaDataXmlElements {
     
     static const AString SAMPLES_ALT_ATLAS_DESCRIPTION = "Alt_Atlas_description";
     
+    static const AString SAMPLES_BICAN_DONOR_ID = "BICAN_Donor_id";
+    
     static const AString SAMPLES_CASE_ID = "Case_id";
     
     static const AString SAMPLES_DING_DESCRIPTION = "Ding_description";

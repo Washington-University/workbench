@@ -1818,6 +1818,7 @@ Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annota
             if (polyhedronSamplesFlag) {
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_CASE_ID);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DONOR_ID);
+                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_BICAN_DONOR_ID);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_ID);
                 metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE);
