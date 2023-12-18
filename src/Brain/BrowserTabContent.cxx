@@ -4550,38 +4550,30 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                                -rotationAngleCCW));
 
-            if (isVolumeMprInPlaneRotationEnabled()) {
-                m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
-                m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
-                m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
-                m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
-            }
-            else {
-                m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
-                m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
-                m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
-                m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
-                
-                const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                           rotationAngleCCW));
-                
-                /*
-                 * Pre-multiplying seems to result in slice remaining
-                 * static (not rotating)
-                 */
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        m_mprThreeAxialSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        m_mprThreeCoronalSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        m_mprThreeParasagittalSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                        break;
-                }
+            m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
+            m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
+            m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
+            m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
+            
+            const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                       rotationAngleCCW));
+            
+            /*
+             * Pre-multiplying seems to result in slice remaining
+             * static (not rotating)
+             */
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    m_mprThreeAxialSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    m_mprThreeCoronalSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    m_mprThreeParasagittalSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                    break;
             }
         }
         else if (rotateSliceFlag) {
@@ -4641,39 +4633,32 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                                            rotationAngleCCW));
         
         if (rotateTransformFlag) {
-            if (isVolumeMprInPlaneRotationEnabled()) {
-                CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
-                m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
-                CaretAssert(!m_mprThreeRotationQuaternion.isNull());
-            }
-            else {
-                CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
-                m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
-                CaretAssert(!m_mprThreeRotationQuaternion.isNull());
-                
-                const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                           -rotationAngleCCW));
-                
-                /*
-                 * Pre-multiplying seems to result in slice remaining
-                 * static (not rotating)
-                 */
-                switch (sliceViewPlane) {
-                    case VolumeSliceViewPlaneEnum::ALL:
-                        break;
-                    case VolumeSliceViewPlaneEnum::AXIAL:
-                        m_mprThreeAxialInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                    * m_mprThreeAxialInverseRotationQuaternion);
-                        break;
-                    case VolumeSliceViewPlaneEnum::CORONAL:
-                        m_mprThreeCoronalInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                      * m_mprThreeCoronalInverseRotationQuaternion);
-                        break;
-                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        m_mprThreeParasagittalInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                           * m_mprThreeParasagittalInverseRotationQuaternion);
-                        break;
-                }
+            CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
+            m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
+            CaretAssert(!m_mprThreeRotationQuaternion.isNull());
+            
+            const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                       -rotationAngleCCW));
+            
+            /*
+             * Pre-multiplying seems to result in slice remaining
+             * static (not rotating)
+             */
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    m_mprThreeAxialInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                * m_mprThreeAxialInverseRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    m_mprThreeCoronalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                  * m_mprThreeCoronalInverseRotationQuaternion);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    m_mprThreeParasagittalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                       * m_mprThreeParasagittalInverseRotationQuaternion);
+                    break;
             }
         }
         else if (rotateSliceFlag) {
@@ -6972,27 +6957,6 @@ void
 BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enabled)
 {
     m_volumeSliceSettings->getMprSettings()->setParasagittalSliceThicknessEnabled(enabled);
-    updateYokedModelBrowserTabs();
-}
-
-/**
- * @return Is Volume MPR slice in-plane rotation enabled
- */
-bool
-BrowserTabContent::isVolumeMprInPlaneRotationEnabled() const
-{
-    return m_volumeSliceSettings->getMprSettings()->isInPlaneRotationEnabled();
-}
-
-/**
- * Set Volume MPR slice in-plane rotation enabled
- * @param enabled
- *    New status
- */
-void
-BrowserTabContent::setVolumeMprInPlaneRotationEnabled(const bool enabled)
-{
-    m_volumeSliceSettings->getMprSettings()->setInPlaneRotationEnabled(enabled);
     updateYokedModelBrowserTabs();
 }
 

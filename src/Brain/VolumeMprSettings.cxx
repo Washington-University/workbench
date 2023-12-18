@@ -54,8 +54,6 @@ VolumeMprSettings::VolumeMprSettings()
     m_sceneAssistant->add("m_axialSliceThicknessEnabled", &m_axialSliceThicknessEnabled);
     m_sceneAssistant->add("m_coronalSliceThicknessEnabled", &m_coronalSliceThicknessEnabled);
     m_sceneAssistant->add("m_parasagittalSliceThicknessEnabled", &m_parasagittalSliceThicknessEnabled);
-    m_inPlaneRotationEnabled = false;
-    m_sceneAssistant->add("m_inPlaneRotationEnabled", &m_inPlaneRotationEnabled);
 }
 
 /**
@@ -109,7 +107,6 @@ VolumeMprSettings::copyHelperVolumeMprSettings(const VolumeMprSettings& obj)
     m_axialSliceThicknessEnabled        = obj.m_axialSliceThicknessEnabled;
     m_coronalSliceThicknessEnabled      = obj.m_coronalSliceThicknessEnabled;
     m_parasagittalSliceThicknessEnabled = obj.m_parasagittalSliceThicknessEnabled;
-    m_inPlaneRotationEnabled            = obj.m_inPlaneRotationEnabled;
 }
 
 /**
@@ -125,7 +122,6 @@ VolumeMprSettings::reset()
     m_axialSliceThicknessEnabled        = false;
     m_coronalSliceThicknessEnabled      = false;
     m_parasagittalSliceThicknessEnabled = false;
-    m_inPlaneRotationEnabled            = false;
 }
 
 /**
@@ -280,26 +276,6 @@ VolumeMprSettings::setParasagittalSliceThicknessEnabled(const bool enabled)
 }
 
 /**
- * @return True if in-plane rotation is enabled
- */
-bool
-VolumeMprSettings::isInPlaneRotationEnabled() const
-{
-    return m_inPlaneRotationEnabled;
-}
-
-/**
- * Set the in-plane rotation enabled
- * @param enabled
- *    New status
- */
-void
-VolumeMprSettings::setInPlaneRotationEnabled(const bool enabled)
-{
-    m_inPlaneRotationEnabled = enabled;
-}
-
-/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -346,7 +322,6 @@ VolumeMprSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    m_inPlaneRotationEnabled = false;
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
     

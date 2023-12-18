@@ -110,12 +110,6 @@ m_objectNamePrefix(objectNamePrefix
                      this, &VolumeMprSettingsWidget::parasagittalThickessCheckBoxClicked);
     m_parasagittalSliceThicknessCheckBox->setToolTip("Limit volume to thickness along parasagittal axis");
 
-    const AString inPlaneToolTip("Enables rotation of slice when slice is rotated");
-    m_inPlaneRotationCheckBox = new QCheckBox("Allow In-Plane Rotation");
-    QObject::connect(m_inPlaneRotationCheckBox, &QCheckBox::clicked,
-                     this, &VolumeMprSettingsWidget::inPlaneRotationCheckBoxClicked);
-    m_inPlaneRotationCheckBox->setToolTip(inPlaneToolTip);
-
     QGridLayout* gridLayout = new QGridLayout(this);
     gridLayout->setHorizontalSpacing(gridLayout->horizontalSpacing() / 2);
     gridLayout->setVerticalSpacing((gridLayout->verticalSpacing() * 2) / 2);
@@ -125,8 +119,6 @@ m_objectNamePrefix(objectNamePrefix
     ++row;
     gridLayout->addWidget(orientationLabel, row, 0);
     gridLayout->addWidget(m_orientationComboBox->getWidget(), row, 1);
-    ++row;
-    gridLayout->addWidget(m_inPlaneRotationCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     ++row;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     ++row;
@@ -199,7 +191,6 @@ VolumeMprSettingsWidget::updateContent(const int32_t tabIndex)
     m_axialSliceThicknessCheckBox->setChecked(btc->isVolumeMprAxialSliceThicknessEnabled());
     m_coronalSliceThicknessCheckBox->setChecked(btc->isVolumeMprCoronalSliceThicknessEnabled());
     m_parasagittalSliceThicknessCheckBox->setChecked(btc->isVolumeMprParasagittalSliceThicknessEnabled());
-    m_inPlaneRotationCheckBox->setChecked(btc->isVolumeMprInPlaneRotationEnabled());
     
     updateOrientationComboBoxColor();
     setEnabled(true);
@@ -349,23 +340,6 @@ VolumeMprSettingsWidget::parasagittalThickessCheckBoxClicked(bool)
     }
     
     btc->setVolumeMprParasagittalSliceThicknessEnabled(m_parasagittalSliceThicknessCheckBox->isChecked());
-    updateGraphicsWindow();
-}
-
-/**
- * Called when in-plane rotation checkbox is toggle
- * @bool checked
- *    New checked status
- */
-void
-VolumeMprSettingsWidget::inPlaneRotationCheckBoxClicked(bool)
-{
-    BrowserTabContent* btc(getBrowserTabContent());
-    if (btc == NULL) {
-        return;
-    }
-    
-    btc->setVolumeMprInPlaneRotationEnabled(m_inPlaneRotationCheckBox->isChecked());
     updateGraphicsWindow();
 }
 

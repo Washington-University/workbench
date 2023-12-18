@@ -73,8 +73,6 @@ namespace caret {
         
         void parasagittalThickessCheckBoxClicked(bool);
         
-        void inPlaneRotationCheckBoxClicked(bool);
-        
     private:
         BrowserTabContent* getBrowserTabContent();
         
@@ -103,8 +101,6 @@ namespace caret {
         QCheckBox* m_coronalSliceThicknessCheckBox;
         
         QCheckBox* m_parasagittalSliceThicknessCheckBox;
-        
-        QCheckBox* m_inPlaneRotationCheckBox;
         
         // ADD_NEW_MEMBERS_HERE
 
