@@ -3138,26 +3138,14 @@ Matrix4x4
 BrowserTabContent::getMprThreeRotationMatrix() const
 {
     CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)) {
-        QMatrix3x3 mat33(m_mprThreeRotationSeparateQuaternion.toRotationMatrix());
-        Matrix4x4 matrix;
-        for (int32_t i = 0; i < 3; i++) {
-            for (int32_t j = 0; j < 3; j++) {
-                matrix.setMatrixElement(i, j, mat33(i, j));
-            }
+    QMatrix3x3 mat33(m_mprThreeRotationSeparateQuaternion.toRotationMatrix());
+    Matrix4x4 matrix;
+    for (int32_t i = 0; i < 3; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            matrix.setMatrixElement(i, j, mat33(i, j));
         }
-        return matrix;
     }
-    else {
-        QMatrix3x3 mat33(m_mprThreeRotationQuaternion.toRotationMatrix());
-        Matrix4x4 matrix;
-        for (int32_t i = 0; i < 3; i++) {
-            for (int32_t j = 0; j < 3; j++) {
-                matrix.setMatrixElement(i, j, mat33(i, j));
-            }
-        }
-        return matrix;
-    }
+    return matrix;
 }
 
 /**
@@ -3237,42 +3225,22 @@ Matrix4x4
 BrowserTabContent::getMprThreeRotationMatrixForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane)
 {
     CaretAssert(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)) {
-        QQuaternion q;
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                q = m_mprThreeAxialSeparateRotationQuaternion;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                q = m_mprThreeCoronalSeparateRotationQuaternion;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                q = m_mprThreeParasagittalSeparateRotationQuaternion;
-                break;
-        }
-        return quaternionToMatrix(q);
+    QQuaternion q;
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            q = m_mprThreeAxialSeparateRotationQuaternion;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            q = m_mprThreeCoronalSeparateRotationQuaternion;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            q = m_mprThreeParasagittalSeparateRotationQuaternion;
+            break;
     }
-    else {
-        QQuaternion q(m_mprThreeRotationQuaternion);
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                CaretAssert(0);
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                q *= m_mprThreeAxialInverseRotationQuaternion;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                q *= m_mprThreeCoronalInverseRotationQuaternion;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                q *= m_mprThreeParasagittalInverseRotationQuaternion;
-                break;
-        }
-        return quaternionToMatrix(q);
-    }
+    return quaternionToMatrix(q);
 }
 
 /**
@@ -5831,18 +5799,10 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
         {
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)) {
-                const QVector3D angles(m_mprThreeRotationSeparateQuaternion.toEulerAngles());
-                mprRotationAngles[0] = angles[0];
-                mprRotationAngles[1] = angles[1];
-                mprRotationAngles[2] = angles[2];
-            }
-            else {
-                const QVector3D angles(m_mprThreeRotationQuaternion.toEulerAngles());
-                mprRotationAngles[0] = angles[0];
-                mprRotationAngles[1] = angles[1];
-                mprRotationAngles[2] = angles[2];
-            }
+            const QVector3D angles(m_mprThreeRotationSeparateQuaternion.toEulerAngles());
+            mprRotationAngles[0] = angles[0];
+            mprRotationAngles[1] = angles[1];
+            mprRotationAngles[2] = angles[2];
         }
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
@@ -5906,22 +5866,12 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
             m_mprRotationZ = mprRotationAngles[2];
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)) {
-                m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
-                                                                                    mprRotationAngles[1],
-                                                                                    mprRotationAngles[2]);
-                m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
-                m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
-                m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
-            }
-            else {
-                m_mprThreeRotationQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
-                                                                            mprRotationAngles[1],
-                                                                            mprRotationAngles[2]);
-                m_mprThreeAxialInverseRotationQuaternion = QQuaternion();
-                m_mprThreeCoronalInverseRotationQuaternion = QQuaternion();
-                m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
-            }
+            m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
+                                                                                mprRotationAngles[1],
+                                                                                mprRotationAngles[2]);
+            m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
+            m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
+            m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
             break;

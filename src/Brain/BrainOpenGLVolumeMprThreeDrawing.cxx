@@ -1645,10 +1645,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                       m_coronalSliceNormalVector,
                                       m_axialSliceNormalVector,
                                       &orthoMessage)) {
-        AString rotateMsg((DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_AXIS_SEPARATE_ROTATION_MATRICES)
-                                 ? "MPR Separate Rotation"
-                                 : "MPR Inverse Rotation")
-                                + AString(" failed orthogonal planes test (\"Toolbar -> Reset\" will fix this)"));
+        AString rotateMsg("MPR Separate Rotation"
+                          + AString(" failed orthogonal planes test (\"Toolbar -> Reset\" will fix this)"));
         rotateMsg.appendWithNewLine(orthoMessage);
         rotateMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
         rotateMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
