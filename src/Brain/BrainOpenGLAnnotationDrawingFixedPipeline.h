@@ -544,6 +544,8 @@ namespace caret {
         
         float m_annotationBeingDrawnViewportHeight = 0.0;
         
+        bool m_annotationBeingDrawnIsSelectableFlag = false;
+        
         /** Tracks items drawn for selection */
         std::vector<SelectionInfo> m_selectionInfo;
         

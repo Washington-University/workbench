@@ -127,3 +127,13 @@ EventAnnotationGetBeingDrawnInWindow::setAnnotationDrawingInProgress(const bool 
     m_annotationDrawingInProgressFlag = statusFlag;
 }
 
+/**
+ * @return Is the annotation being drawn selectable?
+ */
+bool
+EventAnnotationGetBeingDrawnInWindow::isAnnontationBeingDrawnSelectable() const
+{
+    return m_annotationBeingDrawnSelectableFlag;
+}
+
+

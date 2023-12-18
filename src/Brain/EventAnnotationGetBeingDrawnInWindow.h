@@ -59,6 +59,8 @@ namespace caret {
         
         void setAnnotationDrawingInProgress(const bool statusFlag);
         
+        bool isAnnontationBeingDrawnSelectable() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -71,6 +73,9 @@ namespace caret {
         int32_t m_drawingViewportHeight = 0;
         
         bool m_annotationDrawingInProgressFlag = false;
+        
+        bool m_annotationBeingDrawnSelectableFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
