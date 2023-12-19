@@ -123,9 +123,23 @@ namespace caret {
         
         static Matrix4x4 quaternionToMatrix(const QQuaternion& quaternion);
         
-        static std::array<float, 4> quaternionToArray(const QQuaternion& quaternion);
+        static std::array<float, 4> quaternionToArrayXYZS(const QQuaternion& quaternion);
         
-        static QQuaternion arrayToQuaternion(const std::array<float, 4>& array);
+        static std::array<float, 4> quaternionToArraySXYZ(const QQuaternion& quaternion);
+        
+        static QQuaternion arrayXYZSToQuaternion(const std::array<float, 4>& arrayXYZS);
+        
+        static QQuaternion arraySXYZToQuaternion(const std::array<float, 4>& arraySXYZ);
+        
+        static void quaternionToArrayXYZS(const QQuaternion& quaternion,
+                                          float arrayXYZS[4]);
+        
+        static void quaternionToArraySXYZ(const QQuaternion& quaternion,
+                                          float arraySXYZ[4]);
+        
+        static QQuaternion arrayXYZSToQuaternion(const float arrayXYZS[4]);
+        
+        static QQuaternion arraySXYZToQuaternion(const float arraySXYZ[4]);
         
         virtual void receiveEvent(Event* event);
         
@@ -690,9 +704,9 @@ namespace caret {
         void restoreFromScenePartTwo(const SceneAttributes* sceneAttributes,
                                      const SceneClass* sceneClass);
         
-        bool restoreQuaternion(const SceneClass* sceneClass,
-                               const AString& memberName,
-                               QQuaternion& quaternion) const;
+        bool restoreQuaternionFromScene(const SceneClass* sceneClass,
+                                        const AString& memberName,
+                                        QQuaternion& quaternion) const;
 
         void setClosedStatusFromSessionManager(const bool closedStatus);
         
@@ -903,7 +917,7 @@ namespace caret {
         QQuaternion m_mprThreeParasagittalSeparateRotationQuaternion;
 
         /* One matrix with "inverse rotations" */
-        QQuaternion m_mprThreeRotationQuaternion;
+        QQuaternion m_mprThreeRotationQuaternion; /* not used but helps identify older/newer scenes */
         QQuaternion m_mprThreeAxialInverseRotationQuaternion;
         QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
         QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;

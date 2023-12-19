@@ -21,7 +21,6 @@
  */
 /*LICENSE_END*/
 
-
 #include "CaretObject.h"
 
 namespace caret {
@@ -31,6 +30,8 @@ namespace caret {
     class ModelTransform : public CaretObject {
         
     public:
+        static void getIdentityQuaternion(float quaternionSXYZ[4]);
+        
         ModelTransform();
         
         virtual ~ModelTransform();
@@ -47,7 +48,9 @@ namespace caret {
         
         void getObliqueRotation(float obliqueRotation[4][4]) const;
         
-        void getMprRotationAngles(float mprRotationAngles[3]) const;
+        void getMprTwoRotationAngles(float mprRotationAngles[3]) const;
+        
+        void getMprThreeRotationAngles(float mprRotationAngles[3]) const;
         
         void getFlatRotation(float flatRotation[4][4]) const;
         
@@ -74,7 +77,9 @@ namespace caret {
         
         void setObliqueRotation(const float obliqueRotation[4][4]);
         
-        void setMprRotationAngles(const float mprRotationAngles[3]);
+        void setMprTwoRotationAngles(const float mprRotationAngles[3]);
+        
+        void setMprThreeRotationAngles(const float mprRotationAngles[3]);
         
         void setFlatRotation(const float flatRotation[4][4]);
         
@@ -90,7 +95,8 @@ namespace caret {
                                              const float panZ,
                                              const float rotationMatrix[4][4],
                                              const float obliqueRotationMatrix[4][4],
-                                             const float mprRotationAngles[3],
+                                             const float mprTwoRotationAngles[3],
+                                             const float mprThreeRotationAngles[3],
                                              const float flatRotationMatrix[4][4],
                                              const float zoom,
                                              const float rightCortexFlatMapOffsetX,
@@ -102,7 +108,8 @@ namespace caret {
                                              float& panZ,
                                              float rotationMatrix[4][4],
                                              float obliqueRotationMatrix[4][4],
-                                             float mprRotationAngles[3],
+                                             float mprTwoRotationAngles[3],
+                                             float mprThreeRotationAngles[3],
                                              float flatRotationMatrix[4][4],
                                              float& zoom,
                                              float& rightCortexFlatMapOffsetX,
@@ -138,7 +145,9 @@ namespace caret {
         
         float obliqueRotation[4][4];
         
-        float mprRotationAngles[3];
+        float mprTwoRotationAngles[3];
+        
+        float mprThreeRotationAngles[3];
         
         float flatRotation[4][4];
         

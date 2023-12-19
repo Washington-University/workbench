@@ -101,9 +101,12 @@ namespace caret {
                                             double& obRotX,
                                             double& obRotY,
                                             double& obRotZ,
-                                            double& mprRotX,
-                                            double& mprRotY,
-                                            double& mprRotZ,
+                                            double& mprTwoRotX,
+                                            double& mprTwoRotY,
+                                            double& mprTwoRotZ,
+                                            double& mprThreeRotX,
+                                            double& mprThreeRotY,
+                                            double& mprThreeRotZ,
                                             double& flatRotate,
                                             double& zoom,
                                             double& rightFlatX,
@@ -119,9 +122,12 @@ namespace caret {
                                             const double obRotX,
                                             const double obRotY,
                                             const double obRotZ,
-                                            const double mprRotX,
-                                            const double mprRotY,
-                                            const double mprRotZ,
+                                            const double mprTwoRotX,
+                                            const double mprTwoRotY,
+                                            const double mprTwoRotZ,
+                                            const double mprThreeRotX,
+                                            const double mprThreeRotY,
+                                            const double mprThreeRotZ,
                                             const double flatRotate,
                                             const double zoom,
                                             const double rightFlatX,
@@ -175,11 +181,17 @@ namespace caret {
         
         QDoubleSpinBox* m_zObliqueRotateDoubleSpinBox;
         
-        QDoubleSpinBox* m_xMprRotateDoubleSpinBox;
+        QDoubleSpinBox* m_xMprTwoRotateDoubleSpinBox;
         
-        QDoubleSpinBox* m_yMprRotateDoubleSpinBox;
+        QDoubleSpinBox* m_yMprTwoRotateDoubleSpinBox;
         
-        QDoubleSpinBox* m_zMprRotateDoubleSpinBox;
+        QDoubleSpinBox* m_zMprTwoRotateDoubleSpinBox;
+        
+        QDoubleSpinBox* m_xMprThreeRotateDoubleSpinBox;
+        
+        QDoubleSpinBox* m_yMprThreeRotateDoubleSpinBox;
+        
+        QDoubleSpinBox* m_zMprThreeRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_flatRotationDoubleSpinBox;
         
@@ -205,10 +217,14 @@ namespace caret {
         
         bool m_blockDialogUpdate;
         
+        static const bool s_flipSignOfMprTwoRotationsFlag;
+        
+        static const bool s_flipSignOfMprThreeRotationsFlag;
     };
     
 #ifdef __CUSTOM_VIEW_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const bool CustomViewDialog::s_flipSignOfMprTwoRotationsFlag = true;
+    const bool CustomViewDialog::s_flipSignOfMprThreeRotationsFlag = true;
 #endif // __CUSTOM_VIEW_DIALOG_DECLARE__
 
 } // namespace

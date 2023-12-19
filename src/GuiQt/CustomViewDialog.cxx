@@ -330,7 +330,10 @@ CustomViewDialog::copyToCustomViewPushButtonClicked()
 void
 CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTransform)
 {
-    double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ, mprRotX, mprRotY, mprRotZ, flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
+    double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
+    double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
+    double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
+    double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
                                    panZ,
@@ -340,9 +343,12 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                    obRotX,
                                    obRotY,
                                    obRotZ,
-                                   mprRotX,
-                                   mprRotY,
-                                   mprRotZ,
+                                   mprTwoRotX,
+                                   mprTwoRotY,
+                                   mprTwoRotZ,
+                                   mprThreeRotX,
+                                   mprThreeRotY,
+                                   mprThreeRotZ,
                                    flatRotate,
                                    zoom,
                                    rightFlatX,
@@ -361,8 +367,9 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
     float obliqueRotationMatrixArray[4][4];
     obliqueRotationMatrix.getMatrix(obliqueRotationMatrixArray);
     
-    const float mprRotationAngles[3] { (float)mprRotX, (float)mprRotY, (float)mprRotZ };
-    
+    const float mprTwoRotationAngles[3] { (float)mprTwoRotX, (float)mprTwoRotY, (float)mprTwoRotZ };
+    const float mprThreeRotationAngles[3] { (float)mprThreeRotX, (float)mprThreeRotY, (float)mprThreeRotZ };
+
     Matrix4x4 flatRotationMatrix;
     flatRotationMatrix.setRotation(0.0, 0.00, flatRotate);
     float flatRotationMatrixArray[4][4];
@@ -372,7 +379,8 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                                    panZ,
                                                    rotationMatrixArray,
                                                    obliqueRotationMatrixArray,
-                                                   mprRotationAngles,
+                                                   mprTwoRotationAngles,
+                                                   mprThreeRotationAngles,
                                                    flatRotationMatrixArray,
                                                    zoom,
                                                    rightFlatX,
@@ -394,15 +402,17 @@ CustomViewDialog::copyToTransformPushButtonClicked()
     ModelTransform modelTransform;
     if (prefs->getCustomView(customViewName, modelTransform)) {
         float panX, panY, panZ, rotationMatrixArray[4][4],
-        mprRotationAngles[3],
+        mprTwoRotationAngles[3], mprThreeRotationAngles[3],
               obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
         rightFlatX, rightFlatY, rightFlatZoom;
+
         modelTransform.getPanningRotationMatrixAndZoom(panX,
                                                        panY,
                                                        panZ,
                                                        rotationMatrixArray,
                                                        obliqueRotationMatrixArray,
-                                                       mprRotationAngles,
+                                                       mprTwoRotationAngles,
+                                                       mprThreeRotationAngles,
                                                        flatRotationMatrixArray,
                                                        zoom,
                                                        rightFlatX,
@@ -426,16 +436,23 @@ CustomViewDialog::copyToTransformPushButtonClicked()
         double flatRotX, flatRotY, flatRotZ;
         flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
         
-        const double mprRotX = mprRotationAngles[0];
-        const double mprRotY = mprRotationAngles[1];
-        const double mprRotZ = mprRotationAngles[2];
+        const double mprTwoRotX = mprTwoRotationAngles[0];
+        const double mprTwoRotY = mprTwoRotationAngles[1];
+        const double mprTwoRotZ = mprTwoRotationAngles[2];
 
+        const double mprThreeRotX = mprThreeRotationAngles[0];
+        const double mprThreeRotY = mprThreeRotationAngles[1];
+        const double mprThreeRotZ = mprThreeRotationAngles[2];
+        
         setTransformationControlValues(panX, panY, panZ,
                                        rotX, rotY, rotZ,
                                        obRotX, obRotY, obRotZ,
-                                       mprRotX,
-                                       mprRotY,
-                                       mprRotZ,
+                                       mprTwoRotX,
+                                       mprTwoRotY,
+                                       mprTwoRotZ,
+                                       mprThreeRotX,
+                                       mprThreeRotY,
+                                       mprThreeRotZ,
                                        flatRotZ, zoom,
                                        rightFlatX, rightFlatY, rightFlatZoom);
         
@@ -611,37 +628,69 @@ CustomViewDialog::createTransformsWidget()
                      this, SLOT(transformValueChanged()));
     
     /*
-     * Oblique Rotation
+     * MPR Two Rotation
      */
-    QLabel* mprRotateLabel = new QLabel("MPR Rotate (X,Y,Z): ");
-    m_xMprRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_xMprRotateDoubleSpinBox->setWrapping(true);
-    m_xMprRotateDoubleSpinBox->setMinimum(rotationMinimum);
-    m_xMprRotateDoubleSpinBox->setMaximum(rotationMaximum);
-    m_xMprRotateDoubleSpinBox->setSingleStep(rotateStep);
-    m_xMprRotateDoubleSpinBox->setDecimals(2);
-    m_xMprRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_xMprRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+    QLabel* mprTwoRotateLabel = new QLabel("MPR (OLD) Rotate (X,Y,Z): ");
+    m_xMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_xMprTwoRotateDoubleSpinBox->setWrapping(true);
+    m_xMprTwoRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_xMprTwoRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_xMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_xMprTwoRotateDoubleSpinBox->setDecimals(2);
+    m_xMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_xMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
-    m_yMprRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_yMprRotateDoubleSpinBox->setWrapping(true);
-    m_yMprRotateDoubleSpinBox->setMinimum(rotationMinimum);
-    m_yMprRotateDoubleSpinBox->setMaximum(rotationMaximum);
-    m_yMprRotateDoubleSpinBox->setSingleStep(rotateStep);
-    m_yMprRotateDoubleSpinBox->setDecimals(2);
-    m_yMprRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_yMprRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+    m_yMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_yMprTwoRotateDoubleSpinBox->setWrapping(true);
+    m_yMprTwoRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_yMprTwoRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_yMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_yMprTwoRotateDoubleSpinBox->setDecimals(2);
+    m_yMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_yMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
-    m_zMprRotateDoubleSpinBox = new QDoubleSpinBox;
-    m_zMprRotateDoubleSpinBox->setWrapping(true);
-    m_zMprRotateDoubleSpinBox->setMinimum(rotationMinimum);
-    m_zMprRotateDoubleSpinBox->setMaximum(rotationMaximum);
-    m_zMprRotateDoubleSpinBox->setSingleStep(rotateStep);
-    m_zMprRotateDoubleSpinBox->setDecimals(2);
-    m_zMprRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
-    QObject::connect(m_zMprRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+    m_zMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_zMprTwoRotateDoubleSpinBox->setWrapping(true);
+    m_zMprTwoRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_zMprTwoRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_zMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_zMprTwoRotateDoubleSpinBox->setDecimals(2);
+    m_zMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_zMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
 
+    /*
+     * MPR Three Rotation
+     */
+    QLabel* mprThreeRotateLabel = new QLabel("MPR Rotate (X,Y,Z): ");
+    m_xMprThreeRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_xMprThreeRotateDoubleSpinBox->setWrapping(true);
+    m_xMprThreeRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_xMprThreeRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_xMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_xMprThreeRotateDoubleSpinBox->setDecimals(2);
+    m_xMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_xMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(transformValueChanged()));
+    m_yMprThreeRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_yMprThreeRotateDoubleSpinBox->setWrapping(true);
+    m_yMprThreeRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_yMprThreeRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_yMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_yMprThreeRotateDoubleSpinBox->setDecimals(2);
+    m_yMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_yMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(transformValueChanged()));
+    m_zMprThreeRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_zMprThreeRotateDoubleSpinBox->setWrapping(true);
+    m_zMprThreeRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_zMprThreeRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_zMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_zMprThreeRotateDoubleSpinBox->setDecimals(2);
+    m_zMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    QObject::connect(m_zMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(transformValueChanged()));
+    
     /*
      * Flat rotation
      */
@@ -712,9 +761,12 @@ CustomViewDialog::createTransformsWidget()
     m_transformWidgetGroup->add(m_xObliqueRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_yObliqueRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_zObliqueRotateDoubleSpinBox);
-    m_transformWidgetGroup->add(m_xMprRotateDoubleSpinBox);
-    m_transformWidgetGroup->add(m_yMprRotateDoubleSpinBox);
-    m_transformWidgetGroup->add(m_zMprRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_xMprTwoRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_yMprTwoRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_zMprTwoRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_xMprThreeRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_yMprThreeRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_zMprThreeRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_flatRotationDoubleSpinBox);
     m_transformWidgetGroup->add(m_zoomDoubleSpinBox);
     m_transformWidgetGroup->add(m_xRightFlatMapSpinBox);
@@ -802,16 +854,30 @@ CustomViewDialog::createTransformsWidget()
                           COLUMN_Z);
     row++;
     
-    gridLayout->addWidget(mprRotateLabel,
+    gridLayout->addWidget(mprTwoRotateLabel,
                           row,
                           COLUMN_LABEL);
-    gridLayout->addWidget(m_xMprRotateDoubleSpinBox,
+    gridLayout->addWidget(m_xMprTwoRotateDoubleSpinBox,
                           row,
                           COLUMN_X);
-    gridLayout->addWidget(m_yMprRotateDoubleSpinBox,
+    gridLayout->addWidget(m_yMprTwoRotateDoubleSpinBox,
                           row,
                           COLUMN_Y);
-    gridLayout->addWidget(m_zMprRotateDoubleSpinBox,
+    gridLayout->addWidget(m_zMprTwoRotateDoubleSpinBox,
+                          row,
+                          COLUMN_Z);
+    row++;
+    
+    gridLayout->addWidget(mprThreeRotateLabel,
+                          row,
+                          COLUMN_LABEL);
+    gridLayout->addWidget(m_xMprThreeRotateDoubleSpinBox,
+                          row,
+                          COLUMN_X);
+    gridLayout->addWidget(m_yMprThreeRotateDoubleSpinBox,
+                          row,
+                          COLUMN_Y);
+    gridLayout->addWidget(m_zMprThreeRotateDoubleSpinBox,
                           row,
                           COLUMN_Z);
     row++;
@@ -951,7 +1017,10 @@ CustomViewDialog::zoomValueChanged(double value)
 void
 CustomViewDialog::transformValueChanged()
 {
-    double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ, mprRotX, mprRotY, mprRotZ, flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
+    double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
+    double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
+    double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
+    double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
                                    panZ,
@@ -961,9 +1030,12 @@ CustomViewDialog::transformValueChanged()
                                    obRotX,
                                    obRotY,
                                    obRotZ,
-                                   mprRotX,
-                                   mprRotY,
-                                   mprRotZ,
+                                   mprTwoRotX,
+                                   mprTwoRotY,
+                                   mprTwoRotZ,
+                                   mprThreeRotX,
+                                   mprThreeRotY,
+                                   mprThreeRotZ,
                                    flatRotate,
                                    zoom,
                                    rightFlatX,
@@ -986,7 +1058,9 @@ CustomViewDialog::transformValueChanged()
                 float obliqueRotationMatrixArray[4][4];
                 obliqueRotationMatrix.getMatrix(obliqueRotationMatrixArray);
                 
-                float mprRotationAngles[3] { (float)mprRotX, (float)mprRotY, (float)mprRotZ };
+                float mprTwoRotationAngles[3] { (float)mprTwoRotX, (float)mprTwoRotY, (float)mprTwoRotZ };
+                float mprThreeRotationAngles[3] { (float)mprThreeRotX, (float)mprThreeRotY, (float)mprThreeRotZ };
+
                 Matrix4x4 flatRotationMatrix;
                 flatRotationMatrix.setRotation(0.0, 0.0, flatRotate);
                 float flatRotationMatrixArray[4][4];
@@ -995,7 +1069,8 @@ CustomViewDialog::transformValueChanged()
                 ModelTransform modelTransform;
                 modelTransform.setPanningRotationMatrixAndZoom(panX, panY, panZ,
                                                                rotationMatrixArray, obliqueRotationMatrixArray,
-                                                               mprRotationAngles,
+                                                               mprTwoRotationAngles,
+                                                               mprThreeRotationAngles,
                                                                flatRotationMatrixArray, zoom,
                                                                rightFlatX, rightFlatY, rightFlatZoom);
                 btc->setTransformationsFromModelTransform(modelTransform);
@@ -1071,7 +1146,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 btc->getTransformationsInModelTransform(modelTransform);
                 
                 float panX, panY, panZ, rotationMatrixArray[4][4],
-                mprRotationAngles[3],
+                mprTwoRotationAngles[3],
+                mprThreeRotationAngles[3],
                 obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
                 rightFlatX, rightFlatY, rightFlatZoom;
                 modelTransform.getPanningRotationMatrixAndZoom(panX,
@@ -1079,7 +1155,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                                panZ,
                                                                rotationMatrixArray,
                                                                obliqueRotationMatrixArray,
-                                                               mprRotationAngles,
+                                                               mprTwoRotationAngles,
+                                                               mprThreeRotationAngles,
                                                                flatRotationMatrixArray,
                                                                zoom,
                                                                rightFlatX,
@@ -1103,59 +1180,25 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 double flatRotX, flatRotY, flatRotZ;
                 flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
                 
-                const double mprRotX = mprRotationAngles[0];
-                const double mprRotY = mprRotationAngles[1];
-                const double mprRotZ = mprRotationAngles[2];
+                const double mprTwoRotX = mprTwoRotationAngles[0];
+                const double mprTwoRotY = mprTwoRotationAngles[1];
+                const double mprTwoRotZ = mprTwoRotationAngles[2];
+                
+                const double mprThreeRotX = mprThreeRotationAngles[0];
+                const double mprThreeRotY = mprThreeRotationAngles[1];
+                const double mprThreeRotZ = mprThreeRotationAngles[2];
                 
                 setTransformationControlValues(panX, panY, panZ,
                                                rotX, rotY, rotZ,
                                                obRotX, obRotY, obRotZ,
-                                               mprRotX,
-                                               mprRotY,
-                                               mprRotZ,
+                                               mprTwoRotX,
+                                               mprTwoRotY,
+                                               mprTwoRotZ,
+                                               mprThreeRotX,
+                                               mprThreeRotY,
+                                               mprThreeRotZ,
                                                flatRotZ, zoom,
                                                rightFlatX, rightFlatY, rightFlatZoom);
-//                const float* panning = btc->getTranslation();
-//                const Matrix4x4 rotationMatrix = btc->getRotationMatrix();
-//                const float zooming = btc->getScaling();
-//                const Matrix4x4 obliqueRotationMatrix = btc->getObliqueVolumeRotationMatrix();
-//
-//                double rotX, rotY, rotZ;
-//                rotationMatrix.getRotation(rotX, rotY, rotZ);
-//
-//                double obRotX, obRotY, obRotZ;
-//                obliqueRotationMatrix.getRotation(obRotX, obRotY, obRotZ);
-//
-//                Matrix4x4 flatRotationMatrix = btc->getFlatRotationMatrix();
-//                double flatRotX, flatRotY, flatRotZ;
-//                flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
-//
-//                float rightFlatX, rightFlatY;
-//                btc->getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
-//
-//                const float rightFlatZoom = btc->getRightCortexFlatMapZoomFactor();
-//
-//                const float mprRotX(btc->getMprRotationX());
-//                const float mprRotY(btc->getMprRotationY());
-//                const float mprRotZ(btc->getMprRotationZ());
-
-//                setTransformationControlValues(panning[0],
-//                                               panning[1],
-//                                               panning[2],
-//                                               rotX,
-//                                               rotY,
-//                                               rotZ,
-//                                               obRotX,
-//                                               obRotY,
-//                                               obRotZ,
-//                                               mprRotX,
-//                                               mprRotY,
-//                                               mprRotZ,
-//                                               flatRotZ,
-//                                               zooming,
-//                                               rightFlatX,
-//                                               rightFlatY,
-//                                               rightFlatZoom);
                 
                 const BrainOpenGLViewportContent* vpc(bbw->getViewportContentForSelectedTab());
                 float stepValue(1.0);
@@ -1196,6 +1239,18 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
  *    Y rotation
  * @param objRotZ
  *    Z rotation
+ * @param mprTwoRotX
+ *    MPR Two rotation X
+ * @param mprTwoRotY
+ *    MPR Two rotation Y
+ * @param mprTwoRotZ
+ *    MPR Two rotation Z
+ * @param mprThreeRotX
+ *    MPR Three rotation X
+ * @param mprThreeRotY
+ *    MPR Three rotation Y
+ * @param mprThreeRotZ
+ *    MPR Three rotation Z
  * @param flatRotation
  *    Flat rotation
  * @param zoom
@@ -1217,9 +1272,12 @@ CustomViewDialog::getTransformationControlValues(double& panX,
                                                  double& obRotX,
                                                  double& obRotY,
                                                  double& obRotZ,
-                                                 double& mprRotX,
-                                                 double& mprRotY,
-                                                 double& mprRotZ,
+                                                 double& mprTwoRotX,
+                                                 double& mprTwoRotY,
+                                                 double& mprTwoRotZ,
+                                                 double& mprThreeRotX,
+                                                 double& mprThreeRotY,
+                                                 double& mprThreeRotZ,
                                                  double& flatRotation,
                                                  double& zoom,
                                                  double& rightFlatX,
@@ -1238,10 +1296,23 @@ CustomViewDialog::getTransformationControlValues(double& panX,
     obRotY = m_yObliqueRotateDoubleSpinBox->value();
     obRotZ = m_zObliqueRotateDoubleSpinBox->value();
     
-    mprRotX = m_xMprRotateDoubleSpinBox->value();
-    mprRotY = m_yMprRotateDoubleSpinBox->value();
-    mprRotZ = m_zMprRotateDoubleSpinBox->value();
+    mprTwoRotX = m_xMprTwoRotateDoubleSpinBox->value();
+    mprTwoRotY = m_yMprTwoRotateDoubleSpinBox->value();
+    mprTwoRotZ = m_zMprTwoRotateDoubleSpinBox->value();
+    if (s_flipSignOfMprTwoRotationsFlag) {
+        mprTwoRotX = -mprTwoRotX;
+        mprTwoRotY = -mprTwoRotY;
+    }
 
+    mprThreeRotX = m_xMprThreeRotateDoubleSpinBox->value();
+    mprThreeRotY = m_yMprThreeRotateDoubleSpinBox->value();
+    mprThreeRotZ = m_zMprThreeRotateDoubleSpinBox->value();
+    if (s_flipSignOfMprThreeRotationsFlag) {
+        mprThreeRotX = -mprThreeRotX;
+        mprThreeRotY = -mprThreeRotY;
+        mprThreeRotZ = -mprThreeRotZ;
+    }
+    
     flatRotation = m_flatRotationDoubleSpinBox->value();
     
     zoom = m_zoomDoubleSpinBox->value();
@@ -1270,6 +1341,18 @@ CustomViewDialog::getTransformationControlValues(double& panX,
  *    Y rotation
  * @param objRotZ
  *    Z rotation
+ * @param mprTwoRotX
+ *    MPR Two Rotation X
+ * @param mprTwoRotY
+ *    MPR Two Rotation Y
+ * @param mprTwoRotZ
+ *    MPR Two Rotation Z
+ * @param mprThreeRotX
+ *    MPR Three Rotation X
+ * @param mprThreeRotY
+ *    MPR Three Rotation Y
+ * @param mprThreeRotZ
+ *    MPR Three Rotation Z
  * @param flatRotation
  *    Flat rotation
  * @param zoom
@@ -1291,9 +1374,12 @@ CustomViewDialog::setTransformationControlValues(const double panX,
                                                  const double obRotX,
                                                  const double obRotY,
                                                  const double obRotZ,
-                                                 const double mprRotX,
-                                                 const double mprRotY,
-                                                 const double mprRotZ,
+                                                 const double mprTwoRotX,
+                                                 const double mprTwoRotY,
+                                                 const double mprTwoRotZ,
+                                                 const double mprThreeRotX,
+                                                 const double mprThreeRotY,
+                                                 const double mprThreeRotZ,
                                                  const double flatRotation,
                                                  const double zoom,
                                                  const double rightFlatX,
@@ -1314,10 +1400,27 @@ CustomViewDialog::setTransformationControlValues(const double panX,
     updateSpinBoxValue(m_yObliqueRotateDoubleSpinBox, obRotY);
     updateSpinBoxValue(m_zObliqueRotateDoubleSpinBox, obRotZ);
 
-    updateSpinBoxValue(m_xMprRotateDoubleSpinBox, mprRotX);
-    updateSpinBoxValue(m_yMprRotateDoubleSpinBox, mprRotY);
-    updateSpinBoxValue(m_zMprRotateDoubleSpinBox, mprRotZ);
+    if (s_flipSignOfMprTwoRotationsFlag) {
+        updateSpinBoxValue(m_xMprTwoRotateDoubleSpinBox, -mprTwoRotX);
+        updateSpinBoxValue(m_yMprTwoRotateDoubleSpinBox, -mprTwoRotY);
+    }
+    else {
+        updateSpinBoxValue(m_xMprTwoRotateDoubleSpinBox, mprTwoRotX);
+        updateSpinBoxValue(m_yMprTwoRotateDoubleSpinBox, mprTwoRotY);
+    }
+    updateSpinBoxValue(m_zMprTwoRotateDoubleSpinBox, mprTwoRotZ);
 
+    if (s_flipSignOfMprThreeRotationsFlag) {
+        updateSpinBoxValue(m_xMprThreeRotateDoubleSpinBox, -mprThreeRotX);
+        updateSpinBoxValue(m_yMprThreeRotateDoubleSpinBox, -mprThreeRotY);
+        updateSpinBoxValue(m_zMprThreeRotateDoubleSpinBox, -mprThreeRotZ);
+    }
+    else {
+        updateSpinBoxValue(m_xMprThreeRotateDoubleSpinBox, mprThreeRotX);
+        updateSpinBoxValue(m_yMprThreeRotateDoubleSpinBox, mprThreeRotY);
+        updateSpinBoxValue(m_zMprThreeRotateDoubleSpinBox, mprThreeRotZ);
+    }
+    
     updateSpinBoxValue(m_flatRotationDoubleSpinBox, flatRotation);
     
     updateSpinBoxValue(m_zoomDoubleSpinBox, zoom);

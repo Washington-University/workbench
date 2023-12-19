@@ -3185,12 +3185,12 @@ BrowserTabContent::quaternionToMatrix(const QQuaternion& quaternion)
 }
 
 /**
- * @return a 4-element array containing the quaternion's vector and scalar.
+ * @return a 4-element array containing the quaternion's vector and scalar (x, y, z, scalar)
  * @param quaternion
  *    the quaternion
  */
 std::array<float, 4>
-BrowserTabContent::quaternionToArray(const QQuaternion& quaternion)
+BrowserTabContent::quaternionToArrayXYZS(const QQuaternion& quaternion)
 {
     const std::array<float, 4> a {
         quaternion.x(),
@@ -3203,16 +3203,103 @@ BrowserTabContent::quaternionToArray(const QQuaternion& quaternion)
 }
 
 /**
+ * @return a 4-element array containing the quaternion's scalar vector and (scalar, x, y, z)
+ * @param quaternion
+ *    the quaternion
+ */
+void
+BrowserTabContent::quaternionToArraySXYZ(const QQuaternion& quaternion,
+                                         float arraySXYZ[4])
+
+{
+    arraySXYZ[0] = quaternion.scalar();
+    arraySXYZ[1] = quaternion.x();
+    arraySXYZ[2] = quaternion.y();
+    arraySXYZ[3] = quaternion.z();
+}
+
+/**
+ * @return a 4-element array containing the quaternion's scalar and vector (scalar, x, y, z)
+ * @param quaternion
+ *    the quaternion
+ */
+std::array<float, 4>
+BrowserTabContent::quaternionToArraySXYZ(const QQuaternion& quaternion)
+{
+    const std::array<float, 4> a {
+        quaternion.scalar(),
+        quaternion.x(),
+        quaternion.y(),
+        quaternion.z()
+    };
+    
+    return a;
+}
+
+/**
  * A quaternion converted from an array containing the vector and scalar.
- * @param array
- *   The 4-element array
+ * @param arrayXYZS
+ *   The 4-element array with x, y, z, scalar
  */
 QQuaternion
-BrowserTabContent::arrayToQuaternion(const std::array<float, 4>& array)
+BrowserTabContent::arrayXYZSToQuaternion(const std::array<float, 4>& arrayXYZS)
 {
     QQuaternion q;
-    q.setVector(array[0], array[1], array[2]);
-    q.setScalar(array[3]);
+    q.setVector(arrayXYZS[0], arrayXYZS[1], arrayXYZS[2]);
+    q.setScalar(arrayXYZS[3]);
+    return q;
+}
+
+/**
+ * A quaternion converted from an array containing the scalar and vector.
+ * @param arraySXYZ
+ *   The 4-element array with scalar, x, y, z
+ */
+QQuaternion
+BrowserTabContent::arraySXYZToQuaternion(const std::array<float, 4>& arraySXYZ)
+{
+    QQuaternion q;
+    q.setScalar(arraySXYZ[0]);
+    q.setVector(arraySXYZ[1], arraySXYZ[2], arraySXYZ[3]);
+    return q;
+}
+
+QQuaternion
+BrowserTabContent::arraySXYZToQuaternion(const float arraySXYZ[4])
+{
+    QQuaternion q;
+    q.setScalar(arraySXYZ[0]);
+    q.setVector(arraySXYZ[1], arraySXYZ[2], arraySXYZ[3]);
+    return q;
+}
+
+/*
+ * Convert a quaternion to an array
+ * @param quaternion
+ *   The quaternion
+ * @param arraySxyzOut
+ *   Output array with x, y, z, scalar
+ */
+void
+BrowserTabContent::quaternionToArrayXYZS(const QQuaternion& quaternion,
+                                         float arrayXYZS[4])
+{
+    arrayXYZS[0] = quaternion.x();
+    arrayXYZS[1] = quaternion.y();
+    arrayXYZS[2] = quaternion.z();
+    arrayXYZS[3] = quaternion.scalar();
+}
+
+/**
+ * Convert an array to a quaternion
+ * @param array
+ */
+QQuaternion
+BrowserTabContent::arrayXYZSToQuaternion(const float arrayXYZS[4])
+{
+    QQuaternion q;
+    q.setVector(arrayXYZS[0], arrayXYZS[1], arrayXYZS[2]);
+    q.setScalar(arrayXYZS[3]);
     return q;
 }
 
@@ -5774,29 +5861,20 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     obliqueRotationMatrix.getMatrix(mob);
     modelTransform.setObliqueRotation(mob);
 
-    float mprRotationAngles[3] { 0.0, 0.0, 0.0 };
-    
-    switch (getVolumeSliceProjectionType()) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            mprRotationAngles[0] = m_mprRotationX;
-            mprRotationAngles[1] = m_mprRotationY;
-            mprRotationAngles[2] = m_mprRotationZ;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-        {
-            const QVector3D angles(m_mprThreeRotationSeparateQuaternion.toEulerAngles());
-            mprRotationAngles[0] = angles[0];
-            mprRotationAngles[1] = angles[1];
-            mprRotationAngles[2] = angles[2];
-        }
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-    }
+    const float mprTwoRotationAngles[3] {
+        m_mprRotationX,
+        m_mprRotationY,
+        m_mprRotationZ
+    };
+    modelTransform.setMprTwoRotationAngles(mprTwoRotationAngles);
 
-    modelTransform.setMprRotationAngles(mprRotationAngles);
+    const QVector3D mprThreeQuaternionAngles(m_mprThreeRotationSeparateQuaternion.toEulerAngles());
+    const float mprThreeRotationAngles[3] {
+        mprThreeQuaternionAngles[0],
+        mprThreeQuaternionAngles[1],
+        mprThreeQuaternionAngles[2]
+    };
+    modelTransform.setMprThreeRotationAngles(mprThreeRotationAngles);
     
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
     float fm[4][4];
@@ -5841,28 +5919,24 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     obliqueRotationMatrix.setMatrix(mob);
     setObliqueVolumeRotationMatrix(obliqueRotationMatrix);
 
-    float mprRotationAngles[3];
-    modelTransform.getMprRotationAngles(mprRotationAngles);
+    float mprTwoRotationAngles[3];
+    modelTransform.getMprTwoRotationAngles(mprTwoRotationAngles);
+    m_mprRotationX = mprTwoRotationAngles[0];
+    m_mprRotationY = mprTwoRotationAngles[1];
+    m_mprRotationZ = mprTwoRotationAngles[2];
+
+    float mprThreeRotationAngles[3];
+    modelTransform.getMprThreeRotationAngles(mprThreeRotationAngles);
+    m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprThreeRotationAngles[0],
+                                                                        mprThreeRotationAngles[1],
+                                                                        mprThreeRotationAngles[2]);
+    m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
+    m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
+    m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
     
-    switch (getVolumeSliceProjectionType()) {
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-            m_mprRotationX = mprRotationAngles[0];
-            m_mprRotationY = mprRotationAngles[1];
-            m_mprRotationZ = mprRotationAngles[2];
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-            m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
-                                                                                mprRotationAngles[1],
-                                                                                mprRotationAngles[2]);
-            m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
-            m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
-            m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-            break;
-        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-            break;
-    }
+    m_mprThreeAxialInverseRotationQuaternion        = QQuaternion();
+    m_mprThreeCoronalInverseRotationQuaternion      = QQuaternion();
+    m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);
@@ -5961,7 +6035,8 @@ BrowserTabContent::saveQuaternionToScene(SceneClass* sceneClass,
                                          const AString& memberName,
                                          const QQuaternion& quaternion)
 {
-    std::array<float,4> rotQuat(quaternionToArray(quaternion));
+    /* Scenes use XYZS for quaternion order */
+    std::array<float,4> rotQuat(quaternionToArrayXYZS(quaternion));
     sceneClass->addFloatArray(memberName, rotQuat.data(), rotQuat.size());
 }
 
@@ -6341,35 +6416,35 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     bool tryToRestoreOldMprRotationsFlag(false);
     bool tryToRestoreOldMprRotationsToSeparateFlag(false);
 
-    if ( ! restoreQuaternion(sceneClass,
-                      "m_mprThreeRotationSeparateQuaternion",
-                             m_mprThreeRotationSeparateQuaternion)) {
+    if ( ! restoreQuaternionFromScene(sceneClass,
+                                      "m_mprThreeRotationSeparateQuaternion",
+                                      m_mprThreeRotationSeparateQuaternion)) {
         tryToRestoreOldMprRotationsToSeparateFlag = true;
     }
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeAxialSeparateRotationQuaternion",
-                      m_mprThreeAxialSeparateRotationQuaternion);
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeCoronalSeparateRotationQuaternion",
-                      m_mprThreeCoronalSeparateRotationQuaternion);
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeParasagittalSeparateRotationQuaternion",
-                      m_mprThreeParasagittalSeparateRotationQuaternion);
-
-    if ( ! restoreQuaternion(sceneClass,
-                      "m_mprThreeRotationQuaternion",
-                             m_mprThreeRotationQuaternion)) {
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeAxialSeparateRotationQuaternion",
+                               m_mprThreeAxialSeparateRotationQuaternion);
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeCoronalSeparateRotationQuaternion",
+                               m_mprThreeCoronalSeparateRotationQuaternion);
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeParasagittalSeparateRotationQuaternion",
+                               m_mprThreeParasagittalSeparateRotationQuaternion);
+    
+    if ( ! restoreQuaternionFromScene(sceneClass,
+                                      "m_mprThreeRotationQuaternion",
+                                      m_mprThreeRotationQuaternion)) {
         tryToRestoreOldMprRotationsFlag = true;
     }
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeAxialInverseRotationQuaternion",
-                      m_mprThreeAxialInverseRotationQuaternion);
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeCoronalInverseRotationQuaternion",
-                      m_mprThreeCoronalInverseRotationQuaternion);
-    restoreQuaternion(sceneClass,
-                      "m_mprThreeParasagittalInverseRotationQuaternion",
-                      m_mprThreeParasagittalInverseRotationQuaternion);
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeAxialInverseRotationQuaternion",
+                               m_mprThreeAxialInverseRotationQuaternion);
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeCoronalInverseRotationQuaternion",
+                               m_mprThreeCoronalInverseRotationQuaternion);
+    restoreQuaternionFromScene(sceneClass,
+                               "m_mprThreeParasagittalInverseRotationQuaternion",
+                               m_mprThreeParasagittalInverseRotationQuaternion);
     
     if (tryToRestoreOldMprRotationsFlag) {
         Matrix4x4 rotationMatrix;
@@ -6522,16 +6597,17 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
  *   True if the quaternion was restored else false and quaternion is set to the default value
  */
 bool
-BrowserTabContent::restoreQuaternion(const SceneClass* sceneClass,
-                                     const AString& memberName,
-                                     QQuaternion& quaternion) const
+BrowserTabContent::restoreQuaternionFromScene(const SceneClass* sceneClass,
+                                              const AString& memberName,
+                                              QQuaternion& quaternion) const
 {
     if (sceneClass->getObjectWithName(memberName)) {
         std::array<float,4> rotValues;
         sceneClass->getFloatArrayValue(memberName,
                                        rotValues.data(),
                                        rotValues.size());
-        quaternion = arrayToQuaternion(rotValues);
+        /* Scene uses quaterion in order XYZS */
+        quaternion = arrayXYZSToQuaternion(rotValues);
         return true;
     }
 
