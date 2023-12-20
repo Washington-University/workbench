@@ -630,7 +630,7 @@ CustomViewDialog::createTransformsWidget()
     /*
      * MPR Two Rotation
      */
-    QLabel* mprTwoRotateLabel = new QLabel("MPR (OLD) Rotate (X,Y,Z): ");
+    m_mprTwoRotateLabel = new QLabel("MPR (OLD) Rotate (X,Y,Z): ");
     m_xMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
     m_xMprTwoRotateDoubleSpinBox->setWrapping(true);
     m_xMprTwoRotateDoubleSpinBox->setMinimum(rotationMinimum);
@@ -854,7 +854,7 @@ CustomViewDialog::createTransformsWidget()
                           COLUMN_Z);
     row++;
     
-    gridLayout->addWidget(mprTwoRotateLabel,
+    gridLayout->addWidget(m_mprTwoRotateLabel,
                           row,
                           COLUMN_LABEL);
     gridLayout->addWidget(m_xMprTwoRotateDoubleSpinBox,
@@ -1218,6 +1218,12 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
     }
     
     loadCustomViewListWidget();
+    
+    const bool showMprTwoWidgetsFlag(SessionManager::get()->hasSceneWithMprOld());
+    m_mprTwoRotateLabel->setVisible(showMprTwoWidgetsFlag);
+    m_xMprTwoRotateDoubleSpinBox->setVisible(showMprTwoWidgetsFlag);
+    m_yMprTwoRotateDoubleSpinBox->setVisible(showMprTwoWidgetsFlag);
+    m_zMprTwoRotateDoubleSpinBox->setVisible(showMprTwoWidgetsFlag);
 }
 
 /**

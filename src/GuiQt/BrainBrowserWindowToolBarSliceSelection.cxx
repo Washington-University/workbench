@@ -305,7 +305,7 @@ m_objectNamePrefix(parentObjectName
     bottomLayout->addStretch();
     bottomLayout->addWidget(m_volumeSliceProjectionTypeEnumComboBox->getWidget());
     bottomLayout->addWidget(m_optionsToolButton);
-bottomLayout->setStretchFactor(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 100);
+    bottomLayout->setStretchFactor(m_volumeSliceProjectionTypeEnumComboBox->getWidget(), 100);
     
     gridLayout->addLayout(bottomLayout, 3, 0, 1, 5);
 

@@ -883,6 +883,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_caretPreferences->invalidateSceneDataValues();
 
     m_sceneRestoredWithChartOldFlag = false;
+    m_sceneRestoredWithMprOldFlag   = false;
     
     if (sceneClass == NULL) {
         return;
@@ -907,6 +908,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    m_sceneRestorationInProgressFlag = true;
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -1074,6 +1076,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     EventManager::get()->sendEvent(progressEvent.getPointer());
     if (progressEvent.isCancelled()) {
         resetBrains(true);
+        m_sceneRestorationInProgressFlag = false;
         return;
     }
     
@@ -1107,6 +1110,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         CaretAssertStdArrayIndex(m_browserTabs, tabIndex);
         m_browserTabs[tabIndex] = tab;
         
+        bool checkForMprOldFlag(false);
         switch (tab->getSelectedModelType()) {
             case ModelTypeEnum::MODEL_TYPE_CHART:
                 m_sceneRestoredWithChartOldFlag = true;
@@ -1124,9 +1128,25 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
             case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
                 break;
             case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+                checkForMprOldFlag = true;
                 break;
             case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+                checkForMprOldFlag = true;
                 break;
+        }
+        
+        if (checkForMprOldFlag) {
+            switch (tab->getVolumeSliceProjectionType()) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    m_sceneRestoredWithMprOldFlag = true;
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    break;
+            }
         }
         
         browserTabsAndScenes.insert(std::make_pair(tab, browserTabClass));
@@ -1178,6 +1198,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         if (guiManagerClass->getName() != "guiManager") {
             sceneAttributes->addToErrorMessage("Top level scene class should be guiManager but it is: "
                                                + guiManagerClass->getName());
+            m_sceneRestorationInProgressFlag = false;
             return;
         }
         
@@ -1205,6 +1226,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                          [](BrowserWindowContent* bwc) { return bwc->isValid(); });
     if (numValidBrowserWindows <= 0) {
         sceneAttributes->addToErrorMessage("Scene error, no browser window content was restored");
+        m_sceneRestorationInProgressFlag = false;
         return;
     }
     
@@ -1239,6 +1261,8 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
                  + " seconds");
     timer.reset();
+    
+    m_sceneRestorationInProgressFlag = false;
     
     progressEvent.setProgress(PROGRESS_RESTORING_GUI,
                               "Restoring Graphical User Interface");
@@ -1692,4 +1716,30 @@ SessionManager::resetSceneWithChartOld()
     m_sceneRestoredWithChartOldFlag = false;
 }
 
+/**
+ * @return True if a scene was loaded that contains volume with MPR old
+ */
+bool
+SessionManager::hasSceneWithMprOld() const
+{
+    if (m_sceneRestorationInProgressFlag) {
+        /*
+         * Need to have MPR Old valid while browser tabs are being restored.
+         * Otherwise, the tab will not allow MPR Old and a scene that contains
+         * MPR Old will get changed to Ortho.
+         */
+        return true;
+    }
+    
+    return m_sceneRestoredWithMprOldFlag;
+}
+
+/**
+ * Reset the scene contains volume with MPR old
+ */
+void
+SessionManager::resetSceneWithMprOld()
+{
+    m_sceneRestoredWithMprOldFlag = false;
+}
 

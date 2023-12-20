@@ -102,6 +102,11 @@ namespace caret {
         
         void resetSceneWithChartOld();
         
+        bool hasSceneWithMprOld() const;
+        
+        void resetSceneWithMprOld();
+        
+
     private:
         SessionManager();
         
@@ -192,6 +197,10 @@ namespace caret {
         std::vector<std::unique_ptr<ChartTwoCartesianAxis>> m_chartingAxisDisplayGroups;
         
         bool m_sceneRestoredWithChartOldFlag = false;
+        
+        bool m_sceneRestoredWithMprOldFlag = false;
+        
+        bool m_sceneRestorationInProgressFlag = false;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

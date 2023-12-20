@@ -428,10 +428,13 @@ VolumeSliceProjectionTypeEnum::getToolTipForGuiInHtml()
     txt.append("<html>Select mode for viewing volume slices:");
     txt.append("<ul>");
     for (auto e : allEnums) {
-        txt.append("<li> "
-                   + toGuiName(e)
-                   + " - "
-                   + toToolTip(e));
+        /* No tooltip for old MPR mode */
+        if (e != VOLUME_SLICE_PROJECTION_MPR) {
+            txt.append("<li> "
+                       + toGuiName(e)
+                       + " - "
+                       + toToolTip(e));
+        }
     }
     txt.append("</ul>");
     txt.append("</html>");

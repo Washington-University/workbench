@@ -25,6 +25,7 @@
 #include "WuQDialogNonModal.h"
 
 class QDoubleSpinBox;
+class QLabel;
 class QPushButton;
 
 namespace caret {
@@ -180,6 +181,8 @@ namespace caret {
         QDoubleSpinBox* m_yObliqueRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_zObliqueRotateDoubleSpinBox;
+        
+        QLabel* m_mprTwoRotateLabel;
         
         QDoubleSpinBox* m_xMprTwoRotateDoubleSpinBox;
         

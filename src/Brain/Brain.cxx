@@ -585,6 +585,7 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     m_isSpecFileBeingRead = false;
     m_activeScene = NULL;
     SessionManager::get()->resetSceneWithChartOld();
+    SessionManager::get()->resetSceneWithMprOld();
     
     m_surfaceMatchingToAnatomicalFlag = false;
     
