@@ -78,7 +78,17 @@ namespace caret {
         virtual bool applySpatialModification(const AnnotationSpatialModification& spatialModification);
         
         virtual void applyCoordinatesSizeAndRotationFromOther(const Annotation* otherAnnotation);
-                
+        
+        /**
+         * Update a coordinate while the annotation is being drawn
+         * @param coordinateIndex
+         *    Index of the coordinate
+         * @param xyz
+         *    New XYZ for coordinate
+         */
+        virtual void updateCoordinatesWhileBeingDrawn(const int32_t coordinateIndex,
+                                                      const Vector3D& xyz) = 0;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

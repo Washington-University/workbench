@@ -77,6 +77,16 @@ namespace caret {
             MODE_SELECT
         };
         
+        /**
+         * Sub-mode for MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC
+         */
+        enum DrawingNewPolyTypeStereotaxicMode {
+            /** Mouse adds new vertices to poly-type */
+            ADD_NEW_VERTICES,
+            /** Mouse edits existing vertices */
+            EDIT_VERTICES
+        };
+        
         UserInputModeAnnotations(const int32_t browserWindowIndex);
         
         virtual ~UserInputModeAnnotations();
@@ -90,6 +100,8 @@ namespace caret {
         virtual void update();
         
         Mode getMode() const;
+        
+        DrawingNewPolyTypeStereotaxicMode getDrawingNewPolyTypeStereotaxicMode() const;
         
         virtual bool keyPressEvent(const KeyEvent& /*keyEvent*/) override;
         
@@ -300,6 +312,8 @@ namespace caret {
         
         void setMode(const Mode mode);
         
+        void setDrawingNewPolyTypeStereotaxicMode(const DrawingNewPolyTypeStereotaxicMode subMode);
+        
         void createNewAnnotationAtMouseLeftClick(const MouseEvent& mouseEvent);
         
         void setAnnotationUnderMouse(const MouseEvent& mouseEvent,
@@ -316,6 +330,8 @@ namespace caret {
         void initializeUserDrawingNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
         void addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        
+        void editCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
         void finishNewPolyTypeStereotaxicAnnotation();
         
@@ -353,6 +369,8 @@ namespace caret {
         
         Mode m_mode;
         
+        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_VERTICES;
+        
         Annotation* m_annotationUnderMouse;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
@@ -378,6 +396,7 @@ namespace caret {
         /*
          * Some private methods are accessed by this friend class
          */
+        friend class AnnotationFinishCancelWidget;
         friend class UserInputModeAnnotationsContextMenu;
         friend class UserInputModeAnnotationsWidget;
         friend class UserInputModeTileTabsLayout;

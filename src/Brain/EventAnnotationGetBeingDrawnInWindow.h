@@ -61,6 +61,8 @@ namespace caret {
         
         bool isAnnontationBeingDrawnSelectable() const;
         
+        void setAnnotationBeingDrawnSelectable(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
     private:

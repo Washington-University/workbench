@@ -202,10 +202,8 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    m_finishCancelWidget         = new AnnotationFinishCancelWidget((showSamplesLabelFlag
-                                                                     ? Qt::Horizontal
-                                                                     : Qt::Vertical),
-                                                                    m_inputModeAnnotations->getUserInputMode(),
+    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Vertical,
+                                                                    m_inputModeAnnotations,
                                                                     m_browserWindowIndex);
         
     m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget((showSamplesLabelFlag
@@ -398,7 +396,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
                                                                  m_browserWindowIndex);
     
     m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
-                                                                    m_inputModeAnnotations->getUserInputMode(),
+                                                                    m_inputModeAnnotations,
                                                                     m_browserWindowIndex);
     
     m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
@@ -572,8 +570,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_insertNewWidget != NULL) m_insertNewWidget->updateContent();
     if (m_insertSamplesNewWidget != NULL) m_insertSamplesNewWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
-    if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent(selectedAnnotations);
-    
+    if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent();
     Annotation* coordEditAnnotation = NULL;
     if (selectedAnnotations.size() == 1) {
         coordEditAnnotation = selectedAnnotations[0];

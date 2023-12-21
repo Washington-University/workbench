@@ -23,6 +23,7 @@
 #include "AnnotationPolyhedron.h"
 #undef __ANNOTATION_POLYHEDRON_DECLARE__
 
+#include <algorithm>
 #include <cmath>
 
 #include "AnnotationCoordinate.h"
@@ -224,6 +225,86 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
     
     return true;
 }
+
+/**
+ * Update a coordinate while the annotation is being drawn
+ * @param coordinateIndex
+ *    Index of the coordinate
+ * @param xyz
+ *    New XYZ for coordinate
+ */
+void
+AnnotationPolyhedron::updateCoordinatesWhileBeingDrawn(const int32_t coordinateIndex,
+                                                                       const Vector3D& xyz)
+{
+    /*
+     * Coordinates are in pairs (first set followed by second set)
+     */
+    const int32_t fullNumCoords = static_cast<int32_t>(getNumberOfCoordinates());
+    const int32_t halfNumCoords(fullNumCoords / 2);
+    if (halfNumCoords < 1) {
+        CaretLogSevere("Multi paired coordinate Shape has invalid number of coordinates="
+                       + AString::number(fullNumCoords)
+                       + "cannot insert new coordinates.");
+        return;
+    }
+    
+    if ((coordinateIndex < 0)
+        || (coordinateIndex >= fullNumCoords)) {
+        CaretLogSevere("Attempt to update coordinate at invalid index="
+                       + AString::number(coordinateIndex));
+        return;
+    }
+    
+    if (m_planeOne.isValidPlane()
+        && m_planeTwo.isValidPlane()) {
+        /* OK */
+    }
+    else {
+        CaretLogSevere("Attempt to update coordinate but plane(s) not valid.");
+        return;
+    }
+    
+    /*
+     * Index one will be for first plane; index two for second plane
+     */
+    int32_t indexOne(-1);
+    int32_t indexTwo(-1);
+    if (coordinateIndex < halfNumCoords) {
+        indexOne = coordinateIndex;
+        indexTwo = coordinateIndex + halfNumCoords;
+    }
+    else {
+        indexOne = coordinateIndex - halfNumCoords;
+        indexTwo = coordinateIndex;
+    }
+    
+    if ((indexOne >= 0)
+        && (indexOne < fullNumCoords)
+        && (indexTwo >= 0)
+        && (indexTwo < fullNumCoords)) {
+        /* OK */
+    }
+    else {
+        CaretLogSevere("Failure to set coordinate indices correctly");
+        return;
+    }
+    
+    Vector3D xyzOne(getCoordinate(indexOne)->getXYZ());
+    const float distanceToPlaneOne(m_planeOne.absoluteDistanceToPlane(xyzOne));
+    const float distanceToPlaneTwo(m_planeTwo.absoluteDistanceToPlane(xyzOne));
+    if (distanceToPlaneTwo < distanceToPlaneOne) {
+        std::swap(indexOne,
+                  indexTwo);
+    }
+    
+    const Vector3D oneXYZ(m_planeOne.projectPointToPlane(xyz));
+    getCoordinate(indexOne)->setXYZ(oneXYZ);
+    
+    const Vector3D twoXYZ(m_planeTwo.projectPointToPlane(xyz));
+    getCoordinate(indexTwo)->setXYZ(twoXYZ);
+}
+
 
 /**
  * Apply (copy) for reset range from an undo/redo command

@@ -32,6 +32,7 @@ class QToolButton;
 
 namespace caret {
     class Annotation;
+    class UserInputModeAnnotations;
 
     class AnnotationFinishCancelWidget : public QWidget {
         
@@ -39,13 +40,13 @@ namespace caret {
 
     public:
         AnnotationFinishCancelWidget(const Qt::Orientation orientation,
-                                 const UserInputModeEnum::Enum userInputMode,
-                                 const int32_t browserWindowIndex,
-                                 QWidget* parent = 0);
+                                     UserInputModeAnnotations* userInputModeAnnotations,
+                                     const int32_t browserWindowIndex,
+                                     QWidget* parent = 0);
         
         virtual ~AnnotationFinishCancelWidget();
         
-        void updateContent(const std::vector<Annotation*>& annotations);
+        void updateContent();
         
     private slots:
         void finishActionTriggered();
@@ -54,12 +55,16 @@ namespace caret {
         
         void eraseLastCoordinateActionTriggered();
 
+        void editVerticesActionTriggered(bool checked);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
         AnnotationFinishCancelWidget(const AnnotationFinishCancelWidget&);
 
         AnnotationFinishCancelWidget& operator=(const AnnotationFinishCancelWidget&);
+        
+        UserInputModeAnnotations* m_userInputModeAnnotations;
         
         const UserInputModeEnum::Enum m_userInputMode;
         
@@ -76,6 +81,8 @@ namespace caret {
         QAction* m_cancelAction;
         
         QAction* m_eraseLastCoordinateAction;
+        
+        QAction* m_editVerticesAction;
         
         int32_t m_annotationNumberOfCoordinates = 0;
         

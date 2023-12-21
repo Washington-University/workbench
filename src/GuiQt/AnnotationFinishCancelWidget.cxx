@@ -37,6 +37,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -62,13 +63,16 @@ using namespace caret;
  *    The parent widget.
  */
 AnnotationFinishCancelWidget::AnnotationFinishCancelWidget(const Qt::Orientation orientation,
-                                                           const UserInputModeEnum::Enum userInputMode,
+                                                           UserInputModeAnnotations* userInputModeAnnotations,
                                                            const int32_t browserWindowIndex,
                                                            QWidget* parent)
 : QWidget(parent),
-m_userInputMode(userInputMode),
+m_userInputModeAnnotations(userInputModeAnnotations),
+m_userInputMode(m_userInputModeAnnotations->getUserInputMode()),
 m_browserWindowIndex(browserWindowIndex)
 {
+    CaretAssert(m_userInputModeAnnotations);
+    
     m_finishAction = new QAction("Finish");
     m_finishToolButton = new QToolButton();
     m_finishToolButton->setDefaultAction(m_finishAction);
@@ -104,28 +108,56 @@ m_browserWindowIndex(browserWindowIndex)
     eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
     
+    const QString editToolTip("Click to enter coordinate moving mode.\n"
+                              "Move the mouse over a coordinate.  When cursor\n"
+                              "changes to 'two arrows', drag the mouse to\n"
+                              "move the coordinate.  Coordinates may be \n"
+                              "moved on any slice.  Click button again to \n"
+                              "return to drawing and finish the polyhedron.");
+    m_editVerticesAction = new QAction("Move");
+    m_editVerticesAction->setCheckable(true);
+    m_editVerticesAction->setToolTip(editToolTip);
+    QObject::connect(m_editVerticesAction, &QAction::triggered, this,
+                     &AnnotationFinishCancelWidget::editVerticesActionTriggered);
+    
+    QToolButton* editVerticesToolButton = new QToolButton();
+    editVerticesToolButton->setDefaultAction(m_editVerticesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(editVerticesToolButton);
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     switch (orientation) {
         case Qt::Horizontal:
             gridLayout->addWidget(new QLabel("Drawing"),
-                                  0, 0, 1, 3, Qt::AlignHCenter);
+                                  0, 0, 1, 4, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   1, 1, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
                                   1, 2, Qt::AlignHCenter);
+            gridLayout->addWidget(editVerticesToolButton,
+                                  1, 3, Qt::AlignHCenter);
             break;
         case Qt::Vertical:
-            gridLayout->addWidget(new QLabel("Drawing"),
+        {
+            QLabel* drawingLabel(new QLabel("Drawing"));
+            QFont font(drawingLabel->font());
+            font.setPointSizeF(font.pointSizeF() * 0.8);
+            drawingLabel->setFont(font);
+            
+            gridLayout->setVerticalSpacing(0);
+            gridLayout->addWidget(drawingLabel,
                                   0, 0, 1, 2, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   2, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(editVerticesToolButton,
+                                  1, 1, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
-                                  1, 1, 2, 1, Qt::AlignCenter);
+                                  2, 1, Qt::AlignCenter);
+        }
             break;
     }
     
@@ -141,13 +173,10 @@ AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
 }
 
 /**
- * Update with the selected annotations.
- *
- * @param annotations
- *     The selected annotations
+ * Update the widget
  */
 void
-AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*annotations*/)
+AnnotationFinishCancelWidget::updateContent()
 {
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
                                                       m_browserWindowIndex);
@@ -158,6 +187,8 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
     AString finishToolTip;
     bool finishEnabledFlag(false);
     bool eraseLastEnabledFlag(false);
+    bool editVerticesEnabledFlag(false);
+    bool editVerticesCheckedFlag(false);
     m_annotationNumberOfCoordinates = 0;
     if (annotation != NULL) {
         cancelToolTip = ("Cancel drawing "
@@ -212,6 +243,17 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
                     case UserInputModeEnum::Enum::VOLUME_EDIT:
                         break;
                 }
+                editVerticesEnabledFlag = (numCoords > 0);
+                if (editVerticesEnabledFlag) {
+                    switch (m_userInputModeAnnotations->getDrawingNewPolyTypeStereotaxicMode()) {
+                        case UserInputModeAnnotations::ADD_NEW_VERTICES:
+                            editVerticesCheckedFlag = false;
+                            break;
+                        case UserInputModeAnnotations::EDIT_VERTICES:
+                            editVerticesCheckedFlag = true;
+                            break;
+                    }
+                }
                 eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
                 break;
@@ -234,6 +276,9 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
         m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
     }
     
+    m_editVerticesAction->setEnabled(editVerticesEnabledFlag);
+    m_editVerticesAction->setChecked(editVerticesCheckedFlag);
+    
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
 
@@ -242,9 +287,11 @@ AnnotationFinishCancelWidget::updateContent(const std::vector<Annotation*>& /*an
     
     m_eraseLastCoordinateAction->setEnabled(eraseLastEnabledFlag);
     
-    setEnabled(m_eraseLastCoordinateAction->isEnabled()
-               || m_finishAction->isEnabled()
-               || m_cancelAction->isEnabled());
+    if (editVerticesCheckedFlag) {
+        m_cancelAction->setEnabled(false);
+        m_eraseLastCoordinateAction->setEnabled(false);
+        m_finishAction->setEnabled(false);
+    }
 }
 
 
@@ -301,3 +348,23 @@ AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Called when the edit vertices action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationFinishCancelWidget::editVerticesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::EDIT_VERTICES);
+    }
+    else {
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::ADD_NEW_VERTICES);
+    }
+    
+    updateContent();
+}
+

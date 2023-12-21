@@ -85,6 +85,9 @@ namespace caret {
         void setPlanes(const Plane& planeOne,
                        const Plane& planeTwo);
         
+        virtual void updateCoordinatesWhileBeingDrawn(const int32_t coordinateIndex,
+                                                      const Vector3D& xyz) override;
+               
         AnnotationFontAttributes* getFontAttributes();
         
         const AnnotationFontAttributes* getFontAttributes() const;

@@ -48,6 +48,7 @@
 #include "AnnotationPasteDialog.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationSamplesCreateDialog.h"
 #include "AnnotationSpatialModification.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
@@ -88,7 +89,6 @@
 #include "MediaOverlaySet.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
-#include "AnnotationSamplesCreateDialog.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"
@@ -346,6 +346,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 annDrawingEvent->setEventProcessed();
                 
                 bool cancelEnabledFlag(false);
+                bool selectableFlag(false);
                 switch (m_mode) {
                     case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                         break;
@@ -356,6 +357,13 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                         cancelEnabledFlag = true;
                         break;
                     case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                        switch (m_drawingNewPolyTypeStereotaxicMode) {
+                            case ADD_NEW_VERTICES:
+                                break;
+                            case EDIT_VERTICES:
+                                selectableFlag = true;
+                                break;
+                        }
                         cancelEnabledFlag = true;
                         break;
                     case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
@@ -383,6 +391,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 }
                 
                 annDrawingEvent->setAnnotationDrawingInProgress(cancelEnabledFlag);
+                annDrawingEvent->setAnnotationBeingDrawnSelectable(selectableFlag);
             }
         }
     }
@@ -489,6 +498,9 @@ UserInputModeAnnotations::setMode(const Mode mode)
                 break;
         }
         
+        /* Reset add/edit to adding vertices anytime a mode is changed*/
+        m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_VERTICES;
+        
         /*
          * If mode is changed to NOT a drawing mode,
          * reset any annotation that was being created.
@@ -498,6 +510,26 @@ UserInputModeAnnotations::setMode(const Mode mode)
         }
     }
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * @return the sub mode for when drawing a new poly type shape in stereotaxic space
+ */
+UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode
+UserInputModeAnnotations::getDrawingNewPolyTypeStereotaxicMode() const
+{
+    return m_drawingNewPolyTypeStereotaxicMode;
+}
+
+/**
+ * Set the sub mode for when drawing a new poly type shape in stereotaxic space
+ * @param subMode
+ *    The new mode
+ */
+void
+UserInputModeAnnotations::setDrawingNewPolyTypeStereotaxicMode(const DrawingNewPolyTypeStereotaxicMode subMode)
+{
+    m_drawingNewPolyTypeStereotaxicMode = subMode;
 }
 
 /**
@@ -521,7 +553,18 @@ UserInputModeAnnotations::getCursor() const
             cursor = polyDrawCursor;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            cursor = polyDrawCursor;
+            switch (m_drawingNewPolyTypeStereotaxicMode) {
+                case ADD_NEW_VERTICES:
+                    cursor = polyDrawCursor;
+                    break;
+                case EDIT_VERTICES:
+                    cursor = CursorEnum::CURSOR_DEFAULT;
+
+                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                    }
+                    break;
+            }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             cursor = polyDrawCursor;
@@ -1358,6 +1401,39 @@ UserInputModeAnnotations::addCooordinateToNewPolyTypeStereotaxicAnnotation(const
 }
 
 /**
+ * Edit coordinate in the poly type stereotaxic annotation that user is drawing
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::editCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+{
+    if (m_newUserSpaceAnnotationBeingCreated->getAnnotation() != NULL) {
+        if (m_annotationUnderMouse == m_newUserSpaceAnnotationBeingCreated->getAnnotation()) {
+            AnnotationCoordinateInformation coordInfo;
+            AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
+                                                                               mouseEvent.getViewportContent(),
+                                                                               mouseEvent.getX(),
+                                                                               mouseEvent.getY(),
+                                                                               coordInfo);
+            
+            if (coordInfo.m_modelSpaceInfo.m_validFlag) {
+                AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotationUnderMouse->castToMultiPairedCoordinateShape());
+                if (multiPairAnn != NULL) {
+                    const Vector3D xyz(coordInfo.m_modelSpaceInfo.m_xyz[0],
+                                       coordInfo.m_modelSpaceInfo.m_xyz[1],
+                                       coordInfo.m_modelSpaceInfo.m_xyz[2]);
+                    multiPairAnn->updateCoordinatesWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
+                                                                   xyz);
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                }
+            }
+        }
+    }
+}
+
+/**
  * Finish the poly type stereotaxic annotation that user is drawing
  */
 void
@@ -1404,7 +1480,15 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             return;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            switch (m_drawingNewPolyTypeStereotaxicMode) {
+                case ADD_NEW_VERTICES:
+                    addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                    break;
+                case EDIT_VERTICES:
+                    editCooordinateInNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                    break;
+            }
+            return;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             initializeUserDrawingNewPolyTypeStereotaxicAnnotation(mouseEvent);
@@ -1798,7 +1882,13 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
+            switch (m_drawingNewPolyTypeStereotaxicMode) {
+                case ADD_NEW_VERTICES:
+                    addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                    break;
+                case EDIT_VERTICES:
+                    break;
+            }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             initializeUserDrawingNewPolyTypeStereotaxicAnnotation(mouseEvent);
@@ -1895,6 +1985,12 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            switch (m_drawingNewPolyTypeStereotaxicMode) {
+                case ADD_NEW_VERTICES:
+                    break;
+                case EDIT_VERTICES:
+                    break;
+            }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             break;
@@ -3455,15 +3551,10 @@ m_browserWindowIndex(browserWindowIndex)
                                                                                                                                Vector3D(mouseEvent.getPressedX(),
                                                                                                                                         mouseEvent.getPressedY(),
                                                                                                                                         0.0)));
-//        Plane planeOfSlice;
         EventManager::get()->sendEvent(vpEvent->getPointer());
         const std::shared_ptr<DrawingViewportContent> dvc(vpEvent->getDrawingViewportContent());
         if (dvc) {
             m_viewportHeight = dvc->getGraphicsViewport().getHeight();
-//            planeOfSlice     = dvc->getVolumeSlice().getPlane();
-//            if ( ! planeOfSlice.isValidPlane()) {
-//                return;
-//            }
         }
         BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
         SelectionItemVoxel* voxelID(openGLWidget->performIdentificationVoxel(mouseEvent.getX(),
@@ -3487,7 +3578,6 @@ m_browserWindowIndex(browserWindowIndex)
         CaretAssert(polyhedron != NULL);
         polyhedron->setPlanes(firstPlane,
                               lastPlane);
-//        polyhedron->setPlane(planeOfSlice);
         
         m_annotation->setCoordinateSpace(annotationSpace);
         

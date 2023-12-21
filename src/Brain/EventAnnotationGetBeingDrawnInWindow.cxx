@@ -136,4 +136,15 @@ EventAnnotationGetBeingDrawnInWindow::isAnnontationBeingDrawnSelectable() const
     return m_annotationBeingDrawnSelectableFlag;
 }
 
+/**
+ * Set the annotation being drawn as selectable
+ * @param status
+ *   New status
+ */
+void
+EventAnnotationGetBeingDrawnInWindow::setAnnotationBeingDrawnSelectable(const bool status)
+{
+    m_annotationBeingDrawnSelectableFlag = status;
+}
+
 

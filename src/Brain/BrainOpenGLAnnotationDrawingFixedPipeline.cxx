@@ -1342,44 +1342,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                 }
             }
         }
-        
-        if (annotationID->getAnnotation() != NULL) {
-            if (m_annotationBeingDrawn == annotationID->getAnnotation()) {
-                std::cout << "**** Selected annotation being drawn" << std::endl;
-            }
-        }
-    }
-    else {
-//        /*
-//         * Annotation being drawn by the user.
-//         */
-//        m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
-//                                                        "Start of annotation drawn by user model space.");
-//        if (m_annotationBeingDrawn != NULL) {
-//            setSelectionBoxColor(m_annotationBeingDrawn);
-//
-//            if (m_annotationBeingDrawn->getType() == AnnotationTypeEnum::TEXT) {
-//                const AnnotationText* textAnn = dynamic_cast<const AnnotationText*>(m_annotationBeingDrawn);
-//                CaretAssert(textAnn);
-//
-//                AnnotationBox box(AnnotationAttributesDefaultTypeEnum::NORMAL);
-//                box.applyCoordinatesSizeAndRotationFromOther(textAnn);
-//                box.applyColoringFromOther(textAnn);
-//
-//                drawAnnotation(m_dummyAnnotationFile,
-//                               &box,
-//                               surfaceDisplayed);
-//            }
-//            else {
-//                drawAnnotation(m_dummyAnnotationFile,
-//                               const_cast<Annotation*>(m_annotationBeingDrawn),
-//                               surfaceDisplayed);
-//            }
-//        }
-//        m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
-//                                                        "End of annotation drawn by user model space.");
-    }
-    
+    }    
 
     endOpenGLForDrawing(savedShadeModel,
                         savedLightingEnabled);
