@@ -186,7 +186,7 @@ namespace caret {
             
             AnnotationFile* getAnnotationFile() const { return m_annotationFile; }
             
-            Annotation* getAnnotation() const { return m_annotation; }
+            Annotation* getAnnotation() const { return m_annotation.get(); }
             
             int32_t getViewportHeight() const { return m_viewportHeight; }
             
@@ -202,7 +202,7 @@ namespace caret {
             
             AnnotationFile* m_annotationFile = NULL;
             
-            Annotation* m_annotation = NULL;
+            std::unique_ptr<Annotation> m_annotation;
             
             int32_t m_viewportHeight = 0;
             

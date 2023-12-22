@@ -3568,8 +3568,8 @@ m_browserWindowIndex(browserWindowIndex)
 
         m_annotationFile = annotationFile;
         CaretAssert(annotationType == AnnotationTypeEnum::POLYHEDRON);
-        m_annotation = Annotation::newAnnotationOfType(annotationType,
-                                                       AnnotationAttributesDefaultTypeEnum::USER);
+        m_annotation.reset(Annotation::newAnnotationOfType(annotationType,
+                                                           AnnotationAttributesDefaultTypeEnum::USER));
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
         CaretAssert(multiPairedCoordShape);
         m_annotation->setDrawingNewAnnotationStatus(true);
@@ -3626,8 +3626,8 @@ m_browserWindowIndex(browserWindowIndex)
         }
         
         m_annotationFile = annotationFile;
-        m_annotation = Annotation::newAnnotationOfType(annotationType,
-                                                       AnnotationAttributesDefaultTypeEnum::USER);
+        m_annotation.reset(Annotation::newAnnotationOfType(annotationType,
+                                                           AnnotationAttributesDefaultTypeEnum::USER));
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
         m_annotation->setDrawingNewAnnotationStatus(true);
         
@@ -3727,11 +3727,13 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
                                              m_browserWindowIndex,
                                              m_browserTabIndex,
                                              m_annotationFile,
-                                             m_annotation,
+                                             m_annotation.release(), /* Dialog takes ownership of the annotation */
                                              m_viewportHeight,
                                              m_sliceThickness,
                                              window);
         dialog.exec();
+        
+        /* Dialog took ownership of the annotation */
         m_annotationFile = NULL;
         m_annotation     = NULL;
     }
