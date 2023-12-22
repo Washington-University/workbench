@@ -54,6 +54,7 @@ AnnotationCoordinateSpaceWidget::AnnotationCoordinateSpaceWidget(const int32_t b
 : QWidget(parent),
 m_browserWindowIndex(browserWindowIndex)
 {
+    QLabel* coordinateSpaceLabel = new QLabel("Space");
     m_spaceLabel = new QLabel("  ");
     m_spaceLabel->setToolTip("Selection annotation(s) space.\n"
                              "Mouse dragging to move/resize\n"
@@ -69,9 +70,11 @@ m_browserWindowIndex(browserWindowIndex)
                              "   +  : Multiple Spaces");
     
                              
-    QHBoxLayout* layout = new QHBoxLayout(this);
+    QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-    layout->addWidget(m_spaceLabel);
+    layout->addWidget(coordinateSpaceLabel, 0, Qt::AlignHCenter);
+    layout->addWidget(m_spaceLabel, 0, Qt::AlignHCenter);
+    layout->addStretch();
 }
 
 /**
@@ -168,5 +171,7 @@ AnnotationCoordinateSpaceWidget::updateContent(std::vector<Annotation*> annotati
     }
     
     m_spaceLabel->setText(text);
+    
+    setEnabled(! annotations.empty());
 }
 

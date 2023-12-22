@@ -94,6 +94,8 @@ AnnotationDeleteWidget::updateContent()
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
     m_deleteToolButtonAction->setEnabled(annotationManager->isAnnotationSelectedForEditingDeletable(m_browserWindowIndex));
+    
+    setEnabled(m_deleteToolButtonAction->isEnabled());
 }
 
 /**

@@ -86,13 +86,13 @@ m_browserWindowIndex(browserWindowIndex)
      * Used to make button background green when finish button is enabled
      */
     m_finishToolButtonStyleSheetEnabled = ("background-color: rgb(0, 255, 0)");
-
+    
     m_cancelAction = WuQtUtilities::createAction("Cancel",
-                                               "Cancel drawing new annotation",
-                                               this,
-                                               this,
-                                               SLOT(cancelActionTriggered()));
-
+                                                 "Cancel drawing new annotation",
+                                                 this,
+                                                 this,
+                                                 SLOT(cancelActionTriggered()));
+    
     QToolButton* cancelToolButton = new QToolButton();
     cancelToolButton->setDefaultAction(m_cancelAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(cancelToolButton);
@@ -107,37 +107,50 @@ m_browserWindowIndex(browserWindowIndex)
     QToolButton* eraseLastCoordinateToolButton = new QToolButton();
     eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
+
+    m_editVerticesAction = NULL;
+    QToolButton* editVerticesToolButton(NULL);
     
-    const QString editToolTip("Click to enter coordinate moving mode.\n"
-                              "Move the mouse over a coordinate.  When cursor\n"
-                              "changes to 'two arrows', drag the mouse to\n"
-                              "move the coordinate.  Coordinates may be \n"
-                              "moved on any slice.  Click button again to \n"
-                              "return to drawing and finish the polyhedron.");
-    m_editVerticesAction = new QAction("Move");
-    m_editVerticesAction->setCheckable(true);
-    m_editVerticesAction->setToolTip(editToolTip);
-    QObject::connect(m_editVerticesAction, &QAction::triggered, this,
-                     &AnnotationFinishCancelWidget::editVerticesActionTriggered);
-    
-    QToolButton* editVerticesToolButton = new QToolButton();
-    editVerticesToolButton->setDefaultAction(m_editVerticesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(editVerticesToolButton);
+    if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        
+        const QString moveToolTip("Click to enter coordinate moving mode.\n"
+                                  "Move the mouse over a coordinate.  When cursor\n"
+                                  "changes to 'two arrows', drag the mouse to\n"
+                                  "move the coordinate.  Coordinates may be \n"
+                                  "moved on any slice.  Click button again to \n"
+                                  "return to drawing and finish the polyhedron.");
+        m_editVerticesAction = new QAction("Move");
+        m_editVerticesAction->setCheckable(true);
+        m_editVerticesAction->setToolTip(moveToolTip);
+        QObject::connect(m_editVerticesAction, &QAction::triggered, this,
+                         &AnnotationFinishCancelWidget::editVerticesActionTriggered);
+        
+        editVerticesToolButton = new QToolButton();
+        editVerticesToolButton->setDefaultAction(m_editVerticesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(editVerticesToolButton);
+    }
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     switch (orientation) {
         case Qt::Horizontal:
-            gridLayout->addWidget(new QLabel("Drawing"),
-                                  0, 0, 1, 4, Qt::AlignHCenter);
+            if (editVerticesToolButton != NULL) {
+                gridLayout->addWidget(new QLabel("Drawing"),
+                                      0, 0, 1, 4, Qt::AlignHCenter);
+                gridLayout->addWidget(editVerticesToolButton,
+                                      1, 3, Qt::AlignHCenter);
+            }
+            else {
+                gridLayout->addWidget(new QLabel("Drawing"),
+                                      0, 0, 1, 3, Qt::AlignHCenter);
+            }
+            
             gridLayout->addWidget(m_finishToolButton,
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   1, 1, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
                                   1, 2, Qt::AlignHCenter);
-            gridLayout->addWidget(editVerticesToolButton,
-                                  1, 3, Qt::AlignHCenter);
             break;
         case Qt::Vertical:
         {
@@ -153,10 +166,12 @@ m_browserWindowIndex(browserWindowIndex)
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   2, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(editVerticesToolButton,
-                                  1, 1, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
-                                  2, 1, Qt::AlignCenter);
+                                  1, 1, Qt::AlignCenter);
+            if (editVerticesToolButton != NULL) {
+                gridLayout->addWidget(editVerticesToolButton,
+                                      2, 1, Qt::AlignHCenter);
+            }
         }
             break;
     }
@@ -276,8 +291,10 @@ AnnotationFinishCancelWidget::updateContent()
         m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
     }
     
-    m_editVerticesAction->setEnabled(editVerticesEnabledFlag);
-    m_editVerticesAction->setChecked(editVerticesCheckedFlag);
+    if (m_editVerticesAction != NULL) {
+        m_editVerticesAction->setEnabled(editVerticesEnabledFlag);
+        m_editVerticesAction->setChecked(editVerticesCheckedFlag);
+    }
     
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
@@ -292,6 +309,11 @@ AnnotationFinishCancelWidget::updateContent()
         m_eraseLastCoordinateAction->setEnabled(false);
         m_finishAction->setEnabled(false);
     }
+    
+    setEnabled(finishEnabledFlag
+               || m_cancelAction->isEnabled()
+               || eraseLastEnabledFlag
+               || editVerticesEnabledFlag);
 }
 
 

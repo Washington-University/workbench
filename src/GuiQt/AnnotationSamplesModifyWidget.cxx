@@ -182,9 +182,8 @@ AnnotationSamplesModifyWidget::updateContent(const std::vector<Annotation*>& ann
     }
     QSignalBlocker blocker(m_lockAction);
     m_lockAction->setChecked(lockCheckedFlag);
-
-    setEnabled(m_lockAction->isEnabled()
-               || m_moreAction->isEnabled());
+    
+    setEnabled(m_polyhedronSelected != NULL);
 }
 
 /**

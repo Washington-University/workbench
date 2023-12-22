@@ -374,7 +374,6 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_textOrientationWidget      = new AnnotationTextOrientationWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                        m_browserWindowIndex);
     
-    QLabel* coordinateSpaceLabel = new QLabel("Space");
     m_coordinateSpaceWidget      = new AnnotationCoordinateSpaceWidget(m_browserWindowIndex);
     
     m_coordinatesWidget        = new AnnotationCoordinatesWidget(m_inputModeAnnotations->getUserInputMode(),
@@ -433,7 +432,6 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     QGridLayout* leftBottomRowLayout = new QGridLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(leftBottomRowLayout, 2, 0);
     int32_t lbColumn(0);
-    leftBottomRowLayout->addWidget(coordinateSpaceLabel, 0, lbColumn);
     leftBottomRowLayout->addWidget(m_coordinateSpaceWidget, 1, lbColumn, Qt::AlignHCenter);
     lbColumn++;
     leftBottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget(), 0, lbColumn, 2, 1);
