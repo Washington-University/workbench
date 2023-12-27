@@ -4667,6 +4667,7 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                                rotationAngleCCW));
 
+            m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
             switch (sliceViewPlane) {
                 case VolumeSliceViewPlaneEnum::ALL:
                     break;
