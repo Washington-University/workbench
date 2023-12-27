@@ -3722,20 +3722,31 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
 {
     if (m_validFlag) {
         CaretAssert(m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING);
-        BrainBrowserWindow* window(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+        
+        /*
+         * Clone the annotation.  The dialog will take ownership of this annotation
+         * and add it a file if the user clicks OK or destroy it if the user clicks
+         * Cancel.  Keeping 'm_annotation' valid while the dialog is displayed
+         * prevents it from disappearing while the dialog is displayed.
+         */
+        CaretAssert(m_annotation);
+        Annotation* clonedAnnotation(m_annotation->clone());
         AnnotationSamplesCreateDialog dialog(m_userInputMode,
                                              m_browserWindowIndex,
                                              m_browserTabIndex,
                                              m_annotationFile,
-                                             m_annotation.release(), /* Dialog takes ownership of the annotation */
+                                             clonedAnnotation, /* Dialog takes ownership of the annotation */
                                              m_viewportHeight,
                                              m_sliceThickness,
-                                             window);
+                                             GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
         dialog.exec();
         
-        /* Dialog took ownership of the annotation */
+        /*
+         * Annotation must remain valid until after the dialog closes
+         * to prevent it from disappearing from the graphics region.
+         */
         m_annotationFile = NULL;
-        m_annotation     = NULL;
+        m_annotation.reset();
     }
 }
 
