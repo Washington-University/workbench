@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "BrowserTabContent.h"
 #include "EventListenerInterface.h"
 #include "WuQDialogNonModal.h"
 
@@ -62,6 +63,8 @@ namespace caret {
         
         void transformValueChanged();
         
+        void mprThreeRotationValueChanged();
+        
         void newCustomViewPushButtonClicked();
         
         void deleteCustomViewPushButtonClicked();
@@ -92,6 +95,8 @@ namespace caret {
         void loadCustomViewListWidget(const AString& selectedName = "");
         
         void updateGraphicsWindow();
+        
+        void updateViewInBrowserTabContent(const BrowserTabContent::MprThreeRotationUpdateType mprThreeRotationUpdateType);
         
         void getTransformationControlValues(double& panX,
                                             double& panY,
@@ -139,15 +144,11 @@ namespace caret {
         
         CaretPreferences* getCaretPreferences();
 
-        //std::vector<AString> getAllCustomViewNames();
-        
         QWidget* createCustomViewWidget();
         
         QWidget* createCopyWidget();
         
         QWidget* createTransformsWidget();
-        
-        //UserView* getSelectedUserView();
         
         AString getSelectedCustomViewName();
         

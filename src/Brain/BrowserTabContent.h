@@ -468,7 +468,20 @@ namespace caret {
 
         void getTransformationsInModelTransform(ModelTransform& modelTransform) const;
         
-        void setTransformationsFromModelTransform(const ModelTransform& modelTransform);
+        /**
+         * How to change MPR three rotations when updating with ModelTransform
+         */
+        enum class MprThreeRotationUpdateType {
+            /** Update with differences in MPR Three rotations */
+            DELTA,
+            /** Replace the MPR Three rotations */
+            REPLACE,
+            /** Do not change the MPR Three rotations */
+            UNCHANGED,
+        };
+        
+        void setTransformationsFromModelTransform(const ModelTransform& modelTransform,
+                                                  const MprThreeRotationUpdateType mprThreeRotationUpdateType);
         
         ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties();
 

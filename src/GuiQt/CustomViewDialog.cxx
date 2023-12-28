@@ -456,7 +456,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
                                        flatRotZ, zoom,
                                        rightFlatX, rightFlatY, rightFlatZoom);
         
-        transformValueChanged();
+        updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::REPLACE);
     }
 }
 
@@ -574,6 +574,7 @@ CustomViewDialog::createTransformsWidget()
     m_xRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_xRotateDoubleSpinBox->setDecimals(2);
     m_xRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_xRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_xRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_yRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -583,6 +584,7 @@ CustomViewDialog::createTransformsWidget()
     m_yRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_yRotateDoubleSpinBox->setDecimals(2);
     m_yRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_yRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_yRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_zRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -592,6 +594,7 @@ CustomViewDialog::createTransformsWidget()
     m_zRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_zRotateDoubleSpinBox->setDecimals(2);
     m_zRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_zRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_zRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
@@ -606,6 +609,7 @@ CustomViewDialog::createTransformsWidget()
     m_xObliqueRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_xObliqueRotateDoubleSpinBox->setDecimals(2);
     m_xObliqueRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_xObliqueRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_xObliqueRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_yObliqueRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -615,6 +619,7 @@ CustomViewDialog::createTransformsWidget()
     m_yObliqueRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_yObliqueRotateDoubleSpinBox->setDecimals(2);
     m_yObliqueRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_yObliqueRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_yObliqueRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_zObliqueRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -624,6 +629,7 @@ CustomViewDialog::createTransformsWidget()
     m_zObliqueRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_zObliqueRotateDoubleSpinBox->setDecimals(2);
     m_zObliqueRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_zObliqueRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_zObliqueRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
@@ -638,6 +644,7 @@ CustomViewDialog::createTransformsWidget()
     m_xMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_xMprTwoRotateDoubleSpinBox->setDecimals(2);
     m_xMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_xMprTwoRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_xMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_yMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -647,6 +654,7 @@ CustomViewDialog::createTransformsWidget()
     m_yMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_yMprTwoRotateDoubleSpinBox->setDecimals(2);
     m_yMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_yMprTwoRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_yMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     m_zMprTwoRotateDoubleSpinBox = new QDoubleSpinBox;
@@ -656,6 +664,7 @@ CustomViewDialog::createTransformsWidget()
     m_zMprTwoRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_zMprTwoRotateDoubleSpinBox->setDecimals(2);
     m_zMprTwoRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_zMprTwoRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_zMprTwoRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
 
@@ -670,8 +679,9 @@ CustomViewDialog::createTransformsWidget()
     m_xMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_xMprThreeRotateDoubleSpinBox->setDecimals(2);
     m_xMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_xMprThreeRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_xMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(transformValueChanged()));
+                     this, SLOT(mprThreeRotationValueChanged()));
     m_yMprThreeRotateDoubleSpinBox = new QDoubleSpinBox;
     m_yMprThreeRotateDoubleSpinBox->setWrapping(true);
     m_yMprThreeRotateDoubleSpinBox->setMinimum(rotationMinimum);
@@ -679,8 +689,9 @@ CustomViewDialog::createTransformsWidget()
     m_yMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_yMprThreeRotateDoubleSpinBox->setDecimals(2);
     m_yMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_yMprThreeRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_yMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(transformValueChanged()));
+                     this, SLOT(mprThreeRotationValueChanged()));
     m_zMprThreeRotateDoubleSpinBox = new QDoubleSpinBox;
     m_zMprThreeRotateDoubleSpinBox->setWrapping(true);
     m_zMprThreeRotateDoubleSpinBox->setMinimum(rotationMinimum);
@@ -688,8 +699,9 @@ CustomViewDialog::createTransformsWidget()
     m_zMprThreeRotateDoubleSpinBox->setSingleStep(rotateStep);
     m_zMprThreeRotateDoubleSpinBox->setDecimals(2);
     m_zMprThreeRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_zMprThreeRotateDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_zMprThreeRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(transformValueChanged()));
+                     this, SLOT(mprThreeRotationValueChanged()));
     
     /*
      * Flat rotation
@@ -702,6 +714,7 @@ CustomViewDialog::createTransformsWidget()
     m_flatRotationDoubleSpinBox->setSingleStep(rotateStep);
     m_flatRotationDoubleSpinBox->setDecimals(2);
     m_flatRotationDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_flatRotationDoubleSpinBox->setKeyboardTracking(false);
     QObject::connect(m_flatRotationDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(transformValueChanged()));
     
@@ -1007,15 +1020,35 @@ CustomViewDialog::zoomValueChanged(double value)
         }
     }
     
-    transformValueChanged();
+    updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::UNCHANGED);
+}
+
+/**
+ * Called when a MPR Three rotation value is changed.
+ */
+void
+CustomViewDialog::mprThreeRotationValueChanged()
+{
+    updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::DELTA);
 }
 
 
 /**
- * Called when a transform value is changed.
+ * Called when a transform value is changed EXCEPT for MPR Rotation
  */
 void
 CustomViewDialog::transformValueChanged()
+{
+    updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::UNCHANGED);
+}
+
+/**
+ * Update the view in the browser tab content.
+ * @param mprThreeRotationUpdateType
+ *    Type of update made to MPR Three rotations
+ */
+void
+CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThreeRotationUpdateType mprThreeRotationUpdateType)
 {
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
     double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
@@ -1073,7 +1106,8 @@ CustomViewDialog::transformValueChanged()
                                                                mprThreeRotationAngles,
                                                                flatRotationMatrixArray, zoom,
                                                                rightFlatX, rightFlatY, rightFlatZoom);
-                btc->setTransformationsFromModelTransform(modelTransform);
+                btc->setTransformationsFromModelTransform(modelTransform,
+                                                          mprThreeRotationUpdateType);
                 updateGraphicsWindow();
             }
         }

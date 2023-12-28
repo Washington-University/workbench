@@ -3517,7 +3517,8 @@ void
 BrowserTabContent::resetView()
 {
     getViewingTransformation()->resetView();
-    if (isVolumeSlicesDisplayed()) {
+    if (isVolumeSlicesDisplayed()
+        || isWholeBrainDisplayed()) {
         m_obliqueVolumeRotationMatrix->identity();
         resetMprRotations();
     }
@@ -5895,9 +5896,12 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
  * Apply the transformations to the browser tab.
  * @param modelTransform
  *    Model transform into which transformations are retrieved.
+ * @param mprThreeRotationUpdateType
+ *    Type of update made to MPR Three rotations
  */
 void
-BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& modelTransform)
+BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& modelTransform,
+                                                        const MprThreeRotationUpdateType mprThreeRotationUpdateType)
 {
     float translation[3];
     modelTransform.getTranslation(translation);
@@ -5926,18 +5930,44 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     m_mprRotationY = mprTwoRotationAngles[1];
     m_mprRotationZ = mprTwoRotationAngles[2];
 
-    float mprThreeRotationAngles[3];
-    modelTransform.getMprThreeRotationAngles(mprThreeRotationAngles);
-    m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprThreeRotationAngles[0],
-                                                                        mprThreeRotationAngles[1],
-                                                                        mprThreeRotationAngles[2]);
-    m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
-    m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
-    m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
-    
-    m_mprThreeAxialInverseRotationQuaternion        = QQuaternion();
-    m_mprThreeCoronalInverseRotationQuaternion      = QQuaternion();
-    m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
+    switch (mprThreeRotationUpdateType) {
+        case MprThreeRotationUpdateType::DELTA:
+        {
+            float angles[3];
+            modelTransform.getMprThreeRotationAngles(angles);
+            QVector3D oldAngles(m_mprThreeRotationSeparateQuaternion.toEulerAngles());
+            const QVector3D newAngles(angles[0] - oldAngles[0],
+                                      angles[1] - oldAngles[1],
+                                      angles[2] - oldAngles[2]);
+            QQuaternion rotationQuaternion(QQuaternion::fromEulerAngles(newAngles));
+            m_mprThreeRotationSeparateQuaternion             *= rotationQuaternion;
+            m_mprThreeAxialSeparateRotationQuaternion        *= rotationQuaternion;
+            m_mprThreeCoronalSeparateRotationQuaternion      *= rotationQuaternion;
+            m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
+        }
+            break;
+        case MprThreeRotationUpdateType::REPLACE:
+        {
+            float mprThreeRotationAngles[3];
+            modelTransform.getMprThreeRotationAngles(mprThreeRotationAngles);
+            m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprThreeRotationAngles[0],
+                                                                                mprThreeRotationAngles[1],
+                                                                                mprThreeRotationAngles[2]);
+            m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
+            m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
+            m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
+            
+            m_mprThreeAxialInverseRotationQuaternion        = QQuaternion();
+            m_mprThreeCoronalInverseRotationQuaternion      = QQuaternion();
+            m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
+        }
+            break;
+        case MprThreeRotationUpdateType::UNCHANGED:
+            /*
+             * No change to MPR Three rotations
+             */
+            break;
+    }
 
     float fm[4][4];
     modelTransform.getFlatRotation(fm);

@@ -3531,7 +3531,8 @@ BrainBrowserWindowToolBar::customViewMenuTriggered(QAction* action)
         ModelTransform modelTransform;
         if (prefs->getCustomView(customViewName, modelTransform)) {
             BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-            btc->setTransformationsFromModelTransform(modelTransform);
+            btc->setTransformationsFromModelTransform(modelTransform,
+                                                      BrowserTabContent::MprThreeRotationUpdateType::REPLACE);
             this->updateGraphicsWindowAndYokedWindows();
         }
     }
