@@ -493,6 +493,15 @@ VolumeMprVirtualSliceView::getViewType() const
 }
 
 /**
+ * @return The slice view plane
+ */
+VolumeSliceViewPlaneEnum::Enum
+VolumeMprVirtualSliceView::getSliceViewPlane() const
+{
+    return m_sliceViewPlane;
+}
+
+/**
  * Get coordinates for drawing the volume primitive with triangles
  * @param volume
  *    Volume that will be drawn and has coordinates generated
@@ -860,10 +869,22 @@ VolumeMprVirtualSliceView::toString() const
 {
     AString txt;
     
+    double rotX(0.0), rotY(0.0), rotZ(0.0);
+    m_sliceRotationMatrix.getRotation(rotX, rotY, rotZ);
+    const Vector3D rotAngles(rotX, rotY, rotZ);
+    
+    const AString transMat(m_transformationMatrix.toFormattedString("   "));
+    
     txt.appendWithNewLine("m_sliceViewPlane=" + VolumeSliceViewPlaneEnum::toName(m_sliceViewPlane));
-    txt.appendWithNewLine("m_cameraXYZ=" + m_cameraXYZ.toString());
-    txt.appendWithNewLine("m_cameraLookAtXYZ=" + m_cameraLookAtXYZ.toString());
-    txt.appendWithNewLine("m_cameraUpVector=" + m_cameraUpVector.toString());
+    txt.appendWithNewLine("   m_cameraXYZ=" + m_cameraXYZ.toString());
+    txt.appendWithNewLine("   m_cameraLookAtXYZ=" + m_cameraLookAtXYZ.toString());
+    txt.appendWithNewLine("   m_cameraUpVector=" + m_cameraUpVector.toString());
+    txt.appendWithNewLine("   m_volumeCenterXYZ=" + m_volumeCenterXYZ.toString());
+    txt.appendWithNewLine("   m_selectedSlicesXYZ=" + m_selectedSlicesXYZ.toString());
+    txt.appendWithNewLine("   m_preLookAtTranslation=" + m_preLookAtTranslation.toString());
+    txt.appendWithNewLine("   m_postLookAtTranslation=" + m_postLookAtTranslation.toString());
+    txt.appendWithNewLine("   m_sliceRotationMatrix=" + rotAngles.toString());
+    txt.appendWithNewLine("   m_transformationMatrix=" + transMat);
 
     return txt;
 }

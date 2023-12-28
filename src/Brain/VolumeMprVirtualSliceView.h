@@ -74,6 +74,8 @@ namespace caret {
 
         ViewType getViewType() const;
         
+        VolumeSliceViewPlaneEnum::Enum getSliceViewPlane() const;
+
         Vector3D getCameraXYZ() const;
         
         Vector3D getCameraLookAtXYZ() const;
