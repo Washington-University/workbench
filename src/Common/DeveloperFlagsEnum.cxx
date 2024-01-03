@@ -161,6 +161,11 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX,
+                                                "DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX",
+                                                "MPR Three: Fix Selected Slices Changed Jumping",
+                                                CheckableEnum::YES,
+                                                true));
 #ifdef HAVE_WEBKIT
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
                                                 "DEVELOPER_FLAG_BALSA",
@@ -284,6 +289,10 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA:
             toolTip = ("When Invert Data is selected on Overlay and Map Settings Dialog,  "
                        "flip the palette instead of flipping the data (not recommended)");
+            break;
+        case DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX:
+            toolTip = ("MPR Three: Prevents slices from jumping if the selected slices are changed "
+                       " and there is non-zero rotation.");
             break;
         case DEVELOPER_FLAG_UNUSED:
             toolTip = "Unused";
