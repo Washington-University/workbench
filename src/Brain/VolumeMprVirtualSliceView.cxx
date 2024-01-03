@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DeveloperFlagsEnum.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "Plane.h"
@@ -474,6 +475,34 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
     
     m_preLookAtTranslation.fill(0.0);
     m_postLookAtTranslation.fill(0.0);
+    
+    /*
+     * Prevents slices from jumping if the selected slices are changed
+     * and there is non-zero rotation
+     */
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX)) {
+        Vector3D t;
+        m_transformationMatrix.getTranslation(t);
+        switch (m_sliceViewPlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                m_preLookAtTranslation[0] = -t[0];
+                m_preLookAtTranslation[1] = -t[1];
+                m_preLookAtTranslation[2] = 0.0;
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                m_preLookAtTranslation[0] = -t[0];
+                m_preLookAtTranslation[1] = 0.0;
+                m_preLookAtTranslation[2] = -t[2];
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                m_preLookAtTranslation[0] = 0.0;
+                m_preLookAtTranslation[1] = t[1];
+                m_preLookAtTranslation[2] = -t[2];
+                break;
+        }
+    }
 }
 
 /**
@@ -886,6 +915,15 @@ VolumeMprVirtualSliceView::toString() const
     txt.appendWithNewLine("   m_sliceRotationMatrix=" + rotAngles.toString());
     txt.appendWithNewLine("   m_transformationMatrix=" + transMat);
 
+    Matrix4x4 m2(m_transformationMatrix);
+    const Vector3D sliceDiffXYZ(m_selectedSlicesXYZ);
+    Vector3D diffXYZ(sliceDiffXYZ);
+    m2.multiplyPoint3(diffXYZ);
+    txt.appendWithNewLine("   Selected Slice X Transform=" + diffXYZ.toString());
+    diffXYZ = sliceDiffXYZ;
+    m2.setTranslation(0.0,0.0,0.0);
+    m2.multiplyPoint3(diffXYZ);
+    txt.appendWithNewLine("   Selected Slice X Rotate Only=" + diffXYZ.toString());
     return txt;
 }
 

@@ -2450,7 +2450,24 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
      * Permits rotation around selected coordinate
      */
     const Vector3D prelt(mprSliceView.getPreLookAtTranslation());
-    glTranslatef(prelt[0], prelt[1], prelt[2]);
+    float preltX(0.0), preltY(0.0), preltZ(0.0);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            preltX = prelt[0];
+            preltY = prelt[1];
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            preltX = prelt[0];
+            preltY = prelt[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            preltX = prelt[1];
+            preltY = prelt[2];
+            break;
+    }
+    glTranslatef(preltX, preltY, preltZ);
 
     const Vector3D cameraXYZ(mprSliceView.getCameraXYZ());
     const Vector3D cameraLookAtXYZ(mprSliceView.getCameraLookAtXYZ());
@@ -2475,6 +2492,30 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
     float m16[16];
     mat.getMatrixForOpenGL(m16);
     glMultMatrixf(m16);
+    
+    const bool printViewingTransformFlag(false);
+    if (printViewingTransformFlag) {
+        if (mprSliceView.getSliceViewPlane() == VolumeSliceViewPlaneEnum::PARASAGITTAL) {
+            static int32_t ctr(0);
+            std::cout << "iter=" << ctr++ << std::endl;
+            std::cout << mprSliceView.toString() << std::endl;
+            
+            EventOpenGLObjectToWindowTransform wt(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+            EventManager::get()->sendEvent(wt.getPointer());
+            if (wt.isValid()) {
+                /*
+                 * Used to debug slices 'jumping' when user changes selected
+                 * slices after a rotation of the slices
+                 */
+                Vector3D originXYZ(0.0, 0.0, 0.0);
+                Vector3D windowXYZ(0.0, 0.0, 0.0);
+                wt.transformPoint(originXYZ, windowXYZ);
+                std::cout << "   Origin: " << originXYZ.toString() << std::endl;
+                std::cout << "   Window: " << windowXYZ.toString() << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
 }
 
 /**
