@@ -108,6 +108,12 @@ VolumeFileEditorDelegate::clear()
  *     The editing mode.
  * @param slicePlane
  *     The selected slice plane.
+ * @param sliceProjectionType
+ *     The slice projection type
+ * @param obliqueMprRotationMatrix
+ *     The matrix for oblique or MPR rotation
+ * @param voxelDiffXYZ
+ *     Difference from voxel bottom left to top right on screen.
  * @param voxelIJK
  *     Indices of voxel selected by the user.
  * @param brushSize
@@ -126,7 +132,7 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                                                   const VolumeEditingModeEnum::Enum mode,
                                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                   const VolumeSliceProjectionTypeEnum::Enum sliceProjectionType,
-                                                  const Matrix4x4& obliqueRotationMatrix,
+                                                  const Matrix4x4& obliqueMprRotationMatrix,
                                                   const float voxelDiffXYZ[3],
                                                   const int64_t voxelIJK[3],
                                                   const int64_t brushSize[3],
@@ -198,7 +204,7 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
                             mode,
                             slicePlane,
                             sliceProjectionType,
-                            obliqueRotationMatrix,
+                            obliqueMprRotationMatrix,
                             voxelDiffXYZ,
                             voxelIJK,
                             ijkMin,

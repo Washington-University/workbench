@@ -72,8 +72,8 @@ namespace caret {
             /** The volume's editor delegate */
             VolumeFileEditorDelegate* m_volumeFileEditorDelegate;
             
-            /** The oblique projection rotation matrix */
-            Matrix4x4 m_obliqueRotationMatrix;
+            /** The oblique or MPR projection rotation matrix */
+            Matrix4x4 m_obliqueMprRotationMatrix;
         };
         
         UserInputModeVolumeEdit(const int32_t browserIndexIndex);
@@ -92,11 +92,14 @@ namespace caret {
         
         virtual void mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent);
 
+        bool getVolumeEditInfoForStatus(VolumeEditInfo& volumeEditInfo);
+        
+        bool getVolumeEditInfoForEditOperation(VolumeEditInfo& volumeEditInfo,
+                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane);
+        
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);
-        
-        bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo);
         
         void updateGraphicsAfterEditing(VolumeFile* volumeFile,
                                         const int32_t mapIndex);
@@ -107,6 +110,10 @@ namespace caret {
         UserInputModeVolumeEdit(const UserInputModeVolumeEdit&);
 
         UserInputModeVolumeEdit& operator=(const UserInputModeVolumeEdit&);
+        
+        bool getVolumeEditInfo(VolumeEditInfo& volumeEditInfo,
+                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                               const bool setObliqueMprMatrixFlag);
         
         void processEditCommandFromMouse(const MouseEvent& mouseEvent);
         

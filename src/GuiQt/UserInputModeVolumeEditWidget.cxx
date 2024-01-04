@@ -139,7 +139,7 @@ UserInputModeVolumeEditWidget::updateWidget()
     bool isValid = false;
     
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
         
         if (volumeEditInfo.m_volumeFile != NULL) {
@@ -227,7 +227,7 @@ UserInputModeVolumeEditWidget::isModeButtonEnabled(const VolumeEditingModeEnum::
 {
     bool modeEnabledFlag(false);
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
         
         if (volumeEditInfo.m_volumeFile != NULL) {
@@ -616,7 +616,7 @@ UserInputModeVolumeEditWidget::newFileActionTriggered()
 {
     VolumeMappableInterface* underlayVolume(NULL);
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         underlayVolume = volumeEditInfo.m_underlayVolume;
     }
     
@@ -652,7 +652,7 @@ UserInputModeVolumeEditWidget::viewVolumeInNewOverlay(VolumeFile* vf,
                                                       const int32_t mapIndex)
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo);
+    m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo);
     if (volumeEditInfo.m_topOverlay != NULL) {
         /*
          * Add new overlay and place new volume file in the top most overlay
@@ -681,7 +681,7 @@ void
 UserInputModeVolumeEditWidget::addMapsActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         VolumeFile* vf = volumeEditInfo.m_volumeFile;
         
         WuQDataEntryDialog ded("Add Map",
@@ -717,7 +717,7 @@ void
 UserInputModeVolumeEditWidget::lockFileActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         /*
          * Warn user if unlocking and volume is not plumb
          */
@@ -744,7 +744,7 @@ void
 UserInputModeVolumeEditWidget::undoActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         AString errorMessage;
         if ( ! volumeEditInfo.m_volumeFileEditorDelegate->undo(volumeEditInfo.m_mapIndex,
                                                                errorMessage)) {
@@ -763,7 +763,7 @@ void
 UserInputModeVolumeEditWidget::redoActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         AString errorMessage;
         if ( ! volumeEditInfo.m_volumeFileEditorDelegate->redo(volumeEditInfo.m_mapIndex,
                                                                errorMessage)) {
@@ -782,7 +782,7 @@ void
 UserInputModeVolumeEditWidget::resetActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         AString errorMessage;
         if ( ! volumeEditInfo.m_volumeFileEditorDelegate->reset(volumeEditInfo.m_mapIndex,
                                                                errorMessage)) {
@@ -837,7 +837,7 @@ void
 UserInputModeVolumeEditWidget::labelValueActionTriggered()
 {
     UserInputModeVolumeEdit::VolumeEditInfo volumeEditInfo;
-    if (m_inputModeVolumeEdit->getVolumeEditInfo(volumeEditInfo)) {
+    if (m_inputModeVolumeEdit->getVolumeEditInfoForStatus(volumeEditInfo)) {
         if (volumeEditInfo.m_volumeFile != NULL) {
             GiftiLabelTableEditor lte(volumeEditInfo.m_volumeFile,
                                       volumeEditInfo.m_mapIndex,
