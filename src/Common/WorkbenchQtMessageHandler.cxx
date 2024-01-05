@@ -137,30 +137,33 @@ WorkbenchQtMessageHandler::messageHandlerForQt5(QtMsgType type,
             WorkbenchQtMessageHandler::makeBeepSound();
         }
 #ifndef NDEBUG
+        /*
+         * In debug mode, print message to terminal
+         * if it was not displayed by caret logger
+         */
         if (!displayedFlag)
         {
             cerr << "DEBUG: Qt ";
             switch (type)
             {
                 case QtDebugMsg:
-                    cerr << "Debug ";
+                    cerr << "Debug " << message << std::endl;
                     break;
                 case QtWarningMsg:
-                    cerr << "Warning ";
+                    cerr << "Warning " << message << std::endl;
                     break;
                 case QtCriticalMsg:
-                    cerr << "Critical ";
+                    cerr << "Critical " << message << std::endl;
                     break;
                 case QtFatalMsg:
-                    cerr << "FATAL (?!?) ";//should never happen
+                    cerr << "FATAL (?!?) " << message << std::endl;//should never happen
                     break;
 #if QT_VERSION >= 0x050500
                 case QtInfoMsg:
-                    std::cerr << "Info ";
+                    std::cerr << "Info " << message << std::endl;
                     break;
 #endif
             }
-            cerr << "message hidden" << endl;
         }
 #endif
         
