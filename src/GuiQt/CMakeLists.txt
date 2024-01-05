@@ -52,7 +52,6 @@ ELSE()
         AnnotationCoordinatesWidget.h
         AnnotationCreateDialog.h
         AnnotationDeleteWidget.h
-	AnnotationFinishCancelWidget.h
         AnnotationFontWidget.h
         AnnotationFormatWidget.h
         AnnotationInsertNewWidget.h
@@ -61,6 +60,7 @@ ELSE()
         AnnotationMenuFileSelection.h
 	AnnotationNameWidget.h
         AnnotationPasteDialog.h
+	AnnotationPolyTypeDrawEditWidget.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
 	AnnotationSamplesCreateDialog.h
@@ -330,7 +330,6 @@ AnnotationCoordinateSpaceWidget.h
 AnnotationCoordinatesWidget.h
 AnnotationCreateDialog.h
 AnnotationDeleteWidget.h
-AnnotationFinishCancelWidget.h
 AnnotationFontWidget.h
 AnnotationFormatWidget.h
 AnnotationInsertNewWidget.h
@@ -340,6 +339,7 @@ AnnotationMenuFileSelection.h
 AnnotationNameWidget.h
 AnnotationPasteDialog.h
 AnnotationPastingInformation.h
+AnnotationPolyTypeDrawEditWidget.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
 AnnotationSamplesCreateDialog.h
@@ -675,7 +675,6 @@ AnnotationCoordinateSpaceWidget.cxx
 AnnotationCoordinatesWidget.cxx
 AnnotationCreateDialog.cxx
 AnnotationDeleteWidget.cxx
-AnnotationFinishCancelWidget.cxx
 AnnotationFontWidget.cxx
 AnnotationFormatWidget.cxx
 AnnotationInsertNewWidget.cxx
@@ -685,6 +684,7 @@ AnnotationMenuFileSelection.cxx
 AnnotationNameWidget.cxx
 AnnotationPasteDialog.cxx
 AnnotationPastingInformation.cxx
+AnnotationPolyTypeDrawEditWidget.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
 AnnotationSamplesCreateDialog.cxx

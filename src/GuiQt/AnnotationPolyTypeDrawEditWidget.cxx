@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __ANNOTATION_FINISH_CANCEL_WIDGET_DECLARE__
-#include "AnnotationFinishCancelWidget.h"
-#undef __ANNOTATION_FINISH_CANCEL_WIDGET_DECLARE__
+#define __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_DECLARE__
+#include "AnnotationPolyTypeDrawEditWidget.h"
+#undef __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_DECLARE__
 
 #include <QAction>
 #include <QGridLayout>
@@ -45,7 +45,7 @@ using namespace caret;
 
     
 /**
- * \class caret::AnnotationFinishCancelWidget
+ * \class caret::AnnotationPolyTypeDrawEditWidget
  * \brief Widget for finish and cancel buttons
  * \ingroup GuiQt
  */
@@ -62,7 +62,7 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-AnnotationFinishCancelWidget::AnnotationFinishCancelWidget(const Qt::Orientation orientation,
+AnnotationPolyTypeDrawEditWidget::AnnotationPolyTypeDrawEditWidget(const Qt::Orientation orientation,
                                                            UserInputModeAnnotations* userInputModeAnnotations,
                                                            const int32_t browserWindowIndex,
                                                            QWidget* parent)
@@ -78,7 +78,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_finishToolButton->setDefaultAction(m_finishAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_finishToolButton);
     QObject::connect(m_finishAction, &QAction::triggered,
-                     this, &AnnotationFinishCancelWidget::finishActionTriggered);
+                     this, &AnnotationPolyTypeDrawEditWidget::finishActionTriggered);
     
     m_finishToolButtonStyleSheetDisabled = m_finishToolButton->styleSheet();
     
@@ -103,7 +103,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_eraseLastCoordinateAction = new QAction("X");
     m_eraseLastCoordinateAction->setToolTip("Remove the last poly coordinate");
     QObject::connect(m_eraseLastCoordinateAction, &QAction::triggered,
-                     this, &AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered);
+                     this, &AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered);
     QToolButton* eraseLastCoordinateToolButton = new QToolButton();
     eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
@@ -123,7 +123,7 @@ m_browserWindowIndex(browserWindowIndex)
         m_editVerticesAction->setCheckable(true);
         m_editVerticesAction->setToolTip(moveToolTip);
         QObject::connect(m_editVerticesAction, &QAction::triggered, this,
-                         &AnnotationFinishCancelWidget::editVerticesActionTriggered);
+                         &AnnotationPolyTypeDrawEditWidget::editVerticesActionTriggered);
         
         editVerticesToolButton = new QToolButton();
         editVerticesToolButton->setDefaultAction(m_editVerticesAction);
@@ -183,7 +183,7 @@ m_browserWindowIndex(browserWindowIndex)
 /**
  * Destructor.
  */
-AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
+AnnotationPolyTypeDrawEditWidget::~AnnotationPolyTypeDrawEditWidget()
 {
 }
 
@@ -191,7 +191,7 @@ AnnotationFinishCancelWidget::~AnnotationFinishCancelWidget()
  * Update the widget
  */
 void
-AnnotationFinishCancelWidget::updateContent()
+AnnotationPolyTypeDrawEditWidget::updateContent()
 {
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
                                                       m_browserWindowIndex);
@@ -321,7 +321,7 @@ AnnotationFinishCancelWidget::updateContent()
  * Gets called when the finish action is triggered
  */
 void
-AnnotationFinishCancelWidget::finishActionTriggered()
+AnnotationPolyTypeDrawEditWidget::finishActionTriggered()
 {
     m_finishAction->blockSignals(true);
     
@@ -339,7 +339,7 @@ AnnotationFinishCancelWidget::finishActionTriggered()
  * Gets called when the cancel action is triggered
  */
 void
-AnnotationFinishCancelWidget::cancelActionTriggered()
+AnnotationPolyTypeDrawEditWidget::cancelActionTriggered()
 {
     EventAnnotationDrawingFinishCancel cancelEvent(EventAnnotationDrawingFinishCancel::Mode::CANCEL,
                                                    m_browserWindowIndex,
@@ -353,7 +353,7 @@ AnnotationFinishCancelWidget::cancelActionTriggered()
  * Gets called when the erase last coordinate action is triggered
  */
 void
-AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered()
+AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered()
 {
     if (m_annotationNumberOfCoordinates > 1) {
         EventAnnotationDrawingFinishCancel eraseEvent(EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE,
@@ -377,7 +377,7 @@ AnnotationFinishCancelWidget::eraseLastCoordinateActionTriggered()
  *    New checked status
  */
 void
-AnnotationFinishCancelWidget::editVerticesActionTriggered(bool checked)
+AnnotationPolyTypeDrawEditWidget::editVerticesActionTriggered(bool checked)
 {
     CaretAssert(m_userInputModeAnnotations);
     if (checked) {

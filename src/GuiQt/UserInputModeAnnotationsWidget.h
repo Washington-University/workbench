@@ -40,7 +40,7 @@ namespace caret {
     class AnnotationCoordinatesWidget;
     class AnnotationDeleteWidget;
     class AnnotationDepthWidget;
-    class AnnotationFinishCancelWidget;
+    class AnnotationPolyTypeDrawEditWidget;
     class AnnotationFontWidget;
     class AnnotationFormatWidget;
     class AnnotationInsertNewWidget;
@@ -133,7 +133,7 @@ namespace caret {
 
         AnnotationDeleteWidget* m_deleteWidget = NULL;
         
-        AnnotationFinishCancelWidget* m_finishCancelWidget = NULL;
+        AnnotationPolyTypeDrawEditWidget* m_polyTypeDrawEditWidget = NULL;
         
         AnnotationRedoUndoWidget* m_redoUndoWidget = NULL;
         

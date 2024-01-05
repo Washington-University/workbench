@@ -38,7 +38,7 @@
 #include "AnnotationCoordinatesWidget.h"
 #include "AnnotationColorWidget.h"
 #include "AnnotationDeleteWidget.h"
-#include "AnnotationFinishCancelWidget.h"
+#include "AnnotationPolyTypeDrawEditWidget.h"
 #include "AnnotationFontWidget.h"
 #include "AnnotationFormatWidget.h"
 #include "AnnotationInsertNewWidget.h"
@@ -202,9 +202,9 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
-    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Vertical,
-                                                                    m_inputModeAnnotations,
-                                                                    m_browserWindowIndex);
+    m_polyTypeDrawEditWidget     = new AnnotationPolyTypeDrawEditWidget(Qt::Vertical,
+                                                                        m_inputModeAnnotations,
+                                                                        m_browserWindowIndex);
         
     m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget((showSamplesLabelFlag
                                                                       ? Qt::Horizontal
@@ -224,7 +224,7 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
     bottomLayout->addWidget(m_fontWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomLayout->addWidget(m_finishCancelWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(m_polyTypeDrawEditWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -394,9 +394,9 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_insertNewWidget            = new AnnotationInsertNewWidget(m_inputModeAnnotations->getUserInputMode(),
                                                                  m_browserWindowIndex);
     
-    m_finishCancelWidget         = new AnnotationFinishCancelWidget(Qt::Horizontal,
-                                                                    m_inputModeAnnotations,
-                                                                    m_browserWindowIndex);
+    m_polyTypeDrawEditWidget     = new AnnotationPolyTypeDrawEditWidget(Qt::Horizontal,
+                                                                        m_inputModeAnnotations,
+                                                                        m_browserWindowIndex);
     
     m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
@@ -447,7 +447,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     
     QHBoxLayout* rightBottomRowLayout(new QHBoxLayout());
     WuQtUtilities::setLayoutSpacingAndMargins(rightBottomRowLayout, 2, 0);
-    rightBottomRowLayout->addWidget(m_finishCancelWidget, 0, Qt::AlignTop);
+    rightBottomRowLayout->addWidget(m_polyTypeDrawEditWidget, 0, Qt::AlignTop);
     rightBottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     rightBottomRowLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
     rightBottomRowLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
@@ -568,7 +568,7 @@ UserInputModeAnnotationsWidget::updateWidget()
     if (m_insertNewWidget != NULL) m_insertNewWidget->updateContent();
     if (m_insertSamplesNewWidget != NULL) m_insertSamplesNewWidget->updateContent();
     if (m_deleteWidget != NULL) m_deleteWidget->updateContent();
-    if (m_finishCancelWidget != NULL) m_finishCancelWidget->updateContent();
+    if (m_polyTypeDrawEditWidget != NULL) m_polyTypeDrawEditWidget->updateContent();
     Annotation* coordEditAnnotation = NULL;
     if (selectedAnnotations.size() == 1) {
         coordEditAnnotation = selectedAnnotations[0];

@@ -1,5 +1,5 @@
-#ifndef __ANNOTATION_FINISH_CANCEL_WIDGET_H__
-#define __ANNOTATION_FINISH_CANCEL_WIDGET_H__
+#ifndef __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_H__
+#define __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_H__
 
 /*LICENSE_START*/
 /*
@@ -34,17 +34,17 @@ namespace caret {
     class Annotation;
     class UserInputModeAnnotations;
 
-    class AnnotationFinishCancelWidget : public QWidget {
+    class AnnotationPolyTypeDrawEditWidget : public QWidget {
         
         Q_OBJECT
 
     public:
-        AnnotationFinishCancelWidget(const Qt::Orientation orientation,
+        AnnotationPolyTypeDrawEditWidget(const Qt::Orientation orientation,
                                      UserInputModeAnnotations* userInputModeAnnotations,
                                      const int32_t browserWindowIndex,
                                      QWidget* parent = 0);
         
-        virtual ~AnnotationFinishCancelWidget();
+        virtual ~AnnotationPolyTypeDrawEditWidget();
         
         void updateContent();
         
@@ -60,9 +60,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        AnnotationFinishCancelWidget(const AnnotationFinishCancelWidget&);
+        AnnotationPolyTypeDrawEditWidget(const AnnotationPolyTypeDrawEditWidget&);
 
-        AnnotationFinishCancelWidget& operator=(const AnnotationFinishCancelWidget&);
+        AnnotationPolyTypeDrawEditWidget& operator=(const AnnotationPolyTypeDrawEditWidget&);
         
         UserInputModeAnnotations* m_userInputModeAnnotations;
         
@@ -90,9 +90,9 @@ namespace caret {
 
     };
     
-#ifdef __ANNOTATION_FINISH_CANCEL_WIDGET_DECLARE__
+#ifdef __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __ANNOTATION_FINISH_CANCEL_WIDGET_DECLARE__
+#endif // __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__ANNOTATION_FINISH_CANCEL_WIDGET_H__
+#endif  //__ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_H__
