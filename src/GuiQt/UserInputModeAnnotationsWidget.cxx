@@ -241,7 +241,7 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     topWidget->setFixedWidth(bottomWidget->sizeHint().width());
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 2);
     layout->addWidget(topWidget);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addWidget(bottomWidget);

@@ -104,14 +104,14 @@ m_browserWindowIndex(browserWindowIndex)
             break;
     }
     
-    QLabel* backFillLabel(new QLabel("Fill"));
-    QLabel* backFillColorLabel(new QLabel("Color"));
-    QLabel* foreLineLabel      = new QLabel("Line");
-    QLabel* foreLineColorLabel = new QLabel("Color");
+    QLabel* backFillLabel(new QLabel("Fill\nColor"));
+    backFillLabel->setAlignment(Qt::AlignHCenter);
     
-    QLabel* lineLabel = new QLabel("Line");
-    QLabel* lineWidthLabel = new QLabel("Width");
+    QLabel* foreLineLabel      = new QLabel("Line\nColor");
+    foreLineLabel->setAlignment(Qt::AlignHCenter);
     
+    QLabel* lineLabel = new QLabel("Line\nWidth");
+    lineLabel->setAlignment(Qt::AlignHCenter);
     
     const QSize toolButtonSize(16, 16);
     
@@ -140,7 +140,6 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_backgroundColorWidgetGroup = new WuQWidgetObjectGroup(this);
     m_backgroundColorWidgetGroup->add(backFillLabel);
-    m_backgroundColorWidgetGroup->add(backFillColorLabel);
     m_backgroundColorWidgetGroup->add(m_backgroundToolButton);
 
     /*
@@ -165,7 +164,6 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_lineColorWidgetGroup = new WuQWidgetObjectGroup(this);
     m_lineColorWidgetGroup->add(foreLineLabel);
-    m_lineColorWidgetGroup->add(foreLineColorLabel);
     m_lineColorWidgetGroup->add(m_lineColorMenu);
     m_lineColorWidgetGroup->add(m_lineToolButton);
     
@@ -187,7 +185,6 @@ m_browserWindowIndex(browserWindowIndex)
     m_lineThicknessSpinBox->setSuffix("%");
     
     m_lineThicknessWidgetGroup->add(lineLabel);
-    m_lineThicknessWidgetGroup->add(lineWidthLabel);
     m_lineThicknessWidgetGroup->add(m_lineThicknessSpinBox);
 
     /*
@@ -195,22 +192,17 @@ m_browserWindowIndex(browserWindowIndex)
      */
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
+    gridLayout->setVerticalSpacing(0);
+    gridLayout->setHorizontalSpacing(2);
     
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            CaretAssert(lineWidthLabel);
             gridLayout->addWidget(lineLabel,
                                   0, 0,
                                   Qt::AlignHCenter);
-            gridLayout->addWidget(lineWidthLabel,
-                                  1, 0,
-                                  Qt::AlignHCenter);
             gridLayout->addWidget(foreLineLabel,
                                   0, 1,
-                                  Qt::AlignHCenter);
-            gridLayout->addWidget(foreLineColorLabel,
-                                  1, 1,
                                   Qt::AlignHCenter);
             gridLayout->addWidget(m_lineThicknessSpinBox,
                                   2, 0,
@@ -222,16 +214,12 @@ m_browserWindowIndex(browserWindowIndex)
                 gridLayout->addWidget(backFillLabel,
                                       0, 2,
                                       Qt::AlignHCenter);
-                gridLayout->addWidget(backFillColorLabel,
-                                      1, 2,
-                                      Qt::AlignHCenter);
                 gridLayout->addWidget(m_backgroundToolButton,
                                       2, 2,
                                       Qt::AlignHCenter);
             }
             else {
                 backFillLabel->setHidden(true);
-                backFillColorLabel->setHidden(true);
                 m_backgroundToolButton->setHidden(true);
             }
         }
