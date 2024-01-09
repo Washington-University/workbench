@@ -81,10 +81,14 @@ namespace caret {
          * Sub-mode for MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC
          */
         enum DrawingNewPolyTypeStereotaxicMode {
-            /** Mouse adds new vertices to poly-type */
-            ADD_NEW_VERTICES,
-            /** Mouse edits existing vertices */
-            EDIT_VERTICES
+            /** Mouse adds new coordinates to poly-type */
+            ADD_NEW_COORDINATES,
+            /** Mouse deletes vertices */
+            DELETE_COORDINATES,
+            /** Mouse inserts vertices */
+            INSERT_COORDINATES,
+            /** Mouse moves existing vertices */
+            MOVE_COORDINATES
         };
         
         UserInputModeAnnotations(const int32_t browserWindowIndex);
@@ -331,7 +335,11 @@ namespace caret {
         
         void addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
-        void editCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        void removedCooordinateFromNewPolyTypeStereotaxicAnnotation();
+        
+        void insertCooordinateIntoNewPolyTypeStereotaxicAnnotation();
+        
+        void moveCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
         void finishNewPolyTypeStereotaxicAnnotation();
         
@@ -369,13 +377,19 @@ namespace caret {
         
         Mode m_mode;
         
-        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_VERTICES;
+        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATES;
         
         Annotation* m_annotationUnderMouse;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationUnderMouseSizeHandleType;
         
         int32_t m_annotationUnderMousePolyLineCoordinateIndex;
+        
+        /**
+         * Normalized (0 to 1) distance from point on line where mouse was clicked from the selected
+         * coordinate index (m_annotationUnderMousePolyLineCoordinateIndex) to the next coordinate index
+         */
+        float m_annotationUnderMousePolyLineNormalizedDistance = 0.0;
         
         AnnotationSizingHandleTypeEnum::Enum m_annotationBeingDraggedHandleType;
         

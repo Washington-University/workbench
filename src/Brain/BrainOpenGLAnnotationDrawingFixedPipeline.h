@@ -142,8 +142,6 @@ namespace caret {
                                                        const HistologySlice* histologySlice,
                                                        const float sliceThickness);
         
-
-        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -157,27 +155,6 @@ namespace caret {
     private:
         class SelectionInfo {
         public:
-//            SelectionInfo(AnnotationFile* annotationFile,
-//                          Annotation* annotation,
-//                          AnnotationSizingHandleTypeEnum::Enum sizingHandle,
-//                          int32_t polyLineCoordinateIndex,
-//                          const float windowXYZ[3],
-//                          const float coordInWindowXYZ[3])
-//            : SelectionInfo(annotationFile,
-//                            annotation,
-//                            sizingHandle,
-//                            polyLineCoordinateIndex,
-//                            windowXYZ) {
-//                Vector3D wvxyz {
-//                    coordInWindowXYZ[0],
-//                    coordInWindowXYZ[1],
-//                    coordInWindowXYZ[2]
-//                };
-//                m_coordsInWindowXYZ.push_back(wvxyz);
-//                
-//                validate();
-//            }
-//            
             SelectionInfo(AnnotationFile* annotationFile,
                           Annotation* annotation,
                           AnnotationSizingHandleTypeEnum::Enum sizingHandle,

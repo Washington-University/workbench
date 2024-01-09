@@ -52,6 +52,8 @@ CursorManager::CursorManager()
 {
     m_fourArrowsCursor = createFourArrowsCursor();
     
+    m_deleteCursor  = createDeleteCursor();
+    
     m_penCursor     = this->loadCursor(":Cursor/pen_eraser.png",
                                            6, 
                                            32 - 7, 
@@ -85,6 +87,9 @@ CursorManager::setCursorForWidget(QWidget* widget,
         case CursorEnum::CURSOR_DEFAULT:
             widget->unsetCursor();
             break;
+        case CursorEnum::CURSOR_DELETE:
+            widget->setCursor(m_deleteCursor);
+            break;
         case CursorEnum::CURSOR_DRAWING_PEN:
             widget->setCursor(m_penCursor);
             break;
@@ -97,7 +102,16 @@ CursorManager::setCursorForWidget(QWidget* widget,
         case CursorEnum::CURSOR_ROTATION:
             widget->setCursor(m_rotationCursor);
             break;
-        default:
+        case CursorEnum::CURSOR_ARROW:
+        case CursorEnum::CURSOR_CLOSED_HAND:
+        case CursorEnum::CURSOR_CROSS:
+        case CursorEnum::CURSOR_POINTING_HAND:
+        case CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT:
+        case CursorEnum::CURSOR_RESIZE_BOTTOM_RIGHT_TOP_LEFT:
+        case CursorEnum::CURSOR_RESIZE_HORIZONTAL:
+        case CursorEnum::CURSOR_RESIZE_VERTICAL:
+        case CursorEnum::CURSOR_WAIT:
+        case CursorEnum::CURSOR_WHATS_THIS:
             widget->setCursor(CursorEnum::toQtCursorShape(cursor));
             break;
     }
@@ -444,6 +458,82 @@ CursorManager::createRotationCursorText(const AString& textCharacter)
         painter.setPen(savedPen);
         painter.setBrush(savedBrush);
     }
+    
+    /*
+     * Create the cursor
+     */
+    QPixmap cursorPixmap = QPixmap::fromImage(image);
+    QCursor cursor(cursorPixmap);
+    
+    return cursor;
+}
+
+/**
+ * @return A delete cursor ("X" symbol)
+ * @param textCharacter;
+ */
+QCursor
+CursorManager::createDeleteCursor()
+{
+    /*
+     * Create image into which to draw
+     */
+    const int width  = 32;
+    const int height = width;
+    QImage image(width,
+                 height,
+                 QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+    
+    /*
+     * Create painter with black for filling and white for outline
+     */
+    QPainter painter(&image);
+    const QBrush defaultBrush(painter.brush());
+    const QPen defaultPen(painter.pen());
+    painter.setRenderHint(QPainter::Antialiasing,
+                          false);
+    painter.setBackgroundMode(Qt::TransparentMode);
+    QPen whitePen = painter.pen();
+    whitePen.setColor(Qt::white);
+    whitePen.setWidth(5);
+    QPen blackPen = painter.pen();
+    blackPen.setColor(Qt::black);
+    blackPen.setWidth(2);
+    
+//    painter.setPen(pen);
+//    QBrush brush(QColor(0, 0, 0),
+//                 Qt::SolidPattern);
+//    painter.setBrush(brush);
+    
+    /*
+     * ends of line
+     */
+    const int center(width / 2);
+    const int halfLength(5);
+    int a(center - halfLength);
+    int b(center + halfLength);
+    
+    painter.setPen(whitePen);
+    painter.drawLine(a, a, b, b);
+    painter.drawLine(a, b, b, a);
+
+    --a;
+    --b;
+    painter.setPen(blackPen);
+    painter.drawLine(a, a, b, b);
+    painter.drawLine(a, b, b, a);
+
+//    /*
+//     * Draw white around arrows.
+//     * Note that drawPolyline() DOES NOT connect last point to first point so add first point again at end.
+//     * Turn anti-aliasing on for lines
+//     */
+//    polygon.push_back(QPoint(a, k));
+//    painter.setRenderHint(QPainter::Antialiasing,
+//                          false);
+//    painter.drawPolyline(polygon);
+    
     
     /*
      * Create the cursor

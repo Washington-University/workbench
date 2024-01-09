@@ -39,11 +39,10 @@ namespace caret {
         Q_OBJECT
 
     public:
-        AnnotationPolyTypeDrawEditWidget(const Qt::Orientation orientation,
-                                     UserInputModeAnnotations* userInputModeAnnotations,
-                                     const int32_t browserWindowIndex,
-                                     QWidget* parent = 0);
-        
+        AnnotationPolyTypeDrawEditWidget(UserInputModeAnnotations* userInputModeAnnotations,
+                                         const int32_t browserWindowIndex,
+                                         QWidget* parent = 0);
+
         virtual ~AnnotationPolyTypeDrawEditWidget();
         
         void updateContent();
@@ -55,7 +54,13 @@ namespace caret {
         
         void eraseLastCoordinateActionTriggered();
 
-        void editVerticesActionTriggered(bool checked);
+        void drawCoordinatesActionTriggered(bool checked);
+        
+        void deleteCoordinatesActionTriggered(bool checked);
+        
+        void insertCoordinatesActionTriggered(bool checked);
+        
+        void moveCoordinatesActionTriggered(bool checked);
         
         // ADD_NEW_METHODS_HERE
 
@@ -64,25 +69,33 @@ namespace caret {
 
         AnnotationPolyTypeDrawEditWidget& operator=(const AnnotationPolyTypeDrawEditWidget&);
         
+        QPixmap createBackspacePixmap(QWidget* widget) const;
+        
         UserInputModeAnnotations* m_userInputModeAnnotations;
         
         const UserInputModeEnum::Enum m_userInputMode;
         
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_finishToolButton;
+        QToolButton* m_finishToolButton = NULL;
         
         QString m_finishToolButtonStyleSheetDisabled;
         
         QString m_finishToolButtonStyleSheetEnabled;
         
-        QAction* m_finishAction;
+        QAction* m_finishAction = NULL;
         
-        QAction* m_cancelAction;
+        QAction* m_cancelAction = NULL;
         
-        QAction* m_eraseLastCoordinateAction;
+        QAction* m_eraseLastCoordinateAction = NULL;
         
-        QAction* m_editVerticesAction;
+        QAction* m_drawCoordinatesAction = NULL;
+        
+        QAction* m_deleteCoordinatesAction = NULL;
+        
+        QAction* m_insertCoordinatesAction = NULL;
+        
+        QAction* m_moveCoordinatesAction = NULL;
         
         int32_t m_annotationNumberOfCoordinates = 0;
         

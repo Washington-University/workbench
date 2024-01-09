@@ -24,8 +24,11 @@
 #undef __ANNOTATION_POLY_TYPE_DRAW_EDIT_WIDGET_DECLARE__
 
 #include <QAction>
+#include <QActionGroup>
 #include <QGridLayout>
 #include <QLabel>
+#include <QPainter>
+#include <QPen>
 #include <QToolButton>
 
 #include "Annotation.h"
@@ -53,8 +56,6 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param orientation
- *    Orientation for the widets
  * @param userInputMode
  *    The user input mode
  * @param browserWindowIndex
@@ -62,10 +63,9 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-AnnotationPolyTypeDrawEditWidget::AnnotationPolyTypeDrawEditWidget(const Qt::Orientation orientation,
-                                                           UserInputModeAnnotations* userInputModeAnnotations,
-                                                           const int32_t browserWindowIndex,
-                                                           QWidget* parent)
+AnnotationPolyTypeDrawEditWidget::AnnotationPolyTypeDrawEditWidget(UserInputModeAnnotations* userInputModeAnnotations,
+                                                                   const int32_t browserWindowIndex,
+                                                                   QWidget* parent)
 : QWidget(parent),
 m_userInputModeAnnotations(userInputModeAnnotations),
 m_userInputMode(m_userInputModeAnnotations->getUserInputMode()),
@@ -100,82 +100,200 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::matchWidgetWidths(m_finishToolButton,
                                      cancelToolButton);
     
-    m_eraseLastCoordinateAction = new QAction("X");
-    m_eraseLastCoordinateAction->setToolTip("Remove the last poly coordinate");
+    QToolButton* eraseLastCoordinateToolButton = new QToolButton();
+    QPixmap backspacePixmap = createBackspacePixmap(eraseLastCoordinateToolButton);
+    m_eraseLastCoordinateAction = new QAction();
+    m_eraseLastCoordinateAction->setIcon(backspacePixmap);
+    m_eraseLastCoordinateAction->setToolTip("<html>"
+                                            "Remove the last coordinate that was "
+                                            "added in DRAW MODE"
+                                            "</html>");
     QObject::connect(m_eraseLastCoordinateAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered);
-    QToolButton* eraseLastCoordinateToolButton = new QToolButton();
     eraseLastCoordinateToolButton->setDefaultAction(m_eraseLastCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
 
-    m_editVerticesAction = NULL;
-    QToolButton* editVerticesToolButton(NULL);
+    m_deleteCoordinatesAction = NULL;
+    m_insertCoordinatesAction = NULL;
+    m_moveCoordinatesAction   = NULL;
+    QToolButton* deleteCoordinatesToolButton(NULL);
+    QToolButton* insertCoordinatesToolButton(NULL);
+    QToolButton* moveCoordinatesToolButton(NULL);
+
+    m_drawCoordinatesAction = NULL;
+    QToolButton* drawCoordinatesToolButton(NULL);
     
     if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        /*
+         * Draw button
+         */
+        const QString drawToolTip("<html>"
+                                  "DRAW MODE - add new coordinates"
+                                  "<ul>"
+                                  "<li>Click the mouse to add one coordinate to the end of "
+                                  "the poly shape"
+                                  "<li>Drag the mouse to add a series of "
+                                  "coordinates to the end of the poly shape"
+                                  "<li>Using both clicks and drags is allowed"
+                                  "</ul>"
+                                  "</html>");
+        m_drawCoordinatesAction = new QAction("Draw");
+        m_drawCoordinatesAction->setCheckable(true);
+        m_drawCoordinatesAction->setToolTip(drawToolTip);
+        QObject::connect(m_drawCoordinatesAction, &QAction::triggered, this,
+                         &AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered);
+
+        drawCoordinatesToolButton = new QToolButton();
+        drawCoordinatesToolButton->setDefaultAction(m_drawCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(drawCoordinatesToolButton);
         
-        const QString moveToolTip("Click to enter coordinate moving mode.\n"
-                                  "Move the mouse over a coordinate.  When cursor\n"
-                                  "changes to 'two arrows', drag the mouse to\n"
-                                  "move the coordinate.  Coordinates may be \n"
-                                  "moved on any slice.  Click button again to \n"
-                                  "return to drawing and finish the polyhedron.");
-        m_editVerticesAction = new QAction("Move");
-        m_editVerticesAction->setCheckable(true);
-        m_editVerticesAction->setToolTip(moveToolTip);
-        QObject::connect(m_editVerticesAction, &QAction::triggered, this,
-                         &AnnotationPolyTypeDrawEditWidget::editVerticesActionTriggered);
+        /*
+         * Delete button
+         */
+        const QString deleteToolTip("<html>"
+                                    "EDIT MODE - DELETE coordinates"
+                                    "<ul>"
+                                    "<li>Move the mouse over a coordinate"
+                                    "<li>The cursor becomes an 'X'"
+                                    "<li>Click the mouse to delete the coordinate"
+                                    "</ul>"
+                                    "</html>");
+        m_deleteCoordinatesAction = new QAction("Del");
+        m_deleteCoordinatesAction->setCheckable(true);
+        m_deleteCoordinatesAction->setToolTip(deleteToolTip);
+        QObject::connect(m_deleteCoordinatesAction, &QAction::triggered, this,
+                         &AnnotationPolyTypeDrawEditWidget::deleteCoordinatesActionTriggered);
         
-        editVerticesToolButton = new QToolButton();
-        editVerticesToolButton->setDefaultAction(m_editVerticesAction);
-        WuQtUtilities::setToolButtonStyleForQt5Mac(editVerticesToolButton);
+        deleteCoordinatesToolButton = new QToolButton();
+        deleteCoordinatesToolButton->setDefaultAction(m_deleteCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(deleteCoordinatesToolButton);
+
+        /*
+         * Insert button
+         */
+        const QString insertToolTip("<html>"
+                                    "EDIT MODE - INSERT coordinates"
+                                    "<ul>"
+                                    "<li>Move mouse over a line"
+                                    "<li>The cursor becomes a 'plus' symbol"
+                                    "<li>Click the mouse to insert a coordinate"
+                                    "</ul>"
+                                    "</html>");
+        m_insertCoordinatesAction = new QAction("Ins");
+        m_insertCoordinatesAction->setCheckable(true);
+        m_insertCoordinatesAction->setToolTip(insertToolTip);
+        QObject::connect(m_insertCoordinatesAction, &QAction::triggered, this,
+                         &AnnotationPolyTypeDrawEditWidget::insertCoordinatesActionTriggered);
+        
+        insertCoordinatesToolButton = new QToolButton();
+        insertCoordinatesToolButton->setDefaultAction(m_insertCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(insertCoordinatesToolButton);
+
+        /*
+         * Move button
+         */
+        const QString moveToolTip("<html>"
+                                  "EDIT MODE - MOVE coordinates"
+                                  "<ul>"
+                                  "<li>Move mouse over a coordinate"
+                                  "<li>The cursor becomes a 'two arrows' symbol"
+                                  "<li>Hold down the mouse and drag the coordinate "
+                                  "to its new location"
+                                  "</ul>"
+                                  "<html>");
+        m_moveCoordinatesAction = new QAction("Move");
+        m_moveCoordinatesAction->setCheckable(true);
+        m_moveCoordinatesAction->setToolTip(moveToolTip);
+        QObject::connect(m_moveCoordinatesAction, &QAction::triggered, this,
+                         &AnnotationPolyTypeDrawEditWidget::moveCoordinatesActionTriggered);
+        
+        moveCoordinatesToolButton = new QToolButton();
+        moveCoordinatesToolButton->setDefaultAction(m_moveCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(moveCoordinatesToolButton);
+        
+        /*
+         * Keep buttons mutually exclusive
+         */
+        QActionGroup* actionGroup(new QActionGroup(this));
+        actionGroup->setExclusive(true);
+        actionGroup->addAction(m_drawCoordinatesAction);
+        actionGroup->addAction(m_deleteCoordinatesAction);
+        actionGroup->addAction(m_insertCoordinatesAction);
+        actionGroup->addAction(m_moveCoordinatesAction);
     }
     
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
-    switch (orientation) {
-        case Qt::Horizontal:
-            if (editVerticesToolButton != NULL) {
-                gridLayout->addWidget(new QLabel("Drawing"),
-                                      0, 0, 1, 4, Qt::AlignHCenter);
-                gridLayout->addWidget(editVerticesToolButton,
-                                      1, 3, Qt::AlignHCenter);
-            }
-            else {
-                gridLayout->addWidget(new QLabel("Drawing"),
-                                      0, 0, 1, 3, Qt::AlignHCenter);
-            }
-            
+    
+    QLabel* drawingLabel(new QLabel("Drawing"));
+    QFont font(drawingLabel->font());
+    font.setPointSizeF(font.pointSizeF() * 0.8);
+    drawingLabel->setFont(font);
+    
+    switch (m_userInputMode) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        {
+            gridLayout->addWidget(drawingLabel,
+                                  0, 0, 1, 3, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
                                   1, 0, Qt::AlignHCenter);
             gridLayout->addWidget(cancelToolButton,
                                   1, 1, Qt::AlignHCenter);
             gridLayout->addWidget(eraseLastCoordinateToolButton,
                                   1, 2, Qt::AlignHCenter);
-            break;
-        case Qt::Vertical:
-        {
-            QLabel* drawingLabel(new QLabel("Drawing"));
-            QFont font(drawingLabel->font());
-            font.setPointSizeF(font.pointSizeF() * 0.8);
-            drawingLabel->setFont(font);
-            
-            gridLayout->setVerticalSpacing(0);
-            gridLayout->addWidget(drawingLabel,
-                                  0, 0, 1, 2, Qt::AlignHCenter);
-            gridLayout->addWidget(m_finishToolButton,
-                                  1, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(cancelToolButton,
-                                  2, 0, Qt::AlignHCenter);
-            gridLayout->addWidget(eraseLastCoordinateToolButton,
-                                  1, 1, Qt::AlignCenter);
-            if (editVerticesToolButton != NULL) {
-                gridLayout->addWidget(editVerticesToolButton,
-                                      2, 1, Qt::AlignHCenter);
-            }
         }
             break;
+        case UserInputModeEnum::Enum::BORDERS:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::INVALID:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            int32_t row(0);
+            gridLayout->addWidget(drawingLabel,
+                                  row, 0, 1, 4, Qt::AlignHCenter);
+            ++row;
+            
+            CaretAssert(drawCoordinatesToolButton);
+            CaretAssert(deleteCoordinatesToolButton);
+            CaretAssert(insertCoordinatesToolButton);
+            CaretAssert(moveCoordinatesToolButton);
+            gridLayout->addWidget(drawCoordinatesToolButton,
+                                  row, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(deleteCoordinatesToolButton,
+                                  row, 1, Qt::AlignHCenter);
+            gridLayout->addWidget(insertCoordinatesToolButton,
+                                  row, 2, Qt::AlignHCenter);
+            gridLayout->addWidget(m_finishToolButton,
+                                  row, 3, Qt::AlignHCenter);
+            ++row;
+            gridLayout->addWidget(eraseLastCoordinateToolButton,
+                                  row, 0, Qt::AlignHCenter);
+            gridLayout->addWidget(moveCoordinatesToolButton,
+                                  row, 1, 1, 2, Qt::AlignHCenter);
+            gridLayout->addWidget(cancelToolButton,
+                                  row, 3, Qt::AlignHCenter);
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            CaretAssert(0);
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            CaretAssert(0);
+            break;
     }
-    
+
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
 }
@@ -185,6 +303,72 @@ m_browserWindowIndex(browserWindowIndex)
  */
 AnnotationPolyTypeDrawEditWidget::~AnnotationPolyTypeDrawEditWidget()
 {
+}
+
+/**
+ * Create the backspace icon in a pixmap
+ */
+QPixmap
+AnnotationPolyTypeDrawEditWidget::createBackspacePixmap(QWidget* widget) const
+{
+    const QString backspaceCharacter("X");
+    CaretAssert(backspaceCharacter.length() == 1);
+    
+    /*
+     * Use font metrics to position the character
+     * Origin is in top left
+     */
+    QFont font(widget->font());
+    font.setPointSize(16);
+    QFontMetrics fontMetrics(font);
+    const QRect fontBoundsRect(fontMetrics.boundingRect(backspaceCharacter));
+    const int32_t charLeft(fontBoundsRect.left());
+    const int32_t charRight(fontBoundsRect.right());
+    const int32_t drawLeft(-(charLeft + charRight) / 2);
+    const int32_t charTop(fontBoundsRect.top());
+    const int32_t charBottom(fontBoundsRect.bottom());
+    const int32_t drawTop(-(charTop + charBottom) / 2);
+    const int32_t backspaceCharX(drawLeft + 1);
+    const int32_t backspaceCharY(drawTop);
+    
+    /*
+     * Create a pixmap to draw into with origin in the center
+     */
+    const float pixmapSize = 24.0;
+    QPixmap pixmap(static_cast<int>(pixmapSize),
+                   static_cast<int>(pixmapSize));
+    QSharedPointer<QPainter> painter = WuQtUtilities::createPixmapWidgetPainterOriginCenter(widget,
+                                                                                            pixmap,
+                                                                                            static_cast<uint32_t>(WuQtUtilities::PixMapCreationOptions::TransparentBackground));
+    /*
+     * Create the backspace key outline in a polygon
+     * Origin is in top left
+     */
+    const int32_t top(11);
+    const int32_t left(-11);
+    const int32_t leftTwo(-2);
+    const int32_t right(12);
+    const int32_t bottom(-11);
+    QPolygon keyOutlinePolygon;
+    keyOutlinePolygon.push_back(QPoint(left, 0));
+    keyOutlinePolygon.push_back(QPoint(leftTwo, top));
+    keyOutlinePolygon.push_back(QPoint(right, top));
+    keyOutlinePolygon.push_back(QPoint(right, bottom));
+    keyOutlinePolygon.push_back(QPoint(leftTwo, bottom));
+
+    /*
+     * Draw the polygon and the character
+     */
+    QPen pen(painter->pen());
+    pen.setWidth(2);
+    painter->setPen(pen);
+    painter->drawPolygon(keyOutlinePolygon);
+    painter->setFont(font);
+    painter->drawText(QPoint(backspaceCharX,
+                             backspaceCharY),
+                      backspaceCharacter);
+
+    return pixmap;
 }
 
 /**
@@ -202,10 +386,59 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
     AString finishToolTip;
     bool finishEnabledFlag(false);
     bool eraseLastEnabledFlag(false);
-    bool editVerticesEnabledFlag(false);
-    bool editVerticesCheckedFlag(false);
+    bool drawCoordinatesEnabledFlag(false);
+    bool drawCoordinatesCheckedFlag(false);
+    bool deleteCoordinatesEnabledFlag(false);
+    bool deleteCoordinatesCheckedFlag(false);
+    bool insertCoordinatesEnabledFlag(false);
+    bool insertCoordinatesCheckedFlag(false);
+    bool moveCoordinatesEnabledFlag(false);
+    bool moveCoordinatesCheckedFlag(false);
     m_annotationNumberOfCoordinates = 0;
+
+    /*
+     * Annotation is NOT valid when drawing is started
+     */
+    if (annotation == NULL) {
+        switch (m_userInputModeAnnotations->getMode()) {
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                drawCoordinatesEnabledFlag = true;
+                break;
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                drawCoordinatesEnabledFlag = true;
+                break;
+            case UserInputModeAnnotations::Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_PASTE:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_PASTE_SPECIAL:
+                break;
+            case UserInputModeAnnotations::Mode::MODE_SELECT:
+                break;
+        }
+        if (drawCoordinatesEnabledFlag) {
+            switch (m_userInputModeAnnotations->getDrawingNewPolyTypeStereotaxicMode()) {
+                case UserInputModeAnnotations::ADD_NEW_COORDINATES:
+                    drawCoordinatesCheckedFlag = true;
+                    break;
+                case UserInputModeAnnotations::DELETE_COORDINATES:
+                    break;
+                case UserInputModeAnnotations::INSERT_COORDINATES:
+                    break;
+                case UserInputModeAnnotations::MOVE_COORDINATES:
+                    break;
+            }
+        }
+    }
+
     if (annotation != NULL) {
+        drawCoordinatesEnabledFlag = true;
         cancelToolTip = ("Cancel drawing "
                          + AnnotationTypeEnum::toGuiName(annotation->getType()));
         finishToolTip = ("Finish drawing "
@@ -258,16 +491,22 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
                     case UserInputModeEnum::Enum::VOLUME_EDIT:
                         break;
                 }
-                editVerticesEnabledFlag = (numCoords > 0);
-                if (editVerticesEnabledFlag) {
-                    switch (m_userInputModeAnnotations->getDrawingNewPolyTypeStereotaxicMode()) {
-                        case UserInputModeAnnotations::ADD_NEW_VERTICES:
-                            editVerticesCheckedFlag = false;
-                            break;
-                        case UserInputModeAnnotations::EDIT_VERTICES:
-                            editVerticesCheckedFlag = true;
-                            break;
-                    }
+                deleteCoordinatesEnabledFlag = (numCoords > 0);
+                insertCoordinatesEnabledFlag = (numCoords > 1);
+                moveCoordinatesEnabledFlag   = (numCoords > 0);
+                switch (m_userInputModeAnnotations->getDrawingNewPolyTypeStereotaxicMode()) {
+                    case UserInputModeAnnotations::ADD_NEW_COORDINATES:
+                        drawCoordinatesCheckedFlag = true;
+                        break;
+                    case UserInputModeAnnotations::DELETE_COORDINATES:
+                        deleteCoordinatesCheckedFlag = true;
+                        break;
+                    case UserInputModeAnnotations::INSERT_COORDINATES:
+                        insertCoordinatesCheckedFlag = true;
+                        break;
+                    case UserInputModeAnnotations::MOVE_COORDINATES:
+                        moveCoordinatesCheckedFlag = true;
+                        break;
                 }
                 eraseLastEnabledFlag = (numCoords > 0);
                 finishEnabledFlag = (numCoords >= 3);
@@ -291,11 +530,23 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
     }
     
-    if (m_editVerticesAction != NULL) {
-        m_editVerticesAction->setEnabled(editVerticesEnabledFlag);
-        m_editVerticesAction->setChecked(editVerticesCheckedFlag);
+    if (m_drawCoordinatesAction != NULL) {
+        m_drawCoordinatesAction->setEnabled(drawCoordinatesEnabledFlag);
+        m_drawCoordinatesAction->setChecked(drawCoordinatesCheckedFlag);
     }
-    
+    if (m_deleteCoordinatesAction != NULL) {
+        m_deleteCoordinatesAction->setEnabled(deleteCoordinatesEnabledFlag);
+        m_deleteCoordinatesAction->setChecked(deleteCoordinatesCheckedFlag);
+    }
+    if (m_insertCoordinatesAction != NULL) {
+        m_insertCoordinatesAction->setEnabled(insertCoordinatesEnabledFlag);
+        m_insertCoordinatesAction->setChecked(insertCoordinatesCheckedFlag);
+    }
+    if (m_moveCoordinatesAction != NULL) {
+        m_moveCoordinatesAction->setEnabled(moveCoordinatesEnabledFlag);
+        m_moveCoordinatesAction->setChecked(moveCoordinatesCheckedFlag);
+    }
+
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
 
@@ -304,16 +555,12 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
     
     m_eraseLastCoordinateAction->setEnabled(eraseLastEnabledFlag);
     
-    if (editVerticesCheckedFlag) {
-        m_cancelAction->setEnabled(false);
-        m_eraseLastCoordinateAction->setEnabled(false);
-        m_finishAction->setEnabled(false);
-    }
-    
     setEnabled(finishEnabledFlag
                || m_cancelAction->isEnabled()
                || eraseLastEnabledFlag
-               || editVerticesEnabledFlag);
+               || deleteCoordinatesEnabledFlag
+               || insertCoordinatesEnabledFlag
+               || moveCoordinatesEnabledFlag);
 }
 
 
@@ -372,21 +619,65 @@ AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered()
 }
 
 /**
- * Called when the edit vertices action is triggered (by user)
+ * Called when the delete coordinate action is triggered (by user)
  * @param checked
  *    New checked status
  */
 void
-AnnotationPolyTypeDrawEditWidget::editVerticesActionTriggered(bool checked)
+AnnotationPolyTypeDrawEditWidget::deleteCoordinatesActionTriggered(bool checked)
 {
     CaretAssert(m_userInputModeAnnotations);
     if (checked) {
-        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::EDIT_VERTICES);
-    }
-    else {
-        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::ADD_NEW_VERTICES);
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::DELETE_COORDINATES);
     }
     
     updateContent();
 }
 
+/**
+ * Called when the insert coordinates action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationPolyTypeDrawEditWidget::insertCoordinatesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::INSERT_COORDINATES);
+    }
+    
+    updateContent();
+}
+
+/**
+ * Called when the edit coordinates action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationPolyTypeDrawEditWidget::moveCoordinatesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::MOVE_COORDINATES);
+    }
+    
+    updateContent();
+}
+
+/**
+ * Called when the draw coordinates action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setDrawingNewPolyTypeStereotaxicMode(UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATES);
+    }
+    
+    updateContent();
+}

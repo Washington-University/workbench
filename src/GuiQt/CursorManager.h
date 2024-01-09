@@ -56,6 +56,10 @@ namespace caret {
         
         QCursor createRotationCursorText(const AString& textCharacter);
         
+        QCursor createDeleteCursor();
+        
+        QCursor m_deleteCursor;
+        
         QCursor m_penCursor;
         
         QCursor m_fourArrowsCursor;

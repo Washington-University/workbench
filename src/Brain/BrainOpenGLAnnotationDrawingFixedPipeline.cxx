@@ -5228,7 +5228,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
      */
     bool drawEditableSizingHandlesFlag(false);
     bool drawNonEditableSizingHandlesFlag(false);
-    bool drawCreatingNewAnnotationSizingHandlesFlag(false);
     int32_t drawStartingCoordinateIndex(-1);
     int32_t drawCoordinateCount(-1);
     
@@ -5245,12 +5244,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 primitive->addVertex(xyz);
             }
         }
-        drawCreatingNewAnnotationSizingHandlesFlag = true;
     }
     else {
-        if (multiPairedCoordShape->isDrawingNewAnnotation()) {
-            drawCreatingNewAnnotationSizingHandlesFlag = true;
-        }
         for (int32_t iDraw = 0; iDraw < 3; iDraw++) {
             const int32_t numTotalCoords(multiPairedCoordShape->getNumberOfCoordinates());
             const int32_t numHalfCoords(numTotalCoords / 2);
@@ -5376,9 +5371,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                          * we only draw SECOND half of coordinates.
                          * Use start/count for primitive drawing.
                          *
-                         * NO sizing handles since coordinates cannot be dragged by user
+                         * Do not draw sizing handles on 'middle' slices as it
+                         * may be confusing since these handles cannot be edited.
+                         *
+                         * drawNonEditableSizingHandlesFlag = true;
                          */
-                        drawNonEditableSizingHandlesFlag = true;
                         drawStartingCoordinateIndex = 0;
                         drawCoordinateCount = numHalfCoords;
                         for (int32_t i = 0; i < numHalfCoords; i++) {
@@ -5452,8 +5449,15 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     if (drawForegroundFlag) {
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {
-            
-            if ( ! drawCreatingNewAnnotationSizingHandlesFlag) {
+            /*
+             * Only do selection of EDITABLE size handles on the
+             * near and far slices, NOT the middle slices.
+             */
+            if (drawEditableSizingHandlesFlag) {
+                /*
+                 * Draws lines between coordinates so that these lines can be
+                 * selected for insertion of a new coordinate
+                 */
                 const int32_t numberOfVertices = primitive->getNumberOfVertices();
                 int32_t iStart(0);
                 int32_t iEnd(numberOfVertices);
@@ -5493,17 +5497,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                     GraphicsEngineDataOpenGL::draw(idPrim.get());
                     drawnFlag = true;
                 }
-            }
-            
-            if (polyhedron != NULL) {
-                if (m_displaySampleNamesFlag) {
-                    const bool selectionFlag(true);
-                    drawPolyhedronName(annotationFile,
-                                       polyhedron,
-                                       windowVertexXYZ,
-                                       polyhedronNameXYZ,
-                                       polyhedronNameSizeHandleType,
-                                       selectionFlag);
+                
+                if (polyhedron != NULL) {
+                    if (m_displaySampleNamesFlag) {
+                        const bool selectionFlag(true);
+                        drawPolyhedronName(annotationFile,
+                                           polyhedron,
+                                           windowVertexXYZ,
+                                           polyhedronNameXYZ,
+                                           polyhedronNameSizeHandleType,
+                                           selectionFlag);
+                    }
                 }
             }
         }
@@ -5528,7 +5532,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 
         if (drawEditableSizingHandlesFlag
             || drawNonEditableSizingHandlesFlag) {
-            if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)) {
+            if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
+                || multiPairedCoordShape->isDrawingNewAnnotation()) {
                 const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
                 AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
                 if (drawEditableSizingHandlesFlag) {
@@ -5547,17 +5552,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                                  primitive.get(),
                                                                  sizeHandleWidthInPixels);
             }
-        }
-        if (drawCreatingNewAnnotationSizingHandlesFlag) {
-            const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
-            AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
-            sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
-            drawAnnotationMultiPairedCoordShapeSizingHandles(sizeHandleType,
-                                                             annotationFile,
-                                                             multiPairedCoordShape,
-                                                             windowVertexXYZ,
-                                                             primitive.get(),
-                                                             sizeHandleWidthInPixels);
         }
     }
     
@@ -6955,7 +6949,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSi
         float xyz[3];
         primitive->getVertexFloatXYZ(i, xyz);
 
-        const float halfSymbolSize(cornerSquareSize / 2.0);
+        float halfSymbolSize(cornerSquareSize / 2.0);
+        if (i == (iEnd - 1)) {
+            /*
+             * Symbol at last vertex larger so end is obvious
+             */
+            halfSymbolSize *= 1.50;
+        }
         drawSizingHandle(sizingHandleType,
                          annotationFile,
                          multiPairedCoordShape,

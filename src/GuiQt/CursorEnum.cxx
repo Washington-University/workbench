@@ -98,9 +98,14 @@ CursorEnum::initialize()
                                   "Cross Cursor",
                                   Qt::CrossCursor));
     
+    enumData.push_back(CursorEnum(CURSOR_DELETE,
+                                    "CURSOR_DELETE",
+                                    "Delete Cursor",
+                                  Qt::ArrowCursor)); /* we draw cusor so this is not used */
+    
     enumData.push_back(CursorEnum(CURSOR_DRAWING_PEN,
-                                    "CURSOR_DRAWING_PEN", 
-                                    "Drawing Pen Cursor",
+                                  "CURSOR_DRAWING_PEN",
+                                  "Drawing Pen Cursor",
                                   Qt::ArrowCursor));
     
     enumData.push_back(CursorEnum(CURSOR_FOUR_ARROWS,

@@ -43,6 +43,8 @@ public:
         CURSOR_CLOSED_HAND,
         /** Cross (plus symbol) */
         CURSOR_CROSS,
+        /** Delete (X) cursor */
+        CURSOR_DELETE,
         /** Drawing Pen */
         CURSOR_DRAWING_PEN,
         /** Size All "four arrows", Qt::SizeAllCursor */
