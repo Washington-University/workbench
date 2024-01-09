@@ -86,8 +86,11 @@ namespace caret {
          * @param xyz
          *    New XYZ for coordinate
          */
-        virtual void updateCoordinatesWhileBeingDrawn(const int32_t coordinateIndex,
-                                                      const Vector3D& xyz) = 0;
+        virtual void updateCoordinatePairWhileBeingDrawn(const int32_t coordinateIndex,
+                                                         const Vector3D& xyz) = 0;
+        
+        virtual void updateCoordinateWhileBeingDrawn(const int32_t coordinateIndex,
+                                                     const Vector3D& xyz) = 0;
         
         // ADD_NEW_METHODS_HERE
 

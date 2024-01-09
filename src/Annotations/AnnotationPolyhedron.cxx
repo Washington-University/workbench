@@ -227,16 +227,20 @@ AnnotationPolyhedron::resetRangeToPlanes(const Plane& planeOne,
 }
 
 /**
- * Update a coordinate while the annotation is being drawn
+ * Update a coordinate and its paired coordinate while the annotation is being drawn
  * @param coordinateIndex
- *    Index of the coordinate
+ *    Index of one of the coordinates in the pair
  * @param xyz
  *    New XYZ for coordinate
  */
 void
-AnnotationPolyhedron::updateCoordinatesWhileBeingDrawn(const int32_t coordinateIndex,
+AnnotationPolyhedron::updateCoordinatePairWhileBeingDrawn(const int32_t coordinateIndex,
                                                                        const Vector3D& xyz)
 {
+    CaretLogWarning("This method moves BOTH coordinates in the pair.  At one time it was "
+                    "used when editing coordinates in an annotation being drawn.");
+    return;
+    
     /*
      * Coordinates are in pairs (first set followed by second set)
      */
@@ -303,6 +307,74 @@ AnnotationPolyhedron::updateCoordinatesWhileBeingDrawn(const int32_t coordinateI
     
     const Vector3D twoXYZ(m_planeTwo.projectPointToPlane(xyz));
     getCoordinate(indexTwo)->setXYZ(twoXYZ);
+}
+
+/**
+ * Update a coordinate BUT NOT its paired coordinate while the annotation is being drawn
+ * @param coordinateIndex
+ *    Index of one of the coordinates in the pair
+ * @param xyz
+ *    New XYZ for coordinate
+ */
+void
+AnnotationPolyhedron::updateCoordinateWhileBeingDrawn(const int32_t coordinateIndex,
+                                                      const Vector3D& xyz)
+{
+    /*
+     * Coordinates are in pairs (first set followed by second set)
+     */
+    const int32_t fullNumCoords = static_cast<int32_t>(getNumberOfCoordinates());
+    const int32_t halfNumCoords(fullNumCoords / 2);
+    if (halfNumCoords < 1) {
+        CaretLogSevere("Multi paired coordinate Shape has invalid number of coordinates="
+                       + AString::number(fullNumCoords)
+                       + "cannot insert new coordinates.");
+        return;
+    }
+    
+    if ((coordinateIndex < 0)
+        || (coordinateIndex >= fullNumCoords)) {
+        CaretLogSevere("Attempt to update coordinate at invalid index="
+                       + AString::number(coordinateIndex));
+        return;
+    }
+    
+    if (m_planeOne.isValidPlane()
+        && m_planeTwo.isValidPlane()) {
+        /* OK */
+    }
+    else {
+        CaretLogSevere("Attempt to update coordinate but plane(s) not valid.");
+        return;
+    }
+    
+    /*
+     * Index one will be for first plane; index two for second plane
+     */
+    Plane plane;
+    if (coordinateIndex < halfNumCoords) {
+        plane = m_planeOne;
+    }
+    else {
+        plane = m_planeTwo;
+    }
+    
+    if ( ! plane.isValidPlane()) {
+        CaretLogSevere("Plane for coordinate movement is invalid.");
+        return;
+    }
+    
+    if ((coordinateIndex >= 0)
+        && (coordinateIndex < fullNumCoords)) {
+        /* OK */
+    }
+    else {
+        CaretLogSevere("Failure to set coordinate index correctly");
+        return;
+    }
+    
+    const Vector3D newXYZ(plane.projectPointToPlane(xyz));
+    getCoordinate(coordinateIndex)->setXYZ(newXYZ);
 }
 
 

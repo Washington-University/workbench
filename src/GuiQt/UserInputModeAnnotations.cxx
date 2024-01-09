@@ -1501,8 +1501,8 @@ UserInputModeAnnotations::moveCooordinateInNewPolyTypeStereotaxicAnnotation(cons
                         const Vector3D xyz(coordInfo.m_modelSpaceInfo.m_xyz[0],
                                            coordInfo.m_modelSpaceInfo.m_xyz[1],
                                            coordInfo.m_modelSpaceInfo.m_xyz[2]);
-                        multiPairAnn->updateCoordinatesWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
-                                                                       xyz);
+                        multiPairAnn->updateCoordinateWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
+                                                                      xyz);
                         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
