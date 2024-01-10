@@ -41,6 +41,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -87,11 +88,10 @@ m_browserWindowIndex(browserWindowIndex)
      */
     m_finishToolButtonStyleSheetEnabled = ("background-color: rgb(0, 255, 0)");
     
-    m_cancelAction = WuQtUtilities::createAction("Cancel",
-                                                 "Cancel drawing new annotation",
-                                                 this,
-                                                 this,
-                                                 SLOT(cancelActionTriggered()));
+    m_cancelAction = new QAction("Cancel");
+    m_cancelAction->setToolTip("Cancel drawing and discard changes");
+    QObject::connect(m_cancelAction, &QAction::triggered,
+                     this, &AnnotationPolyTypeDrawEditWidget::cancelActionTriggered);
     
     QToolButton* cancelToolButton = new QToolButton();
     cancelToolButton->setDefaultAction(m_cancelAction);
@@ -588,6 +588,24 @@ AnnotationPolyTypeDrawEditWidget::finishActionTriggered()
 void
 AnnotationPolyTypeDrawEditWidget::cancelActionTriggered()
 {
+    EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
+                                                      m_browserWindowIndex);
+    EventManager::get()->sendEvent(annDrawEvent.getPointer());
+    const Annotation* annotation(annDrawEvent.getAnnotation());
+    if (annotation != NULL) {
+        if (annotation->getNumberOfCoordinates() > 0) {
+            const AString msg("Continue and discard partially drawn "
+                              + AnnotationTypeEnum::toGuiName(annotation->getType())
+                              + "?");
+            if (WuQMessageBox::warningYesNo(this, msg)) {
+                /* Yes, discard */
+            }
+            else {
+                return;
+            }
+        }
+    }
+
     EventAnnotationDrawingFinishCancel cancelEvent(EventAnnotationDrawingFinishCancel::Mode::CANCEL,
                                                    m_browserWindowIndex,
                                                    m_userInputMode);

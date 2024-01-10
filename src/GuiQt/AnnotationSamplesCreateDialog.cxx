@@ -350,6 +350,14 @@ AnnotationSamplesCreateDialog::okButtonClicked()
 void
 AnnotationSamplesCreateDialog::cancelButtonClicked()
 {
+    const AString msg("Continue?  Polyhedron and metadata will be discarded.");
+    if (WuQMessageBox::warningYesNo(this, msg)) {
+        /* Yes, discard */
+    }
+    else {
+        return;
+    }
+    
     delete m_annotation;
     m_annotation = NULL;
     
