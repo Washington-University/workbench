@@ -72,6 +72,7 @@
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawnInWindow.h"
+#include "EventDataFileDelete.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
@@ -144,7 +145,7 @@ m_annotationUnderMouse(NULL)
     m_modeNewAnnotationFileSpaceAndType.grabNew(new NewAnnotationFileSpaceAndType(NULL,
                                                                                   AnnotationCoordinateSpaceEnum::VIEWPORT,
                                                                                   AnnotationTypeEnum::LINE));
-    m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    m_newAnnotationCreatingWithMouseDrag.reset(NULL);
     m_newUserSpaceAnnotationBeingCreated.reset();
     
     m_annotationToolsWidget = new UserInputModeAnnotationsWidget(this,
@@ -153,6 +154,7 @@ m_annotationUnderMouse(NULL)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_CREATE_NEW_TYPE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW);
 }
 
@@ -398,6 +400,22 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             
             annDrawingEvent->setAnnotationDrawingInProgress(cancelEnabledFlag);
             annDrawingEvent->setAnnotationBeingDrawnSelectable(selectableFlag);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE) {
+        EventDataFileDelete* deleteEvent(dynamic_cast<EventDataFileDelete*>(event));
+        const DataFile* deletedFile(deleteEvent->getCaretDataFile());
+        
+        if (m_newUserSpaceAnnotationBeingCreated) {
+            if (deletedFile == m_newUserSpaceAnnotationBeingCreated->getAnnotationFile()) {
+                setMode(Mode::MODE_SELECT);
+            }
+        }
+        
+        if (m_newAnnotationCreatingWithMouseDrag) {
+            if (deletedFile == m_newAnnotationCreatingWithMouseDrag->getAnnotationFile()) {
+                setMode(Mode::MODE_SELECT);
+            }
         }
     }
 }
@@ -1304,8 +1322,8 @@ UserInputModeAnnotations::getHistologyStep(BrowserTabContent* browserTabContent,
 void
 UserInputModeAnnotations::initializeUserDrawingNewAnnotation(const MouseEvent& mouseEvent)
 {
-    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
-        m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    if (m_newAnnotationCreatingWithMouseDrag) {
+        m_newAnnotationCreatingWithMouseDrag.reset(NULL);
     }
     
     /*
@@ -1378,7 +1396,7 @@ UserInputModeAnnotations::initializeUserDrawingNewAnnotation(const MouseEvent& m
      * Note ALWAYS use WINDOW space for the drag anntotion.
      * Otherwise it will not get displayed if surface/stereotaxic
      */
-    m_newAnnotationCreatingWithMouseDrag.grabNew(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
+    m_newAnnotationCreatingWithMouseDrag.reset(new NewMouseDragCreateAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
                                                                                   AnnotationCoordinateSpaceEnum::WINDOW,
                                                                                   m_modeNewAnnotationFileSpaceAndType->m_annotationType,
                                                                                   mouseEvent,
@@ -2239,7 +2257,7 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
 void
 UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& mouseEvent)
 {
-    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+    if (m_newAnnotationCreatingWithMouseDrag) {
         m_newAnnotationCreatingWithMouseDrag->update(mouseEvent,
                                                      mouseEvent.getX(),
                                                      mouseEvent.getY());
@@ -2259,7 +2277,7 @@ UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& m
 void
 UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEvent& mouseEvent)
 {
-    if (m_newAnnotationCreatingWithMouseDrag != NULL) {
+    if (m_newAnnotationCreatingWithMouseDrag) {
         
         switch (m_mode) {
             case Mode::MODE_DRAWING_NEW_POLY_TYPE:
@@ -2315,7 +2333,7 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
 void
 UserInputModeAnnotations::resetAnnotationBeingCreated()
 {
-    m_newAnnotationCreatingWithMouseDrag.grabNew(NULL);
+    m_newAnnotationCreatingWithMouseDrag.reset(NULL);
     m_newUserSpaceAnnotationBeingCreated.reset();
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

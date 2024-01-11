@@ -397,7 +397,7 @@ namespace caret {
         
         CaretPointer<NewAnnotationFileSpaceAndType> m_modeNewAnnotationFileSpaceAndType;
         
-        CaretPointer<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
+        std::unique_ptr<NewMouseDragCreateAnnotation> m_newAnnotationCreatingWithMouseDrag;
                 
         std::unique_ptr<NewUserSpaceAnnotation> m_newUserSpaceAnnotationBeingCreated;
         
