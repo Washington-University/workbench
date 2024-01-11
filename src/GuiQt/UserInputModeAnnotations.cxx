@@ -343,63 +343,61 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             && (annDrawingEvent->getUserInputMode() == getUserInputMode())) {
             EventUserInputModeGet modeEvent(getBrowserWindowIndex());
             EventManager::get()->sendEvent(modeEvent.getPointer());
-            if (getUserInputMode() == modeEvent.getUserInputMode()) {
-                annDrawingEvent->setEventProcessed();
-                
-                bool cancelEnabledFlag(false);
-                bool selectableFlag(false);
-                switch (m_mode) {
-                    case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
-                        break;
-                    case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-                        cancelEnabledFlag = true;
-                        break;
-                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-                        cancelEnabledFlag = true;
-                        break;
-                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-                        switch (m_drawingNewPolyTypeStereotaxicMode) {
-                            case ADD_NEW_COORDINATES:
-                                break;
-                            case DELETE_COORDINATES:
-                                selectableFlag = true;
-                                break;
-                            case INSERT_COORDINATES:
-                                selectableFlag = true;
-                                break;
-                            case MOVE_COORDINATES:
-                                selectableFlag = true;
-                                break;
-                        }
-                        cancelEnabledFlag = true;
-                        break;
-                    case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
-                        cancelEnabledFlag = true;
-                        break;
-                    case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
-                        break;
-                    case Mode::MODE_PASTE:
-                        break;
-                    case Mode::MODE_PASTE_SPECIAL:
-                        break;
-                    case Mode::MODE_SELECT:
-                        break;
-                }
-
-                if (m_newAnnotationCreatingWithMouseDrag) {
-                    annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
-                                                   m_newAnnotationCreatingWithMouseDrag->getDrawingViewportHeight());
-                    annDrawingEvent->setAnnotationDrawingInProgress(true);
-                }
-                else if (m_newUserSpaceAnnotationBeingCreated) {
-                    annDrawingEvent->setAnnotation(m_newUserSpaceAnnotationBeingCreated->getAnnotation(),
-                                                   m_newUserSpaceAnnotationBeingCreated->getViewportHeight());
-                    annDrawingEvent->setAnnotationDrawingInProgress(true);
-                }
-                
-                annDrawingEvent->setAnnotationDrawingInProgress(cancelEnabledFlag);
-                annDrawingEvent->setAnnotationBeingDrawnSelectable(selectableFlag);
+            annDrawingEvent->setEventProcessed();
+            
+            bool cancelEnabledFlag(false);
+            bool selectableFlag(false);
+            switch (m_mode) {
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+                    break;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                    cancelEnabledFlag = true;
+                    break;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+                    cancelEnabledFlag = true;
+                    break;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+                    switch (m_drawingNewPolyTypeStereotaxicMode) {
+                        case ADD_NEW_COORDINATES:
+                            break;
+                        case DELETE_COORDINATES:
+                            selectableFlag = true;
+                            break;
+                        case INSERT_COORDINATES:
+                            selectableFlag = true;
+                            break;
+                        case MOVE_COORDINATES:
+                            selectableFlag = true;
+                            break;
+                    }
+                    cancelEnabledFlag = true;
+                    break;
+                case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+                    cancelEnabledFlag = true;
+                    break;
+                case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+                    break;
+                case Mode::MODE_PASTE:
+                    break;
+                case Mode::MODE_PASTE_SPECIAL:
+                    break;
+                case Mode::MODE_SELECT:
+                    break;
             }
+            
+            if (m_newAnnotationCreatingWithMouseDrag) {
+                annDrawingEvent->setAnnotation(m_newAnnotationCreatingWithMouseDrag->getAnnotation(),
+                                               m_newAnnotationCreatingWithMouseDrag->getDrawingViewportHeight());
+                annDrawingEvent->setAnnotationDrawingInProgress(true);
+            }
+            else if (m_newUserSpaceAnnotationBeingCreated) {
+                annDrawingEvent->setAnnotation(m_newUserSpaceAnnotationBeingCreated->getAnnotation(),
+                                               m_newUserSpaceAnnotationBeingCreated->getViewportHeight());
+                annDrawingEvent->setAnnotationDrawingInProgress(true);
+            }
+            
+            annDrawingEvent->setAnnotationDrawingInProgress(cancelEnabledFlag);
+            annDrawingEvent->setAnnotationBeingDrawnSelectable(selectableFlag);
         }
     }
 }
@@ -412,7 +410,15 @@ UserInputModeAnnotations::receiveEvent(Event* event)
 void
 UserInputModeAnnotations::initialize()
 {
-    m_mode = Mode::MODE_SELECT;
+    bool defaultModeFlag(true);
+    if (isDrawingNewSample()) {
+        /* Stay in draw mode */
+        defaultModeFlag = false;
+    }
+
+    if (defaultModeFlag) {
+        setMode(Mode::MODE_SELECT);
+    }
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->setDisplayAnnotations(true);
     resetAnnotationUnderMouse();
@@ -425,9 +431,33 @@ UserInputModeAnnotations::initialize()
 void
 UserInputModeAnnotations::finish()
 {
-    m_mode = Mode::MODE_SELECT;
+    if ( ! isDrawingNewSample()) {
+        setMode(Mode::MODE_SELECT);
+    }
     resetAnnotationUnderMouse();
 }
+
+/**
+ * @return True if in the process of drawing a new sample
+ */
+bool
+UserInputModeAnnotations::isDrawingNewSample() const
+{
+    if (getUserInputMode() == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        if (m_mode == Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC) {
+            if (m_newUserSpaceAnnotationBeingCreated) {
+                const Annotation* ann(m_newUserSpaceAnnotationBeingCreated->getAnnotation());
+                if (ann != NULL) {
+                    if (ann->getType() == AnnotationTypeEnum::POLYHEDRON) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 
 void
 UserInputModeAnnotations::resetAnnotationUnderMouse()

@@ -373,6 +373,8 @@ namespace caret {
                           float& stepXOut,
                           float& stepYOut);
         
+        bool isDrawingNewSample() const;
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
