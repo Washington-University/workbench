@@ -198,16 +198,14 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
 
-    m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
     m_polyTypeDrawEditWidget     = new AnnotationPolyTypeDrawEditWidget(m_inputModeAnnotations,
                                                                         m_browserWindowIndex);
         
-    m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget((showSamplesLabelFlag
-                                                                      ? Qt::Horizontal
-                                                                      : Qt::Vertical),
+    m_modifiySamplesWidget       = new AnnotationSamplesModifyWidget(Qt::Vertical,
                                                                      m_inputModeAnnotations->getUserInputMode(),
                                                                      m_browserWindowIndex);
     
@@ -225,11 +223,11 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_polyTypeDrawEditWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
+    bottomLayout->addWidget(m_modifiySamplesWidget, 0, Qt::AlignTop);
+    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_deleteWidget, 0, Qt::AlignTop);
     bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
     bottomLayout->addWidget(m_redoUndoWidget, 0, Qt::AlignTop);
-    bottomLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
-    bottomLayout->addWidget(m_modifiySamplesWidget, 0, Qt::AlignTop);
     
     /*
      * Do not let top row of widgets become wider that
@@ -399,7 +397,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
     m_deleteWidget               = new AnnotationDeleteWidget(m_inputModeAnnotations->getUserInputMode(),
                                                               m_browserWindowIndex);
     
-    m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Horizontal,
+    m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
                                                                 m_inputModeAnnotations->getUserInputMode(),
                                                                 m_browserWindowIndex);
     
