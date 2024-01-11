@@ -360,15 +360,18 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                     break;
                 case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
                     switch (m_drawingNewPolyTypeStereotaxicMode) {
-                        case ADD_NEW_COORDINATES:
+                        case ADD_NEW_COORDINATE:
                             break;
-                        case DELETE_COORDINATES:
+                        case DELETE_COORDINATE:
                             selectableFlag = true;
                             break;
-                        case INSERT_COORDINATES:
+                        case INSERT_COORDINATE:
                             selectableFlag = true;
                             break;
-                        case MOVE_COORDINATES:
+                        case MOVE_ONE_COORDINATE:
+                            selectableFlag = true;
+                            break;
+                        case MOVE_TWO_COORDINATES:
                             selectableFlag = true;
                             break;
                     }
@@ -555,7 +558,7 @@ UserInputModeAnnotations::setMode(const Mode mode)
         }
         
         /* Reset add/edit to adding coordinates anytime a mode is changed*/
-        m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATES;
+        m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATE;
         
         /*
          * If mode is changed to NOT a drawing mode,
@@ -610,26 +613,33 @@ UserInputModeAnnotations::getCursor() const
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATES:
+                case ADD_NEW_COORDINATE:
                     cursor = polyDrawCursor;
                     break;
-                case DELETE_COORDINATES:
+                case DELETE_COORDINATE:
                     cursor = CursorEnum::CURSOR_DEFAULT;
                     
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
                         cursor = CursorEnum::CURSOR_DELETE;
                     }
                     break;
-                case INSERT_COORDINATES:
+                case INSERT_COORDINATE:
                     if (m_annotationUnderMouse != NULL) {
                         if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
                             cursor = CursorEnum::CURSOR_CROSS;
                         }
                     }
                     break;
-                case MOVE_COORDINATES:
+                case MOVE_ONE_COORDINATE:
                     cursor = CursorEnum::CURSOR_DEFAULT;
 
+                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                    }
+                    break;
+                case MOVE_TWO_COORDINATES:
+                    cursor = CursorEnum::CURSOR_DEFAULT;
+                    
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                     }
@@ -1487,7 +1497,7 @@ UserInputModeAnnotations::removedCooordinateFromNewPolyTypeStereotaxicAnnotation
                             multiPairAnn->removeCoordinateAtIndexByUserInputModeAnnotations(m_annotationUnderMousePolyLineCoordinateIndex,
                                                                                             removePairFlag);
                             if (multiPairAnn->getNumberOfCoordinates() == 0) {
-                                m_drawingNewPolyTypeStereotaxicMode = ADD_NEW_COORDINATES;
+                                m_drawingNewPolyTypeStereotaxicMode = ADD_NEW_COORDINATE;
                             }
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -1531,7 +1541,7 @@ UserInputModeAnnotations::insertCooordinateIntoNewPolyTypeStereotaxicAnnotation(
  *     Mouse event information.
  */
 void
-UserInputModeAnnotations::moveCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+UserInputModeAnnotations::moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
 {
     if (m_newUserSpaceAnnotationBeingCreated->getAnnotation() != NULL) {
         if (m_annotationUnderMouse == m_newUserSpaceAnnotationBeingCreated->getAnnotation()) {
@@ -1551,6 +1561,41 @@ UserInputModeAnnotations::moveCooordinateInNewPolyTypeStereotaxicAnnotation(cons
                                            coordInfo.m_modelSpaceInfo.m_xyz[2]);
                         multiPairAnn->updateCoordinateWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
                                                                       xyz);
+                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Move coordinate and its paired coordinate at other end in the polyhedron stereotaxic annotation that user is drawing
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeAnnotations::moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent)
+{
+    if (m_newUserSpaceAnnotationBeingCreated->getAnnotation() != NULL) {
+        if (m_annotationUnderMouse == m_newUserSpaceAnnotationBeingCreated->getAnnotation()) {
+            if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                AnnotationCoordinateInformation coordInfo;
+                AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent.getOpenGLWidget(),
+                                                                                   mouseEvent.getViewportContent(),
+                                                                                   mouseEvent.getX(),
+                                                                                   mouseEvent.getY(),
+                                                                                   coordInfo);
+                
+                if (coordInfo.m_modelSpaceInfo.m_validFlag) {
+                    AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotationUnderMouse->castToMultiPairedCoordinateShape());
+                    if (multiPairAnn != NULL) {
+                        const Vector3D xyz(coordInfo.m_modelSpaceInfo.m_xyz[0],
+                                           coordInfo.m_modelSpaceInfo.m_xyz[1],
+                                           coordInfo.m_modelSpaceInfo.m_xyz[2]);
+                        multiPairAnn->updateCoordinatePairWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
+                                                                          xyz);
                         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
@@ -1608,15 +1653,18 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATES:
+                case ADD_NEW_COORDINATE:
                     addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
-                case DELETE_COORDINATES:
+                case DELETE_COORDINATE:
                     break;
-                case INSERT_COORDINATES:
+                case INSERT_COORDINATE:
                     break;
-                case MOVE_COORDINATES:
-                    moveCooordinateInNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                case MOVE_ONE_COORDINATE:
+                    moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                    break;
+                case MOVE_TWO_COORDINATES:
+                    moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
             }
             return;
@@ -2014,20 +2062,22 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATES:
+                case ADD_NEW_COORDINATE:
                     addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
-                case DELETE_COORDINATES:
+                case DELETE_COORDINATE:
                     setAnnotationUnderMouse(mouseEvent,
                                             NULL);
                     removedCooordinateFromNewPolyTypeStereotaxicAnnotation();
                     break;
-                case INSERT_COORDINATES:
+                case INSERT_COORDINATE:
                     setAnnotationUnderMouse(mouseEvent,
                                             NULL);
                     insertCooordinateIntoNewPolyTypeStereotaxicAnnotation();
                     break;
-                case MOVE_COORDINATES:
+                case MOVE_ONE_COORDINATE:
+                    break;
+                case MOVE_TWO_COORDINATES:
                     break;
             }
             break;
@@ -2127,13 +2177,15 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
             switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATES:
+                case ADD_NEW_COORDINATE:
                     break;
-                case DELETE_COORDINATES:
+                case DELETE_COORDINATE:
                     break;
-                case INSERT_COORDINATES:
+                case INSERT_COORDINATE:
                     break;
-                case MOVE_COORDINATES:
+                case MOVE_ONE_COORDINATE:
+                    break;
+                case MOVE_TWO_COORDINATES:
                     break;
             }
             break;

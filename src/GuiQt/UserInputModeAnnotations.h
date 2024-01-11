@@ -81,14 +81,16 @@ namespace caret {
          * Sub-mode for MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC
          */
         enum DrawingNewPolyTypeStereotaxicMode {
-            /** Mouse adds new coordinates to poly-type */
-            ADD_NEW_COORDINATES,
-            /** Mouse deletes vertices */
-            DELETE_COORDINATES,
-            /** Mouse inserts vertices */
-            INSERT_COORDINATES,
-            /** Mouse moves existing vertices */
-            MOVE_COORDINATES
+            /** Mouse adds new coordinate to poly-type */
+            ADD_NEW_COORDINATE,
+            /** Mouse deletes coordinate */
+            DELETE_COORDINATE,
+            /** Mouse inserts coordinate */
+            INSERT_COORDINATE,
+            /** Mouse moves one existing coordinate */
+            MOVE_ONE_COORDINATE,
+            /** Mouse move coordinate and its corrsponding coordinate at other end of polyhedron */
+            MOVE_TWO_COORDINATES
         };
         
         UserInputModeAnnotations(const int32_t browserWindowIndex);
@@ -339,7 +341,9 @@ namespace caret {
         
         void insertCooordinateIntoNewPolyTypeStereotaxicAnnotation();
         
-        void moveCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        void moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
+        
+        void moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
         void finishNewPolyTypeStereotaxicAnnotation();
         
@@ -379,7 +383,7 @@ namespace caret {
         
         Mode m_mode;
         
-        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATES;
+        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATE;
         
         Annotation* m_annotationUnderMouse;
         

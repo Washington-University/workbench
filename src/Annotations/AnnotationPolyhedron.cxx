@@ -237,10 +237,6 @@ void
 AnnotationPolyhedron::updateCoordinatePairWhileBeingDrawn(const int32_t coordinateIndex,
                                                                        const Vector3D& xyz)
 {
-    CaretLogWarning("This method moves BOTH coordinates in the pair.  At one time it was "
-                    "used when editing coordinates in an annotation being drawn.");
-    return;
-    
     /*
      * Coordinates are in pairs (first set followed by second set)
      */

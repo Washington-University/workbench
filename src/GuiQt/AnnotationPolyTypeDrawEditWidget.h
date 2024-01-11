@@ -60,7 +60,9 @@ namespace caret {
         
         void insertCoordinatesActionTriggered(bool checked);
         
-        void moveCoordinatesActionTriggered(bool checked);
+        void moveOneCoordinateActionTriggered(bool checked);
+        
+        void moveTwoCoordinatesActionTriggered(bool checked);
         
         // ADD_NEW_METHODS_HERE
 
@@ -95,7 +97,9 @@ namespace caret {
         
         QAction* m_insertCoordinatesAction = NULL;
         
-        QAction* m_moveCoordinatesAction = NULL;
+        QAction* m_moveOneCoordinateAction = NULL;
+        
+        QAction* m_moveTwoCoordinatesAction = NULL;
         
         int32_t m_annotationNumberOfCoordinates = 0;
         
