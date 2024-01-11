@@ -268,6 +268,7 @@ m_browserWindowIndex(browserWindowIndex)
     switch (m_userInputMode) {
         case UserInputModeEnum::Enum::ANNOTATIONS:
         {
+            gridLayout->setContentsMargins(2, 2, 2, 2);
             gridLayout->addWidget(drawingLabel,
                                   0, 0, 1, 3, Qt::AlignHCenter);
             gridLayout->addWidget(m_finishToolButton,
