@@ -43,6 +43,9 @@ namespace caret {
         
         void addCoordinate(AnnotationCoordinate* coord);
         
+        void insertCoordinateAtIndex(const int32_t index,
+                                     AnnotationCoordinate* coord);
+
         virtual AnnotationMultiCoordinateShape* castToMultiCoordinateShape() override;
         
         virtual const AnnotationMultiCoordinateShape* castToMultiCoordinateShape() const override;

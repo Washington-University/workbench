@@ -128,6 +128,8 @@ namespace caret {
                                     const int32_t indexTwo,
                                     const float normalizedDistanceToNextCoordinate);
 
+        void movePairedCoordinate(const int32_t coordIndex);
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
         
         std::vector<std::unique_ptr<AnnotationCoordinate>> m_coordinates;

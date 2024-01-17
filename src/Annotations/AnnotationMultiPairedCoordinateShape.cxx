@@ -985,6 +985,11 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationTabOrWindowSpace(c
                     const int32_t i3(i * 3);
                     ac->setXYZ(&allXYZ[i3]);
                 }
+                if (startIndex == endIndex) {
+                    if (spatialModification.isMultiPairedMove()) {
+                        movePairedCoordinate(startIndex);
+                    }
+                }
             }
         }
 
@@ -1072,6 +1077,11 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationChartSpace(const A
             for (int32_t i = startIndex; i <= endIndex; i++) {
                 AnnotationCoordinate* ac = getCoordinate(i);
                 ac->addToXYZ(dx, dy, dz);
+            }
+            if (startIndex == endIndex) {
+                if (spatialModification.isMultiPairedMove()) {
+                    movePairedCoordinate(startIndex);
+                }
             }
             validFlag = true;
         }
@@ -1163,6 +1173,11 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationHistologySpace(con
                 AnnotationCoordinate* ac = getCoordinate(i);
                 ac->addToXYZ(dx, dy, dz);
             }
+            if (startIndex == endIndex) {
+                if (spatialModification.isMultiPairedMove()) {
+                    movePairedCoordinate(startIndex);
+                }
+            }
             validFlag = true;
         }
     }
@@ -1253,6 +1268,11 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationMediaSpace(const A
                 AnnotationCoordinate* ac = getCoordinate(i);
                 ac->addToXYZ(dx, dy, dz);
             }
+            if (startIndex == endIndex) {
+                if (spatialModification.isMultiPairedMove()) {
+                    movePairedCoordinate(startIndex);
+                }
+            }
             validFlag = true;
         }
     }
@@ -1310,6 +1330,9 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationStereotaxicSpace(c
                 && (coordIndex < numCoords)) {
                 AnnotationCoordinate* ac = getCoordinate(coordIndex);
                 ac->setXYZ(spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ);
+                if (spatialModification.isMultiPairedMove()) {
+                    movePairedCoordinate(coordIndex);
+                }
                 setModified();
                 modifiedFlag = true;
             }
@@ -1344,6 +1367,59 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationStereotaxicSpace(c
     }
 
     return modifiedFlag;
+}
+
+/**
+ * Move the paired coordinate that is paired to the given coordinate
+ * @param coordIndex
+ *    Index of the coordinate
+ */
+void
+AnnotationMultiPairedCoordinateShape::movePairedCoordinate(const int32_t coordIndex)
+{
+    AnnotationPolyhedron* polyhedron = castToPolyhedron();
+    if (polyhedron == NULL) {
+        AString msg("Shape is not polyhedron.  Has new multi-paired coordinate shape been added?");
+        CaretAssertMessage(0, msg);
+        CaretLogSevere(msg);
+        return;
+    }
+
+    /*
+     * Coords are in PAIRS
+     */
+    Plane plane;
+    const int32_t numCoords(getNumberOfCoordinates());
+    const int32_t numCoordPairs(numCoords / 2);
+    int32_t pairedCoordIndex(-1);
+    if ((coordIndex >= 0)
+        && (coordIndex < numCoordPairs)) {
+        pairedCoordIndex = coordIndex + numCoordPairs;
+        plane = polyhedron->getPlaneTwo();
+    }
+    else if ((coordIndex >= numCoordPairs)
+             && (coordIndex < numCoords)) {
+        pairedCoordIndex = coordIndex - numCoordPairs;
+        plane = polyhedron->getPlaneOne();
+    }
+    else {
+        CaretLogSevere("Invalid coordinate index="
+                       + AString::number(coordIndex));
+    }
+    
+    if ((pairedCoordIndex >= 0)
+        && (pairedCoordIndex < numCoords)) {
+        if (plane.isValidPlane()) {
+            const AnnotationCoordinate* ac(getCoordinate(coordIndex));
+            Vector3D xyz(ac->getXYZ());
+            const Vector3D xyzTwo(plane.projectPointToPlane(xyz));
+            AnnotationCoordinate* acPair(getCoordinate(pairedCoordIndex));
+            acPair->setXYZ(xyzTwo);
+        }
+        else {
+            CaretLogSevere("Plane is invalid for moving paired coordinate");
+        }
+    }
 }
 
 /**

@@ -353,25 +353,53 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                 case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
                     break;
                 case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+                    switch (getPolyTypeDrawEditOperation()) {
+                        case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                            break;
+                        case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                            selectableFlag = true;
+                            break;
+                        case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                            break;
+                        case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                            selectableFlag = true;
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                            selectableFlag = true;
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                            selectableFlag = true;
+                            break;
+                    }
                     cancelEnabledFlag = true;
                     break;
                 case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
                     cancelEnabledFlag = true;
                     break;
                 case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-                    switch (m_drawingNewPolyTypeStereotaxicMode) {
-                        case ADD_NEW_COORDINATE:
+                    switch (getPolyTypeDrawEditOperation()) {
+                        case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
                             break;
-                        case DELETE_COORDINATE:
+                        case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                             selectableFlag = true;
                             break;
-                        case INSERT_COORDINATE:
+                        case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                            break;
+                        case PolyTypeDrawEditOperation::INSERT_COORDINATE:
                             selectableFlag = true;
                             break;
-                        case MOVE_ONE_COORDINATE:
+                        case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                             selectableFlag = true;
                             break;
-                        case MOVE_TWO_COORDINATES:
+                        case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                             selectableFlag = true;
                             break;
                     }
@@ -558,7 +586,7 @@ UserInputModeAnnotations::setMode(const Mode mode)
         }
         
         /* Reset add/edit to adding coordinates anytime a mode is changed*/
-        m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATE;
+        setPolyTypeDrawEditOperation(PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE);
         
         /*
          * If mode is changed to NOT a drawing mode,
@@ -572,23 +600,253 @@ UserInputModeAnnotations::setMode(const Mode mode)
 }
 
 /**
- * @return the sub mode for when drawing a new poly type shape in stereotaxic space
+ * The polygon/polyline/polyhedron type is a function of the mode
+ * @param mode
+ *    The mode
+ * @return Poly type for editing
  */
-UserInputModeAnnotations::DrawingNewPolyTypeStereotaxicMode
-UserInputModeAnnotations::getDrawingNewPolyTypeStereotaxicMode() const
+UserInputModeAnnotations::PolyAnnotationType
+UserInputModeAnnotations::getPolyAnnotationTypeFromMode(const Mode mode) const
 {
-    return m_drawingNewPolyTypeStereotaxicMode;
+    PolyAnnotationType polyTypeOut(PolyAnnotationType::ANNOTATION_POLY_EDITING);
+    
+    switch (mode) {
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+            polyTypeOut = PolyAnnotationType::ANNOTATION_POLY_DRAWING_NEW;
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+            polyTypeOut = PolyAnnotationType::ANNOTATION_POLY_DRAWING_NEW;
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            polyTypeOut = PolyAnnotationType::SAMPLE_POLYHEDRON_DRAWING_NEW;
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            polyTypeOut = PolyAnnotationType::SAMPLE_POLYHEDRON_DRAWING_NEW;
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            break;
+        case Mode::MODE_PASTE:
+            break;
+        case Mode::MODE_PASTE_SPECIAL:
+            break;
+        case Mode::MODE_SELECT:
+            if (getUserInputMode() == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+                polyTypeOut = PolyAnnotationType::SAMPLE_POLYHEDRON_EDITING;
+            }
+            break;
+    }
+    
+    return polyTypeOut;
 }
 
 /**
- * Set the sub mode for when drawing a new poly type shape in stereotaxic space
- * @param subMode
+ * @return mode for when drawing or edtiing a poly-type shape
+ */
+UserInputModeAnnotations::PolyTypeDrawEditOperation
+UserInputModeAnnotations::getPolyTypeDrawEditOperation() const
+{
+    PolyTypeDrawEditOperation polyDrawEditModeOut = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
+    
+    switch (getPolyAnnotationTypeFromMode(getMode())) {
+        case PolyAnnotationType::ANNOTATION_POLY_DRAWING_NEW:
+            polyDrawEditModeOut = m_annotationPolyTypeDrawingNewOperation;
+            break;
+        case PolyAnnotationType::ANNOTATION_POLY_EDITING:
+            if (m_annotationPolyTypeEditingOperation == PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE) {
+                /* Add not allowed for annotations */
+                m_annotationPolyTypeEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
+            }
+            polyDrawEditModeOut = m_annotationPolyTypeEditingOperation;
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_DRAWING_NEW:
+            polyDrawEditModeOut = m_polyhedronDrawingNewOperation;
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_EDITING:
+            if (m_polyhedronEditingOperation == PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE) {
+                /* Add not allowed in normal edit mode */
+                m_polyhedronEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
+            }
+            polyDrawEditModeOut = m_polyhedronEditingOperation;
+            break;
+    }
+    
+    return polyDrawEditModeOut;
+}
+
+/**
+ * Set mode for when drawing or edtiing a poly-type shape
+ * @param drawEditMode
  *    The new mode
  */
 void
-UserInputModeAnnotations::setDrawingNewPolyTypeStereotaxicMode(const DrawingNewPolyTypeStereotaxicMode subMode)
+UserInputModeAnnotations::setPolyTypeDrawEditOperation(const PolyTypeDrawEditOperation drawEditMode)
 {
-    m_drawingNewPolyTypeStereotaxicMode = subMode;
+    switch (getPolyAnnotationTypeFromMode(getMode())) {
+        case PolyAnnotationType::ANNOTATION_POLY_DRAWING_NEW:
+            m_annotationPolyTypeDrawingNewOperation = drawEditMode;
+            break;
+        case PolyAnnotationType::ANNOTATION_POLY_EDITING:
+            m_annotationPolyTypeEditingOperation = drawEditMode;
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_DRAWING_NEW:
+            m_polyhedronDrawingNewOperation = drawEditMode;
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_EDITING:
+            m_polyhedronEditingOperation = drawEditMode;
+            break;
+    }
+}
+
+/**
+ * @param operationsOut
+ *    The polytype drawing and editing modes that are supported and this is
+ * a function of the mode and the annotation selected
+ * @param selectedAnnotationOut
+ *    Pointer to the selected annotation
+ */
+void
+UserInputModeAnnotations::getEnabledPolyTypeDrawEditOperations(std::vector<PolyTypeDrawEditOperation>& operationsOut,
+                                                               const Annotation* &selectedAnnotationOut) const
+{
+    operationsOut.clear();
+    selectedAnnotationOut = NULL;
+    
+    switch (getPolyAnnotationTypeFromMode(getMode())) {
+        case PolyAnnotationType::ANNOTATION_POLY_DRAWING_NEW:
+        {
+            operationsOut.push_back(PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE);
+            operationsOut.push_back(PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION);
+            if (m_newAnnotationCreatingWithMouseDrag) {
+                const Annotation* ann(m_newAnnotationCreatingWithMouseDrag->getAnnotation());
+                if (ann != NULL) {
+                    const AnnotationMultiCoordinateShape* multiShapeAnn(ann->castToMultiCoordinateShape());
+                    if (multiShapeAnn != NULL) {
+                        const int32_t numCoords(multiShapeAnn->getNumberOfCoordinates());
+                        const AnnotationPolyLine* polyLineAnn(multiShapeAnn->castToPolyline());
+                        const AnnotationPolygon*  polygonAnn(multiShapeAnn->castToPolygon());
+                        if (polyLineAnn != NULL) {
+                            if (numCoords >= 2) {
+                                operationsOut.push_back(PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION);
+                            }
+                        }
+                        if (polygonAnn != NULL) {
+                            if (numCoords >= 3) {
+                                operationsOut.push_back(PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION);
+                            }
+                        }
+                        if (numCoords >= 1) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE);
+                        }
+                        if (numCoords >= 2) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::REMOVE_COORDINATE);
+                        }
+                        if (numCoords >= 2) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::INSERT_COORDINATE);
+                        }
+                        if (numCoords >= 1) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE);
+                            operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES);
+                        }
+                        selectedAnnotationOut = ann;
+                    }
+                }
+            }
+        }
+            break;
+        case PolyAnnotationType::ANNOTATION_POLY_EDITING:
+        {
+            const Annotation* ann(getSingleSelectedAnnotation());
+            if (ann != NULL) {
+                const AnnotationMultiCoordinateShape* multiShapeAnn(ann->castToMultiCoordinateShape());
+                if (multiShapeAnn != NULL) {
+                    const AnnotationPolyLine* polyLineAnn(multiShapeAnn->castToPolyline());
+                    const AnnotationPolygon*  polygonAnn(multiShapeAnn->castToPolygon());
+                    const int32_t numCoords(multiShapeAnn->getNumberOfCoordinates());
+                    if (polyLineAnn != NULL) {
+                        if (numCoords >= 3) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::REMOVE_COORDINATE);
+                        }
+                    }
+                    else if (polygonAnn != NULL) {
+                        if (numCoords >= 3) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::REMOVE_COORDINATE);
+                        }
+                    }
+                    if (numCoords >= 2) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::INSERT_COORDINATE);
+                    }
+                    if (numCoords >= 1) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE);
+                    }
+                    
+                    selectedAnnotationOut = ann;
+                }
+            }
+        }
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_DRAWING_NEW:
+        {
+            operationsOut.push_back(PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION);
+            operationsOut.push_back(PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE);
+
+            if (m_newUserSpaceAnnotationBeingCreated) {
+                const Annotation* ann(m_newUserSpaceAnnotationBeingCreated->getAnnotation());
+                if (ann != NULL) {
+                    const AnnotationPolyhedron* polyhedronAnn(ann->castToPolyhedron());
+                    if (polyhedronAnn != NULL) {
+                        
+                        /* NOTE: Coords are in 'pairs' to divide by 2 */
+                        const int32_t numCoords(polyhedronAnn->getNumberOfCoordinates() / 2);
+                        if (numCoords >= 3) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION);
+                        }
+                        if (numCoords >= 1) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE);
+                        }
+                        if (numCoords >= 2) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::REMOVE_COORDINATE);
+                        }
+                        if (numCoords >= 2) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::INSERT_COORDINATE);
+                        }
+                        if (numCoords >= 1) {
+                            operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE);
+                            operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES);
+                        }
+                        
+                        selectedAnnotationOut = ann;
+                    }
+                }
+            }
+        }
+            break;
+        case PolyAnnotationType::SAMPLE_POLYHEDRON_EDITING:
+        {
+            const Annotation* ann(getSingleSelectedAnnotation());
+            if (ann != NULL) {
+                const AnnotationPolyhedron* polyhedronAnn(ann->castToPolyhedron());
+                if (polyhedronAnn != NULL) {
+                    /* NOTE: Coords are in 'pairs' to divide by 2 */
+                    const int32_t numCoords(polyhedronAnn->getNumberOfCoordinates() / 2);
+                    if (numCoords >= 2) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::REMOVE_COORDINATE);
+                    }
+                    if (numCoords >= 2) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::INSERT_COORDINATE);
+                    }
+                    if (numCoords >= 1) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE);
+                        operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES);
+                    }
+                    
+                    selectedAnnotationOut = ann;
+                }
+            }
+        }
+            break;
+    }
 }
 
 /**
@@ -606,38 +864,77 @@ UserInputModeAnnotations::getCursor() const
             cursor = CursorEnum::CURSOR_CROSS;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-            cursor = polyDrawCursor;
-            break;
-        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
-            cursor = polyDrawCursor;
-            break;
-        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATE:
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
                     cursor = polyDrawCursor;
                     break;
-                case DELETE_COORDINATE:
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                     cursor = CursorEnum::CURSOR_DEFAULT;
                     
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
                         cursor = CursorEnum::CURSOR_DELETE;
                     }
                     break;
-                case INSERT_COORDINATE:
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
                     if (m_annotationUnderMouse != NULL) {
                         if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
                             cursor = CursorEnum::CURSOR_CROSS;
                         }
                     }
                     break;
-                case MOVE_ONE_COORDINATE:
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                    cursor = CursorEnum::CURSOR_DEFAULT;
+                    
+                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                        cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                    break;
+            }
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+            cursor = polyDrawCursor;
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                    cursor = polyDrawCursor;
+                    break;
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                    cursor = CursorEnum::CURSOR_DEFAULT;
+                    
+                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                        cursor = CursorEnum::CURSOR_DELETE;
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                    if (m_annotationUnderMouse != NULL) {
+                        if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
+                            cursor = CursorEnum::CURSOR_CROSS;
+                        }
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                     cursor = CursorEnum::CURSOR_DEFAULT;
 
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                     }
                     break;
-                case MOVE_TWO_COORDINATES:
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     cursor = CursorEnum::CURSOR_DEFAULT;
                     
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
@@ -696,6 +993,30 @@ UserInputModeAnnotations::getCursor() const
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
                         cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                         
+                        switch (getPolyTypeDrawEditOperation()) {
+                            case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                                break;
+                            case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                                break;
+                            case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                                if (m_annotationUnderMouse != NULL) {
+                                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
+                                        cursor = CursorEnum::CURSOR_CROSS;
+                                    }
+                                }
+                                break;
+                            case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                                break;
+                        }
+                
                         if (s_allowInsertionIntoPolyTypesFlag) {
                             /*
                              * If over one selected annotation and the annotation
@@ -743,6 +1064,31 @@ UserInputModeAnnotations::getCursor() const
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE:
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
+                        
+                        switch (getPolyTypeDrawEditOperation()) {
+                            case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                                break;
+                            case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                                cursor = CursorEnum::CURSOR_DEFAULT;
+                                if (m_annotationUnderMouse != NULL) {
+                                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                                        cursor = CursorEnum::CURSOR_DELETE;
+                                    }
+                                }
+                                break;
+                            case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                                break;
+                            case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                                break;
+                            case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                                break;
+                        }
                         break;
                     case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE:
                         break;
@@ -1484,7 +1830,7 @@ UserInputModeAnnotations::addCooordinateToNewPolyTypeStereotaxicAnnotation(const
  * Delete coordinate to the poly type stereotaxic annotation that user is drawing
  */
 void
-UserInputModeAnnotations::removedCooordinateFromNewPolyTypeStereotaxicAnnotation()
+UserInputModeAnnotations::removeCooordinateFromNewPolyTypeStereotaxicAnnotation()
 {
     if (m_newUserSpaceAnnotationBeingCreated) {
         if (m_newUserSpaceAnnotationBeingCreated->getAnnotation() != NULL) {
@@ -1497,7 +1843,7 @@ UserInputModeAnnotations::removedCooordinateFromNewPolyTypeStereotaxicAnnotation
                             multiPairAnn->removeCoordinateAtIndexByUserInputModeAnnotations(m_annotationUnderMousePolyLineCoordinateIndex,
                                                                                             removePairFlag);
                             if (multiPairAnn->getNumberOfCoordinates() == 0) {
-                                m_drawingNewPolyTypeStereotaxicMode = ADD_NEW_COORDINATE;
+                                setPolyTypeDrawEditOperation(PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE);
                             }
                             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
@@ -1644,7 +1990,37 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-            userDrawingAnnotationFromMouseDrag(mouseEvent);
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                    userDrawingAnnotationFromMouseDrag(mouseEvent);
+                    break;
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                    setAnnotationUnderMouse(mouseEvent,
+                                            NULL);
+                    if (m_newAnnotationCreatingWithMouseDrag) {
+                        if (m_annotationUnderMouse == m_newAnnotationCreatingWithMouseDrag->getAnnotation()) {
+                            if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                                m_newAnnotationCreatingWithMouseDrag->moveCoordinateAtIndex(mouseEvent,
+                                                                                            m_annotationUnderMousePolyLineCoordinateIndex);
+                                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            }
+                        }
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                    break;
+            }
             return;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
@@ -1652,18 +2028,24 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             return;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATE:
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
                     addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
-                case DELETE_COORDINATE:
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                     break;
-                case INSERT_COORDINATE:
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
                     break;
-                case MOVE_ONE_COORDINATE:
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                     moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
-                case MOVE_TWO_COORDINATES:
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
             }
@@ -1950,50 +2332,121 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
             }
             
-            std::vector<Annotation*> annotationsBeforeMoveAndResize;
-            std::vector<Annotation*> annotationsAfterMoveAndResize;
-            
-            for (int32_t i = 0; i < numSelectedAnnotations; i++) {
-                Annotation* annotationModified(selectedAnnotations[i]->clone());
-                if (annotationModified->applySpatialModification(annSpatialMod)) {
-                    annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
-                    annotationsAfterMoveAndResize.push_back(annotationModified);
-                }
-                else {
-                    delete annotationModified;
-                    annotationModified = NULL;
+            bool allowMoveFlag(true);
+            if (isOnePolyTypeAnnotationSelected(selectedAnnotations)) {
+                allowMoveFlag = false;
+                switch (getPolyTypeDrawEditOperation()) {
+                    case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                        break;
+                    case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                        break;
+                    case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                        break;
+                    case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                        break;
+                    case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                        break;
+                    case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                        break;
+                    case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                        allowMoveFlag = true;
+                        break;
+                    case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                        allowMoveFlag = true;
+                        annSpatialMod.setMultiPairedMove(true); /* Move the paired coord too */
+                        break;
                 }
             }
-            CaretAssert(annotationsAfterMoveAndResize.size() == annotationsBeforeMoveAndResize.size());
             
-            if ( ! annotationsAfterMoveAndResize.empty()) {
-                AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
-                command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
-                                                annotationsAfterMoveAndResize);
+            if (allowMoveFlag) {
+                std::vector<Annotation*> annotationsBeforeMoveAndResize;
+                std::vector<Annotation*> annotationsAfterMoveAndResize;
                 
-                if ( ! mouseEvent.isFirstDragging()) {
-                    command->setMergeEnabled(true);
+                for (int32_t i = 0; i < numSelectedAnnotations; i++) {
+                    Annotation* annotationModified(selectedAnnotations[i]->clone());
+                    if (annotationModified->applySpatialModification(annSpatialMod)) {
+                        annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
+                        annotationsAfterMoveAndResize.push_back(annotationModified);
+                    }
+                    else {
+                        delete annotationModified;
+                        annotationModified = NULL;
+                    }
+                }
+                CaretAssert(annotationsAfterMoveAndResize.size() == annotationsBeforeMoveAndResize.size());
+                
+                if ( ! annotationsAfterMoveAndResize.empty()) {
+                    AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+                    command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+                                                    annotationsAfterMoveAndResize);
+                    
+                    if ( ! mouseEvent.isFirstDragging()) {
+                        command->setMergeEnabled(true);
+                    }
+                    
+                    AString errorMessage;
+                    if ( !  annotationManager->applyCommand(command,
+                                                            errorMessage)) {
+                        WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                               errorMessage);
+                    }
                 }
                 
-                AString errorMessage;
-                if ( !  annotationManager->applyCommand(command,
-                                                        errorMessage)) {
-                    WuQMessageBox::errorOk(m_annotationToolsWidget,
-                                           errorMessage);
+                for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
+                     iter != annotationsAfterMoveAndResize.end();
+                     iter++) {
+                    delete *iter;
                 }
+                annotationsAfterMoveAndResize.clear();
+                
+                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }
-            
-            for (std::vector<Annotation*>::iterator iter = annotationsAfterMoveAndResize.begin();
-                 iter != annotationsAfterMoveAndResize.end();
-                 iter++) {
-                delete *iter;
-            }
-            annotationsAfterMoveAndResize.clear();
-            
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         }
     }
+}
+
+/**
+ * @return True if there is one annotation and it is a polygon, polyline, or polyhedron
+ * @param annotations
+ *    The annotations
+ */
+bool
+UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const
+{
+    bool polyTypeAnnFlag(false);
+    if (annotations.size() == 1) {
+        CaretAssertVectorIndex(annotations, 0);
+        const Annotation* ann(annotations[0]);
+        switch (ann->getType()) {
+            case AnnotationTypeEnum::BOX:
+                break;
+            case AnnotationTypeEnum::BROWSER_TAB:
+                break;
+            case AnnotationTypeEnum::COLOR_BAR:
+                break;
+            case AnnotationTypeEnum::IMAGE:
+                break;
+            case AnnotationTypeEnum::LINE:
+                break;
+            case AnnotationTypeEnum::OVAL:
+                break;
+            case AnnotationTypeEnum::POLYGON:
+                polyTypeAnnFlag = true;
+                break;
+            case AnnotationTypeEnum::POLYHEDRON:
+                polyTypeAnnFlag = true;
+                break;
+            case AnnotationTypeEnum::POLYLINE:
+                polyTypeAnnFlag = true;
+                break;
+            case AnnotationTypeEnum::SCALE_BAR:
+                break;
+            case AnnotationTypeEnum::TEXT:
+                break;
+        }
+    }
+    return polyTypeAnnFlag;
 }
 
 /**
@@ -2055,29 +2508,72 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             createNewAnnotationAtMouseLeftClick(mouseEvent);
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE:
-            userDrawingAnnotationFromMouseDrag(mouseEvent);
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                    userDrawingAnnotationFromMouseDrag(mouseEvent);
+                    break;
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                    setAnnotationUnderMouse(mouseEvent,
+                                            NULL);
+                    if (m_newAnnotationCreatingWithMouseDrag) {
+                        if (m_annotationUnderMouse == m_newAnnotationCreatingWithMouseDrag->getAnnotation()) {
+                            m_newAnnotationCreatingWithMouseDrag->removeCoordinateAtIndex(m_annotationUnderMousePolyLineCoordinateIndex);
+                            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        }
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                    setAnnotationUnderMouse(mouseEvent,
+                                            NULL);
+                    if (m_newAnnotationCreatingWithMouseDrag) {
+                        if (m_annotationUnderMouse == m_newAnnotationCreatingWithMouseDrag->getAnnotation()) {
+                            m_newAnnotationCreatingWithMouseDrag->insertCoordinateAtIndex(mouseEvent,
+                                                                                          m_annotationUnderMousePolyLineCoordinateIndex);
+                            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        }
+                    }
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                    break;
+            }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             initializeUserDrawingNewPolyTypeAnnotation(mouseEvent);
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATE:
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
                     addCooordinateToNewPolyTypeStereotaxicAnnotation(mouseEvent);
                     break;
-                case DELETE_COORDINATE:
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                     setAnnotationUnderMouse(mouseEvent,
                                             NULL);
-                    removedCooordinateFromNewPolyTypeStereotaxicAnnotation();
+                    removeCooordinateFromNewPolyTypeStereotaxicAnnotation();
                     break;
-                case INSERT_COORDINATE:
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
                     setAnnotationUnderMouse(mouseEvent,
                                             NULL);
                     insertCooordinateIntoNewPolyTypeStereotaxicAnnotation();
                     break;
-                case MOVE_ONE_COORDINATE:
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                     break;
-                case MOVE_TWO_COORDINATES:
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     break;
             }
             break;
@@ -2093,6 +2589,101 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
             pasteAnnotationFromAnnotationClipboardAndChangeSpace(mouseEvent);
             break;
         case Mode::MODE_SELECT:
+        {
+            setAnnotationUnderMouse(mouseEvent,
+                                    NULL);
+            if (m_annotationUnderMouse != NULL) {
+                std::vector<Annotation*> anns;
+                anns.push_back(m_annotationUnderMouse);
+                if (isOnePolyTypeAnnotationSelected(anns)) {
+                    switch (getPolyTypeDrawEditOperation()) {
+                        case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
+                            break;
+                        case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
+                            /*
+                             * Remove coordinate from annotation
+                             */
+                            if (m_annotationUnderMousePolyLineCoordinateIndex >= 0) {
+                                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                                undoCommand->setModeMultiCoordAnnRemoveCoordinate(m_annotationUnderMousePolyLineCoordinateIndex,
+                                                                                  m_annotationUnderMouse);
+                                AString errorMessage;
+                                AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode()));
+                                if ( ! annotationManager->applyCommand(undoCommand,
+                                                                       errorMessage)) {
+                                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                                           errorMessage);
+                                }
+                                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            }
+                            break;
+                        case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                            break;
+                        case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                            /*
+                             * Insert coordinate into annotation
+                             */
+                            if (m_annotationUnderMousePolyLineCoordinateIndex >= 0) {
+                                int32_t surfaceSpaceVertexIndex(-1);
+                                if (m_annotationUnderMouse->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+                                    AnnotationCoordinateInformation coordInfo;
+                                    AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
+                                                                                                       coordInfo);
+                                    if (coordInfo.m_surfaceSpaceInfo.m_validFlag) {
+                                        const AnnotationCoordinate* firstCoord(NULL);
+                                        if (m_annotationUnderMouse->getNumberOfCoordinates() > 0) {
+                                            /*
+                                             * Get structure and number of nodes from first coordinate
+                                             * for surface space annotation
+                                             */
+                                            firstCoord = m_annotationUnderMouse->getCoordinate(0);
+                                            StructureEnum::Enum structure = StructureEnum::INVALID;
+                                            int32_t numberOfVertices(-1);
+                                            int32_t vertexIndex(-1);
+                                            firstCoord->getSurfaceSpace(structure, numberOfVertices, vertexIndex);
+                                            if ((coordInfo.m_surfaceSpaceInfo.m_structure == structure)
+                                                && (coordInfo.m_surfaceSpaceInfo.m_numberOfNodes == numberOfVertices)) {
+                                                surfaceSpaceVertexIndex = coordInfo.m_surfaceSpaceInfo.m_nodeIndex;
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (surfaceSpaceVertexIndex < 0) {
+                                        WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
+                                                               "No surface vertex found at mouse location");
+                                        return;
+                                    }
+                                }
+
+                                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                                undoCommand->setModeMultiCoordAnnInsertCoordinate(m_annotationUnderMousePolyLineCoordinateIndex,
+                                                                                  m_annotationUnderMousePolyLineNormalizedDistance,
+                                                                                  surfaceSpaceVertexIndex,
+                                                                                  m_annotationUnderMouse);
+                                AString errorMessage;
+                                AnnotationManager* annotationManager(GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode()));
+                                if ( ! annotationManager->applyCommand(undoCommand,
+                                                                       errorMessage)) {
+                                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                                           errorMessage);
+                                }
+                                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            }
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                            break;
+                    }
+                }
+            }
+        }
             break;
     }
 }
@@ -2176,16 +2767,22 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
         case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
-            switch (m_drawingNewPolyTypeStereotaxicMode) {
-                case ADD_NEW_COORDINATE:
+            switch (getPolyTypeDrawEditOperation()) {
+                case PolyTypeDrawEditOperation::CANCEL_NEW_ANNOTATION:
                     break;
-                case DELETE_COORDINATE:
+                case PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
                     break;
-                case INSERT_COORDINATE:
+                case PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                     break;
-                case MOVE_ONE_COORDINATE:
+                case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
                     break;
-                case MOVE_TWO_COORDINATES:
+                case PolyTypeDrawEditOperation::FINISH_NEW_ANNOTATION:
+                    break;
+                case PolyTypeDrawEditOperation::INSERT_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     break;
             }
             break;
@@ -2330,7 +2927,6 @@ void
 UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEvent& mouseEvent)
 {
     if (m_newAnnotationCreatingWithMouseDrag) {
-        
         switch (m_mode) {
             case Mode::MODE_DRAWING_NEW_POLY_TYPE:
                 break;
@@ -2376,6 +2972,7 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
         setMode(Mode::MODE_SELECT);
         
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
 }
 
@@ -2637,7 +3234,7 @@ UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& 
  * selected, it is returned.  Otherwise, NULL is returned.
  */
 Annotation*
-UserInputModeAnnotations::getSingleSelectedAnnotation()
+UserInputModeAnnotations::getSingleSelectedAnnotation() const
 {
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     std::vector<Annotation*> allSelectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
@@ -3573,30 +4170,126 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::update(const MouseEvent&
 void
 UserInputModeAnnotations::NewMouseDragCreateAnnotation::eraseLastCoordinate()
 {
-    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
-    
     const int32_t num(m_drawingCoordinateAndMouseEvents.size());
     if (num > 0) {
-        const int32_t removeIndex(num - 1);
-        CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, removeIndex);
-        m_drawingCoordinateAndMouseEvents.resize(removeIndex);
+        removeCoordinateAtIndex(num - 1);
+    }
+}
+
+/**
+ * Remove the coordinate at the given index
+ * @param coordinateIndex
+ *    Index of coord
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::removeCoordinateAtIndex(const int32_t coordinateIndex)
+{
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+    
+    const int32_t numCoords(m_drawingCoordinateAndMouseEvents.size());
+    if ((coordinateIndex >= 0)
+        && (coordinateIndex < numCoords)) {
+        CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, coordinateIndex);
+        m_drawingCoordinateAndMouseEvents.erase(m_drawingCoordinateAndMouseEvents.begin()
+                                                + coordinateIndex);
         
         CaretAssert(m_annotation);
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
         AnnotationMultiCoordinateShape* multiCoordShape(m_annotation->castToMultiCoordinateShape());
         if (multiPairedCoordShape != NULL) {
             const bool removePairFlag(false); /* This method does NOT add pairs of coordinates*/
-            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex,
+            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(coordinateIndex,
                                                                                      removePairFlag);
         }
         else if (multiCoordShape != NULL) {
-            multiCoordShape->removeCoordinateAtIndex(removeIndex);
+            multiCoordShape->removeCoordinateAtIndex(coordinateIndex);
         }
         else {
             CaretAssertMessage(0, "Invalid annotation type for erasing last coordinate");
         }
     }
     
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+}
+
+/**
+ * Insert a coordinate after the given index
+ * @param mouseEvent,
+ *    The mouse event
+ * @param coordinateIndex
+ *    Index of coord
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::insertCoordinateAtIndex(const MouseEvent& mouseEvent,
+                                                                                const int32_t coordinateIndex)
+{
+     CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+    
+    int32_t mouseWindowX = mouseEvent.getX() - m_windowOriginX;
+    int32_t mouseWindowY = mouseEvent.getY() - m_windowOriginY;
+    
+    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+    
+    Vector3D mouseCoord3D(mouseEvent.getX(),
+                          mouseEvent.getY(),
+                          0.0);
+    
+    if (multiCoordShape != NULL) {
+        AnnotationCoordinate* ac = new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER);
+        setCoordinate(ac, mouseWindowX, mouseWindowY);
+        multiCoordShape->insertCoordinateAtIndex(coordinateIndex + 1, ac);
+        
+        m_drawingCoordinateAndMouseEvents.insert(m_drawingCoordinateAndMouseEvents.begin() + coordinateIndex + 1,
+                                                 CoordInfo(mouseCoord3D, mouseEvent));
+    }
+    else {
+        CaretAssert(0);
+    }
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+}
+
+/**
+ * Move a coordinate at the given index
+ * @param mouseEvent,
+ *    The mouse event
+ * @param coordinateIndex
+ *    Index of coord
+ */
+void
+UserInputModeAnnotations::NewMouseDragCreateAnnotation::moveCoordinateAtIndex(const MouseEvent& mouseEvent,
+                                                                              const int32_t coordinateIndex)
+{
+    CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
+    
+    int32_t mouseWindowX = mouseEvent.getX() - m_windowOriginX;
+    int32_t mouseWindowY = mouseEvent.getY() - m_windowOriginY;
+    
+    AnnotationMultiCoordinateShape* multiCoordShape = m_annotation->castToMultiCoordinateShape();
+    
+    Vector3D mouseCoord3D(mouseEvent.getX(),
+                          mouseEvent.getY(),
+                          0.0);
+    
+    if (multiCoordShape != NULL) {
+        if ((coordinateIndex >= 0)
+            && (coordinateIndex < multiCoordShape->getNumberOfCoordinates())) {
+            setCoordinate(multiCoordShape->getCoordinate(coordinateIndex),
+                          mouseWindowX,
+                          mouseWindowY);
+            
+            CaretAssertVectorIndex(m_drawingCoordinateAndMouseEvents, coordinateIndex);
+            m_drawingCoordinateAndMouseEvents[coordinateIndex].m_xyz = mouseCoord3D;
+            m_drawingCoordinateAndMouseEvents[coordinateIndex].m_mouseEvent.reset(new MouseEvent(mouseEvent));
+        }
+        else {
+            CaretLogSevere("Invalid coordinate index="
+                           + AString::number(coordinateIndex));
+            CaretAssert(0);
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
     CaretAssert(m_annotation->getNumberOfCoordinates() == static_cast<int32_t>(m_drawingCoordinateAndMouseEvents.size()));
 }
 

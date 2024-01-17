@@ -161,6 +161,34 @@ AnnotationMultiCoordinateShape::addCoordinate(AnnotationCoordinate* coord)
 }
 
 /**
+ * Insert a coordinate into this multi coordinate shape
+ * @param index
+ *    Insert at index
+ * @param coord
+ *    Coordinate that is added.
+ */
+void
+AnnotationMultiCoordinateShape::insertCoordinateAtIndex(const int32_t index,
+                                                        AnnotationCoordinate* coord)
+{
+    if ((index >= 0)
+        && (index <= getNumberOfCoordinates())) {
+        CaretAssert(coord);
+        std::unique_ptr<AnnotationCoordinate> ptr(coord);
+        m_coordinates.insert(m_coordinates.begin() + index,
+                             std::move(ptr));
+        setModified();
+    }
+    else {
+        CaretLogSevere("Inserting at invalid index="
+                       + AString::number(index)
+                       + ", num coords="
+                       + AString::number(getNumberOfCoordinates()));
+    }
+}
+
+
+/**
  * @return Number of coordinates in this annotation
  */
 int32_t

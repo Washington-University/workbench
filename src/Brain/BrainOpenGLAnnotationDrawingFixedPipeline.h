@@ -567,7 +567,7 @@ namespace caret {
         
         static const float s_sizingHandleLineWidthInPixels;
         static const float s_selectionLineMinimumPixelWidth;
-        static const float s_polyCoordinateSizeHandleWithMultiplier;
+        static const float s_polyCoordLastSizeHandleScaleFactor;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -576,7 +576,7 @@ namespace caret {
 #ifdef __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
     const float BrainOpenGLAnnotationDrawingFixedPipeline::s_sizingHandleLineWidthInPixels  = 2.0f;
     const float BrainOpenGLAnnotationDrawingFixedPipeline::s_selectionLineMinimumPixelWidth = 5.0f;
-    const float BrainOpenGLAnnotationDrawingFixedPipeline::s_polyCoordinateSizeHandleWithMultiplier = 1.0f;
+    const float BrainOpenGLAnnotationDrawingFixedPipeline::s_polyCoordLastSizeHandleScaleFactor = 1.5f;
 #endif // __BRAIN_OPEN_G_L_ANNOTATION_DRAWING_FIXED_PIPELINE_DECLARE__
 
 } // namespace

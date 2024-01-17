@@ -78,13 +78,19 @@ namespace caret {
         };
         
         /**
-         * Sub-mode for MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC
+         * Operations for drawing and editing poly-type annotations
          */
-        enum DrawingNewPolyTypeStereotaxicMode {
-            /** Mouse adds new coordinate to poly-type */
-            ADD_NEW_COORDINATE,
-            /** Mouse deletes coordinate */
-            DELETE_COORDINATE,
+        enum class PolyTypeDrawEditOperation {
+            /** Cancel drawing of new annotation */
+            CANCEL_NEW_ANNOTATION,
+            /** Mouse draws new coordinate to poly-type */
+            DRAW_NEW_COORDINATE,
+            /** Mouse removes coordinate */
+            REMOVE_COORDINATE,
+            /** Erase last coordinate (available while drawing) */
+            ERASE_LAST_COORDINATE,
+            /** Finish drawing of new annotation */
+            FINISH_NEW_ANNOTATION,
             /** Mouse inserts coordinate */
             INSERT_COORDINATE,
             /** Mouse moves one existing coordinate */
@@ -107,7 +113,10 @@ namespace caret {
         
         Mode getMode() const;
         
-        DrawingNewPolyTypeStereotaxicMode getDrawingNewPolyTypeStereotaxicMode() const;
+        void getEnabledPolyTypeDrawEditOperations(std::vector<PolyTypeDrawEditOperation>& operationsOut,
+                                                  const Annotation* &selectedAnnotationOut) const;
+        
+        PolyTypeDrawEditOperation getPolyTypeDrawEditOperation() const;
         
         virtual bool keyPressEvent(const KeyEvent& /*keyEvent*/) override;
         
@@ -168,6 +177,21 @@ namespace caret {
         void processSelectAllAnnotations();
         
     private:
+        /**
+         * Type of poly-type annotation for drawing / editing
+         * This is not stored in a variable but is a function of the MODE
+         */
+        enum class PolyAnnotationType {
+            /** Drawing a polyline or polygon annotation (before finishing) */
+            ANNOTATION_POLY_DRAWING_NEW,
+            /** Editing a polyline or polygon annotation (after finishing) */
+            ANNOTATION_POLY_EDITING,
+            /** Drawing a new sample polyhedron (before finishing) */
+            SAMPLE_POLYHEDRON_DRAWING_NEW,
+            /** Editing a sample polyhedron  (after finishing) */
+            SAMPLE_POLYHEDRON_EDITING
+        };
+        
         /**
          * Supports drawing of a new annotation in the space selected by the user
          */
@@ -274,6 +298,14 @@ namespace caret {
             
             int32_t getDrawingViewportHeight() const;
             
+            void insertCoordinateAtIndex(const MouseEvent& mouseEvent,
+                                         const int32_t coordinateIndex);
+            
+            void moveCoordinateAtIndex(const MouseEvent& mouseEvent,
+                                         const int32_t coordinateIndex);
+            
+            void removeCoordinateAtIndex(const int32_t coordinateIndex);
+            
             void eraseLastCoordinate();
             
         private:
@@ -318,7 +350,9 @@ namespace caret {
         
         void setMode(const Mode mode);
         
-        void setDrawingNewPolyTypeStereotaxicMode(const DrawingNewPolyTypeStereotaxicMode subMode);
+        PolyAnnotationType getPolyAnnotationTypeFromMode(const Mode mode) const;
+        
+        void setPolyTypeDrawEditOperation(const PolyTypeDrawEditOperation drawEditMode);
         
         void createNewAnnotationAtMouseLeftClick(const MouseEvent& mouseEvent);
         
@@ -337,7 +371,7 @@ namespace caret {
         
         void addCooordinateToNewPolyTypeStereotaxicAnnotation(const MouseEvent& mouseEvent);
         
-        void removedCooordinateFromNewPolyTypeStereotaxicAnnotation();
+        void removeCooordinateFromNewPolyTypeStereotaxicAnnotation();
         
         void insertCooordinateIntoNewPolyTypeStereotaxicAnnotation();
         
@@ -349,7 +383,7 @@ namespace caret {
         
         void selectAnnotation(Annotation* annotation);
         
-        Annotation* getSingleSelectedAnnotation();
+        Annotation* getSingleSelectedAnnotation() const;
         
         void cutAnnotation();
         
@@ -379,11 +413,23 @@ namespace caret {
         
         bool isDrawingNewSample() const;
         
+        bool isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const;
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
         
-        DrawingNewPolyTypeStereotaxicMode m_drawingNewPolyTypeStereotaxicMode = DrawingNewPolyTypeStereotaxicMode::ADD_NEW_COORDINATE;
+        /** Edit Samples Mode - Used when the polyhedron is being drawn and before finishing */
+        mutable PolyTypeDrawEditOperation m_polyhedronDrawingNewOperation = PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE;
+        
+        /** Edit Samples Mode - Used when the polyhedron is being editited anytime after finishing */
+        mutable PolyTypeDrawEditOperation m_polyhedronEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
+        
+        /** Annotation - Polyline, polygon DRAWING NEW  before finishing*/
+        mutable PolyTypeDrawEditOperation m_annotationPolyTypeDrawingNewOperation = PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE;
+        
+        /** Annotation - Polyline, polygon EDITING anytime after finishing*/
+        mutable PolyTypeDrawEditOperation m_annotationPolyTypeEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
         
         Annotation* m_annotationUnderMouse;
         

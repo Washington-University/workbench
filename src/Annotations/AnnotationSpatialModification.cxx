@@ -92,6 +92,7 @@ m_startOfDraggingFlag(startOfDraggingFlag)
     m_histologyCoordAtPreviousMouseXY.m_histologyXYZValid = false;
     m_mediaCoordAtMouseXY.m_mediaXYZValid = false;
     m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid = false;
+    m_multiPairedMoveFlag = false;
 }
 
 /**
@@ -285,5 +286,25 @@ AString
 AnnotationSpatialModification::toString() const
 {
     return "AnnotationSpatialModification";
+}
+
+/**
+ * @return True if multi-paired annotation should move the paired coordinate too.
+ */
+bool
+AnnotationSpatialModification::isMultiPairedMove() const
+{
+    return  m_multiPairedMoveFlag;
+}
+
+/**
+ * Set a multi-paired annotation should move the paired coordinate too.
+ * @param status
+ *    New status.
+ */
+void
+AnnotationSpatialModification::setMultiPairedMove(const bool status)
+{
+    m_multiPairedMoveFlag = status;
 }
 

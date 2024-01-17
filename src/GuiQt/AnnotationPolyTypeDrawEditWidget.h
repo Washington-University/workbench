@@ -56,7 +56,7 @@ namespace caret {
 
         void drawCoordinatesActionTriggered(bool checked);
         
-        void deleteCoordinatesActionTriggered(bool checked);
+        void removeCoordinatesActionTriggered(bool checked);
         
         void insertCoordinatesActionTriggered(bool checked);
         
@@ -93,7 +93,7 @@ namespace caret {
         
         QAction* m_drawCoordinatesAction = NULL;
         
-        QAction* m_deleteCoordinatesAction = NULL;
+        QAction* m_removeCoordinatesAction = NULL;
         
         QAction* m_insertCoordinatesAction = NULL;
         

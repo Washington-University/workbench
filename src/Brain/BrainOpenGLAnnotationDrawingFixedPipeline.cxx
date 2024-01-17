@@ -5376,6 +5376,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                          *
                          * drawNonEditableSizingHandlesFlag = true;
                          */
+                        drawNonEditableSizingHandlesFlag = true;
                         drawStartingCoordinateIndex = 0;
                         drawCoordinateCount = numHalfCoords;
                         for (int32_t i = 0; i < numHalfCoords; i++) {
@@ -6885,7 +6886,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiCoordShapeSizingHa
         float xyz[3];
         primitive->getVertexFloatXYZ(i, xyz);
 
-        const float halfSymbolSize(cornerSquareSize / 2.0);
+        float halfSymbolSize(cornerSquareSize / 2.0);
+        if (i == (numberOfVertices - 1)) {
+            /*
+             * Symbol at last vertex larger so end is obvious
+             */
+            halfSymbolSize *= s_polyCoordLastSizeHandleScaleFactor;
+        }
         drawSizingHandle(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE,
                          annotationFile,
                          multiCoordShape,
@@ -6954,7 +6961,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationMultiPairedCoordShapeSi
             /*
              * Symbol at last vertex larger so end is obvious
              */
-            halfSymbolSize *= 1.50;
+            halfSymbolSize *= s_polyCoordLastSizeHandleScaleFactor;
         }
         drawSizingHandle(sizingHandleType,
                          annotationFile,

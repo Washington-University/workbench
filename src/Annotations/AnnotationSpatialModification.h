@@ -45,6 +45,8 @@ namespace caret {
                                       const int32_t polyLineCoordinateIndex,
                                       const bool  startOfDraggingFlag);
         
+        virtual ~AnnotationSpatialModification();
+        
         void setSurfaceCoordinateAtMouseXY(const StructureEnum::Enum structure,
                                      const int32_t surfaceNumberOfNodes,
                                      const int32_t surfaceNodeIndex);
@@ -77,8 +79,9 @@ namespace caret {
                                                      const float histologyY,
                                                      const float histologyZ);
         
-        virtual ~AnnotationSpatialModification();
+        bool isMultiPairedMove() const;
         
+        void setMultiPairedMove(const bool status);
 
         // ADD_NEW_METHODS_HERE
 
@@ -204,6 +207,8 @@ namespace caret {
         SurfaceCoord m_surfaceCoordinateAtMouseXY;
         
         StereotaxicCoord m_stereotaxicCoordinateAtMouseXY;
+        
+        bool m_multiPairedMoveFlag = false;;
         
         // ADD_NEW_MEMBERS_HERE
 
