@@ -403,54 +403,57 @@ m_newAnnotationCreatedByContextMenu(NULL)
     addAction(BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::SELECT_ALL),
               this, SLOT(selectAllAnnotations()));
     
-    /*
-     * Separator
-     */
-    addSeparator();
-    
-    /*
-     * Insert poly line coordinate at mouse
-     */
-    QAction* insertPolylineCoordinateAction = addAction("Insert "
-                                                        + polyAnnTypeName
-                                                        + " Coordinate",
-                                                        this,
-                                                        &UserInputModeAnnotationsContextMenu::insertPolylineCoordinate);
-    bool insertValidFlag(false);
-    if (polyAnnInsertAllowedFlag
-        && (m_polyAnnCoordinateSelected >= 0)) {
-        if (polygon != NULL) {
-            if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
-                insertValidFlag = true;
+    const bool includeInsertAndRemoveCoordinateActionsFlag(false);
+    if (includeInsertAndRemoveCoordinateActionsFlag) {
+        /*
+         * Separator
+         */
+        addSeparator();
+        
+        /*
+         * Insert poly line coordinate at mouse
+         */
+        QAction* insertPolylineCoordinateAction = addAction("Insert "
+                                                            + polyAnnTypeName
+                                                            + " Coordinate",
+                                                            this,
+                                                            &UserInputModeAnnotationsContextMenu::insertPolylineCoordinate);
+        bool insertValidFlag(false);
+        if (polyAnnInsertAllowedFlag
+            && (m_polyAnnCoordinateSelected >= 0)) {
+            if (polygon != NULL) {
+                if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
+                    insertValidFlag = true;
+                }
+            }
+            else if (polyline != NULL) {
+                if (m_polyAnnCoordinateSelected < (polyAnnNumberOfCoordinates - 1)) {
+                    insertValidFlag = true;
+                }
+            }
+            else if (m_polyhedronAnnotation != NULL) {
+                if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
+                    insertValidFlag = true;
+                }
             }
         }
-        else if (polyline != NULL) {
-            if (m_polyAnnCoordinateSelected < (polyAnnNumberOfCoordinates - 1)) {
-                insertValidFlag = true;
-            }
+        insertPolylineCoordinateAction->setEnabled(insertValidFlag);
+        
+        /*
+         * Remove poly line coordinate
+         */
+        QAction* removePolylineCoordinateAction = addAction("Remove "
+                                                            + polyAnnTypeName
+                                                            + " Coordinate",
+                                                            this, &UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected);
+        removePolylineCoordinateAction->setEnabled(polyAnnRemoveCoordinateAllowedFlag);
+        
+        if (samplesModeFlag) {
+            QAction* resetSliceRangeAction = addAction("Reset Slice Range...",
+                                                       this,
+                                                       &UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected);
+            resetSliceRangeAction->setEnabled(m_polyhedronAnnotation != NULL);
         }
-        else if (m_polyhedronAnnotation != NULL) {
-            if (m_polyAnnCoordinateSelected < polyAnnNumberOfCoordinates) {
-                insertValidFlag = true;
-            }
-        }
-    }
-    insertPolylineCoordinateAction->setEnabled(insertValidFlag);
-    
-    /*
-     * Remove poly line coordinate
-     */
-    QAction* removePolylineCoordinateAction = addAction("Remove "
-                                                        + polyAnnTypeName
-                                                        + " Coordinate",
-                                                    this, &UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected);
-    removePolylineCoordinateAction->setEnabled(polyAnnRemoveCoordinateAllowedFlag);
-    
-    if (samplesModeFlag) {
-        QAction* resetSliceRangeAction = addAction("Reset Slice Range...",
-                                                   this,
-                                                   &UserInputModeAnnotationsContextMenu::resetPolyhedronSliceRangeSelected);
-        resetSliceRangeAction->setEnabled(m_polyhedronAnnotation != NULL);
     }
     
     /*
