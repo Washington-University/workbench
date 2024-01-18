@@ -415,6 +415,8 @@ namespace caret {
         
         bool isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const;
         
+        Annotation* getSelectedPolyTypeAnnotation() const;
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
@@ -454,6 +456,18 @@ namespace caret {
         std::vector<Vector3D> m_lastSelectedAnnotationWindowCoordinates;
 
         bool m_allowMultipleSelectionModeFlag;
+        
+        /*
+         * Set when anntoation selection changes
+         * Reset in mouseRelease
+         */
+        bool m_mouseReleasedAnnotationsChangedFlag = false;
+        
+        /*
+         * Set when anntoation selection changes
+         * Reset in mouseClick
+         */
+        bool m_mouseClickAnnotationsChangedFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

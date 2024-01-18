@@ -1006,8 +1006,10 @@ UserInputModeAnnotations::getCursor() const
                                 break;
                             case PolyTypeDrawEditOperation::INSERT_COORDINATE:
                                 if (m_annotationUnderMouse != NULL) {
-                                    if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
-                                        cursor = CursorEnum::CURSOR_CROSS;
+                                    if (m_annotationUnderMouse == getSelectedPolyTypeAnnotation()) {
+                                        if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE) {
+                                            cursor = CursorEnum::CURSOR_CROSS;
+                                        }
                                     }
                                 }
                                 break;
@@ -2407,18 +2409,19 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
 }
 
 /**
- * @return True if there is one annotation and it is a polygon, polyline, or polyhedron
- * @param annotations
- *    The annotations
+ * @return The selected annotation if there is only one annotation selected and it is a poly-type annotation.
  */
-bool
-UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const
+Annotation*
+UserInputModeAnnotations::getSelectedPolyTypeAnnotation() const
 {
-    bool polyTypeAnnFlag(false);
-    if (annotations.size() == 1) {
-        CaretAssertVectorIndex(annotations, 0);
-        const Annotation* ann(annotations[0]);
-        switch (ann->getType()) {
+    Annotation* annOut(NULL);
+    
+    AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode()));
+    std::vector<Annotation*> selectedAnnotations(annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex()));
+    if (selectedAnnotations.size() == 1) {
+        CaretAssertVectorIndex(selectedAnnotations, 0);
+        Annotation* selectedAnn(selectedAnnotations[0]);
+        switch (selectedAnn->getType()) {
             case AnnotationTypeEnum::BOX:
                 break;
             case AnnotationTypeEnum::BROWSER_TAB:
@@ -2432,18 +2435,64 @@ UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Anno
             case AnnotationTypeEnum::OVAL:
                 break;
             case AnnotationTypeEnum::POLYGON:
-                polyTypeAnnFlag = true;
+                annOut = selectedAnn;
                 break;
             case AnnotationTypeEnum::POLYHEDRON:
-                polyTypeAnnFlag = true;
+                annOut = selectedAnn;
                 break;
             case AnnotationTypeEnum::POLYLINE:
-                polyTypeAnnFlag = true;
+                annOut = selectedAnn;
                 break;
             case AnnotationTypeEnum::SCALE_BAR:
                 break;
             case AnnotationTypeEnum::TEXT:
                 break;
+        }
+    }
+    return annOut;
+}
+
+/**
+ * @return True if there is one annotation and it is a polygon, polyline, or polyhedron
+ * @param annotations
+ *    The annotations
+ */
+bool
+UserInputModeAnnotations::isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const
+{
+    bool polyTypeAnnFlag(false);
+    if (annotations.size() == 1) {
+        CaretAssertVectorIndex(annotations, 0);
+        const Annotation* ann(annotations[0]);
+        CaretAssert(ann);
+        if (ann->isSelectedForEditing(getBrowserWindowIndex())) {
+            switch (ann->getType()) {
+                case AnnotationTypeEnum::BOX:
+                    break;
+                case AnnotationTypeEnum::BROWSER_TAB:
+                    break;
+                case AnnotationTypeEnum::COLOR_BAR:
+                    break;
+                case AnnotationTypeEnum::IMAGE:
+                    break;
+                case AnnotationTypeEnum::LINE:
+                    break;
+                case AnnotationTypeEnum::OVAL:
+                    break;
+                case AnnotationTypeEnum::POLYGON:
+                    polyTypeAnnFlag = true;
+                    break;
+                case AnnotationTypeEnum::POLYHEDRON:
+                    polyTypeAnnFlag = true;
+                    break;
+                case AnnotationTypeEnum::POLYLINE:
+                    polyTypeAnnFlag = true;
+                    break;
+                case AnnotationTypeEnum::SCALE_BAR:
+                    break;
+                case AnnotationTypeEnum::TEXT:
+                    break;
+            }
         }
     }
     return polyTypeAnnFlag;
@@ -2592,7 +2641,8 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
         {
             setAnnotationUnderMouse(mouseEvent,
                                     NULL);
-            if (m_annotationUnderMouse != NULL) {
+            if ((m_annotationUnderMouse != NULL)
+                && ( ! m_mouseClickAnnotationsChangedFlag)) {
                 std::vector<Annotation*> anns;
                 anns.push_back(m_annotationUnderMouse);
                 if (isOnePolyTypeAnnotationSelected(anns)) {
@@ -2654,6 +2704,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                                     }
                                     
                                     if (surfaceSpaceVertexIndex < 0) {
+                                        m_mouseClickAnnotationsChangedFlag = false;
                                         WuQMessageBox::errorOk(mouseEvent.getOpenGLWidget(),
                                                                "No surface vertex found at mouse location");
                                         return;
@@ -2686,6 +2737,8 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
         }
             break;
     }
+    
+    m_mouseClickAnnotationsChangedFlag = false;
 }
 
 /**
@@ -3064,6 +3117,8 @@ UserInputModeAnnotations::mouseLeftRelease(const MouseEvent& mouseEvent)
     setAnnotationUnderMouse(mouseEvent,
                             NULL);
     resetAnnotationUnderMouse();
+    
+    m_mouseReleasedAnnotationsChangedFlag = false;
 }
 
 /**
@@ -3277,6 +3332,9 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
                                                        const bool shiftKeyDownFlag,
                                                        const bool singleSelectionModeFlag)
 {
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+    const std::vector<Annotation*> previousSelectedAnnotations(annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex()));
+
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
@@ -3301,7 +3359,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
         deselectAnnotationsForEditingInAnnotationManager();
     }
     
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     AnnotationManager::SelectionMode selectionMode = AnnotationManager::SELECTION_MODE_SINGLE;
     if (m_allowMultipleSelectionModeFlag) {
         selectionMode = AnnotationManager::SELECTION_MODE_EXTENDED;
@@ -3327,6 +3384,13 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+    
+    /*
+     * Track selection changes
+     */
+    const std::vector<Annotation*> newSelectedAnnotations(annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex()));
+    m_mouseReleasedAnnotationsChangedFlag = (previousSelectedAnnotations != newSelectedAnnotations);
+    m_mouseClickAnnotationsChangedFlag = m_mouseReleasedAnnotationsChangedFlag;
 }
 
 /**
