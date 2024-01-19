@@ -208,7 +208,7 @@ namespace caret {
             
             void eraseLastCoordinate();
             
-            void finishSamplesAnnotation();
+            bool finishSamplesAnnotation();
             
             void updateAnnotation(const MouseEvent& mouseEvent);
             

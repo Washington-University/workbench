@@ -1960,11 +1960,12 @@ void
 UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation()
 {
     if (m_newUserSpaceAnnotationBeingCreated) {
-        m_newUserSpaceAnnotationBeingCreated->finishSamplesAnnotation();
+        if (m_newUserSpaceAnnotationBeingCreated->finishSamplesAnnotation()) {
+            m_newUserSpaceAnnotationBeingCreated.reset();
+            setMode(Mode::MODE_SELECT);
+        }
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        m_newUserSpaceAnnotationBeingCreated.reset();
-        setMode(Mode::MODE_SELECT);
     }
     else {
         CaretAssertMessage(0, "Trying to add/update new user space annotation but invalid");
@@ -4673,8 +4674,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
 
 /**
  * Finish creation of the annotation and add it to its file
+ * @return True if user finished annotation, else false.
  */
-void
+bool
 UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
 {
     if (m_validFlag) {
@@ -4696,15 +4698,25 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
                                              m_viewportHeight,
                                              m_sliceThickness,
                                              GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-        dialog.exec();
-        
-        /*
-         * Annotation must remain valid until after the dialog closes
-         * to prevent it from disappearing from the graphics region.
-         */
-        m_annotationFile = NULL;
-        m_annotation.reset();
+        if (dialog.exec() == AnnotationSamplesCreateDialog::Accepted) {
+            /*
+             * Annotation must remain valid until after the dialog closes
+             * to prevent it from disappearing from the graphics region.
+             */
+            m_annotationFile = NULL;
+            m_annotation.reset();
+            
+            /*
+             * User finished annotation
+             */
+            return true;
+        }
     }
+
+    /*
+     * User did NOT finish annotation
+     */
+    return false;
 }
 
 /**

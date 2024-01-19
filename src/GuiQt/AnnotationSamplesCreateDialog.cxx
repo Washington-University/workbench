@@ -182,9 +182,6 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
         m_annotationMetaData->set(name, value);
     }
 
-//    m_annotationMetaData->set(GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID, "");
-//    m_annotationMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, "");
-
     m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
                                                             m_requiredMetaDataNames,
                                                             m_annotationMetaData.get());
@@ -350,11 +347,11 @@ AnnotationSamplesCreateDialog::okButtonClicked()
 void
 AnnotationSamplesCreateDialog::cancelButtonClicked()
 {
-    const AString msg("Continue?  Polyhedron and metadata will be discarded.");
-    if (WuQMessageBox::warningYesNo(this, msg)) {
-        /* Yes, discard */
-    }
-    else {
+    const AString msg("Cancel finishing and return to drawing?");
+    if ( ! WuQMessageBox::warningYesNo(this, msg)) {
+        /*
+         * Did NOT cancel
+         */
         return;
     }
     
