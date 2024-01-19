@@ -231,12 +231,18 @@ UserInputModeVolumeEditWidget::isModeButtonEnabled(const VolumeEditingModeEnum::
         m_lockAction->setChecked(volumeEditInfo.m_volumeFileEditorDelegate->isLocked(volumeEditInfo.m_mapIndex));
         
         if (volumeEditInfo.m_volumeFile != NULL) {
-            const bool orthogonalFlag = (volumeEditInfo.m_sliceProjectionType
-                                         == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL);
-            if (orthogonalFlag) {
-                modeEnabledFlag = true;
+            switch (volumeEditInfo.m_sliceProjectionType) {
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
+                    break;
+                case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
+                    modeEnabledFlag = true;
+                    break;
             }
-            else {
+            if ( ! modeEnabledFlag) {
                 modeEnabledFlag = VolumeEditingModeEnum::isObliqueEditingAllowed(mode);
             }
         }

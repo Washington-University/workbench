@@ -450,15 +450,15 @@ VolumeEditingModeEnum::isObliqueEditingAllowed(const Enum enumValue)
     switch (enumValue) {
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ON:
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
-            obliqueEditingSupportedFlag = true;
-            break;
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_DILATE:
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_ERODE:
-        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D:
-        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D:
-        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D:
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_3D:
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_RETAIN_CONNECTED_3D:
+        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_3D:
+            obliqueEditingSupportedFlag = true;
+            break;
+        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_REMOVE_CONNECTED_2D:
+        case VolumeEditingModeEnum::VOLUME_EDITING_MODE_FLOOD_FILL_2D:
             break;
     }
     
