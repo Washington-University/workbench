@@ -5535,7 +5535,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             || drawNonEditableSizingHandlesFlag) {
             if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
                 || multiPairedCoordShape->isDrawingNewAnnotation()) {
-                const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
+                const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(multiPairedCoordShape,
+                                                                                  primitive.get()));
                 AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
                 if (drawEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
@@ -5719,14 +5720,58 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthMultiplierForAnnotationBe
 
 /**
  * Compute the diameter for a poly-type annotation size handle
+ * @param annotation
+ *    Annotation that is being drawn
  * @param primitive
  *    Primitive that is drawn and contains width of the line for the poly-type shape
  * @return
  *    Diameter for drawing the size handle.
  */
 float
-BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const GraphicsPrimitive* primitive) const
+BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const Annotation* annotation,
+                                                                         const GraphicsPrimitive* primitive) const
 {
+    bool useZoomingFlag(false);
+    CaretAssert(annotation);
+    switch (annotation->getCoordinateSpace()) {
+        case AnnotationCoordinateSpaceEnum::CHART:
+            break;
+        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            break;
+        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+            break;
+        case AnnotationCoordinateSpaceEnum::SPACER:
+            break;
+        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            useZoomingFlag = true;
+            break;
+        case AnnotationCoordinateSpaceEnum::SURFACE:
+            break;
+        case AnnotationCoordinateSpaceEnum::TAB:
+            break;
+        case AnnotationCoordinateSpaceEnum::VIEWPORT:
+            break;
+        case AnnotationCoordinateSpaceEnum::WINDOW:
+            break;
+    }
+    /*
+     * Symbols get larger as user zooms in
+     */
+    float zooming(1.0);
+    if (useZoomingFlag) {
+        CaretAssert(m_inputs);
+        EventBrowserTabGet tabEvent(m_inputs->m_tabIndex);
+        EventManager::get()->sendEvent(tabEvent.getPointer());
+        if (tabEvent.getEventProcessCount() > 0) {
+            if ( ! tabEvent.isError()) {
+                const BrowserTabContent* btc(tabEvent.getBrowserTab());
+                if (btc != NULL) {
+                    zooming = btc->getScaling() / 1.5;
+                }
+            }
+        }
+    }
+    
     GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
     float lineWidth(0.0);
     primitive->getLineWidth(lineWidthType, lineWidth);
@@ -5758,6 +5803,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const G
             diameterInPixels = (lineWidth * 3);
             break;
     }
+    
+    /*
+     * Symbol should change size with zooming
+     */
+    diameterInPixels *= zooming;
     return diameterInPixels;
 }
     
@@ -6029,7 +6079,8 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
             || multiCoordShape->isDrawingNewAnnotation()) {
-            const float sizeHandleWidthInPixels = computePolySizeHandleDiameter(primitive.get());
+            const float sizeHandleWidthInPixels = computePolySizeHandleDiameter(multiCoordShape,
+                                                                                primitive.get());
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
                                                        multiCoordShape,
                                                        windowVertexXYZ,

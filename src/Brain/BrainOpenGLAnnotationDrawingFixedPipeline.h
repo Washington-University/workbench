@@ -498,7 +498,8 @@ namespace caret {
         bool isBackFacing(const float xyz[3],
                           const float normal[3]) const;
         
-        float computePolySizeHandleDiameter(const GraphicsPrimitive* primitive) const;
+        float computePolySizeHandleDiameter(const Annotation* annotation,
+                                            const GraphicsPrimitive* primitive) const;
         
         float getLineWidthMultiplierForAnnotationBeingDrawn(const Annotation* annotation) const;
         
