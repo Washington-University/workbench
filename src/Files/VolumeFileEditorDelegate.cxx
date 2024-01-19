@@ -220,20 +220,20 @@ VolumeFileEditorDelegate::performEditingOperation(const int64_t mapIndex,
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
             switch (sliceProjectionType) {
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                    result = performTurnOnOrOffOblique(editInfo,
-                                                       errorMessageOut);
+                    result = performTurnOnOrOffOrthogonal(editInfo,
+                                                          errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
                     result = performTurnOnOrOffOrthogonal(editInfo,
                                                        errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                    result = performTurnOnOrOffOblique(editInfo,
-                                                       errorMessageOut);
+                    result = performTurnOnOrOffOrthogonal(editInfo,
+                                                          errorMessageOut);
                     break;
                 case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                    result = performTurnOnOrOffOblique(editInfo,
-                                                       errorMessageOut);
+                    result = performTurnOnOrOffOrthogonal(editInfo,
+                                                          errorMessageOut);
                     break;
             }
             break;
@@ -512,12 +512,14 @@ VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
         for (int64_t j = editInfo.m_ijkMin[1]; j <= editInfo.m_ijkMax[1]; j++) {
             for (int64_t k = editInfo.m_ijkMin[2]; k <= editInfo.m_ijkMax[2]; k++) {
                 const int64_t ijk[3] = { i, j, k };
-                modifiedVoxels->addVoxelRedoUndo(ijk,
-                                                 redoVoxelValue,
-                                                 m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
-                m_volumeFile->setValue(redoVoxelValue,
-                                       ijk,
-                                       editInfo.m_mapIndex);
+                if (m_volumeFile->indexValid(ijk)) {
+                    modifiedVoxels->addVoxelRedoUndo(ijk,
+                                                     redoVoxelValue,
+                                                     m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
+                    m_volumeFile->setValue(redoVoxelValue,
+                                           ijk,
+                                           editInfo.m_mapIndex);
+                }
             }
         }
     }
@@ -543,6 +545,9 @@ bool
 VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
                                                        AString& errorMessageOut)
 {
+    CaretAssertMessage(0, "This functionality is no different that turning on/off "
+                       "orthogonal.  We have not defined how this should function "
+                       "for non-orthgonal views.");
     float redoVoxelValue = 0.0;
     switch (editInfo.m_mode){
         case VolumeEditingModeEnum::VOLUME_EDITING_MODE_OFF:
@@ -581,22 +586,11 @@ VolumeFileEditorDelegate::performTurnOnOrOffOblique(const EditInfo& editInfo,
     for (int64_t k = -halfBrushK; k <= halfBrushK; k++) {
         for (int64_t i = -halfBrushI; i <= halfBrushI; i++) {
             for (int64_t j = -halfBrushJ; j <= halfBrushJ; j++) {
-                float localXYZ[3] = {
-                    i * spacing[0],
-                    j * spacing[1],
-                    k * spacing[2]
+                int64_t ijk[3] {
+                    i + editInfo.m_voxelIJK[0],
+                    j + editInfo.m_voxelIJK[1],
+                    k + editInfo.m_voxelIJK[2]
                 };
-                editInfo.m_obliqueRotationMatrix.multiplyPoint3(localXYZ);
-                
-                float brushXYZ[3] = {
-                    voxelXYZ[0] + localXYZ[0],
-                    voxelXYZ[1] + localXYZ[1],
-                    voxelXYZ[2] + localXYZ[2]
-                };
-                
-                float ijkFloat[3];
-                m_volumeFile->spaceToIndex(brushXYZ, ijkFloat);
-                int64_t ijk[3] = { (int64_t)ijkFloat[0], (int64_t)ijkFloat[1], (int64_t)ijkFloat[2] };
                 if (m_volumeFile->indexValid(ijk)) {
                     modifiedVoxels->addVoxelRedoUndo(ijk,
                                                      redoVoxelValue,
