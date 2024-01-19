@@ -433,7 +433,8 @@ SurfaceProjector::projectItem(SurfaceProjectedItem* spi,
             }
             
             if (nearestSurfaceIndex < 0) {
-                throw SurfaceProjectorException("Failed to find surface for projection.");
+                throw SurfaceProjectorException("Failed to find surface for projection.  This may occur "
+                                                "if there is no left or right anatomical surface loaded.");
             }
             const SurfaceFile* projectionSurfaceFile = m_surfaceFiles[nearestSurfaceIndex];
             projectItemToSurfaceFile(projectionSurfaceFile,
