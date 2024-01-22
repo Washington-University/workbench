@@ -54,6 +54,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     validSurfaceTypes.push_back(SurfaceTypeEnum::RECONSTRUCTION);
     validSurfaceTypes.push_back(SurfaceTypeEnum::INFLATED);
     validSurfaceTypes.push_back(SurfaceTypeEnum::VERY_INFLATED);
+    validSurfaceTypes.push_back(SurfaceTypeEnum::UNKNOWN);
     
     m_displayed = false;
     m_thicknessPixelsObsolete = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE;
