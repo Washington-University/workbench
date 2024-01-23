@@ -56,7 +56,7 @@ OperationParameters* OperationCiftiMath::getParameters()
     varOpt->addCiftiParameter(2, "cifti", "the cifti file to use as this variable");
     ParameterComponent* selectOpt = varOpt->createRepeatableParameter(3, "-select", "select a single index from a dimension");//repeatable option to repeatable option
     selectOpt->addIntegerParameter(1, "dim", "the dimension to select from (1-based)");
-    selectOpt->addIntegerParameter(2, "index", "the index to use (1-based)");
+    selectOpt->addStringParameter(2, "index", "the index number (1-based) or map name to use");
     selectOpt->createOptionalParameter(3, "-repeat", "repeat the selected values for each index of output in this dimension");//with a repeat option
     
     OptionalParameter* fixNanOpt = ret->createOptionalParameter(4, "-fixnan", "replace NaN results with a value");
@@ -119,12 +119,17 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
         for (int j = 0; j < (int)thisSelectOpts.size(); ++j)
         {
             int dim = (int)thisSelectOpts[j]->getInteger(1) - 1;
-            int64_t thisIndex = thisSelectOpts[j]->getInteger(2) - 1;
+            int64_t thisIndex = -2;
             if (dim >= (int)thisSelectInfo.size())
             {
+                bool ok = false;
+                thisIndex = int(thisSelectOpts[j]->getString(2).toLong(&ok)) - 1;
+                if (!ok) throw OperationException("non-integer index '" + thisSelectOpts[j]->getString(2) + "' specified on nonexistent dimension");
                 if (thisIndex != 0) throw OperationException("-select used  for variable '" + varName + "' with index other than 1 on nonexistent dimension");
                 thisSelectInfo.resize(dim + 1, -1);
                 thisRepeat.resize(dim + 1, false);
+            } else {
+                thisIndex = tempXML.getMap(dim)->getIndexFromNumberOrName(thisSelectOpts[j]->getString(2));
             }
             thisSelectInfo[dim] = thisIndex;
             thisRepeat[dim] = thisSelectOpts[j]->getOptionalParameter(3)->m_present;
