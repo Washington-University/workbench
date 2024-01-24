@@ -190,6 +190,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "PASTE_ANNOTATION",
                                                          "Paste Annotation"));
 
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_ADD_COORDINATE,
+                                                         "MULTI_COORD_ADD_COORDINATE",
+                                                         "Add Poly Coordinate"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_INSERT_COORDINATE,
                                                          "MULTI_COORD_INSERT_COORDINATE",
                                                          "Insert Poly Coordinate"));
@@ -197,6 +201,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_REMOVE_COORDINATE,
                                                          "MULTI_COORD_REMOVE_COORDINATE",
                                                          "Remove Poly Coordinate"));
+    
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(MULTI_COORD_REMOVE_LAST_COORDINATE,
+                                                         "MULTI_COORD_REMOVE_LAST_COORDINATE",
+                                                         "Remove Last Poly Coordinate"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(POLYHEDRON_RESET_RANGE_TO_PLANES,
                                                          "POLYHEDRON_RESET_RANGE_TO_PLANES",

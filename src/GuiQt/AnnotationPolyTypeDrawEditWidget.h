@@ -91,7 +91,7 @@ namespace caret {
         
         QAction* m_eraseLastCoordinateAction = NULL;
         
-        QAction* m_drawCoordinatesAction = NULL;
+        QAction* m_addCoordinatesAction = NULL;
         
         QAction* m_removeCoordinatesAction = NULL;
         

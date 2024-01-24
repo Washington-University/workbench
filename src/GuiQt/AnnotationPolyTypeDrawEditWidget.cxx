@@ -33,6 +33,7 @@
 
 #include "Annotation.h"
 #include "AnnotationManager.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EventAnnotationDrawingFinishCancel.h"
@@ -104,7 +105,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_eraseLastCoordinateAction = new QAction("Erase");
     m_eraseLastCoordinateAction->setToolTip("<html>"
                                             "Remove the last coordinate that was "
-                                            "added in DRAW MODE"
+                                            "added in ADD MODE"
                                             "</html>");
     QObject::connect(m_eraseLastCoordinateAction, &QAction::triggered,
                      this, &AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered);
@@ -112,10 +113,10 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::setToolButtonStyleForQt5Mac(eraseLastCoordinateToolButton);
 
     /*
-     * Draw button
+     * Add button
      */
-    const QString drawToolTip("<html>"
-                              "DRAW MODE - add new coordinates"
+    const QString addToolTip("<html>"
+                              "ADD MODE - add new coordinates"
                               "<ul>"
                               "<li>Click the mouse to add one coordinate to the end of "
                               "the poly shape"
@@ -124,20 +125,20 @@ m_browserWindowIndex(browserWindowIndex)
                               "<li>Using both clicks and drags is allowed"
                               "</ul>"
                               "</html>");
-    m_drawCoordinatesAction = new QAction("Draw");
-    m_drawCoordinatesAction->setCheckable(true);
-    m_drawCoordinatesAction->setToolTip(drawToolTip);
-    QObject::connect(m_drawCoordinatesAction, &QAction::triggered, this,
+    m_addCoordinatesAction = new QAction("Add");
+    m_addCoordinatesAction->setCheckable(true);
+    m_addCoordinatesAction->setToolTip(addToolTip);
+    QObject::connect(m_addCoordinatesAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered);
     
-    QToolButton* drawCoordinatesToolButton(new QToolButton());
-    drawCoordinatesToolButton->setDefaultAction(m_drawCoordinatesAction);
-    WuQtUtilities::setToolButtonStyleForQt5Mac(drawCoordinatesToolButton);
+    QToolButton* addCoordinatesToolButton(new QToolButton());
+    addCoordinatesToolButton->setDefaultAction(m_addCoordinatesAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(addCoordinatesToolButton);
     
     /*
-     * Delete button
+     * Remove button
      */
-    const QString deleteToolTip("<html>"
+    const QString removeToolTip("<html>"
                                 "EDIT MODE - REMOVE coordinates"
                                 "<ul>"
                                 "<li>Move the mouse over a coordinate"
@@ -147,7 +148,7 @@ m_browserWindowIndex(browserWindowIndex)
                                 "</html>");
     m_removeCoordinatesAction = new QAction("Remove");
     m_removeCoordinatesAction->setCheckable(true);
-    m_removeCoordinatesAction->setToolTip(deleteToolTip);
+    m_removeCoordinatesAction->setToolTip(removeToolTip);
     QObject::connect(m_removeCoordinatesAction, &QAction::triggered, this,
                      &AnnotationPolyTypeDrawEditWidget::removeCoordinatesActionTriggered);
     
@@ -202,6 +203,9 @@ m_browserWindowIndex(browserWindowIndex)
                               + annMoveToolTip
                               + "<html>");
     m_moveOneCoordinateAction = new QAction("Move");
+    if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        m_moveOneCoordinateAction->setText("Move1");
+    }
     m_moveOneCoordinateAction->setCheckable(true);
     m_moveOneCoordinateAction->setToolTip(moveToolTip);
     QObject::connect(m_moveOneCoordinateAction, &QAction::triggered, this,
@@ -245,7 +249,7 @@ m_browserWindowIndex(browserWindowIndex)
      */
     QActionGroup* actionGroup(new QActionGroup(this));
     actionGroup->setExclusive(true);
-    actionGroup->addAction(m_drawCoordinatesAction);
+    actionGroup->addAction(m_addCoordinatesAction);
     actionGroup->addAction(m_removeCoordinatesAction);
     actionGroup->addAction(m_insertCoordinatesAction);
     actionGroup->addAction(m_moveOneCoordinateAction);
@@ -256,7 +260,7 @@ m_browserWindowIndex(browserWindowIndex)
     /*
      * Keep some buttons same width
      */
-    WuQtUtilities::matchWidgetWidths(drawCoordinatesToolButton,
+    WuQtUtilities::matchWidgetWidths(addCoordinatesToolButton,
                                      eraseLastCoordinateToolButton);
     WuQtUtilities::matchWidgetWidths(removeCoordinatesToolButton,
                                      moveOneCoordinateToolButton);
@@ -294,7 +298,7 @@ m_browserWindowIndex(browserWindowIndex)
                           row, 2, 1, 2, Qt::AlignHCenter);
     ++row;
     
-    gridLayout->addWidget(drawCoordinatesToolButton,
+    gridLayout->addWidget(addCoordinatesToolButton,
                           row, 0, Qt::AlignHCenter);
     gridLayout->addWidget(removeCoordinatesToolButton,
                           row, 2, Qt::AlignHCenter);
@@ -407,8 +411,8 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
     bool cancelEnabledFlag(false);
     bool finishEnabledFlag(false);
     bool eraseLastEnabledFlag(false);
-    bool drawCoordinatesEnabledFlag(false);
-    bool drawCoordinatesCheckedFlag(false);
+    bool addCoordinatesEnabledFlag(false);
+    bool addCoordinatesCheckedFlag(false);
     bool deleteCoordinatesEnabledFlag(false);
     bool deleteCoordinatesCheckedFlag(false);
     bool insertCoordinatesEnabledFlag(false);
@@ -426,8 +430,8 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
             case UserInputModeAnnotations::PolyTypeDrawEditOperation::REMOVE_COORDINATE:
                 deleteCoordinatesEnabledFlag = true;
                 break;
-            case UserInputModeAnnotations::PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
-                drawCoordinatesEnabledFlag = true;
+            case UserInputModeAnnotations::PolyTypeDrawEditOperation::ADD_NEW_COORDINATE:
+                addCoordinatesEnabledFlag = true;
                 break;
             case UserInputModeAnnotations::PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
                 eraseLastEnabledFlag = true;
@@ -490,8 +494,8 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         case UserInputModeAnnotations::PolyTypeDrawEditOperation::REMOVE_COORDINATE:
             deleteCoordinatesCheckedFlag = true;
             break;
-        case UserInputModeAnnotations::PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE:
-            drawCoordinatesCheckedFlag = true;
+        case UserInputModeAnnotations::PolyTypeDrawEditOperation::ADD_NEW_COORDINATE:
+            addCoordinatesCheckedFlag = true;
             break;
         case UserInputModeAnnotations::PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
             /* Not a toggle button  */
@@ -516,9 +520,9 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         m_finishToolButton->setStyleSheet(m_finishToolButtonStyleSheetDisabled);
     }
     
-    if (m_drawCoordinatesAction != NULL) {
-        m_drawCoordinatesAction->setEnabled(drawCoordinatesEnabledFlag);
-        m_drawCoordinatesAction->setChecked(drawCoordinatesCheckedFlag);
+    if (m_addCoordinatesAction != NULL) {
+        m_addCoordinatesAction->setEnabled(addCoordinatesEnabledFlag);
+        m_addCoordinatesAction->setChecked(addCoordinatesCheckedFlag);
     }
     if (m_removeCoordinatesAction != NULL) {
         m_removeCoordinatesAction->setEnabled(deleteCoordinatesEnabledFlag);
@@ -548,7 +552,7 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
     setEnabled(finishEnabledFlag
                || cancelEnabledFlag
                || eraseLastEnabledFlag
-               || drawCoordinatesEnabledFlag
+               || addCoordinatesEnabledFlag
                || deleteCoordinatesEnabledFlag
                || insertCoordinatesEnabledFlag
                || moveOneCoordinateEnabledFlag
@@ -611,17 +615,33 @@ AnnotationPolyTypeDrawEditWidget::cancelActionTriggered()
 void
 AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered()
 {
-    if (m_annotationNumberOfCoordinates > 1) {
-        EventAnnotationDrawingFinishCancel eraseEvent(EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE,
-                                                       m_browserWindowIndex,
-                                                       m_userInputMode);
-        EventManager::get()->sendEvent(eraseEvent.getPointer());
+    if (m_userInputModeAnnotations->getMode() == UserInputModeAnnotations::Mode::MODE_SELECT) {
+        Annotation* annotation(m_userInputModeAnnotations->getSelectedPolyTypeAnnotation());
+        if (annotation != NULL) {
+            AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+            undoCommand->setModeMultiCoordAnnRemoveLastCoordinate(annotation);
+            AString errorMessage;
+            AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode));
+            if ( !  annMan->applyCommand(undoCommand,
+                                         errorMessage)) {
+                WuQMessageBox::errorOk(this,
+                                       errorMessage);
+            }
+        }
     }
-    else if (m_annotationNumberOfCoordinates == 1) {
-        EventAnnotationDrawingFinishCancel restartEvent(EventAnnotationDrawingFinishCancel::Mode::RESTART_DRAWING,
-                                                      m_browserWindowIndex,
-                                                      m_userInputMode);
-        EventManager::get()->sendEvent(restartEvent.getPointer());
+    else {
+        if (m_annotationNumberOfCoordinates > 1) {
+            EventAnnotationDrawingFinishCancel eraseEvent(EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE,
+                                                          m_browserWindowIndex,
+                                                          m_userInputMode);
+            EventManager::get()->sendEvent(eraseEvent.getPointer());
+        }
+        else if (m_annotationNumberOfCoordinates == 1) {
+            EventAnnotationDrawingFinishCancel restartEvent(EventAnnotationDrawingFinishCancel::Mode::RESTART_DRAWING,
+                                                            m_browserWindowIndex,
+                                                            m_userInputMode);
+            EventManager::get()->sendEvent(restartEvent.getPointer());
+        }
     }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
@@ -701,7 +721,7 @@ AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered(bool checked)
 {
     CaretAssert(m_userInputModeAnnotations);
     if (checked) {
-        m_userInputModeAnnotations->setPolyTypeDrawEditOperation(UserInputModeAnnotations::PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE);
+        m_userInputModeAnnotations->setPolyTypeDrawEditOperation(UserInputModeAnnotations::PolyTypeDrawEditOperation::ADD_NEW_COORDINATE);
     }
     
     updateContent();

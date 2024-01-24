@@ -134,6 +134,9 @@ namespace caret {
         
         void setModeDuplicateAnnotations(std::vector<AnnotationAndFile>& annotationsAndFile);
         
+        void setModeMultiCoordAnnAddCoordinate(const AnnotationCoordinate& coordinate,
+                                               Annotation* annotation);
+        
         void setModeMultiCoordAnnInsertCoordinate(const int32_t insertAfterCoordinateIndex,
                                                   const float normalizedDistanceToNextCoordinate,
                                                   const int32_t surfaceSpaceNewVertexIndex,
@@ -141,6 +144,8 @@ namespace caret {
         
         void setModeMultiCoordAnnRemoveCoordinate(const int32_t coordinateIndex,
                                                   Annotation* annotation);
+        
+        void setModeMultiCoordAnnRemoveLastCoordinate(Annotation* annotation);
         
         bool setModePolyhedronResetRangeToPlane(const Plane& planeOne,
                                                 const Plane& planeTwo,

@@ -81,12 +81,10 @@ namespace caret {
          * Operations for drawing and editing poly-type annotations
          */
         enum class PolyTypeDrawEditOperation {
+            /** Mouse adds new coordinate to poly-type */
+            ADD_NEW_COORDINATE,
             /** Cancel drawing of new annotation */
             CANCEL_NEW_ANNOTATION,
-            /** Mouse draws new coordinate to poly-type */
-            DRAW_NEW_COORDINATE,
-            /** Mouse removes coordinate */
-            REMOVE_COORDINATE,
             /** Erase last coordinate (available while drawing) */
             ERASE_LAST_COORDINATE,
             /** Finish drawing of new annotation */
@@ -96,7 +94,9 @@ namespace caret {
             /** Mouse moves one existing coordinate */
             MOVE_ONE_COORDINATE,
             /** Mouse move coordinate and its corrsponding coordinate at other end of polyhedron */
-            MOVE_TWO_COORDINATES
+            MOVE_TWO_COORDINATES,
+            /** Mouse removes coordinate */
+            REMOVE_COORDINATE
         };
         
         UserInputModeAnnotations(const int32_t browserWindowIndex);
@@ -415,6 +415,11 @@ namespace caret {
         
         bool isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const;
         
+        bool isOnePolyTypeAnnotationInDrawModeSelected(const std::vector<Annotation*>& annotations) const;
+        
+        void addCoordinateToAnnotation(const MouseEvent& mouseEvent,
+                                       Annotation* annotation);
+        
         Annotation* getSelectedPolyTypeAnnotation() const;
         
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
@@ -422,13 +427,13 @@ namespace caret {
         Mode m_mode;
         
         /** Edit Samples Mode - Used when the polyhedron is being drawn and before finishing */
-        mutable PolyTypeDrawEditOperation m_polyhedronDrawingNewOperation = PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE;
+        mutable PolyTypeDrawEditOperation m_polyhedronDrawingNewOperation = PolyTypeDrawEditOperation::ADD_NEW_COORDINATE;
         
         /** Edit Samples Mode - Used when the polyhedron is being editited anytime after finishing */
         mutable PolyTypeDrawEditOperation m_polyhedronEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
         
         /** Annotation - Polyline, polygon DRAWING NEW  before finishing*/
-        mutable PolyTypeDrawEditOperation m_annotationPolyTypeDrawingNewOperation = PolyTypeDrawEditOperation::DRAW_NEW_COORDINATE;
+        mutable PolyTypeDrawEditOperation m_annotationPolyTypeDrawingNewOperation = PolyTypeDrawEditOperation::ADD_NEW_COORDINATE;
         
         /** Annotation - Polyline, polygon EDITING anytime after finishing*/
         mutable PolyTypeDrawEditOperation m_annotationPolyTypeEditingOperation = PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE;
