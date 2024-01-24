@@ -1263,7 +1263,7 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
             switch (primitive->m_colorDataType) {
                 case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
                 {
-                    CaretAssertVectorIndex(primitive->m_floatRGBA, 4);
+                    CaretAssertVectorIndex(primitive->m_floatRGBA, ((numberOfVertices * 4) - 1));
                     const uint8_t rgba[4] = {
                         static_cast<uint8_t>(primitive->m_floatRGBA[0] * 255.0),
                         static_cast<uint8_t>(primitive->m_floatRGBA[1] * 255.0),
@@ -1277,7 +1277,7 @@ GraphicsEngineDataOpenGL::drawSpheresPrimitive(const GraphicsPrimitive* primitiv
                 }
                     break;
                 case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
-                    CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, 4);
+                    CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, ((numberOfVertices * 4) - 1));
                     GraphicsShape::drawSpheresByteColor(&primitive->m_xyz[0],
                                                         numberOfVertices,
                                                         &primitive->m_unsignedByteRGBA[0],
