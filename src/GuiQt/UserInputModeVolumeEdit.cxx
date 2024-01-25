@@ -31,7 +31,7 @@
 #include "DrawingViewportContent.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventDrawingViewportContentGet.h"
-#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
@@ -292,7 +292,11 @@ UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
 
     volumeFile->clearVoxelColoringForMap(mapIndex);
     volumeFile->updateScalarColoringForMap(mapIndex);
-    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    
+    /*
+     * We want to repaint the graphics as immediately
+     */
+    EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
 }
 
 /**
@@ -303,25 +307,6 @@ UserInputModeVolumeEdit::getCursor() const
 {
     
     CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
-    
-//    switch (m_mode) {
-//        case MODE_CREATE:
-//            break;
-//        case MODE_EDIT:
-//            cursor = CursorEnum::CURSOR_POINTING_HAND;
-//            switch (m_editOperation) {
-//                case EDIT_OPERATION_DELETE:
-//                    cursor = CursorEnum::CURSOR_CROSS;
-//                    break;
-//                case EDIT_OPERATION_PROPERTIES:
-//                    cursor = CursorEnum::CURSOR_WHATS_THIS;
-//                    break;
-//            }
-//            break;
-//        case MODE_OPERATIONS:
-//            cursor = CursorEnum::CURSOR_POINTING_HAND;
-//            break;
-//    }
     
     return cursor;
 }
