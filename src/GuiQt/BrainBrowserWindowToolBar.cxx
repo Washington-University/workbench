@@ -103,8 +103,8 @@
 #include "EventBrowserWindowTileTabOperation.h"
 #include "EventUserInputModeGet.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
-#include "EventGraphicsUpdateOneWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
@@ -762,7 +762,7 @@ BrainBrowserWindowToolBar::insertAndCloneTabContentAtTabBarIndex(const BrowserTa
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -810,7 +810,7 @@ BrainBrowserWindowToolBar::reopenLastClosedTab(EventBrowserTabReopenClosed& reop
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
 }
 
 
@@ -945,7 +945,7 @@ BrainBrowserWindowToolBar::insertNewTabAtTabBarIndex(const int32_t tabBarIndex)
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
     
     return tabContent;
 }
@@ -1759,7 +1759,7 @@ void
 BrainBrowserWindowToolBar::resetTabIndexForTileTabsHighlighting()
 {
     m_tabIndexForTileTabsHighlighting = -1;
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -1782,7 +1782,7 @@ BrainBrowserWindowToolBar::tabBarMousePressedSlot(QMouseEvent* event)
      */
     if (event->button() == Qt::LeftButton) {
         EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, true);
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS, true);
     }
 }
 
@@ -1798,7 +1798,7 @@ BrainBrowserWindowToolBar::tabBarMouseReleasedSlot(QMouseEvent* event)
      */
     if (event->button() == Qt::LeftButton) {
         EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
-        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, false);
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS, false);
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(this->browserWindowIndex).getPointer());
 
         /**
@@ -3487,7 +3487,7 @@ void
 BrainBrowserWindowToolBar::updateGraphicsWindow()
 {
     EventManager::get()->sendEvent(
-            EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+            EventGraphicsPaintSoonOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -4024,7 +4024,7 @@ BrainBrowserWindowToolBar::updateGraphicsWindowAndYokedWindows()
     BrowserTabContent* browserTabContent = getTabContentFromSelectedTab();
     if (browserTabContent != NULL) {
         if (browserTabContent->isBrainModelYoked()) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             EventManager::get()->sendEvent(EventUpdateYokedWindows(this->browserWindowIndex,
                                                                    browserTabContent->getBrainModelYokingGroup(),
                                                                    browserTabContent->getChartModelYokingGroup()).getPointer());

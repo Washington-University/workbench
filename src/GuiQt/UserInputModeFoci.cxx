@@ -29,8 +29,8 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
@@ -100,7 +100,7 @@ UserInputModeFoci::setMode(const Mode mode)
 {
     if (m_mode != mode) {
         m_mode = mode;
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
     }
     this->m_inputModeFociWidget->updateWidget();
 }
@@ -162,7 +162,7 @@ UserInputModeFoci::updateAfterFociChanged()
     /*
      * Need to update all graphics windows and all border controllers.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addFoci().getPointer());
 }
 

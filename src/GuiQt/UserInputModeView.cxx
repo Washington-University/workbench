@@ -37,8 +37,8 @@
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlay.h"
 #include "ChartTwoOverlaySet.h"
-#include "EventGraphicsUpdateOneWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUpdateYokedWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventBrowserWindowDrawingContent.h"
@@ -1212,7 +1212,7 @@ UserInputModeView::updateGraphics(const BrainOpenGLViewportContent* viewportCont
     if (viewportContent != NULL) {
         BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
         const int32_t browserWindowIndex = viewportContent->getWindowIndex();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(browserWindowIndex).getPointer());
         
         YokingGroupEnum::Enum brainYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
         YokingGroupEnum::Enum chartYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
@@ -1228,7 +1228,7 @@ UserInputModeView::updateGraphics(const BrainOpenGLViewportContent* viewportCont
             }
             
             if (issuedYokeEvent) {
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 EventManager::get()->sendEvent(EventUpdateYokedWindows(brainYokingGroup,
                                                                        chartYokingGroup).getPointer());
             }
@@ -1239,7 +1239,7 @@ UserInputModeView::updateGraphics(const BrainOpenGLViewportContent* viewportCont
      * If not yoked, just need to update graphics.
      */
     if ( ! issuedYokeEvent) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(viewportContent->getWindowIndex()).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(viewportContent->getWindowIndex()).getPointer());
     }
 }
 
@@ -1254,7 +1254,7 @@ UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
     if (mouseEvent.getViewportContent() != NULL) {
         BrowserTabContent* browserTabContent = mouseEvent.getViewportContent()->getBrowserTabContent();
         const int32_t browserWindowIndex = mouseEvent.getBrowserWindowIndex();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(browserWindowIndex).getPointer());
         
         YokingGroupEnum::Enum brainYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
         YokingGroupEnum::Enum chartYokingGroup = YokingGroupEnum::YOKING_GROUP_OFF;
@@ -1270,7 +1270,7 @@ UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
             }
             
             if (issuedYokeEvent) {
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 EventManager::get()->sendEvent(EventUpdateYokedWindows(brainYokingGroup,
                                                                        chartYokingGroup).getPointer());
             }
@@ -1281,7 +1281,7 @@ UserInputModeView::updateGraphics(const MouseEvent& mouseEvent)
      * If not yoked, just need to update graphics.
      */
     if ( ! issuedYokeEvent) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(mouseEvent.getBrowserWindowIndex()).getPointer());
     }
 }
 
@@ -1396,7 +1396,7 @@ UserInputModeView::processChartActiveLayerAction(const ChartActiveLayerMode char
         }
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBox().getPointer());    
 }
 
@@ -1496,7 +1496,7 @@ UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenu
             }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
             break;
         case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
@@ -1510,7 +1510,7 @@ UserInputModeView::processEditMenuItemSelection(const BrainBrowserWindowEditMenu
             }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
             break;
     }

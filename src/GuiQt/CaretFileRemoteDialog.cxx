@@ -43,7 +43,7 @@
 #include "DataFileTypeEnum.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileRead.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"

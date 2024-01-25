@@ -45,7 +45,7 @@
 #include "ChartModelTimeSeries.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "GuiManager.h"
 #include "ModelChart.h"
 #include "WuQMacroManager.h"
@@ -289,7 +289,7 @@ ChartHistoryViewController::maximumDisplayedSpinBoxValueChanged(int value)
 void
 ChartHistoryViewController::updateAfterSelectionsChanged()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
     updateHistoryViewController();
 }
 

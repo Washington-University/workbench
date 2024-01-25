@@ -462,9 +462,11 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_CREATE_TEXTURE_NAME:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT:
         case EventTypeEnum::EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME:
+        case EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS:
+        case EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW:
         case EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW:
-        case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS:
-        case EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW:
+        case EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS:
+        case EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW:
         case EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP:
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:
         case EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET:

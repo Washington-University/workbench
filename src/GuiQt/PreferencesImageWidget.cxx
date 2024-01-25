@@ -39,7 +39,7 @@
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "ImageFile.h"
@@ -250,7 +250,7 @@ PreferencesImageWidget::updateGraphicsAndUserInterface()
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

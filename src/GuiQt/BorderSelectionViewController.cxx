@@ -42,7 +42,7 @@
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesBorders.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -390,7 +390,7 @@ BorderSelectionViewController::processAttributesChanges()
                                    m_unstretchedLinesLengthSpinBox->value());
     dpb->setAboveSurfaceOffset(m_aboveSurfaceOffsetSpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     updateOtherBorderViewControllers();
 }
@@ -552,7 +552,7 @@ void
 BorderSelectionViewController::processSelectionChanges()
 {
     updateOtherBorderViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

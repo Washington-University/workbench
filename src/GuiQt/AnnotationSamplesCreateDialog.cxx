@@ -39,7 +39,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -335,7 +335,7 @@ AnnotationSamplesCreateDialog::okButtonClicked()
     
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->updateForNewAnnotation(m_annotation);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     WuQDialogModal::okButtonClicked();

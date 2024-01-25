@@ -37,7 +37,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
@@ -645,5 +645,5 @@ ScaleBarWidget::fontSizeValueChanged(double value)
 void
 ScaleBarWidget::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }

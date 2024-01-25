@@ -43,7 +43,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "ColorEditorWidget.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -885,7 +885,7 @@ GiftiLabelTableEditor::processApplyButton()
         m_caretMappableDataFile->updateScalarColoringForMap(m_caretMappableDataFileMapIndex);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

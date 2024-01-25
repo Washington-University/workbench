@@ -33,7 +33,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -341,7 +341,7 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
         }
         
         if (updateGraphicsFlag) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
         }
         if (updateUserIterfaceFlag) {
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

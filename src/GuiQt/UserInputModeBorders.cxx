@@ -35,8 +35,8 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CursorManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -191,7 +191,7 @@ UserInputModeBorders::updateAfterBordersChanged()
     /*
      * Need to update all graphics windows and all border controllers.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
@@ -225,7 +225,7 @@ UserInputModeBorders::setMode(const Mode mode)
     if (this->mode != mode) {
         this->mode = mode;
         this->borderBeingDrawn->clear();
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
     }
     this->borderToolsWidget->updateWidget();
 }
@@ -249,7 +249,7 @@ UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 {
     this->drawOperation = drawOperation;
     this->borderToolsWidget->updateWidget();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -274,7 +274,7 @@ UserInputModeBorders::drawOperationFinish()
 {
     this->borderBeingDrawn->clear();
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().addBorder().getPointer());
 }
 
@@ -285,7 +285,7 @@ void
 UserInputModeBorders::drawOperationUndo()
 {
     this->borderBeingDrawn->removeLastPoint();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -295,7 +295,7 @@ void
 UserInputModeBorders::drawOperationReset()
 {
     this->borderBeingDrawn->clear();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -360,7 +360,7 @@ UserInputModeBorders::mouseLeftClick(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
         {
@@ -459,7 +459,7 @@ UserInputModeBorders::mouseLeftClickWithCtrlShift(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
             break;
@@ -486,7 +486,7 @@ UserInputModeBorders::mouseLeftDragWithCtrlShift(const MouseEvent& mouseEvent)
             this->drawPointAtMouseXY(openGLWidget,
                                      mouseX,
                                      mouseY);
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
             break;
         case MODE_EDIT:
             break;

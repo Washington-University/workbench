@@ -26,7 +26,7 @@
 #include <QApplication>
 
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventSurfacesGet.h"
@@ -199,7 +199,7 @@ WbMacroCustomOperationBase::updateGraphics()
      * Passing 'true' indicate do a repaint().  A 'repaint' is performed immediately.
      * Otherwise, the graphics update is scheduled for a later time.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
     
     /*
      * Qt needs time to update stuff

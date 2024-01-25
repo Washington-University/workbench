@@ -50,7 +50,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -900,7 +900,7 @@ AnnotationInsertNewWidget::newSampleDepthValueChanged(int value)
      * Depth value is requested while the annotation is being drawn by graphics
      * so request a graphics update
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
 }
 

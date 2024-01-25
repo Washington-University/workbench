@@ -184,12 +184,16 @@ public:
         EVENT_GRAPHICS_OPENGL_DELETE_BUFFER_OBJECT,
         /** Delete a texture name for an OpenGL context */
         EVENT_GRAPHICS_OPENGL_DELETE_TEXTURE_NAME,
+        /** Paint (draw immediately) graphics in a window */
+        EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS,
+        /** Paint  (draw immediately) graphics in a window */
+        EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW,
+        /** Paint (draw soon but not immediately) all graphics windows */
+        EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS,
+        /** Paint (draw soon but not immediately) all graphics windows */
+        EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW,
         /** Time the OpenGL graphics in a window */
         EVENT_GRAPHICS_TIMING_ONE_WINDOW,
-        /** Update all graphics windows */
-        EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
-        /** Update graphics in a window */
-        EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
         /** Show tooltip in graphics window */
         EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP,
         /** Display the help viewer */

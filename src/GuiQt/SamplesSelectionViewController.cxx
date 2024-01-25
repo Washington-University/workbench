@@ -34,7 +34,7 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesSamples.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -243,7 +243,7 @@ SamplesSelectionViewController::checkBoxToggled()
     dpa->setDisplaySampleNames(m_displaySampleNamesCheckBox->isChecked());
     
     updateOtherSampleViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -264,7 +264,7 @@ SamplesSelectionViewController::displayGroupSelected(const DisplayGroupEnum::Enu
     dpa->setDisplayGroupForTab(browserTabIndex, displayGroup);
     
     updateSampleSelections();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

@@ -37,7 +37,7 @@
 #include "DisplayPropertiesImages.h"
 #include "EventBrowserTabGet.h"
 #include "EventDataFileAdd.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
@@ -338,7 +338,7 @@ ImageFileConvertToVolumeFileDialog::okButtonClicked()
     volumeFile->setFileName(m_volumeFileNameLineEdit->text().trimmed());
     EventManager::get()->sendEvent(EventDataFileAdd(volumeFile).getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     WuQDialogModal::okButtonClicked();
 }

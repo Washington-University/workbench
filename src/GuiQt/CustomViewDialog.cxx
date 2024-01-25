@@ -44,8 +44,9 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "Matrix4x4.h"
@@ -962,8 +963,7 @@ CustomViewDialog::resetViewToolButtonClicked()
             btc->resetView();
             updateGraphicsWindow();
             if (btc->isMediaDisplayed()) {
-                const bool repaintFlag(true);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(repaintFlag).getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
             }
         }
     }
@@ -1125,7 +1125,7 @@ CustomViewDialog::updateGraphicsWindow()
         const int32_t windowIndex = bbw->getBrowserWindowIndex();
         
         m_blockDialogUpdate = true;
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
         m_blockDialogUpdate = false;
     }
 }

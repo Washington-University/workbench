@@ -42,7 +42,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoOverlayViewController.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -506,6 +506,6 @@ ChartTwoOverlaySetViewController::updateColoringAndGraphics()
 {
     this->updateViewController();
     
-    EventGraphicsUpdateOneWindow graphicsUpdate(m_browserWindowIndex);
+    EventGraphicsPaintSoonOneWindow graphicsUpdate(m_browserWindowIndex);
     EventManager::get()->sendEvent(graphicsUpdate.getPointer());
 }

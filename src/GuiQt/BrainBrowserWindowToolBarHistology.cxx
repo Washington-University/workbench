@@ -45,8 +45,9 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventBrowserTabValidate.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -559,9 +560,7 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
                             /*
                              * MUST redraw and wait until done
                              */
-                            const bool waitForRedrawFlag(true);
-                            EventGraphicsUpdateOneWindow graphicsUpdateOneWindow(m_parentToolBar->browserWindowIndex,
-                                                                                 waitForRedrawFlag);
+                            EventGraphicsPaintNowOneWindow graphicsUpdateOneWindow(m_parentToolBar->browserWindowIndex);
                             EventManager::get()->sendEvent(graphicsUpdateOneWindow.getPointer());
                             
                             /*

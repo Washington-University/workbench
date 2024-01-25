@@ -48,7 +48,7 @@
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAtWindowXY.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -663,7 +663,7 @@ UserInputModeAnnotationsContextMenu::deleteAnnotations()
                                    errorMessage);
         }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -761,7 +761,7 @@ UserInputModeAnnotationsContextMenu::turnOffDisplayInOtherTabs()
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -777,7 +777,7 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInAllTabs()
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -793,7 +793,7 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInAllGroups()
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -826,7 +826,7 @@ UserInputModeAnnotationsContextMenu::turnOnDisplayInGroup(QAction* action)
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -944,7 +944,7 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
         }
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
@@ -995,7 +995,7 @@ UserInputModeAnnotationsContextMenu::applyGrouping(const AnnotationGroupingModeE
     }
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1056,7 +1056,7 @@ UserInputModeAnnotationsContextMenu::removePolylineCoordinateSelected()
                                    errorMessage);
         }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -1134,7 +1134,7 @@ UserInputModeAnnotationsContextMenu::processPolyhedronResetSliceRange(Annotation
     }
 
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     return true;
 }
@@ -1181,7 +1181,7 @@ UserInputModeAnnotationsContextMenu::lockPolyhedronSelected()
                                                          m_polyhedronAnnotation);
     }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1193,7 +1193,7 @@ UserInputModeAnnotationsContextMenu::unlockPolyhedronSelected()
     Annotation::setSelectionLockedPolyhedronInWindow(m_userInputModeAnnotations->getBrowserWindowIndex(),
                                                      NULL);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1329,7 +1329,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
                                        errorMessage);
             }
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
 
         if (multiPairedCoordAnn != NULL) {
@@ -1363,7 +1363,7 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
                                        errorMessage);
             }
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
     }
 }

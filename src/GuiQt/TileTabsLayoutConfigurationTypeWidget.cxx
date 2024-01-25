@@ -36,7 +36,7 @@
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserWindowContent.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -401,7 +401,7 @@ TileTabsLayoutConfigurationTypeWidget::getBrowserWindowContent()
 void
 TileTabsLayoutConfigurationTypeWidget::updateGraphicsAndUserInterface()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_windowIndex).getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

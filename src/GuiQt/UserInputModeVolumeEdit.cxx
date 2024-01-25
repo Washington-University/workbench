@@ -31,7 +31,7 @@
 #include "DrawingViewportContent.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventDrawingViewportContentGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
@@ -292,7 +292,7 @@ UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
 
     volumeFile->clearVoxelColoringForMap(mapIndex);
     volumeFile->updateScalarColoringForMap(mapIndex);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

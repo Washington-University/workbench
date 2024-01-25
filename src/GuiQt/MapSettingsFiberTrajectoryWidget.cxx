@@ -36,7 +36,7 @@
 
 #include "CiftiFiberTrajectoryFile.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FiberTrajectoryColorModel.h"
 #include "FiberTrajectoryMapProperties.h"
@@ -327,7 +327,7 @@ MapSettingsFiberTrajectoryWidget::processAttributesChanges()
     ftmp->setDistanceMaximumOpacity(m_distanceMaximumSpinBox->value());
     ftmp->setDistanceMinimumOpacity(m_distanceMinimumSpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

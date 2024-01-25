@@ -30,7 +30,7 @@
 
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "HistologyOverlay.h"
 #include "WuQMacroManager.h"
@@ -115,7 +115,7 @@ HistologyOverlaySettingsMenu::reloadActionTriggered()
 //    if (selectionData.m_selectedCziImageFile != NULL) {
 //        selectionData.m_selectedCziImageFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
 //                                                                             m_mediaOverlay->m_overlayIndex);
-//        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+//        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 //        updateContent();
 //    }
 }

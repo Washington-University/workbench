@@ -31,7 +31,7 @@
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiParcelColoringModeEnum.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 
@@ -118,7 +118,7 @@ MapSettingsParcelsWidget::parcelColorSelected(const CaretColorEnum::Enum color)
 {
     m_ciftiParcelFile->setSelectedParcelColor(color);
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -130,5 +130,5 @@ MapSettingsParcelsWidget::ciftiParcelColoringModeEnumComboBoxItemActivated()
     const CiftiParcelColoringModeEnum::Enum colorMode = m_parcelColoringModeEnumComboBox->getSelectedItem<CiftiParcelColoringModeEnum,CiftiParcelColoringModeEnum::Enum>();
     m_ciftiParcelFile->setSelectedParcelColoringMode(colorMode);
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }

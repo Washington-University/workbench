@@ -43,7 +43,7 @@
 #include "DisplayPropertiesFoci.h"
 #include "EnumComboBoxTemplate.h"
 #include "FeatureColoringTypeEnum.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -360,7 +360,7 @@ FociSelectionViewController::processAttributesChanges()
                         browserTabIndex,
                         selectedDrawingType);
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     updateOtherFociViewControllers();
 }
@@ -550,7 +550,7 @@ void
 FociSelectionViewController::processSelectionChanges()
 {
     updateOtherFociViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

@@ -42,7 +42,7 @@
 #include "CaretPreferences.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -132,7 +132,7 @@ PreferencesDisplayWidget::displayHighDpiModeEnumComboBoxItemActivated()
     const DisplayHighDpiModeEnum::Enum highDpiMode = m_displayHighDpiModeEnumComboBox->getSelectedItem<DisplayHighDpiModeEnum,DisplayHighDpiModeEnum::Enum>();
     m_preferences->setDisplayHighDpiMode(highDpiMode);
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

@@ -73,11 +73,11 @@
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawnInWindow.h"
 #include "EventDataFileDelete.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventIdentificationRequest.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventUserInputModeGet.h"
 #include "GapsAndMargins.h"
 #include "GestureEvent.h"
@@ -240,7 +240,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
             }
             
             setMode(mode);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL) {
@@ -256,16 +256,16 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                      * Same as ESC key to cancel drawing of new annotation
                      */
                     setMode(Mode::MODE_SELECT);
-                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::ERASE_LAST_COORDINATE:
                     if (m_newAnnotationCreatingWithMouseDrag) {
                         m_newAnnotationCreatingWithMouseDrag->eraseLastCoordinate();
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                     }
                     else if (m_newUserSpaceAnnotationBeingCreated) {
                         m_newUserSpaceAnnotationBeingCreated->eraseLastCoordinate();
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                     }
                     break;
                 case EventAnnotationDrawingFinishCancel::Mode::FINISH:
@@ -292,7 +292,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                              * First cancel the current drawing
                              */
                             setMode(Mode::MODE_SELECT);
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
                             /*
                              * Now restart drawing
@@ -304,7 +304,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                                                                                         annShape,
                                                                                         EventAnnotationCreateNewType::PolyhedronDrawingMode::ANNOTATION_DRAWING).getPointer());
 
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         }
                     }
                     else if (m_newUserSpaceAnnotationBeingCreated) {
@@ -319,7 +319,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                              * First cancel the current drawing
                              */
                             setMode(Mode::MODE_SELECT);
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             
                             /*
                              * Now restart drawing
@@ -331,7 +331,7 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                                                                                         annShape,
                                                                                         EventAnnotationCreateNewType::PolyhedronDrawingMode::SAMPLES_DRAWING).getPointer());
                             
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         }
                     }
                     break;
@@ -1148,7 +1148,7 @@ UserInputModeAnnotations::deleteSelectedAnnotations()
     }
 
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1226,7 +1226,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
             }
             if (changeToSelectModeFlag) {
                 setMode(Mode::MODE_SELECT);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 keyWasProcessedFlag = true;
             }
         }
@@ -1399,7 +1399,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                 }
                 
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
             else {
                 /*
@@ -1594,7 +1594,7 @@ UserInputModeAnnotations::keyPressEvent(const KeyEvent& keyEvent)
                                 }
                                 
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             }
                         }
                     }
@@ -1774,7 +1774,7 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeAnnotation(const Mouse
 {
     initializeUserDrawingNewAnnotation(mouseEvent);
     m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE;
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
@@ -1809,7 +1809,7 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(
     m_newUserSpaceAnnotationBeingCreated.reset(nsa);
     
     m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC;
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
@@ -1823,7 +1823,7 @@ UserInputModeAnnotations::addCooordinateToNewPolyTypeStereotaxicAnnotation(const
 {
     if (m_newUserSpaceAnnotationBeingCreated) {
         m_newUserSpaceAnnotationBeingCreated->updateAnnotation(mouseEvent);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
     else {
@@ -1850,7 +1850,7 @@ UserInputModeAnnotations::removeCooordinateFromNewPolyTypeStereotaxicAnnotation(
                             if (multiPairAnn->getNumberOfCoordinates() == 0) {
                                 setPolyTypeDrawEditOperation(PolyTypeDrawEditOperation::ADD_NEW_COORDINATE);
                             }
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                         }
                     }
@@ -1877,7 +1877,7 @@ UserInputModeAnnotations::insertCooordinateIntoNewPolyTypeStereotaxicAnnotation(
                         multiPairAnn->insertCoordinate(m_annotationUnderMousePolyLineCoordinateIndex,
                                                        surfaceSpaceVertexIndex,
                                                        m_annotationUnderMousePolyLineNormalizedDistance);
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
                 }
@@ -1912,7 +1912,7 @@ UserInputModeAnnotations::moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(c
                                            coordInfo.m_modelSpaceInfo.m_xyz[2]);
                         multiPairAnn->updateCoordinateWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
                                                                       xyz);
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
                 }
@@ -1947,7 +1947,7 @@ UserInputModeAnnotations::moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(
                                            coordInfo.m_modelSpaceInfo.m_xyz[2]);
                         multiPairAnn->updateCoordinatePairWhileBeingDrawn(m_annotationUnderMousePolyLineCoordinateIndex,
                                                                           xyz);
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
                 }
@@ -1967,7 +1967,7 @@ UserInputModeAnnotations::finishNewPolyTypeStereotaxicAnnotation()
             m_newUserSpaceAnnotationBeingCreated.reset();
             setMode(Mode::MODE_SELECT);
         }
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
     else {
@@ -2019,7 +2019,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                 m_newAnnotationCreatingWithMouseDrag->moveCoordinateAtIndex(mouseEvent,
                                                                                             m_annotationUnderMousePolyLineCoordinateIndex);
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             }
                         }
                     }
@@ -2405,7 +2405,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 }
                 annotationsAfterMoveAndResize.clear();
                 
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }
         }
@@ -2601,7 +2601,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                         if (m_annotationUnderMouse == m_newAnnotationCreatingWithMouseDrag->getAnnotation()) {
                             m_newAnnotationCreatingWithMouseDrag->removeCoordinateAtIndex(m_annotationUnderMousePolyLineCoordinateIndex);
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         }
                     }
                     break;
@@ -2617,7 +2617,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                             m_newAnnotationCreatingWithMouseDrag->insertCoordinateAtIndex(mouseEvent,
                                                                                           m_annotationUnderMousePolyLineCoordinateIndex);
                             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         }
                     }
                     break;
@@ -2705,7 +2705,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                                                            errorMessage);
                                 }
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             }
                             break;
                         case PolyTypeDrawEditOperation::ERASE_LAST_COORDINATE:
@@ -2761,7 +2761,7 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                                                            errorMessage);
                                 }
                                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-                                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                             }
                             break;
                         case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
@@ -2885,7 +2885,7 @@ UserInputModeAnnotations::addCoordinateToAnnotation(const MouseEvent& mouseEvent
             undoCommand->setModeMultiCoordAnnAddCoordinate(ac,
                                                            m_annotationUnderMouse);
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
     }
 }
@@ -3114,7 +3114,7 @@ UserInputModeAnnotations::userDrawingAnnotationFromMouseDrag(const MouseEvent& m
                                                      mouseEvent.getY());
 
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -3173,7 +3173,7 @@ UserInputModeAnnotations::finishCreatingNewAnnotationDrawnByUser(const MouseEven
         
         setMode(Mode::MODE_SELECT);
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
 }
@@ -3388,7 +3388,7 @@ UserInputModeAnnotations::gestureEvent(const GestureEvent& gestureEvent)
                     WuQMessageBox::errorOk(m_annotationToolsWidget,
                                            errorMessage);
                 }
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
             }
         }
@@ -3429,7 +3429,7 @@ UserInputModeAnnotations::createNewAnnotationAtMouseLeftClick(const MouseEvent& 
     }
     
     setMode(Mode::MODE_SELECT);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
@@ -3531,7 +3531,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
         m_annotationUnderMousePolyLineNormalizedDistance = annotationID->getNormalizedRangeFromCoordIndexToNextCoordIndex();
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     
     /*
@@ -3584,7 +3584,7 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
         if (newAnnotation != NULL) {
             selectAnnotation(newAnnotation);
 
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
         }
     }
@@ -3680,7 +3680,7 @@ UserInputModeAnnotations::cutAnnotation()
         }
         
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -3769,7 +3769,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
             break;
         case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
@@ -3787,7 +3787,7 @@ UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowE
             }
             
             EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         }
             break;
     }
@@ -3827,7 +3827,7 @@ UserInputModeAnnotations::processDeselectAllAnnotations()
     }
         
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -3908,7 +3908,7 @@ UserInputModeAnnotations::processSelectAllAnnotations()
                 annMan->setAnnotationsForEditing(getBrowserWindowIndex(),
                                                  annotations);
             }
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
         }
             break;
         case UserInputModeEnum::Enum::VIEW:
@@ -3919,7 +3919,7 @@ UserInputModeAnnotations::processSelectAllAnnotations()
     
     
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 
@@ -4115,7 +4115,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
     
     groupAnnotationsAfterPasting(newPastedAnnotations);
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
@@ -4143,7 +4143,7 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(c
     
     groupAnnotationsAfterPasting(newPastedAnnotations);
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
@@ -4816,7 +4816,7 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
         else {
             CaretAssertMessage(0, "Invalid annotation type for erasing last coordinate");
         }
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 

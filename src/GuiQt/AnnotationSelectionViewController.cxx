@@ -34,7 +34,7 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -265,7 +265,7 @@ AnnotationSelectionViewController::checkBoxToggled()
                                      m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());
     
     updateOtherAnnotationViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -286,7 +286,7 @@ AnnotationSelectionViewController::displayGroupSelected(const DisplayGroupEnum::
     dpa->setDisplayGroupForTab(browserTabIndex, displayGroup);
     
     updateAnnotationSelections();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

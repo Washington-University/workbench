@@ -83,8 +83,8 @@
 #include "EventModelGetAll.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsTimingOneWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventTileTabsGridConfigurationModification.h"
@@ -282,8 +282,8 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_VIEWPORT_SIZE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
 
     if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
@@ -608,8 +608,8 @@ BrainBrowserWindow::receiveEvent(Event* event)
             modifyTileTabsConfiguration(modEvent);
         }
     }
-    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
-             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)) {
+    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW)
+             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS)) {
         /*
          * When in annotations mode, items on the Edit Menu are enabled/disabled
          * based upon the selected annotations.  While we can update the menu items
@@ -1285,7 +1285,7 @@ BrainBrowserWindow::aspectRatioDialogUpdateForTab(const double aspectRatio)
     }
     
     updateActionsForLockingAspectRatios();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -1303,7 +1303,7 @@ BrainBrowserWindow::aspectRatioDialogUpdateForWindow(const double aspectRatio)
     }
     
     updateActionsForLockingAspectRatios();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -1323,7 +1323,7 @@ BrainBrowserWindow::updateActionsForLockingAspectRatios()
     m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(m_browserWindowContent->isWindowAspectLocked()
                                                               && m_browserWindowContent->isAllTabsInWindowAspectRatioLocked());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -2419,7 +2419,7 @@ BrainBrowserWindow::modifyTileTabsConfiguration(EventTileTabsGridConfigurationMo
      */
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
     modEvent->setEventProcessed();
 }
@@ -2448,7 +2448,7 @@ BrainBrowserWindow::processViewTileTabsAutomaticCustomTriggered(QAction* action)
     }
 
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }
 
 /**
@@ -2657,7 +2657,7 @@ BrainBrowserWindow::processSurfaceMenuPrimaryAnatomical()
             BrainStructure* bs = brain->getBrainStructure(i);
             bs->setPrimaryAnatomicalSurface(surfaceSelectionControls[i]->getSurface());
         }
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -3173,7 +3173,7 @@ BrainBrowserWindow::processCloseAllFiles()
     prefs->invalidateSceneDataValues();
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     GuiManager::get()->closeAllOtherWindows(this);
     
@@ -3189,7 +3189,7 @@ BrainBrowserWindow::processNewWindow()
     CursorDisplayScoped cursor;
     cursor.showWaitCursor();
 
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW, 
                                     true);
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
@@ -3202,9 +3202,9 @@ BrainBrowserWindow::processNewWindow()
     }
     const int32_t newWindowIndex = eventNewBrowser.getBrowserWindowCreated()->getBrowserWindowIndex();
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(newWindowIndex).getPointer());
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW, 
                                     false);
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(newWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(newWindowIndex).getPointer());
 }
 
 /**
@@ -3925,7 +3925,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     const float guiStartTime = timer.getElapsedTimeSeconds();
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     const float guiTime = timer.getElapsedTimeSeconds() - guiStartTime;
     
     if (specFileName.isEmpty() == false) {
@@ -4018,7 +4018,7 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
 }
 
 
@@ -4052,7 +4052,7 @@ BrainBrowserWindow::setViewTileTabs(const bool newStatus)
 {
     m_browserWindowContent->setTileTabsEnabled(newStatus);
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -4202,7 +4202,7 @@ BrainBrowserWindow::processMoveAllTabsToOneWindow()
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -5031,7 +5031,7 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                   allTabContent.end(),
                                                   [](BrowserTabContent* btc) { return btc->isAspectRatioLocked(); });
 
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(getBrowserWindowIndex()).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 
         lockAllTabAspectRatios(lockedCount > 0);
     }

@@ -41,7 +41,7 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "DisplayPropertiesFoci.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -609,7 +609,7 @@ void
 FociPropertiesEditorDialog::updateGraphicsAndUserInterface()
 {
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

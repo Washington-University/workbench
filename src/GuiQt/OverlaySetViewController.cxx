@@ -34,7 +34,7 @@
 #include "BrainConstants.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -323,7 +323,7 @@ OverlaySetViewController::updateColoringAndGraphics()
     this->updateViewController();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventGraphicsUpdateOneWindow graphicsUpdate(this->browserWindowIndex);
+    EventGraphicsPaintSoonOneWindow graphicsUpdate(this->browserWindowIndex);
     EventManager::get()->sendEvent(graphicsUpdate.getPointer());
 }
 

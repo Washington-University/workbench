@@ -34,7 +34,7 @@
 #include "AnnotationOneCoordinateShape.h"
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQFactory.h"
@@ -330,7 +330,7 @@ AnnotationWidthHeightWidget::heightValueChanged(double value)
             break;
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
 }
 
@@ -367,6 +367,6 @@ AnnotationWidthHeightWidget::widthValueChanged(double value)
             break;
     }
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 

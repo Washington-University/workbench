@@ -50,7 +50,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -669,7 +669,7 @@ AnnotationPasteDialog::pasteAnnotationsInSpace(const UserInputModeEnum::Enum use
             }
         }
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     
@@ -852,7 +852,7 @@ AnnotationPasteDialog::pasteAnnotationInSpace(const UserInputModeEnum::Enum user
                                                           annotation);
         }
 
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
     

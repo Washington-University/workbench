@@ -48,7 +48,7 @@
 #include "DataFileException.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -1176,7 +1176,7 @@ ImageCaptureDialog::applyButtonClicked()
                                              "Image captured");
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(browserWindowIndex).getPointer());
 }
 
 

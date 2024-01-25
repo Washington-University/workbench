@@ -23,8 +23,8 @@
 #include "BrainBrowserWindowToolBarOrientation.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_ORIENTATION_DECLARE__
 
-#include "CaretAssert.h"
 using namespace caret;
+#include "CaretAssert.h"
 
 #include <QAction>
 #include <QGridLayout>
@@ -35,7 +35,8 @@ using namespace caret;
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretUndoStack.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "Model.h"
 #include "ModelHistology.h"
@@ -745,8 +746,7 @@ BrainBrowserWindowToolBarOrientation::orientationResetToolButtonTriggered(bool /
         getParentToolBar()->updateVolumeIndicesWidget(btc);
         getParentToolBar()->updateGraphicsWindowAndYokedWindows();
         if (btc->isMediaDisplayed()) {
-            const bool repaintFlag(true);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(repaintFlag).getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
         }
     }
 }

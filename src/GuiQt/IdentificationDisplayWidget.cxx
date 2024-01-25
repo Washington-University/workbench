@@ -44,7 +44,7 @@
 #include "CaretColorEnumComboBox.h"
 #include "CaretLogger.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -360,7 +360,7 @@ IdentificationDisplayWidget::infoRemoveSymbolsButtonClicked()
     Brain* brain = GuiManager::get()->getBrain();
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->removeAllIdentifiedSymbols();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -839,7 +839,7 @@ IdentificationDisplayWidget::symbolChanged()
     info->setHistologyIdentificationMostRecentPercentageSymbolSize(m_symbolsHistologyPercentageMostRecentDiameterSpinBox->value());
     info->setMediaIdentificationPercentageSymbolSize(m_symbolsMediaPercentageDiameterSpinBox->value());
     info->setMediaIdentificationMostRecentPercentageSymbolSize(m_symbolsMediaPercentageMostRecentDiameterSpinBox->value());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -866,7 +866,7 @@ IdentificationDisplayWidget::symbolSizeTypeButtonIdClicked(int id)
     IdentificationManager* info = brain->getIdentificationManager();
     info->setIdentificationSymbolSizeType(symbolSizeType);
     updateSymbolsWidget();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 
@@ -1006,7 +1006,7 @@ IdentificationDisplayWidget::chartLineLayerSymbolChanged()
     
     info->setChartLineLayerSymbolSize(m_chartLineLayerSymbolSizeSpinBox->value());
     info->setChartLineLayerToolTipTextSize(m_chartLineLayerToolTipTextSizeSpinBox->value());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

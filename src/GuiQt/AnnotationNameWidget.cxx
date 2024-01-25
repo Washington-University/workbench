@@ -31,7 +31,7 @@
 #include "AnnotationMenuArrange.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "WuQtUtilities.h"
@@ -185,6 +185,6 @@ AnnotationNameWidget::visibilityCheckStateChanged(int state)
             break;
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }

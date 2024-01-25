@@ -18,45 +18,28 @@
  */
 /*LICENSE_END*/
 
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 
 using namespace caret;
 
 /**
- * \class caret::EventGraphicsUpdateAllWindows 
+ * \class caret::EventGraphicsPaintSoonAllWindows 
  * \brief Event for updating all Window gui elements.
  * \ingroup GuiQt
  */
 
 /**
  * Constructor.
- * @param doRepaint
- *    If true, a repaint is performed and this event does not
- *    return until painting is complete.  If false, an update
- *    is performed which schedules a repaint but does not dictate
- *    when the repaint is performed.
  */
-EventGraphicsUpdateAllWindows::EventGraphicsUpdateAllWindows(const bool doRepaint)
-: Event(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)
+EventGraphicsPaintSoonAllWindows::EventGraphicsPaintSoonAllWindows()
+: Event(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS)
 {
-    this->doRepaint = doRepaint;
 }
 
 /*
  * Destructor.
  */
-EventGraphicsUpdateAllWindows::~EventGraphicsUpdateAllWindows()
+EventGraphicsPaintSoonAllWindows::~EventGraphicsPaintSoonAllWindows()
 {
     
 }
-
-/**
- * @return Indicates a repaint (instead of updates) is 
- * to be performed.
- */
-bool 
-EventGraphicsUpdateAllWindows::isRepaint() const 
-{ 
-    return this->doRepaint; 
-}
-

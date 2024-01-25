@@ -53,7 +53,7 @@ using namespace caret;
 #include "CursorDisplayScoped.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -496,7 +496,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonClicked()
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
     if (errorMessage.isEmpty() == false) {
         WuQMessageBox::errorOk(this, 

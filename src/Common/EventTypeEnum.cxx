@@ -359,13 +359,21 @@ EventTypeEnum::initialize()
                                      "EVENT_GRAPHICS_TIMING_ONE_WINDOW",
                                      "Graphics timing in one window"));
     
-    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
-                                     "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 
-                                     "Update all graphics windows"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS,
+                                     "EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS",
+                                     "Paint (draw immediately) graphics in all windows"));
     
-    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
-                                     "EVENT_GRAPHICS_UPDATE_ONE_WINDOW", 
-                                     "Update graphics in one window"));
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW,
+                                     "EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW",
+                                     "Paint (draw immediately) graphics in a window"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS,
+                                     "EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS", 
+                                     "Update (draw soon but not immediately) all graphics windows"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW, 
+                                     "EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW", 
+                                     "Update (draw soon but not immediately) graphics in one window"));
     
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP,
                                      "EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP",

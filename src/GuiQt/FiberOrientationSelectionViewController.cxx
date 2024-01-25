@@ -37,7 +37,7 @@
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesFiberOrientation.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "CiftiFiberOrientationFile.h"
 #include "FiberOrientationColoringTypeEnum.h"
@@ -333,7 +333,7 @@ FiberOrientationSelectionViewController::processAttributesChanges()
                                          browserTabIndex,
                                          m_displaySphereOrientationsCheckBox->isChecked());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     updateOtherViewControllers();
 }
@@ -499,7 +499,7 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     }
     
     updateOtherViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

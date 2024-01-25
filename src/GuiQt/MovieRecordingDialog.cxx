@@ -44,7 +44,7 @@
 #include "CursorDisplayScoped.h"
 #include "Event.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EnumComboBoxTemplate.h"

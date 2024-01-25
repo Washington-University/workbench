@@ -33,7 +33,7 @@
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserTabGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "VolumeObliqueOptionsWidget.h"
@@ -100,7 +100,7 @@ VolumeObliqueOptionsWidget::~VolumeObliqueOptionsWidget()
 void
 VolumeObliqueOptionsWidget::updateGraphicsWindow()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

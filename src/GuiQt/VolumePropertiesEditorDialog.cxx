@@ -35,7 +35,7 @@ using namespace caret;
 #include "CaretAssert.h"
 #include "DisplayPropertiesVolume.h"
 #include "GuiManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "SceneClass.h"
@@ -103,7 +103,7 @@ VolumePropertiesEditorDialog::displayPropertyChanged()
     DisplayPropertiesVolume* dps = GuiManager::get()->getBrain()->getDisplayPropertiesVolume();
     dps->setOpacity(m_opacitySpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

@@ -51,7 +51,7 @@
 #include "ChartTwoOverlaySet.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowContent.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
@@ -898,7 +898,7 @@ AnnotationCoordinatesWidget::valueChangedCoordinate(const int32_t coordinateInde
                 break;
         }
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 

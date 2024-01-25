@@ -33,7 +33,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "ModelChartTwo.h"
@@ -227,7 +227,7 @@ AnnotationBackgroundTypeWidget::tileTabsLayoutBackgroundTypeEnumComboBoxItemActi
          */
         std::vector<AnnotationBrowserTab*> annCopy = m_annotationBrowserTabs;
         updateContent(annCopy);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
 }
@@ -263,7 +263,7 @@ AnnotationBackgroundTypeWidget::stackingOrderValueChanged(int value)
          */
         std::vector<AnnotationBrowserTab*> annCopy = m_annotationBrowserTabs;
         updateContent(annCopy);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
 }

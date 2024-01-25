@@ -42,7 +42,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventGetViewportSize.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GapsAndMargins.h"
@@ -606,7 +606,7 @@ GapsAndMarginsDialog::tabMarginChanged(int rowIndex)
     gapsAndMargins->setMarginTopForTab(tabIndex,
                                        m_topMarginSpinBoxes[rowIndex]->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -645,7 +645,7 @@ GapsAndMarginsDialog::applyFirstTabToAllButtonClicked()
      * Update dialog since "select all" will change all margins to the first margin value
      */
     updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -665,7 +665,7 @@ GapsAndMarginsDialog::surfaceMontageGapChanged()
     gapsAndMargins->setSurfaceMontageVerticalGapForWindow(windowIndex,
                                                           m_surfaceMontageVerticalGapSpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -685,7 +685,7 @@ GapsAndMarginsDialog::volumeMontageGapChanged()
     gapsAndMargins->setVolumeMontageVerticalGapForWindow(windowIndex,
                                                          m_volumeMontageVerticalGapSpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -717,7 +717,7 @@ GapsAndMarginsDialog::surfaceMontageMatchPixelButtonClicked()
         surfaceMontageGapChanged();
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -749,7 +749,7 @@ GapsAndMarginsDialog::volumeMontageMatchPixelButtonClicked()
         volumeMontageGapChanged();
     }
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

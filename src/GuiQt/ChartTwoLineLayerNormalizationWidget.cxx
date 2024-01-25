@@ -33,7 +33,7 @@
 #include "CaretAssert.h"
 #include "ChartTwoDataCartesian.h"
 #include "ChartTwoOverlay.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GraphicsPrimitiveV3f.h"
@@ -349,7 +349,7 @@ ChartTwoLineLayerNormalizationWidget::updateGraphics()
 {
     
     m_blockUpdatesFlag = true;
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     m_blockUpdatesFlag = false;
 }
 

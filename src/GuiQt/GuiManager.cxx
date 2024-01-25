@@ -72,8 +72,9 @@
 #include "EventBrowserTabReopenClosed.h"
 #include "EventBrowserWindowNew.h"
 #include "EventShowDataFileReadWarningsDialog.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventHelpViewerDisplay.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
@@ -371,8 +372,8 @@ GuiManager::initializeGuiManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ALERT_USER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_DRAWN_IN_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OVERLAY_SETTINGS_EDITOR_SHOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_OPERATING_SYSTEM_REQUEST_OPEN_DATA_FILE);
@@ -481,7 +482,7 @@ GuiManager::updateUserInterface()
 void
 GuiManager::updateGraphicsAllWindows()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -490,7 +491,7 @@ GuiManager::updateGraphicsAllWindows()
 void
 GuiManager::updateGraphicsOneWindow(const int32_t windowIndex)
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
 }
 
 /**
@@ -1472,9 +1473,7 @@ GuiManager::receiveEvent(Event* event)
         /*
          * Draw the given window
          */
-        const bool doRepaintFlag(true);
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex,
-                                                                    doRepaintFlag).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintNowOneWindow(windowIndex).getPointer());
         
         /*
          * Find annotations that were drawn in the given window.
@@ -1517,8 +1516,8 @@ GuiManager::receiveEvent(Event* event)
                                preferredMaxHeight);
         bbw->resize(w, h);
     }
-    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)
-             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)) {
+    else if ((event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS)
+             || (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW)) {
         for (auto overlayEditor : m_overlaySettingsEditors) {
             overlayEditor->updateChartLinesInDialog();
         }
@@ -2997,7 +2996,7 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
      * Update the windows
      */
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());    
     
     /*
      * Blocking user-interface and graphics event will speed up
@@ -3008,9 +3007,9 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE,
                                         true);
     }
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS,
                                     true);
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW,
                                     true);
     
     /*
@@ -3194,14 +3193,14 @@ GuiManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Unblock graphics updates
      */
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS, 
                                     false);
-    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+    EventManager::get()->blockEvent(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW,
                                     false);
 
     progressEvent.setProgressMessage("Updating graphics in all windows");
     EventManager::get()->sendEvent(progressEvent.getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
     CaretLogFine("Time to update graphics in all windows was "
                  + QString::number(timer.getElapsedTimeSeconds(), 'f', 3)
@@ -3916,7 +3915,7 @@ GuiManager::processIdentification(const int32_t tabIndex,
     
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().addToolBar().addToolBox().getPointer());
     }
 }

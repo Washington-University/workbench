@@ -18,12 +18,12 @@
  */
 /*LICENSE_END*/
 
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 
 using namespace caret;
 
 /**
- * \class caret::EventGraphicsUpdateOneWindow 
+ * \class caret::EventGraphicsPaintSoonOneWindow 
  * \brief Event for updating a single window
  * \ingroup GuiQt
  */
@@ -33,32 +33,18 @@ using namespace caret;
  *
  * @param windowIndex
  *     Index of window
- * @param doRepaint
- *     if true, do a repaint instead of update
  */
-EventGraphicsUpdateOneWindow::EventGraphicsUpdateOneWindow(const int32_t windowIndex,
-                                                           const bool doRepaint)
-: Event(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW)
+EventGraphicsPaintSoonOneWindow::EventGraphicsPaintSoonOneWindow(const int32_t windowIndex)
+: Event(EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW)
 {
     this->windowIndex     = windowIndex;
-    this->m_doRepaintFlag = doRepaint;
 }
 
 /*
  * Destructor.
  */
-EventGraphicsUpdateOneWindow::~EventGraphicsUpdateOneWindow()
+EventGraphicsPaintSoonOneWindow::~EventGraphicsPaintSoonOneWindow()
 {
     
-}
-
-/**
- * @return Indicates a repaint (instead of updates) is
- * to be performed.
- */
-bool
-EventGraphicsUpdateOneWindow::isRepaint() const
-{
-    return m_doRepaintFlag;
 }
 

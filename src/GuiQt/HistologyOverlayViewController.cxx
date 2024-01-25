@@ -41,8 +41,9 @@
 #include "CaretMappableDataFile.h"
 #include "EventBrowserTabGet.h"
 #include "EventDataFileReload.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
@@ -794,10 +795,10 @@ HistologyOverlayViewController::updateGraphicsWindow()
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     if (m_sliceYokingGroupComboBox->getWidget()->isEnabled()
         && (m_sliceYokingGroupComboBox->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF)) {
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
     else {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
@@ -1065,9 +1066,7 @@ HistologyOverlayViewController::resetUserView()
         EventManager::get()->sendEvent(tabEvent.getPointer());
         BrowserTabContent* btc(tabEvent.getBrowserTab());
         if (btc != NULL) {
-            const bool doRepaintFlag(true);
-            EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
-                                                       doRepaintFlag);
+            EventGraphicsPaintNowOneWindow graphicsEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(graphicsEvent.getPointer());
 
             btc->resetView();

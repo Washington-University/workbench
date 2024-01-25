@@ -447,9 +447,11 @@ EventBrowserWindowGraphicsRedrawn.h
 EventBrowserWindowNew.h
 EventBrowserWindowTileTabOperation.h
 EventGetOrSetUserInputModeProcessor.h
+EventGraphicsPaintNowAllWindows.h
+EventGraphicsPaintNowOneWindow.h
 EventGraphicsTimingOneWindow.h
-EventGraphicsUpdateAllWindows.h
-EventGraphicsUpdateOneWindow.h
+EventGraphicsPaintSoonAllWindows.h
+EventGraphicsPaintSoonOneWindow.h
 EventGraphicsWindowShowToolTip.h
 EventHelpViewerDisplay.h
 EventIdentificationRequest.h
@@ -791,9 +793,11 @@ EventBrowserWindowGraphicsRedrawn.cxx
 EventBrowserWindowNew.cxx
 EventBrowserWindowTileTabOperation.cxx
 EventGetOrSetUserInputModeProcessor.cxx
+EventGraphicsPaintNowAllWindows.cxx
+EventGraphicsPaintNowOneWindow.cxx
 EventGraphicsTimingOneWindow.cxx
-EventGraphicsUpdateAllWindows.cxx
-EventGraphicsUpdateOneWindow.cxx
+EventGraphicsPaintSoonAllWindows.cxx
+EventGraphicsPaintSoonOneWindow.cxx
 EventGraphicsWindowShowToolTip.cxx
 EventHelpViewerDisplay.cxx
 EventIdentificationRequest.cxx

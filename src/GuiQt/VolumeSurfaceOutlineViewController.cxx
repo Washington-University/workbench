@@ -31,7 +31,7 @@
 #include "VolumeSurfaceOutlineViewController.h"
 #undef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
 
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
@@ -246,7 +246,7 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
 void 
 VolumeSurfaceOutlineViewController::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

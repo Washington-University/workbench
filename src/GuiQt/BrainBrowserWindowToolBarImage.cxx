@@ -32,7 +32,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelMedia.h"
 #include "WuQMacroManager.h"
@@ -115,6 +115,6 @@ BrainBrowserWindowToolBarImage::mediaDisplayCoordinateModeEnumComboBoxItemActiva
     if (m_browserTabContent != NULL) {
         const MediaDisplayCoordinateModeEnum::Enum mode(m_mediaDisplayCoordinateModeEnumComboBox->getSelectedItem<MediaDisplayCoordinateModeEnum,MediaDisplayCoordinateModeEnum::Enum>());
         m_browserTabContent->setMediaDisplayCoordinateMode(mode);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }

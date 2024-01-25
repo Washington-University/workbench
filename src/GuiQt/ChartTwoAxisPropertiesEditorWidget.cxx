@@ -47,7 +47,7 @@
 #include "DisplayGroupEnumComboBox.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventChartTwoCartesianAxisDisplayGroup.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
@@ -564,7 +564,7 @@ ChartTwoAxisPropertiesEditorWidget::valueChanged()
 void
 ChartTwoAxisPropertiesEditorWidget::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

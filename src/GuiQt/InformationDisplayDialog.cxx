@@ -30,7 +30,7 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventManager.h"
@@ -263,7 +263,7 @@ InformationDisplayDialog::clearInformationText()
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->removeIdentificationText();
     updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 
@@ -277,7 +277,7 @@ InformationDisplayDialog::removeIdSymbols()
     IdentificationManager* idManager = brain->getIdentificationManager();
     idManager->removeAllIdentifiedSymbols();
     updateDialog();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

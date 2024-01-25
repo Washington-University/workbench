@@ -47,7 +47,7 @@
 #include "EventAnnotationGetSelectedInsertNewFile.h"
 #include "EventDataFileAdd.h"
 #include "EventDrawingViewportContentGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -416,7 +416,7 @@ AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated()
             CaretAssert(samplesSettings);
             const SamplesDrawingModeEnum::Enum drawingMode(m_samplesDrawingModeEnumComboBox->getSelectedItem<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>());
             samplesSettings->setDrawingMode(drawingMode);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             updateContent();
         }
     }
@@ -436,7 +436,7 @@ AnnotationSamplesInsertNewWidget::lowerSliceOffsetSpinBoxValueChanged(int value)
             SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             samplesSettings->setLowerSliceOffset(value);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             updateContent();
         }
     }
@@ -456,7 +456,7 @@ AnnotationSamplesInsertNewWidget::upperSliceOffsetSpinBoxValueChanged(int value)
             SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             samplesSettings->setUpperSliceOffset(value);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             updateContent();
         }
     }

@@ -43,7 +43,7 @@
 #include "ChartModelTimeSeries.h"
 #include "ChartableMatrixInterface.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChart.h"
 #include "WuQFactory.h"
@@ -224,7 +224,7 @@ BrainBrowserWindowToolBarChartAttributes::getChartableMatrixDisplayProperties()
 void
 BrainBrowserWindowToolBarChartAttributes::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

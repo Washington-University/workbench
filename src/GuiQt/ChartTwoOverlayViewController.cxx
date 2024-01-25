@@ -52,8 +52,9 @@
 #include "ElapsedTimer.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileReload.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
@@ -1164,10 +1165,10 @@ ChartTwoOverlayViewController::updateGraphicsWindow()
 {
     if (m_chartOverlay->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
     else {
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
     }
 }
 
@@ -1391,9 +1392,7 @@ ChartTwoOverlayViewController::selectedPointIndexSpinBoxValueChanged(int index)
              * If we did not do this, the window position may be 'stale' (from
              * a previous graphics update)
              */
-            const bool doRepaintFlag(true);
-            EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
-                                                       doRepaintFlag);
+            EventGraphicsPaintNowOneWindow graphicsEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(graphicsEvent.getPointer());
         }
     }
@@ -1889,8 +1888,7 @@ ChartTwoOverlayViewController::menuConstructionPreColorAllFiles()
          * Need to to a graphics update with a repaint (a synchronous
          * graphics update) so that file is actually drawn.
          */
-        EventGraphicsUpdateOneWindow graphicsEvent(m_browserWindowIndex,
-                                                   true);
+        EventGraphicsPaintNowOneWindow graphicsEvent(m_browserWindowIndex);
         EventManager::get()->sendEvent(graphicsEvent.getPointer());
         QApplication::processEvents();
     }

@@ -38,7 +38,7 @@
 #include "DisplayGroupAndTabItemInterface.h"
 #include "DisplayGroupAndTabItemTreeWidgetItem.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 
@@ -464,7 +464,7 @@ void
 DisplayGroupAndTabItemViewController::updateGraphics()
 {
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

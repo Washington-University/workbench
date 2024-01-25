@@ -32,7 +32,7 @@
 
 #include "Brain.h"
 #include "CursorDisplayScoped.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "FociFile.h"
 #include "GuiManager.h"
@@ -174,7 +174,7 @@ FociProjectionDialog::okButtonClicked()
     }
     
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     cursor.restoreCursor();
     

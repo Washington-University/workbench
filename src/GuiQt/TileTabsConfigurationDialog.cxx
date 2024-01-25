@@ -57,7 +57,7 @@
 #include "EventBrowserTabDeleteInToolBar.h"
 #include "EventBrowserTabNewInGUI.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventHelpViewerDisplay.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -603,7 +603,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                         EventBrowserTabNewInGUI newTabEvent;
                         EventManager::get()->sendEvent(newTabEvent.getPointer());
                         BrowserTabContent* btc = newTabEvent.getBrowserTab();
-                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
                         if (btc != NULL) {
                             if (showTabsFlag) {
                                 tabsWithDisplayStatusOn.insert(btc);
@@ -638,7 +638,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
                         EventBrowserTabDeleteInToolBar deleteTabEvent(allTabContent[deleteIndex],
                                                                       allTabContent[deleteIndex]->getTabNumber());
                         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
-                        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
                         deleteIndex--;
                     }
                 }
@@ -726,7 +726,7 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
     browserWindowContent->setWindowAnnotationsStackingOrder(manualConfiguration->getWindowAnnotationsStackingOrder());
 
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
 
     return true;
 }
@@ -2182,7 +2182,7 @@ TileTabsConfigurationDialog::updateGraphicsWindow()
     if (bwc->isTileTabsEnabled()) {
         const int32_t windowIndex = bwc->getWindowIndex();
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(windowIndex).getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
     }
 }
 

@@ -33,7 +33,7 @@
 #include "CaretColorEnumComboBox.h"
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "GiftiLabelTableEditor.h"
@@ -166,7 +166,7 @@ MapSettingsLabelsWidget::applySelections()
                 labelProps->setDrawMedialWallFilled(m_drawMedialWallFilledCheckBox->isChecked());
                 
                 EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
         }
     }

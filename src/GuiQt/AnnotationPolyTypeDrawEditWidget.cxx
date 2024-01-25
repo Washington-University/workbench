@@ -38,7 +38,7 @@
 #include "CaretAssert.h"
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
@@ -572,7 +572,7 @@ AnnotationPolyTypeDrawEditWidget::finishActionTriggered()
                                                    m_userInputMode);
     EventManager::get()->sendEvent(finishEvent.getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     m_finishAction->blockSignals(false);
 }
@@ -606,7 +606,7 @@ AnnotationPolyTypeDrawEditWidget::cancelActionTriggered()
                                                    m_userInputMode);
     EventManager::get()->sendEvent(cancelEvent.getPointer());
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -644,7 +644,7 @@ AnnotationPolyTypeDrawEditWidget::eraseLastCoordinateActionTriggered()
         }
     }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

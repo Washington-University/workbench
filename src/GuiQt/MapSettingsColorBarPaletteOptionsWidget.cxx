@@ -31,7 +31,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "CopyPaletteColorMappingToFilesDialog.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "WuQMessageBox.h"
@@ -195,7 +195,7 @@ MapSettingsColorBarPaletteOptionsWidget::updateColoringAndGraphics()
         m_mapFile->updateScalarColoringForMap(m_mapFileIndex);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

@@ -33,7 +33,7 @@
 #include "CaretAssert.h"
 #include "EventBrowserTabCloseInToolBar.h"
 #include "EventBrowserTabSelectInWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -169,7 +169,7 @@ UserInputModeTileTabsLayout::deleteSelectedAnnotations()
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

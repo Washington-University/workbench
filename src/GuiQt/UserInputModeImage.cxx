@@ -35,8 +35,8 @@
 #include "ControlPointFile.h"
 #include "DisplayPropertiesImages.h"
 #include "EventBrowserWindowDrawingContent.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -162,7 +162,7 @@ UserInputModeImage::updateAfterControlPointsChanged()
     /*
      * Need to update all graphics windows and all border controllers.
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

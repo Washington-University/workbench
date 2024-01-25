@@ -42,7 +42,7 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "WuQDoubleSpinBox.h"
@@ -721,7 +721,7 @@ BrainBrowserWindowToolBarChartTwoOrientedAxes::valueChanged()
 void
 BrainBrowserWindowToolBarChartTwoOrientedAxes::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

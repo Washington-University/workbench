@@ -57,7 +57,7 @@
 #include "DisplayPropertiesAnnotation.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventDataFileAdd.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -269,7 +269,7 @@ AnnotationCreateDialog::newAnnotationFromSpaceTypeAndCoords(const UserInputModeE
             if (newAnn != NULL) {
                 DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
                 dpa->updateForNewAnnotation(newAnn);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                 EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             
                 return newAnn;
@@ -877,7 +877,7 @@ AnnotationCreateDialog::okButtonClicked()
     
     DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
     dpa->updateForNewAnnotation(m_annotationThatWasCreated);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     
     WuQDialog::okButtonClicked();

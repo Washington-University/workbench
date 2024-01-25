@@ -56,7 +56,8 @@ using namespace caret;
 #include "CiftiScalarDataSeriesFile.h"
 #include "CziImageFile.h"
 #include "EventCaretDataFilesGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -819,8 +820,13 @@ void
 IdentifyBrainordinateDialog::updateColoringAndDrawAllWindows(const bool doRepaintFlag)
 {
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventGraphicsUpdateAllWindows updateGraphicsEvent;
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
+    EventGraphicsPaintSoonAllWindows updateGraphicsEvent;
+    if (doRepaintFlag) {
+        EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
+    }
+    else {
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    }
 }
 
 /**
@@ -1058,7 +1064,7 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                         }
                         
                         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                     }
                 }
             }
@@ -1229,7 +1235,7 @@ IdentifyBrainordinateDialog::processStereotaxicWidget(AString& errorMessageOut)
     idManager->addIdentifiedItem(item);
     
     EventManager::get()->sendEvent(EventUpdateInformationWindows().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
 }
 

@@ -34,7 +34,7 @@
 #include "CaretResultDialog.h"
 #include "ChartTwoCartesianCustomSubdivisions.h"
 #include "ChartTwoCartesianCustomSubdivisionsLabel.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQtUtilities.h"
@@ -277,7 +277,7 @@ ChartTwoCartesianCustomSubdivisionsEditorWidget::labelLineEditTextChanged(const 
 void
 ChartTwoCartesianCustomSubdivisionsEditorWidget::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

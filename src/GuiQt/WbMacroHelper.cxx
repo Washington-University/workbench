@@ -30,8 +30,8 @@
 #include "CaretPreferences.h"
 #include "DisplayPropertiesSurface.h"
 #include "EventCaretDataFilesGet.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventMovieManualModeRecording.h"
 #include "EventSceneActive.h"
@@ -321,7 +321,7 @@ WbMacroHelper::resetMacroStateToBeginning(const WuQMacro* macro,
                                                           showSceneDialogFlag);
         
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         
         macroOut = NULL;
         

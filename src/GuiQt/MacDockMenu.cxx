@@ -30,7 +30,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventBrowserWindowNew.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"

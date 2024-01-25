@@ -37,7 +37,7 @@
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "EventChartTwoOverlayValidate.h"
 #include "EventDataFileDelete.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
 #include "EventUserInterfaceUpdate.h"

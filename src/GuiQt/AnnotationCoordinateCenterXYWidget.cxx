@@ -46,7 +46,7 @@
 #include "ChartTwoCartesianAxis.h"
 #include "ChartTwoOverlaySet.h"
 #include "EventBrowserWindowContent.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventOverlaySettingsEditorDialogRequest.h"
 #include "GuiManager.h"
@@ -379,7 +379,7 @@ AnnotationCoordinateCenterXYWidget::processValueChanged(QDoubleSpinBox* spinBox,
             }
         }
 
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     }
 }

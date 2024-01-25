@@ -33,7 +33,8 @@
 #include "CaretAssert.h"
 #include "CziImageFile.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "MediaOverlay.h"
 #include "WuQMacroManager.h"
@@ -228,7 +229,7 @@ void
 MediaOverlaySettingsMenu::pyramidLayerChanged(int value)
 {
     m_mediaOverlay->setCziPyramidLayerIndex(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -241,7 +242,7 @@ MediaOverlaySettingsMenu::reloadActionTriggered()
     if (selectionData.m_selectedCziImageFile != NULL) {
         selectionData.m_selectedCziImageFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
                                                                              m_mediaOverlay->m_overlayIndex);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         updateContent();
     }
 }
@@ -264,13 +265,11 @@ MediaOverlaySettingsMenu::resolutionModeComboBoxActivated()
              * AUTO needs repaint since it may try to load a new image
              * of a different resolution.
              */
-            const bool doRepaintFlag(true);
-            EventGraphicsUpdateAllWindows graphicsEvent(doRepaintFlag);
-            EventManager::get()->sendEvent(graphicsEvent.getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
         }
             break;
         case CziImageResolutionChangeModeEnum::MANUAL2:
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             break;
     }
 }
@@ -290,7 +289,7 @@ MediaOverlaySettingsMenu::selectedChannelSpinBoxValueChanged(int value)
      */
     m_selectedChannelSpinBox->setEnabled(false);
     m_mediaOverlay->setSelectedChannelIndex(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     m_selectedChannelSpinBox->setEnabled(true);
     m_selectedChannelSpinBox->setFocus();
 }

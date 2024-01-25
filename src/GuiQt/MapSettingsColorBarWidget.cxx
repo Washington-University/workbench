@@ -35,7 +35,7 @@
 #include "CaretMappableDataFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventGetViewportSize.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "MapSettingsColorBarPaletteOptionsWidget.h"
@@ -190,7 +190,7 @@ MapSettingsColorBarWidget::applySelections()
     
     m_paletteOptionsWidget->applyOptions();
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -209,7 +209,7 @@ MapSettingsColorBarWidget::annotationColorBarPositionModeEnumComboBoxItemActivat
             case AnnotationColorBarPositionModeEnum::MANUAL:
                 break;
         }
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
     updateContentPrivate();
 }
@@ -278,7 +278,7 @@ MapSettingsColorBarWidget::annotationCoordinateSpaceEnumComboBoxItemActivated()
         }
 
         m_colorBar->setCoordinateSpace(newCoordinateSpace);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }

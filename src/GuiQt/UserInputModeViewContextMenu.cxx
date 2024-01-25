@@ -50,7 +50,7 @@
 #include "CursorDisplayScoped.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventImageCapture.h"
 #include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -1000,7 +1000,7 @@ UserInputModeViewContextMenu::editChartLabelSelected()
                  * Update graphics.
                  */
                 EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
         }
     }
@@ -1217,7 +1217,7 @@ UserInputModeViewContextMenu::connectivityActionSelected(QAction* action)
     
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1282,7 +1282,7 @@ UserInputModeViewContextMenu::parcelCiftiFiberTrajectoryActionSelected(QAction* 
     
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1361,7 +1361,7 @@ UserInputModeViewContextMenu::borderCiftiConnectivitySelected()
         
         
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
     catch (const AlgorithmException& e) {
         WuQMessageBox::errorOk(this, e.whatString());
@@ -1444,7 +1444,7 @@ UserInputModeViewContextMenu::parcelChartableDataActionSelected(QAction* action)
     }   
 
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1514,7 +1514,7 @@ UserInputModeViewContextMenu::borderDataSeriesSelected()
     }
 
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1790,7 +1790,7 @@ UserInputModeViewContextMenu::removeAllIdentificationSymbolsSelected()
 {
     IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
     idManager->removeAllIdentifiedItems();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1804,7 +1804,7 @@ UserInputModeViewContextMenu::removeIdentificationSymbolSelected()
         IdentificationManager* idManager = GuiManager::get()->getBrain()->getIdentificationManager();
         idManager->removeIdentifiedItem(idSymbol);
         
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 

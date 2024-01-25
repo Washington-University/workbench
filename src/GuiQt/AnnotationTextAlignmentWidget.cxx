@@ -42,7 +42,7 @@
 #include "AnnotationText.h"
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
@@ -316,7 +316,7 @@ AnnotationTextAlignmentWidget::horizontalAlignmentActionSelected(QAction* action
                                    errorMessage);
         }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         
         AnnotationText::setUserDefaultHorizontalAlignment(actionAlign);
     }
@@ -350,7 +350,7 @@ AnnotationTextAlignmentWidget::verticalAlignmentActionSelected(QAction* action)
                                    errorMessage);
         }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         
         AnnotationText::setUserDefaultVerticalAlignment(actionAlign);
     }

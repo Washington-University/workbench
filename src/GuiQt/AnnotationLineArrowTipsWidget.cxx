@@ -34,7 +34,7 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "CaretAssert.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
@@ -177,7 +177,7 @@ AnnotationLineArrowTipsWidget::startArrowTipActionToggled()
                                errorMessage);
     }
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
         AnnotationLine::setUserDefaultDisplayStartArrow(m_startArrowAction->isChecked());
 }
@@ -201,7 +201,7 @@ AnnotationLineArrowTipsWidget::endArrowTipActionToggled()
     }
     
         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
         AnnotationLine::setUserDefaultDisplayEndArrow(m_endArrowAction->isChecked());
 }

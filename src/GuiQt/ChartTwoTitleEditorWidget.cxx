@@ -37,7 +37,7 @@
 #include "CaretAssert.h"
 #include "ChartTwoOverlaySet.h"
 #include "ChartTwoTitle.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "ModelChartTwo.h"
 #include "WuQDataEntryDialog.h"
@@ -177,5 +177,5 @@ ChartTwoTitleEditorWidget::textLineEditChanged(const QString& text)
 void
 ChartTwoTitleEditorWidget::updateGraphics()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }

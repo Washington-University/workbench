@@ -39,7 +39,7 @@
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesImages.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
@@ -360,7 +360,7 @@ ImageSelectionViewController::processAttributesChanges()
                              browserTabIndex,
                              m_opacitySpinBox->value());
     
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     updateOtherImageViewControllers();
 }
@@ -393,7 +393,7 @@ ImageSelectionViewController::imageDisplayGroupSelected(const DisplayGroupEnum::
      * Since display group has changed, need to update controls
      */
     updateImageViewController();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -422,7 +422,7 @@ ImageSelectionViewController::imageRadioButtonClicked(int buttonID)
                               allImageFiles[buttonID]);
 
     updateOtherImageViewControllers();
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

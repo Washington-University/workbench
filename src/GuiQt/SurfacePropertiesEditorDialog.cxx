@@ -37,7 +37,7 @@ using namespace caret;
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "DisplayPropertiesSurface.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -277,7 +277,7 @@ SurfacePropertiesEditorDialog::surfaceSetColorToolButtonClicked()
     updateDefaultSurfaceColorWidget();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     /*
      * Get new instance of custom macro
@@ -310,7 +310,7 @@ SurfacePropertiesEditorDialog::surfaceResetColorToolButtonClicked()
     updateDefaultSurfaceColorWidget();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -392,6 +392,6 @@ SurfacePropertiesEditorDialog::backfaceCullingCheckBoxClicked(bool checked)
 {
     DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
     dps->setBackfaceCullingEnabled(checked);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 

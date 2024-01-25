@@ -65,7 +65,7 @@
 #include "EventDataFileAdd.h"
 #include "EventDataFileRead.h"
 #include "EventDataFileReload.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventImageCapture.h"
 #include "EventManager.h"
 #include "EventModelGetAll.h"
@@ -1576,7 +1576,7 @@ SceneDialog::replaceAllScenesPushButtonClicked()
             
             getSelectedSceneFile()->replaceScene(newScene,
                                                  origScene);
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
             /* Ensures macros dialog gets updated with active scene */
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -1826,7 +1826,7 @@ SceneDialog::testScenesPushButtonClicked()
             activeSceneEvent.setScene(origScene);
             EventManager::get()->sendEvent(activeSceneEvent.getPointer());
 
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
             /* Ensures macros dialog gets updated with active scene */
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -2715,7 +2715,7 @@ SceneDialog::showSceneOptionsButtonClicked()
             if ( ! optionsResult.isUseSceneColorsSelected()) {
                 CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
                 prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
-                EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
         }
     }
@@ -2755,7 +2755,7 @@ SceneDialog::useSceneColorsCheckBoxClicked(bool checked)
     if ( ! checked) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
         prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 

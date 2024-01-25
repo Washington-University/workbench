@@ -35,7 +35,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "UserInputModeEnum.h"
@@ -212,7 +212,7 @@ AnnotationTextEditorWidget::annotationTextChanged()
                                errorMessage);
     }
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
     m_textLineEdit->setCursorPosition(cursorPos);
 }
@@ -258,6 +258,6 @@ AnnotationTextEditorWidget::annotationTextConnectTypeEnumComboBoxItemActivated()
     }
     AnnotationText::setUserDefaultConnectToBrainordinate(connectType);
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 

@@ -30,7 +30,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
@@ -188,7 +188,7 @@ InformationDisplayPropertiesDialog::informationPropertyChanged()
     info->setIdentificationContralateralSymbolColor(m_idContralateralColorComboBox->getSelectedColor());
     info->setIdentificationSymbolSize(m_symbolSizeSpinBox->value());
     info->setMostRecentIdentificationSymbolSize(m_mostRecentSymbolSizeSpinBox->value());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 

@@ -66,8 +66,10 @@
 #include "EventBrowserWindowGraphicsRedrawn.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsTimingOneWindow.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintNowOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventGraphicsWindowShowToolTip.h"
 #include "EventIdentificationRequest.h"
 #include "EventMovieManualModeRecording.h"
@@ -178,9 +180,11 @@ windowIndex(windowIndex)
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_AT_WINDOW_XY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BRAIN_RESET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_TIMING_ONE_WINDOW);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IDENTIFICATION_REQUEST);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_IMAGE_CAPTURE);
@@ -2601,49 +2605,40 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             timingEvent->setEventProcessed();
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
-        EventGraphicsUpdateAllWindows* updateAllEvent =
-            dynamic_cast<EventGraphicsUpdateAllWindows*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS) {
+        EventGraphicsPaintNowAllWindows* paintAllEvent =
+        dynamic_cast<EventGraphicsPaintNowAllWindows*>(event);
+        CaretAssert(paintAllEvent);
+        
+        paintAllEvent->setEventProcessed();
+        doRepaintGraphicsFlag = true;
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_NOW_ONE_WINDOW) {
+        EventGraphicsPaintNowOneWindow* paintOneEvent =
+        dynamic_cast<EventGraphicsPaintNowOneWindow*>(event);
+        CaretAssert(paintOneEvent);
+        
+        if (paintOneEvent->getWindowIndex() == this->windowIndex) {
+            paintOneEvent->setEventProcessed();
+            doRepaintGraphicsFlag = true;
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS) {
+        EventGraphicsPaintSoonAllWindows* updateAllEvent =
+            dynamic_cast<EventGraphicsPaintSoonAllWindows*>(event);
         CaretAssert(updateAllEvent);
         
         updateAllEvent->setEventProcessed();
-        
-        if (updateAllEvent->isRepaint()) {
-            doRepaintGraphicsFlag = true;
-        }
-        else {
-            doUpdateGraphicsFlag = true;
-        }
+        doUpdateGraphicsFlag = true;
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
-        EventGraphicsUpdateOneWindow* updateOneEvent =
-        dynamic_cast<EventGraphicsUpdateOneWindow*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW) {
+        EventGraphicsPaintSoonOneWindow* updateOneEvent =
+        dynamic_cast<EventGraphicsPaintSoonOneWindow*>(event);
         CaretAssert(updateOneEvent);
         
         if (updateOneEvent->getWindowIndex() == this->windowIndex) {
             updateOneEvent->setEventProcessed();
-            if (updateOneEvent->isRepaint()) {
-                doRepaintGraphicsFlag = true;
-            }
-            else {
-                doUpdateGraphicsFlag = true;
-            }
-        }
-        else {
-            /*
-             * If a window is yoked, update its graphics.
-             */
-            EventBrowserWindowDrawingContent getModelEvent(this->windowIndex);
-            EventManager::get()->sendEvent(getModelEvent.getPointer());
-            
-            if (getModelEvent.isError()) {
-                return;
-            }
-            
-            bool needUpdate = false;
-            if (needUpdate) {
-                doUpdateGraphicsFlag = true;
-            }
+            doUpdateGraphicsFlag = true;
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_WINDOW_SHOW_TOOL_TIP) {

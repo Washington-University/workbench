@@ -42,7 +42,8 @@
 #include "CaretPreferences.h"
 #include "PreferencesDevelopOptionsWidget.h"
 #include "EnumComboBoxTemplate.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintNowAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -498,7 +499,7 @@ PreferencesDialog::sceneColorsActiveCheckBoxClicked(bool checked)
         m_sceneColorsActiveCheckBox->setEnabled(false);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -796,7 +797,7 @@ PreferencesDialog::identificationStereotaxicDistanceValueChanged(double value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setIdentificationStereotaxicDistance(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -879,9 +880,9 @@ PreferencesDialog::openGLGraphicsTimingComboBoxToggled(bool value)
      * Need to draw a few frames to force creation of frame times so that
      * the text is dislayed in the window
      */
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(doRepaintFlag).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());
 }
 
 /**
@@ -1336,7 +1337,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
                           m_userPrefsColors);
         
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -1371,7 +1372,7 @@ PreferencesDialog::miscLoggingLevelComboBoxChanged(int indx)
  */
 void PreferencesDialog::applyButtonClicked()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1383,7 +1384,7 @@ PreferencesDialog::openGLDrawingMethodEnumComboBoxItemActivated()
     const OpenGLDrawingMethodEnum::Enum drawingMethod = m_openGLDrawingMethodEnumComboBox->getSelectedItem<OpenGLDrawingMethodEnum,OpenGLDrawingMethodEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setOpenGLDrawingMethod(drawingMethod);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1407,7 +1408,7 @@ PreferencesDialog::volumeAxesCrosshairsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesCrosshairsDisplayed(value);    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1420,7 +1421,7 @@ PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesLabelsDisplayed(value);    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1433,7 +1434,7 @@ PreferencesDialog::volumeAxesMontageCoordinatesComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeMontageAxesCoordinatesDisplayed(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1445,7 +1446,7 @@ PreferencesDialog::volumeAllSlicePlanesLayoutItemActivated()
     VolumeSliceViewAllPlanesLayoutEnum::Enum layoutValue = m_volumeAllSlicePlanesLayoutComboBox->getSelectedItem<VolumeSliceViewAllPlanesLayoutEnum, VolumeSliceViewAllPlanesLayoutEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAllSlicePlanesLayout(layoutValue);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 
 }
 /**
@@ -1456,7 +1457,7 @@ PreferencesDialog::volumeMontageCoordinatePrecisionChanged(int value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeMontageCoordinatePrecision(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1528,7 +1529,7 @@ PreferencesDialog::miscCrossAtViewportCenterEnabledComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setCrossAtViewportCenterEnabled(value);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -1540,7 +1541,7 @@ PreferencesDialog::miscWindowToolBarWidthModeComboBoxItemActivated()
     const ToolBarWidthModeEnum::Enum widthMode = m_windowToolBarWidthModeComboBox->getSelectedItem<ToolBarWidthModeEnum, ToolBarWidthModeEnum::Enum>();
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setToolBarWidthMode(widthMode);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 

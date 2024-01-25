@@ -53,8 +53,8 @@
 #include "EnumComboBoxTemplate.h"
 #include "EventChartMatrixParcelYokingValidation.h"
 #include "EventManager.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventPaletteColorMappingEditorDialogRequest.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -379,7 +379,7 @@ void
 ChartMatrixParcelSelectionViewController::matrixParcelFileSelected(CaretDataFile* /*caretDataFile*/)
 {
     updateSelectionViewController();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(m_browserWindowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
 }
 
 /**
@@ -408,7 +408,7 @@ ChartMatrixParcelSelectionViewController::matrixParcelFileLoadingComboBoxActivat
     chartableMatrixParcelInterface->setMatrixLoadingDimension(m_matrixParcelLoadByColumnRowComboBox->getSelectedItem<ChartMatrixLoadingDimensionEnum,
                                                    ChartMatrixLoadingDimensionEnum::Enum>());
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 
@@ -494,7 +494,7 @@ ChartMatrixParcelSelectionViewController::matrixParcelYokingGroupEnumComboBoxAct
         }
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**
@@ -519,7 +519,7 @@ ChartMatrixParcelSelectionViewController::matrixParcelColorBarActionTriggered(bo
     }
     
     chartMatrixDisplayProperties->getColorBar()->setDisplayed(status);
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
 /**

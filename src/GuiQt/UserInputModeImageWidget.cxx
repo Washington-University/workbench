@@ -39,7 +39,7 @@
 #include "CaretAssert.h"
 #include "ControlPointFile.h"
 #include "DisplayPropertiesFoci.h"
-#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"

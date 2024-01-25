@@ -1,5 +1,5 @@
-#ifndef __EVENT_GRAPHICS_UPDATE_ONE_WINDOW_H__
-#define __EVENT_GRAPHICS_UPDATE_ONE_WINDOW_H__
+#ifndef __EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS_H__
+#define __EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS_H__
 
 /*LICENSE_START*/
 /*
@@ -26,31 +26,20 @@
 
 namespace caret {
 
-    /// Event for updating graphics in one window.
-    class EventGraphicsUpdateOneWindow : public Event {
+    /// Event for painting all graphics windows immediately
+    class EventGraphicsPaintNowAllWindows : public Event {
         
     public:
-        EventGraphicsUpdateOneWindow(const int32_t windowIndex,
-                                     const bool doRepaint = false);
+        EventGraphicsPaintNowAllWindows();
         
-        virtual ~EventGraphicsUpdateOneWindow();
-        
-        /// get the index of the window that is to be updated.
-        int32_t getWindowIndex() const { return this->windowIndex; }
-        
-        bool isRepaint() const;
+        virtual ~EventGraphicsPaintNowAllWindows();
         
     private:
-        EventGraphicsUpdateOneWindow(const EventGraphicsUpdateOneWindow&);
+        EventGraphicsPaintNowAllWindows(const EventGraphicsPaintNowAllWindows&);
         
-        EventGraphicsUpdateOneWindow& operator=(const EventGraphicsUpdateOneWindow&);
-        
-        /** index of window for update */
-        int32_t windowIndex;
-        
-        bool m_doRepaintFlag = false;
+        EventGraphicsPaintNowAllWindows& operator=(const EventGraphicsPaintNowAllWindows&);
     };
 
 } // namespace
 
-#endif // __EVENT_GRAPHICS_UPDATE_ONE_WINDOW_H__
+#endif // __EVENT_GRAPHICS_PAINT_NOW_ALL_WINDOWS_H__
