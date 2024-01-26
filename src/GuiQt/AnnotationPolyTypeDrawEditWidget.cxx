@@ -262,10 +262,10 @@ m_browserWindowIndex(browserWindowIndex)
      */
     WuQtUtilities::matchWidgetWidths(addCoordinatesToolButton,
                                      eraseLastCoordinateToolButton);
-    WuQtUtilities::matchWidgetWidths(removeCoordinatesToolButton,
-                                     moveOneCoordinateToolButton);
+    WuQtUtilities::matchWidgetWidths(insertCoordinatesToolButton,
+                                     removeCoordinatesToolButton);
     if (moveTwoCoordinatesToolButton != NULL) {
-        WuQtUtilities::matchWidgetWidths(insertCoordinatesToolButton,
+        WuQtUtilities::matchWidgetWidths(moveOneCoordinateToolButton,
                                          moveTwoCoordinatesToolButton);
     }
 
@@ -300,16 +300,16 @@ m_browserWindowIndex(browserWindowIndex)
     
     gridLayout->addWidget(addCoordinatesToolButton,
                           row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(removeCoordinatesToolButton,
-                          row, 2, Qt::AlignHCenter);
     gridLayout->addWidget(insertCoordinatesToolButton,
+                          row, 2, Qt::AlignHCenter);
+    gridLayout->addWidget(moveOneCoordinateToolButton,
                           row, 3, Qt::AlignHCenter);
     gridLayout->addWidget(m_finishToolButton,
                           row, 5, Qt::AlignHCenter);
     ++row;
     gridLayout->addWidget(eraseLastCoordinateToolButton,
                           row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(moveOneCoordinateToolButton,
+    gridLayout->addWidget(removeCoordinatesToolButton,
                           row, 2, Qt::AlignHCenter);
     if (moveTwoCoordinatesToolButton != NULL) {
         gridLayout->addWidget(moveTwoCoordinatesToolButton,
