@@ -41,6 +41,7 @@ namespace caret {
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
     class BrowserTabContent;
+    class CaretUndoStack;
     class KeyEvent;
     class Plane;
     class SelectionItemAnnotation;
@@ -162,6 +163,8 @@ namespace caret {
                                              AString& pasteTextOut,
                                              AString& pasteSpecialTextOut);
         
+        CaretUndoStack* getUndoRedoStack();
+        
         // ADD_NEW_METHODS_HERE
 
     protected:
@@ -206,11 +209,22 @@ namespace caret {
 
             ~NewUserSpaceAnnotation();
             
+            void addCoordinate(const MouseEvent& mouseEvent);
+            
+            void insertCoordinate(const int32_t coordinateIndex,
+                                  const float normalizedDistanceToNextCoordinate);
+            
+            void moveCoordinateOneAtIndex(const int32_t coordinateIndex,
+                                          const Vector3D& xyz);
+            
+            void moveCoordinateTwoAtIndex(const int32_t coordinateIndex,
+                                          const Vector3D& xyz);
+            
+            void removeCoordinateAtIndex(const int32_t coordinateIndex);
+            
             void eraseLastCoordinate();
             
             bool finishSamplesAnnotation();
-            
-            void updateAnnotation(const MouseEvent& mouseEvent);
             
             bool isValid() const;
             
@@ -221,6 +235,8 @@ namespace caret {
             int32_t getViewportHeight() const { return m_viewportHeight; }
             
             float getSliceThickness() const { return m_sliceThickness; }
+            
+            CaretUndoStack* getUndoRedoStack() { return m_undoRedoStack.get(); }
             
         private:
             bool getSamplesDrawingCoordinates(const MouseEvent& mouseEvent,
@@ -245,6 +261,8 @@ namespace caret {
             float m_sliceThickness = 1.0;
             
             bool m_validFlag = false;
+            
+            std::unique_ptr<CaretUndoStack> m_undoRedoStack;
         };
         
         /**
@@ -308,6 +326,8 @@ namespace caret {
             
             void eraseLastCoordinate();
             
+            CaretUndoStack* getUndoRedoStack() { return m_undoRedoStack.get(); }
+            
         private:
             const int32_t m_drawingViewportHeight;
             
@@ -328,6 +348,8 @@ namespace caret {
             float m_windowHeight;
             
             std::vector<CoordInfo> m_drawingCoordinateAndMouseEvents;
+            
+            std::unique_ptr<CaretUndoStack> m_undoRedoStack;
         };
         
         class NewAnnotationFileSpaceAndType {
@@ -422,6 +444,9 @@ namespace caret {
         
         Annotation* getSelectedPolyTypeAnnotation() const;
         
+        bool mouseEventToStereotaxicCoordinate(const MouseEvent& mouseEvent,
+                                               Vector3D& xyzOut) const;
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;
@@ -473,6 +498,11 @@ namespace caret {
          * Reset in mouseClick
          */
         bool m_mouseClickAnnotationsChangedFlag = false;
+        
+        /**
+         * Used so that getUndoRedoStack() always returns a valid undo stack
+         */
+        std::unique_ptr<CaretUndoStack> m_dummyUndoRedoStack;
         
         // ADD_NEW_MEMBERS_HERE
 

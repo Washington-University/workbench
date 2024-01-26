@@ -36,6 +36,7 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -60,13 +61,16 @@ using namespace caret;
  *    The parent widget.
  */
 AnnotationRedoUndoWidget::AnnotationRedoUndoWidget(const Qt::Orientation orientation,
-                                                   const UserInputModeEnum::Enum userInputMode,
+                                                   UserInputModeAnnotations* userInputModeAnnotations,
                                                    const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent),
-m_userInputMode(userInputMode),
+m_userInputModeAnnotations(userInputModeAnnotations),
+m_userInputMode(userInputModeAnnotations->getUserInputMode()),
 m_browserWindowIndex(browserWindowIndex)
 {
+    CaretAssert(m_userInputModeAnnotations);
+    
     QLabel* titleLabel = new QLabel("Edit");
 
     m_redoAction = WuQtUtilities::createAction("Redo",
@@ -197,3 +201,5 @@ AnnotationRedoUndoWidget::undoActionTriggered()
     EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
+
+

@@ -199,7 +199,7 @@ UserInputModeAnnotationsWidget::createSamplesEditingWidget()
                                                               m_browserWindowIndex);
 
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
-                                                                m_inputModeAnnotations->getUserInputMode(),
+                                                                m_inputModeAnnotations,
                                                                 m_browserWindowIndex);
     
     m_polyTypeDrawEditWidget     = new AnnotationPolyTypeDrawEditWidget(m_inputModeAnnotations,
@@ -304,7 +304,7 @@ UserInputModeAnnotationsWidget::createTileTabsEditingWidget()
                                                               m_browserWindowIndex);
     
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
-                                                                m_inputModeAnnotations->getUserInputMode(),
+                                                                m_inputModeAnnotations,
                                                                 m_browserWindowIndex);
 
     QWidget* centerSizeWidget = new QWidget();
@@ -398,7 +398,7 @@ UserInputModeAnnotationsWidget::createAnnotationWidget()
                                                               m_browserWindowIndex);
     
     m_redoUndoWidget             = new AnnotationRedoUndoWidget(Qt::Vertical,
-                                                                m_inputModeAnnotations->getUserInputMode(),
+                                                                m_inputModeAnnotations,
                                                                 m_browserWindowIndex);
     
     /*
