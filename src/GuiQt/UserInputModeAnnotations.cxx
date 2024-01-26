@@ -72,6 +72,7 @@
 #include "EventAnnotationDrawingFinishCancel.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetDrawnInWindow.h"
+#include "EventAnnotationValidate.h"
 #include "EventDataFileDelete.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventIdentificationRequest.h"
@@ -158,6 +159,7 @@ m_annotationUnderMouse(NULL)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_DRAWING_FINISH_CANCEL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GET_BEING_DRAWN_IN_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_VALIDATE);
 }
 
 /**
@@ -448,6 +450,24 @@ UserInputModeAnnotations::receiveEvent(Event* event)
         if (m_newAnnotationCreatingWithMouseDrag) {
             if (deletedFile == m_newAnnotationCreatingWithMouseDrag->getAnnotationFile()) {
                 setMode(Mode::MODE_SELECT);
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_VALIDATE) {
+        /*
+         * Needed for annotation redo/undo
+         */
+        EventAnnotationValidate* validateEvent(dynamic_cast<EventAnnotationValidate*>(event));
+        if (m_newUserSpaceAnnotationBeingCreated) {
+            if (validateEvent->getAnnotation() == m_newUserSpaceAnnotationBeingCreated->getAnnotation()) {
+                validateEvent->setAnnotationValid();
+                validateEvent->setEventProcessed();
+            }
+        }
+        if (m_newAnnotationCreatingWithMouseDrag) {
+            if (validateEvent->getAnnotation() == m_newAnnotationCreatingWithMouseDrag->getAnnotation()) {
+                validateEvent->setAnnotationValid();
+                validateEvent->setEventProcessed();
             }
         }
     }
@@ -1793,7 +1813,8 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(
      */
     CaretAssert(m_modeNewAnnotationFileSpaceAndType->m_annotationSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC);
         
-    NewUserSpaceAnnotation* nsa(new NewUserSpaceAnnotation(m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
+    NewUserSpaceAnnotation* nsa(new NewUserSpaceAnnotation(m_annotationToolsWidget,
+                                                           m_modeNewAnnotationFileSpaceAndType->m_annotationFile,
                                                            m_modeNewAnnotationFileSpaceAndType->m_annotationSpace,
                                                            m_modeNewAnnotationFileSpaceAndType->m_annotationType,
                                                            mouseEvent,
@@ -1809,6 +1830,12 @@ UserInputModeAnnotations::initializeUserDrawingNewPolyTypeStereotaxicAnnotation(
     }
     
     m_newUserSpaceAnnotationBeingCreated.reset(nsa);
+    
+    /*
+     * First coordinate must be added AFTER the instance has been created
+     * and allows 'undo' of the first coordinate
+     */
+    m_newUserSpaceAnnotationBeingCreated->addCoordinate(mouseEvent);
     
     m_mode = Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC;
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
@@ -1896,7 +1923,8 @@ UserInputModeAnnotations::moveOneCooordinateInNewPolyTypeStereotaxicAnnotation(c
                     Vector3D xyz;
                     if (mouseEventToStereotaxicCoordinate(mouseEvent, xyz)) {
                         m_newUserSpaceAnnotationBeingCreated->moveCoordinateOneAtIndex(m_annotationUnderMousePolyLineCoordinateIndex,
-                                                                                       xyz);
+                                                                                       xyz,
+                                                                                       mouseEvent.isFirstDragging());
                         EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
@@ -1950,7 +1978,8 @@ UserInputModeAnnotations::moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(
                     Vector3D xyz;
                     if (mouseEventToStereotaxicCoordinate(mouseEvent, xyz)) {
                         m_newUserSpaceAnnotationBeingCreated->moveCoordinateTwoAtIndex(m_annotationUnderMousePolyLineCoordinateIndex,
-                                                                                       xyz);
+                                                                                       xyz,
+                                                                                       mouseEvent.isFirstDragging());
                         EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
                         EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
                     }
@@ -4653,6 +4682,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getDrawingViewportHeight
 
 /**
  * New annotation that is drawn in the space selected by the user
+ * @param parentWidgetForDialogs
+ *    Parent widget for any dialogs
  * @param annotationFile
  *    File for annotation
  * @param annotationSpace
@@ -4666,7 +4697,8 @@ UserInputModeAnnotations::NewMouseDragCreateAnnotation::getDrawingViewportHeight
  * @param browserWindowIndex
  *    Index of browser window
  */
-UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(AnnotationFile* annotationFile,
+UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(QWidget* parentWidgetForDialogs,
+                                                                         AnnotationFile* annotationFile,
                                                                          const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                                                          const AnnotationTypeEnum::Enum annotationType,
                                                                          const MouseEvent& mouseEvent,
@@ -4711,11 +4743,6 @@ m_browserWindowIndex(browserWindowIndex)
                                                                              mouseEvent.getY()));
         m_sliceThickness = voxelID->getVoxelSizeMillimeters();
 
-        AnnotationCoordinate* acOne(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
-        acOne->setXYZ(firstXYZ);
-        AnnotationCoordinate* acTwo(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
-        acTwo->setXYZ(lastXYZ);
-
         m_annotationFile = annotationFile;
         CaretAssert(annotationType == AnnotationTypeEnum::POLYHEDRON);
         m_annotation.reset(Annotation::newAnnotationOfType(annotationType,
@@ -4730,14 +4757,6 @@ m_browserWindowIndex(browserWindowIndex)
                               lastPlane);
         
         m_annotation->setCoordinateSpace(annotationSpace);
-        
-        /*
-         * Add a pair of coordinates.  For polyhedron, the second
-         * coordinate will get updated when the polyhedron is requested
-         * for drawing (AnnotationPolyhedron::updateCoordinatesWhileDrawing()
-         */
-        multiPairedCoordShape->addCoordinatePair(acOne, acTwo);
-        
         
         if ((m_annotation->getLineColor() == CaretColorEnum::NONE)
             && (m_annotation->getBackgroundColor() == CaretColorEnum::NONE)) {
@@ -4850,10 +4869,13 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::insertCoordinate(const int32_t
     CaretAssert(m_annotation);
     AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotation->castToMultiPairedCoordinateShape());
     if (multiPairAnn != NULL) {
+        AnnotationRedoUndoCommand* cmd(new AnnotationRedoUndoCommand());
         const int32_t surfaceSpaceVertexIndex(-1);
-        multiPairAnn->insertCoordinate(coordinateIndex,
-                                       surfaceSpaceVertexIndex,
-                                       normalizedDistanceToNextCoordinate);
+        cmd->setModeMultiCoordAnnInsertCoordinate(coordinateIndex,
+                                                  normalizedDistanceToNextCoordinate,
+                                                  surfaceSpaceVertexIndex,
+                                                  m_annotation.get());
+        applyCommand(cmd);
     }
 }
 
@@ -4863,17 +4885,19 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::insertCoordinate(const int32_t
  *    Index of the coordinate
  * @param xyz
  *    New position
+ * @param startOfDraggingFlag
+ *    True if dragging is just started
  */
 void
 UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateOneAtIndex(const int32_t coordinateIndex,
-                                                                           const Vector3D& xyz)
+                                                                           const Vector3D& xyz,
+                                                                           const bool startOfDraggingFlag)
 {
-    CaretAssert(m_annotation);
-    AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotation->castToMultiPairedCoordinateShape());
-    if (multiPairAnn != NULL) {
-        multiPairAnn->updateCoordinateWhileBeingDrawn(coordinateIndex,
-                                                      xyz);
-    }
+    const bool moveTwoFlag(false);
+    moveCoordinateAtIndex(coordinateIndex,
+                          xyz,
+                          moveTwoFlag,
+                          startOfDraggingFlag);
 }
 
 /**
@@ -4882,18 +4906,74 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateOneAtIndex(const
  *    Index of the coordinate
  * @param xyz
  *    New position
+ * @param startOfDraggingFlag
+ *    True if dragging is just started
  */
 void
 UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateTwoAtIndex(const int32_t coordinateIndex,
-                                                                           const Vector3D& xyz)
+                                                                           const Vector3D& xyz,
+                                                                           const bool startOfDraggingFlag)
+{
+    const bool moveTwoFlag(true);
+    moveCoordinateAtIndex(coordinateIndex,
+                          xyz,
+                          moveTwoFlag,
+                          startOfDraggingFlag);
+}
+
+/**
+ * Move coordinate at the given index
+ * @param coordinateIndex
+ *    Index of the coordinate
+ * @param xyz
+ *    New position
+ * @param moveTwoFlag
+ *    If true, move both the coordinate and its corresponding paired coordinate, else move only this coordinate
+ * @param startOfDraggingFlag
+ *    True if dragging is just started
+ */
+void
+UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateAtIndex(const int32_t coordinateIndex,
+                                                                        const Vector3D& xyz,
+                                                                        const bool moveTwoFlag,
+                                                                        const bool startOfDraggingFlag)
 {
     CaretAssert(m_annotation);
     AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotation->castToMultiPairedCoordinateShape());
     if (multiPairAnn != NULL) {
-        multiPairAnn->updateCoordinatePairWhileBeingDrawn(coordinateIndex,
-                                                          xyz);
+        std::vector<Annotation*> annotationsBeforeMoveAndResize;
+        annotationsBeforeMoveAndResize.push_back(m_annotation.get());
+        
+        Annotation* annotationModified(m_annotation->clone());
+        AnnotationMultiPairedCoordinateShape* annModMultiPairShape(annotationModified->castToMultiPairedCoordinateShape());
+        CaretAssert(annModMultiPairShape);
+        if (moveTwoFlag) {
+            annModMultiPairShape->updateCoordinatePairWhileBeingDrawn(coordinateIndex,
+                                                                      xyz);
+        }
+        else {
+            annModMultiPairShape->updateCoordinateWhileBeingDrawn(coordinateIndex,
+                                                                  xyz);
+        }
+        
+        std::vector<Annotation*> annotationsAfterMoveAndResize;
+        annotationsAfterMoveAndResize.push_back(annotationModified);
+        
+        AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
+        command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
+                                        annotationsAfterMoveAndResize);
+        
+        if ( ! startOfDraggingFlag) {
+            /*
+             * Combines all coordinates in drag to just one coordinate change
+             */
+            command->setMergeEnabled(true);
+        }
+        
+        applyCommand(command);
     }
 }
+
 
 /**
  * Remove coordinate at the given index
@@ -4906,9 +4986,10 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::removeCoordinateAtIndex(const 
     CaretAssert(m_annotation);
     AnnotationMultiPairedCoordinateShape* multiPairAnn(m_annotation->castToMultiPairedCoordinateShape());
     if (multiPairAnn != NULL) {
-        const bool removePairFlag(true);
-        multiPairAnn->removeCoordinateAtIndexByUserInputModeAnnotations(coordinateIndex,
-                                                                        removePairFlag);
+        AnnotationRedoUndoCommand* cmd(new AnnotationRedoUndoCommand());
+        cmd->setModeMultiCoordAnnRemoveCoordinate(coordinateIndex,
+                                                  m_annotation.get());
+        applyCommand(cmd);
     }
 }
 
@@ -4924,19 +5005,11 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
         const int32_t removeIndex(num - 1);
 
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
-        AnnotationMultiCoordinateShape* multiCoordShape(m_annotation->castToMultiCoordinateShape());
         if (multiPairedCoordShape != NULL) {
-            const bool removePairFlag(true); /* This method DOES add pairs of coordinates*/
-            multiPairedCoordShape->removeCoordinateAtIndexByUserInputModeAnnotations(removeIndex,
-                                                                                     removePairFlag);
+            AnnotationRedoUndoCommand* cmd(new AnnotationRedoUndoCommand());
+            cmd->setModeMultiCoordAnnRemoveLastCoordinate(m_annotation.get());
+            applyCommand(cmd);
         }
-        else if (multiCoordShape != NULL) {
-            multiCoordShape->removeCoordinateAtIndex(removeIndex);
-        }
-        else {
-            CaretAssertMessage(0, "Invalid annotation type for erasing last coordinate");
-        }
-        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 
@@ -4999,10 +5072,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::addCoordinate(const MouseEvent
     
     if (m_validFlag) {
         CaretAssert(m_annotation);
-        if (m_annotation->getType() == AnnotationTypeEnum::POLYHEDRON) {
-            AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
-            CaretAssert(polyhedron);
-            
+        AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
+        if (multiPairedCoordShape != NULL) {
+
             Vector3D firstXYZ;
             Vector3D lastXYZ;
             Plane firstPlane;
@@ -5016,13 +5088,11 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::addCoordinate(const MouseEvent
                 return;
             }
             
-            AnnotationCoordinate* acOne(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
-            acOne->setXYZ(firstXYZ);
-            AnnotationCoordinate* acTwo(new AnnotationCoordinate(AnnotationAttributesDefaultTypeEnum::USER));
-            acTwo->setXYZ(lastXYZ);
-            
-            polyhedron->addCoordinatePair(acOne,
-                                          acTwo);
+            AnnotationCoordinate ac(AnnotationAttributesDefaultTypeEnum::USER);
+            ac.setXYZ(firstXYZ);
+            AnnotationRedoUndoCommand* cmd(new AnnotationRedoUndoCommand());
+            cmd->setModeMultiCoordAnnAddCoordinate(ac, multiPairedCoordShape);
+            applyCommand(cmd);
         }
     }
 }
@@ -5107,3 +5177,33 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::getSamplesDrawingCoordinates(c
     }
     return false;
 }
+
+/**
+ * Apply the command using the redo undo stack
+ */
+void
+UserInputModeAnnotations::NewUserSpaceAnnotation::applyCommand(AnnotationRedoUndoCommand* command)
+{
+    CaretAssert(command);
+    
+    /*
+     * Ignore command if it does not apply to any annotations
+     */
+    if ( ! command->isValid()) {
+        delete command;
+        CaretLogSevere("Attempt to apply an invalid redo/undo command.");
+        return;
+    }
+    
+    /*
+     * "Redo" the command and add it to the undo stack
+     */
+    AString errorMessage;
+    if ( ! m_undoRedoStack->pushAndRedo(command,
+                                        m_browserWindowIndex,
+                                        errorMessage)) {
+        WuQMessageBox::errorOk(m_parentWidgetForDialogs,
+                               errorMessage);
+    }
+}
+

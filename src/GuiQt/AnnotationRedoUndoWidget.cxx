@@ -28,14 +28,11 @@
 #include <QLabel>
 #include <QToolButton>
 
-#include "AnnotationManager.h"
-#include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
-#include "GuiManager.h"
 #include "UserInputModeAnnotations.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -140,8 +137,7 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
     const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
     
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
+    CaretUndoStack* undoStack = m_userInputModeAnnotations->getUndoRedoStack();
 
     m_redoAction->setEnabled(undoStack->canRedo());
     m_redoAction->setToolTip(undoStack->redoText());
@@ -152,14 +148,6 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     setEnabled(( ! annotations.empty())
                || m_redoAction->isEnabled()
                || m_undoAction->isEnabled());
-    
-    if (drawingAnnotationFlag) {
-        /*
-         * Disable redo/undo when drawing an annotation since redo/undo
-         * does not work on the annotation being drawn.
-         */
-        setEnabled(false);
-    }
 }
 
 /**
@@ -168,9 +156,8 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
 void
 AnnotationRedoUndoWidget::redoActionTriggered()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    
+    CaretUndoStack* undoStack = m_userInputModeAnnotations->getUndoRedoStack();
+
     AString errorMessage;
     if ( ! undoStack->redoInWindow(m_browserWindowIndex,
                                    errorMessage)) {
@@ -188,9 +175,8 @@ AnnotationRedoUndoWidget::redoActionTriggered()
 void
 AnnotationRedoUndoWidget::undoActionTriggered()
 {
-    AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
-    CaretUndoStack* undoStack = annMan->getCommandRedoUndoStack();
-    
+    CaretUndoStack* undoStack = m_userInputModeAnnotations->getUndoRedoStack();
+
     AString errorMessage;
     if ( ! undoStack->undoInWindow(m_browserWindowIndex,
                                    errorMessage)) {

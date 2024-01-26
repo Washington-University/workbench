@@ -38,6 +38,7 @@ namespace caret {
     class AnnotationCoordinate;
     class AnnotationCoordinateInformation;
     class AnnotationFile;
+    class AnnotationRedoUndoCommand;
     class AnnotationTwoCoordinateShape;
     class AnnotationOneCoordinateShape;
     class BrowserTabContent;
@@ -200,7 +201,8 @@ namespace caret {
          */
         class NewUserSpaceAnnotation {
         public:
-            NewUserSpaceAnnotation(AnnotationFile* annotationFile,
+            NewUserSpaceAnnotation(QWidget* parentWidgetForDialogs,
+                                   AnnotationFile* annotationFile,
                                    const AnnotationCoordinateSpaceEnum::Enum annotationSpace,
                                    const AnnotationTypeEnum::Enum annotationType,
                                    const MouseEvent& mousePressEvent,
@@ -215,10 +217,12 @@ namespace caret {
                                   const float normalizedDistanceToNextCoordinate);
             
             void moveCoordinateOneAtIndex(const int32_t coordinateIndex,
-                                          const Vector3D& xyz);
+                                          const Vector3D& xyz,
+                                          const bool startOfDraggingFlag);
             
             void moveCoordinateTwoAtIndex(const int32_t coordinateIndex,
-                                          const Vector3D& xyz);
+                                          const Vector3D& xyz,
+                                          const bool startOfDraggingFlag);
             
             void removeCoordinateAtIndex(const int32_t coordinateIndex);
             
@@ -245,6 +249,15 @@ namespace caret {
                                               Vector3D& lastSliceCoordOut,
                                               Plane& firstPlaneOut,
                                               Plane& lastPlaneOut);
+
+            void moveCoordinateAtIndex(const int32_t coordinateIndex,
+                                       const Vector3D& xyz,
+                                       const bool moveTwoFlag,
+                                       const bool startOfDraggingFlag);
+
+            void applyCommand(AnnotationRedoUndoCommand* command);
+            
+            QWidget* m_parentWidgetForDialogs;
             
             AnnotationFile* m_annotationFile = NULL;
             
