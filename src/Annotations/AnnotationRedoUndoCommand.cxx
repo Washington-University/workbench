@@ -1981,7 +1981,7 @@ AnnotationRedoUndoCommand::setModeMultiCoordAnnInsertCoordinate(const int32_t in
     }
     
     m_mode = AnnotationRedoUndoCommandModeEnum::MULTI_COORD_INSERT_COORDINATE;
-    setDescription("Remove "
+    setDescription("Insert "
                    + AnnotationTypeEnum::toGuiName(redoAnnotation->getType())
                    + " Coordinate");
     Annotation* undoAnnotation = annotation->clone();
