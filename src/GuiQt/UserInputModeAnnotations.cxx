@@ -3597,10 +3597,10 @@ UserInputModeAnnotations::showContextMenu(const MouseEvent& mouseEvent,
 }
 
 /**
- * @return True if the edit menu items should be enabled, else false.
+ * @return True if the edit menu items (EXCEPT Redo Undo) should be enabled, else false.
  */
 bool
-UserInputModeAnnotations::isEditMenuValid() const
+UserInputModeAnnotations::isEditMenuExceptRedoUndoValid() const
 {
     bool editMenuValid = false;
     
@@ -3612,6 +3612,42 @@ UserInputModeAnnotations::isEditMenuValid() const
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE:
+            break;
+        case Mode::MODE_PASTE:
+            editMenuValid = true;
+            break;
+        case Mode::MODE_PASTE_SPECIAL:
+            editMenuValid = true;
+            break;
+        case Mode::MODE_SELECT:
+            editMenuValid = true;
+            break;
+    }
+    
+    return editMenuValid;
+}
+
+/**
+ * @return True if the edit menu for Redo and Undo should be enabled, else false.
+ */
+bool
+UserInputModeAnnotations::isEditMenuRedoUndoValid() const
+{
+    bool editMenuValid = false;
+    
+    switch (m_mode) {
+        case Mode::MODE_DRAWING_NEW_SIMPLE_SHAPE_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
+            break;
+        case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC:
+            editMenuValid = true;
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_STEREOTAXIC_INITIALIZE:
             break;
@@ -3701,99 +3737,121 @@ UserInputModeAnnotations::cutAnnotation()
 void
 UserInputModeAnnotations::processEditMenuItemSelection(const BrainBrowserWindowEditMenuItemEnum::Enum editMenuItem)
 {
-    if ( ! isEditMenuValid()) {
-        return;
+    if (isEditMenuExceptRedoUndoValid()) {
+        switch (editMenuItem) {
+            case BrainBrowserWindowEditMenuItemEnum::COPY:
+            {
+                AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+                std::vector<AnnotationAndFile> selectedAnnotations;
+                annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
+                                                                            selectedAnnotations);
+                
+                if (selectedAnnotations.size() > 1) {
+                    Vector3D mouseCoordinates;
+                    AnnotationClipboard* clipboard = annotationManager->getClipboard();
+                    clipboard->setContent(selectedAnnotations,
+                                          m_lastSelectedAnnotationWindowCoordinates,
+                                          mouseCoordinates);
+                }
+                else if (selectedAnnotations.size() == 1) {
+                    CaretAssertVectorIndex(selectedAnnotations, 0);
+                    
+                    Vector3D mouseCoordinates;
+                    AnnotationClipboard* clipboard = annotationManager->getClipboard();
+                    clipboard->setContent(selectedAnnotations[0].getAnnotation(),
+                                          m_lastSelectedAnnotationWindowCoordinates,
+                                          mouseCoordinates);
+                }
+            }
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::CUT:
+                cutAnnotation();
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::DELETER:
+                deleteSelectedAnnotations();
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
+                processDeselectAllAnnotations();
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::PASTE:
+            {
+                const MouseEvent* mouseEvent = getMousePosition();
+                if (mouseEvent != NULL) {
+                    pasteAnnotationFromAnnotationClipboard(*mouseEvent);
+                }
+                else {
+                    setMode(Mode::MODE_PASTE);
+                }
+            }
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
+            {
+                const MouseEvent* mouseEvent = getMousePosition();
+                if (mouseEvent != NULL) {
+                    pasteAnnotationFromAnnotationClipboardAndChangeSpace(*mouseEvent);
+                }
+                else {
+                    setMode(Mode::MODE_PASTE_SPECIAL);
+                }
+            }
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::REDO:
+                /* handled later in this function */
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
+                processSelectAllAnnotations();
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::UNDO:
+                /* handled later in this function */
+                break;
+        }
     }
     
-    
-    switch (editMenuItem) {
-        case BrainBrowserWindowEditMenuItemEnum::COPY:
-        {
-            AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
-            std::vector<AnnotationAndFile> selectedAnnotations;
-            annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
-                                                                        selectedAnnotations);
-            
-            if (selectedAnnotations.size() > 1) {
-                Vector3D mouseCoordinates;
-                AnnotationClipboard* clipboard = annotationManager->getClipboard();
-                clipboard->setContent(selectedAnnotations,
-                                      m_lastSelectedAnnotationWindowCoordinates,
-                                      mouseCoordinates);
-            }
-            else if (selectedAnnotations.size() == 1) {
-                CaretAssertVectorIndex(selectedAnnotations, 0);
+    if (isEditMenuRedoUndoValid()) {
+        switch (editMenuItem) {
+            case BrainBrowserWindowEditMenuItemEnum::COPY:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::CUT:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::DELETER:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::PASTE:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::REDO:
+            {
+                CaretUndoStack* undoStack(getUndoRedoStack());
                 
-                Vector3D mouseCoordinates;
-                AnnotationClipboard* clipboard = annotationManager->getClipboard();
-                clipboard->setContent(selectedAnnotations[0].getAnnotation(),
-                                      m_lastSelectedAnnotationWindowCoordinates,
-                                      mouseCoordinates);
+                AString errorMessage;
+                if ( ! undoStack->redo(errorMessage)) {
+                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                           errorMessage);
+                }
+                
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
+                break;
+            case BrainBrowserWindowEditMenuItemEnum::UNDO:
+            {
+                CaretUndoStack* undoStack(getUndoRedoStack());
+                
+                AString errorMessage;
+                if ( ! undoStack->undo(errorMessage)) {
+                    WuQMessageBox::errorOk(m_annotationToolsWidget,
+                                           errorMessage);
+                }
+                
+                EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            }
+                break;
         }
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::CUT:
-            cutAnnotation();
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::DELETER:
-            deleteSelectedAnnotations();
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::DESELECT_ALL:
-            processDeselectAllAnnotations();
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::PASTE:
-        {
-            const MouseEvent* mouseEvent = getMousePosition();
-            if (mouseEvent != NULL) {
-                pasteAnnotationFromAnnotationClipboard(*mouseEvent);
-            }
-            else {
-                setMode(Mode::MODE_PASTE);
-            }
-        }
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL:
-        {
-            const MouseEvent* mouseEvent = getMousePosition();
-            if (mouseEvent != NULL) {
-                pasteAnnotationFromAnnotationClipboardAndChangeSpace(*mouseEvent);
-            }
-            else {
-                setMode(Mode::MODE_PASTE_SPECIAL);
-            }
-        }
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::REDO:
-        {
-            CaretUndoStack* undoStack(getUndoRedoStack());
-            
-            AString errorMessage;
-            if ( ! undoStack->redo(errorMessage)) {
-                WuQMessageBox::errorOk(m_annotationToolsWidget,
-                                       errorMessage);
-            }
-            
-            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-        }
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::SELECT_ALL:
-            processSelectAllAnnotations();
-            break;
-        case BrainBrowserWindowEditMenuItemEnum::UNDO:
-        {
-            CaretUndoStack* undoStack(getUndoRedoStack());
-
-            AString errorMessage;
-            if ( ! undoStack->undo(errorMessage)) {
-                WuQMessageBox::errorOk(m_annotationToolsWidget,
-                                       errorMessage);
-            }
-            
-            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-        }
-            break;
     }
 }
 
@@ -3960,7 +4018,7 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
     pasteSpecialTextOut = BrainBrowserWindowEditMenuItemEnum::toGuiName(BrainBrowserWindowEditMenuItemEnum::PASTE_SPECIAL);
     
     
-    if (isEditMenuValid()) {
+    if (isEditMenuExceptRedoUndoValid()) {
         std::vector<AnnotationAndFile> selectedAnnotations;
         AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
         annotationManager->getAnnotationsAndFilesSelectedForEditing(getBrowserWindowIndex(),
@@ -4070,17 +4128,19 @@ UserInputModeAnnotations::getEnabledEditMenuItems(std::vector<BrainBrowserWindow
                 }
                 
                 pasteTextOut = ("Paste "
-                                     + typeName
-                                     + " in "
-                                     + spaceName
-                                     + " Space");
+                                + typeName
+                                + " in "
+                                + spaceName
+                                + " Space");
                 
                 pasteSpecialTextOut = ("Paste "
-                                            + typeName
-                                            + " and Change Space...");
+                                       + typeName
+                                       + " and Change Space...");
             }
         }
-        
+    }
+    
+    if (isEditMenuRedoUndoValid()) {
         CaretUndoStack* undoStack(getUndoRedoStack());
 
         if (undoStack->canRedo()) {

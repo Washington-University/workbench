@@ -426,7 +426,9 @@ namespace caret {
         
         void resetAnnotationUnderMouse();
         
-        bool isEditMenuValid() const;
+        bool isEditMenuExceptRedoUndoValid() const;
+        
+        bool isEditMenuRedoUndoValid() const;
         
         void pasteAnnotationFromAnnotationClipboard(const MouseEvent& mouseEvent);
         
