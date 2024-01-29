@@ -482,7 +482,7 @@ VolumeFileEditorDelegate::redo(const int64_t mapIndex,
  */
 bool
 VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
-                                        AString& errorMessageOut)
+                                                       AString& errorMessageOut)
 {
     float redoVoxelValue = 0.0;
     switch (editInfo.m_mode){
@@ -505,6 +505,8 @@ VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
             break;
     }
     
+    std::vector<VoxelIJK> voxelsIJK;
+    
     CaretPointer<VolumeMapUndoCommand> modifiedVoxels;
     modifiedVoxels.grabNew(new VolumeMapUndoCommand(m_volumeFile,
                                                  editInfo.m_mapIndex));
@@ -516,14 +518,18 @@ VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
                     modifiedVoxels->addVoxelRedoUndo(ijk,
                                                      redoVoxelValue,
                                                      m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
-                    m_volumeFile->setValue(redoVoxelValue,
-                                           ijk,
-                                           editInfo.m_mapIndex);
+                    voxelsIJK.emplace_back(ijk[0], ijk[1], ijk[2]);
                 }
             }
         }
     }
 
+    if ( ! voxelsIJK.empty()) {
+        m_volumeFile->setValuesForVoxelEditing(editInfo.m_mapIndex,
+                                               voxelsIJK,
+                                               redoVoxelValue);
+    }
+    
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
     
@@ -812,6 +818,10 @@ VolumeFileEditorDelegate::performDilateOrErode(const EditInfo& editInfo,
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
     
+    if (validFlag) {
+        updateAllMapColoring(editInfo.m_mapIndex);
+    }
+    
     return validFlag;
 }
 
@@ -1019,6 +1029,8 @@ VolumeFileEditorDelegate::performRetainConnected3D(const EditInfo& editInfo,
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
 
+    updateAllMapColoring(editInfo.m_mapIndex);
+    
     return true;
 }
 
@@ -1188,8 +1200,24 @@ VolumeFileEditorDelegate::performFloodFillAndRemoveConnected(const EditInfo& edi
     addToMapUndoStacks(editInfo.m_mapIndex,
                        modifiedVoxels.releasePointer());
     
+    updateAllMapColoring(editInfo.m_mapIndex);
+    
     return true;
 }
 
+/**
+ * Update all map coloring
+ * @param mapIndex
+ *    Index of the map
+ */
+void
+VolumeFileEditorDelegate::updateAllMapColoring(const int32_t mapIndex)
+{
+    CaretAssert(m_volumeFile);
+    CaretAssert((mapIndex >= 0) && (mapIndex < m_volumeFile->getNumberOfMaps()));
+    
+    m_volumeFile->clearVoxelColoringForMap(mapIndex);
+    m_volumeFile->updateScalarColoringForMap(mapIndex);
 
+}
 

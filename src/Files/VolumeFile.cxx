@@ -2980,3 +2980,75 @@ VolumeFile::groupAndNameHierarchyItemStatusChanged()
     m_graphicsPrimitiveManager->invalidateAllColoring();
 }
 
+/**
+ * Set the values for the given voxels in the given map to the given value.
+ * This is used when the user is editing voxels and may  be more efficient
+ * than calling setValue() for each voxel.
+ * @param mapIndex
+ *    Index of the map
+ * @param voxelsIJK
+ *    IJK indices of the voxels
+ * @param value
+ *    New data value for the voxels
+ */
+void
+VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
+                                     const std::vector<VoxelIJK>& voxelsIJK,
+                                     const float value)
+{
+    if ((mapIndex >= 0)
+        && (mapIndex < getNumberOfMaps())) {
+        /*
+         * Set the voxels
+         */
+        for (const auto& ijk : voxelsIJK) {
+            setValue(value,
+                     ijk.m_ijk,
+                     mapIndex);
+        }
+        
+        bool updateAllColoringFlag(true);
+        
+        if (isMappedWithLabelTable()) {
+            /*
+             * Update coloring for voxels with color from label
+             */
+            const GiftiLabelTable* labelTable(getMapLabelTable(mapIndex));
+            CaretAssert(labelTable);
+            const int32_t labelIndex(static_cast<int32_t>(value));
+            const GiftiLabel* label(labelTable->getLabel(labelIndex));
+            if (label != NULL) {
+                float rgbaFloat[4];
+                label->getColor(rgbaFloat);
+                
+                const uint8_t rgba[4] {
+                    static_cast<uint8_t>(rgbaFloat[0] * 255.0),
+                    static_cast<uint8_t>(rgbaFloat[1] * 255.0),
+                    static_cast<uint8_t>(rgbaFloat[2] * 255.0),
+                    static_cast<uint8_t>(rgbaFloat[3] * 255.0)
+                };
+                
+                if (m_voxelColorizer) {
+                    m_voxelColorizer->updateVoxelColorsInMap(mapIndex, voxelsIJK, rgba);
+                    updateAllColoringFlag = false;
+                }
+            }
+        }
+        
+        if (updateAllColoringFlag) {
+            /*
+             * Still need to update all coloring since changing
+             * values may affect palette parameters
+             */
+            if (m_voxelColorizer) {
+                m_voxelColorizer->invalidateColoring();
+            }
+        }
+        
+        /*
+         * Need to invalidate the GraphicsPrimitive so that the
+         * texture gets reloaded with the new RGBA coloring.
+         */
+        m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
+    }
+}

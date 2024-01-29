@@ -287,13 +287,8 @@ void
 UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
                                                     const int32_t mapIndex)
 {
-    CaretAssert(volumeFile);
-    CaretAssert((mapIndex >= 0) && (mapIndex < volumeFile->getNumberOfMaps()));
-
-    volumeFile->clearVoxelColoringForMap(mapIndex);
-    volumeFile->updateScalarColoringForMap(mapIndex);
-    
     /*
+     * Note: Coloring is updated in VolumeFileEditorDelegate
      * We want to repaint the graphics as immediately
      */
     EventManager::get()->sendEvent(EventGraphicsPaintNowAllWindows().getPointer());

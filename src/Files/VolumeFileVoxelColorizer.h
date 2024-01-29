@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
@@ -73,6 +74,10 @@ namespace caret {
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;
+        
+        void updateVoxelColorsInMap(const int32_t mapIndex,
+                                    const std::vector<VoxelIJK>& voxelsIJK,
+                                    const uint8_t rgba[4]);
         
         void clearVoxelColoringForMap(const int64_t mapIndex) const;
         

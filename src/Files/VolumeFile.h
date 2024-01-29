@@ -442,6 +442,9 @@ namespace caret {
         
         virtual void groupAndNameHierarchyItemStatusChanged() override;
 
+        void setValuesForVoxelEditing(const int32_t mapIndex,
+                                      const std::vector<VoxelIJK>& voxelsIJK,
+                                      const float value);
     };
 
 }

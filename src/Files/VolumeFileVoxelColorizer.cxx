@@ -782,3 +782,35 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex) const
     m_mapColoringValid[mapIndex] = false;
 }
 
+/**
+ * Update the voxel coloring for the given voxels in the given map with the given RGBA coloring.
+ * This method is used by voxel editing to avoid recoloring all voxels in the volume
+ * @param mapIndex
+ *    Index of the map
+ * @param voxelsIJK
+ *    IJK indices of the voxels
+ * @param rgba
+ *    New red, green, blue, alpha color components
+ */
+void
+VolumeFileVoxelColorizer::updateVoxelColorsInMap(const int32_t mapIndex,
+                                                 const std::vector<VoxelIJK>& voxelsIJK,
+                                                 const uint8_t rgba[4])
+{
+    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    if (m_mapColoringValid[mapIndex]) {
+        CaretAssertVectorIndex(m_mapRGBA, mapIndex);
+        uint8_t* mapRGBA = m_mapRGBA[mapIndex];
+        
+        for (const auto& v : voxelsIJK) {
+            const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(v.m_ijk);
+            CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
+            
+            mapRGBA[rgbaOffset]   = rgba[0];
+            mapRGBA[rgbaOffset+1] = rgba[1];
+            mapRGBA[rgbaOffset+2] = rgba[2];
+            mapRGBA[rgbaOffset+3] = rgba[3];
+        }
+    }
+}
+

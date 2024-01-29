@@ -171,6 +171,8 @@ namespace caret {
         void addToMapUndoStacks(const int32_t mapIndex,
                                 VolumeMapUndoCommand* modifiedVoxels);
         
+        void updateAllMapColoring(const int32_t mapIndex);
+        
         VolumeFile* m_volumeFile;
 
         /** 
