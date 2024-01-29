@@ -116,7 +116,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Add button
      */
     const QString addToolTip("<html>"
-                              "ADD MODE - add new coordinates"
+                              "ADD MODE - add coordinate to a new poly shape"
                               "<ul>"
                               "<li>Click the mouse to add one coordinate to the end of "
                               "the poly shape"
@@ -160,7 +160,7 @@ m_browserWindowIndex(browserWindowIndex)
      * Insert button
      */
     const QString insertToolTip("<html>"
-                                "EDIT MODE - INSERT coordinates"
+                                "EDIT MODE - INSERT coordinate on line between two coordinates"
                                 "<ul>"
                                 "<li>Move mouse over a line"
                                 "<li>The cursor becomes a 'plus' symbol"
@@ -269,11 +269,6 @@ m_browserWindowIndex(browserWindowIndex)
                                          moveTwoCoordinatesToolButton);
     }
 
-    QLabel* drawingLabel(new QLabel("Drawing"));
-    QFont font(drawingLabel->font());
-    font.setPointSizeF(font.pointSizeF() * 0.8);
-    drawingLabel->setFont(font);
-    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 2, 0);
     if (m_userInputMode == UserInputModeEnum::Enum::ANNOTATIONS) {
@@ -286,37 +281,87 @@ m_browserWindowIndex(browserWindowIndex)
         gridLayout->setContentsMargins(margins);
     }
     
-    /**
-     * Adds space between buttons
-     */
-    gridLayout->setHorizontalSpacing(1);
-    gridLayout->setColumnMinimumWidth(1, 3);
-    gridLayout->setColumnMinimumWidth(4, 3);
-    
-    int32_t row(0);
-    gridLayout->addWidget(drawingLabel,
-                          row, 2, 1, 2, Qt::AlignHCenter);
-    ++row;
-    
-    gridLayout->addWidget(addCoordinatesToolButton,
-                          row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(insertCoordinatesToolButton,
-                          row, 2, Qt::AlignHCenter);
-    gridLayout->addWidget(moveOneCoordinateToolButton,
-                          row, 3, Qt::AlignHCenter);
-    gridLayout->addWidget(m_finishToolButton,
-                          row, 5, Qt::AlignHCenter);
-    ++row;
-    gridLayout->addWidget(eraseLastCoordinateToolButton,
-                          row, 0, Qt::AlignHCenter);
-    gridLayout->addWidget(removeCoordinatesToolButton,
-                          row, 2, Qt::AlignHCenter);
-    if (moveTwoCoordinatesToolButton != NULL) {
-        gridLayout->addWidget(moveTwoCoordinatesToolButton,
+    const bool createAndEditLayoutFlag(true);
+    if (createAndEditLayoutFlag) {
+        QLabel* drawNewLabel(new QLabel("Draw New"));
+        QFont font(drawNewLabel->font());
+        font.setPointSizeF(font.pointSizeF() * 0.8);
+        drawNewLabel->setFont(font);
+        
+        QLabel* editLabel(new QLabel("Edit"));
+        editLabel->setFont(font);
+        
+        /**
+         * Adds space between buttons
+         */
+        gridLayout->setHorizontalSpacing(1);
+        gridLayout->setColumnMinimumWidth(2, 3);
+        
+        int32_t row(0);
+        gridLayout->addWidget(drawNewLabel,
+                              row, 0, 1, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(editLabel,
+                              row, 3, 1, 2, Qt::AlignHCenter);
+        ++row;
+        
+        gridLayout->addWidget(m_finishToolButton,
+                              row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(addCoordinatesToolButton,
+                              row, 1, Qt::AlignHCenter);
+        gridLayout->addWidget(insertCoordinatesToolButton,
                               row, 3, Qt::AlignHCenter);
+        gridLayout->addWidget(moveOneCoordinateToolButton,
+                              row, 4, Qt::AlignHCenter);
+        ++row;
+        gridLayout->addWidget(cancelToolButton,
+                              row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(eraseLastCoordinateToolButton,
+                              row, 1, Qt::AlignHCenter);
+        gridLayout->addWidget(removeCoordinatesToolButton,
+                              row, 3, Qt::AlignHCenter);
+        if (moveTwoCoordinatesToolButton != NULL) {
+            gridLayout->addWidget(moveTwoCoordinatesToolButton,
+                                  row, 4, Qt::AlignHCenter);
+        }
     }
-    gridLayout->addWidget(cancelToolButton,
-                          row, 5, Qt::AlignHCenter);
+    else {
+        QLabel* drawingLabel(new QLabel("Drawing"));
+        QFont font(drawingLabel->font());
+        font.setPointSizeF(font.pointSizeF() * 0.8);
+        drawingLabel->setFont(font);
+        
+        /**
+         * Adds space between buttons
+         */
+        gridLayout->setHorizontalSpacing(1);
+        gridLayout->setColumnMinimumWidth(1, 3);
+        gridLayout->setColumnMinimumWidth(4, 3);
+        
+        int32_t row(0);
+        gridLayout->addWidget(drawingLabel,
+                              row, 2, 1, 2, Qt::AlignHCenter);
+        ++row;
+        
+        gridLayout->addWidget(addCoordinatesToolButton,
+                              row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(insertCoordinatesToolButton,
+                              row, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(moveOneCoordinateToolButton,
+                              row, 3, Qt::AlignHCenter);
+        gridLayout->addWidget(m_finishToolButton,
+                              row, 5, Qt::AlignHCenter);
+        ++row;
+        gridLayout->addWidget(eraseLastCoordinateToolButton,
+                              row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(removeCoordinatesToolButton,
+                              row, 2, Qt::AlignHCenter);
+        if (moveTwoCoordinatesToolButton != NULL) {
+            gridLayout->addWidget(moveTwoCoordinatesToolButton,
+                                  row, 3, Qt::AlignHCenter);
+        }
+        gridLayout->addWidget(cancelToolButton,
+                              row, 5, Qt::AlignHCenter);
+    }
 
     setSizePolicy(QSizePolicy::Fixed,
                   QSizePolicy::Fixed);
