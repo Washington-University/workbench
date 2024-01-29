@@ -121,7 +121,8 @@ namespace caret {
         void setModeGroupingRegroupAnnotations(const AnnotationGroupKey& annotationGroupKey);
         
         void setModeLocationAndSize(const std::vector<Annotation*>& annotationsBeforeMoveAndResize,
-                                    const std::vector<Annotation*>& annotationsAfterMoveAndResize);
+                                    const std::vector<Annotation*>& annotationsAfterMoveAndResize,
+                                    const AString& modeDescription);
         
         void setModePasteAnnotation(AnnotationFile* annotationFile,
                                     Annotation* annotation);

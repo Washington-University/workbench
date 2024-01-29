@@ -344,7 +344,8 @@ AnnotationArrangerExecutor::distributeAnnotationsPrivate(const AnnotationArrange
         CaretAssert(beforeMoving.size() == afterMoving.size());
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLocationAndSize(beforeMoving,
-                                            afterMoving);
+                                            afterMoving,
+                                            AnnotationDistributeEnum::toGuiName(m_distribute));
         undoCommand->setDescription(AnnotationDistributeEnum::toGuiName(m_distribute));
         
         validFlag = m_annotationManager->applyCommand(undoCommand,
@@ -454,7 +455,8 @@ AnnotationArrangerExecutor::alignAnnotationsPrivate(const AnnotationArrangerInpu
         CaretAssert(beforeMoving.size() == afterMoving.size());
         AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
         undoCommand->setModeLocationAndSize(beforeMoving,
-                                            afterMoving);
+                                            afterMoving,
+                                            AnnotationAlignmentEnum::toGuiName(m_alignment));
         undoCommand->setDescription(AnnotationAlignmentEnum::toGuiName(m_alignment));
         
         validFlag = m_annotationManager->applyCommand(undoCommand,

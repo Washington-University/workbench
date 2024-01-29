@@ -1282,10 +1282,13 @@ AnnotationRedoUndoCommand::setModeCoordinateOneAndTwo(const AnnotationCoordinate
  *     Annotations before move and resize has been applied.
  * @param annotationsAfterMoveAndResize
  *     Corresponding annotations after move and resize has been applied.
+ * @param modeDescription
+ *     Description of the mode
  */
 void
 AnnotationRedoUndoCommand::setModeLocationAndSize(const std::vector<Annotation*>& annotationsBeforeMoveAndResize,
-                                                  const std::vector<Annotation*>& annotationsAfterMoveAndResize)
+                                                  const std::vector<Annotation*>& annotationsAfterMoveAndResize,
+                                                  const AString& modeDescription)
 {
     const int32_t numAnnotations = static_cast<int32_t>(annotationsBeforeMoveAndResize.size());
     if (numAnnotations != static_cast<int32_t>(annotationsAfterMoveAndResize.size())) {
@@ -1295,12 +1298,7 @@ AnnotationRedoUndoCommand::setModeLocationAndSize(const std::vector<Annotation*>
     }
     
     m_mode = AnnotationRedoUndoCommandModeEnum::LOCATION_AND_SIZE;
-    if (numAnnotations == 1) {
-        setDescription("Reshape Annotation");
-    }
-    else {
-        setDescription("Reshape Annotations");
-    }
+    setDescription(modeDescription);
     
     for (int32_t i = 0; i < numAnnotations; i++) {
         CaretAssertVectorIndex(annotationsBeforeMoveAndResize, i);

@@ -2398,6 +2398,7 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             }
             
             if (allowMoveFlag) {
+                AString modeDescription("Move");
                 std::vector<Annotation*> annotationsBeforeMoveAndResize;
                 std::vector<Annotation*> annotationsAfterMoveAndResize;
                 
@@ -2406,6 +2407,9 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     if (annotationModified->applySpatialModification(annSpatialMod)) {
                         annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
                         annotationsAfterMoveAndResize.push_back(annotationModified);
+                        if (annotationModified->getType() == AnnotationTypeEnum::POLYHEDRON) {
+                            modeDescription = "Move Sample Coordinate";
+                        }
                     }
                     else {
                         delete annotationModified;
@@ -2417,7 +2421,8 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 if ( ! annotationsAfterMoveAndResize.empty()) {
                     AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
                     command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
-                                                    annotationsAfterMoveAndResize);
+                                                    annotationsAfterMoveAndResize,
+                                                    modeDescription);
                     
                     if ( ! mouseEvent.isFirstDragging()) {
                         command->setMergeEnabled(true);
@@ -4996,7 +5001,8 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateAtIndex(const in
         
         AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
         command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
-                                        annotationsAfterMoveAndResize);
+                                        annotationsAfterMoveAndResize,
+                                        "Move Sample Coordinate");
         
         if ( ! startOfDraggingFlag) {
             /*
