@@ -4944,7 +4944,7 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateAtIndex(const in
         std::vector<Annotation*> annotationsBeforeMoveAndResize;
         annotationsBeforeMoveAndResize.push_back(m_annotation.get());
         
-        Annotation* annotationModified(m_annotation->clone());
+        std::unique_ptr<Annotation> annotationModified(m_annotation->clone());
         AnnotationMultiPairedCoordinateShape* annModMultiPairShape(annotationModified->castToMultiPairedCoordinateShape());
         CaretAssert(annModMultiPairShape);
         if (moveTwoFlag) {
@@ -4957,7 +4957,7 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::moveCoordinateAtIndex(const in
         }
         
         std::vector<Annotation*> annotationsAfterMoveAndResize;
-        annotationsAfterMoveAndResize.push_back(annotationModified);
+        annotationsAfterMoveAndResize.push_back(annotationModified.get());
         
         AnnotationRedoUndoCommand* command = new AnnotationRedoUndoCommand();
         command->setModeLocationAndSize(annotationsBeforeMoveAndResize,
