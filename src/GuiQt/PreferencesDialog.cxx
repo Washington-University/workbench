@@ -874,7 +874,6 @@ PreferencesDialog::openGLGraphicsTimingComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setGraphicsFramesPerSecondEnabled(value);
-    const bool doRepaintFlag(true);
     
     /*
      * Need to draw a few frames to force creation of frame times so that

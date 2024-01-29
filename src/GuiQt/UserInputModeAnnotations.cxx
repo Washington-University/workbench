@@ -2490,33 +2490,6 @@ UserInputModeAnnotations::getSelectedPolyTypeAnnotation() const
 }
 
 /**
- * @return True if there is one annotation and it is a polygon, polyline, or polyhedron and in SELECT mode
- * @param annotations
- *    The annotations
- */
-bool
-UserInputModeAnnotations::isOnePolyTypeAnnotationInDrawModeSelected(const std::vector<Annotation*>& annotations) const
-{
-    if (getMode() == Mode::MODE_SELECT) {
-        /*
-         * In draw mode, the user is adding additional coordinates and these new
-         * coordinates will not be (should not be) on the poly-type annotation's
-         * edges or vertices.  But clicking where there is no annotation will
-         * deselect all annotations.  So if in draw mode and a poly-type annotation
-         * is selected, DO NOT change the annotation under the mouse.
-         */
-        if (getPolyTypeDrawEditOperation() == PolyTypeDrawEditOperation::ADD_NEW_COORDINATE) {
-            AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
-            const std::vector<Annotation*> selectedAnns = annMan->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
-            if (isOnePolyTypeAnnotationSelected(selectedAnns)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/**
  * @return True if there is one annotation and it is a polygon, polyline, or polyhedron
  * @param annotations
  *    The annotations
@@ -2817,11 +2790,11 @@ UserInputModeAnnotations::addCoordinateToAnnotation(const MouseEvent& mouseEvent
 {
     CaretAssertMessage(0, "This will not work because if on clicks off of an annotation "
                        "(where the user would click to add a coordinate), we deselect all annotations");
-    if (m_annotationUnderMouse->getNumberOfCoordinates() > 0) {
+    if ((annotation == m_annotationUnderMouse)
+        && (m_annotationUnderMouse->getNumberOfCoordinates() > 0)) {
         const AnnotationCoordinate* firstCoord(m_annotationUnderMouse->getCoordinate(0));
         CaretAssert(firstCoord);
         
-        int32_t surfaceSpaceVertexIndex(-1);
         AnnotationCoordinateInformation coordInfo;
         AnnotationCoordinateInformation::createCoordinateInformationFromXY(mouseEvent,
                                                                            coordInfo);
@@ -4704,7 +4677,9 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::NewUserSpaceAnnotation(QWidget
                                                                          const MouseEvent& mouseEvent,
                                                                          const UserInputModeEnum::Enum userInputMode,
                                                                          const int32_t browserWindowIndex)
-: m_annotationFile(annotationFile),
+:
+m_parentWidgetForDialogs(parentWidgetForDialogs),
+m_annotationFile(annotationFile),
 m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
@@ -5002,8 +4977,6 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::eraseLastCoordinate()
     CaretAssert(m_annotation);
     const int32_t num(m_annotation->getNumberOfCoordinates());
     if (num > 0) {
-        const int32_t removeIndex(num - 1);
-
         AnnotationMultiPairedCoordinateShape* multiPairedCoordShape(m_annotation->castToMultiPairedCoordinateShape());
         if (multiPairedCoordShape != NULL) {
             AnnotationRedoUndoCommand* cmd(new AnnotationRedoUndoCommand());

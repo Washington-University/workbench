@@ -728,14 +728,12 @@ AlgorithmNodesInsideBorder::findNodesOutsideOfConnectedPath(const SurfaceFile* m
     }
     
     /*
-     * Return nodes inside the path
+     * Return nodes outside the path
      */
-    int32_t insideCount = 0;
     for (int32_t i = 0; i < numberOfNodes; i++) {
         CaretAssertVectorIndex(insideBorderFlag, i);
         if (insideBorderFlag[i]) {
             nodesOutsidePathOut.push_back(i);
-            insideCount++;
         }
     }
     return nodesOutsidePathOut;

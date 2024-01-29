@@ -135,7 +135,6 @@ AnnotationRedoUndoWidget::updateContent(const std::vector<Annotation*>& annotati
     EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputMode,
                                                       m_browserWindowIndex);
     EventManager::get()->sendEvent(annDrawEvent.getPointer());
-    const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
     
     CaretUndoStack* undoStack = m_userInputModeAnnotations->getUndoRedoStack();
 

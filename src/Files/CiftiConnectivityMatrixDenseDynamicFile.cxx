@@ -350,7 +350,6 @@ CiftiConnectivityMatrixDenseDynamicFile::getConnectivityCorrelationTwo() const
                 rowDataPointers.push_back(&m_dataSeriesMatrixData[offset]);
             }
             
-            const int64_t nextBrainordinateStride(m_numberOfTimePoints);
             const int64_t nextTimePointStride(1);
             AString errorMessage;
             ConnectivityCorrelationTwo* cc = ConnectivityCorrelationTwo::newInstance(getFileName(),
@@ -358,7 +357,6 @@ CiftiConnectivityMatrixDenseDynamicFile::getConnectivityCorrelationTwo() const
                                                                                      rowDataPointers,
                                                                                      m_numberOfTimePoints,
                                                                                      nextTimePointStride,
-                                                                                     //nextBrainordinateStride,
                                                                                      errorMessage);
             if (cc != NULL) {
                 m_connectivityCorrelationTwo.reset(cc);

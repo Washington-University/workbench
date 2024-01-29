@@ -1080,7 +1080,6 @@ MediaOverlayViewController::resetUserView()
         EventManager::get()->sendEvent(tabEvent.getPointer());
         BrowserTabContent* btc(tabEvent.getBrowserTab());
         if (btc != NULL) {
-            const bool doRepaintFlag(true);
             EventGraphicsPaintNowOneWindow graphicsEvent(m_browserWindowIndex);
             EventManager::get()->sendEvent(graphicsEvent.getPointer());
 

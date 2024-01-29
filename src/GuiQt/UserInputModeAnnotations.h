@@ -450,8 +450,6 @@ namespace caret {
         
         bool isOnePolyTypeAnnotationSelected(const std::vector<Annotation*>& annotations) const;
         
-        bool isOnePolyTypeAnnotationInDrawModeSelected(const std::vector<Annotation*>& annotations) const;
-        
         void addCoordinateToAnnotation(const MouseEvent& mouseEvent,
                                        Annotation* annotation);
         
