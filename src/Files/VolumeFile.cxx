@@ -52,6 +52,7 @@
 #include "VolumeFileVoxelColorizer.h"
 #include "VolumeGraphicsPrimitiveManager.h"
 #include "VolumeSpline.h"
+#include "VoxelColorUpdate.h"
 
 #include <limits>
 
@@ -3021,16 +3022,25 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
                 float rgbaFloat[4];
                 label->getColor(rgbaFloat);
                 
-                const uint8_t rgba[4] {
+                std::array<uint8_t, 4> rgba {
                     static_cast<uint8_t>(rgbaFloat[0] * 255.0),
                     static_cast<uint8_t>(rgbaFloat[1] * 255.0),
                     static_cast<uint8_t>(rgbaFloat[2] * 255.0),
                     static_cast<uint8_t>(rgbaFloat[3] * 255.0)
                 };
                 
+                VoxelColorUpdate voxelColorUpdate;
+                voxelColorUpdate.setMapIndex(mapIndex);
+                voxelColorUpdate.setRGBA(rgba);
+                voxelColorUpdate.addVoxels(voxelsIJK);
+                
                 if (m_voxelColorizer) {
-                    m_voxelColorizer->updateVoxelColorsInMap(mapIndex, voxelsIJK, rgba);
+                    m_voxelColorizer->updateVoxelColorsInMap(voxelColorUpdate);
                     updateAllColoringFlag = false;
+                }
+                
+                if (m_graphicsPrimitiveManager) {
+                    m_graphicsPrimitiveManager->updateVoxelColorsInMapTexture(voxelColorUpdate);
                 }
             }
         }
@@ -3043,12 +3053,14 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
             if (m_voxelColorizer) {
                 m_voxelColorizer->invalidateColoring();
             }
+            
+            if (m_graphicsPrimitiveManager) {
+                /*
+                 * Need to invalidate the GraphicsPrimitive so that the
+                 * texture gets reloaded with the new RGBA coloring.
+                 */
+                m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
+            }
         }
-        
-        /*
-         * Need to invalidate the GraphicsPrimitive so that the
-         * texture gets reloaded with the new RGBA coloring.
-         */
-        m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
     }
 }

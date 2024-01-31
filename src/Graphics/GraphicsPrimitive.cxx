@@ -168,6 +168,7 @@ GraphicsPrimitive::copyHelperGraphicsPrimitive(const GraphicsPrimitive& obj)
     m_textureSettings             = obj.m_textureSettings;
     m_arrayIndicesSubsetFirstVertexIndex = obj.m_arrayIndicesSubsetFirstVertexIndex;
     m_arrayIndicesSubsetCount     = obj.m_arrayIndicesSubsetCount;
+    m_voxelColorUpdate            = obj.m_voxelColorUpdate;
     invalidateVertexMeasurements();
 
 
@@ -2591,5 +2592,35 @@ GraphicsPrimitive::invalidateVertexMeasurements()
     m_yMean              = 0.0;
     m_yStandardDeviation = -1.0;
 }
+
+/**
+ * @return The voxel color update
+ * @param mapIndex
+ *    The map index
+ */
+const VoxelColorUpdate*
+GraphicsPrimitive::getVoxelColorUpdate() const
+{
+    return &m_voxelColorUpdate;
+}
+
+/**
+ * Set the voxel color update
+ */
+void
+GraphicsPrimitive::setVoxelColorUpdate(const VoxelColorUpdate& voxelColorUpdate)
+{
+    m_voxelColorUpdate = voxelColorUpdate;
+}
+
+/**
+ * Reset the voxel color update
+ */
+void
+GraphicsPrimitive::resetVoxelColorUpdate()
+{
+    m_voxelColorUpdate.clear();
+}
+
 
 

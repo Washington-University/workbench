@@ -101,8 +101,7 @@ namespace caret {
                                      const QPoint& menuPosition,
                                      BrainOpenGLWidget* openGLWidget);
         
-        void updateGraphicsAfterEditing(VolumeFile* volumeFile,
-                                        const int32_t mapIndex);
+        void updateGraphicsAfterEditing();
         
         // ADD_NEW_METHODS_HERE
 

@@ -30,6 +30,7 @@
 #include "EventListenerInterface.h"
 #include "GraphicsLineMeanDeviationSettings.h"
 #include "GraphicsTextureSettings.h"
+#include "VoxelColorUpdate.h"
 
 namespace caret {
 
@@ -505,6 +506,12 @@ namespace caret {
         void applyNewMeanAndDeviationToYComponents(const GraphicsLineMeanDeviationSettings& settings,
                                                    bool& haveNanInfFlagOut);
         
+        const VoxelColorUpdate* getVoxelColorUpdate() const;
+        
+        void setVoxelColorUpdate(const VoxelColorUpdate& voxelColorUpdate);
+        
+        void resetVoxelColorUpdate();
+
         static AString getNewMeanDeviationOperationDescriptionInHtml();
         
     protected:
@@ -593,6 +600,8 @@ namespace caret {
         void applyNewMeanAndDeviationToYComponentsWithNaNs(std::vector<float>& data,
                                                            const GraphicsLineMeanDeviationSettings& settings);
 
+        mutable VoxelColorUpdate m_voxelColorUpdate;
+        
         std::vector<float> m_xyz;
         
         std::vector<float> m_floatNormalVectorXYZ;

@@ -30,6 +30,7 @@
 namespace caret {
 
     class VolumeFile;
+    class VoxelColorUpdate;
     
     class VolumeFileVoxelColorizer : public CaretObject {
         
@@ -75,9 +76,7 @@ namespace caret {
                                 const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;
         
-        void updateVoxelColorsInMap(const int32_t mapIndex,
-                                    const std::vector<VoxelIJK>& voxelsIJK,
-                                    const uint8_t rgba[4]);
+        void updateVoxelColorsInMap(const VoxelColorUpdate& voxelColorUpdate);
         
         void clearVoxelColoringForMap(const int64_t mapIndex) const;
         

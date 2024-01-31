@@ -27,6 +27,8 @@
 
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "VoxelColorUpdate.h"
+#include "VoxelIJK.h"
 
 namespace caret {
     class CaretMappableDataFile;
@@ -64,6 +66,12 @@ namespace caret {
                                                                  const int32_t tabIndex) const;
 
 
+        void updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate);
+
+        const VoxelColorUpdate* getVoxelColorUpdate(const int32_t mapIndex) const;
+        
+        void resetVoxelColorUpdate(const int32_t mapIndex) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -75,6 +83,8 @@ namespace caret {
                                                  const int32_t tabIndex,
                                                  AString& errorMessageOut) const;
 
+        void updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const;
+        
         CaretMappableDataFile* m_mapDataFile;
         
         VolumeMappableInterface* m_volumeInterface;
@@ -84,6 +94,8 @@ namespace caret {
         mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
         
         mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
+        
+        mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         
         // ADD_NEW_MEMBERS_HERE
 

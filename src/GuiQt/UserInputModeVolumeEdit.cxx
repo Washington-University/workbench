@@ -29,6 +29,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DrawingViewportContent.h"
+#include "ElapsedTimer.h"
 #include "EventBrowserWindowDrawingContent.h"
 #include "EventDrawingViewportContentGet.h"
 #include "EventGraphicsPaintNowAllWindows.h"
@@ -145,6 +146,9 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
         return;
     }
     
+    ElapsedTimer timer;
+    timer.start();
+    
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     const int mouseX = mouseEvent.getX();
     const int mouseY = mouseEvent.getY();
@@ -228,9 +232,9 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
                                    errorMessage);
         }
         
-        updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
-                                   volumeEditInfo.m_mapIndex);
+        updateGraphicsAfterEditing();
     }
+    std::cout << "Voxel Edit Time: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl << std::flush;
 }
 
 /**
@@ -277,15 +281,9 @@ UserInputModeVolumeEdit::showContextMenu(const MouseEvent& /*mouseEvent*/,
     
 /**
  * Update the graphics after editing.
- *
- * @param volumeFile
- *    Volume file that needs coloring update.
- * @param mapIndex
- *    Index of the map.
  */
 void
-UserInputModeVolumeEdit::updateGraphicsAfterEditing(VolumeFile* volumeFile,
-                                                    const int32_t mapIndex)
+UserInputModeVolumeEdit::updateGraphicsAfterEditing()
 {
     /*
      * Note: Coloring is updated in VolumeFileEditorDelegate

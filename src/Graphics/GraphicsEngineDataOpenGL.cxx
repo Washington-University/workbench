@@ -377,6 +377,33 @@ void
 GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitive)
 {
     if (m_textureImageDataName != NULL) {
+        /*
+         * Texture has already been loaded.
+         * Do we need to update some of the texels (usually when user
+         * is voxel editing)
+         */
+        const VoxelColorUpdate* voxelColorUpdate(primitive->getVoxelColorUpdate());
+        if (voxelColorUpdate->isValid()) {
+            switch (primitive->getTextureSettings().getDimensionType()) {
+                case GraphicsTextureSettings::DimensionType::NONE:
+                    break;
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_2D:
+                    CaretAssertMessage(0, "Voxel update not implemented for 2D textures");
+                    break;
+                case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
+                    /*
+                     * Update the texture with new exels
+                     */
+                    loadTextureImageDataBuffer3D(primitive,
+                                                 TextureLoadMode::VOXEL_COLOR_UPDATE);
+                    break;
+            }
+            
+            /*
+             * Reset color update since it has been used
+             */
+            primitive->resetVoxelColorUpdate();
+        }
         return;
     }
     
@@ -387,7 +414,8 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer(GraphicsPrimitive* primitiv
             loadTextureImageDataBuffer2D(primitive);
             break;
         case GraphicsTextureSettings::DimensionType::FLOAT_STR_3D:
-            loadTextureImageDataBuffer3D(primitive);
+            loadTextureImageDataBuffer3D(primitive,
+                                         TextureLoadMode::FULL);
             break;
     }
 }
@@ -654,7 +682,8 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer2D(GraphicsPrimitive* primit
  *     The graphics primitive that will be drawn.
  */
 void
-GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive)
+GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive,
+                                                       const TextureLoadMode textureLoadMode)
 {
     const GraphicsTextureSettings& textureSettings(primitive->getTextureSettings());
     
@@ -713,10 +742,19 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAX_LEVEL, 0);
     
-    EventGraphicsOpenGLCreateTextureName createEvent;
-    EventManager::get()->sendEvent(createEvent.getPointer());
-    m_textureImageDataName = createEvent.getOpenGLTextureName();
-    CaretAssert(m_textureImageDataName);
+    switch (textureLoadMode) {
+        case FULL:
+        {
+            EventGraphicsOpenGLCreateTextureName createEvent;
+            EventManager::get()->sendEvent(createEvent.getPointer());
+            m_textureImageDataName = createEvent.getOpenGLTextureName();
+            CaretAssert(m_textureImageDataName);
+        }
+            break;
+        case VOXEL_COLOR_UPDATE:
+            CaretAssert(m_textureImageDataName);
+            break;
+    }
     
     const GLuint openGLTextureName = m_textureImageDataName->getTextureName();
     
@@ -789,6 +827,7 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
     
 
     if (useMipMapFlag) {
+        CaretAssertMessage(0, "Mipmaps not supported (yet) for VoxelColorUpdate");
 #ifdef CARET_OS_WINDOWS_MSVC
         CaretLogSevere("3D Mipmaps function gluBuild3DMipmaps() not available on system "
                        "used to compile this version of Workbench.");
@@ -829,33 +868,71 @@ GraphicsEngineDataOpenGL::loadTextureImageDataBuffer3D(GraphicsPrimitive* primit
 #endif
     }
     
-    /*
-     * Note: Generating mip maps above may have failed
-     * so not in an "else"
-     */
-    if ( ! useMipMapFlag) {
-        glTexImage3D(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_2D
-                     0,                 // level of detail 0=base, n is nth mipmap reduction
-                     GL_RGBA,           // internal format
-                     imageWidth,        // width of volume
-                     imageHeight,       // height of volume
-                     imageSlices,       // slices of volume
-                     0,                 // border
-                     pixelDataFormat,   // format of the pixel data
-                     GL_UNSIGNED_BYTE,  // data type of pixel data
-                     (GLubyte*)imageDataPointer);   // pointer to image data
-        
-        const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
-        if (errorGL) {
-            CaretLogSevere("OpenGL error after glTexImage3D(), width="
-                           + AString::number(imageWidth)
-                           + ", height="
-                           + AString::number(imageHeight)
-                           + ", slices="
-                           + AString::number(imageSlices)
-                           + ": "
-                           + errorGL->getVerboseDescription());
+    switch (textureLoadMode) {
+        case FULL:
+            /*
+             * Note: Generating mip maps above may have failed
+             * so not in an "else"
+             */
+            if ( ! useMipMapFlag) {
+                glTexImage3D(GL_TEXTURE_3D,     // MUST BE GL_TEXTURE_3D
+                             0,                 // level of detail 0=base, n is nth mipmap reduction
+                             GL_RGBA,           // internal format
+                             imageWidth,        // width of volume
+                             imageHeight,       // height of volume
+                             imageSlices,       // slices of volume
+                             0,                 // border
+                             pixelDataFormat,   // format of the pixel data
+                             GL_UNSIGNED_BYTE,  // data type of pixel data
+                             (GLubyte*)imageDataPointer);   // pointer to image data
+                
+                const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+                if (errorGL) {
+                    CaretLogSevere("OpenGL error after glTexImage3D(), width="
+                                   + AString::number(imageWidth)
+                                   + ", height="
+                                   + AString::number(imageHeight)
+                                   + ", slices="
+                                   + AString::number(imageSlices)
+                                   + ": "
+                                   + errorGL->getVerboseDescription());
+                }
+            }
+            break;
+        case VOXEL_COLOR_UPDATE:
+        {
+            const VoxelColorUpdate* voxelColorUpdate(primitive->getVoxelColorUpdate());
+            const std::array<uint8_t, 4> rgba(voxelColorUpdate->getRGBA());
+            const int32_t numVoxels(voxelColorUpdate->getNumberOfVoxels());
+            for (int32_t i = 0; i < numVoxels; i++) {
+                const VoxelIJK& v(voxelColorUpdate->getVoxel(i));
+                glTexSubImage3D(GL_TEXTURE_3D, // MUST BE GL_TEXTURE_3D
+                                0,             // level of detail 0=base, n is nth mipmap reduction
+                                v.i(),         // X-offset
+                                v.j(),         // Y-offset
+                                v.k(),         // Z-offset
+                                1,             // width
+                                1,             // height
+                                1,             // depth
+                                pixelDataFormat,        //format of the pixel data
+                                GL_UNSIGNED_BYTE,       // data type of pixel data
+                                (GLubyte*)rgba.data()); // pointer to data
+                
+                const auto errorGL = GraphicsUtilitiesOpenGL::getOpenGLError();
+                if (errorGL) {
+                    CaretLogSevere("OpenGL error after glTexImage3D(), width="
+                                   + AString::number(imageWidth)
+                                   + ", height="
+                                   + AString::number(imageHeight)
+                                   + ", slices="
+                                   + AString::number(imageSlices)
+                                   + ": "
+                                   + errorGL->getVerboseDescription());
+                }
+            }
         }
+//            NEED TO TURN OFF INVALIDATION OF GRA:PHICS PRIMITIVE IN ????=
+            break;
     }
     
     const bool showTextureFlag(true);

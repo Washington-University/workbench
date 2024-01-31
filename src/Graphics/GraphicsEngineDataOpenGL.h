@@ -71,6 +71,16 @@ namespace caret {
             WINDOW,
         };
         
+        /**
+         * Texture loading mode
+         */
+        enum TextureLoadMode {
+            /** Load full texture */
+            FULL,
+            /** Load voxel color update */
+            VOXEL_COLOR_UPDATE
+        };
+        
         GraphicsEngineDataOpenGL(const GraphicsEngineDataOpenGL&);
 
         GraphicsEngineDataOpenGL& operator=(const GraphicsEngineDataOpenGL&);
@@ -89,7 +99,8 @@ namespace caret {
         
         void loadTextureImageDataBuffer2D(GraphicsPrimitive* primitive);
         
-        void loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive);
+        void loadTextureImageDataBuffer3D(GraphicsPrimitive* primitive,
+                                          const TextureLoadMode textureLoadMode);
         
         static void drawPrivate(const PrivateDrawMode drawMode,
                                 GraphicsPrimitive* primitive,

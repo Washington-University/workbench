@@ -672,8 +672,7 @@ UserInputModeVolumeEditWidget::viewVolumeInNewOverlay(VolumeFile* vf,
                                                       mapIndex);
         volumeEditInfo.m_topOverlay->setEnabled(true);
         volumeEditInfo.m_topOverlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing(vf,
-                                                          mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -757,8 +756,7 @@ UserInputModeVolumeEditWidget::undoActionTriggered()
             WuQMessageBox::errorOk(this,
                                    errorMessage);
         }
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
-                                                          volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
     }
 }
 
@@ -776,8 +774,7 @@ UserInputModeVolumeEditWidget::redoActionTriggered()
             WuQMessageBox::errorOk(this,
                                    errorMessage);
         }
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
-                                                          volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
     }
 }
 
@@ -795,8 +792,7 @@ UserInputModeVolumeEditWidget::resetActionTriggered()
             WuQMessageBox::errorOk(this,
                                    errorMessage);
         }
-        m_inputModeVolumeEdit->updateGraphicsAfterEditing(volumeEditInfo.m_volumeFile,
-                                                          volumeEditInfo.m_mapIndex);
+        m_inputModeVolumeEdit->updateGraphicsAfterEditing();
     }
 }
 

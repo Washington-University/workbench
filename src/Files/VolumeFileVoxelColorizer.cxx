@@ -31,6 +31,7 @@
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "VolumeFile.h"
+#include "VoxelColorUpdate.h"
 
 #include <cmath>
 
@@ -785,25 +786,24 @@ VolumeFileVoxelColorizer::clearVoxelColoringForMap(const int64_t mapIndex) const
 /**
  * Update the voxel coloring for the given voxels in the given map with the given RGBA coloring.
  * This method is used by voxel editing to avoid recoloring all voxels in the volume
- * @param mapIndex
- *    Index of the map
- * @param voxelsIJK
- *    IJK indices of the voxels
- * @param rgba
- *    New red, green, blue, alpha color components
+ * @param voxelColorUpdate
+ *    Color update information
  */
 void
-VolumeFileVoxelColorizer::updateVoxelColorsInMap(const int32_t mapIndex,
-                                                 const std::vector<VoxelIJK>& voxelsIJK,
-                                                 const uint8_t rgba[4])
+VolumeFileVoxelColorizer::updateVoxelColorsInMap(const VoxelColorUpdate& voxelColorUpdate)
 {
+    const int32_t mapIndex(voxelColorUpdate.getMapIndex());
     CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
+    
     if (m_mapColoringValid[mapIndex]) {
         CaretAssertVectorIndex(m_mapRGBA, mapIndex);
         uint8_t* mapRGBA = m_mapRGBA[mapIndex];
         
-        for (const auto& v : voxelsIJK) {
-            const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(v.m_ijk);
+        const std::array<uint8_t, 4> rgba(voxelColorUpdate.getRGBA());
+        const int32_t numVoxels(voxelColorUpdate.getNumberOfVoxels());
+        for (int32_t i = 0; i < numVoxels; i++) {
+            const VoxelIJK& ijk(voxelColorUpdate.getVoxel(i));
+            const int64_t rgbaOffset = getRgbaOffsetForVoxelIndex(ijk.m_ijk);
             CaretAssertArrayIndex(mapRGBA, m_mapRGBACount, rgbaOffset);
             
             mapRGBA[rgbaOffset]   = rgba[0];

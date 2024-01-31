@@ -161,6 +161,24 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
             break;
     }
     
+    if (primitiveOut != NULL) {
+        const VoxelColorUpdate* voxelColorUpdate(getVoxelColorUpdate(mapIndex));
+        if (voxelColorUpdate != NULL) {
+            if (voxelColorUpdate->isValid()) {
+                /*
+                 * Put the voxel color update in the graphics primitive
+                 * that will get used next time the primitive is drawn
+                 */
+                primitiveOut->setVoxelColorUpdate(*voxelColorUpdate);
+            }
+            
+            /*
+             * Data has been used so reset it
+             */
+            resetVoxelColorUpdate(mapIndex);
+        }
+    }
+    
     if (primitiveOut == NULL) {
         AString errorMessage;
         primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitive(primitiveShape,
@@ -371,3 +389,61 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
 
     return primitiveOut;
 }
+
+/**
+ * Update the voxel coloring for the given voxels in the given map with the given RGBA coloring.
+ * This method is used by voxel editing to avoid recoloring all voxels in the volume
+ * @param voxelColorUpdate
+ *    Information about the color update
+ */
+void
+VolumeGraphicsPrimitiveManager::updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate)
+{
+    const int32_t mapIndex(voxelColorUpdate.getMapIndex());
+    
+    updateNumberOfVoxelColorUpdates(mapIndex);
+    CaretAssertVectorIndex(m_voxelColorUpdates, mapIndex);
+    m_voxelColorUpdates[mapIndex] = voxelColorUpdate;
+}
+
+/**
+ * @return The voxel color update at the given index
+ * @param mapIndex
+ *    index of the map
+ */
+const VoxelColorUpdate*
+VolumeGraphicsPrimitiveManager::getVoxelColorUpdate(const int32_t mapIndex) const
+{
+    updateNumberOfVoxelColorUpdates(mapIndex);
+    CaretAssertVectorIndex(m_voxelColorUpdates, mapIndex);
+    return &m_voxelColorUpdates[mapIndex];
+}
+
+/**
+ * Reset (invalidate) the voxel color update at the given index
+ * @param mapIndex
+ *    index of the map
+ */
+void
+VolumeGraphicsPrimitiveManager::resetVoxelColorUpdate(const int32_t mapIndex) const
+{
+    updateNumberOfVoxelColorUpdates(mapIndex);
+    CaretAssertVectorIndex(m_voxelColorUpdates, mapIndex);
+    m_voxelColorUpdates[mapIndex].clear();
+}
+
+/**
+ * Update the number of voxel color updates so that it is valid for the given map index
+ * @param mapIndex
+ *    index of the map
+ */
+void
+VolumeGraphicsPrimitiveManager::updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const
+{
+    if ((mapIndex + 1) > static_cast<int32_t>(m_voxelColorUpdates.size())) {
+        m_voxelColorUpdates.resize(mapIndex + 1);
+    }
+}
+
+
+

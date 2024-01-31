@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretPointer.h"
 #include "CaretUndoStack.h"
+#include "DeveloperFlagsEnum.h"
 #include "Matrix4x4.h"
 #include "VolumeFile.h"
 #include "VolumeMapUndoCommand.h"
@@ -515,6 +516,11 @@ VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
             for (int64_t k = editInfo.m_ijkMin[2]; k <= editInfo.m_ijkMax[2]; k++) {
                 const int64_t ijk[3] = { i, j, k };
                 if (m_volumeFile->indexValid(ijk)) {
+                    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_EDIT)) {
+                        m_volumeFile->setValue(redoVoxelValue,
+                                               ijk,
+                                               editInfo.m_mapIndex);
+                    }
                     modifiedVoxels->addVoxelRedoUndo(ijk,
                                                      redoVoxelValue,
                                                      m_volumeFile->getValue(ijk, editInfo.m_mapIndex));
@@ -524,10 +530,15 @@ VolumeFileEditorDelegate::performTurnOnOrOffOrthogonal(const EditInfo& editInfo,
         }
     }
 
-    if ( ! voxelsIJK.empty()) {
-        m_volumeFile->setValuesForVoxelEditing(editInfo.m_mapIndex,
-                                               voxelsIJK,
-                                               redoVoxelValue);
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_VOXEL_EDIT)) {
+        if ( ! voxelsIJK.empty()) {
+            m_volumeFile->setValuesForVoxelEditing(editInfo.m_mapIndex,
+                                                   voxelsIJK,
+                                                   redoVoxelValue);
+        }
+    }
+    else {
+        updateAllMapColoring(editInfo.m_mapIndex);
     }
     
     addToMapUndoStacks(editInfo.m_mapIndex,
