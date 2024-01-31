@@ -52,6 +52,9 @@ namespace caret {
         }
         bool operator!=(const VoxelIJK& rhs) const { return !((*this) == rhs); }
         inline operator int64_t*() { return m_ijk; }
+        inline int64_t i() const { return m_ijk[0]; }
+        inline int64_t j() const { return m_ijk[1]; }
+        inline int64_t k() const { return m_ijk[2]; }
     };
     
 }
