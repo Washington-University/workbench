@@ -480,28 +480,26 @@ VolumeMprVirtualSliceView::initializeModeVolumeViewFixedCamera()
      * Prevents slices from jumping if the selected slices are changed
      * and there is non-zero rotation
      */
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX)) {
-        Vector3D t;
-        m_transformationMatrix.getTranslation(t);
-        switch (m_sliceViewPlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                m_preLookAtTranslation[0] = -t[0];
-                m_preLookAtTranslation[1] = -t[1];
-                m_preLookAtTranslation[2] = 0.0;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                m_preLookAtTranslation[0] = -t[0];
-                m_preLookAtTranslation[1] = 0.0;
-                m_preLookAtTranslation[2] = -t[2];
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                m_preLookAtTranslation[0] = 0.0;
-                m_preLookAtTranslation[1] = t[1];
-                m_preLookAtTranslation[2] = -t[2];
-                break;
-        }
+    Vector3D t;
+    m_transformationMatrix.getTranslation(t);
+    switch (m_sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            m_preLookAtTranslation[0] = -t[0];
+            m_preLookAtTranslation[1] = -t[1];
+            m_preLookAtTranslation[2] = 0.0;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            m_preLookAtTranslation[0] = -t[0];
+            m_preLookAtTranslation[1] = 0.0;
+            m_preLookAtTranslation[2] = -t[2];
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            m_preLookAtTranslation[0] = 0.0;
+            m_preLookAtTranslation[1] = t[1];
+            m_preLookAtTranslation[2] = -t[2];
+            break;
     }
 }
 
