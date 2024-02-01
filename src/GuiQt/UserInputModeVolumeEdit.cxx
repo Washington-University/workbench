@@ -28,6 +28,7 @@
 #include "BrainOpenGLViewportContent.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DrawingViewportContent.h"
 #include "ElapsedTimer.h"
 #include "EventBrowserWindowDrawingContent.h"
@@ -234,7 +235,10 @@ UserInputModeVolumeEdit::processEditCommandFromMouse(const MouseEvent& mouseEven
         
         updateGraphicsAfterEditing();
     }
-    std::cout << "Voxel Edit Time: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl << std::flush;
+    
+    CaretLogInfo("Voxel Edit Time: "
+                 + AString::number(timer.getElapsedTimeMilliseconds())
+                 + "ms");
 }
 
 /**
