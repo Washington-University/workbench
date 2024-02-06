@@ -201,6 +201,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     const QString metaDataValue(m_editorMetaData->get(metaDataName));
     
     bool dingFlag(false);
+    bool labelFilePopupFlag(false);
     bool labelPopupFlag(false);
     bool listPopupFlag(false);
     switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
@@ -210,6 +211,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             break;
         case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
             dingFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP:
+            labelFilePopupFlag = true;
             break;
         case GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME:
             labelPopupFlag = true;
@@ -230,14 +234,35 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             const QString shorthandID(dotd.getAbbreviatedName());
             const QString description(dotd.getDescriptiveName());
             
-            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
-                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID,
+            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION) {
+                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION,
                                 shorthandID);
-                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION,
+                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME,
                                 description);
                 
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID);
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION);
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
+                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
+            }
+        }
+    }
+    else if (labelFilePopupFlag) {
+        LabelSelectionDialog labelDialog("MetaDataCustomEditorWidget",
+                                         parentDialogWidget);
+        if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
+            const AString fileName(labelDialog.getSelectedFileNameNoPath());
+            const AString mapName(labelDialog.getSelectedMapName());
+            const int32_t mapIndex(labelDialog.getSelectedMapIndex());
+            if ( ! fileName.isEmpty()) {
+                AString text(fileName + " ");
+                if ( ! mapName.isEmpty()) {
+                    text.append(mapName);
+                }
+                else {
+                    text.append("Map " + AString::number(mapIndex + 1));
+                }
+                m_editorMetaData->set(metaDataName,
+                                      text);
+                updateValueInMetaDataWidgetRow(metaDataName);
             }
         }
     }
@@ -254,26 +279,10 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                                                                              description);
                     m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
                                     id);
-                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION,
-                                    description);
                     
                     updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
-                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION);
                 }
-                else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID) {
-                    AString id, description;
-                    GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
-                                                                             id,
-                                                                             description);
-                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID,
-                                    id);
-                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME,
-                                    description);
-                    
-                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID);
-                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ORIG_ATLAS_NAME);
-                }
-                else {
+                  else {
                     m_editorMetaData->set(metaDataName,
                                     labelText);
                     updateValueInMetaDataWidgetRow(metaDataName);
@@ -312,21 +321,6 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                 m_editorMetaData->set(metaDataName,
                                 value);
                 updateValueInMetaDataWidgetRow(metaDataName);
-                
-                /*
-                 * If sample type is "Tile" and sample ID is emtpy,
-                 * set sample ID to T1
-                 */
-                if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
-                    if (value == "Tile") {
-                        const QString sampleIdText(m_editorMetaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
-                        if (sampleIdText.isEmpty()) {
-                            m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
-                                            "T1");
-                            updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
-                        }
-                    }
-                }
             }
         }
         else if (dataSelectionValues.size() > 0) {
@@ -343,23 +337,8 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                     CaretAssert(buttonIndex < dataSelectionValues.size());
                     const QString value(dataSelectionValues[buttonIndex]);
                     m_editorMetaData->set(metaDataName,
-                                    value);
+                                          value);
                     updateValueInMetaDataWidgetRow(metaDataName);
-                    
-                    /*
-                     * If sample type is "Tile" and sample ID is emtpy,
-                     * set sample ID to T1
-                     */
-                    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
-                        if (value == "Tile") {
-                            const QString sampleIdText(m_editorMetaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID));
-                            if (sampleIdText.isEmpty()) {
-                                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID,
-                                                "T1");
-                                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID);
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -480,6 +459,10 @@ m_metaData(metaData)
             useDateEditFlag = true;
             break;
         case GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM:
+            useLineEditFlag   = true;
+            useToolButtonFlag = true;
+            break;
+        case GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP:
             useLineEditFlag   = true;
             useToolButtonFlag = true;
             break;

@@ -50,6 +50,7 @@
 #include "EventManager.h"
 #include "EventTileTabsGridConfigurationModification.h"
 #include "GiftiMetaData.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "HistologySpaceKey.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -1812,6 +1813,108 @@ AnnotationFile::updateUniqueKeysAfterReadingFile()
 }
 
 /**
+ * Update metadata names for samples in a samples file
+ * Names of metadata items for samples have been revised many times
+ */
+void
+AnnotationFile::updateSampleMetaDataNamesAfterReadingFile()
+{
+    /*
+     * Only update a samples files (samples file is derived
+     * from annotation file)
+     */
+    if (getDataFileType() == DataFileTypeEnum::SAMPLES) {
+        /*
+         * Renames elements
+         */
+        std::map<AString, AString> oldNewNamesMap;
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_CASE_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_SUBJECT_NAME);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DONOR_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_BICAN_DONOR_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_BICAN_DONOR_ID);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SLAB_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SLAB_FACE,
+                               GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DISSECTION_DATE,
+                               GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SHORTHAND_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DING_DESCRIPTION,
+                               GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SAMPLE_TYPE,
+                               GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
+        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SAMPLE_ID,
+                               GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
+        /*
+         * Names of Sample Annotation metadata names have evolved
+         */
+        
+        std::vector<Annotation*> allAnnotations;
+        getAllAnnotations(allAnnotations);
+        for (auto& a : allAnnotations) {
+            CaretAssert(a);
+            GiftiMetaData* md(a->getMetaData());
+            CaretAssert(md);
+            md->updateMetaDataNames(oldNewNamesMap);
+            
+            if (md->exists(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE)) {
+                /*
+                 * Hemisphere changed from (L, R) to (left, right, both)
+                 */
+                AString hem(md->get(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE));
+                if (hem == "L") {
+                    md->set(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE,
+                            "left");
+                }
+                else if (hem == "R") {
+                    md->set(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE,
+                            "right");
+                }
+            }
+            
+            if (md->exists(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE)) {
+                /*
+                 * Convert date from old to new format
+                 */
+                const QString dateText(md->get(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE));
+                if ( ! dateText.isEmpty()) {
+                    const QString lowerText(dateText.toLower());
+                    if (lowerText.contains("jan")
+                        || lowerText.contains("feb")
+                        || lowerText.contains("mar")
+                        || lowerText.contains("apr")
+                        || lowerText.contains("may")
+                        || lowerText.contains("jun")
+                        || lowerText.contains("jul")
+                        || lowerText.contains("aug")
+                        || lowerText.contains("sep")
+                        || lowerText.contains("oct")
+                        || lowerText.contains("nov")
+                        || lowerText.contains("dec")) {
+                        const QDate date(QDate::fromString(dateText,
+                                                           GiftiMetaDataXmlElements::METADATA_OBSOLETE_QT_DATE_FORMAT));
+                        const QString newDateText(date.toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT));
+                        md->set(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE,
+                                newDateText);
+                    }
+                }
+            }
+            
+            /*
+             * Metadata that has been removed
+             */
+            md->remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ALT_ATLAS_DESCRIPTION);
+            md->remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ORIG_ATLAS_NAME);
+            md->remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ORIG_SHORTHAND_ID);
+        }
+    }
+}
+
+
+/**
  * Read the data file.
  *
  * @param filename
@@ -1831,6 +1934,7 @@ AnnotationFile::readFile(const AString& filename)
                     this);
 
     updateUniqueKeysAfterReadingFile();
+    updateSampleMetaDataNamesAfterReadingFile();
     
     setFileName(filename);
     
@@ -1963,6 +2067,7 @@ AnnotationFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
                                               sceneAttributes->getSceneFileName(),
                                               this);
                     updateUniqueKeysAfterReadingFile();
+                    updateSampleMetaDataNamesAfterReadingFile();
                     clearModified();
                 }
                 catch (const DataFileException& dfe) {

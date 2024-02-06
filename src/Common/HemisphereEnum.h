@@ -38,7 +38,9 @@ public:
         /**  Left Hemisphere */
         LEFT,
         /** RIght Hemisphere */
-        RIGHT
+        RIGHT,
+        /** Both hemispheres */
+        BOTH
     };
 
 
@@ -49,6 +51,8 @@ public:
     static Enum fromName(const AString& name, bool* isValidOut);
     
     static AString toGuiName(Enum enumValue);
+    
+    static AString toLowerCaseGuiName(Enum enumValue);
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     

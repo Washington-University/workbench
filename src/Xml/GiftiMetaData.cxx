@@ -433,9 +433,8 @@ GiftiMetaData::updateFromCaret5Names()
  *
  */
 void
-GiftiMetaData::replaceName(
-                   const AString& oldName,
-                   const AString& newName)
+GiftiMetaData::replaceName(const AString& oldName,
+                           const AString& newName)
 {
     MetaDataIterator iter = this->metadata.find(oldName);
     if (iter != this->metadata.end()) {
@@ -443,6 +442,21 @@ GiftiMetaData::replaceName(
         this->remove(oldName);
         this->set(newName, value);
         this->setModified();
+    }
+}
+
+/**
+ * Replace names of metadata elements using the given map where
+ * the 'key' is the old names and the 'value' is the new name.
+ * @param newNameMap
+ *    Maps old names to new names
+ */
+void
+GiftiMetaData::updateMetaDataNames(const std::map<AString,AString>& newNameMap)
+{
+    for (const auto& nameValue : newNameMap) {
+        replaceName(nameValue.first,
+                    nameValue.second);
     }
 }
 

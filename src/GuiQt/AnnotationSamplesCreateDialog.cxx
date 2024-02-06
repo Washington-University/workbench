@@ -156,7 +156,7 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
         if (iter != s_previousMetaDataNamesAndValues.end()) {
             value = iter->second;
         }
-        if ((name == GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE)
+        if ((name == GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE)
             && value.isEmpty()) {
             /*
              * Default to an old date
@@ -171,11 +171,11 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
          * These items are NOT restored from previous dialot
          */
         if ((name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_DESCRIPTION)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_ID)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_ATLAS_DESCRIPTION)) {
+            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME)
+            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)) {
             value = "";
         }
         

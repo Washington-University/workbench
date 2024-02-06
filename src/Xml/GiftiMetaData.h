@@ -141,6 +141,7 @@ public:
     
     int32_t getNumberOfMetaData() const;
     
+    void updateMetaDataNames(const std::map<AString,AString>& newNameMap);
     
 private:
     void readEntry(QXmlStreamReader& xml);

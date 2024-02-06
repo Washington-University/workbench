@@ -42,18 +42,23 @@ GiftiMetaDataElementValues::getDataTypeForElement(const QString& metaDataName)
 {
     GiftiMetaDataElementDataTypeEnum::Enum dataType(GiftiMetaDataElementDataTypeEnum::TEXT);
     
-    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_DISSECTION_DATE) {
+    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE) {
         dataType = GiftiMetaDataElementDataTypeEnum::DATE;
     }
     else if (metaDataName == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT) {
         dataType = GiftiMetaDataElementDataTypeEnum::COMMENT;
     }
-    else if ((metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)
-             || (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ORIG_SHORTHAND_ID)) {
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
         dataType = GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME;
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SHORTHAND_ID) {
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION) {
         dataType = GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM;
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALTERNATE_PARCELLATION) {
+        dataType = GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP;
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ORIGINAL_PARCELLATION) {
+        dataType = GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP;
     }
     else {
         const QStringList valuesList(getValuesForElement(metaDataName));
@@ -79,15 +84,20 @@ QStringList
 GiftiMetaDataElementValues::getValuesForElement(const QString& metaDataName)
 {
     QStringList metaDataValues;
-    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCATION_ID) {
+    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE) {
+        metaDataValues.push_back("BS");
+        metaDataValues.push_back("CB");
+        metaDataValues.push_back("CX");
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCATION) {
         metaDataValues.push_back("Actual");
         metaDataValues.push_back("Desired");
     }
     else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
-        metaDataValues.push_back("Anatomical ROI");
-        metaDataValues.push_back("Tile");
+        metaDataValues.push_back("Slab polyhedron");
+        metaDataValues.push_back("polygon");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_SLAB_FACE) {
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE) {
         metaDataValues.push_back("Anterior");
         metaDataValues.push_back("Posterior");
         metaDataValues.push_back("Inferior");
@@ -100,7 +110,7 @@ GiftiMetaDataElementValues::getValuesForElement(const QString& metaDataName)
         std::vector<HemisphereEnum::Enum> hemisphereEnums;
         HemisphereEnum::getAllEnums(hemisphereEnums);
         for (const HemisphereEnum::Enum h : hemisphereEnums) {
-            metaDataValues.push_back(HemisphereEnum::toGuiAbbreviatedName(h));
+            metaDataValues.push_back(HemisphereEnum::toLowerCaseGuiName(h));
         }
     }
     return metaDataValues;

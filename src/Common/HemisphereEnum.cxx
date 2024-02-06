@@ -31,7 +31,7 @@ using namespace caret;
     
 /**
  * \class caret::HemisphereEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Simple hemisphere type
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
@@ -121,7 +121,11 @@ HemisphereEnum::initialize()
                                     "RIGHT", 
                                     "Right",
                                       "R"));
-    
+    enumData.push_back(HemisphereEnum(BOTH,
+                                      "BOTH",
+                                      "Both",
+                                      "B"));
+
 }
 
 /**
@@ -213,6 +217,18 @@ HemisphereEnum::toGuiName(Enum enumValue) {
     
     const HemisphereEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
+}
+
+/**
+ * Get a GUI string representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+HemisphereEnum::toLowerCaseGuiName(Enum enumValue) {
+    return toGuiName(enumValue).toLower();
 }
 
 /**

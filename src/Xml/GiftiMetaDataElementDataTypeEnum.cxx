@@ -117,7 +117,11 @@ GiftiMetaDataElementDataTypeEnum::initialize()
     enumData.push_back(GiftiMetaDataElementDataTypeEnum(DING_ONTOLOGY_TERM,
                                                         "DING_ONTOLOGY_TERM",
                                                         "Ding Ontology"));
-
+    
+    enumData.push_back(GiftiMetaDataElementDataTypeEnum(LABEL_FILE_AND_MAP,
+                                                        "LABEL_FILE_AND_MAP",
+                                                        "Label File Name ane Map Name"));
+    
     enumData.push_back(GiftiMetaDataElementDataTypeEnum(LABEL_ID_NAME,
                                                         "LABEL_ID_NAME",
                                                         "Label ID and Name"));
