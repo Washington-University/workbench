@@ -502,12 +502,12 @@ main(int argc, char* argv[])
          * Resolution of screens
          */
         AString screenSizeText = "Screen Sizes: ";
-        QList<QScreen*> screens = QGuiApplication::screens();
-        const int32_t numScreens = screens.size();
+        QList<QScreen*> allScreens = QGuiApplication::screens();
+        const int32_t numScreens = allScreens.size();
         for (int i = 0; i < numScreens; i++) {
-            CaretAssertVectorIndex(screens, i);
-            CaretAssert(screens[i]);
-            const QRect rect = screens[i]->availableGeometry();
+            CaretAssertVectorIndex(allScreens, i);
+            CaretAssert(allScreens[i]);
+            const QRect rect = allScreens[i]->availableGeometry();
             const int x = rect.x();
             const int y = rect.y();
             const int w = rect.width();
@@ -525,44 +525,59 @@ main(int argc, char* argv[])
         }
         
 #if QT_VERSION >= QT_VERSION_CHECK(5, 6, 0)
-        QScreen* primaryScreen = QGuiApplication::primaryScreen();
-        if (primaryScreen != NULL) {
-            int32_t primaryIndex = -1;
+        if (numScreens > 0) {
+            screenSizeText = "Screen Sizes: ";
+            QScreen* primaryScreen = QGuiApplication::primaryScreen();
             for (int32_t i = 0; i < numScreens; i++) {
-                CaretAssertVectorIndex(screens, i);
-                if (screens[i] == primaryScreen) {
-                    primaryIndex = i;
-                    break;
+                CaretAssertVectorIndex(allScreens, i);
+                QScreen* screen(allScreens[i]);
+                CaretAssert(screen);
+                QString primaryScreenText;
+                if (screen == primaryScreen) {
+                    primaryScreenText = " PRIMARY";
                 }
+                
+                /*
+                 * The manufacturer, model, and name may be empty.
+                 * Using trimmed() will make the overall string empty
+                 * so that it is not displayed.
+                 */
+                QString displayInfoText(("   "
+                                        + screen->manufacturer()
+                                        + " " + screen->model()
+                                        + " " + screen->name()).trimmed());
+                screenSizeText.appendWithNewLine("Screen="
+                                                 + AString::number(i)
+                                                 + primaryScreenText);
+                if ( ! displayInfoText.isEmpty()) {
+                    screenSizeText.appendWithNewLine(displayInfoText);
+                }
+                QRect screenWidgetRect = screen->availableGeometry();
+                screenSizeText.appendWithNewLine("   Desktop: x="
+                                                 + AString::number(screenWidgetRect.x())
+                                                 + ", y="
+                                                 + AString::number(screenWidgetRect.y())
+                                                 + ", w="
+                                                 + AString::number(screenWidgetRect.width())
+                                                 + ", h="
+                                                 + AString::number(screenWidgetRect.height()));
+                
+                screenSizeText.appendWithNewLine("   Logical DPI: x="
+                                                 + AString::number(screen->logicalDotsPerInchX())
+                                                 + ", y="
+                                                 + AString::number(screen->logicalDotsPerInchY()));
+                
+                screenSizeText.appendWithNewLine("   Physical DPI: x="
+                                                 + AString::number(screen->physicalDotsPerInch())
+                                                 + ", y="
+                                                 + AString::number(screen->physicalDotsPerInchY()));
+                
+                const QSizeF physicalSizeMM(primaryScreen->physicalSize());
+                screenSizeText.appendWithNewLine("   Width/height (mm): x="
+                                                 + AString::number(physicalSizeMM.width())
+                                                 + ", y="
+                                                 + AString::number(physicalSizeMM.height()));
             }
-
-            screenSizeText.appendWithNewLine("Primary Screen="
-                                             + AString::number(primaryIndex));
-            QRect screenWidgetRect = primaryScreen->availableGeometry();
-            screenSizeText.appendWithNewLine("Desktop: x="
-                                             + AString::number(screenWidgetRect.x())
-                                             + ", y="
-                                             + AString::number(screenWidgetRect.y())
-                                             + ", w="
-                                             + AString::number(screenWidgetRect.width())
-                                             + ", h="
-                                             + AString::number(screenWidgetRect.height()));
-            
-            screenSizeText.appendWithNewLine("Logical DPI: x="
-                                             + AString::number(primaryScreen->logicalDotsPerInchX())
-                                             + ", y="
-                                             + AString::number(primaryScreen->logicalDotsPerInchY()));
-            
-            screenSizeText.appendWithNewLine("Physical DPI: x="
-                                             + AString::number(primaryScreen->physicalDotsPerInch())
-                                             + ", y="
-                                             + AString::number(primaryScreen->physicalDotsPerInchY()));
-            
-            const QSizeF physicalSizeMM(primaryScreen->physicalSize());
-            screenSizeText.appendWithNewLine("Width/height (mm): x="
-                                             + AString::number(physicalSizeMM.width())
-                                             + ", y="
-                                             + AString::number(physicalSizeMM.height()));
         }
 #else
         QDesktopWidget* dw = QApplication::desktop();
