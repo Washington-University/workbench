@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
     class GiftiLabelTableSelectionComboBox;
     
@@ -50,6 +51,16 @@ namespace caret {
         
         AString getSelectedLabel() const;
 
+        CaretMappableDataFile* getSelectedFile() const;
+        
+        AString getSelectedFileName() const;
+        
+        AString getSelectedFileNameNoPath() const;
+        
+        AString getSelectedMapName() const;
+        
+        int32_t getSelectedMapIndex() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:

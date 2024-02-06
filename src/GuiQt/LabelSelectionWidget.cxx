@@ -272,6 +272,81 @@ LabelSelectionWidget::getSelectedLabel() const
 }
 
 /**
+ * @return The selected file
+ */
+CaretMappableDataFile*
+LabelSelectionWidget::getSelectedFile() const
+{
+    if (m_fileSelector != NULL) {
+        CaretMappableDataFileAndMapSelectionModel* model(m_fileSelector->getModel());
+        if (model != NULL) {
+            CaretMappableDataFile* cmdf(model->getSelectedFile());
+            return cmdf;
+        }
+    }
+    return NULL;
+}
+
+
+/**
+ * @return The selected file name
+ */
+AString
+LabelSelectionWidget::getSelectedFileName() const
+{
+    const CaretMappableDataFile* cmdf(getSelectedFile());
+    if (cmdf != NULL) {
+        return cmdf->getFileName();
+    }
+    return NULL;
+}
+
+/**
+ * @return The selected file name without a path
+ */
+AString
+LabelSelectionWidget::getSelectedFileNameNoPath() const
+{
+    const CaretMappableDataFile* cmdf(getSelectedFile());
+    if (cmdf != NULL) {
+        return cmdf->getFileNameNoPath();
+    }
+    return NULL;
+}
+
+/**
+ * @return The selected map name
+ */
+AString
+LabelSelectionWidget::getSelectedMapName() const
+{
+    const CaretMappableDataFile* cmdf(getSelectedFile());
+    if (cmdf != NULL) {
+        const int32_t mapIndex(getSelectedMapIndex());
+        if ((mapIndex >= 0)
+            && (mapIndex < cmdf->getNumberOfMaps())) {
+            return cmdf->getMapName(mapIndex);
+        }
+    }
+    return "";
+}
+
+/**
+ * @return The selected map index
+ */
+int32_t
+LabelSelectionWidget::getSelectedMapIndex() const
+{
+    if (m_fileSelector != NULL) {
+        CaretMappableDataFileAndMapSelectionModel* model(m_fileSelector->getModel());
+        if (model != NULL) {
+            return model->getSelectedMapIndex();
+        }
+    }
+    return -1;
+}
+
+/**
  * Restor the selections using the given name
  * @param selectionName
  *    Name for selections

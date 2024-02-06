@@ -71,3 +71,48 @@ LabelSelectionDialog::getSelectedLabel() const
     return m_labelSelectionWidget->getSelectedLabel();
 }
 
+/**
+ * @return The selected file
+ */
+CaretMappableDataFile*
+LabelSelectionDialog::getSelectedFile() const
+{
+    return m_labelSelectionWidget->getSelectedFile();
+}
+
+
+/**
+ * @return The selected file name
+ */
+AString
+LabelSelectionDialog::getSelectedFileName() const
+{
+    return m_labelSelectionWidget->getSelectedFileName();
+}
+
+/**
+ * @return The selected file name without a path
+ */
+AString
+LabelSelectionDialog::getSelectedFileNameNoPath() const
+{
+    return m_labelSelectionWidget->getSelectedFileNameNoPath();
+}
+
+/**
+ * @return The selected map name
+ */
+AString
+LabelSelectionDialog::getSelectedMapName() const
+{
+    return m_labelSelectionWidget->getSelectedMapName();
+}
+
+/**
+ * @return The selected map index
+ */
+int32_t
+LabelSelectionDialog::getSelectedMapIndex() const
+{
+    return m_labelSelectionWidget->getSelectedMapIndex();
+}
