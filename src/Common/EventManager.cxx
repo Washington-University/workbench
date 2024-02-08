@@ -433,6 +433,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_BROWSER_WINDOW_DRAWING_CONTENT_GET:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_NEW:
+        case EventTypeEnum::EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO:
         case EventTypeEnum::EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION:
         case EventTypeEnum::EVENT_CARET_DATA_FILES_GET:
         case EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET:

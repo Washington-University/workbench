@@ -126,6 +126,8 @@ public:
         EVENT_BROWSER_WINDOW_MENUS_UPDATE,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
+        /** Pixel info (sizes) in a browser window */
+        EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO,
         /** Browser tile tab operations */
         EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION,
         /** Get caret data files */

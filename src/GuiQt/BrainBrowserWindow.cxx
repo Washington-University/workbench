@@ -74,6 +74,7 @@
 #include "EventBrowserWindowCreateTabs.h"
 #include "EventBrowserWindowContent.h"
 #include "EventBrowserWindowGetTabs.h"
+#include "EventBrowserWindowPixelSizeInfoEvent.h"
 #include "EventBrowserTabIndicesGetAllViewed.h"
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventDataFileRead.h"
@@ -276,6 +277,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_INDICES_GET_ALL_VIEWED);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_AND_MAPS_IN_DISPLAYED_OVERLAYS);
@@ -620,6 +622,29 @@ BrainBrowserWindow::receiveEvent(Event* event)
          * shortcut keys will function.
          */
         processEditMenuAboutToShow();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO) {
+        EventBrowserWindowPixelSizeInfoEvent* pixelEvent(dynamic_cast<EventBrowserWindowPixelSizeInfoEvent*>(event));
+        CaretAssert(pixelEvent);
+        const QScreen* screen(NULL);
+        switch (pixelEvent->getMode()) {
+            case EventBrowserWindowPixelSizeInfoEvent::Mode::WIDGET_POINTER:
+                if (isAncestorOf(pixelEvent->getWidget())) {
+                    screen = pixelEvent->getWidget()->screen();
+                }
+                break;
+            case EventBrowserWindowPixelSizeInfoEvent::Mode::WINDOW_INDEX:
+                screen = m_openGLWidget->screen();
+                break;
+        }
+        
+        if (screen != NULL) {
+            if (pixelEvent->getWindowIndex() == this->getBrowserWindowIndex()) {
+                pixelEvent->setPhysicalDotsPerInch(screen->physicalDotsPerInch());
+                pixelEvent->setLogicalDotsPerInch(screen->logicalDotsPerInch());
+                pixelEvent->setEventProcessed();
+            }
+        }
     }
 }
 

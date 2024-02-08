@@ -241,6 +241,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW,
                                      "EVENT_BROWSER_WINDOW_NEW", 
                                      "Create a new browser window"));
+
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO,
+                                     "EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO",
+                                     "Info about a window's pixel sizes"));
     
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION,
                                      "EVENT_BROWSER_WINDOW_TILE_TAB_OPERATION",
