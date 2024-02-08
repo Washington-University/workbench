@@ -503,6 +503,8 @@ namespace caret {
         
         float getLineWidthMultiplierForAnnotationBeingDrawn(const Annotation* annotation) const;
         
+        float getDotsPerInch() const;
+        
         BrainOpenGLFixedPipeline* m_brainOpenGLFixedPipeline;
         
         Inputs* m_inputs;
@@ -565,6 +567,10 @@ namespace caret {
         BrainOpenGLTextRenderInterface::DrawingFlags m_textDrawingFlags;
         
         std::unique_ptr<EventOpenGLObjectToWindowTransform> m_transformEvent;
+        
+        mutable float m_dotsPerInch = -1.0;
+        
+        mutable bool m_triedToGetDotsPerInchFlag = false;
         
         static const float s_sizingHandleLineWidthInPixels;
         static const float s_selectionLineMinimumPixelWidth;

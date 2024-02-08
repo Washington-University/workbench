@@ -60,6 +60,7 @@
 #include "DrawingViewportContent.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGet.h"
+#include "EventBrowserWindowPixelSizeInfoEvent.h"
 #include "EventDrawingViewportContentGet.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -5446,6 +5447,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
     
     bool drawnFlag = false;
+    bool drawingSelectionModeFlag(false);
     
     if (drawForegroundFlag) {
         if (m_selectionModeFlag
@@ -5497,6 +5499,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                                                             windowVertexXYZ));
                     GraphicsEngineDataOpenGL::draw(idPrim.get());
                     drawnFlag = true;
+                    drawingSelectionModeFlag = true;
                 }
                 
                 if (polyhedron != NULL) {
@@ -5535,11 +5538,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             || drawNonEditableSizingHandlesFlag) {
             if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
                 || multiPairedCoordShape->isDrawingNewAnnotation()) {
-                const float sizeHandleWidthInPixels(computePolySizeHandleDiameter(multiPairedCoordShape,
+                float sizeHandleWidthInPixels(computePolySizeHandleDiameter(multiPairedCoordShape,
                                                                                   primitive.get()));
                 AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
                 if (drawEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
+                    if (drawingSelectionModeFlag) {
+                        const float minSelectionPixelSize(8.0);
+                        if (sizeHandleWidthInPixels < minSelectionPixelSize) {
+                            sizeHandleWidthInPixels = minSelectionPixelSize;
+                        }
+                    }
                 }
                 else if (drawNonEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE;
@@ -5731,47 +5740,22 @@ float
 BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const Annotation* annotation,
                                                                          const GraphicsPrimitive* primitive) const
 {
-    bool useZoomingFlag(false);
     CaretAssert(annotation);
-    switch (annotation->getCoordinateSpace()) {
-        case AnnotationCoordinateSpaceEnum::CHART:
-            break;
-        case AnnotationCoordinateSpaceEnum::HISTOLOGY:
-            break;
-        case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
-            break;
-        case AnnotationCoordinateSpaceEnum::SPACER:
-            break;
-        case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
-            useZoomingFlag = true;
-            break;
-        case AnnotationCoordinateSpaceEnum::SURFACE:
-            break;
-        case AnnotationCoordinateSpaceEnum::TAB:
-            break;
-        case AnnotationCoordinateSpaceEnum::VIEWPORT:
-            break;
-        case AnnotationCoordinateSpaceEnum::WINDOW:
-            break;
-    }
-    /*
-     * Symbols get larger as user zooms in
-     */
-    float zooming(1.0);
-    if (useZoomingFlag) {
-        CaretAssert(m_inputs);
-        EventBrowserTabGet tabEvent(m_inputs->m_tabIndex);
-        EventManager::get()->sendEvent(tabEvent.getPointer());
-        if (tabEvent.getEventProcessCount() > 0) {
-            if ( ! tabEvent.isError()) {
-                const BrowserTabContent* btc(tabEvent.getBrowserTab());
-                if (btc != NULL) {
-                    zooming = btc->getScaling() / 1.5;
-                }
-            }
-        }
-    }
     
+    /*
+     * Minimum size of symbol in millimeters estimated
+     * using the screen's dots per inch.
+     */
+    const float dpi(getDotsPerInch());
+    const float minSizeMillimeters(1.5);
+    const float millimetersToInches(1 / 25.4);
+    const float minSizePixels((dpi > 0.0)
+                              ? ((minSizeMillimeters * millimetersToInches) * dpi)
+                              : 5.0);
+    
+    /*
+     * Get width and type of line width from primitive
+     */
     GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PIXELS;
     float lineWidth(0.0);
     primitive->getLineWidth(lineWidthType, lineWidth);
@@ -5800,14 +5784,16 @@ BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const A
         }
             break;
         case GraphicsPrimitive::LineWidthType::PIXELS:
-            diameterInPixels = (lineWidth * 3);
+            diameterInPixels = lineWidth;
             break;
     }
     
     /*
-     * Symbol should change size with zooming
+     * Keep at least minimum sie
      */
-    diameterInPixels *= zooming;
+    if (diameterInPixels < minSizePixels) {
+        diameterInPixels = minSizePixels;
+    }
     return diameterInPixels;
 }
     
@@ -6015,13 +6001,59 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         primitive->addVertex(xyz);
     }
         
-    if (multiCoordShape->getLineWidthPercentage() <= 0.0) {
-        convertObsoleteLineWidthPixelsToPercentageWidth(multiCoordShape);
+    const bool useNewViewportHeightInfoFlag(true);
+    if (useNewViewportHeightInfoFlag) {
+        if (primitive->getNumberOfVertices() > 0) {
+            Vector3D drawingXYZ;
+            primitive->getVertexFloatXYZ(0, drawingXYZ);
+            
+            GraphicsViewport vp(GraphicsViewport::newInstanceCurrentViewport());
+            switch (multiCoordShape->getCoordinateSpace()) {
+                case AnnotationCoordinateSpaceEnum::CHART:
+                    break;
+                case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+                    break;
+                case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SPACER:
+                    break;
+                case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+                    break;
+                case AnnotationCoordinateSpaceEnum::SURFACE:
+                    break;
+                case AnnotationCoordinateSpaceEnum::TAB:
+                    /*
+                     * Coordinate needs to be from window's bottom
+                     * which may be different than the WINDOW space's
+                     * bottom left corner if aspect is locked.
+                     */
+                    drawingXYZ[0] += vp.getX();
+                    drawingXYZ[1] += vp.getY();
+                    break;
+                case AnnotationCoordinateSpaceEnum::VIEWPORT:
+                    break;
+                case AnnotationCoordinateSpaceEnum::WINDOW:
+                    /*
+                     * See comment for TAB space
+                     */
+                    drawingXYZ[0] += vp.getX();
+                    drawingXYZ[1] += vp.getY();
+                    break;
+            }
+            setPrimitiveLineWidthInPixels(multiCoordShape,
+                                          drawingXYZ,
+                                          primitive.get());
+        }
     }
-    const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiCoordShape));
-    primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
-                            (multiCoordShape->getLineWidthPercentage()
-                             * lineWidthMultiplier));
+    else {
+        if (multiCoordShape->getLineWidthPercentage() <= 0.0) {
+            convertObsoleteLineWidthPixelsToPercentageWidth(multiCoordShape);
+        }
+        const float lineWidthMultiplier(getLineWidthMultiplierForAnnotationBeingDrawn(multiCoordShape));
+        primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+                                (multiCoordShape->getLineWidthPercentage()
+                                 * lineWidthMultiplier));
+    }
     
     BoundingBox boundingBox;
     primitive->getVertexBounds(boundingBox);
@@ -6034,7 +6066,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
     
     
     bool drawnFlag = false;
-    
+    bool drawingSelectionModeFlag(false);
     if (drawForegroundFlag) {
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {
@@ -6070,6 +6102,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
                                                         windowVertexXYZ));
                 GraphicsEngineDataOpenGL::draw(idPrim.get());
                 drawnFlag = true;
+                drawingSelectionModeFlag = true;
             }
         }
         else {
@@ -6079,8 +6112,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
             || multiCoordShape->isDrawingNewAnnotation()) {
-            const float sizeHandleWidthInPixels = computePolySizeHandleDiameter(multiCoordShape,
+            float sizeHandleWidthInPixels = computePolySizeHandleDiameter(multiCoordShape,
                                                                                 primitive.get());
+            if (drawingSelectionModeFlag) {
+                const float minSelectionPixelSize(8.0);
+                if (sizeHandleWidthInPixels < minSelectionPixelSize) {
+                    sizeHandleWidthInPixels = minSelectionPixelSize;
+                }
+            }
             drawAnnotationMultiCoordShapeSizingHandles(annotationFile,
                                                        multiCoordShape,
                                                        windowVertexXYZ,
@@ -6467,14 +6506,17 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawSizingHandle(const AnnotationSizi
     
     if (drawTwoToneFilledCircleFlag) {
         /*
-         * Circle is in foreground color surrounded by background color
+         * Background is input size
          */
         GraphicsShape::drawCircleFilled(NULL,
                                         m_backgroundRGBA,
-                                        (halfWidthHeight * 2 + 5));
+                                        (halfWidthHeight * 2));
+        /*
+         * Foreground is a little smaller than background
+         */
         GraphicsShape::drawCircleFilled(NULL,
                                         symbolRGBA,
-                                        halfWidthHeight * 2);
+                                        halfWidthHeight * 1.5);
     }
     else if (drawFilledCircleFlag) {
         GraphicsShape::drawCircleFilled(NULL,
@@ -7238,6 +7280,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
     CaretAssert(annotation);
     CaretAssert(primitive);
 
+    /*
+     * Used to avoid logging zillions of messages
+     * from errors each time annotation is used
+     */
+    static std::set<const Annotation*> failedAnnotations;
+
     if (annotation->getLineWidthPercentage() < 0.0) {
         convertObsoleteLineWidthPixelsToPercentageWidth(annotation);
     }
@@ -7312,18 +7360,23 @@ BrainOpenGLAnnotationDrawingFixedPipeline::setPrimitiveLineWidthInPixels(const A
                                     lineWidthPixels);
         }
         else {
-            CaretLogSevere("Unable to get viewport height for annotation "
-                           + annotation->toString()
-                           + " at window XY: "
-                           + windowXY.toString());
-            CaretAssert(0);
+            if (failedAnnotations.find(annotation) == failedAnnotations.end()) {
+                failedAnnotations.insert(annotation);
+                CaretLogSevere("Unable to get viewport height for annotation "
+                               + annotation->toString()
+                               + " at window XY: "
+                               + windowXY.toString());
+            }
         }
     }
     else {
-        CaretLogSevere("Invalid line width percentage="
-                       + AString::number(lineWidthPercentage)
-                       + " for annotation: "
-                       + annotation->toString());
+        if (failedAnnotations.find(annotation) == failedAnnotations.end()) {
+            failedAnnotations.insert(annotation);
+            CaretLogSevere("Invalid line width percentage="
+                           + AString::number(lineWidthPercentage)
+                           + " for annotation: "
+                           + annotation->toString());
+        }
     }
 }
 
@@ -7344,7 +7397,29 @@ BrainOpenGLAnnotationDrawingFixedPipeline::convertObsoleteLineWidthPixelsToPerce
     annotation->convertObsoleteLineWidthPixelsToPercentageWidth(m_modelSpaceViewport[3]);
 }
 
-
+/**
+ * @return Dots per inch (valid if > 0)
+ */
+float
+BrainOpenGLAnnotationDrawingFixedPipeline::getDotsPerInch() const
+{
+    if ( ! m_triedToGetDotsPerInchFlag) {
+        m_triedToGetDotsPerInchFlag = true;
+        CaretAssert(m_inputs);
+        EventBrowserWindowPixelSizeInfoEvent pixelSizeEvent(m_inputs->m_windowIndex);
+        EventManager::get()->sendEvent(pixelSizeEvent.getPointer());
+        if (pixelSizeEvent.getEventProcessCount() > 0) {
+            /*
+             * Physical is true dots per inch
+             * Logical is dots per inch (resolution) that the
+             * monitor is set to use, possibly by user in ssystem settings.
+             */
+            m_dotsPerInch = pixelSizeEvent.getLogicalDotsPerInch();
+        }
+    }
+    
+    return m_dotsPerInch;
+}
 
 /**
  * Validate the selected item.
