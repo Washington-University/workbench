@@ -143,12 +143,9 @@ AnnotationSamplesCreateDialog::getAnnotationThatWasCreated()
 QWidget*
 AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
 {
-    const bool polyhedronSamplesFlag(true);
     std::vector<AString> metaDataNames;
-    Annotation::getDefaultMetaDataNamesForType(m_annotationType,
-                                               polyhedronSamplesFlag,
-                                               metaDataNames,
-                                               m_requiredMetaDataNames);
+    m_annotation->getMetaData()->getElementNamesForEditor(metaDataNames,
+                                                          m_requiredMetaDataNames);
     m_annotationMetaData.reset(new GiftiMetaData());
     for (const auto& name : metaDataNames) {
         const auto iter(s_previousMetaDataNamesAndValues.find(name));
@@ -251,13 +248,10 @@ AnnotationSamplesCreateDialog::initializeMetaData(AnnotationFile* toolbarSamples
             const Annotation* ann(allAnnotations[numAnn - 1]);
             CaretAssert(ann);
             
-            const bool polyhedronSamplesFlag(true);
             std::vector<AString> metadataNames;
             std::vector<AString> requiredMetaDataNames;
-            Annotation::getDefaultMetaDataNamesForType(m_annotationType,
-                                                       polyhedronSamplesFlag,
-                                                       metadataNames,
-                                                       m_requiredMetaDataNames);
+            m_annotation->getMetaData()->getElementNamesForEditor(metadataNames,
+                                                                  requiredMetaDataNames);
 
             /*
              * Load metadata from annotation to the 'previous' metadata

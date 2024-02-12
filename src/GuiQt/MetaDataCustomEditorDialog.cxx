@@ -61,13 +61,10 @@ MetaDataCustomEditorDialog::MetaDataCustomEditorDialog(Annotation* annotation,
 {
     CaretAssert(annotation);
     
-    const bool polyhedronSamplesFlag(true);
     std::vector<AString> metaDataNames;
     std::vector<AString> requiredMetaDataNames;
-    Annotation::getDefaultMetaDataNamesForType(annotation->getType(),
-                                               polyhedronSamplesFlag,
-                                               metaDataNames,
-                                               requiredMetaDataNames);
+    annotation->getMetaData()->getElementNamesForEditor(metaDataNames,
+                                                        requiredMetaDataNames);
     const AString titlePrefix((annotation->getType() == AnnotationTypeEnum::POLYHEDRON)
                               ? "Edit Sample Metadata: "
                               : "Edit Annotation Metadata: ");
@@ -162,9 +159,7 @@ MetaDataCustomEditorDialog::initializeDialog(const AString& dialogTitle,
                                                             this);
     
     setCentralWidget(m_metaDataEditorWidget,
-                     WuQDialog::SCROLL_AREA_NEVER);
-    
-//    m_metaDataEditorWidget->loadMetaData(metaData);
+                     WuQDialog::SCROLL_AREA_ALWAYS);
 }
 
 /**

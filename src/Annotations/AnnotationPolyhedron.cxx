@@ -976,13 +976,10 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
 AString
 AnnotationPolyhedron::getMetadataInformationHtml() const
 {
-    const bool polyhedronSamplesFlag(true);
     std::vector<AString> metaDataNames;
     std::vector<AString> requiredMetaDataNames;
-    Annotation::getDefaultMetaDataNamesForType(getType(),
-                                               polyhedronSamplesFlag,
-                                               metaDataNames,
-                                               requiredMetaDataNames);
+    getMetaData()->getElementNamesForEditor(metaDataNames,
+                                            requiredMetaDataNames);
 
     return getMetaData()->toFormattedHtml(metaDataNames);
 }

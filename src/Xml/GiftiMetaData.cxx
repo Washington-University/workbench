@@ -79,6 +79,16 @@ bool GiftiMetaData::operator==(const GiftiMetaData& rhs) const
 }
 
 /**
+ * @return A copy of this instance that should be overridden by subclasses
+ * so that the copy is of the same type as 'this'.
+ */
+GiftiMetaData*
+GiftiMetaData::clone() const
+{
+    return new GiftiMetaData(*this);
+}
+
+/**
  * Helps with copy constructor and assignment operator.
  */
 void
@@ -627,6 +637,8 @@ void GiftiMetaData::readCiftiXML1(QXmlStreamReader& xml)
             break;
         }
     }
+    
+    afterReadingProcessing();
 }
 
 void GiftiMetaData::readCiftiXML2(QXmlStreamReader& xml)
@@ -779,5 +791,69 @@ GiftiMetaData::validateRequiredMetaData(const std::vector<AString>& requiredMeta
     
     return errorMessageOut.isEmpty();
 }
+
+/**
+ * Performs any needed processing after metadata is read.
+ * This method is intended for overriding by subclasses.
+ */
+void
+GiftiMetaData::afterReadingProcessing()
+{
+}
+
+/**
+ * @return The data type for metadata with the given name.  Default is TEXT.
+ * This method is intended for overriding by subclasses.
+ * @param metaDataName
+ *    Name of metadata element.
+ */
+GiftiMetaDataElementDataTypeEnum::Enum
+GiftiMetaData::getDataTypeForElement(const QString& /*metaDataName*/) const
+{
+    return GiftiMetaDataElementDataTypeEnum::TEXT;
+}
+
+/**
+ * @return Some metadata items may have a specific list of valid values.  Default is empty list.
+ * This method is intended for overriding by subclasses.
+ * @param metaDataName
+ *    Name of metadata element.
+ */
+QStringList
+GiftiMetaData::getValidValuesListForElement(const QString& /*metaDataName*/) const
+{
+    QStringList stringList;
+    return stringList;
+}
+
+/**
+ * Get metadata names for display in a metadata editor.
+ * This method is intended for overriding by subclasses.
+ * @param metaDataNames
+ *    Names of elements that are to be displayed in a metadata editor.
+ * @param requiredMetaDataNames
+ *    Names of elements that are required and the editor should require the user to enter values.
+ *    This is a subset of metaDataNames
+ */
+void
+GiftiMetaData::getElementNamesForEditor(std::vector<AString>& metaDataNamesOut,
+                                        std::vector<AString>& requiredMetaDataNamesOut) const
+{
+    metaDataNamesOut.clear();
+    requiredMetaDataNamesOut.clear();
+}
+
+/**
+ * @return Tooltip for the metadata name (empty if not tooltip available).
+ * This method is intended for overriding by subclasses.
+ * @param metaDataNames
+ *    Names of elements that are to be displayed in a metadata editor.
+ */
+AString
+GiftiMetaData::getToolTip(const QString& /*metaDataName*/) const
+{
+    return AString();
+}
+
 
 

@@ -249,8 +249,6 @@ namespace caret {
         
         void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent);
         
-        void updateSampleMetaDataNamesAfterReadingFile();
-        
         const AnnotationFileSubType m_fileSubType;
         
         SceneClassAssistant* m_sceneAssistant;

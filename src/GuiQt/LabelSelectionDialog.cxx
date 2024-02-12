@@ -40,15 +40,32 @@ using namespace caret;
 
 /**
  * Constructor.
+ * 
  * @param parent
- *    The parent widget
+ * @param mode
+ *    Mode of the dialog
+ * @param saveRestoreStateName
+ *    Used to save the state of the widget so that state is restored next time dialog is displayed
+ * @param parent
+ *    Optional parent dialog
  */
-LabelSelectionDialog::LabelSelectionDialog(const QString& saveRestoreStateName,
+LabelSelectionDialog::LabelSelectionDialog(const Mode mode,
+                                           const QString& saveRestoreStateName,
                                            QWidget* parent)
 : WuQDialogModal("Choose Label",
                  parent)
 {
-    m_labelSelectionWidget = new LabelSelectionWidget(saveRestoreStateName);
+    LabelSelectionWidget::Mode labelWidgetMode(LabelSelectionWidget::Mode::FILE_AND_MAP);
+    switch (mode) {
+        case Mode::FILE_AND_MAP:
+            labelWidgetMode = LabelSelectionWidget::Mode::FILE_AND_MAP;
+            break;
+        case Mode::FILE_MAP_AND_LABEL:
+            labelWidgetMode = LabelSelectionWidget::Mode::FILE_MAP_AND_LABEL;
+            break;
+    }
+    m_labelSelectionWidget = new LabelSelectionWidget(labelWidgetMode,
+                                                      saveRestoreStateName);
     
     QWidget* widget(new QWidget());
     QVBoxLayout* layout(new QVBoxLayout(widget));

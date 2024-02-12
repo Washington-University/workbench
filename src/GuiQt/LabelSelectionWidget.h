@@ -40,7 +40,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        LabelSelectionWidget(const QString& saveRestoreStateName = "",
+        enum class Mode {
+            FILE_AND_MAP,
+            FILE_MAP_AND_LABEL
+        };
+
+        LabelSelectionWidget(const Mode mode,
+                             const QString& saveRestoreStateName = "",
                              QWidget* parent = 0);
         
         virtual ~LabelSelectionWidget();
@@ -67,7 +73,9 @@ namespace caret {
         void labelFileOrMapSelectionChanged();
         
     private:
-        const QString s_saveRestoreStateName;
+        const Mode m_mode;
+        
+        const QString m_saveRestoreStateName;
         
         void updateWidget();
         

@@ -48,7 +48,6 @@
 #include "CaretLogger.h"
 #include "DingOntologyTermsDialog.h"
 #include "GiftiMetaData.h"
-#include "GiftiMetaDataElementValues.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "LabelSelectionDialog.h"
@@ -88,11 +87,11 @@ m_userMetaData(userMetaData)
     CaretAssert(m_userMetaData);
     
     /*
-     * Copy user's metadata to the editor's metadata.
-     * We don't modify the user's metadata until it is saved so that
-     * the user may cancel editing of metadata.
+     * Clone metadata since it may be a subclass of GiftiMetaData
+     * and virtual methods may be called.  We also clone the metadata
+     * since user may cancel editing after making modifications.
      */
-    m_editorMetaData.reset(new GiftiMetaData(*m_userMetaData));
+    m_editorMetaData.reset(m_userMetaData->clone());
     m_editorMetaData->clearModified();
     
     bool hasCommentMetaDataFlag(false);
@@ -204,7 +203,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     bool labelFilePopupFlag(false);
     bool labelPopupFlag(false);
     bool listPopupFlag(false);
-    switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
+    switch (m_editorMetaData->getDataTypeForElement(metaDataName)) {
         case GiftiMetaDataElementDataTypeEnum::COMMENT:
             break;
         case GiftiMetaDataElementDataTypeEnum::DATE:
@@ -246,7 +245,8 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
         }
     }
     else if (labelFilePopupFlag) {
-        LabelSelectionDialog labelDialog("MetaDataCustomEditorWidget",
+        LabelSelectionDialog labelDialog(LabelSelectionDialog::Mode::FILE_AND_MAP,
+                                         "MetaDataCustomEditorWidget",
                                          parentDialogWidget);
         if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
             const AString fileName(labelDialog.getSelectedFileNameNoPath());
@@ -267,16 +267,17 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
         }
     }
     else if (labelPopupFlag) {
-        LabelSelectionDialog labelDialog("MetaDataCustomEditorWidget",
+        LabelSelectionDialog labelDialog(LabelSelectionDialog::Mode::FILE_MAP_AND_LABEL,
+                                         "MetaDataCustomEditorWidgetLabel",
                                          parentDialogWidget);
         if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
             const AString labelText(labelDialog.getSelectedLabel().trimmed());
             if ( ! labelText.isEmpty()) {
                 if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
                     AString id, description;
-                    GiftiMetaDataElementValues::processLabelForIdDescription(labelText,
-                                                                             id,
-                                                                             description);
+                    processLabelForIdDescription(labelText,
+                                                 id,
+                                                 description);
                     m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
                                     id);
                     
@@ -284,7 +285,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
                 }
                   else {
                     m_editorMetaData->set(metaDataName,
-                                    labelText);
+                                          labelText);
                     updateValueInMetaDataWidgetRow(metaDataName);
                 }
             }
@@ -293,7 +294,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     else if (listPopupFlag) {
         QStringList dataSelectionValues;
         
-        dataSelectionValues = GiftiMetaDataElementValues::getValuesForElement(metaDataName);
+        dataSelectionValues = m_editorMetaData->getValidValuesListForElement(metaDataName);
         if (dataSelectionValues.empty()) {
             CaretLogSevere("Metadata not supported for selection: "
                            + metaDataName);
@@ -399,6 +400,77 @@ MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AS
 }
 
 /**
+ * Process label's text to find the id and description
+ * @param text
+ *    The label's text
+ * @param idOut
+ *    Output with ID
+ * @param descriptionOut
+ *    Output with description
+ *
+ *
+ From David's email (Nov 3, 2023):
+ Unfortunately, we don’t currently have consistency across different labeling schemes. For example, the following four examples are each distinct
+ For Ding ontology: <abbreviation>: <name>
+ CaH: Head of Caudate
+ For SARM-6: <abbreviation>
+ CdH
+ CdT
+ For Saleem: <abbreviation> <name>
+ cd caudate nucleus
+ For Yerkes19_Parcellations: <shorthand_id>_<parcellation_id>
+ 3b_LV00
+ 
+ Here’s my suggestion for handling such cases:
+ - Have a ‘Choose’ option for just the ‘id’
+ - If the id field contains only one character string without spaces,
+ have the label fill in both the id and the name/description
+ - If the id field contains multiple character strings with spaces:
+ - Use the first character string for the shorthand_id but exclude any final character that is
+ NOT an alphanumeric OR an underscore ‘_’
+ - Use all subsequent text for the name/description
+ *
+ We may encounter label tables in the future that don’t behave well following these rules, but we can cross that bridge later.
+ */
+void
+MetaDataCustomEditorWidget::processLabelForIdDescription(const AString& labelText,
+                                                         AString& idOut,
+                                                         AString& descriptionOut) const
+{
+    idOut          = "";
+    descriptionOut = "";
+    
+    const AString text(labelText.trimmed());
+    if ( ! labelText.isEmpty()) {
+        const int32_t firstSpaceIndex(text.indexOf(" "));
+        if (firstSpaceIndex > 0) {
+            idOut = text.left(firstSpaceIndex);
+            descriptionOut = text.mid(firstSpaceIndex + 1);
+            
+            const int32_t lastCharIndex(descriptionOut.length() - 1);
+            if (lastCharIndex > 0) {
+                const QChar lastChar(descriptionOut[lastCharIndex]);
+                if (lastChar.isDigit()
+                    || lastChar.isLetter()
+                    || (lastChar == '_')) {
+                    /* ok */
+                }
+                else {
+                    descriptionOut.resize(lastCharIndex);
+                }
+            }
+        }
+        else {
+            /*
+             * No spaces so both id and description are the same
+             */
+            idOut = text;
+            descriptionOut = text;
+        }
+    }
+}
+
+/**
  * Constructor.
  * @param editorWidget
  *    Editor widget that contains this metadata row
@@ -434,11 +506,13 @@ m_metaData(metaData)
 {
     CaretAssert(m_metaData);
     
+    const QString tooltip(m_metaData->getToolTip(metaDataName));
     const QString value(metaData->get(metaDataName));
     
     QLabel* nameLabel(new QLabel(metaDataName
                                  + (requiredMetaDataFlag ? "*" : "")
                                  + ":"));
+    nameLabel->setToolTip(tooltip);
     
     m_valueComboBox = NULL;
     m_valueDateEdit = NULL;
@@ -451,7 +525,8 @@ m_metaData(metaData)
     bool useDateEditFlag(false);
     bool useLineEditFlag(false);
     bool useToolButtonFlag(false);
-    switch (GiftiMetaDataElementValues::getDataTypeForElement(metaDataName)) {
+    /* Need to use the user's metadata for data types */
+    switch (metaData->getDataTypeForElement(metaDataName)) {
         case GiftiMetaDataElementDataTypeEnum::COMMENT:
             CaretAssert(0); /* Should never get here */
             break;
@@ -485,24 +560,28 @@ m_metaData(metaData)
     }
     
     if (useComboBoxFlag) {
-        const QStringList comboBoxValuesList(GiftiMetaDataElementValues::getValuesForElement(metaDataName));
+        const QStringList comboBoxValuesList(m_metaData->getValidValuesListForElement(metaDataName));
         m_valueComboBox = new QComboBox();
         m_valueComboBox->addItem(""); /* empty item for 'no value' */
         m_valueComboBox->addItems(comboBoxValuesList);
+        m_valueComboBox->setToolTip(tooltip);
     }
     if (useDateEditFlag) {
         m_valueDateEdit = new QDateEdit();
         m_valueDateEdit->setDisplayFormat(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
         m_valueDateEdit->setCalendarPopup(true);
+        m_valueDateEdit->setToolTip(tooltip);
     }
     if (useLineEditFlag) {
         m_valueLineEdit = new QLineEdit();
+        m_valueLineEdit->setToolTip(tooltip);
     }
     if (useToolButtonFlag) {
         m_toolButton = new QToolButton();
         m_toolButton->setText("Choose...");
         QObject::connect(m_toolButton, &QToolButton::clicked,
                          [=]() { toolButtonClicked(); });
+        m_toolButton->setToolTip(tooltip);
     }
     
     gridLayout->addWidget(nameLabel,

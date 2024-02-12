@@ -30,6 +30,7 @@
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
+#include "AnnotationMetaData.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
@@ -42,7 +43,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
-#include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -490,7 +490,7 @@ Annotation::initializeAnnotationMembers()
 
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
-    m_metaData.reset(new GiftiMetaData());
+    m_metaData.reset(new AnnotationMetaData(getType()));
     
     /*
      * Default the unique identifier.
@@ -1779,82 +1779,6 @@ const GiftiMetaData*
 Annotation::getMetaData() const
 {
     return m_metaData.get();
-}
-
-/**
- * @return The default metadata names for the given annotation type
- * @param annotationType
- *    The type of annotation
- * @param polyhedronSamplesFlag
- *    If polyhedron type, true if this polyhedron is used in Edit Samples Mode
- * @param metaDataNames
- *    Output with the default metadata names
- * @param requiredMetaDataNames
- *    Output with required metadata names (this is a subset of metaDataNames)
- *    CaretAssertToDoWarning()
- */
-void
-Annotation::getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
-                                           const bool polyhedronSamplesFlag,
-                                           std::vector<AString>& metaDataNames,
-                                           std::vector<AString>& requiredMetaDataNames)
-{
-    metaDataNames.clear();
-    requiredMetaDataNames.clear();
-    
-    switch (annotationType) {
-        case AnnotationTypeEnum::BOX:
-            break;
-        case AnnotationTypeEnum::BROWSER_TAB:
-            break;
-        case AnnotationTypeEnum::COLOR_BAR:
-            break;
-        case AnnotationTypeEnum::IMAGE:
-            break;
-        case AnnotationTypeEnum::LINE:
-            break;
-        case AnnotationTypeEnum::OVAL:
-            break;
-        case AnnotationTypeEnum::POLYHEDRON:
-            if (polyhedronSamplesFlag) {
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SUBJECT_NAME);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_BICAN_DONOR_ID);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_NHASH_SLAB_ID);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ORIGINAL_PARCELLATION);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALTERNATE_PARCELLATION);
-                metaDataNames.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
-
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE);
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-                requiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
-            }
-            break;
-        case AnnotationTypeEnum::POLYGON:
-            break;
-        case AnnotationTypeEnum::POLYLINE:
-            break;
-        case AnnotationTypeEnum::SCALE_BAR:
-            break;
-        case AnnotationTypeEnum::TEXT:
-            break;
-    }
 }
 
 /**

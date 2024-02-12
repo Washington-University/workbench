@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 
 #include "GiftiException.h"
+#include "GiftiMetaDataElementDataTypeEnum.h"
 #include "TracksModificationInterface.h"
 
 #include <stdint.h>
@@ -54,6 +55,8 @@ public:
     GiftiMetaData(const GiftiMetaData& o);
 
     GiftiMetaData& operator=(const GiftiMetaData& o);
+    
+    virtual GiftiMetaData* clone() const;
     
     bool operator==(const GiftiMetaData& rhs) const;
     
@@ -142,6 +145,17 @@ public:
     int32_t getNumberOfMetaData() const;
     
     void updateMetaDataNames(const std::map<AString,AString>& newNameMap);
+    
+    virtual void afterReadingProcessing();
+    
+    virtual GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForElement(const QString& metaDataName) const;
+    
+    virtual QStringList getValidValuesListForElement(const QString& metaDataName) const;
+
+    virtual void getElementNamesForEditor(std::vector<AString>& metaDataNamesOut,
+                                          std::vector<AString>& requiredMetaDataNamesOut) const;
+    
+    virtual AString getToolTip(const QString& metaDataName) const;
     
 private:
     void readEntry(QXmlStreamReader& xml);

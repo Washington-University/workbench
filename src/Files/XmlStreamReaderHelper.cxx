@@ -430,6 +430,8 @@ XmlStreamReaderHelper::readMetaData(GiftiMetaData* metadata)
     //check for end element
     if(!m_stream->isEndElement() || (m_stream->name().toString() != "MetaData"))
         throwDataFileException("MetaData end tag not found.");
+    
+    metadata->afterReadingProcessing();
 }
 
 /**

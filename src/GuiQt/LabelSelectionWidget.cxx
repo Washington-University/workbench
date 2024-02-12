@@ -47,16 +47,29 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param mode
+ *    Mode of the widget
  * @param saveRestoreStateName
- *    Used to save the state of the widget so that state is restored next time dialog is displayed
+ *    Used to save the state of the widget so that state is restored next time widget is displayed
  * @param parent
  *    Optional parent widget
  */
-LabelSelectionWidget::LabelSelectionWidget(const QString& saveRestoreStateName,
+LabelSelectionWidget::LabelSelectionWidget(const Mode mode,
+                                           const QString& saveRestoreStateName,
                                            QWidget* parent)
 : QWidget(parent),
-s_saveRestoreStateName(saveRestoreStateName)
+m_mode(mode),
+m_saveRestoreStateName(saveRestoreStateName)
 {
+    bool showLabelSelectionFlag(false);
+    switch (m_mode) {
+        case Mode::FILE_AND_MAP:
+            break;
+        case Mode::FILE_MAP_AND_LABEL:
+            showLabelSelectionFlag = true;
+            break;
+    }
+    
     std::vector<CaretDataFile*> allDataFiles;
     GuiManager::get()->getBrain()->getAllDataFiles(allDataFiles);
     
@@ -193,8 +206,12 @@ s_saveRestoreStateName(saveRestoreStateName)
     const int INDEX_SPIN_BOX_WIDTH(100);
     fileMapSpinBox->setFixedWidth(INDEX_SPIN_BOX_WIDTH);
     fileMapSpinBox->setToolTip("Map indices start at one.");
-    QLabel* fileLabellLabel = new QLabel("Label");
-    m_fileLabelComboBox = new GiftiLabelTableSelectionComboBox(this);
+    QLabel* fileLabellLabel = NULL;
+    m_fileLabelComboBox = NULL;
+    if (showLabelSelectionFlag) {
+        fileLabellLabel     = new QLabel("Label");
+        m_fileLabelComboBox = new GiftiLabelTableSelectionComboBox(this);
+    }
     
     /*
      * Widget and layout
@@ -205,14 +222,18 @@ s_saveRestoreStateName(saveRestoreStateName)
     labelWidgetLayout->addWidget(fileMapLabel, 1, COLUMN_LABEL);
     labelWidgetLayout->addWidget(fileMapSpinBox, 1, COLUMN_MAP_LEFT);
     labelWidgetLayout->addWidget(fileMapComboBox, 1, COLUMN_MAP_RIGHT);
-    labelWidgetLayout->addWidget(fileLabellLabel, 2, COLUMN_LABEL);
-    labelWidgetLayout->addWidget(m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
+    if (fileLabellLabel != NULL) {
+        labelWidgetLayout->addWidget(fileLabellLabel, 2, COLUMN_LABEL);
+    }
+    if (m_fileLabelComboBox != NULL) {
+        labelWidgetLayout->addWidget(m_fileLabelComboBox->getWidget(), 2, COLUMN_MAP_LEFT, 1, 2);
+    }
     labelWidgetLayout->setRowStretch(1000, 1000);
     labelWidgetLayout->setColumnStretch(1000, 1000);
     
     updateWidget();
-    if ( ! s_saveRestoreStateName.isEmpty()) {
-        restoreSelections(s_saveRestoreStateName);
+    if ( ! m_saveRestoreStateName.isEmpty()) {
+        restoreSelections(m_saveRestoreStateName);
     }
 }
 
@@ -221,8 +242,8 @@ s_saveRestoreStateName(saveRestoreStateName)
  */
 LabelSelectionWidget::~LabelSelectionWidget()
 {
-    if ( ! s_saveRestoreStateName.isEmpty()) {
-        saveSelections(s_saveRestoreStateName);
+    if ( ! m_saveRestoreStateName.isEmpty()) {
+        saveSelections(m_saveRestoreStateName);
     }
 }
 
@@ -249,16 +270,19 @@ LabelSelectionWidget::updateWidget()
         const int32_t mapIndex = labelFileModel->getSelectedMapIndex();
         if ((mapIndex >= 0)
             && (mapIndex < labelFile->getNumberOfMaps())) {
-            GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
-            CaretAssert(labelTable);
-            m_fileLabelComboBox->updateContent(labelTable);
-            labelTableComboBoxValid = true;
+            if (m_fileLabelComboBox != NULL) {
+                GiftiLabelTable* labelTable = labelFile->getMapLabelTable(mapIndex);
+                CaretAssert(labelTable);
+                m_fileLabelComboBox->updateContent(labelTable);
+                labelTableComboBoxValid = true;
+            }
         }
     }
     if ( ! labelTableComboBoxValid) {
-        m_fileLabelComboBox->updateContent(NULL);
+        if (m_fileLabelComboBox != NULL) {
+            m_fileLabelComboBox->updateContent(NULL);
+        }
     }
-
 }
 
 /**
@@ -267,7 +291,10 @@ LabelSelectionWidget::updateWidget()
 AString
 LabelSelectionWidget::getSelectedLabel() const
 {
-    const AString labelName(m_fileLabelComboBox->getSelectedLabelName());
+    AString labelName;
+    if (m_fileLabelComboBox != NULL) {
+        labelName = m_fileLabelComboBox->getSelectedLabelName();
+    }
     return labelName;
 }
 
@@ -368,7 +395,9 @@ LabelSelectionWidget::restoreSelections(const QString& selectionName)
             m_fileSelector->getModel()->setSelectedMapIndex(mapIndex);
             m_fileSelector->updateFileAndMapSelector(m_fileSelector->getModel());
             updateWidget();
-            m_fileLabelComboBox->setSelectedLabelName(labelName);
+            if (m_fileLabelComboBox != NULL) {
+                m_fileLabelComboBox->setSelectedLabelName(labelName);
+            }
         }
     }
 }

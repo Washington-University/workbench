@@ -45,7 +45,7 @@ public:
         LABEL_FILE_AND_MAP,
         /** Label that is used for both ID and Name */
         LABEL_ID_NAME,
-        /** Element has a list of values provided by GiftiMetaDataElementValues::getValuesForElement() */
+        /** Element has a list of values provided by GiftiMetaData::getValuesForElement() */
         LIST,
         /** Everything else is single line of text */
         TEXT

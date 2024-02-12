@@ -48,6 +48,10 @@ GiftiMetaDataSaxReader::GiftiMetaDataSaxReader(GiftiMetaData* metaData)
  */
 GiftiMetaDataSaxReader::~GiftiMetaDataSaxReader()
 {
+    /*
+     * Should be ok to call from here (JWH)
+     */
+    this->metaData->afterReadingProcessing();
 }
 
 

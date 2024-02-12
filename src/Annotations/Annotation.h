@@ -43,6 +43,7 @@
 namespace caret {
     class AnnotationCoordinate;
     class AnnotationScaleBar;
+    class AnnotationMetaData;
     class AnnotationMultiCoordinateShape;
     class AnnotationMultiPairedCoordinateShape;
     class AnnotationOneCoordinateShape;
@@ -347,11 +348,6 @@ namespace caret {
         
         const GiftiMetaData* getMetaData() const;
         
-        static void getDefaultMetaDataNamesForType(const AnnotationTypeEnum::Enum annotationType,
-                                                   const bool polyhedronSamplesFlag,
-                                                   std::vector<AString>& metaDataNames,
-                                                   std::vector<AString>& requiredMetaDataNames);
-        
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         
         float getLineWidthPercentage() const;
@@ -564,7 +560,7 @@ namespace caret {
         
         AString m_name;
         
-        std::unique_ptr<GiftiMetaData> m_metaData;
+        std::unique_ptr<AnnotationMetaData> m_metaData;
         
         int32_t m_uniqueKey;
         

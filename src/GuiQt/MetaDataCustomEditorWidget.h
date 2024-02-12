@@ -111,6 +111,10 @@ namespace caret {
         void metaDataButtonClicked(const AString& metaDataName,
                                    QWidget* parentDialogWidget);
         
+        void processLabelForIdDescription(const AString& labelText,
+                                          AString& idOut,
+                                          AString& descriptionOut) const;
+        
         GiftiMetaData* m_userMetaData = NULL;
         
         std::unique_ptr<GiftiMetaData> m_editorMetaData;

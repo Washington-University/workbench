@@ -37,7 +37,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        LabelSelectionDialog(const QString& saveRestoreStateName = "",
+        enum class Mode {
+            FILE_AND_MAP,
+            FILE_MAP_AND_LABEL
+        };
+
+        LabelSelectionDialog(const Mode mode,
+                             const QString& saveRestoreStateName = "",
                              QWidget* parent = 0);
         
         virtual ~LabelSelectionDialog();
