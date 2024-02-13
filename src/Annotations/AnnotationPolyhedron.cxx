@@ -978,8 +978,8 @@ AnnotationPolyhedron::getMetadataInformationHtml() const
 {
     std::vector<AString> metaDataNames;
     std::vector<AString> requiredMetaDataNames;
-    getMetaData()->getElementNamesForEditor(metaDataNames,
-                                            requiredMetaDataNames);
+    getMetaData()->getMetaDataNamesForEditor(metaDataNames,
+                                             requiredMetaDataNames);
 
     return getMetaData()->toFormattedHtml(metaDataNames);
 }

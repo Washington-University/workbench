@@ -22,8 +22,9 @@
 /*LICENSE_END*/
 
 
-
+#include <map>
 #include <memory>
+#include <set>
 
 #include "AnnotationTypeEnum.h"
 #include "GiftiMetaData.h"
@@ -45,14 +46,18 @@ namespace caret {
         
         virtual void afterReadingProcessing() override;
         
-        virtual GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForElement(const QString& metaDataName) const override;
+        virtual GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForMetaDataName(const QString& metaDataName) const override;
         
-        virtual QStringList getValidValuesListForElement(const QString& metaDataName) const override;
+        virtual QStringList getValidValuesListForMetaDataName(const QString& metaDataName) const override;
         
-        virtual void getElementNamesForEditor(std::vector<AString>& metaDataNamesOut,
-                                              std::vector<AString>& requiredMetaDataNamesOut) const override;
+        virtual void getMetaDataNamesForEditor(std::vector<AString>& metaDataNamesOut,
+                                               std::vector<AString>& requiredMetaDataNamesOut) const override;
         
-        virtual AString getToolTip(const QString& metaDataName) const override;
+        virtual AString getToolTipForMetaDataName(const QString& metaDataName) const override;
+        
+        virtual bool isCompositeMetaDataName(const QString& metaDataName) const override;
+
+        virtual AString getCompositeMetaDataValue(const QString& metaDataName) const override;
         
 
 //        bool operator==(const AnnotationMetaData& obj) const override;
@@ -67,6 +72,9 @@ namespace caret {
 
         void updatePolyhedronMetaData();
         
+        AString assembleCompositeElementComponents(const std::vector<AString>& components,
+                                                   const AString& separator) const;
+        
         AnnotationTypeEnum::Enum m_annotationType;
         
         static std::vector<AString> s_polyhedronEditorMetaDataNames;
@@ -76,6 +84,8 @@ namespace caret {
         static std::map<AString, GiftiMetaDataElementDataTypeEnum::Enum> s_metaDataNameToDataTypeMap;
         
         static std::map<AString, AString> s_metaDataNameToolTips;
+        
+        static std::set<AString> s_compositeMetaDataNames;
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -89,6 +99,8 @@ namespace caret {
     std::map<AString, GiftiMetaDataElementDataTypeEnum::Enum> AnnotationMetaData::s_metaDataNameToDataTypeMap;
     
     std::map<AString, AString> AnnotationMetaData::s_metaDataNameToolTips;
+    
+    std::set<AString> AnnotationMetaData::s_compositeMetaDataNames;
 
 #endif // __ANNOTATION_META_DATA_DECLARE__
 

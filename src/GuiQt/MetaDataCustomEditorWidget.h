@@ -60,6 +60,10 @@ namespace caret {
         
         void saveMetaData();
         
+        void calledByMetaDataWidgetRowWhenValueChanges();
+        
+        void reloadCompositeMetaDataWidgetRows();
+        
     private:
         class MetaDataWidgetRow {
         public:
@@ -77,13 +81,17 @@ namespace caret {
             
             void saveToMetaData();
             
+            void saveTesting();
+            
             void toolButtonClicked();
             
             void updateValueWidget();
             
+            void updateCompositeMetaDataValueWidget();
+            
             QString getAsText() const;
             
-            bool isModified() const;
+            void setSavingEnabled(const bool enabled);
             
             MetaDataCustomEditorWidget* m_editorWidget = NULL;
             
@@ -98,6 +106,10 @@ namespace caret {
             QLineEdit* m_valueLineEdit = NULL;
             
             QToolButton* m_toolButton = NULL;
+            
+            bool m_compositeMetaDataItemFlag = false;
+            
+            bool m_savingEnabled = true;
         };
         
         MetaDataCustomEditorWidget(const MetaDataCustomEditorWidget&);
@@ -117,6 +129,10 @@ namespace caret {
         
         GiftiMetaData* m_userMetaData = NULL;
         
+        /**
+         * This is a copy of the user's metadata.  It is a copy so that the user can
+         * edit it but then choose to discard the changes.
+         */
         std::unique_ptr<GiftiMetaData> m_editorMetaData;
         
         std::vector<MetaDataWidgetRow*> m_metaDataWidgetRows;

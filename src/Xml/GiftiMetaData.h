@@ -148,14 +148,21 @@ public:
     
     virtual void afterReadingProcessing();
     
-    virtual GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForElement(const QString& metaDataName) const;
+    virtual GiftiMetaDataElementDataTypeEnum::Enum getDataTypeForMetaDataName(const QString& metaDataName) const;
     
-    virtual QStringList getValidValuesListForElement(const QString& metaDataName) const;
+    virtual QStringList getValidValuesListForMetaDataName(const QString& metaDataName) const;
 
-    virtual void getElementNamesForEditor(std::vector<AString>& metaDataNamesOut,
+    virtual void getMetaDataNamesForEditor(std::vector<AString>& metaDataNamesOut,
                                           std::vector<AString>& requiredMetaDataNamesOut) const;
     
-    virtual AString getToolTip(const QString& metaDataName) const;
+    virtual AString getToolTipForMetaDataName(const QString& metaDataName) const;
+    
+    virtual bool isCompositeMetaDataName(const QString& metaDataName) const;
+    
+protected:
+    virtual AString getCompositeMetaDataValue(const QString& metaDataName) const;
+    
+    void removeCompositeMetaDataElements();
     
 private:
     void readEntry(QXmlStreamReader& xml);

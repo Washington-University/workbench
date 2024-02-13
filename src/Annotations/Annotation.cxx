@@ -2179,7 +2179,7 @@ Annotation::getName() const
              * we just add the Ding Abbreviation to the annotation name here.
              */
             CaretAssert(m_metaData);
-            const AString shortHandID(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION));
+            const AString shortHandID(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER));
             if ( ! shortHandID.isEmpty()) {
                 nameOut = shortHandID;
             }

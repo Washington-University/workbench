@@ -144,8 +144,8 @@ QWidget*
 AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
 {
     std::vector<AString> metaDataNames;
-    m_annotation->getMetaData()->getElementNamesForEditor(metaDataNames,
-                                                          m_requiredMetaDataNames);
+    m_annotation->getMetaData()->getMetaDataNamesForEditor(metaDataNames,
+                                                           m_requiredMetaDataNames);
     m_annotationMetaData.reset(new GiftiMetaData());
     for (const auto& name : metaDataNames) {
         const auto iter(s_previousMetaDataNamesAndValues.find(name));
@@ -250,8 +250,8 @@ AnnotationSamplesCreateDialog::initializeMetaData(AnnotationFile* toolbarSamples
             
             std::vector<AString> metadataNames;
             std::vector<AString> requiredMetaDataNames;
-            m_annotation->getMetaData()->getElementNamesForEditor(metadataNames,
-                                                                  requiredMetaDataNames);
+            m_annotation->getMetaData()->getMetaDataNamesForEditor(metadataNames,
+                                                                   requiredMetaDataNames);
 
             /*
              * Load metadata from annotation to the 'previous' metadata

@@ -26,6 +26,7 @@
 #include <QDate>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "HemisphereEnum.h"
 
@@ -235,7 +236,7 @@ AnnotationMetaData::updatePolyhedronMetaData()
  *    Name of metadata element.
  */
 GiftiMetaDataElementDataTypeEnum::Enum
-AnnotationMetaData::getDataTypeForElement(const QString& metaDataName) const
+AnnotationMetaData::getDataTypeForMetaDataName(const QString& metaDataName) const
 {
     if (s_metaDataNameToDataTypeMap.empty()) {
         /*
@@ -261,7 +262,7 @@ AnnotationMetaData::getDataTypeForElement(const QString& metaDataName) const
         dataType = iter->second;
     }
     else {
-        const QStringList valuesList(getValidValuesListForElement(metaDataName));
+        const QStringList valuesList(getValidValuesListForMetaDataName(metaDataName));
         if ( ! valuesList.isEmpty()) {
             dataType = GiftiMetaDataElementDataTypeEnum::LIST;
         }
@@ -277,7 +278,7 @@ AnnotationMetaData::getDataTypeForElement(const QString& metaDataName) const
  *    Name of metadata element.
  */
 QStringList
-AnnotationMetaData::getValidValuesListForElement(const QString& metaDataName) const
+AnnotationMetaData::getValidValuesListForMetaDataName(const QString& metaDataName) const
 {
     /*
      * While these could be put in static storage, they are called
@@ -327,8 +328,8 @@ AnnotationMetaData::getValidValuesListForElement(const QString& metaDataName) co
  *    This is a subset of metaDataNames
  */
 void
-AnnotationMetaData::getElementNamesForEditor(std::vector<AString>& metaDataNamesOut,
-                                             std::vector<AString>& requiredMetaDataNamesOut) const
+AnnotationMetaData::getMetaDataNamesForEditor(std::vector<AString>& metaDataNamesOut,
+                                              std::vector<AString>& requiredMetaDataNamesOut) const
 {
     metaDataNamesOut.clear();
     requiredMetaDataNamesOut.clear();
@@ -406,7 +407,7 @@ AnnotationMetaData::getElementNamesForEditor(std::vector<AString>& metaDataNames
  *    Names of elements that are to be displayed in a metadata editor.
  */
 AString
-AnnotationMetaData::getToolTip(const QString& metaDataName) const
+AnnotationMetaData::getToolTipForMetaDataName(const QString& metaDataName) const
 {
     AString tooltip;
     
@@ -427,4 +428,98 @@ AnnotationMetaData::getToolTip(const QString& metaDataName) const
     
     return tooltip;
 }
+
+/**
+ * @return True if the metadata name is a composite element, meaning, it is not stored
+ * in the metadata but is composed of other metadata elements.
+ * This method is intended for overriding by subclasses.
+ * @param metaDataName
+ *    Names of element
+ */
+bool
+AnnotationMetaData::isCompositeMetaDataName(const QString& metaDataName) const
+{
+    if (s_compositeMetaDataNames.empty()) {
+        /*
+         * Use static so only one map for all instances
+         */
+        s_compositeMetaDataNames.insert(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID);
+        s_compositeMetaDataNames.insert(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID);
+    }
+    
+    if (s_compositeMetaDataNames.find(metaDataName) != s_compositeMetaDataNames.end()) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * Get the value for a composite metadata element
+ * This method is intended for overriding by subclasses.
+ * @param metaDataName
+ *    Names of element
+ * @return
+ *    Value for composite metadata element or empty string if element is not a composite element.
+ */
+AString
+AnnotationMetaData::getCompositeMetaDataValue(const QString& metaDataName) const
+{
+    AString dataValueOut;
+    
+    const AString separator(".");
+    
+    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID) {
+        std::vector<AString> components;
+        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID));
+        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER));
+        dataValueOut = assembleCompositeElementComponents(components,
+                                                          separator);
+    }
+    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID) {
+        std::vector<AString> components;
+        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME));
+        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE));
+        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER));
+        dataValueOut = assembleCompositeElementComponents(components,
+                                                          separator);
+    }
+    else if (isCompositeMetaDataName(metaDataName)) {
+        CaretLogWarning("Composite metadata item never set (program error): "
+                        + metaDataName);
+    }
+    return dataValueOut;
+}
+
+/**
+ * Assemble components for a composite metadata element
+ * @param components
+ *    The components assembled into the composite item
+ * @param separator
+ *    The separator between components
+ * @return
+ *    The composed data
+ */
+AString
+AnnotationMetaData::assembleCompositeElementComponents(const std::vector<AString>& components,
+                                                       const AString& separator) const
+{
+    AString dataValue;
+    
+    for (const auto& comp : components) {
+        if ( ! dataValue.isEmpty()) {
+            dataValue.append(separator);
+        }
+        if (comp.isEmpty()) {
+            dataValue.append("???");
+        }
+        else {
+            dataValue.append(comp);
+        }
+    }
+    
+    return dataValue;
+}
+
+
 

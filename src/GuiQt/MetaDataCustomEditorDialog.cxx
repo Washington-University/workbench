@@ -63,8 +63,8 @@ MetaDataCustomEditorDialog::MetaDataCustomEditorDialog(Annotation* annotation,
     
     std::vector<AString> metaDataNames;
     std::vector<AString> requiredMetaDataNames;
-    annotation->getMetaData()->getElementNamesForEditor(metaDataNames,
-                                                        requiredMetaDataNames);
+    annotation->getMetaData()->getMetaDataNamesForEditor(metaDataNames,
+                                                         requiredMetaDataNames);
     const AString titlePrefix((annotation->getType() == AnnotationTypeEnum::POLYHEDRON)
                               ? "Edit Sample Metadata: "
                               : "Edit Annotation Metadata: ");

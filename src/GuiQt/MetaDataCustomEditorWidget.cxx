@@ -120,7 +120,9 @@ m_userMetaData(userMetaData)
                                                           name,
                                                           m_editorMetaData.get(),
                                                           requiredMetaDataFlag));
+            mdwr->setSavingEnabled(false);
             mdwr->updateValueWidget();
+            mdwr->setSavingEnabled(true);
             m_metaDataWidgetRows.push_back(mdwr);
             ++rowIndex;
         }
@@ -163,6 +165,7 @@ MetaDataCustomEditorWidget::saveMetaData()
     
     /*
      * Copy metadata from editor copy to the user's metadata
+     * Need to save mod stats since metadata is copied
      */
     const bool modStatus(m_userMetaData->isModified()
                          || m_editorMetaData->isModified());
@@ -173,17 +176,33 @@ MetaDataCustomEditorWidget::saveMetaData()
 }
 
 /**
+ * Gets called by a metadata row when its value has changed
+ */
+void
+MetaDataCustomEditorWidget::calledByMetaDataWidgetRowWhenValueChanges()
+{
+    reloadCompositeMetaDataWidgetRows();
+}
+
+/**
+ * Update all rows that contain a composite metadata element
+ */
+void
+MetaDataCustomEditorWidget::reloadCompositeMetaDataWidgetRows()
+{
+    for (auto& mdwr : m_metaDataWidgetRows) {
+        mdwr->updateCompositeMetaDataValueWidget();
+    }
+}
+
+/**
  * @return true if the names and values been modified, else false.
  */
 bool
 MetaDataCustomEditorWidget::isMetaDataModified() const
 {
-    for (auto& mdwr : m_metaDataWidgetRows) {
-        if (mdwr->isModified()) {
-            return true;
-        }
-    }
-    return false;
+    CaretAssert(m_editorMetaData);
+    return m_editorMetaData->isModified();
 }
 
 /**
@@ -203,7 +222,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     bool labelFilePopupFlag(false);
     bool labelPopupFlag(false);
     bool listPopupFlag(false);
-    switch (m_editorMetaData->getDataTypeForElement(metaDataName)) {
+    switch (m_editorMetaData->getDataTypeForMetaDataName(metaDataName)) {
         case GiftiMetaDataElementDataTypeEnum::COMMENT:
             break;
         case GiftiMetaDataElementDataTypeEnum::DATE:
@@ -294,7 +313,7 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
     else if (listPopupFlag) {
         QStringList dataSelectionValues;
         
-        dataSelectionValues = m_editorMetaData->getValidValuesListForElement(metaDataName);
+        dataSelectionValues = m_editorMetaData->getValidValuesListForMetaDataName(metaDataName);
         if (dataSelectionValues.empty()) {
             CaretLogSevere("Metadata not supported for selection: "
                            + metaDataName);
@@ -506,7 +525,9 @@ m_metaData(metaData)
 {
     CaretAssert(m_metaData);
     
-    const QString tooltip(m_metaData->getToolTip(metaDataName));
+    m_compositeMetaDataItemFlag = m_metaData->isCompositeMetaDataName(metaDataName);
+    
+    const QString tooltip(m_metaData->getToolTipForMetaDataName(metaDataName));
     const QString value(metaData->get(metaDataName));
     
     QLabel* nameLabel(new QLabel(metaDataName
@@ -526,7 +547,7 @@ m_metaData(metaData)
     bool useLineEditFlag(false);
     bool useToolButtonFlag(false);
     /* Need to use the user's metadata for data types */
-    switch (metaData->getDataTypeForElement(metaDataName)) {
+    switch (metaData->getDataTypeForMetaDataName(metaDataName)) {
         case GiftiMetaDataElementDataTypeEnum::COMMENT:
             CaretAssert(0); /* Should never get here */
             break;
@@ -560,21 +581,35 @@ m_metaData(metaData)
     }
     
     if (useComboBoxFlag) {
-        const QStringList comboBoxValuesList(m_metaData->getValidValuesListForElement(metaDataName));
+        const QStringList comboBoxValuesList(m_metaData->getValidValuesListForMetaDataName(metaDataName));
         m_valueComboBox = new QComboBox();
         m_valueComboBox->addItem(""); /* empty item for 'no value' */
         m_valueComboBox->addItems(comboBoxValuesList);
         m_valueComboBox->setToolTip(tooltip);
+        QObject::connect(m_valueComboBox, &QComboBox::currentIndexChanged,
+                         [=]() { saveTesting(); });
     }
     if (useDateEditFlag) {
         m_valueDateEdit = new QDateEdit();
         m_valueDateEdit->setDisplayFormat(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
         m_valueDateEdit->setCalendarPopup(true);
         m_valueDateEdit->setToolTip(tooltip);
+        QObject::connect(m_valueDateEdit, &QDateEdit::dateChanged,
+                         [=]() { saveTesting(); });
     }
     if (useLineEditFlag) {
         m_valueLineEdit = new QLineEdit();
         m_valueLineEdit->setToolTip(tooltip);
+        if (m_compositeMetaDataItemFlag) {
+            /*
+             * Do not allow editing of composite elements
+             */
+            m_valueLineEdit->setReadOnly(true);
+        }
+        else {
+            QObject::connect(m_valueLineEdit, &QLineEdit::editingFinished,
+                             [=]() { saveTesting(); } );
+        }
     }
     if (useToolButtonFlag) {
         m_toolButton = new QToolButton();
@@ -639,6 +674,18 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
 }
 
 /**
+ * Update the value widget with the value from the metadata
+ * IF the row's element is a composite metadata item
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::updateCompositeMetaDataValueWidget()
+{
+    if (m_compositeMetaDataItemFlag) {
+        updateValueWidget();
+    }
+}
+
+/**
  * Called when the tool button is clicked
  */
 void
@@ -647,6 +694,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::toolButtonClicked()
     CaretAssert(m_editorWidget);
     m_editorWidget->metaDataButtonClicked(m_metaDataName,
                                           m_toolButton);
+    saveTesting();
 }
 
 /**
@@ -659,26 +707,17 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::getAsText() const
     if (m_valueComboBox != NULL) {
         text = m_valueComboBox->currentText().trimmed();
     }
-    if (m_valueDateEdit != NULL) {
+    else if (m_valueDateEdit != NULL) {
         const QDate date(m_valueDateEdit->date());
         text = date.toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
     }
-    if (m_valueLineEdit != NULL) {
+    else if (m_valueLineEdit != NULL) {
         text = m_valueLineEdit->text().trimmed();
     }
-    return text;
-}
-
-/**
- * @return True if metadata is modifiedf
- */
-bool
-MetaDataCustomEditorWidget::MetaDataWidgetRow::isModified() const
-{
-    if (m_metaData->get(m_metaDataName) != getAsText()) {
-        return true;
+    else {
+        CaretAssertMessage(0, "PROGRAM ERROR: Has new widget type been added?");
     }
-    return false;
+    return text;
 }
 
 /**
@@ -687,7 +726,34 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::isModified() const
 void
 MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
 {
-    m_metaData->set(m_metaDataName,
-                    getAsText());
+    /*
+     * Only save elements that are not composite elements
+     */
+    if ( ! m_metaData->isCompositeMetaDataName(m_metaDataName)) {
+        m_metaData->set(m_metaDataName,
+                        getAsText());
+    }
 }
+
+/**
+ * Save the value to the metadata
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::saveTesting()
+{
+    if (m_savingEnabled) {
+        saveToMetaData();
+        m_editorWidget->calledByMetaDataWidgetRowWhenValueChanges();
+    }
+}
+
+/**
+ * Set saving enabled when item changed by user
+ */
+void
+MetaDataCustomEditorWidget::MetaDataWidgetRow::setSavingEnabled(const bool enabled)
+{
+    m_savingEnabled = enabled;
+}
+
 
