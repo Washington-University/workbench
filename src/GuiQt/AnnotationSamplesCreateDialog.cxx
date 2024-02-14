@@ -32,6 +32,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationMetaDataNames.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
@@ -42,7 +43,6 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
-#include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "MetaDataCustomEditorWidget.h"
 #include "SamplesFile.h"
@@ -153,7 +153,7 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
         if (iter != s_previousMetaDataNamesAndValues.end()) {
             value = iter->second;
         }
-        if ((name == GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE)
+        if ((name == AnnotationMetaDataNames::SAMPLES_ENTRY_DATE)
             && value.isEmpty()) {
             /*
              * Default to an old date
@@ -161,18 +161,18 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
             const int year(1900);
             const int month(1);
             const int day(1);
-            value = QDate(year, month, day).toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
+            value = QDate(year, month, day).toString(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT);
         }
         
         /*
          * These items are NOT restored from previous dialot
          */
-        if ((name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME)
-            || (name == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID)) {
+        if ((name == AnnotationMetaDataNames::SAMPLES_COMMENT)
+            || (name == AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE)
+            || (name == AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER)
+            || (name == AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION)
+            || (name == AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME)
+            || (name == AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID)) {
             value = "";
         }
         

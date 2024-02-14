@@ -27,7 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "GiftiMetaDataXmlElements.h"
+#include "AnnotationMetaDataNames.h"
 #include "HemisphereEnum.h"
 
 using namespace caret;
@@ -154,50 +154,50 @@ AnnotationMetaData::updatePolyhedronMetaData()
          * old names to new names
          * Use static so only one map for all instances
          */
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_CASE_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_SUBJECT_NAME);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DONOR_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_BICAN_DONOR_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_BICAN_DONOR_ID);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SLAB_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SLAB_FACE,
-                               GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DISSECTION_DATE,
-                               GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SHORTHAND_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_DING_DESCRIPTION,
-                               GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SAMPLE_TYPE,
-                               GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-        oldNewNamesMap.emplace(GiftiMetaDataXmlElements::SAMPLES_OBSOLETE_SAMPLE_ID,
-                               GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_CASE_ID,
+                               AnnotationMetaDataNames::SAMPLES_SUBJECT_NAME);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_DONOR_ID,
+                               AnnotationMetaDataNames::SAMPLES_ALLEN_LOCAL_NAME);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_BICAN_DONOR_ID,
+                               AnnotationMetaDataNames::SAMPLES_BICAN_DONOR_ID);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_SLAB_ID,
+                               AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_SLAB_FACE,
+                               AnnotationMetaDataNames::SAMPLES_SLAB_FACE);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_DISSECTION_DATE,
+                               AnnotationMetaDataNames::SAMPLES_ENTRY_DATE);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_SHORTHAND_ID,
+                               AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_DING_DESCRIPTION,
+                               AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_SAMPLE_TYPE,
+                               AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE);
+        oldNewNamesMap.emplace(AnnotationMetaDataNames::SAMPLES_OBSOLETE_SAMPLE_ID,
+                               AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER);
     }
     
     updateMetaDataNames(oldNewNamesMap);
     
-    if (exists(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE)) {
+    if (exists(AnnotationMetaDataNames::SAMPLES_HEMISPHERE)) {
         /*
          * Hemisphere changed from (L, R) to (left, right, both)
          */
-        AString hem(get(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE));
+        AString hem(get(AnnotationMetaDataNames::SAMPLES_HEMISPHERE));
         if (hem == "L") {
-            set(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE,
+            set(AnnotationMetaDataNames::SAMPLES_HEMISPHERE,
                 "left");
         }
         else if (hem == "R") {
-            set(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE,
+            set(AnnotationMetaDataNames::SAMPLES_HEMISPHERE,
                 "right");
         }
     }
     
-    if (exists(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE)) {
+    if (exists(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE)) {
         /*
          * Convert date from old to new format
          */
-        const QString dateText(get(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE));
+        const QString dateText(get(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE));
         if ( ! dateText.isEmpty()) {
             const QString lowerText(dateText.toLower());
             if (lowerText.contains("jan")
@@ -213,9 +213,9 @@ AnnotationMetaData::updatePolyhedronMetaData()
                 || lowerText.contains("nov")
                 || lowerText.contains("dec")) {
                 const QDate date(QDate::fromString(dateText,
-                                                   GiftiMetaDataXmlElements::METADATA_OBSOLETE_QT_DATE_FORMAT));
-                const QString newDateText(date.toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT));
-                set(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE,
+                                                   AnnotationMetaDataNames::SAMPLES_OBSOLETE_QT_DATE_FORMAT));
+                const QString newDateText(date.toString(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT));
+                set(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE,
                     newDateText);
             }
         }
@@ -224,9 +224,9 @@ AnnotationMetaData::updatePolyhedronMetaData()
     /*
      * Metadata that has been removed
      */
-    remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ALT_ATLAS_DESCRIPTION);
-    remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ORIG_ATLAS_NAME);
-    remove(GiftiMetaDataXmlElements::SAMPLES_REMOVED_ORIG_SHORTHAND_ID);
+    remove(AnnotationMetaDataNames::SAMPLES_REMOVED_ALT_ATLAS_DESCRIPTION);
+    remove(AnnotationMetaDataNames::SAMPLES_REMOVED_ORIG_ATLAS_NAME);
+    remove(AnnotationMetaDataNames::SAMPLES_REMOVED_ORIG_SHORTHAND_ID);
 }
 
 /**
@@ -242,17 +242,17 @@ AnnotationMetaData::getDataTypeForMetaDataName(const QString& metaDataName) cons
         /*
          * Use static so only one map for all instances
          */
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE,
                                             GiftiMetaDataElementDataTypeEnum::DATE);
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_COMMENT,
                                             GiftiMetaDataElementDataTypeEnum::COMMENT);
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID,
                                             GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME);
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION,
                                             GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM);
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::SAMPLES_ALTERNATE_PARCELLATION,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ALTERNATE_PARCELLATION,
                                             GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP);
-        s_metaDataNameToDataTypeMap.emplace(GiftiMetaDataXmlElements::SAMPLES_ORIGINAL_PARCELLATION,
+        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ORIGINAL_PARCELLATION,
                                             GiftiMetaDataElementDataTypeEnum::LABEL_FILE_AND_MAP);
     }
     GiftiMetaDataElementDataTypeEnum::Enum dataType(GiftiMetaDataElementDataTypeEnum::TEXT);
@@ -286,20 +286,20 @@ AnnotationMetaData::getValidValuesListForMetaDataName(const QString& metaDataNam
      * have no noticable effect on performance.
      */
     QStringList metaDataValues;
-    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE) {
+    if (metaDataName == AnnotationMetaDataNames::SAMPLES_ALLEN_TISSUE_TYPE) {
         metaDataValues.push_back("BS");
         metaDataValues.push_back("CB");
         metaDataValues.push_back("CX");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCATION) {
+    else if (metaDataName == AnnotationMetaDataNames::SAMPLES_LOCATION) {
         metaDataValues.push_back("Actual");
         metaDataValues.push_back("Desired");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE) {
+    else if (metaDataName == AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE) {
         metaDataValues.push_back("Slab polyhedron");
         metaDataValues.push_back("polygon");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE) {
+    else if (metaDataName == AnnotationMetaDataNames::SAMPLES_SLAB_FACE) {
         metaDataValues.push_back("Anterior");
         metaDataValues.push_back("Posterior");
         metaDataValues.push_back("Inferior");
@@ -308,7 +308,7 @@ AnnotationMetaData::getValidValuesListForMetaDataName(const QString& metaDataNam
         metaDataValues.push_back("Right");
         metaDataValues.push_back("Other");
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE) {
+    else if (metaDataName == AnnotationMetaDataNames::SAMPLES_HEMISPHERE) {
         std::vector<HemisphereEnum::Enum> hemisphereEnums;
         HemisphereEnum::getAllEnums(hemisphereEnums);
         for (const HemisphereEnum::Enum h : hemisphereEnums) {
@@ -352,38 +352,38 @@ AnnotationMetaData::getMetaDataNamesForEditor(std::vector<AString>& metaDataName
                 /*
                  * Use static so only one vector for all instances
                  */
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SUBJECT_NAME);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_BICAN_DONOR_ID);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_NHASH_SLAB_ID);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SLAB_FACE);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCATION);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ENTRY_DATE);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ORIGINAL_PARCELLATION);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALTERNATE_PARCELLATION);
-                s_polyhedronEditorMetaDataNames.push_back(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SUBJECT_NAME);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_LOCAL_NAME);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_BICAN_DONOR_ID);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_HEMISPHERE);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_TISSUE_TYPE);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_LOCAL_SLAB_ID);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_NHASH_SLAB_ID);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SLAB_FACE);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_LOCATION);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_LOCAL_SAMPLE_ID);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ORIGINAL_PARCELLATION);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALTERNATE_PARCELLATION);
+                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_COMMENT);
             }
             
             if (s_polyhedronEditorRequiredMetaDataNames.empty()) {
                 /*
                  * Use static so only one vector for all instances
                  */
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME);
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE);
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE);
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER);
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_TYPE);
-                s_polyhedronEditorRequiredMetaDataNames.push_back(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_LOCAL_NAME);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_HEMISPHERE);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_TISSUE_TYPE);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE);
+                s_polyhedronEditorRequiredMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER);
             }
             
             metaDataNamesOut         = s_polyhedronEditorMetaDataNames;
@@ -416,7 +416,7 @@ AnnotationMetaData::getToolTipForMetaDataName(const QString& metaDataName) const
          * Use static so only one map for all instances
          */
         /*
-         * s_metaDataNameToolTips.emplace(<meta data name: eg GiftiMetaDataXmlElements::SAMPLES_HEMISPHERE>,
+         * s_metaDataNameToolTips.emplace(<meta data name: eg AnnotationMetaDataNames::SAMPLES_HEMISPHERE>,
          *                                "Text for tooltip");
          */
     }
@@ -443,8 +443,8 @@ AnnotationMetaData::isCompositeMetaDataName(const QString& metaDataName) const
         /*
          * Use static so only one map for all instances
          */
-        s_compositeMetaDataNames.insert(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID);
-        s_compositeMetaDataNames.insert(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID);
+        s_compositeMetaDataNames.insert(AnnotationMetaDataNames::SAMPLES_LOCAL_SAMPLE_ID);
+        s_compositeMetaDataNames.insert(AnnotationMetaDataNames::SAMPLES_LOCAL_SLAB_ID);
     }
     
     if (s_compositeMetaDataNames.find(metaDataName) != s_compositeMetaDataNames.end()) {
@@ -469,18 +469,18 @@ AnnotationMetaData::getCompositeMetaDataValue(const QString& metaDataName) const
     
     const AString separator(".");
     
-    if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCAL_SAMPLE_ID) {
+    if (metaDataName == AnnotationMetaDataNames::SAMPLES_LOCAL_SAMPLE_ID) {
         std::vector<AString> components;
-        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID));
-        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER));
+        components.push_back(get(AnnotationMetaDataNames::SAMPLES_LOCAL_SLAB_ID));
+        components.push_back(get(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER));
         dataValueOut = assembleCompositeElementComponents(components,
                                                           separator);
     }
-    else if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_LOCAL_SLAB_ID) {
+    else if (metaDataName == AnnotationMetaDataNames::SAMPLES_LOCAL_SLAB_ID) {
         std::vector<AString> components;
-        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_LOCAL_NAME));
-        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_TISSUE_TYPE));
-        components.push_back(get(GiftiMetaDataXmlElements::SAMPLES_ALLEN_SLAB_NUMBER));
+        components.push_back(get(AnnotationMetaDataNames::SAMPLES_ALLEN_LOCAL_NAME));
+        components.push_back(get(AnnotationMetaDataNames::SAMPLES_ALLEN_TISSUE_TYPE));
+        components.push_back(get(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER));
         dataValueOut = assembleCompositeElementComponents(components,
                                                           separator);
     }

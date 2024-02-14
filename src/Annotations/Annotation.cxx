@@ -43,7 +43,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
-#include "GiftiMetaDataXmlElements.h"
+#include "AnnotationMetaDataNames.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "SceneClass.h"
@@ -2179,7 +2179,7 @@ Annotation::getName() const
              * we just add the Ding Abbreviation to the annotation name here.
              */
             CaretAssert(m_metaData);
-            const AString shortHandID(m_metaData->get(GiftiMetaDataXmlElements::SAMPLES_SAMPLE_NUMBER));
+            const AString shortHandID(m_metaData->get(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER));
             if ( ! shortHandID.isEmpty()) {
                 nameOut = shortHandID;
             }

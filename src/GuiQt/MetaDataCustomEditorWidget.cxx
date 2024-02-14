@@ -43,6 +43,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationMetaDataNames.h"
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -94,7 +95,6 @@ m_userMetaData(userMetaData)
     m_editorMetaData.reset(m_userMetaData->clone());
     m_editorMetaData->clearModified();
     
-    bool hasCommentMetaDataFlag(false);
     const int32_t COLUMN_LABEL(0);
     const int32_t COLUMN_VALUE(1);
     const int32_t COLUMN_BUTTON(2);
@@ -106,9 +106,10 @@ m_userMetaData(userMetaData)
         const bool requiredMetaDataFlag(std::find(requiredMetaDataNames.begin(),
                                                   requiredMetaDataNames.end(),
                                                   name) != requiredMetaDataNames.end());
-        if (name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT) {
+        if ((name == GiftiMetaDataXmlElements::METADATA_NAME_COMMENT)
+            || (name == AnnotationMetaDataNames::SAMPLES_COMMENT)) {
             /* Comment uses a text editor, below */
-            hasCommentMetaDataFlag = true;
+            m_commentMetaDataName = name;
         }
         else {
             MetaDataWidgetRow* mdwr(new MetaDataWidgetRow(this,
@@ -129,10 +130,10 @@ m_userMetaData(userMetaData)
     }
     
     m_commentTextEditor = NULL;
-    if (hasCommentMetaDataFlag) {
-        QLabel* commentLabel(new QLabel(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT + ":"));
+    if ( ! m_commentMetaDataName.isEmpty()) {
+        QLabel* commentLabel(new QLabel(m_commentMetaDataName + ":"));
         m_commentTextEditor = new QTextEdit();
-        m_commentTextEditor->setText(m_editorMetaData->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT));
+        m_commentTextEditor->setText(m_editorMetaData->get(m_commentMetaDataName));
         gridLayout->addWidget(commentLabel,
                               rowIndex, COLUMN_LABEL);
         gridLayout->addWidget(m_commentTextEditor,
@@ -159,7 +160,7 @@ MetaDataCustomEditorWidget::saveMetaData()
     }
 
     if (m_commentTextEditor != NULL) {
-        m_editorMetaData->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT,
+        m_editorMetaData->set(m_commentMetaDataName,
                         m_commentTextEditor->toPlainText());
     }
     
@@ -252,14 +253,14 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
             const QString shorthandID(dotd.getAbbreviatedName());
             const QString description(dotd.getDescriptiveName());
             
-            if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION) {
-                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION,
+            if (metaDataName == AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION) {
+                m_editorMetaData->set(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION,
                                 shorthandID);
-                m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME,
+                m_editorMetaData->set(AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME,
                                 description);
                 
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_ABBREVIATION);
-                updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_DING_FULL_NAME);
+                updateValueInMetaDataWidgetRow(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION);
+                updateValueInMetaDataWidgetRow(AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME);
             }
         }
     }
@@ -292,15 +293,15 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
         if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
             const AString labelText(labelDialog.getSelectedLabel().trimmed());
             if ( ! labelText.isEmpty()) {
-                if (metaDataName == GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID) {
+                if (metaDataName == AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID) {
                     AString id, description;
                     processLabelForIdDescription(labelText,
                                                  id,
                                                  description);
-                    m_editorMetaData->set(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID,
+                    m_editorMetaData->set(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID,
                                     id);
                     
-                    updateValueInMetaDataWidgetRow(GiftiMetaDataXmlElements::SAMPLES_ALT_SHORTHAND_ID);
+                    updateValueInMetaDataWidgetRow(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID);
                 }
                   else {
                     m_editorMetaData->set(metaDataName,
@@ -591,7 +592,7 @@ m_metaData(metaData)
     }
     if (useDateEditFlag) {
         m_valueDateEdit = new QDateEdit();
-        m_valueDateEdit->setDisplayFormat(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
+        m_valueDateEdit->setDisplayFormat(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT);
         m_valueDateEdit->setCalendarPopup(true);
         m_valueDateEdit->setToolTip(tooltip);
         QObject::connect(m_valueDateEdit, &QDateEdit::dateChanged,
@@ -666,7 +667,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::updateValueWidget()
     }
     if (m_valueDateEdit != NULL) {
         m_valueDateEdit->setDate(QDate::fromString(value,
-                                                   GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT));
+                                                   AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT));
     }
     if (m_valueLineEdit != NULL) {
         m_valueLineEdit->setText(value);
@@ -709,7 +710,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::getAsText() const
     }
     else if (m_valueDateEdit != NULL) {
         const QDate date(m_valueDateEdit->date());
-        text = date.toString(GiftiMetaDataXmlElements::METADATA_QT_DATE_FORMAT);
+        text = date.toString(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT);
     }
     else if (m_valueLineEdit != NULL) {
         text = m_valueLineEdit->text().trimmed();

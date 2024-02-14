@@ -137,6 +137,8 @@ namespace caret {
         
         std::vector<MetaDataWidgetRow*> m_metaDataWidgetRows;
 
+        AString m_commentMetaDataName;
+        
         QTextEdit* m_commentTextEditor = NULL;
         
         // ADD_NEW_MEMBERS_HERE

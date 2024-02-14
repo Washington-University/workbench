@@ -51,6 +51,7 @@ AnnotationGroupingModeEnum.h
 AnnotationImage.h
 AnnotationLine.h
 AnnotationMetaData.h
+AnnotationMetaDataNames.h
 AnnotationMultiCoordinateShape.h
 AnnotationMultiPairedCoordinateShape.h
 AnnotationOneCoordinateShape.h
