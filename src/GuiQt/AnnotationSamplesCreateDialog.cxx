@@ -178,7 +178,8 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
         }
     }
 
-    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
+    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(MetaDataCustomEditorWidget::Mode::NEW_SAMPLE_EDITING,
+                                                            metaDataNames,
                                                             m_requiredMetaDataNames,
                                                             m_annotationMetaData.get());
 

@@ -42,6 +42,9 @@ namespace caret {
 
         SamplesFile& operator=(const SamplesFile& obj);
         
+        static AString generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFiles,
+                                                      const AString& slabID);
+        
 
         // ADD_NEW_METHODS_HERE
 

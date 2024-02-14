@@ -153,7 +153,8 @@ MetaDataCustomEditorDialog::initializeDialog(const AString& dialogTitle,
     setWindowTitle(dialogTitle);
     
     std::vector<AString> dummyRequiredMetaNames;
-    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
+    m_metaDataEditorWidget = new MetaDataCustomEditorWidget(MetaDataCustomEditorWidget::Mode::NORMAL_EDITING,
+                                                            metaDataNames,
                                                             dummyRequiredMetaNames,
                                                             metaData,
                                                             this);

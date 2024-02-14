@@ -46,7 +46,22 @@ namespace caret {
         Q_OBJECT
 
     public:
-        MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
+        /**
+         * Mode of editing
+         */
+        enum Mode {
+            /**
+             * Editing a new sample's metadata
+             */
+            NEW_SAMPLE_EDITING,
+            /**
+             * Normal metadata editing
+             */
+            NORMAL_EDITING
+        };
+        
+        MetaDataCustomEditorWidget(const Mode mode,
+                                   const std::vector<AString>& metaDataNames,
                                    const std::vector<AString>& requiredMetaDataNames,
                                    GiftiMetaData* userMetaData,
                                    QWidget* parent = 0);
@@ -60,9 +75,9 @@ namespace caret {
         
         void saveMetaData();
         
-        void calledByMetaDataWidgetRowWhenValueChanges();
+        void calledByMetaDataWidgetRowWhenValueChanges(const AString& metaDataName);
         
-        void reloadCompositeMetaDataWidgetRows();
+        void reloadAllMetaDataWidgetRows();
         
     private:
         class MetaDataWidgetRow {
@@ -81,7 +96,7 @@ namespace caret {
             
             void saveToMetaData();
             
-            void saveTesting();
+            void saveAfterDataChangedInGUI();
             
             void toolButtonClicked();
             
@@ -126,6 +141,8 @@ namespace caret {
         void processLabelForIdDescription(const AString& labelText,
                                           AString& idOut,
                                           AString& descriptionOut) const;
+        
+        const Mode m_mode;
         
         GiftiMetaData* m_userMetaData = NULL;
         

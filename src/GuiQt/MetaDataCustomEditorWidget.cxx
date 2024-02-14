@@ -43,6 +43,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
+#include "AnnotationFile.h"
 #include "AnnotationMetaDataNames.h"
 #include "Brain.h"
 #include "CaretAssert.h"
@@ -52,6 +53,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "LabelSelectionDialog.h"
+#include "SamplesFile.h"
 #include "SamplesMetaDataManager.h"
 #include "StructureEnum.h"
 #include "WuQDataEntryDialog.h"
@@ -69,6 +71,8 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param mode
+ *    Mode of metadata editing
  * @param metaDataNames
  *    Names of metadata shown in editor
  * @param requiredMetaDataNames
@@ -78,11 +82,13 @@ using namespace caret;
  * @param parent
  *    Parent widget.
  */
-MetaDataCustomEditorWidget::MetaDataCustomEditorWidget(const std::vector<AString>& metaDataNames,
+MetaDataCustomEditorWidget::MetaDataCustomEditorWidget(const Mode mode,
+                                                       const std::vector<AString>& metaDataNames,
                                                        const std::vector<AString>& requiredMetaDataNames,
                                                        GiftiMetaData* userMetaData,
                                                        QWidget* parent)
 : QWidget(parent),
+m_mode(mode),
 m_userMetaData(userMetaData)
 {
     CaretAssert(m_userMetaData);
@@ -140,6 +146,13 @@ m_userMetaData(userMetaData)
                               rowIndex, COLUMN_VALUE, 1, 2);
         ++rowIndex;
     }
+    
+    /*
+     * Generates Sample Number if it is empty and there is an allen slab number
+     */
+    if (m_editorMetaData->get(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER).isEmpty()) {
+        calledByMetaDataWidgetRowWhenValueChanges(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER);
+    }
 }
 
 /**
@@ -178,21 +191,46 @@ MetaDataCustomEditorWidget::saveMetaData()
 
 /**
  * Gets called by a metadata row when its value has changed
+ * @param metaDataName
+ *    Name of metadata that changed
  */
 void
-MetaDataCustomEditorWidget::calledByMetaDataWidgetRowWhenValueChanges()
+MetaDataCustomEditorWidget::calledByMetaDataWidgetRowWhenValueChanges(const AString& metaDataName)
 {
-    reloadCompositeMetaDataWidgetRows();
+    switch (m_mode) {
+        case NEW_SAMPLE_EDITING:
+            if (metaDataName == AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER) {
+                const AString slabNumber(m_editorMetaData->get(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER));
+                if ( ! slabNumber.isEmpty()) {
+                    AString sampleNumber(m_editorMetaData->get(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER));
+                    if (sampleNumber.isEmpty()) {
+                        std::vector<SamplesFile*> samplesFiles(GuiManager::get()->getBrain()->getAllSamplesFiles());
+                        sampleNumber = SamplesFile::generateSampleNumberFromSlabID(samplesFiles,
+                                                                                   slabNumber);
+                        m_editorMetaData->set(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER,
+                                              sampleNumber);
+                    }
+                }
+            }
+            break;
+        case NORMAL_EDITING:
+            break;
+    }
+
+    /*
+     * Update all rows since some may be composite elements
+     */
+    reloadAllMetaDataWidgetRows();
 }
 
 /**
- * Update all rows that contain a composite metadata element
+ * Update all rows
  */
 void
-MetaDataCustomEditorWidget::reloadCompositeMetaDataWidgetRows()
+MetaDataCustomEditorWidget::reloadAllMetaDataWidgetRows()
 {
     for (auto& mdwr : m_metaDataWidgetRows) {
-        mdwr->updateCompositeMetaDataValueWidget();
+        mdwr->updateValueWidget();
     }
 }
 
@@ -588,7 +626,7 @@ m_metaData(metaData)
         m_valueComboBox->addItems(comboBoxValuesList);
         m_valueComboBox->setToolTip(tooltip);
         QObject::connect(m_valueComboBox, &QComboBox::currentIndexChanged,
-                         [=]() { saveTesting(); });
+                         [=]() { saveAfterDataChangedInGUI(); });
     }
     if (useDateEditFlag) {
         m_valueDateEdit = new QDateEdit();
@@ -596,7 +634,7 @@ m_metaData(metaData)
         m_valueDateEdit->setCalendarPopup(true);
         m_valueDateEdit->setToolTip(tooltip);
         QObject::connect(m_valueDateEdit, &QDateEdit::dateChanged,
-                         [=]() { saveTesting(); });
+                         [=]() { saveAfterDataChangedInGUI(); });
     }
     if (useLineEditFlag) {
         m_valueLineEdit = new QLineEdit();
@@ -609,7 +647,7 @@ m_metaData(metaData)
         }
         else {
             QObject::connect(m_valueLineEdit, &QLineEdit::editingFinished,
-                             [=]() { saveTesting(); } );
+                             [=]() { saveAfterDataChangedInGUI(); } );
         }
     }
     if (useToolButtonFlag) {
@@ -695,7 +733,7 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::toolButtonClicked()
     CaretAssert(m_editorWidget);
     m_editorWidget->metaDataButtonClicked(m_metaDataName,
                                           m_toolButton);
-    saveTesting();
+    saveAfterDataChangedInGUI();
 }
 
 /**
@@ -740,11 +778,11 @@ MetaDataCustomEditorWidget::MetaDataWidgetRow::saveToMetaData()
  * Save the value to the metadata
  */
 void
-MetaDataCustomEditorWidget::MetaDataWidgetRow::saveTesting()
+MetaDataCustomEditorWidget::MetaDataWidgetRow::saveAfterDataChangedInGUI()
 {
     if (m_savingEnabled) {
         saveToMetaData();
-        m_editorWidget->calledByMetaDataWidgetRowWhenValueChanges();
+        m_editorWidget->calledByMetaDataWidgetRowWhenValueChanges(m_metaDataName);
     }
 }
 
