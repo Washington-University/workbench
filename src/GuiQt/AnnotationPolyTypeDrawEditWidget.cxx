@@ -288,7 +288,7 @@ m_browserWindowIndex(browserWindowIndex)
         font.setPointSizeF(font.pointSizeF() * 0.8);
         drawNewLabel->setFont(font);
         
-        QLabel* editLabel(new QLabel("Edit"));
+        QLabel* editLabel(new QLabel("Edit Coordinates"));
         editLabel->setFont(font);
         
         /**
