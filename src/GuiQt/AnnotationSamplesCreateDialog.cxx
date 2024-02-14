@@ -32,6 +32,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationMetaData.h"
 #include "AnnotationMetaDataNames.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
@@ -146,26 +147,22 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
     std::vector<AString> metaDataNames;
     m_annotation->getMetaData()->getMetaDataNamesForEditor(metaDataNames,
                                                            m_requiredMetaDataNames);
-    m_annotationMetaData.reset(new GiftiMetaData());
+    m_annotationMetaData.reset(new AnnotationMetaData(m_annotationType));
     for (const auto& name : metaDataNames) {
         const auto iter(s_previousMetaDataNamesAndValues.find(name));
         AString value;
         if (iter != s_previousMetaDataNamesAndValues.end()) {
             value = iter->second;
         }
-        if ((name == AnnotationMetaDataNames::SAMPLES_ENTRY_DATE)
-            && value.isEmpty()) {
+        if (name == AnnotationMetaDataNames::SAMPLES_ENTRY_DATE) {
             /*
-             * Default to an old date
+             * Default to an today's date
              */
-            const int year(1900);
-            const int month(1);
-            const int day(1);
-            value = QDate(year, month, day).toString(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT);
+            value = QDate::currentDate().toString(AnnotationMetaDataNames::SAMPLES_QT_DATE_FORMAT);
         }
         
         /*
-         * These items are NOT restored from previous dialot
+         * These items are NOT restored from previous dialog
          */
         if ((name == AnnotationMetaDataNames::SAMPLES_COMMENT)
             || (name == AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE)

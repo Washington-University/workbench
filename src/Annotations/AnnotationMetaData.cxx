@@ -415,12 +415,17 @@ AnnotationMetaData::getToolTipForMetaDataName(const QString& metaDataName) const
         /*
          * Use static so only one map for all instances
          */
-        /*
-         * s_metaDataNameToolTips.emplace(<meta data name: eg AnnotationMetaDataNames::SAMPLES_HEMISPHERE>,
-         *                                "Text for tooltip");
-         */
+        s_metaDataNameToolTips.emplace(AnnotationMetaDataNames::SAMPLES_ALLEN_LOCAL_NAME,
+                                       "Example: QM23.50.003");
+        s_metaDataNameToolTips.emplace(AnnotationMetaDataNames::SAMPLES_BICAN_DONOR_ID,
+                                       "Example: DO-TWUW4075");
+        s_metaDataNameToolTips.emplace(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER,
+                                       "<html>CB: Left Hemisphere=00-39, <br>"
+                                       "Right Hemisphere=40-60+");
+        s_metaDataNameToolTips.emplace(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE,
+                                       "Format is dd/mm/yyyy");
     }
-    
+
     const auto iter(s_metaDataNameToolTips.find(metaDataName));
     if (iter != s_metaDataNameToolTips.end()) {
         tooltip = iter->second;

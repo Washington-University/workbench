@@ -2180,9 +2180,7 @@ Annotation::getName() const
              */
             CaretAssert(m_metaData);
             const AString shortHandID(m_metaData->get(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER));
-            if ( ! shortHandID.isEmpty()) {
-                nameOut = shortHandID;
-            }
+            nameOut = shortHandID.trimmed();
         }
             break;
         case AnnotationTypeEnum::POLYGON:
