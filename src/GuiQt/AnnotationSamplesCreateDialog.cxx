@@ -173,7 +173,9 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
             value = "";
         }
         
-        m_annotationMetaData->set(name, value);
+        if ( ! m_annotationMetaData->isCompositeMetaDataName(name)) {
+            m_annotationMetaData->set(name, value);
+        }
     }
 
     m_metaDataEditorWidget = new MetaDataCustomEditorWidget(metaDataNames,
