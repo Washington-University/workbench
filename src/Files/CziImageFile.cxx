@@ -2164,8 +2164,6 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
             options.backGroundColor.r = prefBackFloatRGB[0];
             options.backGroundColor.g = prefBackFloatRGB[1];
             options.backGroundColor.b = prefBackFloatRGB[2];
-            CziImageFile* nonConstThis(const_cast<CziImageFile*>(this));
-            CaretAssert(nonConstThis);
             
             libCZI::CDimCoordinate coordinate;
             coordinate.Set(libCZI::DimensionIndex::C, 0);

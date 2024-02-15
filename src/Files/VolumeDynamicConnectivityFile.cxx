@@ -505,7 +505,9 @@ VolumeDynamicConnectivityFile::getConnectivityForVoxelIndex(const int64_t ijk[3]
             const int64_t brainordinateIndex(m_parentVolumeFile->getIndex(ijk));
             connCorrelationTwo->computeForDataSetIndex(brainordinateIndex,
                                                        voxelsOut);
+#ifndef NDEBUG
             CaretAssert(numVoxelsInSlice == static_cast<int64_t>(voxelsOut.size()));
+#endif
             validFlag = true;
         }
     }

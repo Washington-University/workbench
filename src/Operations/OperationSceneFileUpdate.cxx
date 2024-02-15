@@ -608,12 +608,11 @@ OperationSceneFileUpdate::copyMapOnePalettes(Scene* scene,
  *
  */
 int32_t
-OperationSceneFileUpdate::dataFileAddRemove(Scene* scene,
+OperationSceneFileUpdate::dataFileAddRemove(Scene* /*scene*/,
                                             const std::vector<AString>& filenames,
                                             Brain* brain,
                                             const SceneOperationType addRemoveOperation)
 {
-    CaretAssert(scene);
     CaretAssert(brain);
 
     bool addFlag(false);

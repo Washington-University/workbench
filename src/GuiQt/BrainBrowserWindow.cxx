@@ -27,6 +27,7 @@
 #include <QDesktopServices>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
+#include <QGuiApplication>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListIterator>
@@ -627,6 +628,7 @@ BrainBrowserWindow::receiveEvent(Event* event)
         EventBrowserWindowPixelSizeInfoEvent* pixelEvent(dynamic_cast<EventBrowserWindowPixelSizeInfoEvent*>(event));
         CaretAssert(pixelEvent);
         const QScreen* screen(NULL);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
         switch (pixelEvent->getMode()) {
             case EventBrowserWindowPixelSizeInfoEvent::Mode::WIDGET_POINTER:
                 if (isAncestorOf(pixelEvent->getWidget())) {
@@ -637,7 +639,12 @@ BrainBrowserWindow::receiveEvent(Event* event)
                 screen = m_openGLWidget->screen();
                 break;
         }
-        
+#else
+        QList<QScreen*> allScreens(QGuiApplication::screens());
+        if ( ! allScreens.empty()) {
+            screen = allScreens.at(0);
+        }
+#endif
         if (screen != NULL) {
             if (pixelEvent->getWindowIndex() == this->getBrowserWindowIndex()) {
                 pixelEvent->setPhysicalDotsPerInch(screen->physicalDotsPerInch());

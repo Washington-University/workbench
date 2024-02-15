@@ -213,8 +213,7 @@ namespace caret {
                             const Vector3D& sliceCoordinates,
                             const GraphicsViewport& viewport);
         
-        void drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
-                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+        void drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                    const Vector3D& sliceCoordinates,
                                    const GraphicsViewport& viewport);
         

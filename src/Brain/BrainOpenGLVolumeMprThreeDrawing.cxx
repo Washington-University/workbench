@@ -1753,8 +1753,6 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
 /**
  * Draw the panning crosshairs for slice
  *
- * @param underlayVolume
- *    The underlay volume
  * @param sliceViewPlane
  *    The plane for slice drawing.
  * @param sliceCoordinates
@@ -1763,13 +1761,10 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeMappableInterface* underlayVolume,
-                                                        const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                         const Vector3D& sliceCoordinates,
                                                         const GraphicsViewport& viewport)
 {
-    CaretAssert(underlayVolume);
-    
     if ( ! m_browserTabContent->isVolumeAxesCrosshairsDisplayed()) {
         return;
     }
@@ -2066,8 +2061,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* 
     const float vpMinY(viewport.getBottomF());
     const float vpMaxY(viewport.getTopF());
     
-    drawPanningCrosshairs(underlayVolume,
-                          sliceViewPlane,
+    drawPanningCrosshairs(sliceViewPlane,
                           sliceCoordinates,
                           viewport);
     
