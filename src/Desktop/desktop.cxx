@@ -542,10 +542,13 @@ main(int argc, char* argv[])
                  * Using trimmed() will make the overall string empty
                  * so that it is not displayed.
                  */
-                QString displayInfoText(("   "
-                                        + screen->manufacturer()
-                                        + " " + screen->model()
-                                        + " " + screen->name()).trimmed());
+                QString displayInfoText;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 2, 0)
+                displayInfoText = (("   "
+                                    + screen->manufacturer()
+                                    + " " + screen->model()
+                                    + " " + screen->name()).trimmed());
+#endif
                 screenSizeText.appendWithNewLine("Screen="
                                                  + AString::number(i)
                                                  + primaryScreenText);
