@@ -34,6 +34,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QScreen>
 #include <QTabBar>
 #include <QTextEdit>
 #include <QToolButton>

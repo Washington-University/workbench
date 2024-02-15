@@ -936,7 +936,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationBox(const VolumeMappableInt
                   centerXYZ[0], centerXYZ[1], centerXYZ[2],
                   upX, upY, upZ);
         
-        const float gray[4] { 0.7, 0.7, 0.7, 1.0 };
+        const float gray[4] { 0.7f, 0.7f, 0.7f, 1.0f };
         std::unique_ptr<GraphicsPrimitiveV3f> box(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_LINES, gray));
         const auto verticesEdgesFaces(VolumeVerticesEdgesFaces::newInstance(underlayVolume));
         if (verticesEdgesFaces->isValid()) {
