@@ -625,7 +625,7 @@ m_metaData(metaData)
         m_valueComboBox->addItem(""); /* empty item for 'no value' */
         m_valueComboBox->addItems(comboBoxValuesList);
         m_valueComboBox->setToolTip(tooltip);
-        QObject::connect(m_valueComboBox, &QComboBox::currentIndexChanged,
+        QObject::connect(m_valueComboBox, static_cast<void(QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
                          [=]() { saveAfterDataChangedInGUI(); });
     }
     if (useDateEditFlag) {
