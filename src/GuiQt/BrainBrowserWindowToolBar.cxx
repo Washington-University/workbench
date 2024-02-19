@@ -202,6 +202,12 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->isDestructionInProgress = false;
 
     /*
+     * Do not allow floating (moving toolbar out of window
+     * into its own window)
+     */
+    setFloatable(false);
+    
+    /*
      * Needed for saving and restoring window state in main window
      */
     m_objectNamePrefix = (objectNamePrefix
