@@ -2282,9 +2282,6 @@ BrainBrowserWindow::isMacOptionKeyDown() const
 void 
 BrainBrowserWindow::processViewMenuAboutToShow()
 {
-    m_viewMoveFeaturesToolBoxMenu->setEnabled(isFullScreen() == false);
-    m_viewMoveOverlayToolBoxMenu->setEnabled(isFullScreen()== false);
-    
     if (isFullScreen()) {
         m_viewFullScreenAction->setText("Exit Full Screen");
     }
@@ -4011,13 +4008,10 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
          */
         m_showToolBarAction->setChecked(true);
         m_showToolBarAction->trigger();
-        m_showToolBarAction->setEnabled(false);
         m_overlayToolBoxAction->setChecked(true);
         m_overlayToolBoxAction->trigger();
-        m_overlayToolBoxAction->setEnabled(false);
         m_featuresToolBoxAction->setChecked(true);
         m_featuresToolBoxAction->trigger();
-        m_featuresToolBoxAction->setEnabled(false);
         
         showFullScreen();
     }
@@ -4084,7 +4078,6 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         restoreState(wcs.windowState);
     }
     
-    m_showToolBarAction->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
         m_showToolBarAction->setChecked(false);
         m_showToolBarAction->trigger();
@@ -4094,7 +4087,6 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         m_showToolBarAction->trigger();
     }
     
-    m_overlayToolBoxAction->setEnabled(true);
     if (wcs.isOverlayToolBoxDisplayed) {
         m_overlayToolBoxAction->blockSignals(true);
         m_overlayToolBoxAction->setChecked(false);
@@ -4108,7 +4100,6 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         m_overlayToolBoxAction->trigger();
     }
     
-    m_featuresToolBoxAction->setEnabled(true);
     if (wcs.isFeaturesToolBoxDisplayed) {
         m_featuresToolBoxAction->blockSignals(true);
         m_featuresToolBoxAction->setChecked(false);
@@ -4148,9 +4139,6 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
     wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
     wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
     wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();
-    m_showToolBarAction->setEnabled(false);
-    m_overlayToolBoxAction->setEnabled(false);
-    m_featuresToolBoxAction->setEnabled(false);
 }
 
 /**
