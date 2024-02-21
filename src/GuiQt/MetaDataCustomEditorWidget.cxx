@@ -331,21 +331,9 @@ MetaDataCustomEditorWidget::metaDataButtonClicked(const AString& metaDataName,
         if (labelDialog.exec() == LabelSelectionDialog::Accepted) {
             const AString labelText(labelDialog.getSelectedLabel().trimmed());
             if ( ! labelText.isEmpty()) {
-                if (metaDataName == AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID) {
-                    AString id, description;
-                    processLabelForIdDescription(labelText,
-                                                 id,
-                                                 description);
-                    m_editorMetaData->set(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID,
-                                    id);
-                    
-                    updateValueInMetaDataWidgetRow(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID);
-                }
-                  else {
-                    m_editorMetaData->set(metaDataName,
-                                          labelText);
-                    updateValueInMetaDataWidgetRow(metaDataName);
-                }
+                m_editorMetaData->set(metaDataName,
+                                      labelText);
+                updateValueInMetaDataWidgetRow(metaDataName);
             }
         }
     }

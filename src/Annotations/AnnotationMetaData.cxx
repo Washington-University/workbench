@@ -246,8 +246,6 @@ AnnotationMetaData::getDataTypeForMetaDataName(const QString& metaDataName) cons
                                             GiftiMetaDataElementDataTypeEnum::DATE);
         s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_COMMENT,
                                             GiftiMetaDataElementDataTypeEnum::COMMENT);
-        s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID,
-                                            GiftiMetaDataElementDataTypeEnum::LABEL_ID_NAME);
         s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION,
                                             GiftiMetaDataElementDataTypeEnum::DING_ONTOLOGY_TERM);
         s_metaDataNameToDataTypeMap.emplace(AnnotationMetaDataNames::SAMPLES_ALTERNATE_PARCELLATION,
@@ -365,7 +363,6 @@ AnnotationMetaData::getMetaDataNamesForEditor(std::vector<AString>& metaDataName
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ENTRY_DATE);
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION);
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME);
-                s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID);
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE);
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER);
                 s_polyhedronEditorMetaDataNames.push_back(AnnotationMetaDataNames::SAMPLES_LOCAL_SAMPLE_ID);

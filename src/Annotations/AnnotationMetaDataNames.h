@@ -28,8 +28,6 @@ namespace AnnotationMetaDataNames {
     
     static const AString SAMPLES_ALLEN_TISSUE_TYPE= "Allen Tissue Type";
     
-    static const AString SAMPLES_ALT_SHORTHAND_ID = "Alt_Shorthand_id";
-    
     static const AString SAMPLES_ALTERNATE_PARCELLATION = "Alternate Parcellation";
     
     static const AString SAMPLES_BICAN_DONOR_ID = "BICAN Donor ID";

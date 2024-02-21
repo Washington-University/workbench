@@ -168,8 +168,7 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
             || (name == AnnotationMetaDataNames::SAMPLES_SAMPLE_TYPE)
             || (name == AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER)
             || (name == AnnotationMetaDataNames::SAMPLES_DING_ABBREVIATION)
-            || (name == AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME)
-            || (name == AnnotationMetaDataNames::SAMPLES_ALT_SHORTHAND_ID)) {
+            || (name == AnnotationMetaDataNames::SAMPLES_DING_FULL_NAME)) {
             value = "";
         }
         
