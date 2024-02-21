@@ -136,9 +136,15 @@ namespace caret {
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
+        SceneClass* saveToSceneVersion2(const SceneAttributes* sceneAttributes,
+                                        const AString& instanceName);
+        
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
 
+        void restoreFromSceneVersion2(const SceneAttributes* sceneAttributes,
+                                      const SceneClass* sceneClass);
+        
         void resetGraphicsWidgetMinimumSize();
         
         void setGraphicsWidgetFixedSize(const int32_t width,
@@ -178,9 +184,10 @@ namespace caret {
         QAction* getViewTileTabsConfigurationDialogAction();
 
     protected:
-        void closeEvent(QCloseEvent* event);
-        void keyPressEvent(QKeyEvent* event);
-        
+        void changeEvent(QEvent *event) override;
+        void closeEvent(QCloseEvent* event) override;
+        void keyPressEvent(QKeyEvent* event) override;
+
     private slots:        
         void processAboutWorkbench();
         void processInformationDialog();
@@ -199,6 +206,7 @@ namespace caret {
         void processExitProgram();
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected();
+        void processViewMaximizedSelected();
         void processViewTileTabs();
         void processViewTileTabsConfigurationDialog();
         void processShowHelpInformation();
@@ -269,16 +277,6 @@ namespace caret {
         void processParallelTest();
         
     private:
-        /** Contains status of components such as enter/exit full screen */
-        struct WindowComponentStatus {
-            bool isFeaturesToolBoxDisplayed;
-            bool isOverlayToolBoxDisplayed;
-            bool isToolBarDisplayed;
-            QByteArray windowState;
-            QByteArray windowGeometry;
-            QByteArray featuresGeometry;
-        };
-        
         enum CreateDefaultTabsMode {
             CREATE_DEFAULT_TABS_YES,
             CREATE_DEFAULT_TABS_NO
@@ -325,13 +323,7 @@ namespace caret {
         void moveOverlayToolBox(Qt::DockWidgetArea area);
         void moveFeaturesToolBox(Qt::DockWidgetArea area);
         
-        void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
-        void saveWindowComponentStatus(WindowComponentStatus& wcs);
-        
         void openSpecFile(const AString& specFileName);
-        
-        void processViewFullScreen(bool showFullScreenDisplay,
-                                   const bool saveRestoreWindowStatus);
         
         void setViewTileTabs(const bool newStatus);
         
@@ -404,6 +396,7 @@ namespace caret {
         QMenu* m_viewMoveOverlayToolBoxMenu;
         
         QAction* m_viewFullScreenAction;
+        QAction* m_viewMaximizedAction;
         QAction* m_viewTileTabsAction;
         
         QAction* m_viewTileTabsConfigurationDialogAction;
@@ -472,9 +465,6 @@ namespace caret {
         static AString s_previousOpenFileDirectory;
         static QByteArray s_previousOpenFileGeometry;
         
-        WindowComponentStatus m_defaultWindowComponentStatus;
-        WindowComponentStatus m_normalWindowComponentStatus;
-        
         static bool s_firstWindowFlag;
         
         friend class BrainBrowserWindowToolBar;
@@ -493,6 +483,8 @@ namespace caret {
         QString m_objectNamePrefix;
         
         bool m_keyEventProcessingFlag = false;
+        
+        QByteArray m_viewFullScreenWindowState;
         
         const float m_developerTimingDuration = 10.0;
         
