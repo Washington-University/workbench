@@ -274,6 +274,10 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
+    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayToolBoxAction->isChecked();
+    m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_GET_TABS);
@@ -908,10 +912,6 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
                 processViewFullScreenSelected();
                 keyEventWasProcessed = true;
             }
-            else if (isMaximized()) {
-                processViewMaximizedSelected();
-                keyEventWasProcessed = true;
-            }
         }
     }
     
@@ -930,64 +930,6 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
     
     m_keyEventProcessingFlag = false;
 }
-
-/**
-   * Override changeEvent from QWidget
-   * @param event
-   */
-void
-BrainBrowserWindow::changeEvent(QEvent *event)
-{
-    if (event->type() == QEvent::WindowStateChange) {
-        QWindowStateChangeEvent* changeEvent(dynamic_cast<QWindowStateChangeEvent*>(event));
-        
-        const Qt::WindowStates oldWindowState((changeEvent != NULL)
-                                              ? changeEvent->oldState()
-                                              : Qt::WindowStates());
-        
-        const Qt::WindowStates newWindowState(QWidget::windowState());
-        
-        if (newWindowState != oldWindowState) {
-            if (oldWindowState.testFlag(Qt::WindowState::WindowMaximized)) {
-            }
-            if (oldWindowState.testFlag(Qt::WindowState::WindowMinimized)) {
-            }
-            if (oldWindowState.testFlag(Qt::WindowState::WindowFullScreen)) {
-                /*
-                 * Exiting Full Screen - Restore toolbar and toolbox info
-                 */
-                if ( ! m_viewFullScreenWindowState.isEmpty()) {
-                    restoreState(m_viewFullScreenWindowState);
-                    m_viewFullScreenWindowState.clear();
-                }
-            }
-            if (oldWindowState.testFlag(Qt::WindowState::WindowNoState)) {
-            }
-            
-            if (newWindowState.testFlag(Qt::WindowState::WindowMaximized)) {
-            }
-            if (newWindowState.testFlag(Qt::WindowState::WindowMinimized)) {
-            }
-            if (newWindowState.testFlag(Qt::WindowState::WindowFullScreen)) {
-                /*
-                 * Entering Full Screen, save toolbar and toolbox info
-                 */
-                m_viewFullScreenWindowState = saveState();
-                
-                /*
-                 * Hide Toolboxes in Full Screen
-                 */
-                processHideFeaturesToolBox();
-                processHideOverlayToolBox();
-            }
-            if (newWindowState.testFlag(Qt::WindowState::WindowNoState)) {
-            }
-        }
-    }
-    
-    QMainWindow::changeEvent(event);
-}
-
 
 /**
  * Create actions for this window.
@@ -1638,16 +1580,6 @@ BrainBrowserWindow::createActions()
      * Without this, the menu item may disappear on MacOS
      */
     m_viewFullScreenAction->setMenuRole(QAction::NoRole);
-
-    m_viewMaximizedAction = new QAction(this);
-    m_viewMaximizedAction->setText("Maximize");
-    m_viewMaximizedAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F));
-    QObject::connect(m_viewMaximizedAction, &QAction::triggered,
-                     this, &BrainBrowserWindow::processViewMaximizedSelected);
-    /*
-     * On macOS, this prevents macOS from removing the menu
-     */
-    m_viewMaximizedAction->setMenuRole(QAction::NoRole);
 
     /*
      * Note: If shortcut key is changed, also change the shortcut key
@@ -2357,13 +2289,6 @@ BrainBrowserWindow::processViewMenuAboutToShow()
         m_viewFullScreenAction->setText("Enter Full Screen");
     }
     
-    if (isMaximized()) {
-        m_viewMaximizedAction->setText("Exit Maximize Screen");
-    }
-    else {
-        m_viewMaximizedAction->setText("Enter Maximize Screen");
-    }
-
     if (isTileTabsSelected()) {
         m_viewTileTabsAction->setText("Exit Tile Tabs");
     }
@@ -2576,9 +2501,7 @@ BrainBrowserWindow::createMenuView()
     menu->addSeparator();
 
     menu->addAction(m_viewFullScreenAction);
-    menu->addAction(m_viewMaximizedAction);
     menu->addSeparator();
-    
     menu->addAction(m_gapsAndMarginsAction);
     menu->addSeparator();
     menu->addAction(m_viewTileTabsAction);
@@ -4056,17 +3979,57 @@ BrainBrowserWindow::processExitProgram()
 }
 
 /**
+ * Update full screen status.
+ *
+ * @param showFullScreenDisplay
+ *    If true, show as full screen, else show as normal screen
+ * @param saveRestoreWindowStatus
+ *    If true, save/restore the window status
+ */
+void
+BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
+                                          const bool saveRestoreWindowStatus)
+{
+    if (showFullScreenDisplay == false) {
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, true);
+        showNormal();
+        if (saveRestoreWindowStatus) {
+            restoreWindowComponentStatus(m_normalWindowComponentStatus);
+        }
+        EventManager::get()->blockEvent(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE, false);
+    }
+    else {
+        if (saveRestoreWindowStatus) {
+            saveWindowComponentStatus(m_normalWindowComponentStatus);
+        }
+        
+        /*
+         * Hide and disable Toolbar, Overlay, and Features ToolBox
+         */
+        m_showToolBarAction->setChecked(true);
+        m_showToolBarAction->trigger();
+        m_overlayToolBoxAction->setChecked(true);
+        m_overlayToolBoxAction->trigger();
+        m_featuresToolBoxAction->setChecked(true);
+        m_featuresToolBoxAction->trigger();
+        
+        showFullScreen();
+    }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().setWindowIndex(m_browserWindowIndex).addToolBar().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(m_browserWindowIndex).getPointer());
+}
+
+
+/**
  * Called when view full screen is selected and toggles the status of full screen.
  */
 void
 BrainBrowserWindow::processViewFullScreenSelected()
 {
-    if (isFullScreen()) {
-        showNormal();
-    }
-    else {
-        showFullScreen();
-    }
+    const bool toggledStatus = (! isFullScreen());
+    processViewFullScreen(toggledStatus,
+                          true);
 }
 
 /**
@@ -4078,20 +4041,6 @@ BrainBrowserWindow::processViewTileTabs()
     const bool toggledStatus = (! isTileTabsSelected());
     
     setViewTileTabs(toggledStatus);
-}
-
-/**
- * Called when view maximized is selected and toggles the status of full screen.
- */
-void
-BrainBrowserWindow::processViewMaximizedSelected()
-{
-    if (isMaximized()) {
-        showNormal();
-    }
-    else {
-        showMaximized();
-    }
 }
 
 /**
@@ -4112,6 +4061,84 @@ void
 BrainBrowserWindow::processViewTileTabsConfigurationDialog()
 {
     GuiManager::get()->processShowTileTabsConfigurationDialog(this);
+}
+
+/**
+ * Restore the status of window components.
+ * @param wcs
+ *    Window component status that is restored.
+ */
+void 
+BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
+{
+    if (wcs.windowGeometry.isEmpty() == false) {
+        restoreGeometry(wcs.windowGeometry);
+    }
+    if (wcs.windowState.isEmpty() == false) {
+        restoreState(wcs.windowState);
+    }
+    
+    if (wcs.isToolBarDisplayed) {
+        m_showToolBarAction->setChecked(false);
+        m_showToolBarAction->trigger();
+    }
+    else {
+        m_showToolBarAction->setChecked(true);
+        m_showToolBarAction->trigger();
+    }
+    
+    if (wcs.isOverlayToolBoxDisplayed) {
+        m_overlayToolBoxAction->blockSignals(true);
+        m_overlayToolBoxAction->setChecked(false);
+        m_overlayToolBoxAction->blockSignals(false);
+        m_overlayToolBoxAction->trigger();
+    }
+    else {
+        m_overlayToolBoxAction->blockSignals(true);
+        m_overlayToolBoxAction->setChecked(true);
+        m_overlayToolBoxAction->blockSignals(false);
+        m_overlayToolBoxAction->trigger();
+    }
+    
+    if (wcs.isFeaturesToolBoxDisplayed) {
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(false);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+    }
+    else {
+        m_featuresToolBoxAction->blockSignals(true);
+        m_featuresToolBoxAction->setChecked(true);
+        m_featuresToolBoxAction->blockSignals(false);
+        m_featuresToolBoxAction->trigger();
+    }
+    if (m_featuresToolBox != NULL) {
+        if (wcs.featuresGeometry.isEmpty() == false) {
+            m_featuresToolBox->restoreGeometry(wcs.featuresGeometry);
+        }
+    }
+}
+
+/**
+ * Save the status of window components.
+ * @param wcs
+ *    Will contains status after exit.
+ * @param hideComponents
+ *    If true, any components (toolbar/toolbox) will be hidden.
+ */
+void 
+BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
+{
+    wcs.windowState = saveState();
+    wcs.windowGeometry = saveGeometry();
+    if (m_featuresToolBoxAction->isChecked()) {
+        if (m_featuresToolBox != NULL) {
+            wcs.featuresGeometry = m_featuresToolBox->saveGeometry();
+        }
+    }
+    wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
+    wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
+    wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();
 }
 
 /**
@@ -4673,13 +4700,6 @@ SceneClass*
 BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
                                 const AString& instanceName)
 {
-    const int32_t sceneVersion(2);
-    
-    if(sceneVersion <= 2) {
-        return saveToSceneVersion2(sceneAttributes,
-                                   instanceName);
-    }
-    
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "BrainBrowserWindow",
                                             2); /* Version 2: 07 feb 2018 */
@@ -4769,111 +4789,6 @@ BrainBrowserWindow::saveToScene(const SceneAttributes* sceneAttributes,
 }
 
 /**
- * Create a scene for an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    saving the scene.
- *
- * @return Pointer to SceneClass object representing the state of
- *    this object.  Under some circumstances a NULL pointer may be
- *    returned.  Caller will take ownership of returned object.
- */
-SceneClass*
-BrainBrowserWindow::saveToSceneVersion2(const SceneAttributes* sceneAttributes,
-                                        const AString& instanceName)
-{
-    SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "BrainBrowserWindow",
-                                            2); /* Version 2: 07 feb 2018 */
-    
-    m_sceneAssistant->saveMembers(sceneAttributes,
-                                  sceneClass);
-    
-    /* m_browserWindowIndex used with wb_command -show-scene */
-    sceneClass->addInteger("m_browserWindowIndex",
-                           m_browserWindowIndex);
-    
-    /*
-     * Save toolbar
-     */
-    sceneClass->addClass(m_toolbar->saveToScene(sceneAttributes,
-                                                "m_toolbar"));
-    
-    /*
-     * Save overlay toolbox
-     */
-    {
-        AString orientationName = "";
-        if (m_overlayActiveToolBox == m_overlayHorizontalToolBox) {
-            orientationName = "horizontal";
-        }
-        else if (m_overlayActiveToolBox == m_overlayVerticalToolBox) {
-            orientationName = "vertical";
-        }
-        
-        SceneClass* overlayToolBoxClass = new SceneClass("overlayToolBox",
-                                                         "OverlayToolBox",
-                                                         1);
-        overlayToolBoxClass->addString("orientation",
-                                       orientationName);
-        overlayToolBoxClass->addBoolean("floating",
-                                        m_overlayActiveToolBox->isFloating());
-        overlayToolBoxClass->addBoolean("visible",
-                                        m_overlayActiveToolBox->isVisible());
-        sceneClass->addClass(overlayToolBoxClass);
-        
-        sceneClass->addClass(m_overlayActiveToolBox->saveToScene(sceneAttributes,
-                                                                 "m_overlayActiveToolBox"));
-    }
-    
-    switch (sceneAttributes->getSceneType()) {
-        case SceneTypeEnum::SCENE_TYPE_FULL:
-            break;
-        case SceneTypeEnum::SCENE_TYPE_GENERIC:
-            break;
-    }
-    
-    /*
-     * Save features toolbox
-     */
-    {
-        SceneClass* featureToolBoxClass = new SceneClass("featureToolBox",
-                                                         "FeatureToolBox",
-                                                         1);
-        featureToolBoxClass->addBoolean("floating",
-                                        m_featuresToolBox->isFloating());
-        featureToolBoxClass->addBoolean("visible",
-                                        m_featuresToolBox->isVisible());
-        sceneClass->addClass(featureToolBoxClass);
-        sceneClass->addClass(m_featuresToolBox->saveToScene(sceneAttributes,
-                                                            "m_featuresToolBox"));
-    }
-    
-    /*
-     * Position and size
-     */
-    SceneWindowGeometry swg(this);
-    sceneClass->addClass(swg.saveToScene(sceneAttributes,
-                                         "geometry"));
-    
-    sceneClass->addBoolean("isFullScreen",
-                           isFullScreen());
-    sceneClass->addBoolean("isMaximized",
-                           isMaximized());
-    
-    /*
-     * Graphics position and size, used with wb_command -show-scene
-     */
-    SceneWindowGeometry openGLGeometry(m_openGLWidget);
-    sceneClass->addClass(openGLGeometry.saveToScene(sceneAttributes,
-                                                    "openGLWidgetGeometry"));
-    return sceneClass;
-}
-
-
-/**
  * Restore the state of an instance of a class.
  * 
  * @param sceneAttributes
@@ -4894,12 +4809,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     const int32_t sceneVersion = sceneClass->getVersionNumber();
-    
-    if (sceneVersion <= 2) {
-        restoreFromSceneVersion2(sceneAttributes,
-                                 sceneClass);
-        return;
-    }
     
     /*
      * Restore toolbar
@@ -4967,9 +4876,9 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         setViewTileTabs(restoreToTabTiles);
     }
 
-//    processViewFullScreen(restoreToFullScreen,
-//                          false);
-    CaretAssertToDoFatal();
+    m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
+    processViewFullScreen(restoreToFullScreen,
+                          false);
     
     /*
      * Position and size
@@ -5117,253 +5026,6 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
 
         EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 
-        lockAllTabAspectRatios(lockedCount > 0);
-    }
-    
-    updateActionsForLockingAspectRatios();
-}
-
-/**
- * Restore the state of an instance of a class.
- *
- * @param sceneAttributes
- *    Attributes for the scene.  Scenes may be of different types
- *    (full, generic, etc) and the attributes should be checked when
- *    restoring the scene.
- *
- * @param sceneClass
- *     SceneClass containing the state that was previously
- *     saved and should be restored.
- */
-void
-BrainBrowserWindow::restoreFromSceneVersion2(const SceneAttributes* sceneAttributes,
-                                             const SceneClass* sceneClass)
-{
-    if (sceneClass == NULL) {
-        return;
-    }
-    
-    const int32_t sceneVersion = sceneClass->getVersionNumber();
-    
-    /*
-     * Restore toolbar
-     */
-    const SceneClass* toolbarClass = sceneClass->getClass("m_toolbar");
-    if (toolbarClass != NULL) {
-        m_toolbar->restoreFromScene(sceneAttributes,
-                                    toolbarClass);
-    }
-    
-    m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);
-    
-    if ( ! m_browserWindowContent->isValid()) {
-        sceneAttributes->addToErrorMessage("Scene Error: Browser window content is invalid for window "
-                                           + AString::number(m_browserWindowIndex + 1));
-        return;
-    }
-    
-    /*
-     * Restoration status for full screen and tab tiles
-     *
-     * If "m_screenMode" is found, the scene is an older scene that was
-     * created prior to splitting Full Screen and Tile Tabs into
-     * separate functionality.
-     */
-    bool restoreToFullScreen = false;
-    bool restoreToTabTiles   = false;
-    const SceneObject* screenModeObject = sceneClass->getObjectWithName("m_screenMode");
-    if (screenModeObject != NULL) {
-        const SceneEnumeratedType* screenEnum = dynamic_cast<const SceneEnumeratedType*>(screenModeObject);
-        if (screenEnum != NULL) {
-            const AString screenModeName = screenEnum->stringValue();
-            
-            if (screenModeName == "NORMAL") {
-                
-            }
-            else if (screenModeName == "FULL_SCREEN") {
-                restoreToFullScreen = true;
-            }
-            else if (screenModeName == "TAB_MONTAGE") {
-                restoreToTabTiles = true;
-            }
-            else if (screenModeName == "TAB_MONTAGE_FULL_SCREEN") {
-                restoreToTabTiles   = true;
-                restoreToFullScreen = true;
-            }
-            else {
-                CaretLogWarning("Unrecognized obsolete screen mode: "
-                                + screenModeName);
-            }
-        }
-    }
-    else {
-        restoreToFullScreen = sceneClass->getBooleanValue("isFullScreen",
-                                                          false);
-        
-        if (sceneVersion >= 2) {
-            restoreToTabTiles = m_browserWindowContent->isTileTabsEnabled();
-        }
-        else {
-            restoreToTabTiles = sceneClass->getBooleanValue("m_viewTileTabsAction",
-                                                            false);
-        }
-        setViewTileTabs(restoreToTabTiles);
-    }
-    
-    if (restoreToFullScreen) {
-        showFullScreen();
-    }
-    else {
-        showNormal();
-    }
-    
-    /*
-     * Position and size
-     */
-    SceneWindowGeometry swg(this);
-    swg.restoreFromScene(sceneAttributes, sceneClass->getClass("geometry"));
-    
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    QApplication::processEvents();
-    
-    if (restoreToFullScreen == false) {
-        /*
-         * Restore feature toolbox
-         */
-        const SceneClass* featureToolBoxClass = sceneClass->getClass("featureToolBox");
-        if (featureToolBoxClass != NULL) {
-            const bool toolBoxVisible = featureToolBoxClass->getBooleanValue("visible",
-                                                                             true);
-            const bool toolBoxFloating = featureToolBoxClass->getBooleanValue("floating",
-                                                                              false);
-            
-            if (toolBoxVisible) {
-                if (toolBoxFloating) {
-                    processMoveFeaturesToolBoxToFloat();
-                }
-                else {
-                    processMoveFeaturesToolBoxToRight();
-                }
-            }
-            m_featuresToolBoxAction->blockSignals(true);
-            m_featuresToolBoxAction->setChecked(! toolBoxVisible);
-            m_featuresToolBoxAction->blockSignals(false);
-            m_featuresToolBoxAction->trigger();
-            m_featuresToolBox->restoreFromScene(sceneAttributes,
-                                                sceneClass->getClass("m_featuresToolBox"));
-            
-            /*
-             * Toolboxes were not restoring to correct size in Qt5.
-             * Qt5.6 adds a new method, QMainWindow::resizeDocks() that
-             * resizes a QDockWidget in one dimension.  Use it to resize
-             * the toolbox.
-             */
-            const SceneClass* featureToolBoxClass = sceneClass->getClass("m_featuresToolBox");
-            if (featureToolBoxClass != NULL) {
-                const int w = featureToolBoxClass->getIntegerValue("toolboxWidth", -1);
-                const int h = featureToolBoxClass->getIntegerValue("toolboxHeight", -1);
-                if ((w > 0)
-                    && (h > 0)) {
-                    QList<QDockWidget*> dockList;
-                    dockList.append(m_featuresToolBox);
-                    QList<int> sizeList;
-                    sizeList.append(w);
-                    resizeDockWidgets(dockList, sizeList, Qt::Horizontal);
-                }
-            }
-        }
-        
-        /*
-         * Restore overlay toolbox
-         */
-        const SceneClass* overlayToolBoxClass = sceneClass->getClass("overlayToolBox");
-        if (overlayToolBoxClass != NULL) {
-            const AString orientationName = overlayToolBoxClass->getStringValue("orientation",
-                                                                                "horizontal");
-            const bool toolBoxVisible = overlayToolBoxClass->getBooleanValue("visible",
-                                                                             true);
-            const bool toolBoxFloating = overlayToolBoxClass->getBooleanValue("floating",
-                                                                              false);
-            if (orientationName == "horizontal") {
-                processMoveOverlayToolBoxToBottom();
-            }
-            else {
-                processMoveOverlayToolBoxToLeft();
-            }
-            if (toolBoxFloating) {
-                processMoveOverlayToolBoxToFloat();
-            }
-            processShowOverlayToolBox(toolBoxVisible);
-            m_overlayActiveToolBox->restoreFromScene(sceneAttributes,
-                                                     sceneClass->getClass("m_overlayActiveToolBox"));
-            
-            
-            /*
-             * Toolboxes were not restoring to correct size in Qt5.
-             * Qt5 adds a new method, QMainWindow::resizeDocks() that
-             * resizes a QDockWidget in one dimension.  Use it to resize
-             * the toolbox.
-             */
-            const SceneClass* activeToolBoxClass = sceneClass->getClass("m_overlayActiveToolBox");
-            if (activeToolBoxClass != NULL) {
-                const int w = activeToolBoxClass->getIntegerValue("toolboxWidth", -1);
-                const int h = activeToolBoxClass->getIntegerValue("toolboxHeight", -1);
-                if ((w > 0)
-                    && (h > 0)) {
-                    QList<QDockWidget*> dockList;
-                    dockList.append(m_overlayActiveToolBox);
-                    if (orientationName == "horizontal") {
-                        QList<int> sizeList;
-                        sizeList.append(h);
-                        resizeDockWidgets(dockList, sizeList, Qt::Vertical);
-                    }
-                    else {
-                        QList<int> sizeList;
-                        sizeList.append(w);
-                        resizeDockWidgets(dockList, sizeList, Qt::Horizontal);
-                    }
-                }
-            }
-        }
-    }
-    
-    switch (sceneAttributes->getSceneType()) {
-        case SceneTypeEnum::SCENE_TYPE_FULL:
-            break;
-        case SceneTypeEnum::SCENE_TYPE_GENERIC:
-            break;
-    }
-    
-    const bool maximizedWindow = sceneClass->getBooleanValue("isMaximized",
-                                                             false);
-    if (maximizedWindow) {
-        showMaximized();
-    }
-    
-    /* prevent "failed to restore" messages */
-    sceneClass->getIntegerValue("m_browserWindowIndex");
-    const SceneClass* openglGeomClass = sceneClass->getClass("openGLWidgetGeometry");
-    if (openglGeomClass != NULL) {
-        openglGeomClass->setDescendantsRestored(true);
-    }
-    
-    if (sceneVersion >= 2) {
-        
-    }
-    else {
-        /*
-         * Before version 2, each tab was allowed its own aspect locking status
-         */
-        std::vector<BrowserTabContent*> allTabContent;
-        m_toolbar->getAllTabContent(allTabContent);
-        
-        const int32_t lockedCount = std::count_if(allTabContent.begin(),
-                                                  allTabContent.end(),
-                                                  [](BrowserTabContent* btc) { return btc->isAspectRatioLocked(); });
-        
-        EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
-        
         lockAllTabAspectRatios(lockedCount > 0);
     }
     
