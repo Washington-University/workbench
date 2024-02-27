@@ -178,8 +178,9 @@ namespace caret {
         QAction* getViewTileTabsConfigurationDialogAction();
 
     protected:
-        void closeEvent(QCloseEvent* event);
-        void keyPressEvent(QKeyEvent* event);
+        void changeEvent(QEvent *event) override;
+        void closeEvent(QCloseEvent* event) override;
+        void keyPressEvent(QKeyEvent* event) override;
         
     private slots:        
         void processAboutWorkbench();
@@ -199,6 +200,7 @@ namespace caret {
         void processExitProgram();
         void processMoveAllTabsToOneWindow();
         void processViewFullScreenSelected();
+        void processViewMaximizedSelected();
         void processViewTileTabs();
         void processViewTileTabsConfigurationDialog();
         void processShowHelpInformation();
@@ -271,11 +273,11 @@ namespace caret {
     private:
         /** Contains status of components such as enter/exit full screen */
         struct WindowComponentStatus {
-            bool isFeaturesToolBoxDisplayed;
-            bool isOverlayToolBoxDisplayed;
-            bool isToolBarDisplayed;
+            QString name;
+            bool isFeaturesToolBoxDisplayed = false;
+            bool isOverlayToolBoxDisplayed = true;
+            bool isToolBarDisplayed = true;
             QByteArray windowState;
-            QByteArray windowGeometry;
             QByteArray featuresGeometry;
         };
         
@@ -325,6 +327,8 @@ namespace caret {
         void moveOverlayToolBox(Qt::DockWidgetArea area);
         void moveFeaturesToolBox(Qt::DockWidgetArea area);
         
+        void printWindowComponentStatus(const QString& modeText,
+                                        const WindowComponentStatus& wcs);
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
         
@@ -404,6 +408,7 @@ namespace caret {
         QMenu* m_viewMoveOverlayToolBoxMenu;
         
         QAction* m_viewFullScreenAction;
+        QAction* m_viewMaximizedAction;
         QAction* m_viewTileTabsAction;
         
         QAction* m_viewTileTabsConfigurationDialogAction;
@@ -493,6 +498,8 @@ namespace caret {
         QString m_objectNamePrefix;
         
         bool m_keyEventProcessingFlag = false;
+        
+        bool m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
         
         const float m_developerTimingDuration = 10.0;
         

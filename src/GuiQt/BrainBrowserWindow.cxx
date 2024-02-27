@@ -274,9 +274,9 @@ m_browserWindowIndex(browserWindowIndex)
     
     m_sceneAssistant = new SceneClassAssistant();
     
-    m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = m_featuresToolBoxAction->isChecked();
-    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = m_overlayToolBoxAction->isChecked();
-    m_defaultWindowComponentStatus.isToolBarDisplayed = m_showToolBarAction->isChecked();
+    m_defaultWindowComponentStatus.isFeaturesToolBoxDisplayed = false;
+    m_defaultWindowComponentStatus.isOverlayToolBoxDisplayed  = true;
+    m_defaultWindowComponentStatus.isToolBarDisplayed         = true;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_MENUS_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_PIXEL_SIZE_INFO);
@@ -837,6 +837,64 @@ BrainBrowserWindow::getBrowserWindowIndex() const
 }
 
 /**
+ * Override changeEvent from QWidget
+ * @param event
+ */
+void
+BrainBrowserWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::WindowStateChange) {
+        QWindowStateChangeEvent* changeEvent(dynamic_cast<QWindowStateChangeEvent*>(event));
+
+        const Qt::WindowStates oldWindowState((changeEvent != NULL)
+                                              ? changeEvent->oldState()
+                                              : Qt::WindowStates());
+
+        const Qt::WindowStates newWindowState(QWidget::windowState());
+
+        if (newWindowState != oldWindowState) {
+            if (oldWindowState.testFlag(Qt::WindowState::WindowMaximized)) {
+            }
+            if (oldWindowState.testFlag(Qt::WindowState::WindowMinimized)) {
+            }
+            if (oldWindowState.testFlag(Qt::WindowState::WindowFullScreen)) {
+                /*
+                 * Exiting Full Screen - Restore toolbar and toolbox info
+                 */
+                restoreWindowComponentStatus(m_normalWindowComponentStatus);
+            }
+            if (oldWindowState.testFlag(Qt::WindowState::WindowNoState)) {
+            }
+
+            if (newWindowState.testFlag(Qt::WindowState::WindowMaximized)) {
+            }
+            if (newWindowState.testFlag(Qt::WindowState::WindowMinimized)) {
+            }
+            if (newWindowState.testFlag(Qt::WindowState::WindowFullScreen)) {
+                /*
+                 * Entering Full Screen, save toolbar and toolbox info
+                 */
+                if ( ! m_restoringSceneNoSaveWindowCompontentStatusFlag) {
+                    saveWindowComponentStatus(m_normalWindowComponentStatus);
+                }
+
+                /*
+                 * Hide Toolboxes in Full Screen
+                 */
+                processHideFeaturesToolBox();
+                processHideOverlayToolBox();
+            }
+            if (newWindowState.testFlag(Qt::WindowState::WindowNoState)) {
+            }
+        }
+    }
+    
+    m_restoringSceneNoSaveWindowCompontentStatusFlag = false;
+    
+    QMainWindow::changeEvent(event);
+}
+
+/**
  * Called when the window is requested to close.
  *
  * @param event
@@ -910,6 +968,10 @@ BrainBrowserWindow::keyPressEvent(QKeyEvent* event)
         if (event->modifiers() == Qt::NoModifier) {
             if (isFullScreen()) {
                 processViewFullScreenSelected();
+                keyEventWasProcessed = true;
+            }
+            else if (isMaximized()) {
+                processViewMaximizedSelected();
                 keyEventWasProcessed = true;
             }
         }
@@ -1580,6 +1642,16 @@ BrainBrowserWindow::createActions()
      * Without this, the menu item may disappear on MacOS
      */
     m_viewFullScreenAction->setMenuRole(QAction::NoRole);
+
+    m_viewMaximizedAction = new QAction(this);
+    m_viewMaximizedAction->setText("Maximize");
+    m_viewMaximizedAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_F));
+    QObject::connect(m_viewMaximizedAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processViewMaximizedSelected);
+    /*
+     * On macOS, this prevents macOS from removing the menu
+     */
+    m_viewMaximizedAction->setMenuRole(QAction::NoRole);
 
     /*
      * Note: If shortcut key is changed, also change the shortcut key
@@ -2289,6 +2361,13 @@ BrainBrowserWindow::processViewMenuAboutToShow()
         m_viewFullScreenAction->setText("Enter Full Screen");
     }
     
+    if (isMaximized()) {
+        m_viewMaximizedAction->setText("Exit Maximized");
+    }
+    else {
+        m_viewMaximizedAction->setText("Enter Maximized");
+    }
+    
     if (isTileTabsSelected()) {
         m_viewTileTabsAction->setText("Exit Tile Tabs");
     }
@@ -2501,6 +2580,7 @@ BrainBrowserWindow::createMenuView()
     menu->addSeparator();
 
     menu->addAction(m_viewFullScreenAction);
+    menu->addAction(m_viewMaximizedAction);
     menu->addSeparator();
     menu->addAction(m_gapsAndMarginsAction);
     menu->addSeparator();
@@ -4027,9 +4107,26 @@ BrainBrowserWindow::processViewFullScreen(bool showFullScreenDisplay,
 void
 BrainBrowserWindow::processViewFullScreenSelected()
 {
-    const bool toggledStatus = (! isFullScreen());
-    processViewFullScreen(toggledStatus,
-                          true);
+    if (isFullScreen()) {
+        showNormal();
+    }
+    else {
+        showFullScreen();
+    }
+}
+
+/**
+ * Called when view maximized is selected and toggles the status of full screen.
+ */
+void
+BrainBrowserWindow::processViewMaximizedSelected()
+{
+    if (isMaximized()) {
+        showNormal();
+    }
+    else {
+        showMaximized();
+    }
 }
 
 /**
@@ -4064,6 +4161,22 @@ BrainBrowserWindow::processViewTileTabsConfigurationDialog()
 }
 
 /**
+ * Print the status of window components.
+ * @param wcs
+ *    Window component status that is restored.
+ */
+void
+BrainBrowserWindow::printWindowComponentStatus(const QString& modeText,
+                                               const WindowComponentStatus& wcs)
+{
+    std::cout << modeText << " " << wcs.name
+    << " toolbar=" << AString::fromBool(wcs.isToolBarDisplayed)
+    << " overlay tb=" << AString::fromBool(wcs.isOverlayToolBoxDisplayed)
+    << " features tb=" << AString::fromBool(wcs.isFeaturesToolBoxDisplayed)
+    << std::endl;
+}
+
+/**
  * Restore the status of window components.
  * @param wcs
  *    Window component status that is restored.
@@ -4071,9 +4184,8 @@ BrainBrowserWindow::processViewTileTabsConfigurationDialog()
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
-    if (wcs.windowGeometry.isEmpty() == false) {
-        restoreGeometry(wcs.windowGeometry);
-    }
+    /*printWindowComponentStatus("Restoring", wcs);*/
+    
     if (wcs.windowState.isEmpty() == false) {
         restoreState(wcs.windowState);
     }
@@ -4130,7 +4242,6 @@ void
 BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.windowState = saveState();
-    wcs.windowGeometry = saveGeometry();
     if (m_featuresToolBoxAction->isChecked()) {
         if (m_featuresToolBox != NULL) {
             wcs.featuresGeometry = m_featuresToolBox->saveGeometry();
@@ -4139,6 +4250,8 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
     wcs.isToolBarDisplayed = m_showToolBarAction->isChecked();
     wcs.isOverlayToolBoxDisplayed = m_overlayToolBoxAction->isChecked();
     wcs.isFeaturesToolBoxDisplayed  = m_featuresToolBoxAction->isChecked();
+    
+    /*printWindowComponentStatus("Saving", wcs);*/
 }
 
 /**
@@ -4876,6 +4989,8 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
         setViewTileTabs(restoreToTabTiles);
     }
 
+    m_restoringSceneNoSaveWindowCompontentStatusFlag = restoreToFullScreen;
+    
     m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
     processViewFullScreen(restoreToFullScreen,
                           false);
@@ -5028,8 +5143,12 @@ BrainBrowserWindow::restoreFromScene(const SceneAttributes* sceneAttributes,
 
         lockAllTabAspectRatios(lockedCount > 0);
     }
-    
+
+    m_normalWindowComponentStatus = m_defaultWindowComponentStatus;
+
     updateActionsForLockingAspectRatios();
+    
+    m_restoringSceneNoSaveWindowCompontentStatusFlag = restoreToFullScreen;
 }
 
 /**
