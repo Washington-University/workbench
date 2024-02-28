@@ -291,7 +291,7 @@ OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key
     return ret;
 }
 
-ParameterComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
+OptionalComponent* ParameterComponent::createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
     if (!checkUniqueRepeatable(key))
     {
@@ -385,11 +385,11 @@ vector<AString> ParameterComponent::findUncheckedParams(const AString& contextSt
     {
         if (!m_repeatableOptions[i]->m_operationUsed)
         {
-            ret.push_back("option '" + m_repeatableOptions[i]->m_optionSwitch + "' of " + contextString + " was not checked by the operation");
+            ret.push_back("option '" + m_repeatableOptions[i]->m_template.m_optionSwitch + "' of " + contextString + " was not checked by the operation");
         }
         for (size_t j = 0; j < m_repeatableOptions[i]->m_instances.size(); ++j)
         {
-            vector<AString> temp = m_repeatableOptions[i]->m_instances[j]->findUncheckedParams("option '" + m_repeatableOptions[i]->m_optionSwitch + "'");
+            vector<AString> temp = m_repeatableOptions[i]->m_instances[j]->findUncheckedParams("option '" + m_repeatableOptions[i]->m_template.m_optionSwitch + "'");
             ret.insert(ret.end(), temp.begin(), temp.end());
         }
     }

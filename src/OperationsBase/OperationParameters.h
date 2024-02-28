@@ -45,6 +45,7 @@ namespace caret {
     class VolumeFile;
     
     struct OptionalParameter;
+    struct OptionalComponent;
     struct RepeatableOption;
     
     struct ProvenanceHelper
@@ -229,7 +230,7 @@ namespace caret {
         OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
         ///convenience method to create, add, and return an optional parameter
-        ParameterComponent* createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description);
+        OptionalComponent* createRepeatableParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
         ///return pointer to an option
         OptionalParameter* getOptionalParameter(const int32_t key);
@@ -263,54 +264,71 @@ namespace caret {
         AbstractParameter* getInputParameter(const int32_t key, const OperationParametersEnum::Enum type);
         AbstractParameter* getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type);
     };
+        
+    struct OptionalComponent : public ParameterComponent
+    {
+        AString m_optionSwitch, m_description;
+        std::vector<AString> m_legacySwitches;
+        
+        OptionalComponent(const AString& optionSwitch, const AString& description) :
+        m_optionSwitch(optionSwitch),
+        m_description(description)
+        {
+        }
+        
+        bool switchMatches(const AString& test) const
+        {
+            if (test == m_optionSwitch) return true;
+            for (auto legacySwitch : m_legacySwitches) if (test == legacySwitch) return true;
+            return false;
+        }
+        void addLegacySwitch(const AString& toAdd)
+        {
+            m_legacySwitches.push_back(toAdd);
+        }
+    private:
+        OptionalComponent();//no default construction
+    };
     
-    struct OptionalParameter : public ParameterComponent
+    struct OptionalParameter : public OptionalComponent
     {
         int32_t m_key;//uniquely identifies this option
-        AString m_optionSwitch, m_description;
         bool m_present;//to be filled by parser
         bool m_operationUsed;//check if the operation called get...() for this parameter
-        OptionalParameter(const OptionalParameter& rhs) ://copy constructor is used by cloning in RepeatableParameter
-        ParameterComponent(rhs),
+        
+        OptionalParameter(const OptionalParameter& rhs) ://copy constructor is used by cloning in RepeatableParameter, needs to reset "present" flags
+        OptionalComponent(rhs),
         m_key(rhs.m_key),
-        m_optionSwitch(rhs.m_optionSwitch),
-        m_description(rhs.m_description),
         m_present(false),
         m_operationUsed(false)
         {
         }
         OptionalParameter(int32_t key, const AString& optionSwitch, const AString& description) :
+        OptionalComponent(optionSwitch, description),
         m_key(key),
-        m_optionSwitch(optionSwitch),
-        m_description(description),
         m_present(false),
         m_operationUsed(false)
         {
         }
-    private:
-        OptionalParameter();//no default construction
     };
     
     struct RepeatableOption
     {
         int32_t m_key;//uniquely identifies this option
-        AString m_optionSwitch, m_description;
-        ParameterComponent m_template;
+        OptionalComponent m_template;
         bool m_operationUsed;//check if the operation called get...() for this parameter
         std::vector<ParameterComponent*> m_instances;//to be filled by parser
         std::vector<int32_t> m_positions;//to resolve ambiguities in ordering between different repeatable options
-        RepeatableOption(const RepeatableOption& rhs) :
+        
+        RepeatableOption(const RepeatableOption& rhs) ://don't copy instances or parsing status...though, the template shouldn't get modified anyway...
         m_key(rhs.m_key),
-        m_optionSwitch(rhs.m_optionSwitch),
-        m_description(rhs.m_description),
         m_template(rhs.m_template),
         m_operationUsed(false)
         {
         }
         RepeatableOption(int32_t key, const AString& optionSwitch, const AString& description) :
         m_key(key),
-        m_optionSwitch(optionSwitch),
-        m_description(description),
+        m_template(optionSwitch, description),
         m_operationUsed(false)
         {
         }

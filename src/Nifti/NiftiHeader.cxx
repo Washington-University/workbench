@@ -519,7 +519,7 @@ void NiftiHeader::setDataType(const int16_t& type)
 
 void NiftiHeader::setDimensions(const vector<int64_t>& dimsIn)
 {
-    if (dimsIn.size() > 7 || dimsIn.empty()) throw DataFileException("Number of dimensions must be between 1 and 7, inclusive.");
+    if (dimsIn.size() > 7 || dimsIn.empty()) throw DataFileException("Unable to put " + QString::number(dimsIn.size()) + " dimensions into a nifti header, maximum is 7");
     m_header.dim[0] = dimsIn.size();
     int i = 0;
     for(; i < (int)dimsIn.size(); i++)

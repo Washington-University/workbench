@@ -369,7 +369,7 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
 {
     for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
     {
-        if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
+        if (myComponent->m_optionList[i]->switchMatches(mySwitch))
         {
             if (debug)
             {
@@ -390,18 +390,18 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
     }
     for (uint32_t i = 0; i < myComponent->m_repeatableOptions.size(); ++i)
     {
-        if (mySwitch == myComponent->m_repeatableOptions[i]->m_optionSwitch)
+        if (myComponent->m_repeatableOptions[i]->m_template.switchMatches(mySwitch))
         {
             if (debug)
             {
-                cout << "Now parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_optionSwitch << endl;
+                cout << "Now parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_template.m_optionSwitch << endl;
             }
             myComponent->m_repeatableOptions[i]->m_instances.push_back(new ParameterComponent(myComponent->m_repeatableOptions[i]->m_template));
             myComponent->m_repeatableOptions[i]->m_positions.push_back(parameters.getParameterIndex() - 1);//parameters is on the next argument already
             parseComponent(myComponent->m_repeatableOptions[i]->m_instances.back(), parameters, outAssociation, debug);
             if (debug)
             {
-                cout << "Finished parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_optionSwitch << endl;
+                cout << "Finished parsing repeatable option " << myComponent->m_repeatableOptions[i]->m_template.m_optionSwitch << endl;
             }
             return true;
         }
@@ -638,7 +638,7 @@ CommandParser::CompletionInfo CommandParser::completionOption(const AString& myS
 {
     for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
     {
-        if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
+        if (myComponent->m_optionList[i]->switchMatches(mySwitch))
         {
             if (myComponent->m_optionList[i]->m_present)
             {
@@ -653,7 +653,7 @@ CommandParser::CompletionInfo CommandParser::completionOption(const AString& myS
     }
     for (uint32_t i = 0; i < myComponent->m_repeatableOptions.size(); ++i)
     {
-        if (mySwitch == myComponent->m_repeatableOptions[i]->m_optionSwitch)
+        if (myComponent->m_repeatableOptions[i]->m_template.switchMatches(mySwitch))
         {
             myComponent->m_repeatableOptions[i]->m_instances.push_back(new ParameterComponent(myComponent->m_repeatableOptions[i]->m_template));
             CompletionInfo optionInfo = completionComponent(myComponent->m_repeatableOptions[i]->m_instances.back(), parameters, useExtGlob);
@@ -688,7 +688,7 @@ AString CommandParser::completionOptionHints(ParameterComponent* myComponent, co
         } else {
             ret += "\\ ";
         }
-        ret += myComponent->m_repeatableOptions[i]->m_optionSwitch;
+        ret += myComponent->m_repeatableOptions[i]->m_template.m_optionSwitch;
     }
     return ret;
 }
@@ -890,6 +890,7 @@ AString CommandParser::getHelpInformation(const AString& programName)
     return ret;
 }
 
+//arguments without descriptions, not currently used
 void CommandParser::addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent)
 {
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
@@ -903,6 +904,7 @@ void CommandParser::addHelpComponent(AString& info, ParameterComponent* myCompon
     addHelpOptions(info, myComponent, curIndent);
 }
 
+//ditto
 void CommandParser::addHelpOptions(AString& info, ParameterComponent* myComponent, int curIndent)
 {
     for (int i = 0; i < (int)myComponent->m_optionList.size(); ++i)
@@ -912,7 +914,7 @@ void CommandParser::addHelpOptions(AString& info, ParameterComponent* myComponen
     }
     for (int i = 0; i < (int)myComponent->m_repeatableOptions.size(); ++i)
     {
-        info += formatString("[" + myComponent->m_repeatableOptions[i]->m_optionSwitch + "] (repeatable)", curIndent, true);
+        info += formatString("[" + myComponent->m_repeatableOptions[i]->m_template.m_optionSwitch + "] (repeatable)", curIndent, true);
         addHelpComponent(info, &(myComponent->m_repeatableOptions[i]->m_template), curIndent + m_indentIncrement);//indent arguments to options
     }
 }
@@ -1019,7 +1021,7 @@ void CommandParser::addOptionDescriptions(AString& info, ParameterComponent* myC
     }
     for (int i = 0; i < (int)myComponent->m_repeatableOptions.size(); ++i)
     {
-        info += "\n" + formatString("[" + myComponent->m_repeatableOptions[i]->m_optionSwitch + "] - repeatable - " + myComponent->m_repeatableOptions[i]->m_description, curIndent, true);
+        info += "\n" + formatString("[" + myComponent->m_repeatableOptions[i]->m_template.m_optionSwitch + "] - repeatable - " + myComponent->m_repeatableOptions[i]->m_template.m_description, curIndent, true);
         addComponentDescriptions(info, &(myComponent->m_repeatableOptions[i]->m_template), curIndent + m_indentIncrement);//indent arguments to options
     }
 }

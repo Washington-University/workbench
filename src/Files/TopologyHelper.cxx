@@ -71,7 +71,7 @@ TopologyHelperBase::TopologyHelperBase(const SurfaceFile* surfIn, bool sortFlag)
                 case 0:
                     if (thisTri[1] > i) processTileNeighbor(tempEdgeInfo, scratch, i, thisTri[1], thisTri[2], myTile, 0, false);//boolean signifies if root, neighbor is same ordering as the cycle of tile nodes
                     if (thisTri[2] > i) processTileNeighbor(tempEdgeInfo, scratch, i, thisTri[2], thisTri[1], myTile, 2, true);
-                    break;//the if statement is a trick: processTileNeighbor adds neighbor to both nodes, so by checking that root is less, it does every edge exactly once
+                    break;//the if statement is a trick: processTileNeighbor adds neighbor to both nodes, so by checking that root is less, it does every edge/tile pair exactly once
                 case 1://this allows edge info building in a linear pass
                     if (thisTri[2] > i) processTileNeighbor(tempEdgeInfo, scratch, i, thisTri[2], thisTri[0], myTile, 1, false);
                     if (thisTri[0] > i) processTileNeighbor(tempEdgeInfo, scratch, i, thisTri[0], thisTri[2], myTile, 0, true);
