@@ -697,31 +697,28 @@ MapSettingsPaletteColorMappingWidget::createThresholdSection()
     QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdHighSliderValueChanged(double)));
     
-    const int spinBoxWidth = 80.0;
     this->thresholdLowSpinBox =
        WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(thresholdMinimum,
                                                                    thresholdMaximum,
                                                                    1.0,
-                                                                   3,
+                                                                   6,
                                                                    this,
                                                                    SLOT(thresholdLowSpinBoxValueChanged(double)));
     this->thresholdLowSpinBox->setAccelerated(true);
     WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSpinBox,
                                           "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
-    this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
 
     this->thresholdHighSpinBox =
     WuQFactory::newDoubleSpinBoxWithMinMaxStepDecimalsSignalDouble(thresholdMinimum,
                                                                    thresholdMaximum,
                                                                    1.0,
-                                                                   3,
+                                                                   6,
                                                                    this,
                                                                    SLOT(thresholdHighSpinBoxValueChanged(double)));
     WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSpinBox,
                                           "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
-    this->thresholdHighSpinBox->setFixedWidth(spinBoxWidth);
 
     this->thresholdShowInsideRadioButton = new QRadioButton("Show Data Inside Thresholds");
     WuQtUtilities::setWordWrappedToolTip(this->thresholdShowInsideRadioButton,
