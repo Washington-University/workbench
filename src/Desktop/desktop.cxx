@@ -69,6 +69,10 @@
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
+#ifdef Q_OS_MAC
+#include "macos.h"
+#endif
+
 using namespace caret;
 using namespace std;
 
@@ -117,6 +121,25 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 int 
 main(int argc, char* argv[])
 {
+
+#ifdef Q_OS_MAC 
+    /*
+     * Removes items that Apple adds to menus
+     *   Edit Menu - Start Dictation
+     *   Edit Menu - Emoji & Symbols
+     *   View Menu - Enter Full Screen
+     *
+     * The code uses the equivalent of the terminal's
+     * 'default' command.  The code could be replaced
+     * by having the user enter commands in the terminal
+     * to remove the menu items.
+     *
+     * Shows workbench's: defaults read workbench
+     * See: 'man defaults'.
+     */
+    OpenCOR::removeMacosSpecificMenuItems();
+#endif
+
     srand(time(NULL));
     int result;
     {

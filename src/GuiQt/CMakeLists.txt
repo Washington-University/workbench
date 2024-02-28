@@ -1011,6 +1011,16 @@ ZipSceneFileDialog.cxx
 )
 
 #
+# For macos, removes items that apple automatically
+# adds to the view menu 
+#
+IF (APPLE)
+   LIST(APPEND SOURCE_FILES
+        macos.h
+        macos.mm)
+ENDIF()
+
+#
 # Process the header files with moc producing moc_*.cpp files
 #
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
