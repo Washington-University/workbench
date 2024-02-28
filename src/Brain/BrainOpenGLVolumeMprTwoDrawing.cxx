@@ -2767,6 +2767,10 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                                             CaretAssert(0);
                                             break;
                                         case SubvolumeAttributes::RGB_WORKBENCH:
+                                            /*
+                                             * Use "discrete" with RGB since no interpolation
+                                             */
+                                            discreteFlag = true;
                                             break;
                                         case SubvolumeAttributes::SEGMENTATION:
                                             anatomyFlag = true;
