@@ -121,6 +121,7 @@
 #include "TileTabsLayoutGridConfiguration.h"
 #include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsGridConfigurationModifier.h"
+#include "WindowTabAspectRatios.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
@@ -252,6 +253,7 @@ m_browserWindowIndex(browserWindowIndex)
                                               m_overlayToolBoxAction,
                                               m_featuresToolBoxAction,
                                               m_toolBarLockWindowAndAllTabAspectRatioButton,
+                                              m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                               m_objectNamePrefix,
                                               this);
     m_showToolBarAction = m_toolbar->toolBarToolButtonAction;
@@ -287,6 +289,7 @@ m_browserWindowIndex(browserWindowIndex)
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_PAINT_SOON_ONE_WINDOW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 
     if (m_overlayHorizontalToolBox == m_overlayActiveToolBox) {
         /*
@@ -653,6 +656,9 @@ BrainBrowserWindow::receiveEvent(Event* event)
                 pixelEvent->setEventProcessed();
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        updateActionsForLockingAspectRatios();
     }
 }
 
@@ -1104,6 +1110,31 @@ BrainBrowserWindow::createActionsUsedByToolBar()
     QObject::connect(m_toolBarLockWindowAndAllTabAspectRatioButton, &QToolButton::customContextMenuRequested,
                      this, &BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectMenu);
     m_toolBarLockWindowAndAllTabAspectRatioButton->setContextMenuPolicy(Qt::CustomContextMenu);
+    
+    /*
+     * Undo unlocking of aspect ratio
+     */
+    QIcon undoIcon;
+    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
+                                                     undoIcon));
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction = new QAction();
+    if (undoIconValid) {
+        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setIcon(undoIcon);
+    }
+    else {
+        m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setText("U");
+    }
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setToolTip("Relock to aspect ratios before unlocking");
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setObjectName(m_objectNamePrefix
+                                                                 + ":ToolBar:UndoUnlockAspectRatio");
+    QObject::connect(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processToolBarUndoUnlockWindowAndAllTabAspectTriggered);
+    WuQMacroManager::instance()->addMacroSupportToObject(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction,
+                                                         ("Undo unlock aspect ratio in window " + QString::number(m_browserWindowIndex + 1)));
+
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton = new QToolButton();
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton->setDefaultAction(m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
 }
 
 /**
@@ -1231,6 +1262,52 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered(bool checke
 }
 
 /**
+ * Called when the toolbar's undo unlock window and all tab aspect is triggered
+ */
+void
+BrainBrowserWindow::processToolBarUndoUnlockWindowAndAllTabAspectTriggered()
+{
+    const WindowTabAspectRatios windowTabAspectRatios(m_browserWindowContent->getWindowTabAspectRatios());
+    if (windowTabAspectRatios.isValid()) {
+        if (windowTabAspectRatios.getWindowIndex() == m_browserWindowIndex) {
+            std::vector<BrowserTabContent*> allTabContent;
+            m_toolbar->getAllTabContent(allTabContent);
+
+            std::set<int32_t> currentTabs;
+            for (const auto tab : allTabContent) {
+                currentTabs.insert(tab->getTabNumber());
+            }
+            
+            AString tabsChangedMessage;
+            if ( ! windowTabAspectRatios.testMatchingTabs(currentTabs,
+                                                          tabsChangedMessage)) {
+                if ( ! WuQMessageBox::warningOkCancel(m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
+                                                      "Tabs have changed since they were locked",
+                                                      tabsChangedMessage)) {
+                    return;
+                }
+            }
+            
+            m_browserWindowContent->setWindowAspectLocked(true);
+            m_browserWindowContent->setWindowAspectLockedRatio(windowTabAspectRatios.getWindowAspectRatio());
+            
+            for (auto tab : allTabContent) {
+                const float aspectRatio(windowTabAspectRatios.getTabAspectRatio(tab->getTabNumber()));
+                if (aspectRatio > 0.0) {
+                    tab->setAspectRatio(aspectRatio);
+                    tab->setAspectRatioLocked(true);
+                }
+            }
+            
+            m_browserWindowContent->setWindowTabAspectRatios(WindowTabAspectRatios());
+            m_browserWindowContent->setAllTabsInWindowAspectRatioLocked(true);
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+        }
+    }
+}
+
+/**
  * Called when the toolbar's lock window and all tab aspect is triggered
  *
  * @param checked
@@ -1239,6 +1316,24 @@ BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectTriggered(bool checke
 void
 BrainBrowserWindow::processToolBarLockWindowAndAllTabAspectsRatios(bool checked)
 {
+    /*
+     * If turning off
+     */
+    if ( ! checked) {
+        CaretAssert(m_browserWindowContent);
+        WindowTabAspectRatios windowTabAspectRatios;
+        windowTabAspectRatios.setWindowAspectRatio(m_browserWindowIndex,
+                                                   m_browserWindowContent->getWindowAspectLockedRatio());
+        
+        std::vector<BrowserTabContent*> allTabs;
+        getAllTabContent(allTabs);
+        for (const BrowserTabContent* btc : allTabs) {
+            if (btc->isAspectRatioLocked()) {
+                windowTabAspectRatios.addTabAspectRatio(btc->getTabNumber(), btc->getAspectRatio());
+            }
+        }
+        m_browserWindowContent->setWindowTabAspectRatios(windowTabAspectRatios);
+    }
     lockWindowAspectRatio(checked);
     lockAllTabAspectRatios(checked);
     updateActionsForLockingAspectRatios();
@@ -1415,6 +1510,9 @@ BrainBrowserWindow::updateActionsForLockingAspectRatios()
     QSignalBlocker toolbarLockAllBlocker(m_toolBarLockWindowAndAllTabAspectRatioAction);
     m_toolBarLockWindowAndAllTabAspectRatioAction->setChecked(m_browserWindowContent->isWindowAspectLocked()
                                                               && m_browserWindowContent->isAllTabsInWindowAspectRatioLocked());
+    
+    const bool undoValid(m_browserWindowContent->getWindowTabAspectRatios().isValid());
+    m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction->setEnabled(undoValid);
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(getBrowserWindowIndex()).getPointer());
 }

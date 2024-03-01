@@ -258,6 +258,7 @@ VolumeSurfaceOutlineModelCacheValue.h
 VolumeSurfaceOutlineSetModel.h
 WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
+WindowTabAspectRatios.h
 
 AnnotationArrangerExecutor.cxx
 AnnotationArrangerInputs.cxx
@@ -486,6 +487,7 @@ VolumeSurfaceOutlineModelCacheValue.cxx
 VolumeSurfaceOutlineSetModel.cxx
 WholeBrainSurfaceSettings.cxx
 WholeBrainVoxelDrawingMode.cxx
+WindowTabAspectRatios.cxx
 ) 
 
 TARGET_LINK_LIBRARIES(Brain ${CARET_QT5_LINK})

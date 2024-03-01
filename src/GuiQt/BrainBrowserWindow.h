@@ -260,6 +260,7 @@ namespace caret {
         void processWindowMenuLockWindowAspectRatioTriggered(bool checked);
         void processWindowMenuLockAllTabAspectRatioTriggered(bool checked);
         void processToolBarLockWindowAndAllTabAspectTriggered(bool checked);
+        void processToolBarUndoUnlockWindowAndAllTabAspectTriggered();
         void processToolBarLockWindowAndAllTabAspectMenu(const QPoint& pos);
 
         void processEditMenuItemTriggered(QAction* action);
@@ -455,7 +456,9 @@ namespace caret {
         QAction* m_windowMenuLockAllTabAspectRatioAction;
         QAction* m_toolBarLockWindowAndAllTabAspectRatioAction;
         QToolButton* m_toolBarLockWindowAndAllTabAspectRatioButton;
-        
+        QAction* m_toolBarUndoUnlockWindowAndAllTabAspectRatioAction;
+        QToolButton* m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton;
+
         QAction* m_featuresToolBoxAction;
         
         QAction* m_dataFociProjectAction;

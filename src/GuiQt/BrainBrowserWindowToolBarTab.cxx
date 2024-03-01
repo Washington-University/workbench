@@ -66,6 +66,8 @@ using namespace caret;
  *     Index of browser window.
  * @param toolBarLockWindowAndAllTabAspectRatioButton
  *     Button for locking window and all tab aspect ratio.
+ * @param toolBarUndoUnlockWindowAndAllTabAspectRatioButton
+ *    Button for undo of unlock aspect ratio
  * @param parentToolBar
  *     Parent toolbar.
  * @param objectNamePrefix
@@ -73,12 +75,12 @@ using namespace caret;
  */
 BrainBrowserWindowToolBarTab::BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
                                                            QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                                           QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                                            BrainBrowserWindowToolBar* parentToolBar,
                                                            const QString& objectNamePrefix)
 : BrainBrowserWindowToolBarComponent(parentToolBar),
 m_browserWindowIndex(browserWindowIndex),
-m_parentToolBar(parentToolBar),
-m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
+m_parentToolBar(parentToolBar)
 {
     m_objectNamePrefix = (objectNamePrefix
                           + ":Tab");
@@ -183,6 +185,14 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     yokeLayout->addWidget(m_yokingGroupComboBox->getWidget());
     yokeLayout->addStretch();
     
+    WuQtUtilities::matchWidgetHeights(toolBarLockWindowAndAllTabAspectRatioButton,
+                                      toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
+    QHBoxLayout* aspectLayout(new QHBoxLayout());
+    WuQtUtilities::setLayoutSpacingAndMargins(yokeLayout, 2, 0);
+    aspectLayout->addWidget(toolBarLockWindowAndAllTabAspectRatioButton);
+    aspectLayout->addWidget(toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
+    aspectLayout->addStretch();
+
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(buttonsLayout, 2, 2);
     buttonsLayout->addWidget(lightingToolButton);
@@ -193,7 +203,7 @@ m_lockWindowAndAllTabAspectButton(toolBarLockWindowAndAllTabAspectRatioButton)
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
     layout->addLayout(yokeLayout);
-    layout->addWidget(m_lockWindowAndAllTabAspectButton, 0, Qt::AlignLeft);
+    layout->addLayout(aspectLayout);
     layout->addLayout(buttonsLayout);
     layout->addWidget(m_macroRecordingLabel, 0, Qt::AlignLeft);
     

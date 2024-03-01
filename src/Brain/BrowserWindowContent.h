@@ -31,6 +31,7 @@
 #include "TileTabsLayoutConfigurationTypeEnum.h"
 
 namespace caret {
+    class WindowTabAspectRatios;
     class SceneClassAssistant;
     class TileTabsLayoutBaseConfiguration;
     class TileTabsLayoutGridConfiguration;
@@ -108,6 +109,10 @@ namespace caret {
         
         void setWindowAnnotationsStackingOrder(const int32_t stackingOrder);
         
+        const WindowTabAspectRatios getWindowTabAspectRatios() const;
+        
+        void setWindowTabAspectRatios(const WindowTabAspectRatios& windowTabAspectRatios);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -170,6 +175,8 @@ namespace caret {
         std::vector<int32_t> m_sceneTabIndices;
         
         int32_t m_windowAnnotationsStackingOrder = -1000;
+        
+        std::unique_ptr<WindowTabAspectRatios> m_windowTabAspectRatios;
         
         friend class BrainBrowserWindow;
 

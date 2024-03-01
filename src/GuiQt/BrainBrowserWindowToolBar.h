@@ -104,6 +104,7 @@ namespace caret {
                                   QAction* overlayToolBoxAction,
                                   QAction* layersToolBoxAction,
                                   QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                  QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                   const QString& objectNamePrefix,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
@@ -174,7 +175,8 @@ namespace caret {
         QWidget* createWholeBrainSurfaceOptionsWidget();
         QWidget* createVolumeIndicesWidget();
         QWidget* createModeWidget();
-        QWidget* createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton);
+        QWidget* createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                        QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
         QWidget* createChartAxesWidget();
         QWidget* createChartAttributesWidget();
         QWidget* createChartTwoOrientationWidget();

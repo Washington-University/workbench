@@ -43,6 +43,7 @@ namespace caret {
     public:
         BrainBrowserWindowToolBarTab(const int32_t browserWindowIndex,
                                      QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                     QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                      BrainBrowserWindowToolBar* parentToolBar,
                                      const QString& objectNamePrefix);
         
@@ -86,8 +87,6 @@ namespace caret {
         const int32_t m_browserWindowIndex;
         
         BrainBrowserWindowToolBar* m_parentToolBar;
-        
-        QToolButton* m_lockWindowAndAllTabAspectButton;
         
         QAction* m_lightingAction;
         

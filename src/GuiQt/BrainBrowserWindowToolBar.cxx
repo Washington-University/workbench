@@ -190,6 +190,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QAction* overlayToolBoxAction,
                                                      QAction* layersToolBoxAction,
                                                      QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                                     QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                                      const QString& objectNamePrefix,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow),
@@ -472,7 +473,8 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
     this->wholeBrainSurfaceOptionsWidget = this->createWholeBrainSurfaceOptionsWidget();
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->modeWidget = this->createModeWidget();
-    this->tabMiscWidget = this->createTabOptionsWidget(toolBarLockWindowAndAllTabAspectRatioButton);
+    this->tabMiscWidget = this->createTabOptionsWidget(toolBarLockWindowAndAllTabAspectRatioButton,
+                                                       toolBarUndoUnlockWindowAndAllTabAspectRatioButton);
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
@@ -2817,16 +2819,20 @@ BrainBrowserWindowToolBar::updateDisplayedModeUserInputWidget()
 /**
  * Create the tab options widget.
  *
- * @param lockWindowAndAllTabAspectAction
+ * @param toolBarLockWindowAndAllTabAspectRatioButton
  *    Action for locking the window's aspect ratio and the aspect ratio of all tabs
+ * @param toolBarUndoUnlockWindowAndAllTabAspectRatioButton
+ *    Button for undo of unlock aspect ratio
  *
  * @return  Button to lock window and tab's aspect ratios.
  */
 QWidget* 
-BrainBrowserWindowToolBar::createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton)
+BrainBrowserWindowToolBar::createTabOptionsWidget(QToolButton* toolBarLockWindowAndAllTabAspectRatioButton,
+                                                  QToolButton* toolBarUndoUnlockWindowAndAllTabAspectRatioButton)
 {
     m_tabOptionsComponent = new BrainBrowserWindowToolBarTab(this->browserWindowIndex,
                                                              toolBarLockWindowAndAllTabAspectRatioButton,
+                                                             toolBarUndoUnlockWindowAndAllTabAspectRatioButton,
                                                              this,
                                                              m_objectNamePrefix);
     
