@@ -289,9 +289,11 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 myRequest.setRawHeader(headerIter->first.toLatin1(), headerIter->second.toLatin1());
             }
             myRequest.setUrl(myUrl);
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
             if (request.m_timeoutMilliseconds > 0) {
                 myRequest.setTransferTimeout(request.m_timeoutMilliseconds);
             }
+#endif
             myReply = myQNetMgr->post(myRequest, postData);
             CaretLogFine("POST ARGUMENTS URL: " + myUrl.toString());
         }

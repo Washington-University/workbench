@@ -60,7 +60,8 @@ WindowTabAspectRatios::~WindowTabAspectRatios()
  *    Object that is copied.
  */
 WindowTabAspectRatios::WindowTabAspectRatios(const WindowTabAspectRatios& obj)
-: CaretObject(obj)
+: CaretObject(obj),
+SceneableInterface(obj)
 {
     this->copyHelperWindowTabAspectRatios(obj);
 }
