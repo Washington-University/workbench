@@ -85,6 +85,7 @@ namespace caret {
         CaretHttpManager::Method m_method;
         AString m_url;
         AString m_uploadFileName;  // used when mode is POST_FILE
+        int32_t m_timeoutMilliseconds = -1;  /* Negative is NEVER timeout */
         std::vector<std::pair<AString, AString> > m_arguments, m_queries;//arguments go to post data if method is POST_ARGUMENTS, queries stay as queries
         std::map<AString, AString> m_headers; // map so that newer values replace older values
     };

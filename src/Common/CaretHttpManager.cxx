@@ -289,6 +289,11 @@ void CaretHttpManager::httpRequestPrivate(const CaretHttpRequest &request, Caret
                 myRequest.setRawHeader(headerIter->first.toLatin1(), headerIter->second.toLatin1());
             }
             myRequest.setUrl(myUrl);
+// Disable until it can be tested when ConnectomeDB is up
+//            std::cout << "HTTP Request Timeout: " << request.m_timeoutMilliseconds << std::endl;
+//            if (request.m_timeoutMilliseconds > 0) {
+//                myRequest.setTransferTimeout(request.m_timeoutMilliseconds);
+//            }
             myReply = myQNetMgr->post(myRequest, postData);
             CaretLogFine("POST ARGUMENTS URL: " + myUrl.toString());
         }
