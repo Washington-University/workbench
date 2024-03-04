@@ -884,7 +884,7 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     }
     catch (DataFileException& e) {
         m_connectivityDataLoaded->reset();
-        throw e;
+        throw DataFileException(getFileNameNoPath() + ": " + e.whatString());
     }
     
     updateForChangeInMapDataWithMapIndex(0);
@@ -1456,87 +1456,92 @@ CiftiMappableConnectivityMatrixDataFile::restoreFileDataFromScene(const SceneAtt
     
     setMapDataLoadingEnabled(mapIndex, true);
     
-    switch (m_connectivityDataLoaded->getMode()) {
-        case ConnectivityDataLoaded::MODE_NONE:
-            setLoadedRowDataToAllZeros();
-            break;
-        case ConnectivityDataLoaded::MODE_ROW:
-        {
-            int64_t rowIndex;
-            int64_t columnIndex;
-            m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
-                                                          columnIndex);
-            loadDataForRowIndex(rowIndex);
+    try {
+        switch (m_connectivityDataLoaded->getMode()) {
+            case ConnectivityDataLoaded::MODE_NONE:
+                setLoadedRowDataToAllZeros();
+                break;
+            case ConnectivityDataLoaded::MODE_ROW:
+            {
+                int64_t rowIndex;
+                int64_t columnIndex;
+                m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
+                                                              columnIndex);
+                loadDataForRowIndex(rowIndex);
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_COLUMN:
+            {
+                int64_t rowIndex;
+                int64_t columnIndex;
+                m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
+                                                              columnIndex);
+                loadDataForColumnIndex(columnIndex);
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_SURFACE_NODE:
+            {
+                StructureEnum::Enum structure;
+                int32_t surfaceNumberOfNodes;
+                int32_t surfaceNodeIndex;
+                int64_t rowIndex;
+                int64_t columnIndex;
+                m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
+                                                                surfaceNumberOfNodes,
+                                                                surfaceNodeIndex,
+                                                                rowIndex,
+                                                                columnIndex);
+                loadMapDataForSurfaceNode(mapIndex,
+                                          surfaceNumberOfNodes,
+                                          structure,
+                                          surfaceNodeIndex,
+                                          rowIndex,
+                                          columnIndex);
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
+            {
+                StructureEnum::Enum structure;
+                int32_t surfaceNumberOfNodes;
+                std::vector<int32_t> surfaceNodeIndices;
+                m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
+                                                                       surfaceNumberOfNodes,
+                                                                       surfaceNodeIndices);
+                loadMapAverageDataForSurfaceNodes(mapIndex,
+                                                  surfaceNumberOfNodes,
+                                                  structure,
+                                                  surfaceNodeIndices);
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
+            {
+                float volumeXYZ[3];
+                int64_t rowIndex;
+                int64_t columnIndex;
+                m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
+                                                              rowIndex,
+                                                              columnIndex);
+                loadMapDataForVoxelAtCoordinate(mapIndex,
+                                                volumeXYZ,
+                                                rowIndex,
+                                                columnIndex);
+            }
+                break;
+            case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
+            {
+                int64_t volumeDimensionsIJK[3];
+                std::vector<VoxelIJK> voxelIndicesIJK;
+                m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
+                                                                       voxelIndicesIJK);
+                loadMapAverageDataForVoxelIndices(mapIndex,
+                                                  volumeDimensionsIJK,
+                                                  voxelIndicesIJK);
+            }
+                break;
         }
-            break;
-        case ConnectivityDataLoaded::MODE_COLUMN:
-        {
-            int64_t rowIndex;
-            int64_t columnIndex;
-            m_connectivityDataLoaded->getRowColumnLoading(rowIndex,
-                                                          columnIndex);
-            loadDataForColumnIndex(columnIndex);
-        }
-            break;
-        case ConnectivityDataLoaded::MODE_SURFACE_NODE:
-        {
-            StructureEnum::Enum structure;
-            int32_t surfaceNumberOfNodes;
-            int32_t surfaceNodeIndex;
-            int64_t rowIndex;
-            int64_t columnIndex;
-            m_connectivityDataLoaded->getSurfaceNodeLoading(structure,
-                                                            surfaceNumberOfNodes,
-                                                            surfaceNodeIndex,
-                                                            rowIndex,
-                                                            columnIndex);
-            loadMapDataForSurfaceNode(mapIndex,
-                                      surfaceNumberOfNodes,
-                                      structure,
-                                      surfaceNodeIndex,
-                                      rowIndex,
-                                      columnIndex);
-        }
-            break;
-        case ConnectivityDataLoaded::MODE_SURFACE_NODE_AVERAGE:
-        {
-            StructureEnum::Enum structure;
-            int32_t surfaceNumberOfNodes;
-            std::vector<int32_t> surfaceNodeIndices;
-            m_connectivityDataLoaded->getSurfaceAverageNodeLoading(structure,
-                                                                   surfaceNumberOfNodes,
-                                                                   surfaceNodeIndices);
-            loadMapAverageDataForSurfaceNodes(mapIndex,
-                                              surfaceNumberOfNodes,
-                                              structure,
-                                              surfaceNodeIndices);
-        }
-            break;
-        case ConnectivityDataLoaded::MODE_VOXEL_XYZ:
-        {
-            float volumeXYZ[3];
-            int64_t rowIndex;
-            int64_t columnIndex;
-            m_connectivityDataLoaded->getVolumeXYZLoading(volumeXYZ,
-                                                          rowIndex,
-                                                          columnIndex);
-            loadMapDataForVoxelAtCoordinate(mapIndex,
-                                            volumeXYZ,
-                                            rowIndex,
-                                            columnIndex);
-        }
-            break;
-        case ConnectivityDataLoaded::MODE_VOXEL_IJK_AVERAGE:
-        {
-            int64_t volumeDimensionsIJK[3];
-            std::vector<VoxelIJK> voxelIndicesIJK;
-            m_connectivityDataLoaded->getVolumeAverageVoxelLoading(volumeDimensionsIJK,
-                                                                   voxelIndicesIJK);
-            loadMapAverageDataForVoxelIndices(mapIndex,
-                                              volumeDimensionsIJK,
-                                              voxelIndicesIJK);
-        }
-            break;
+    }
+    catch (const DataFileException& dfe) {
+        sceneAttributes->addToErrorMessage(dfe.whatString());
     }
     
     setMapDataLoadingEnabled(mapIndex,

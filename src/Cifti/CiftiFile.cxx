@@ -771,6 +771,8 @@ void CiftiXnatImpl::init(const QString& url)
 {
     m_baseRequest.m_url = url;
     m_baseRequest.m_method = CaretHttpManager::POST_ARGUMENTS;
+    m_baseRequest.m_timeoutMilliseconds = (30 * 1000);
+    
     int32_t start = url.indexOf('?');
     bool foundSearchID = false;
     bool foundResource = false;
