@@ -2028,7 +2028,7 @@ BrainOpenGLVolumeMprThreeDrawing::getAxisColor(const VolumeSliceViewPlaneEnum::E
  *    The viewport (region of graphics area) for drawing slices.
  */
 void
-BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* /*underlayVolume*/,
                                                  const VolumeMprVirtualSliceView& mprSliceView,
                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                  const Vector3D& sliceCoordinates,

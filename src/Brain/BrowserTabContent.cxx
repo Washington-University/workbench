@@ -473,7 +473,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprThreeCoronalSeparateRotationQuaternion = tabToClone->m_mprThreeCoronalSeparateRotationQuaternion;
     m_mprThreeParasagittalSeparateRotationQuaternion = tabToClone->m_mprThreeParasagittalSeparateRotationQuaternion;
 
-    m_mprThreeRotationQuaternion = tabToClone->m_mprThreeRotationQuaternion;
     m_mprThreeAxialInverseRotationQuaternion = tabToClone->m_mprThreeAxialInverseRotationQuaternion;
     m_mprThreeCoronalInverseRotationQuaternion = tabToClone->m_mprThreeCoronalInverseRotationQuaternion;
     m_mprThreeParasagittalInverseRotationQuaternion = tabToClone->m_mprThreeParasagittalInverseRotationQuaternion;
@@ -3125,7 +3124,6 @@ BrowserTabContent::resetMprRotations()
     m_mprThreeCoronalSeparateRotationQuaternion = QQuaternion();
     m_mprThreeParasagittalSeparateRotationQuaternion = QQuaternion();
 
-    m_mprThreeRotationQuaternion = QQuaternion();
     m_mprThreeAxialInverseRotationQuaternion = QQuaternion();
     m_mprThreeCoronalInverseRotationQuaternion = QQuaternion();
     m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
@@ -4722,10 +4720,6 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
                                                                            rotationAngleCCW));
         
         if (rotateTransformFlag) {
-            CaretAssert( ! m_mprThreeRotationQuaternion.isNull());
-            m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion * rotationQuaternion;
-            CaretAssert(!m_mprThreeRotationQuaternion.isNull());
-            
             const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                                        -rotationAngleCCW));
             
@@ -6044,6 +6038,7 @@ BrowserTabContent::saveToScene(const SceneAttributes* sceneAttributes,
     saveQuaternionToScene(sceneClass, "m_mprThreeCoronalSeparateRotationQuaternion", m_mprThreeCoronalSeparateRotationQuaternion);
     saveQuaternionToScene(sceneClass, "m_mprThreeParasagittalSeparateRotationQuaternion", m_mprThreeParasagittalSeparateRotationQuaternion);
 
+    QQuaternion m_mprThreeRotationQuaternion; /* Only used to identify newer scenes */
     saveQuaternionToScene(sceneClass, "m_mprThreeRotationQuaternion", m_mprThreeRotationQuaternion);
     saveQuaternionToScene(sceneClass, "m_mprThreeAxialInverseRotationQuaternion", m_mprThreeAxialInverseRotationQuaternion);
     saveQuaternionToScene(sceneClass, "m_mprThreeCoronalInverseRotationQuaternion", m_mprThreeCoronalInverseRotationQuaternion);
@@ -6462,6 +6457,7 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                "m_mprThreeParasagittalSeparateRotationQuaternion",
                                m_mprThreeParasagittalSeparateRotationQuaternion);
     
+    QQuaternion m_mprThreeRotationQuaternion; /* If NOT present, it is older scene */
     if ( ! restoreQuaternionFromScene(sceneClass,
                                       "m_mprThreeRotationQuaternion",
                                       m_mprThreeRotationQuaternion)) {
@@ -6542,7 +6538,6 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
                                                    0.0,
                                                    -m_mprRotationZ);
         }
-        m_mprThreeRotationQuaternion = matrixToQuaternion(rotationMatrix);
         m_mprThreeAxialInverseRotationQuaternion = matrixToQuaternion(axialInverseRotationMatrix);
         m_mprThreeCoronalInverseRotationQuaternion = matrixToQuaternion(coronalInverseRotationMatrix);
         m_mprThreeParasagittalInverseRotationQuaternion = matrixToQuaternion(parasagittalInverseRotationMatrix);
@@ -8126,7 +8121,6 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprThreeCoronalSeparateRotationQuaternion      = btc->m_mprThreeCoronalSeparateRotationQuaternion;
                 m_mprThreeParasagittalSeparateRotationQuaternion = btc->m_mprThreeParasagittalSeparateRotationQuaternion;
 
-                m_mprThreeRotationQuaternion = btc->m_mprThreeRotationQuaternion;
                 m_mprThreeAxialInverseRotationQuaternion = btc->m_mprThreeAxialInverseRotationQuaternion;
                 m_mprThreeCoronalInverseRotationQuaternion = btc->m_mprThreeCoronalInverseRotationQuaternion;
                 m_mprThreeParasagittalInverseRotationQuaternion = btc->m_mprThreeParasagittalInverseRotationQuaternion;
@@ -8283,7 +8277,6 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeCoronalSeparateRotationQuaternion;
                 btc->m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeParasagittalSeparateRotationQuaternion;
 
-                btc->m_mprThreeRotationQuaternion = m_mprThreeRotationQuaternion;
                 btc->m_mprThreeAxialInverseRotationQuaternion = m_mprThreeAxialInverseRotationQuaternion;
                 btc->m_mprThreeCoronalInverseRotationQuaternion = m_mprThreeCoronalInverseRotationQuaternion;
                 btc->m_mprThreeParasagittalInverseRotationQuaternion = m_mprThreeParasagittalInverseRotationQuaternion;

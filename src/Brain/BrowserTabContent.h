@@ -930,7 +930,6 @@ namespace caret {
         QQuaternion m_mprThreeParasagittalSeparateRotationQuaternion;
 
         /* One matrix with "inverse rotations" */
-        QQuaternion m_mprThreeRotationQuaternion; /* not used but helps identify older/newer scenes */
         QQuaternion m_mprThreeAxialInverseRotationQuaternion;
         QQuaternion m_mprThreeCoronalInverseRotationQuaternion;
         QQuaternion m_mprThreeParasagittalInverseRotationQuaternion;
