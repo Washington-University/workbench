@@ -73,6 +73,8 @@ namespace caret {
         
         void initializeManualConfiguration();
         
+        virtual AString toToolTip() const override;
+        
         // ADD_NEW_METHODS_HERE
 
     protected:

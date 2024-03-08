@@ -35,6 +35,7 @@ namespace caret {
     class SceneClassAssistant;
     class TileTabsLayoutBaseConfiguration;
     class TileTabsLayoutGridConfiguration;
+    class TileTabsLayoutManualConfiguration;
     
     class BrowserWindowContent : public CaretObject, public SceneableInterface {
         
@@ -88,6 +89,10 @@ namespace caret {
         bool isManualModeTileTabsConfigurationEnabled() const;
         
         void setManualConfigurationFromGridConfiguration(TileTabsLayoutGridConfiguration* gridConfiguration);
+        
+        void setPreviousManualTileTabsConfiguration(TileTabsLayoutManualConfiguration* manualConfiguration);
+        
+        const TileTabsLayoutManualConfiguration* getPreviousManualTileTabsConfiguration() const;
         
         int32_t getSceneGraphicsWidth() const;
         
@@ -160,15 +165,9 @@ namespace caret {
         
         bool m_tileTabsEnabled = false;
         
-        TileTabsLayoutConfigurationTypeEnum::Enum m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
-        
         int32_t m_sceneGraphicsWidth = 0;
         
         int32_t m_sceneGraphicsHeight = 0;
-        
-        std::unique_ptr<TileTabsLayoutGridConfiguration> m_automaticGridTileTabsConfiguration;
-        
-        std::unique_ptr<TileTabsLayoutGridConfiguration> m_customGridTileTabsConfiguration;
         
         int32_t m_sceneSelectedTabIndex = 0;
         
@@ -177,6 +176,14 @@ namespace caret {
         int32_t m_windowAnnotationsStackingOrder = -1000;
         
         std::unique_ptr<WindowTabAspectRatios> m_windowTabAspectRatios;
+        
+        TileTabsLayoutConfigurationTypeEnum::Enum m_tileTabsConfigurationMode = TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID;
+        
+        std::unique_ptr<TileTabsLayoutGridConfiguration> m_automaticGridTileTabsConfiguration;
+        
+        std::unique_ptr<TileTabsLayoutGridConfiguration> m_customGridTileTabsConfiguration;
+        
+        std::unique_ptr<TileTabsLayoutManualConfiguration> m_previousManualTileTabsConfiguration;
         
         friend class BrainBrowserWindow;
 

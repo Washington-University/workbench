@@ -35,6 +35,7 @@
 #include "SceneIntegerArray.h"
 #include "ScenePrimitive.h"
 #include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "WindowTabAspectRatios.h"
 
 using namespace caret;
@@ -124,6 +125,7 @@ BrowserWindowContent::reset()
     m_sceneTabIndices.clear();
     m_windowAnnotationsStackingOrder = -1000;  /* way in front */
     m_windowTabAspectRatios.reset(new WindowTabAspectRatios());
+    m_previousManualTileTabsConfiguration.reset();
 }
 
 /**
@@ -532,6 +534,25 @@ BrowserWindowContent::isManualModeTileTabsConfigurationEnabled() const
     return false;
 }
 
+/**
+ * Set the previous manual tile tabs configuration
+ * @param manualConfiguration
+ *    The previous configuration
+ */
+void
+BrowserWindowContent::setPreviousManualTileTabsConfiguration(TileTabsLayoutManualConfiguration* manualConfiguration)
+{
+    m_previousManualTileTabsConfiguration.reset(manualConfiguration);
+}
+
+/**
+ * @return The previous manual tile tabs configuration (may be NULL)
+ */
+const TileTabsLayoutManualConfiguration*
+BrowserWindowContent::getPreviousManualTileTabsConfiguration() const
+{
+    return m_previousManualTileTabsConfiguration.get();
+}
 
 /**
  * @return Width of the graphics region from scene.

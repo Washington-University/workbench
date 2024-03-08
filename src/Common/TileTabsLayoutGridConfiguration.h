@@ -99,6 +99,8 @@ namespace caret {
         
         void setCustomDefaultFlag(const bool defaultFlag);
         
+        virtual AString toToolTip() const override;
+        
         // ADD_NEW_METHODS_HERE
         
     protected:

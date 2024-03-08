@@ -79,6 +79,8 @@ namespace caret {
         
         void manualConfigurationSetMenuFromCustomItemTriggered();
 
+        void processUndoConfigurationActionTriggered();
+        
     private:
         TileTabsLayoutGridConfiguration* getCustomTileTabsGridConfiguration();
 
@@ -95,6 +97,8 @@ namespace caret {
                                         const int32_t numCols) const;
 
         QToolButton* createManualConfigurationSetToolButton();
+        
+        QToolButton* createUndoToolButton();
         
         // ADD_NEW_MEMBERS_HERE
 
@@ -115,6 +119,10 @@ namespace caret {
         QSpinBox* m_customGridRowsSpinBox = NULL;
         
         QToolButton* m_manualConfigurationSetButton;
+        
+        QToolButton* m_undoConfigurationChangeToolButton = NULL;
+        
+        QAction* m_undoConfigurationChangeAction = NULL;
         
         QString m_viewTileTabsConfigurationActionText;
         QString m_setManualToAutomaticGridActionText;

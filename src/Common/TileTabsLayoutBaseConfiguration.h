@@ -85,6 +85,8 @@ namespace caret {
         
         virtual const TileTabsLayoutManualConfiguration* castToManualConfiguration() const;
         
+        virtual AString toToolTip() const = 0;
+        
         static bool lessThanComparisonByName(const TileTabsLayoutBaseConfiguration* ttc1,
                                              const TileTabsLayoutBaseConfiguration* ttc2);
         

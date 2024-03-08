@@ -764,17 +764,23 @@ CaretPreferences::getTileTabsUserConfigurationsNamesAndUniqueIdentifiers(const b
         QString typeString;
         switch (ttc->getLayoutType()) {
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-                typeString = " (AG)";
+                typeString = " (Auto)";
                 break;
             case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
-                typeString = (" (G,"
-                              + AString::number(ttc->getNumberOfTabs())
+            {
+                const TileTabsLayoutGridConfiguration* gc(ttc->castToGridConfiguration());
+                CaretAssert(gc);
+                typeString = (" (Grid R="
+                              + AString::number(gc->getNumberOfRows())
+                              + ",C="
+                              + AString::number(gc->getNumberOfColumns())
                               + ")");
+            }
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
-                typeString = (" (M,"
+                typeString = (" (Manual "
                               + AString::number(ttc->getNumberOfTabs())
-                              + ")");
+                              + " Tabs)");
                 break;
         }
         nameIDs.push_back(std::make_pair(ttc->getName() + typeString,

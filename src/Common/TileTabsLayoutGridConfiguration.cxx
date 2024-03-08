@@ -1238,3 +1238,18 @@ TileTabsLayoutGridConfiguration::setCustomDefaultFlag(const bool defaultFlag)
 {
     m_customDefaultFlag = defaultFlag;
 }
+
+/**
+ * @return A tooltip for this tile tabs configuration
+ */
+AString
+TileTabsLayoutGridConfiguration::toToolTip() const
+{
+    AString tooltip(TileTabsLayoutConfigurationTypeEnum::toGuiName(getLayoutType())
+                    + " "
+                    + AString::number(getNumberOfRows())
+                    + " Rows, "
+                    + AString::number(getNumberOfColumns())
+                    + " Columns");
+    return tooltip;
+}

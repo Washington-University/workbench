@@ -42,6 +42,7 @@
 #include "GuiManager.h"
 #include "TileTabsConfigurationDialog.h"
 #include "TileTabsLayoutGridConfiguration.h"
+#include "TileTabsLayoutManualConfiguration.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
@@ -97,27 +98,29 @@ m_windowIndex(-1)
         
         switch (layoutType) {
             case TileTabsLayoutConfigurationTypeEnum::AUTOMATIC_GRID:
-                layout->addWidget(rb,
-                                  layoutRow, 0, 1, 5, Qt::AlignLeft);
                 m_automaticGridRowsColumnsLabel = new QLabel(rowsColumnsLabelText);
                 switch (m_parentType) {
                     case ParentType::BROWSER_WINDOW_TOOLBAR:
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 5, Qt::AlignLeft);
                         layoutRow++;
                         layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 1, 1, 4);
                         break;
                     case ParentType::TILE_TABS_DIALOG:
-                        layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 5, 1, Qt::AlignLeft);
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 2, Qt::AlignLeft);
+                        layout->addWidget(m_automaticGridRowsColumnsLabel, layoutRow, 2, Qt::AlignLeft);
                         break;
                 }
                 layoutRow++;
                 break;
             case TileTabsLayoutConfigurationTypeEnum::CUSTOM_GRID:
             {
-                layout->addWidget(rb,
-                                  layoutRow, 0, 1, 5, Qt::AlignLeft);
                 
                 switch (m_parentType) {
                     case ParentType::BROWSER_WINDOW_TOOLBAR:
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 5, Qt::AlignLeft);
                         layoutRow++;
                         m_customGridColumnsSpinBox = new QSpinBox();
                         m_customGridColumnsSpinBox->setRange(1, 99);
@@ -135,8 +138,10 @@ m_windowIndex(-1)
                         layout->addWidget(m_customGridColumnsSpinBox, layoutRow, 3, 1, 2);
                         break;
                     case ParentType::TILE_TABS_DIALOG:
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 2, Qt::AlignLeft);
                         m_customGridRowsColumnsLabel = new QLabel(rowsColumnsLabelText);
-                        layout->addWidget(m_customGridRowsColumnsLabel, layoutRow, 5, 1, Qt::AlignLeft);
+                        layout->addWidget(m_customGridRowsColumnsLabel, layoutRow, 2, Qt::AlignLeft);
                         break;
                 }
                 layoutRow++;
@@ -144,11 +149,30 @@ m_windowIndex(-1)
                 break;
             case TileTabsLayoutConfigurationTypeEnum::MANUAL:
             {
-                layout->addWidget(rb,
-                                  layoutRow, 0, 1, 3, Qt::AlignLeft);
-                m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
-                layout->addWidget(m_manualConfigurationSetButton,
-                                  layoutRow, 3, 1, 2, Qt::AlignLeft);
+                switch (m_parentType) {
+                    case ParentType::BROWSER_WINDOW_TOOLBAR:
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 3, Qt::AlignLeft);
+                        m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
+                        layout->addWidget(m_manualConfigurationSetButton,
+                                          layoutRow, 3, 1, 2, Qt::AlignLeft);
+                        break;
+                    case ParentType::TILE_TABS_DIALOG:
+                        layout->addWidget(rb,
+                                          layoutRow, 0, 1, 1, Qt::AlignLeft);
+                        m_manualConfigurationSetButton = createManualConfigurationSetToolButton();
+                        layout->addWidget(m_manualConfigurationSetButton,
+                                          layoutRow, 1, 1, 1, Qt::AlignLeft);
+                        m_undoConfigurationChangeToolButton = createUndoToolButton();
+                        if (m_undoConfigurationChangeToolButton != NULL) {
+                            WuQtUtilities::matchWidgetHeights(m_manualConfigurationSetButton,
+                                                              m_undoConfigurationChangeToolButton);
+                            layout->addWidget(m_undoConfigurationChangeToolButton,
+                                              layoutRow, 2, 1, 1, Qt::AlignLeft);
+                        }
+                        break;
+                }
+                
                 layoutRow++;
             }
                 break;
@@ -325,6 +349,17 @@ TileTabsLayoutConfigurationTypeWidget::updateContent(const int32_t windowIndex)
                                                                           customConfigColCount));
             break;
     }
+    
+    if (m_undoConfigurationChangeAction != NULL) {
+        const TileTabsLayoutManualConfiguration* undoConfig(bwc->getPreviousManualTileTabsConfiguration());
+        m_undoConfigurationChangeAction->setEnabled(false);
+        m_undoConfigurationChangeAction->setToolTip("");
+        if (undoConfig != NULL) {
+            m_undoConfigurationChangeAction->setEnabled(true);
+            m_undoConfigurationChangeAction->setToolTip("Restore last configuration: "
+                                                        + undoConfig->toToolTip());
+        }
+    }
 }
 
 /**
@@ -459,6 +494,61 @@ TileTabsLayoutConfigurationTypeWidget::createManualConfigurationSetToolButton()
                      this, &TileTabsLayoutConfigurationTypeWidget::setToolButtonClicked);
     WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
     return toolButton;
+}
+
+/**
+ * @return The undo configuration change tool button
+ */
+QToolButton*
+TileTabsLayoutConfigurationTypeWidget::createUndoToolButton()
+{
+    /*
+     * Undo unlocking of aspect ratio
+     */
+    QIcon undoIcon;
+    const bool undoIconValid(WuQtUtilities::loadIcon(":/ToolBar/undo.png",
+                                                     undoIcon));
+    m_undoConfigurationChangeAction = new QAction();
+    if (undoIconValid) {
+        m_undoConfigurationChangeAction->setIcon(undoIcon);
+    }
+    else {
+        m_undoConfigurationChangeAction->setText("U");
+    }
+    m_undoConfigurationChangeAction->setToolTip("Revert to previous configuration");
+    QObject::connect(m_undoConfigurationChangeAction, &QAction::triggered,
+                     this, &TileTabsLayoutConfigurationTypeWidget::processUndoConfigurationActionTriggered);
+    
+    QToolButton* toolButton(new QToolButton());
+    toolButton->setDefaultAction(m_undoConfigurationChangeAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(toolButton);
+    
+    return toolButton;
+}
+
+/**
+ * Called when undo configuration action is triggered
+ */
+void
+TileTabsLayoutConfigurationTypeWidget::processUndoConfigurationActionTriggered()
+{
+    BrainBrowserWindow* browserWindow(GuiManager::get()->getBrowserWindowByWindowIndex(m_windowIndex));
+    if (browserWindow == NULL) {
+        /*
+         * Browser window may be under construction
+         */
+        return;
+    }
+    BrowserWindowContent* bwc(browserWindow->getBrowerWindowContent());
+    if (bwc != NULL) {
+        const TileTabsLayoutManualConfiguration* manualConfiguration(bwc->getPreviousManualTileTabsConfiguration());
+        if (manualConfiguration != NULL) {
+            TileTabsConfigurationDialog::loadIntoManualConfiguration(manualConfiguration,
+                                                                     m_windowIndex,
+                                                                     m_undoConfigurationChangeToolButton);
+        }
+    }
+
 }
 
 /**

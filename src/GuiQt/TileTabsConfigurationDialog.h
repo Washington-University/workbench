@@ -80,6 +80,8 @@ namespace caret {
                                                 const int32_t windowIndex,
                                                 QWidget* parentWidget);
         
+        static TileTabsLayoutManualConfiguration* createManualConfigurationFromWindow(const BrainBrowserWindow* window);
+
     private:
         TileTabsConfigurationDialog(const TileTabsConfigurationDialog&);
 

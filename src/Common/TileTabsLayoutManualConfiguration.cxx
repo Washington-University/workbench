@@ -579,3 +579,15 @@ TileTabsLayoutManualConfiguration::castToManualConfiguration() const
     return this;
 }
 
+/**
+ * @return A tooltip for this tile tabs configuration
+ */
+AString
+TileTabsLayoutManualConfiguration::toToolTip() const
+{
+    AString tooltip(TileTabsLayoutConfigurationTypeEnum::toGuiName(getLayoutType())
+                    + " "
+                    + AString::number(getNumberOfTabs())
+                    + " Tabs");
+    return tooltip;
+}

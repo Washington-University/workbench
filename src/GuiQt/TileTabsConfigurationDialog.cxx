@@ -510,6 +510,11 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
         tabIndices.push_back(tc->getTabNumber());
     }
 
+    /*
+     * Backup current manual configuration and save it later
+     */
+    TileTabsLayoutManualConfiguration* backupManualConfiguration(createManualConfigurationFromWindow(browserWindow));
+
     std::unique_ptr<TileTabsLayoutManualConfiguration> manualConfiguration;
     
     switch (configuration->getLayoutType()) {
@@ -725,6 +730,10 @@ TileTabsConfigurationDialog::loadIntoManualConfiguration(const TileTabsLayoutBas
     browserWindowContent->setTileTabsConfigurationMode(TileTabsLayoutConfigurationTypeEnum::MANUAL);
     browserWindowContent->setWindowAnnotationsStackingOrder(manualConfiguration->getWindowAnnotationsStackingOrder());
 
+    if (backupManualConfiguration != NULL) {
+        browserWindowContent->setPreviousManualTileTabsConfiguration(backupManualConfiguration);
+    }
+
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonOneWindow(windowIndex).getPointer());
 
@@ -820,6 +829,35 @@ TileTabsLayoutManualConfiguration*
 TileTabsConfigurationDialog::createManualConfigurationFromCurrentTabs() const
 {
     const BrainBrowserWindow* window = getBrowserWindow();
+    return createManualConfigurationFromWindow(window);
+    
+//    std::vector<BrowserTabContent*> allTabContent;
+//    window->getAllTabContent(allTabContent);
+//
+//    TileTabsLayoutManualConfiguration* manualConfig = new TileTabsLayoutManualConfiguration();
+//    for (const auto btc : allTabContent) {
+//        CaretAssert(btc);
+//        const AnnotationBrowserTab* browserTabAnnotation = btc->getManualLayoutBrowserTabAnnotation();
+//        CaretAssert(browserTabAnnotation);
+//        TileTabsBrowserTabGeometry* geometry = new TileTabsBrowserTabGeometry(browserTabAnnotation->getTabIndex());
+//        browserTabAnnotation->getTileTabsGeometry(geometry);
+//        manualConfig->addTabInfo(geometry);
+//    }
+//
+//    manualConfig->setWindowAnnotationsStackingOrder(getBrowserWindowContent()->getWindowAnnotationsStackingOrder());
+//
+//    return manualConfig;
+}
+
+/**
+ * @return A manual configuration from the geometry of the current tabs in the given window.
+ * If Tile Tabs is NOT enabled, NULL is returned.
+ * @param window
+ *    The browser window.
+ */
+TileTabsLayoutManualConfiguration*
+TileTabsConfigurationDialog::createManualConfigurationFromWindow(const BrainBrowserWindow* window)
+{
     std::vector<BrowserTabContent*> allTabContent;
     window->getAllTabContent(allTabContent);
     
@@ -832,12 +870,13 @@ TileTabsConfigurationDialog::createManualConfigurationFromCurrentTabs() const
         browserTabAnnotation->getTileTabsGeometry(geometry);
         manualConfig->addTabInfo(geometry);
     }
-
-    manualConfig->setWindowAnnotationsStackingOrder(getBrowserWindowContent()->getWindowAnnotationsStackingOrder());
+    
+    const BrowserWindowContent* windowContent(window->getBrowerWindowContent());
+    CaretAssert(windowContent);
+    manualConfig->setWindowAnnotationsStackingOrder(windowContent->getWindowAnnotationsStackingOrder());
     
     return manualConfig;
 }
-
 
 /**
  * @return The browser window selected window index.
