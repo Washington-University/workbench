@@ -82,7 +82,7 @@
 using namespace caret;
 
 /* The QSlider uses integer for min/max so use max-int / 4  (approximately) */
-static const int32_t BIG_NUMBER = 500000000;
+static const int32_t BIG_NUMBER = (std::numeric_limits<int32_t>::max() - 1);
 
     
 /**
@@ -298,8 +298,15 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                             minValue = -absMax * 2.0;
                             maxValue =  absMax * 2.0;
                         }
+                        
+                        /*
+                         * Use file data for step size
+                         * Use larger of double file value or a BIG number
+                         */
                         stepMin = minValue;
                         stepMax = maxValue;
+                        minValue = std::min(minValue, (float)-BIG_NUMBER);
+                        maxValue = std::max(maxValue, (float)BIG_NUMBER);
                     }
                         break;
                 }
