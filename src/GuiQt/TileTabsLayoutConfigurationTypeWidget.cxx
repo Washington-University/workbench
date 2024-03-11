@@ -356,8 +356,7 @@ TileTabsLayoutConfigurationTypeWidget::updateContent(const int32_t windowIndex)
         m_undoConfigurationChangeAction->setToolTip("");
         if (undoConfig != NULL) {
             m_undoConfigurationChangeAction->setEnabled(true);
-            m_undoConfigurationChangeAction->setToolTip("Restore last configuration: "
-                                                        + undoConfig->toToolTip());
+            m_undoConfigurationChangeAction->setToolTip("Revert to previous configuration");
         }
     }
 }
