@@ -1029,7 +1029,7 @@ CustomViewDialog::zoomValueChanged(double value)
 void
 CustomViewDialog::mprThreeRotationValueChanged()
 {
-    updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::DELTA);
+    updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::REPLACE);
 }
 
 
