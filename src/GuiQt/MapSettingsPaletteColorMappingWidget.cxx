@@ -321,6 +321,11 @@ MapSettingsPaletteColorMappingWidget::updateThresholdControlsMinimumMaximumRange
                     stepValue = diff / 100.0;
                 }
                 
+                if (thresholdRangeMode == PaletteThresholdRangeModeEnum::PALETTE_THRESHOLD_RANGE_MODE_UNLIMITED) {
+                    if (stepValue > 1.0) {
+                        stepValue = 1.0;
+                    }
+                }
                 float lowMin = minValue;
                 float lowMax = maxValue;
                 float highMin = minValue;
