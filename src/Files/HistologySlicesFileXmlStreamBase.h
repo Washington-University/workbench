@@ -56,7 +56,11 @@ namespace caret {
         
         static const QString ELEMENT_HIST_TO_MRI_WARP;
         
+        static const QString ELEMENT_IMAGE;
+        
         static const QString ELEMENT_META_CZI;
+        
+        static const QString ELEMENT_META_IMAGE;
         
         static const QString ELEMENT_MRI_TO_HIST_WARP;
         
@@ -88,7 +92,11 @@ namespace caret {
     
     const QString HistologySlicesFileXmlStreamBase::ELEMENT_HIST_TO_MRI_WARP = "HistToMRIWarp";
 
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_IMAGE = "Image";
+    
     const QString HistologySlicesFileXmlStreamBase::ELEMENT_META_CZI = "MetaCZI";
+    
+    const QString HistologySlicesFileXmlStreamBase::ELEMENT_META_IMAGE = "MetaImage";
     
     const QString HistologySlicesFileXmlStreamBase::ELEMENT_MRI_TO_HIST_WARP = "MRItoHistWarp";
     

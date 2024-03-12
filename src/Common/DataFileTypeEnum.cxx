@@ -307,7 +307,8 @@ DataFileTypeEnum::initialize()
                                         "Histology Slices",
                                         "HISTOLOGY_SLICES",
                                         false,             /* ext below begins with dot */
-                                        "metaczi"));
+                                        "metaczi",
+                                        "meta-image"));
     
     enumData.push_back(DataFileTypeEnum(IMAGE,
                                         "IMAGE",

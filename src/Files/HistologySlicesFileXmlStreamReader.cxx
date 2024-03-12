@@ -148,16 +148,23 @@ HistologySlicesFileXmlStreamReader::readFileContent(HistologySlicesFile* histolo
         return;
     }
     
+    AString rootElement;
     m_xmlReader->readNextStartElement();
-    if (m_xmlReader->name() != ELEMENT_META_CZI) {
+    if ((m_xmlReader->name() == ELEMENT_META_CZI)
+        || (m_xmlReader->name() == ELEMENT_META_IMAGE)) {
+        rootElement = m_xmlReader->name().toString();
+    }
+    else {
         m_xmlReader->raiseError("First element is \""
                                 + m_xmlReader->name().toString()
                                 + "\" but should be "
-                                + ELEMENT_META_CZI);
+                                + ELEMENT_META_CZI
+                                + " or "
+                                + ELEMENT_META_IMAGE);
         return;
     }
     
-    m_fileVersion = m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_META_CZI,
+    m_fileVersion = m_xmlStreamHelper->getRequiredIntAttributeRaiseError(rootElement,
                                                                          ATTRIBUTE_VERSION);
     if (m_xmlReader->hasError()) {
         return;
@@ -197,7 +204,8 @@ HistologySlicesFileXmlStreamReader::readFileContent(HistologySlicesFile* histolo
                 }
                 break;
             case QXmlStreamReader::EndElement:
-                if (m_xmlReader->name() == ELEMENT_META_CZI) {
+                if ((m_xmlReader->name() == ELEMENT_META_CZI)
+                    || (m_xmlReader->name() == ELEMENT_META_IMAGE)) {
                     endElementFound = true;
                 }
                 break;
@@ -367,8 +375,10 @@ HistologySlicesFileXmlStreamReader::readSceneElement(HistologySlicesFile* histol
                                               scaledToPlaneMatrix);
                     scaledToPlaneMatrixValidFlag = true;
                 }
-                else if (m_xmlReader->name() == ELEMENT_CZI) {
-                    imageFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_CZI,
+                else if ((m_xmlReader->name() == ELEMENT_CZI)
+                         || (m_xmlReader->name() == ELEMENT_IMAGE)){
+                    const QString elementName(m_xmlReader->name().toString());
+                    imageFileName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(elementName,
                                                                                             ATTRIBUTE_FILE);
                     if ( ! m_xmlReader->hasError()) {
                         
