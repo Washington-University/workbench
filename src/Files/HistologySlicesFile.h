@@ -140,6 +140,8 @@ namespace caret {
         
         void copyHelperHistologySlicesFile(const HistologySlicesFile& obj);
 
+        void resetAfterSlicesChanged();
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::unique_ptr<GiftiMetaData> m_metaData;

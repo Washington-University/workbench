@@ -63,9 +63,7 @@ HistologySlicesFile::HistologySlicesFile()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     m_metaData.reset(new GiftiMetaData());
-    
-    m_stereotaxicXyzBoundingBoxValidFlag = false;
-    m_planeXyzBoundingBoxValidFlag       = false;
+    resetAfterSlicesChanged();
     
 //    EventManager::get()->addEventListener(this, EventTypeEnum::);
 }
@@ -120,9 +118,12 @@ void
 HistologySlicesFile::copyHelperHistologySlicesFile(const HistologySlicesFile& obj)
 {
     *m_metaData = *obj.m_metaData;
-    CaretAssertMessage(0, "Copying not supported");
-    m_stereotaxicXyzBoundingBoxValidFlag = false;
-    m_planeXyzBoundingBoxValidFlag       = false;
+    for (const auto& slice : m_histologySlices) {
+        CaretAssert(slice);
+        std::unique_ptr<HistologySlice> sliceCopy(new HistologySlice(*slice.get()));
+        m_histologySlices.push_back(std::move(sliceCopy));
+    }
+    resetAfterSlicesChanged();
 }
 
 /**
@@ -179,8 +180,9 @@ void
 HistologySlicesFile::clear()
 {
     CaretDataFile::clear();
-    m_stereotaxicXyzBoundingBoxValidFlag = false;
-    m_planeXyzBoundingBoxValidFlag       = false;
+    m_metaData->clear();
+    m_histologySlices.clear();
+    resetAfterSlicesChanged();
 }
 
 /**
@@ -230,8 +232,18 @@ HistologySlicesFile::addHistologySlice(HistologySlice* histologySlice)
 {
     CaretAssert(histologySlice);
     m_histologySlices.emplace_back(histologySlice);
+    resetAfterSlicesChanged();
+}
+
+/**
+ * Reset items that are dependent upon the slices
+ */
+void
+HistologySlicesFile::resetAfterSlicesChanged()
+{
     m_stereotaxicXyzBoundingBoxValidFlag = false;
     m_planeXyzBoundingBoxValidFlag       = false;
+    m_sliceSpacingValid                  = false;
 }
 
 /**
@@ -595,9 +607,8 @@ HistologySlicesFile::readFile(const AString& filename)
         HistologySlicesFileXmlStreamReader reader;
         reader.readFile(filename,
                         this);
-        m_stereotaxicXyzBoundingBoxValidFlag = false;
-        m_planeXyzBoundingBoxValidFlag       = false;
-        
+        resetAfterSlicesChanged();
+
         if (getNumberOfHistologySlices() <= 0) {
             throw DataFileException("No histology slices were read\n"
                                     + getFileReadWarnings());
@@ -725,9 +736,7 @@ HistologySlicesFile::restoreFileDataFromScene(const SceneAttributes* sceneAttrib
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
-    
-    m_stereotaxicXyzBoundingBoxValidFlag = false;
-    m_planeXyzBoundingBoxValidFlag       = false;
+    resetAfterSlicesChanged();
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
