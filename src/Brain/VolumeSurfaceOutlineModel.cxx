@@ -80,6 +80,15 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_thicknessPercentageViewportHeight = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PERCENTAGE_VIEWPORT_HEIGHT;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
+    
+    /*
+     * Need to clear cache after files added or removed
+     */
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_ADD);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_DELETE);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_RELOAD);
+    EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL);
 }
 
 /**
@@ -143,6 +152,16 @@ VolumeSurfaceOutlineModel::receiveEvent(Event* event)
                 clearOutlineCache();
                 break;
         }
+    }
+    else if (   (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_ADD)
+             || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_DELETE)
+             || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ)
+             || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD)
+             || (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL)) {
+        /*
+         * File that affects outlines may have been added or removed
+         */
+        clearOutlineCache();
     }
 }
 
