@@ -188,11 +188,27 @@ HistologySlicesFileXmlStreamReader::readFileContent(HistologySlicesFile* histolo
         switch (m_xmlReader->tokenType()) {
             case QXmlStreamReader::StartElement:
                 if (m_xmlReader->name() == ELEMENT_SLICE) {
-                    const int32_t sliceNumber(m_xmlStreamHelper->getRequiredIntAttributeRaiseError(ELEMENT_SLICE,
-                                                                                                   ATTRIBUTE_NUMBER));
+                    AString sliceName;
+                    const QXmlStreamAttributes& atts(m_xmlReader->attributes());
+                    if (atts.hasAttribute(ATTRIBUTE_SLICE_NAME)) {
+                        sliceName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_SLICE,
+                                                                                            ATTRIBUTE_SLICE_NAME);
+                    }
+                    else if (atts.hasAttribute(ATTRIBUTE_SLICE_NUMBER)) {
+                        sliceName = m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_SLICE,
+                                                                                            ATTRIBUTE_SLICE_NUMBER);
+                    }
+                    else {
+                        m_xmlReader->raiseError(ELEMENT_SLICE
+                                                + " has neither "
+                                                + ATTRIBUTE_SLICE_NAME
+                                                + " nor obsolete "
+                                                + ATTRIBUTE_SLICE_NUMBER
+                                                + " attribute.");
+                    }
                     if ( ! m_xmlReader->hasError()) {
                         HistologySlice* slice(readSliceElement(histologySlicesFile,
-                                                               sliceNumber));
+                                                               sliceName));
                         if (slice != NULL) {
                             histologySlicesFile->addHistologySlice(slice);
                         }
@@ -219,14 +235,14 @@ HistologySlicesFileXmlStreamReader::readFileContent(HistologySlicesFile* histolo
  * Read a slice element from the XML
  * @param histologySlicesFile
  *     The histology slices file
- * @param sliceNumber
+ * @param sliceName
  *     Slice number from Slice element
  * @return
  *    Pointer to slice read.
  */
 HistologySlice*
 HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histologySlicesFile,
-                                             const int32_t sliceNumber)
+                                                     const AString& sliceName)
 {
     /*
      * Set when ending scene file element is found
@@ -267,7 +283,7 @@ HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histol
                 }
                 else if (m_xmlReader->name() == ELEMENT_SCENE) {
                     const QString sceneName(m_xmlStreamHelper->getRequiredStringAttributeRaiseError(ELEMENT_SCENE,
-                                                                                                    ATTRIBUTE_NAME));
+                                                                                                    ATTRIBUTE_SCENE_NAME));
                     if ( ! m_xmlReader->hasError()) {
                         HistologySliceImage* image(readSceneElement(histologySlicesFile,
                                                                     sceneName));
@@ -298,7 +314,7 @@ HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histol
     
     if (images.empty()) {
         const AString msg("Slice "
-                          + AString::number(sliceNumber)
+                          + sliceName
                           + " contains no scenes (images) or images are not readable");
         histologySlicesFile->addFileReadWarning(msg);
         //m_xmlReader->raiseError(msg);
@@ -309,7 +325,7 @@ HistologySlicesFileXmlStreamReader::readSliceElement(HistologySlicesFile* histol
     mriToHistWarpFileName = makeAbsoluteFilePath(mriToHistWarpFileName);
     histToMriWarpFileName = makeAbsoluteFilePath(histToMriWarpFileName);
     HistologySlice* slice(new HistologySlice(sliceIndex,
-                                             sliceNumber,
+                                             sliceName,
                                              mriToHistWarpFileName,
                                              histToMriWarpFileName,
                                              planeToMmMatrix,

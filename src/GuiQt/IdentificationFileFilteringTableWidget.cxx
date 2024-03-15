@@ -319,8 +319,8 @@ IdentificationFileFilteringTableWidget::updateContent()
                     }
                     else if (histologySlicesFile != NULL) {
                         for (int32_t sliceIndex = 0; sliceIndex < histologySlicesFile->getNumberOfHistologySlices(); sliceIndex++) {
-                            const int32_t sliceNumber(histologySlicesFile->getSliceNumberBySliceIndex(sliceIndex));
-                            comboBox->addItem(AString::number(sliceNumber));
+                            const AString& sliceName(histologySlicesFile->getSliceNameBySliceIndex(sliceIndex));
+                            comboBox->addItem(sliceName);
                         }
                     }
                     else if (mediaFile != NULL) {

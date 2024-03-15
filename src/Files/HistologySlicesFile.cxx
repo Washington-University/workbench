@@ -290,14 +290,14 @@ HistologySlicesFile::getHistologySliceByIndex(const int32_t sliceIndex) const
 
 /**
  * @return Slice with the given slice number
- * @param sliceNumber
+ * @param sliceName
  *     Number of the slice
  */
 const HistologySlice*
-HistologySlicesFile::getHistologySliceByNumber(const int32_t sliceNumber) const
+HistologySlicesFile::getHistologySliceByNumber(const AString& sliceName) const
 {
     for (auto& ptr : m_histologySlices) {
-        if (ptr->getSliceNumber() == sliceNumber) {
+        if (ptr->getSliceName() == sliceName) {
             return ptr.get();
         }
     }
@@ -309,30 +309,30 @@ HistologySlicesFile::getHistologySliceByNumber(const int32_t sliceNumber) const
  * @param sliceIndex
  *    Index of the slice
  */
-int32_t
-HistologySlicesFile::getSliceNumberBySliceIndex(const int32_t sliceIndex) const
+AString
+HistologySlicesFile::getSliceNameBySliceIndex(const int32_t sliceIndex) const
 {
     CaretAssertVectorIndex(m_histologySlices, sliceIndex);
     if ((sliceIndex >= 0)
         && (sliceIndex < static_cast<int32_t>(m_histologySlices.size()))) {
         CaretAssertVectorIndex(m_histologySlices, sliceIndex);
-        return m_histologySlices[sliceIndex]->getSliceNumber();
+        return m_histologySlices[sliceIndex]->getSliceName();
     }
-    return -1;
+    return "";
 }
 
 /**
  * @return Slice index for slice with slice number, negative if slice number is invalid
- * @param sliceNumber
+ * @param sliceName
  *    Number of the slice
  */
 int32_t
-HistologySlicesFile::getSliceIndexFromSliceNumber(const int32_t sliceNumber) const
+HistologySlicesFile::getSliceIndexFromSliceName(const AString& sliceName) const
 {
     const int32_t numSlices(getNumberOfHistologySlices());
     for (int32_t sliceIndex = 0; sliceIndex < numSlices; sliceIndex++) {
         CaretAssertVectorIndex(m_histologySlices, sliceIndex);
-        if (m_histologySlices[sliceIndex]->getSliceNumber() == sliceNumber) {
+        if (m_histologySlices[sliceIndex]->getSliceName() == sliceName) {
             return sliceIndex;
         }
     }
@@ -441,7 +441,7 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
     columnOneText.push_back("Slice Index / Number");
     columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
                             + " / "
-                            + AString::number(getSliceNumberBySliceIndex(histologyCoordinate.getSliceIndex())));
+                            + getSliceNameBySliceIndex(histologyCoordinate.getSliceIndex()));
     
     AString mmText;
     AString planeText;
@@ -866,7 +866,7 @@ HistologySlicesFile::createOverlapMaskingTextures()
         AString msg;
         if ( ! slice->createOverlapMaskingTextures(msg)) {
             allMessages.appendWithNewLine("Slice number "
-                                          + AString::number(slice->getSliceNumber())
+                                          + slice->getSliceName()
                                           + " has error creating overlap masks: "
                                           + msg);
         }

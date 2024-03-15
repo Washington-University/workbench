@@ -162,17 +162,17 @@ HistologyOverlayViewController::HistologyOverlayViewController(const Qt::Orienta
      * Slice Number Combo Box
      */
     m_nameToolTipText = ("Select slice by its number");
-    m_sliceNumberComboBox = WuQFactory::newComboBox();
-    m_sliceNumberComboBox->setObjectName(objectNamePrefix
-                                      + "SliceNumberSelection");
-    m_sliceNumberComboBox->setMinimumWidth(minComboBoxWidth);
-    m_sliceNumberComboBox->setMaximumWidth(maxComboBoxWidth);
-    QObject::connect(m_sliceNumberComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-                     this, &HistologyOverlayViewController::sliceNumberComboBoxSelected);
-    WuQtUtilities::setWordWrappedToolTip(m_sliceNumberComboBox,
+    m_sliceNameComboBox = WuQFactory::newComboBox();
+    m_sliceNameComboBox->setObjectName(objectNamePrefix
+                                      + "SliceNameSelection");
+    m_sliceNameComboBox->setMinimumWidth(minComboBoxWidth);
+    m_sliceNameComboBox->setMaximumWidth(maxComboBoxWidth);
+    QObject::connect(m_sliceNameComboBox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     this, &HistologyOverlayViewController::sliceNameComboBoxSelected);
+    WuQtUtilities::setWordWrappedToolTip(m_sliceNameComboBox,
                                          m_nameToolTipText);
-    m_sliceNumberComboBox->setSizeAdjustPolicy(comboSizePolicy);
-    macroManager->addMacroSupportToObject(m_sliceNumberComboBox,
+    m_sliceNameComboBox->setSizeAdjustPolicy(comboSizePolicy);
+    macroManager->addMacroSupportToObject(m_sliceNameComboBox,
                                           ("Select " + descriptivePrefix + " slice number"));
     
     /*
@@ -281,7 +281,7 @@ HistologyOverlayViewController::HistologyOverlayViewController(const Qt::Orienta
                                          Qt::AlignHCenter);
         m_gridLayoutGroup->addWidget(m_sliceIndexSpinBox,
                                          row, 7);
-        m_gridLayoutGroup->addWidget(m_sliceNumberComboBox,
+        m_gridLayoutGroup->addWidget(m_sliceNameComboBox,
                                          row, 8);
         
     }
@@ -320,7 +320,7 @@ HistologyOverlayViewController::HistologyOverlayViewController(const Qt::Orienta
                                          row, 4);
         m_gridLayoutGroup->addWidget(m_sliceIndexSpinBox,
                                          row, 5);
-        m_gridLayoutGroup->addWidget(m_sliceNumberComboBox,
+        m_gridLayoutGroup->addWidget(m_sliceNameComboBox,
                                          row, 6);
     
         row++;
@@ -450,7 +450,7 @@ HistologyOverlayViewController::sliceIndexSpinBoxValueChanged(int indx)
  *    Index of selection.
  */
 void 
-HistologyOverlayViewController::sliceNumberComboBoxSelected(int itemIndex)
+HistologyOverlayViewController::sliceNameComboBoxSelected(int itemIndex)
 {
     if (m_histologyOverlay == NULL) {
         return;
@@ -465,9 +465,9 @@ HistologyOverlayViewController::sliceNumberComboBoxSelected(int itemIndex)
      * Slice number is in combo box item data
      */
     if ((itemIndex >= 0)
-        && (itemIndex < m_sliceNumberComboBox->count())) {
+        && (itemIndex < m_sliceNameComboBox->count())) {
         MapYokingGroupEnum::MediaAllFramesStatus mediaAllFramesStatus(MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_NO_CHANGE);
-        const int32_t sliceIndex = m_sliceNumberComboBox->itemData(itemIndex).toInt();
+        const int32_t sliceIndex = m_sliceNameComboBox->itemData(itemIndex).toInt();
         m_histologyOverlay->setSelectionData(selectionData.m_selectedFile,
                                              sliceIndex);
         
@@ -650,8 +650,8 @@ HistologyOverlayViewController::updateViewController(HistologyOverlay* overlay)
      * Load the slice number selection combo box
      */
     int32_t numberOfSlices = 0;
-    m_sliceNumberComboBox->blockSignals(true);
-    m_sliceNumberComboBox->clear();
+    m_sliceNameComboBox->blockSignals(true);
+    m_sliceNameComboBox->clear();
     if (selectionData.m_selectedFile != NULL) {
         numberOfSlices = selectionData.m_selectedFile->getNumberOfHistologySlices();
         
@@ -661,20 +661,20 @@ HistologyOverlayViewController::updateViewController(HistologyOverlay* overlay)
          */
         int32_t selectedComboBoxIndex(0);
         for (int32_t sliceIndex = 0; sliceIndex < numberOfSlices; sliceIndex++) {
-            const int32_t sliceNumber(selectionData.m_selectedFile->getSliceNumberBySliceIndex(sliceIndex));
-            const AString sliceNumberText(AString::number(sliceNumber));
-            m_sliceNumberComboBox->addItem(sliceNumberText,
+            const AString sliceName(selectionData.m_selectedFile->getSliceNameBySliceIndex(sliceIndex));
+            const AString sliceNameText(sliceName);
+            m_sliceNameComboBox->addItem(sliceNameText,
                                            sliceIndex);
             if (sliceIndex == selectionData.m_selectedSliceIndex) {
-                selectedComboBoxIndex = m_sliceNumberComboBox->count() - 1;
+                selectedComboBoxIndex = m_sliceNameComboBox->count() - 1;
             }
         }
         
-        if (selectedComboBoxIndex < m_sliceNumberComboBox->count()) {
-            m_sliceNumberComboBox->setCurrentIndex(selectedComboBoxIndex);
+        if (selectedComboBoxIndex < m_sliceNameComboBox->count()) {
+            m_sliceNameComboBox->setCurrentIndex(selectedComboBoxIndex);
         }
     }
-    m_sliceNumberComboBox->blockSignals(false);
+    m_sliceNameComboBox->blockSignals(false);
     
     m_sliceIndexSpinBox->blockSignals(true);
     m_sliceIndexSpinBox->setRange(1, numberOfSlices);
@@ -735,21 +735,21 @@ HistologyOverlayViewController::updateViewController(HistologyOverlay* overlay)
                                    + "\n\n"
                                    + "Copy File Name/Path to Clipboard with Construction Menu");
         
-        const QString sliceNumber(m_sliceNumberComboBox->currentText());
-        if (sliceNumber.length() > 15) {
+        const QString sliceName(m_sliceNameComboBox->currentText());
+        if (sliceName.length() > 15) {
             nameComboBoxToolTip.append(":\n"
-                                       + sliceNumber);
+                                       + sliceName);
         }
     }
     m_fileComboBox->setToolTip(fileComboBoxToolTip);
-    WuQtUtilities::setWordWrappedToolTip(m_sliceNumberComboBox,
+    WuQtUtilities::setWordWrappedToolTip(m_sliceNameComboBox,
                                          nameComboBoxToolTip);
 
     /*
      * Make sure items are enabled at the appropriate time
      */
     m_fileComboBox->setEnabled(haveFile);
-    m_sliceNumberComboBox->setEnabled(haveMultipleSlices);
+    m_sliceNameComboBox->setEnabled(haveMultipleSlices);
     m_sliceIndexSpinBox->setEnabled(haveMultipleSlices);
     m_enabledCheckBox->setEnabled(haveFile);
     m_constructionAction->setEnabled(true);
@@ -758,7 +758,7 @@ HistologyOverlayViewController::updateViewController(HistologyOverlay* overlay)
     m_settingsAction->setEnabled(true);
     
     m_sliceIndexSpinBox->setEnabled(false);
-    m_sliceNumberComboBox->setEnabled(false);
+    m_sliceNameComboBox->setEnabled(false);
 }
 
 /**
@@ -894,13 +894,13 @@ HistologyOverlayViewController::createConstructionMenu(QWidget* parent,
     macroManager->addMacroSupportToObject(m_copyPathAndFileNameToClipboardAction,
                                           ("Copy path and filename from " + descriptivePrefix + " to clipboard"));
     
-    QAction* copySliceNumberAction = menu->addAction("Copy Slice Number to Clipboard",
+    QAction* copySliceNameAction = menu->addAction("Copy Slice Number to Clipboard",
                                                  this,
-                                                 SLOT(menuCopySliceNumberToClipBoard()));
-    copySliceNumberAction->setObjectName(menuActionNamePrefix
-                                     + "CopySliceNumberToClipboard");
-    copySliceNumberAction->setToolTip("Copy number of selected slice to the clipboard");
-    macroManager->addMacroSupportToObject(copySliceNumberAction,
+                                                 SLOT(menuCopySliceNameToClipBoard()));
+    copySliceNameAction->setObjectName(menuActionNamePrefix
+                                     + "CopySliceNameToClipboard");
+    copySliceNameAction->setToolTip("Copy number of selected slice to the clipboard");
+    macroManager->addMacroSupportToObject(copySliceNameAction,
                                           ("Copy slice number in " + descriptivePrefix + " to clipboard"));
     
     return menu;
@@ -994,12 +994,12 @@ HistologyOverlayViewController::menuCopyFileNameToClipBoard()
  * Copy the slice number to the clip board.
  */
 void
-HistologyOverlayViewController::menuCopySliceNumberToClipBoard()
+HistologyOverlayViewController::menuCopySliceNameToClipBoard()
 {
     if (m_histologyOverlay != NULL) {
         const HistologyOverlay::SelectionData selectionData(m_histologyOverlay->getSelectionData());
         if (selectionData.m_selectedFile != NULL) {
-            QApplication::clipboard()->setText(AString::number(selectionData.m_selectedSliceNumber),
+            QApplication::clipboard()->setText(selectionData.m_selectedSliceName,
                                                QClipboard::Clipboard);
         }
     }

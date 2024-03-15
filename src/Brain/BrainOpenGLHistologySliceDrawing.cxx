@@ -399,7 +399,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
     
     HistologySlice*      underlayHistologySlice(NULL);
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
-    int32_t              underlayHistologySliceNumber(-1);
+    AString              underlayHistologySliceName;
     
     const int32_t numMediaFiles(static_cast<int32_t>(m_mediaFilesAndDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
@@ -578,7 +578,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
             if (underlayHistologySlicesFile == NULL) {
                 underlayHistologySlicesFile  = drawingData.m_selectedFile;
                 underlayHistologySlice       = drawingData.m_selectedFile->getHistologySliceByIndex(drawingData.m_selectedSliceIndex);
-                underlayHistologySliceNumber = drawingData.m_selectedSliceNumber;
+                underlayHistologySliceName   = drawingData.m_selectedSliceName;
             }
         }
     }
@@ -619,7 +619,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
                                                m_browserTabContent,
                                                m_fixedPipelineDrawing->mode);
     idDrawing.drawHistologyFilePlaneCoordinateIdentificationSymbols(underlayHistologySlicesFile,
-                                                                    underlayHistologySliceNumber,
+                                                                    underlayHistologySliceName,
                                                                     underlayHistologySlice->getPlaneXyzPlane(),
                                                                     sliceSpacing,
                                                                     m_browserTabContent->getScaling(),
@@ -649,7 +649,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      */
     if (underlayHistologySlice != NULL) {
         HistologySpaceKey histologySpaceKey(underlayHistologySlicesFile->getFileName(),
-                                            underlayHistologySliceNumber);
+                                            underlayHistologySliceName);
         m_fixedPipelineDrawing->drawHistologySpaceAnnotations(viewportContent,
                                                               histologySpaceKey,
                                                               underlayHistologySlice,

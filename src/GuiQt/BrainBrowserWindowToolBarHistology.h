@@ -24,6 +24,7 @@
 #include "BrainBrowserWindowToolBarComponent.h"
 
 class QCheckBox;
+class QComboBox;
 
 namespace caret {
 
@@ -60,7 +61,7 @@ namespace caret {
     private slots:
         void sliceIndexValueChanged(int);
         
-        void sliceNumberValueChanged(int);
+        void sliceNameComboBoxActivated(int);
         
         void planeXyzSpinBoxValueChanged();
 
@@ -95,7 +96,7 @@ namespace caret {
         
         WuQSpinBox* m_sliceIndexSpinBox;
         
-        WuQSpinBox* m_sliceNumberSpinBox;
+        QComboBox* m_sliceNameComboBox;
         
         WuQDoubleSpinBox* m_planeXyzSpinBox[3];
         

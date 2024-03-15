@@ -299,7 +299,7 @@ AnnotationGroup::getName() const
                 spaceName.append(" "
                                  + m_histologySpaceKey.getHistologySlicesFileName()
                                  + " "
-                                 + AString::number(m_histologySpaceKey.getSliceNumber()));
+                                 + m_histologySpaceKey.getSliceName());
                 break;
             case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
                 spaceName.append(" "

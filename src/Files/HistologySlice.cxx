@@ -54,7 +54,7 @@ using namespace caret;
  * Constructor.
  * @param sliceIndex
  *    Index of the slice
- * @param sliceNumber
+ * @param sliceName
  *    Number of the slice
  * @param MRIToHistWarpFileName,
  *    Name of MRI to Hist File
@@ -66,14 +66,14 @@ using namespace caret;
  *    Validity of plane to millimeters matrix
  */
 HistologySlice::HistologySlice(const int32_t sliceIndex,
-                               const int32_t sliceNumber,
+                               const AString& sliceName,
                                const AString& MRIToHistWarpFileName,
                                const AString& histToMRIWarpFileName,
                                const Matrix4x4& planeToMillimetersMatrix,
                                const bool planeToMillimetersMatrixValidFlag)
 : CaretObject(),
 m_sliceIndex(sliceIndex),
-m_sliceNumber(sliceNumber),
+m_sliceName(sliceName),
 m_MRIToHistWarpFileName(MRIToHistWarpFileName),
 m_histToMRIWarpFileName(histToMRIWarpFileName),
 m_planeToMillimetersMatrix(planeToMillimetersMatrix),
@@ -152,10 +152,10 @@ HistologySlice::getSliceIndex() const
 /**
  * @return Number of the slice
  */
-int32_t
-HistologySlice::getSliceNumber() const
+AString
+HistologySlice::getSliceName() const
 {
-    return m_sliceNumber;
+    return m_sliceName;
 }
 
 /**
@@ -713,7 +713,7 @@ AString
 HistologySlice::toString() const
 {
     AString s("Histology slice "
-              + AString::number(getSliceNumber()));
+              + getSliceName());
     s.appendWithNewLine("   MRI to Hist File: " + m_MRIToHistWarpFileName);
     s.appendWithNewLine("   Hist to MRI File: " + m_histToMRIWarpFileName);
     const int32_t numImages(getNumberOfHistologySliceImages());
@@ -827,7 +827,7 @@ void
 HistologySlice::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     dataFileInformation.addNameAndValue("Slice Index", getSliceIndex());
-    dataFileInformation.addNameAndValue("Slice Number", getSliceNumber());
+    dataFileInformation.addNameAndValue("Slice Number", getSliceName());
     
     const int32_t numImages(getNumberOfHistologySliceImages());
     for (int32_t jImage = 0; jImage < numImages; jImage++) {

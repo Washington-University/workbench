@@ -73,7 +73,7 @@ namespace caret {
     private slots:
         void fileComboBoxSelected(int);
         
-        void sliceNumberComboBoxSelected(int);
+        void sliceNameComboBoxSelected(int);
         
         void sliceIndexSpinBoxValueChanged(int);
         
@@ -99,7 +99,7 @@ namespace caret {
         
         void menuCopyFileNameToClipBoard();
         
-        void menuCopySliceNumberToClipBoard();
+        void menuCopySliceNameToClipBoard();
         
         void menuConstructionAboutToShow();
         
@@ -136,7 +136,7 @@ namespace caret {
         
         QComboBox* m_fileComboBox;
         
-        QComboBox* m_sliceNumberComboBox;
+        QComboBox* m_sliceNameComboBox;
         
         QSpinBox* m_sliceIndexSpinBox;
         

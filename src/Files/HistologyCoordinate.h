@@ -111,9 +111,9 @@ namespace caret {
         
         bool isSliceIndexValid() const;
         
-        int64_t getSliceNumber() const;
+        AString getSliceName() const;
         
-        bool isSliceNumberValid() const;
+        bool isSliceNameValid() const;
         
         // ADD_NEW_METHODS_HERE
         
@@ -159,7 +159,7 @@ namespace caret {
         
         void setSliceIndex(const int64_t sliceIndex);
         
-        void setSliceNumber(const int64_t sliceNumber);
+        void setSliceName(const AString& sliceName);
         
         void setPlaneXYZ(const Vector3D& xyz);
         
@@ -196,10 +196,10 @@ namespace caret {
         bool m_sliceIndexValid = false;
         
         /** number of slice*/
-        int64_t m_sliceNumber = 0;
+        AString m_sliceName;
         
         /** validity of slice number*/
-        bool m_sliceNumberValid = false;
+        bool m_sliceNameValid = false;
         
         // ADD_NEW_MEMBERS_HERE
         

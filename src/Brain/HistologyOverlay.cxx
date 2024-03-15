@@ -262,7 +262,7 @@ HistologyOverlay::getDrawingData(const int32_t selectedSliceIndex) const
                                        sliceImage,
                                        mediaFile,
                                        selectedSliceIndex,
-                                       m_selectedFile->getSliceNumberBySliceIndex(selectedSliceIndex),
+                                       m_selectedFile->getSliceNameBySliceIndex(selectedSliceIndex),
                                        iImage,
                                        selectionData.m_supportsYokingFlag);
                         drawingDataOut.push_back(dd);
@@ -351,13 +351,13 @@ HistologyOverlay::getSelectionData()
     }
 
     bool supportsYokingFlag(false);
-    int32_t selectedSliceNumber(-1);
+    AString selectedSliceName;
     if (m_selectedFile != NULL) {
         if ((m_selectedSliceIndex >= 0)
             && (m_selectedSliceIndex < numberOfSlices)) {
             const HistologySlice* hs(m_selectedFile->getHistologySliceByIndex(m_selectedSliceIndex));
             CaretAssert(hs);
-            selectedSliceNumber = hs->getSliceNumber();
+            selectedSliceName = hs->getSliceName();
         }
         supportsYokingFlag = (numberOfSlices > 1);
     }
@@ -368,7 +368,7 @@ HistologyOverlay::getSelectionData()
                                    allFiles,
                                    m_selectedFile,
                                    m_selectedSliceIndex,
-                                   selectedSliceNumber,
+                                   selectedSliceName,
                                    supportsYokingFlag);
    
     /*

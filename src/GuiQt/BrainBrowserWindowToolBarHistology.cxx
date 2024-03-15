@@ -25,6 +25,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QLabel>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -102,12 +103,10 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_sliceIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarHistology::sliceIndexValueChanged);
     
-    QLabel* sliceNumberLabel(new QLabel("Number"));
-    m_sliceNumberSpinBox = new WuQSpinBox();
-    m_sliceNumberSpinBox->setSingleStep(1);
-    m_sliceNumberSpinBox->setFixedWidth(sliceIndexNumberWidth);
-    QObject::connect(m_sliceNumberSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarHistology::sliceNumberValueChanged);
+    QLabel* sliceNameLabel(new QLabel("Name"));
+    m_sliceNameComboBox = new QComboBox();
+    QObject::connect(m_sliceNameComboBox, &QComboBox::activated,
+                     this, &BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated);
 
     /*
      * Plane and stereotaxic coordinates
@@ -213,16 +212,16 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(sliceIndexLabel,
                               row, columnSliceLabels);
     controlsLayout->addWidget(m_sliceIndexSpinBox,
-                              row, columnSliceSpinBoxes);
+                              row, columnSliceSpinBoxes, Qt::AlignRight);
     controlsLayout->addWidget(m_planeXyzSpinBox[0]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[0]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     ++row;
-    controlsLayout->addWidget(sliceNumberLabel,
+    controlsLayout->addWidget(sliceNameLabel,
                               row, columnSliceLabels);
-    controlsLayout->addWidget(m_sliceNumberSpinBox,
-                              row, columnSliceSpinBoxes);
+    controlsLayout->addWidget(m_sliceNameComboBox,
+                              row, columnSliceSpinBoxes, Qt::AlignRight);
     controlsLayout->addWidget(m_planeXyzSpinBox[1]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
@@ -304,10 +303,23 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
         m_sliceIndexSpinBox->setRange(0, histologySlicesFile->getNumberOfHistologySlices() - 1);
         m_sliceIndexSpinBox->setValue(histologyCoordinate.getSliceIndex());
 
-        QSignalBlocker numberBlocker(m_sliceNumberSpinBox);
-        m_sliceNumberSpinBox->setRange(0, 100000);
-        m_sliceNumberSpinBox->setValue(histologyCoordinate.getSliceNumber());
-        
+        int32_t selectedItemIndex(0);
+        m_sliceNameComboBox->clear();
+        const int32_t numSlices(histologySlicesFile->getNumberOfHistologySlices());
+        for (int32_t i = 0; i < numSlices; i++) {
+            const HistologySlice* slice(histologySlicesFile->getHistologySliceByIndex(i));
+            CaretAssert(slice);
+            if (slice->getSliceIndex() == histologyCoordinate.getSliceIndex()) {
+                selectedItemIndex = i;
+            }
+            m_sliceNameComboBox->addItem(slice->getSliceName(),
+                                           i);
+        }
+        if ((selectedItemIndex >= 0)
+            && (selectedItemIndex < m_sliceNameComboBox->count())) {
+            m_sliceNameComboBox->setCurrentIndex(selectedItemIndex);
+        }
+                
         const BoundingBox planeBB(histologySlicesFile->getPlaneXyzBoundingBox());
         const Vector3D planeXYZ(histologyCoordinate.getPlaneXYZ());
         for (int32_t i = 0; i < 3; i++) {
@@ -614,17 +626,18 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
 
 
 /**
- * Called when slice number is changed
- * @param sliceNumber
- *    New slice number
+ * Called when name combo box is activated
+ * @param index
+ *    Index of item selected
  */
 void
-BrainBrowserWindowToolBarHistology::sliceNumberValueChanged(int sliceNumber)
+BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated(int index)
 {
+    
     if (m_browserTabContent != NULL) {
         HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(m_browserTabContent);
         if (histologySlicesFile != NULL) {
-            const int32_t sliceIndex(histologySlicesFile->getSliceIndexFromSliceNumber(sliceNumber));
+            const int32_t sliceIndex(m_sliceNameComboBox->itemData(index).toInt());
             if (sliceIndex >= 0) {
                 sliceIndexValueChanged(sliceIndex);
             }

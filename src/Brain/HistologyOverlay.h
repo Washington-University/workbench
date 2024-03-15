@@ -80,7 +80,7 @@ namespace caret {
                         HistologySliceImage* histologySliceImage,
                         MediaFile* mediaFile,
                         const int32_t selectedSliceIndex,
-                        const int32_t selectedSliceNumber,
+                        const AString& selectedSliceName,
                         const int32_t mediaFileIndexInSlice,
                         const bool supportsYokingFlag)
             :
@@ -91,7 +91,7 @@ namespace caret {
             m_histologySliceImage(histologySliceImage),
             m_mediaFile(mediaFile),
             m_selectedSliceIndex(selectedSliceIndex),
-            m_selectedSliceNumber(selectedSliceNumber),
+            m_selectedSliceName(selectedSliceName),
             m_mediaFileIndexInSlice(mediaFileIndexInSlice),
             m_supportsYokingFlag(supportsYokingFlag) {  }
             
@@ -102,7 +102,7 @@ namespace caret {
             HistologySliceImage* m_histologySliceImage = NULL;
             MediaFile* m_mediaFile = NULL;
             int32_t m_selectedSliceIndex = 0;
-            int32_t m_selectedSliceNumber = 0;
+            AString m_selectedSliceName;
             int32_t m_mediaFileIndexInSlice = 0;
             bool m_supportsYokingFlag = false;
         };
@@ -116,7 +116,7 @@ namespace caret {
                           std::vector<HistologySlicesFile*>& allFiles,
                           HistologySlicesFile* selectedFile,
                           const int32_t selectedSliceIndex,
-                          const int32_t selectedSliceNumber,
+                          const AString& selectedSliceName,
                           const bool supportsYokingFlag)
             :
             m_tabIndex(tabIndex),
@@ -124,7 +124,7 @@ namespace caret {
             m_allFiles(allFiles),
             m_selectedFile(selectedFile),
             m_selectedSliceIndex(selectedSliceIndex),
-            m_selectedSliceNumber(selectedSliceNumber),
+            m_selectedSliceName(selectedSliceName),
             m_supportsYokingFlag(supportsYokingFlag) {  }
             
             int32_t m_tabIndex = -1;
@@ -132,7 +132,7 @@ namespace caret {
             std::vector<HistologySlicesFile*> m_allFiles;
             HistologySlicesFile* m_selectedFile = NULL;
             int32_t m_selectedSliceIndex = 0;
-            int32_t m_selectedSliceNumber;
+            AString m_selectedSliceName;
             bool m_supportsYokingFlag = false;
         };
         

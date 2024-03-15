@@ -40,7 +40,7 @@ namespace caret {
         HistologySpaceKey();
         
         HistologySpaceKey(const AString& histologySlicesFileName,
-                          const int32_t sliceNumber);
+                          const AString& sliceName);
         
         virtual ~HistologySpaceKey();
         
@@ -60,9 +60,9 @@ namespace caret {
         
         void setHistologySlicesFileName(const AString& histologySlicesFileName);
         
-        int32_t getSliceNumber() const;
+        AString getSliceName() const;
         
-        void setSliceNumber(const int32_t sliceNumber);
+        void setSliceName(const AString& sliceName);
         
         AString toEncodedString(const QDir& directory) const;
         
@@ -99,7 +99,7 @@ namespace caret {
 
         AString m_histologySlicesFileName;
         
-        int32_t m_sliceNumber = 0;
+        AString m_sliceName;
         
         static const AString s_encodingSeparator;
         

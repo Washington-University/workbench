@@ -76,11 +76,11 @@ namespace caret {
         
         const HistologySlice* getHistologySliceByIndex(const int32_t sliceIndex) const;
         
-        const HistologySlice* getHistologySliceByNumber(const int32_t sliceNumber) const;
+        const HistologySlice* getHistologySliceByNumber(const AString& sliceName) const;
         
-        int32_t getSliceNumberBySliceIndex(const int32_t sliceIndex) const;
+        AString getSliceNameBySliceIndex(const int32_t sliceIndex) const;
         
-        int32_t getSliceIndexFromSliceNumber(const int32_t sliceNumber) const;
+        int32_t getSliceIndexFromSliceName(const AString& sliceName) const;
         
         virtual BoundingBox getStereotaxicXyzBoundingBox() const;
         

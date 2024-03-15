@@ -47,7 +47,7 @@ namespace caret {
         
     public:
         HistologySlice(const int32_t sliceIndex,
-                       const int32_t sliceNumber,
+                       const AString& sliceName,
                        const AString& MRIToHistWarpFileName,
                        const AString& histToMRIWarpFileName,
                        const Matrix4x4& planeToMillimetersMatrix,
@@ -61,7 +61,7 @@ namespace caret {
         
         int32_t getSliceIndex() const;
         
-        int32_t getSliceNumber() const;
+        AString getSliceName() const;
         
         void addHistologySliceImage(HistologySliceImage* histologySliceImage);
         
@@ -161,7 +161,7 @@ namespace caret {
         
         int32_t m_sliceIndex  = -1;
         
-        int32_t m_sliceNumber = -1;
+        AString m_sliceName;
         
         AString m_MRIToHistWarpFileName;
         

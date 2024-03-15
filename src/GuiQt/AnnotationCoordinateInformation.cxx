@@ -220,7 +220,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     std::vector<AString> mediaFileNames;
     
     std::vector<AString> histologyFileNames;
-    std::vector<int32_t> histologySliceNumbers;
+    std::vector<AString> histologySliceNames;
     
     for (const auto& aci : annotationCoordInfo) {
         if (aci->m_modelSpaceInfo.m_validFlag) {
@@ -255,7 +255,7 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
         
         if (aci->m_histologySpaceInfo.m_validFlag) {
             histologyFileNames.push_back(aci->m_histologySpaceInfo.m_histologySpaceKey.getHistologySlicesFileName());
-            histologySliceNumbers.push_back(aci->m_histologySpaceInfo.m_histologySpaceKey.getSliceNumber());
+            histologySliceNames.push_back(aci->m_histologySpaceInfo.m_histologySpaceKey.getSliceName());
         }
     }
     
@@ -332,16 +332,16 @@ AnnotationCoordinateInformation::getValidCoordInfoForAll(const std::vector<std::
     }
     
     if ((histologyFileNames.size() == numCoordInfo)
-        && (histologySliceNumbers.size() == numCoordInfo)) {
+        && (histologySliceNames.size() == numCoordInfo)) {
         std::set<AString> uniqueHistologyFileNames(histologyFileNames.begin(),
                                                    histologyFileNames.end());
-        std::set<int32_t> uniqueHistologySliceNumbers(histologySliceNumbers.begin(),
-                                                        histologySliceNumbers.end());
+        std::set<AString> uniqueHistologySliceNames(histologySliceNames.begin(),
+                                                      histologySliceNames.end());
         if ((uniqueHistologyFileNames.size() == 1)
-            && (uniqueHistologySliceNumbers.size() == 1)) {
+            && (uniqueHistologySliceNames.size() == 1)) {
             validForAllCoordInfoOut.m_histologySpaceInfo.m_validFlag = true;
             validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setHistologySlicesFileName(*uniqueHistologyFileNames.begin());
-            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceNumber(*uniqueHistologySliceNumbers.begin());
+            validForAllCoordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceName(*uniqueHistologySliceNames.begin());
         }
     }
     
@@ -724,7 +724,7 @@ AnnotationCoordinateInformation::createCoordinateInformationFromXY(BrainOpenGLWi
         
         const HistologyCoordinate histologyCoordinate(histologyPlaneID->getCoordinate());
         coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setHistologySlicesFileName(histologyCoordinate.getHistologySlicesFileName());
-        coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceNumber(histologyCoordinate.getSliceNumber());
+        coordInfoOut.m_histologySpaceInfo.m_histologySpaceKey.setSliceName(histologyCoordinate.getSliceName());
         
         coordInfoOut.m_histologySpaceInfo.m_validFlag = true;
         

@@ -63,7 +63,7 @@ namespace caret {
         void readFileContent(HistologySlicesFile* histologySlicesFile);
         
         HistologySlice* readSliceElement(HistologySlicesFile* histologySlicesFile,
-                                         const int32_t sliceNumber);
+                                         const AString& sliceName);
         
         HistologySliceImage* readSceneElement(HistologySlicesFile* histologySlicesFile,
                                              const QString& sceneName);

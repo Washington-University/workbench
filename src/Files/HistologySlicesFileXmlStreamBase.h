@@ -44,9 +44,11 @@ namespace caret {
 
         static const QString ATTRIBUTE_FILE;
         
-        static const QString ATTRIBUTE_NAME;
+        static const QString ATTRIBUTE_SCENE_NAME;
         
-        static const QString ATTRIBUTE_NUMBER;
+        static const QString ATTRIBUTE_SLICE_NAME;
+        
+        static const QString ATTRIBUTE_SLICE_NUMBER;
         
         static const QString ATTRIBUTE_VERSION;
         
@@ -80,9 +82,11 @@ namespace caret {
 #ifdef __HISTOLOGY_SLICES_FILE_XML_STREAM_BASE_DECLARE__
     const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_FILE = "File";
     
-    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_NAME = "Name";
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_SCENE_NAME = "Name";
     
-    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_NUMBER = "Number";
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_SLICE_NAME = "Name";
+    
+    const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_SLICE_NUMBER = "Number";
     
     const QString HistologySlicesFileXmlStreamBase::ATTRIBUTE_VERSION = "Version";
     

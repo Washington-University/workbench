@@ -261,7 +261,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                     const Vector3D xyz(histCoord.getStereotaxicXYZ());
                     const AString focusName = (histCoord.getHistologySlicesFileName()
                                                + " Slice ("
-                                               + AString::number(histCoord.getSliceNumber())
+                                               + histCoord.getSliceName()
                                                + ")");
                     
                     const AString comment = ("Created from "

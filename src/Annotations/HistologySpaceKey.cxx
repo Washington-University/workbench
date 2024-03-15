@@ -52,21 +52,21 @@ HistologySpaceKey::HistologySpaceKey()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add("m_histologySlicesFileName",
                           &m_histologySlicesFileName);
-    m_sceneAssistant->add("m_sliceNumber",
-                          &m_sliceNumber);
+    m_sceneAssistant->add("m_sliceNumber", /* Use old name so old scenes work*/
+                          &m_sliceName);
 }
 
 /**
  * Constructor.
  * @param histologySlicesFileName
  *    Name of histology slices file
- * @param sliceNumber
+ * @param sliceName
  *    Number of slice
  */
 HistologySpaceKey::HistologySpaceKey(const AString& histologySlicesFileName,
-                                     const int32_t sliceNumber)
+                                     const AString& sliceName)
 : m_histologySlicesFileName(histologySlicesFileName),
-m_sliceNumber(sliceNumber)
+m_sliceName(sliceName)
 {
     
 }
@@ -115,7 +115,7 @@ void
 HistologySpaceKey::copyHelperHistologySpaceKey(const HistologySpaceKey& obj)
 {
     m_histologySlicesFileName = obj.m_histologySlicesFileName;
-    m_sliceNumber             = obj.m_sliceNumber;
+    m_sliceName             = obj.m_sliceName;
 }
 
 /**
@@ -134,7 +134,7 @@ HistologySpaceKey::operator==(const HistologySpaceKey& obj) const
 
     /* perform equality testing HERE and return true if equal ! */
     if ( (m_histologySlicesFileName == obj.m_histologySlicesFileName)
-        && (m_sliceNumber == obj.m_sliceNumber) ) {
+        && (m_sliceName == obj.m_sliceName) ) {
         return true;
     }
     return false;    
@@ -160,7 +160,7 @@ bool
 HistologySpaceKey::isValid() const
 {
     return ( ( !m_histologySlicesFileName.isEmpty())
-            && (m_sliceNumber >= 0));
+            && ( ! m_sliceName.isEmpty()));
 }
 
 /**
@@ -187,22 +187,22 @@ HistologySpaceKey::setHistologySlicesFileName(const AString& histologySlicesFile
 /**
  * @return Slice number (NOT index)
  */
-int32_t
-HistologySpaceKey::getSliceNumber() const
+AString
+HistologySpaceKey::getSliceName() const
 {
-    return m_sliceNumber;
+    return m_sliceName;
 }
 
 /**
  * Set the slice number (NOT index)
- * @param sliceNumber
+ * @param sliceName
  *   New value for slice number
  */
 void
-HistologySpaceKey::setSliceNumber(const int32_t sliceNumber)
+HistologySpaceKey::setSliceName(const AString& sliceName)
 {
-    if (sliceNumber != m_sliceNumber) {
-        m_sliceNumber = sliceNumber;
+    if (sliceName != m_sliceName) {
+        m_sliceName = sliceName;
         setModified();
     }
 }
@@ -216,7 +216,7 @@ HistologySpaceKey::toString() const
     AString s("Histology Slice File Name: "
               + m_histologySlicesFileName
               + " Slice Number: "
-              + AString::number(m_sliceNumber));
+              + m_sliceName);
     
     return s;
 }
@@ -234,7 +234,7 @@ HistologySpaceKey::toEncodedString(const QDir& directory) const
     QStringList sl;
     sl.append(s_encodeRelativeToDirectory);
     sl.append(relativeFileName);
-    sl.append(QString::number(m_sliceNumber));
+    sl.append(m_sliceName);
 
     return sl.join(s_encodingSeparator);
 }
@@ -269,7 +269,7 @@ HistologySpaceKey::setFromEncodedString(const QDir& directory,
             const QFileInfo fileInfo(directory,
                                      list.at(1));
             setHistologySlicesFileName(fileInfo.absoluteFilePath());
-            setSliceNumber(list.at(2).toInt());
+            setSliceName(list.at(2));
             return true;
         }
         else {
