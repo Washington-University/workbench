@@ -58,6 +58,8 @@ namespace caret {
         
         void thicknessSpinBoxValueChanged(double);
 
+        void slicePlaneDepthSpinBoxValueChanged(double);
+        
         void surfaceSelected(Surface*);
         
         void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
@@ -78,6 +80,8 @@ namespace caret {
         VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
         
         WuQDoubleSpinBox* thicknessSpinBox;
+        
+        WuQDoubleSpinBox* slicePlaneDepthSpinBox;
         
         SurfaceSelectionViewController* surfaceSelectionViewController;
     };

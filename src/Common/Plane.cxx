@@ -544,6 +544,16 @@ Plane::rayIntersection(const float rayOrigin[3],
     return false;
 }
 
+/**
+ * Shift the plane by the given distance
+ * @param distance
+ *    Distance to shift the plane
+ */
+void
+Plane::shiftPlane(const float distance)
+{
+    m_D += distance;
+}
 
 /**
  * @return String describing the plane.

@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "CaretColorEnum.h"
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -37,6 +38,7 @@ namespace caret {
     class GraphicsPrimitive;
     class Matrix4x4;
     class Plane;
+    class SurfaceFile;
     class VolumeMappableInterface;
     class VolumeSurfaceOutlineModelCacheKey;
     class VolumeSurfaceOutlineSetModel;
@@ -94,7 +96,8 @@ namespace caret {
                                                      BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                      const bool useNegativePolygonOffsetFlag);
 
-        static void drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
+        static void drawSurfaceOutlineNotCached(const VolumeMappableInterface* underlayVolume,
+                                                const ModelTypeEnum::Enum modelType,
                                                 const Plane& plane,
                                                 const Matrix4x4& displayTransformMatrix,
                                                 const bool displayTransformMatrixValidFlag,
@@ -104,6 +107,21 @@ namespace caret {
         
         static void projectContoursToHistologySlice(const HistologySlice* histologySlice,
                                                     std::vector<GraphicsPrimitive*>& contourPrimitives);
+        
+        static void computeDepthNumStepsAndStepSize(const VolumeMappableInterface* underlayVolume,
+                                                    const float slicePlaneDepth,
+                                                    int32_t& numStepsOut,
+                                                    float& depthStartOut,
+                                                    float& depthStepSizeOut);
+        
+        static void createContours(const VolumeMappableInterface* underlayVolume,
+                                   const SurfaceFile* surface,
+                                   const Plane& plane,
+                                   const CaretColorEnum::Enum caretColor,
+                                   const float* vertexColoringRGBA,
+                                   const float contourThicknessMillimeters,
+                                   const float slicePlaneDepth,
+                                   std::vector<GraphicsPrimitive*>& contourPrimitives);
         
         // ADD_NEW_MEMBERS_HERE
 

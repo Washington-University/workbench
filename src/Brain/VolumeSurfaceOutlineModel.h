@@ -63,6 +63,10 @@ namespace caret {
         
         void setThicknessPixelsObsolete(const float thickness);
         
+        float getSlicePlaneDepth() const;
+        
+        void setSlicePlaneDepth(const float depth);
+        
         SurfaceSelectionModel* getSurfaceSelectionModel();
         
         const Surface* getSurface() const;
@@ -109,6 +113,8 @@ namespace caret {
         
         float m_thicknessPercentageViewportHeight;
         
+        float m_slicePlaneDepth = 0.0;
+        
         SurfaceSelectionModel* m_surfaceSelectionModel;
         
         VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
@@ -139,6 +145,9 @@ namespace caret {
             
             /** Thickness when first outline is added to outline cache */
             float m_thicknessPercentageViewportHeight = -1.0;
+            
+            /** slice plane depth when first added to cache */
+            float m_slicePlaneDepth = 0.0;
             
             /** Surface when first outline is added to outline cache */
             Surface* m_surface = NULL;

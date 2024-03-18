@@ -26,10 +26,12 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "ElapsedTimer.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitive.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
+#include "MathFunctions.h"
 #include "Plane.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
@@ -172,7 +174,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
                                  useNegativePolygonOffsetFlag);
     }
     else {
-        drawSurfaceOutlineNotCached(modelType,
+        drawSurfaceOutlineNotCached(underlayVolume,
+                                    modelType,
                                     plane,
                                     displayTransformMatrix,
                                     displayTransformMatrixValidFlag,
@@ -382,17 +385,16 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                                                                                         colorSourceBrowserTabIndex);
                     }
                     
-                    SurfacePlaneIntersectionToContour contour(surface,
-                                                              plane,
-                                                              outlineColor,
-                                                              nodeColoringRGBA,
-                                                              thicknessPercentage);
-                    AString errorMessage;
-                    if ( ! contour.createContours(contourPrimitives,
-                                                  errorMessage)) {
-                        CaretLogSevere(errorMessage);
-                    }
-                    
+                    const float slicePlaneDepth(outline->getSlicePlaneDepth());
+                    createContours(underlayVolume,
+                                   surface,
+                                   plane,
+                                   outlineColor,
+                                   nodeColoringRGBA,
+                                   thicknessPercentage,
+                                   slicePlaneDepth,
+                                   contourPrimitives);
+
                     if (histologySlice != NULL) {
                         projectContoursToHistologySlice(histologySlice,
                                                         contourPrimitives);
@@ -461,6 +463,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::projectContoursToHistologySlice(const Hi
 /**
  * Draw surface outlines on the volume slices WITHOUT caching
  *
+ * @param underlayVolume
+ *    The intersection volume (NULL if not drawing on a volume)
  * @param modelType
  *    Type of model being drawn.
  * @param plane
@@ -473,7 +477,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::projectContoursToHistologySlice(const Hi
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelTypeEnum::Enum modelType,
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const VolumeMappableInterface* underlayVolume,
+                                                                    const ModelTypeEnum::Enum modelType,
                                                                     const Plane& plane,
                                                                     const Matrix4x4& displayTransformMatrix,
                                                                     const bool displayTransformMatrixValidFlag,
@@ -565,16 +570,15 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelT
                                                                                                     colorSourceBrowserTabIndex);
                 }
                 
-                SurfacePlaneIntersectionToContour contour(surface,
-                                                          plane,
-                                                          outlineColor,
-                                                          nodeColoringRGBA,
-                                                          thicknessPercentage);
-                AString errorMessage;
-                if ( ! contour.createContours(contourPrimitives,
-                                              errorMessage)) {
-                    CaretLogSevere(errorMessage);
-                }
+                const float slicePlaneDepth(outline->getSlicePlaneDepth());
+                createContours(underlayVolume,
+                               surface,
+                               plane,
+                               outlineColor,
+                               nodeColoringRGBA,
+                               thicknessPercentage,
+                               slicePlaneDepth,
+                               contourPrimitives);
             }
         }
         
@@ -611,3 +615,169 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const ModelT
     glPopAttrib();
 }
 
+/**
+ * Constructor.
+ *
+ * @param underlayVolume
+ *    The intersection volume (NULL if not drawing on a volume)
+ * @param surfaceFile
+ *     The surface file.
+ * @param plane
+ *     Plane intersected with the surface.
+ * @param caretColor
+ *     Solid coloring or, if value is CUSTOM, use the vertex coloring
+ * @param vertexColoringRGBA
+ *     The per-vertex coloring if 'caretColor' is CUSTOM
+ * @param contourThicknessPercentOfViewportHeight
+ *     Thickness for the contour as a percentage of viewport height.
+ */
+
+void
+BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const VolumeMappableInterface* underlayVolume,
+                                                       const SurfaceFile* surface,
+                                                       const Plane& plane,
+                                                       const CaretColorEnum::Enum outlineColor,
+                                                       const float* nodeColoringRGBA,
+                                                       const float thicknessPercentage,
+                                                       const float slicePlaneDepth,
+                                                       std::vector<GraphicsPrimitive*>& contourPrimitives)
+{
+    const bool timingFlag(false);
+    ElapsedTimer timer;
+    if (timingFlag) {
+        timer.start();
+    }
+    if (slicePlaneDepth > 0.0) {
+        int32_t numSteps(0);
+        float depthStart(0.0);
+        float depthStepSize(0.0);
+        computeDepthNumStepsAndStepSize(underlayVolume,
+                                        slicePlaneDepth,
+                                        numSteps,
+                                        depthStart,
+                                        depthStepSize);
+        const bool debugFlag(false);
+        if (debugFlag) {
+            std::cout << "SlicePlaneDepth: " << slicePlaneDepth
+            << " Start: " << depthStart
+            << " Steps: " << numSteps
+            << " Size: " << depthStepSize << std::endl;
+        }
+        
+        for (int32_t i = 0; i < numSteps; i++) {
+            const float depthOffset(depthStart +
+                                    depthStepSize * static_cast<float>(i));
+            Plane intersectionPlane(plane);
+            intersectionPlane.shiftPlane(depthOffset);
+            const Plane drawOnPlane(plane);
+            if (debugFlag) {
+                std::cout << i << "   Intersect Plane: " << intersectionPlane.toString() << std::endl;
+                std::cout << i << "   Draw On Plane: " << drawOnPlane.toString() << std::endl;
+            }
+            SurfacePlaneIntersectionToContour contour(surface,
+                                                      intersectionPlane,
+                                                      drawOnPlane,
+                                                      outlineColor,
+                                                      nodeColoringRGBA,
+                                                      thicknessPercentage);
+            AString errorMessage;
+            if ( ! contour.createContours(contourPrimitives,
+                                          errorMessage)) {
+                CaretLogSevere(errorMessage);
+            }
+        }
+    }
+    else {
+        SurfacePlaneIntersectionToContour contour(surface,
+                                                  plane,
+                                                  outlineColor,
+                                                  nodeColoringRGBA,
+                                                  thicknessPercentage);
+        AString errorMessage;
+        if ( ! contour.createContours(contourPrimitives,
+                                      errorMessage)) {
+            CaretLogSevere(errorMessage);
+        }
+    }
+    if (timingFlag) {
+        std::cout << "Time to compute contours: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+    }
+}
+
+/**
+ * Compute the number of steps and step size for slice plane depth
+ * @param underlayVolume
+ *    The intersection volume (NULL if not drawing on a volume)
+ * @param slicePlaneDepth
+ *    Slice plane depth set by user
+ * @param numStepsOut
+ *    Number of steps output
+ * @param depthStartOut
+ *    Starting depth value output
+ * @param depthStepSizeOut
+ *    Depth step size output
+ */
+void
+BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const VolumeMappableInterface* underlayVolume,
+                                                                        const float slicePlaneDepth,
+                                                                        int32_t& numStepsOut,
+                                                                        float& depthStartOut,
+                                                                        float& depthStepSizeOut)
+{
+    /*
+     * Default to normal (infinitely thin slice)
+     */
+    numStepsOut      = 1;
+    depthStartOut    = 0.0;
+    depthStepSizeOut = 0.0;
+    if (slicePlaneDepth <= 0.0) {
+        return ;
+    }
+    
+    /*
+     * If volume valid, use 1/2 voxel size for step
+     */
+    depthStepSizeOut = 0.5;
+    if (underlayVolume != NULL) {
+        depthStepSizeOut = underlayVolume->getMaximumVoxelSpacing() / 2.0;
+        if (depthStepSizeOut <= 0.0) {
+            depthStepSizeOut = 0.5;
+        }
+    }
+    
+    /*
+     * Set number of steps
+     */
+    numStepsOut = static_cast<int32_t>(std::ceil(slicePlaneDepth / depthStepSizeOut));
+    if (numStepsOut <= 1) {
+        numStepsOut      = 1;
+        depthStartOut    = 0.0;
+        depthStepSizeOut = 0.0;
+        return;
+    }
+    
+    /*
+     * Always make number of steps odd so that we
+     * do an intersection on the plane of the displayed
+     * histology or volume slice
+     */
+    if (MathFunctions::isEvenNumber(numStepsOut)) {
+        ++numStepsOut;
+    }
+    
+    /*
+     * Reset step size using number of steps but use
+     * number of steps minus one so that the middle step
+     * is centered on the intersection plane.
+     *
+     * For example: If there are three steps, this places
+     * an intersections at:
+     * % at minus half depth
+     * % at the interection plane
+     * % at plus half depth
+     */
+    CaretAssert(MathFunctions::isOddNumber(numStepsOut));
+    CaretAssert(numStepsOut >= 3);
+    depthStepSizeOut = (slicePlaneDepth / (numStepsOut - 1));
+    depthStartOut = -slicePlaneDepth / 2.0;
+}

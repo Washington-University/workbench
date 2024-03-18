@@ -40,7 +40,14 @@ namespace caret {
         
     public:
         SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
-                                          const Plane& plane,
+                                          const Plane& intersectionPlane,
+                                          const CaretColorEnum::Enum caretColor,
+                                          const float* vertexColoringRGBA,
+                                          const float contourThicknessMillimeters);
+        
+        SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
+                                          const Plane& intersectionPlane,
+                                          const Plane& drawOnPlane,
                                           const CaretColorEnum::Enum caretColor,
                                           const float* vertexColoringRGBA,
                                           const float contourThicknessMillimeters);
@@ -184,7 +191,9 @@ namespace caret {
         
         const SurfaceFile* m_surfaceFile;
         
-        const Plane& m_plane;
+        const Plane& m_intersectionPlane;
+        
+        const Plane& m_drawOnPlane;
         
         const CaretColorEnum::Enum m_caretColor;
         

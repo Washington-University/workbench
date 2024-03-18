@@ -65,7 +65,7 @@ using namespace caret;
  *
  * @param surfaceFile
  *     The surface file.
- * @param plane
+ * @param intersectionPlane
  *     Plane intersected with the surface.
  * @param caretColor
  *     Solid coloring or, if value is CUSTOM, use the vertex coloring
@@ -75,13 +75,45 @@ using namespace caret;
  *     Thickness for the contour as a percentage of viewport height.
  */
 SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
-                                                                     const Plane& plane,
+                                                                     const Plane& intersectionPlane,
+                                                                     const CaretColorEnum::Enum caretColor,
+                                                                     const float* vertexColoringRGBA,
+                                                                     const float contourThicknessPercentOfViewportHeight)
+: SurfacePlaneIntersectionToContour(surfaceFile,
+                                    intersectionPlane,
+                                    intersectionPlane,
+                                    caretColor,
+                                    vertexColoringRGBA,
+                                    contourThicknessPercentOfViewportHeight)
+{
+}
+
+/**
+ * Constructor.
+ *
+ * @param surfaceFile
+ *     The surface file.
+ * @param intersectionPlane
+ *     Plane intersected with the surface.
+ * @param drawOnPlane
+ *     Intersected points are projected to this plane
+ * @param caretColor
+ *     Solid coloring or, if value is CUSTOM, use the vertex coloring
+ * @param vertexColoringRGBA
+ *     The per-vertex coloring if 'caretColor' is CUSTOM
+ * @param contourThicknessPercentOfViewportHeight
+ *     Thickness for the contour as a percentage of viewport height.
+ */
+SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
+                                                                     const Plane& intersectionPlane,
+                                                                     const Plane& drawOnPlane,
                                                                      const CaretColorEnum::Enum caretColor,
                                                                      const float* vertexColoringRGBA,
                                                                      const float contourThicknessPercentOfViewportHeight)
 : CaretObject(),
 m_surfaceFile(surfaceFile),
-m_plane(plane),
+m_intersectionPlane(intersectionPlane),
+m_drawOnPlane(drawOnPlane),
 m_caretColor(caretColor),
 m_vertexColoringRGBA(vertexColoringRGBA),
 m_contourThicknessPercentOfViewportHeight(contourThicknessPercentOfViewportHeight)
@@ -113,15 +145,17 @@ bool
 SurfacePlaneIntersectionToContour::createContours(std::vector<GraphicsPrimitive*>& graphicsPrimitivesOut,
                                                   AString& errorMessageOut)
 {
-    graphicsPrimitivesOut.clear();
     errorMessageOut.clear();
     
     try {
         if (m_surfaceFile->getNumberOfNodes() <= 2) {
             throw CaretException("Surface has an invalid number of vertices.");
         }
-        if ( ! m_plane.isValidPlane()) {
-            throw CaretException("Plane is invalid.");
+        if ( ! m_intersectionPlane.isValidPlane()) {
+            throw CaretException("Intersection plane is invalid.");
+        }
+        if ( ! m_drawOnPlane.isValidPlane()) {
+            throw CaretException("Draw on plane is invalid.");
         }
         
         m_topologyHelper = m_surfaceFile->getTopologyHelper(true);
@@ -176,7 +210,7 @@ SurfacePlaneIntersectionToContour::prepareVertices()
     CaretAssert(m_surfaceFile);
     
     float planeNormalVector[3];
-    m_plane.getNormalVector(planeNormalVector);
+    m_intersectionPlane.getNormalVector(planeNormalVector);
     const float abovePlaneOffset[3] = { planeNormalVector[0] * epsilon, planeNormalVector[1] * epsilon, planeNormalVector[2] * epsilon };
     
     const float* surfaceXYZ = m_surfaceFile->getCoordinateData();
@@ -190,14 +224,14 @@ SurfacePlaneIntersectionToContour::prepareVertices()
         const int32_t i3 = i * 3;
         std::array<float, 3> xyz = {{ surfaceXYZ[i3], surfaceXYZ[i3 + 1], surfaceXYZ[i3 + 2] }};
         
-        const float signedDistanceToPlane = m_plane.signedDistanceToPlane(xyz.data());
+        const float signedDistanceToPlane = m_intersectionPlane.signedDistanceToPlane(xyz.data());
         if ((signedDistanceToPlane < epsilon)
             && (signedDistanceToPlane > -epsilon)) {
             /*
              * Point is on or nearly on the plane so move it away from the plane
              */
             float projectedXYZ[3];
-            m_plane.projectPointToPlane(xyz.data(), projectedXYZ);
+            m_intersectionPlane.projectPointToPlane(xyz.data(), projectedXYZ);
             
             if (signedDistanceToPlane >= 0) {
                 xyz[0] = projectedXYZ[0] + abovePlaneOffset[0];
@@ -253,7 +287,7 @@ SurfacePlaneIntersectionToContour::prepareEdges()
                                                    : indexOne);
             
             std::array<float, 3> intersectionXYZ;
-            const bool validFlag = m_plane.lineSegmentIntersectPlane(m_vertices[belowPlaneVertexIndex]->m_xyz.data(),
+            const bool validFlag = m_intersectionPlane.lineSegmentIntersectPlane(m_vertices[belowPlaneVertexIndex]->m_xyz.data(),
                                                                      m_vertices[abovePlaneVertexIndex]->m_xyz.data(),
                                                                      intersectionXYZ.data());
             if (validFlag) {
@@ -401,17 +435,24 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
             }
         }
         
-        primitive->addVertex(edge->m_intersectionXYZ.data(), colorRGBA.data());
-        
+        Vector3D xyzOne;
+        m_drawOnPlane.projectPointToPlane(edge->m_intersectionXYZ.data(),
+                                          xyzOne);
+        primitive->addVertex(xyzOne,
+                             colorRGBA.data());
+
         if (startingEdge->hasMatchingTriangle(edge)) {
             if (primitive->getNumberOfVertices() > 3) {
+                Vector3D xyzTwo;
+                m_drawOnPlane.projectPointToPlane(startingEdge->m_intersectionXYZ.data(),
+                                                  xyzTwo);
                 if (m_debugFlag) {
-                    primitive->addVertex(startingEdge->m_intersectionXYZ.data(),
+                    primitive->addVertex(xyzTwo,
                                          startDebugRgba.data());
                     std::cout << "    Closed contour" << std::endl;
                 }
                 else {
-                    primitive->addVertex(startingEdge->m_intersectionXYZ.data(),
+                    primitive->addVertex(xyzTwo,
                                          colorRGBA.data());
                 }
             }

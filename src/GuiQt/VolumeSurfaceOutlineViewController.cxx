@@ -115,6 +115,17 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget(),
                                           "Set thickness for volume surface outline for " + descriptivePrefix);
     
+    this->slicePlaneDepthSpinBox = new WuQDoubleSpinBox(this);
+    this->slicePlaneDepthSpinBox->setRange(0.0, 100.0);
+    this->slicePlaneDepthSpinBox->setSingleStep(0.10);
+    this->slicePlaneDepthSpinBox->setSuffix("mm");
+    QObject::connect(this->slicePlaneDepthSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
+                     this, &VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged);
+    this->slicePlaneDepthSpinBox->getWidget()->setToolTip("Depth in millimeters along slice plane normal");
+    this->slicePlaneDepthSpinBox->getWidget()->setObjectName(objectNamePrefix
+                                                       + ":SlicePlaneDepth");
+    macroManager->addMacroSupportToObject(this->slicePlaneDepthSpinBox->getWidget(),
+                                          "Set slice plane depth for volume surface outline for " + descriptivePrefix);
     
     if (orientation == Qt::Horizontal) {
         this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
@@ -123,7 +134,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
         this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
-        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 3);
+        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 4);
     }
     else {
         QFrame* bottomHorizontalLineWidget = new QFrame();
@@ -135,10 +147,11 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                                        this);
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
-        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 2);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 3);
         row++;
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
-        this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2, Qt::AlignLeft);
+        this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
+        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3, Qt::AlignLeft);
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
@@ -215,6 +228,20 @@ VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged(double value)
 }
 
 /**
+ * Called when slice plane depth value is changed.
+ * @param value
+ *    Value that was selected.
+ */
+void
+VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged(double value)
+{
+    if (this->outlineModel != NULL) {
+        this->outlineModel->setSlicePlaneDepth(value);
+    }
+    this->updateGraphics();
+}
+
+/**
  * Update this view controller.
  * @param outlineModel
  *    Outline model for use in this view controller.
@@ -235,6 +262,8 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
         }
         this->thicknessSpinBox->setValue(thickness);
         this->thicknessSpinBox->blockSignals(false);
+        QSignalBlocker depthBlocker(slicePlaneDepthSpinBox);
+        this->slicePlaneDepthSpinBox->setValue(outlineModel->getSlicePlaneDepth());
         this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
         this->colorOrTabSelectionControl->updateViewController(outlineModel->getColorOrTabModel());
     }

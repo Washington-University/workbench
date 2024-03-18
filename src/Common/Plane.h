@@ -102,6 +102,8 @@ namespace caret {
                              Vector3D& intersectionOutXYZ,
                              float& distanceOut) const;
         
+        void shiftPlane(const float distance);
+        
         virtual AString toString() const;
         
         AString toFormattedString() const;

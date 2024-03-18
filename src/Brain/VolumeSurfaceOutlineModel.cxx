@@ -60,12 +60,14 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_thicknessPixelsObsolete = VolumeSurfaceOutlineModel::DEFAULT_LINE_THICKNESS_PIXELS_OBSOLETE;
     m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
+    m_slicePlaneDepth = 0.0;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_displayed", &m_displayed);
     m_sceneAssistant->add("m_thickness", &m_thicknessPixelsObsolete); // NOTE: "m_thickness" is OLD name
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
+    m_sceneAssistant->add("m_slicePlaneDepth", &m_slicePlaneDepth);
     
     /*
      * Percentage viewport height thickness was added in Feb 2, 2017.
@@ -118,6 +120,7 @@ VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineMod
     m_thicknessPixelsObsolete = modelToCopy->m_thicknessPixelsObsolete;
     m_thicknessPercentageViewportHeight = modelToCopy->m_thicknessPercentageViewportHeight;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
+    m_slicePlaneDepth = modelToCopy->getSlicePlaneDepth();
     
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
     m_colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
@@ -235,6 +238,26 @@ void
 VolumeSurfaceOutlineModel::setThicknessPixelsObsolete(const float thickness)
 {
     m_thicknessPixelsObsolete = thickness;
+}
+
+/**
+ * @return The slice plane depth
+ */
+float
+VolumeSurfaceOutlineModel::getSlicePlaneDepth() const
+{
+    return m_slicePlaneDepth;;
+}
+
+/**
+ * Set the slice plane depth
+ * @param slicePlaneDepth
+ *   New slice plane depth value
+ */
+void
+VolumeSurfaceOutlineModel::setSlicePlaneDepth(const float slicePlaneDepth)
+{
+    m_slicePlaneDepth = slicePlaneDepth;
 }
 
 /**
@@ -456,6 +479,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
 {
     m_surface = NULL;
     m_thicknessPercentageViewportHeight = -1.0;
+    m_slicePlaneDepth = 0.0;
     m_colorItem.reset();
 }
 
@@ -491,7 +515,8 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
         if ((m_surface == surfaceOutlineModel->getSurface())
             && (histologyMatchFlag
                 || volumeMatchFlag)
-            && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())) {
+            && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())
+            && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())) {
             if (m_colorItem != NULL) {
                 if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
                     validFlag = true;
@@ -532,5 +557,6 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     m_underlayVolume = underlayVolume;
     m_surface = surfaceOutlineModel->getSurface();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
+    m_slicePlaneDepth = surfaceOutlineModel->getSlicePlaneDepth();
     m_colorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem())));
 }
