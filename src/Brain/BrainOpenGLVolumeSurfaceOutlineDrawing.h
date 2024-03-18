@@ -34,8 +34,9 @@
 namespace caret {
 
     class BrainOpenGLFixedPipeline;
-    class HistologySlice;
     class GraphicsPrimitive;
+    class HistologySlice;
+    class HistologySlicesFile;
     class Matrix4x4;
     class Plane;
     class SurfaceFile;
@@ -54,7 +55,8 @@ namespace caret {
 
         BrainOpenGLVolumeSurfaceOutlineDrawing& operator=(const BrainOpenGLVolumeSurfaceOutlineDrawing&) = delete;
         
-        static void drawSurfaceOutline(const HistologySlice* histologySlice,
+        static void drawSurfaceOutline(const HistologySlicesFile* histologySlicesFile,
+                                       const HistologySlice* histologySlice,
                                        VolumeSurfaceOutlineSetModel* outlineSet,
                                        BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                        const bool useNegativePolygonOffsetFlag);
@@ -77,7 +79,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        static void drawSurfaceOutlineCached(const HistologySlice* histologySlice,
+        static void drawSurfaceOutlineCached(const HistologySlicesFile* histologySlicesFile,
+                                             const HistologySlice* histologySlice,
                                              const VolumeMappableInterface* underlayVolume,
                                              const ModelTypeEnum::Enum modelType,
                                              const Plane& plane,
@@ -108,15 +111,15 @@ namespace caret {
         static void projectContoursToHistologySlice(const HistologySlice* histologySlice,
                                                     std::vector<GraphicsPrimitive*>& contourPrimitives);
         
-        static void computeDepthNumStepsAndStepSize(const VolumeMappableInterface* underlayVolume,
+        static void computeDepthNumStepsAndStepSize(const float sliceSpacingMM,
                                                     const float slicePlaneDepth,
                                                     int32_t& numStepsOut,
                                                     float& depthStartOut,
                                                     float& depthStepSizeOut);
         
-        static void createContours(const VolumeMappableInterface* underlayVolume,
-                                   const SurfaceFile* surface,
+        static void createContours(const SurfaceFile* surface,
                                    const Plane& plane,
+                                   const float sliceSpacingMM,
                                    const CaretColorEnum::Enum caretColor,
                                    const float* vertexColoringRGBA,
                                    const float contourThicknessMillimeters,

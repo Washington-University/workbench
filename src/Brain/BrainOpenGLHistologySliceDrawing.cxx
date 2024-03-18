@@ -594,7 +594,8 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      * Draw surface outlines
      */
     const bool useNegativePolygonOffsetFlag(true);
-    BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayHistologySlice,
+    BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayHistologySlicesFile,
+                                                               underlayHistologySlice,
                                                                m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                                                m_fixedPipelineDrawing,
                                                                useNegativePolygonOffsetFlag);

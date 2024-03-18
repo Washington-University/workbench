@@ -31,6 +31,7 @@
 #include "GraphicsPrimitive.h"
 #include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
+#include "HistologySlicesFile.h"
 #include "MathFunctions.h"
 #include "Plane.h"
 #include "Surface.h"
@@ -80,6 +81,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::toString() const
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param histologySlicesFile
+ *    File containing the histology slice
  * @param histologySlice
  *    The histology slice
  * @param outlineSet
@@ -90,7 +93,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::toString() const
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlice* histologySlice,
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlicesFile* histologySlicesFile,
+                                                           const HistologySlice* histologySlice,
                                                            VolumeSurfaceOutlineSetModel* outlineSet,
                                                            BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                                            const bool useNegativePolygonOffsetFlag)
@@ -99,7 +103,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlice*
     const Plane stereotaxicPlane(histologySlice->getStereotaxicPlane());
     VolumeSurfaceOutlineModelCacheKey outlineCacheKey(histologySlice,
                                                       histologySlice->getSliceIndex());
-    drawSurfaceOutlineCached(histologySlice,
+    drawSurfaceOutlineCached(histologySlicesFile,
+                             histologySlice,
                              underlayVolume,
                              ModelTypeEnum::MODEL_TYPE_HISTOLOGY,
                              stereotaxicPlane,
@@ -255,8 +260,10 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const V
             break;
     }
     
+    const HistologySlicesFile* histologySlicesFile(NULL);
     const HistologySlice* histologySlice(NULL);
-    drawSurfaceOutlineCached(histologySlice,
+    drawSurfaceOutlineCached(histologySlicesFile,
+                             histologySlice,
                              underlayVolume,
                              modelType,
                              plane,
@@ -269,6 +276,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const V
 /**
  * Draw surface outlines on the volume slices
  *
+ * @param histologySlicesFile
+ *    File containing the histology slice
  * @param underlayVolume
  *    The underlay volume
  * @param modelType
@@ -285,7 +294,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const V
  *    If true, use a negative offset for polygon offset
  */
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const HistologySlice* histologySlice,
+BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const HistologySlicesFile* histologySlicesFile,
+                                                                 const HistologySlice* histologySlice,
                                                                  const VolumeMappableInterface* underlayVolume,
                                                                  const ModelTypeEnum::Enum modelType,
                                                                  const Plane& plane,
@@ -385,10 +395,17 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                                                                                         colorSourceBrowserTabIndex);
                     }
                     
+                    float sliceSpacing(1.0);
+                    if (underlayVolume != NULL) {
+                        sliceSpacing = underlayVolume->getMaximumVoxelSpacing();
+                    }
+                    else if (histologySlicesFile != NULL) {
+                        sliceSpacing = histologySlicesFile->getSliceSpacing();
+                    }
                     const float slicePlaneDepth(outline->getSlicePlaneDepth());
-                    createContours(underlayVolume,
-                                   surface,
+                    createContours(surface,
                                    plane,
+                                   sliceSpacing,
                                    outlineColor,
                                    nodeColoringRGBA,
                                    thicknessPercentage,
@@ -571,9 +588,9 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
                 }
                 
                 const float slicePlaneDepth(outline->getSlicePlaneDepth());
-                createContours(underlayVolume,
-                               surface,
+                createContours(surface,
                                plane,
+                               underlayVolume->getMaximumVoxelSpacing(),
                                outlineColor,
                                nodeColoringRGBA,
                                thicknessPercentage,
@@ -618,12 +635,12 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
 /**
  * Constructor.
  *
- * @param underlayVolume
- *    The intersection volume (NULL if not drawing on a volume)
  * @param surfaceFile
  *     The surface file.
  * @param plane
  *     Plane intersected with the surface.
+ * @param sliceSpacingMM
+ *    Spacing of slices in millimeters
  * @param caretColor
  *     Solid coloring or, if value is CUSTOM, use the vertex coloring
  * @param vertexColoringRGBA
@@ -633,9 +650,9 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
  */
 
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const VolumeMappableInterface* underlayVolume,
-                                                       const SurfaceFile* surface,
+BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surface,
                                                        const Plane& plane,
+                                                       const float sliceSpacingMM,
                                                        const CaretColorEnum::Enum outlineColor,
                                                        const float* nodeColoringRGBA,
                                                        const float thicknessPercentage,
@@ -651,7 +668,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const VolumeMappableInter
         int32_t numSteps(0);
         float depthStart(0.0);
         float depthStepSize(0.0);
-        computeDepthNumStepsAndStepSize(underlayVolume,
+        computeDepthNumStepsAndStepSize(sliceSpacingMM,
                                         slicePlaneDepth,
                                         numSteps,
                                         depthStart,
@@ -706,8 +723,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const VolumeMappableInter
 
 /**
  * Compute the number of steps and step size for slice plane depth
- * @param underlayVolume
- *    The intersection volume (NULL if not drawing on a volume)
+ * @param sliceSpacingMM
+ *    Spacing of the slices
  * @param slicePlaneDepth
  *    Slice plane depth set by user
  * @param numStepsOut
@@ -718,7 +735,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const VolumeMappableInter
  *    Depth step size output
  */
 void
-BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const VolumeMappableInterface* underlayVolume,
+BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const float sliceSpacingMM,
                                                                         const float slicePlaneDepth,
                                                                         int32_t& numStepsOut,
                                                                         float& depthStartOut,
@@ -735,14 +752,11 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const Vo
     }
     
     /*
-     * If volume valid, use 1/2 voxel size for step
+     * If spacing valid, use 1/2 spacing for step size; else 0.5mm
      */
-    depthStepSizeOut = 0.5;
-    if (underlayVolume != NULL) {
-        depthStepSizeOut = underlayVolume->getMaximumVoxelSpacing() / 2.0;
-        if (depthStepSizeOut <= 0.0) {
-            depthStepSizeOut = 0.5;
-        }
+    depthStepSizeOut = (sliceSpacingMM / 2.0);
+    if (depthStepSizeOut <= 0.0) {
+        depthStepSizeOut = 0.5;
     }
     
     /*
