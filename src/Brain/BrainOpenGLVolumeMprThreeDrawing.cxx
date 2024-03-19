@@ -3861,6 +3861,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
     bool drawFociFlag       = true;
     bool drawOutlineFlag    = true;
     
+    if (m_identificationModeFlag) {
+        drawOutlineFlag = false;
+    }
+    
     ModelTypeEnum::Enum modelType(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES);
     switch (m_brainModelMode) {
         case BrainModelMode::INVALID:
