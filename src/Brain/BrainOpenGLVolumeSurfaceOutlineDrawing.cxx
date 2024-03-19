@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "ElapsedTimer.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -657,8 +658,10 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                        const float* nodeColoringRGBA,
                                                        const float thicknessPercentage,
                                                        const float slicePlaneDepth,
-                                                       std::vector<GraphicsPrimitive*>& contourPrimitives)
+                                                       std::vector<GraphicsPrimitive*>& contourPrimitivesOut)
 {
+    contourPrimitivesOut.clear();
+    
     const bool timingFlag(false);
     ElapsedTimer timer;
     if (timingFlag) {
@@ -681,6 +684,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
             << " Size: " << depthStepSize << std::endl;
         }
         
+#pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numSteps; i++) {
             const float depthOffset(depthStart +
                                     depthStepSize * static_cast<float>(i));
@@ -698,8 +702,17 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                       nodeColoringRGBA,
                                                       thicknessPercentage);
             AString errorMessage;
-            if ( ! contour.createContours(contourPrimitives,
-                                          errorMessage)) {
+            std::vector<GraphicsPrimitive*> primitives;
+            if (contour.createContours(primitives,
+                                       errorMessage)) {
+#pragma omp critical
+                {
+                    contourPrimitivesOut.insert(contourPrimitivesOut.end(),
+                                                primitives.begin(),
+                                                primitives.end());
+                }
+            }
+            else {
                 CaretLogSevere(errorMessage);
             }
         }
@@ -711,13 +724,13 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                   nodeColoringRGBA,
                                                   thicknessPercentage);
         AString errorMessage;
-        if ( ! contour.createContours(contourPrimitives,
+        if ( ! contour.createContours(contourPrimitivesOut,
                                       errorMessage)) {
             CaretLogSevere(errorMessage);
         }
     }
     if (timingFlag) {
-        std::cout << "Time to compute contours: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+        std::cout << "Time to compute all contours: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
     }
 }
 

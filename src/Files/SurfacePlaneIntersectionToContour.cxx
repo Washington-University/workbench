@@ -145,6 +145,7 @@ bool
 SurfacePlaneIntersectionToContour::createContours(std::vector<GraphicsPrimitive*>& graphicsPrimitivesOut,
                                                   AString& errorMessageOut)
 {
+    graphicsPrimitivesOut.clear();
     errorMessageOut.clear();
     
     try {
