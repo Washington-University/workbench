@@ -78,7 +78,11 @@ namespace caret {
         AString operatingSystemName;
         
         AString compiledWithOpenMP;
+
+        AString numberOfThreadsOpenMP;
         
+        AString maximumNumberOfThreadsOpenMP;
+
         WorkbenchSpecialVersionEnum::Enum workbenchSpecialVersion;
         
         static ApplicationTypeEnum::Enum s_applicationType;

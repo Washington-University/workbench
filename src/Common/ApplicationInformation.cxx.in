@@ -77,6 +77,19 @@ ApplicationInformation::ApplicationInformation()
 
 #ifdef CARET_OMP
     this->compiledWithOpenMP = "Compiled with OpenMP: YES";
+#pragma omp parallel
+    {
+#pragma omp single
+        /*
+         * Must be inside parallel region to return correct value
+         * https://stackoverflow.com/questions/11071116/i-got-omp-get-num-threads-always-return-1-in-gcc-works-in-icc
+         */
+
+       this->numberOfThreadsOpenMP = ("OpenMP Number of Threads: "
+                                      + AString::number(omp_get_num_threads()));
+       this->maximumNumberOfThreadsOpenMP = ("OpenMP Maximum Number of Threads: "
+                                             + AString::number(omp_get_max_threads()));
+    }
 #else
     this->compiledWithOpenMP = "Compiled with OpenMP: NO";
 #endif
@@ -186,6 +199,12 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
 
     informationValues.push_back(compiledWithOpenMP);
 
+    if ( ! numberOfThreadsOpenMP.isEmpty()) {
+       informationValues.push_back(numberOfThreadsOpenMP);
+    }
+    if ( ! maximumNumberOfThreadsOpenMP.isEmpty()) {
+       informationValues.push_back(maximumNumberOfThreadsOpenMP);
+    }
 #if defined COMPILER_NAME
     FileInformation fileInfo(COMPILER_NAME);
     informationValues.push_back(QString("Compiler: ") + fileInfo.getFileNameFollowedByPathNameForGUI());
