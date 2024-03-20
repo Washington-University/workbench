@@ -38,6 +38,7 @@
 #include "ApplicationInformation.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "CaretOMP.h"
 #include "GuiManager.h"
 #include "libCZI.h"
 #include "ImageFile.h"
@@ -177,6 +178,25 @@ AboutWorkbenchDialog::displayMoreInformation()
     ApplicationInformation appInfo;
     std::vector<AString> informationData;
     appInfo.getAllInformation(informationData);
+    
+#ifdef CARET_OMP
+    int numThreads(-1);
+#pragma omp parallel
+    {
+        /*
+         * omp_get_num_threads must be inside parallel region (omp parallel)
+         * to return correct value.  "omp single" results in omp_get_num_threads()
+         * getting called one time.  Without it, it would run once for each thread.
+         * https://stackoverflow.com/questions/11071116/i-got-omp-get-num-threads-always-return-1-in-gcc-works-in-icc
+         */
+#pragma omp single
+        numThreads = omp_get_num_threads();
+    }
+    informationData.push_back("OpenMP Number of Threads: "
+                              + AString::number(numThreads));
+    informationData.push_back("OpenMP Maximum Number of Threads: "
+                              + AString::number(omp_get_max_threads()));
+#endif
     
     int32_t cziMajorVersion(-1), cziMinorVersion(-1);
     libCZI::GetLibCZIVersion(&cziMajorVersion, &cziMinorVersion);
