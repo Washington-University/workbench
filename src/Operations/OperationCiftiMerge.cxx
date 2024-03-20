@@ -360,8 +360,8 @@ void OperationCiftiMerge::useParameters(OperationParameters* myParams, ProgressO
                             *(outScalarMap.getMapPalette(curMergeIndex)) = *(thisScalarMap.getMapPalette(j));
                             *(outScalarMap.getMapMetadata(curMergeIndex)) = *(thisScalarMap.getMapMetadata(j));
                         }
+                        ++curMergeIndex;
                     }
-                    ++curMergeIndex;
                 } else {//act like it has a singular dimension here - nothing to copy
                     ++curMergeIndex;
                 }
