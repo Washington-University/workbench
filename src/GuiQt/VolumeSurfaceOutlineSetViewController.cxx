@@ -77,8 +77,9 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 100);
-        
+        gridLayout->setColumnStretch(3, 0);
+        gridLayout->setColumnStretch(4, 100);
+
         QLabel* onLabel = new QLabel("On");
         QLabel* colorLabel = new QLabel("Color Source");
         QLabel* thicknessLabel = new QLabel("Thickness");
@@ -96,7 +97,8 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     else {
         gridLayout->setColumnStretch(0, 0);
         gridLayout->setColumnStretch(1, 0);
-        gridLayout->setColumnStretch(2, 100);
+        gridLayout->setColumnStretch(2, 0);
+        gridLayout->setColumnStretch(3, 100);
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
