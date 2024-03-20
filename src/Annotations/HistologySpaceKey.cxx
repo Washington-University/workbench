@@ -84,7 +84,8 @@ HistologySpaceKey::~HistologySpaceKey()
  *    Object that is copied.
  */
 HistologySpaceKey::HistologySpaceKey(const HistologySpaceKey& obj)
-: CaretObjectTracksModification(obj)
+: CaretObjectTracksModification(obj),
+SceneableInterface(obj)
 {
     this->copyHelperHistologySpaceKey(obj);
 }

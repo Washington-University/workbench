@@ -105,7 +105,7 @@ m_parentToolBar(parentToolBar)
     
     QLabel* sliceNameLabel(new QLabel("Name"));
     m_sliceNameComboBox = new QComboBox();
-    QObject::connect(m_sliceNameComboBox, &QComboBox::activated,
+    QObject::connect(m_sliceNameComboBox, QOverload<int>::of(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated);
 
     /*

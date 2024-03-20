@@ -707,8 +707,8 @@ AnnotationTwoCoordinateShape::applySpatialModificationTabOrWindowSpace(const Ann
                                         spatialModification.m_viewportHeight,
                                         rotationAngle);
             
-            const float* xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
-            const float* xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
+            const Vector3D xyzOne = shapeCopy->getStartCoordinate()->getXYZ();
+            const Vector3D xyzTwo = shapeCopy->getEndCoordinate()->getXYZ();
             newX1 = xyzOne[0];
             newY1 = xyzOne[1];
             newX2 = xyzTwo[0];

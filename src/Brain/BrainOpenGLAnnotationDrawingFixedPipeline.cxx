@@ -5538,8 +5538,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             || drawNonEditableSizingHandlesFlag) {
             if (multiPairedCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
                 || multiPairedCoordShape->isDrawingNewAnnotation()) {
-                float sizeHandleWidthInPixels(computePolySizeHandleDiameter(multiPairedCoordShape,
-                                                                                  primitive.get()));
+                float sizeHandleWidthInPixels(computePolySizeHandleDiameter(primitive.get()));
                 AnnotationSizingHandleTypeEnum::Enum sizeHandleType(AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE);
                 if (drawEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
@@ -5729,19 +5728,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getLineWidthMultiplierForAnnotationBe
 
 /**
  * Compute the diameter for a poly-type annotation size handle
- * @param annotation
- *    Annotation that is being drawn
  * @param primitive
  *    Primitive that is drawn and contains width of the line for the poly-type shape
  * @return
  *    Diameter for drawing the size handle.
  */
 float
-BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const Annotation* annotation,
-                                                                         const GraphicsPrimitive* primitive) const
+BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const GraphicsPrimitive* primitive) const
 {
-    CaretAssert(annotation);
-    
     /*
      * Minimum size of symbol in millimeters estimated
      * using the screen's dots per inch.
@@ -6112,8 +6106,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiCoordinateShape(AnnotationFi
         
         if (multiCoordShape->isSelectedForEditing(m_inputs->m_windowIndex)
             || multiCoordShape->isDrawingNewAnnotation()) {
-            float sizeHandleWidthInPixels = computePolySizeHandleDiameter(multiCoordShape,
-                                                                                primitive.get());
+            float sizeHandleWidthInPixels = computePolySizeHandleDiameter(primitive.get());
             if (drawingSelectionModeFlag) {
                 const float minSelectionPixelSize(8.0);
                 if (sizeHandleWidthInPixels < minSelectionPixelSize) {

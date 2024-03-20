@@ -23,6 +23,8 @@
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
 #undef __BRAIN_OPEN_G_L_VOLUME_SURFACE_OUTLINE_DRAWING_DECLARE__
 
+#include <cmath>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
