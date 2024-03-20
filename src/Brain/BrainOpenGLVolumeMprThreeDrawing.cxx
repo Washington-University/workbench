@@ -3921,17 +3921,18 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                     break;
             }
             bool useNegativePolygonOffsetFlag(true);
-            BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
-                                                                       modelType,
-                                                                       sliceProjectionType,
-                                                                       sliceViewPlane,
-                                                                       sliceCoordinates,
-                                                                       slicePlane,
-                                                                       displayTransformMatrix,
-                                                                       displayTransformMatrixValidFlag,
-                                                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                       m_fixedPipelineDrawing,
-                                                                       useNegativePolygonOffsetFlag);
+            BrainOpenGLVolumeSurfaceOutlineDrawing outlineDrawing;
+            outlineDrawing.drawSurfaceOutline(underlayVolume,
+                                              modelType,
+                                              sliceProjectionType,
+                                              sliceViewPlane,
+                                              sliceCoordinates,
+                                              slicePlane,
+                                              displayTransformMatrix,
+                                              displayTransformMatrixValidFlag,
+                                              m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                              m_fixedPipelineDrawing,
+                                              useNegativePolygonOffsetFlag);
         }
         
         if (drawFibersFlag) {

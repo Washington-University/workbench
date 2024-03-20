@@ -2417,17 +2417,18 @@ BrainOpenGLVolumeSliceDrawing::drawLayers(const VolumeSliceDrawingTypeEnum::Enum
         if (drawOutlineFlag) {
             Matrix4x4 displayTransformMatrix;
             bool displayTransformMatrixValidFlag(false);
-            BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(m_underlayVolume,
-                                                                       m_modelType,
-                                                                       sliceProjectionType,
-                                                                       sliceViewPlane,
-                                                                       sliceCoordinates,
-                                                                       slicePlane,
-                                                                       displayTransformMatrix,
-                                                                       displayTransformMatrixValidFlag,
-                                                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                       m_fixedPipelineDrawing,
-                                                                       false);
+            BrainOpenGLVolumeSurfaceOutlineDrawing outlineDrawing;
+            outlineDrawing.drawSurfaceOutline(m_underlayVolume,
+                                              m_modelType,
+                                              sliceProjectionType,
+                                              sliceViewPlane,
+                                              sliceCoordinates,
+                                              slicePlane,
+                                              displayTransformMatrix,
+                                              displayTransformMatrixValidFlag,
+                                              m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                              m_fixedPipelineDrawing,
+                                              false);
         }
         
         if (drawFibersFlag) {

@@ -3287,17 +3287,18 @@ BrainOpenGLVolumeMprTwoDrawing::drawLayers(const VolumeMappableInterface* underl
         if (drawOutlineFlag) {
             Matrix4x4 displayTransformMatrix;
             bool displayTransformMatrixValidFlag(false);
-            BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayVolume,
-                                                                       ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
-                                                                       sliceProjectionType,
-                                                                       sliceViewPlane,
-                                                                       sliceCoordinates,
-                                                                       slicePlane,
-                                                                       displayTransformMatrix,
-                                                                       displayTransformMatrixValidFlag,
-                                                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                                       m_fixedPipelineDrawing,
-                                                                       false);
+            BrainOpenGLVolumeSurfaceOutlineDrawing outlineDrawing;
+            outlineDrawing.drawSurfaceOutline(underlayVolume,
+                                              ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                                              sliceProjectionType,
+                                              sliceViewPlane,
+                                              sliceCoordinates,
+                                              slicePlane,
+                                              displayTransformMatrix,
+                                              displayTransformMatrixValidFlag,
+                                              m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                              m_fixedPipelineDrawing,
+                                              false);
         }
         
         if (drawFibersFlag) {

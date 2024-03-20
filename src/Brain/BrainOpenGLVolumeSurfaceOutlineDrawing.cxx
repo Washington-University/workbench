@@ -713,7 +713,10 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                 }
             }
             else {
-                CaretLogSevere(errorMessage);
+#pragma omp critical
+                {
+                    CaretLogSevere(errorMessage);
+                }
             }
         }
     }

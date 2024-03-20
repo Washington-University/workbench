@@ -594,12 +594,13 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      * Draw surface outlines
      */
     const bool useNegativePolygonOffsetFlag(true);
-    BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(underlayHistologySlicesFile,
-                                                               underlayHistologySlice,
-                                                               m_browserTabContent->getVolumeSurfaceOutlineSet(),
-                                                               m_fixedPipelineDrawing,
-                                                               useNegativePolygonOffsetFlag);
-    
+    BrainOpenGLVolumeSurfaceOutlineDrawing outlineDrawing;
+    outlineDrawing.drawSurfaceOutline(underlayHistologySlicesFile,
+                                      underlayHistologySlice,
+                                      m_browserTabContent->getVolumeSurfaceOutlineSet(),
+                                      m_fixedPipelineDrawing,
+                                      useNegativePolygonOffsetFlag);
+
     /*
      * Height used for drawing ID symbols
      */
