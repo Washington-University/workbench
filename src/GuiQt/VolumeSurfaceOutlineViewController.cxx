@@ -23,8 +23,10 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QMenu>
 #include <QVBoxLayout>
 
 #define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
@@ -37,6 +39,7 @@
 #include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
 #include "VolumeSurfaceOutlineModel.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQGridLayoutGroup.h"
@@ -115,15 +118,22 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget(),
                                           "Set thickness for volume surface outline for " + descriptivePrefix);
     
+    const QString slicePlaneToolTip("Depth in millimeters along slice plane normal."
+                                    "  Right click to adjust outline separation "
+                                    "(helps fill in gaps)");
     this->slicePlaneDepthSpinBox = new WuQDoubleSpinBox(this);
     this->slicePlaneDepthSpinBox->setRange(0.0, 100.0);
     this->slicePlaneDepthSpinBox->setSingleStep(0.10);
     this->slicePlaneDepthSpinBox->setSuffix("mm");
     QObject::connect(this->slicePlaneDepthSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged);
-    this->slicePlaneDepthSpinBox->getWidget()->setToolTip("Depth in millimeters along slice plane normal");
+    WuQtUtilities::setWordWrappedToolTip(this->slicePlaneDepthSpinBox->getWidget(),
+                                         slicePlaneToolTip);
     this->slicePlaneDepthSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                        + ":SlicePlaneDepth");
+    this->slicePlaneDepthSpinBox->getWidget()->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(this->slicePlaneDepthSpinBox->getWidget(), &QWidget::customContextMenuRequested,
+                     this, &VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested);
     macroManager->addMacroSupportToObject(this->slicePlaneDepthSpinBox->getWidget(),
                                           "Set slice plane depth for volume surface outline for " + descriptivePrefix);
     
@@ -240,6 +250,45 @@ VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged(double va
     }
     this->updateGraphics();
 }
+
+/**
+ * Called to display context menu on depth spin box
+ */
+void
+VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested(const QPoint &pos)
+{
+    QWidget* widget(this->slicePlaneDepthSpinBox->getWidget());
+    QMenu menu(widget);
+    menu.move(widget->mapToGlobal(pos));
+    QAction* separationAction = menu.addAction("Set outline separation...");
+    
+    const QAction* selectedAction = menu.exec();
+    if (selectedAction == separationAction) {
+        WuQDataEntryDialog dialog("Surface Outline",
+                                  widget);
+        
+        const QString spinBoxTitle("Maximum Outline Separation");
+        QDoubleSpinBox* separationSpinBox(dialog.addDoubleSpinBox(spinBoxTitle,
+                                                                  this->outlineModel->getUserOutlineSlicePlaneDepthSeparation()));
+        separationSpinBox->setRange(0.0, 10000.0);
+        separationSpinBox->setSingleStep(0.1);
+        separationSpinBox->setDecimals(2);
+        const bool wrapTextFlag(true);
+        dialog.setTextAtTop(("Workbench calculates separation when "
+                             + spinBoxTitle
+                             + " is ZERO"),
+                            wrapTextFlag);
+        if (dialog.exec() == WuQDataEntryDialog::Accepted) {
+            const float separation(separationSpinBox->value());
+            this->outlineModel->setUserOutlineSlicePlaneDepthSeparation(separation);
+            this->updateGraphics();
+        }
+    }
+    else if (selectedAction != NULL) {
+        CaretAssertMessage(0, "Has a new action been added to the menu");
+    }
+}
+
 
 /**
  * Update this view controller.

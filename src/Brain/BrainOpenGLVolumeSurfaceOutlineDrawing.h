@@ -113,6 +113,7 @@ namespace caret {
         
         void computeDepthNumStepsAndStepSize(const float sliceSpacingMM,
                                              const float slicePlaneDepth,
+                                             const float userOutlineSeparation,
                                              int32_t& numStepsOut,
                                              float& depthStartOut,
                                              float& depthStepSizeOut);
@@ -124,6 +125,7 @@ namespace caret {
                             const float* vertexColoringRGBA,
                             const float contourThicknessMillimeters,
                             const float slicePlaneDepth,
+                            const float userOutlineSeparation,
                             std::vector<GraphicsPrimitive*>& contourPrimitives);
         
         // ADD_NEW_MEMBERS_HERE

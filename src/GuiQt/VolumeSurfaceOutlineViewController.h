@@ -64,6 +64,8 @@ namespace caret {
         
         void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
         
+        void depthSpinBoxContextMenuRequested(const QPoint &pos);
+        
     private:
         VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
 

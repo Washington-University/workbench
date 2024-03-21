@@ -163,7 +163,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
             drawCachedFlag = false;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-            drawCachedFlag = false;
+            //drawCachedFlag = false;
             break;
     }
     /*
@@ -260,6 +260,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCachedOnVolume(const V
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
+            outlineCacheKey = VolumeSurfaceOutlineModelCacheKey(underlayVolume,
+                                                                plane);
             break;
     }
     
@@ -413,6 +415,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                    nodeColoringRGBA,
                                    thicknessPercentage,
                                    slicePlaneDepth,
+                                   outline->getUserOutlineSlicePlaneDepthSeparation(),
                                    contourPrimitives);
 
                     if (histologySlice != NULL) {
@@ -598,6 +601,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
                                nodeColoringRGBA,
                                thicknessPercentage,
                                slicePlaneDepth,
+                               outline->getUserOutlineSlicePlaneDepthSeparation(),
                                contourPrimitives);
             }
         }
@@ -638,18 +642,24 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
 /**
  * Constructor.
  *
- * @param surfaceFile
- *     The surface file.
+ * @param surface
+ *     The surface .
  * @param plane
  *     Plane intersected with the surface.
  * @param sliceSpacingMM
- *    Spacing of slices in millimeters
- * @param caretColor
- *     Solid coloring or, if value is CUSTOM, use the vertex coloring
- * @param vertexColoringRGBA
+ *     Spacing of slices in millimeters
+ * @param outlineColor
+ *     outline coloring or, if value is CUSTOM, use the vertex coloring
+ * @param nodeColoringRGBA
  *     The per-vertex coloring if 'caretColor' is CUSTOM
- * @param contourThicknessPercentOfViewportHeight
- *     Thickness for the contour as a percentage of viewport height.
+ * @param thicknessPercentage
+ *     Thickness of outlines percentage of viewport height
+ * @param slicePlaneDepth
+ *     Depth that slice plane along normal vector
+ * @param userOutlineSeparation
+ *     User override for outline separation when depth is greater than zero
+ * @param contourPrimitivesOut
+ *     Output with contour primitives
  */
 
 void
@@ -660,6 +670,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                        const float* nodeColoringRGBA,
                                                        const float thicknessPercentage,
                                                        const float slicePlaneDepth,
+                                                       const float userOutlineSeparation,
                                                        std::vector<GraphicsPrimitive*>& contourPrimitivesOut)
 {
     contourPrimitivesOut.clear();
@@ -675,6 +686,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
         float depthStepSize(0.0);
         computeDepthNumStepsAndStepSize(sliceSpacingMM,
                                         slicePlaneDepth,
+                                        userOutlineSeparation,
                                         numSteps,
                                         depthStart,
                                         depthStepSize);
@@ -745,6 +757,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
  *    Spacing of the slices
  * @param slicePlaneDepth
  *    Slice plane depth set by user
+ * @param userOutlineSeparation
+ *     User override for outline separation when depth is greater than zero
  * @param numStepsOut
  *    Number of steps output
  * @param depthStartOut
@@ -755,6 +769,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
 void
 BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const float sliceSpacingMM,
                                                                         const float slicePlaneDepth,
+                                                                        const float userOutlineSeparation,
                                                                         int32_t& numStepsOut,
                                                                         float& depthStartOut,
                                                                         float& depthStepSizeOut)
@@ -773,6 +788,9 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
      * If spacing valid, use 1/2 spacing for step size; else 0.5mm
      */
     depthStepSizeOut = (sliceSpacingMM / 2.0);
+    if (userOutlineSeparation > 0.0) {
+        depthStepSizeOut = userOutlineSeparation;
+    }
     if (depthStepSizeOut <= 0.0) {
         depthStepSizeOut = 0.5;
     }

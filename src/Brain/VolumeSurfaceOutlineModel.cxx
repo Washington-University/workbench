@@ -261,6 +261,26 @@ VolumeSurfaceOutlineModel::setSlicePlaneDepth(const float slicePlaneDepth)
 }
 
 /**
+ * @return The user override of the slice plane depth separation
+ */
+float
+VolumeSurfaceOutlineModel::getUserOutlineSlicePlaneDepthSeparation() const
+{
+    return m_userOutlineSlicePlaneDepthSeparation;
+}
+
+/**
+ * Set the user override of slice plane depth separation
+ * @param depthSeparation
+ *   New user override of slice plane depth separation
+ */
+void
+VolumeSurfaceOutlineModel::setUserOutlineSlicePlaneDepthSeparation(const float depthSeparation)
+{
+    m_userOutlineSlicePlaneDepthSeparation = depthSeparation;
+}
+
+/**
  * @return  The surface selector used to select the surface.
  */
 SurfaceSelectionModel* 
@@ -422,6 +442,16 @@ VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const HistologySlice*      
         clearOutlineCache();
     }
 
+    /*
+     * Don't let the cache become too big.
+     * They do occupy buffers in the graphics memory
+     * so we don't want to use too much of it.
+     */
+    const int32_t maximumCacheSize(100);
+    if (m_outlineCache.size() > maximumCacheSize) {
+        clearOutlineCache();
+    }
+    
     auto iter = m_outlineCache.find(key);
     if (iter != m_outlineCache.end()) {
         primitivesOut = iter->second->getGraphicsPrimitives();
@@ -431,6 +461,9 @@ VolumeSurfaceOutlineModel::getOutlineCachePrimitives(const HistologySlice*      
         return true;
     }
     
+    if (debugFlag) {
+        std::cout << m_outlineCache.size() << " items in outline cache" << std::endl;
+    }
     return false;
 }
 
@@ -480,6 +513,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
     m_surface = NULL;
     m_thicknessPercentageViewportHeight = -1.0;
     m_slicePlaneDepth = 0.0;
+    m_userOutlineSlicePlaneDepthSeparation = -100.0;
     m_colorItem.reset();
 }
 
@@ -516,7 +550,8 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
             && (histologyMatchFlag
                 || volumeMatchFlag)
             && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())
-            && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())) {
+            && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())
+            && (m_userOutlineSlicePlaneDepthSeparation == surfaceOutlineModel->getUserOutlineSlicePlaneDepthSeparation())) {
             if (m_colorItem != NULL) {
                 if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
                     validFlag = true;
@@ -558,5 +593,6 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     m_surface = surfaceOutlineModel->getSurface();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
     m_slicePlaneDepth = surfaceOutlineModel->getSlicePlaneDepth();
+    m_userOutlineSlicePlaneDepthSeparation = surfaceOutlineModel->getUserOutlineSlicePlaneDepthSeparation();
     m_colorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem())));
 }
