@@ -273,10 +273,19 @@ VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested(const QPoin
         separationSpinBox->setRange(0.0, 10000.0);
         separationSpinBox->setSingleStep(0.1);
         separationSpinBox->setDecimals(2);
+        /*
+         * Default is displayed when the spin box is set to the minimum value (0.0)
+         * which allows Workbench to compute the separation
+         */
+        separationSpinBox->setSpecialValueText("Default"); // Displayed when value is minimum
+        
+        QObject::connect(separationSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                         this, &VolumeSurfaceOutlineViewController::depthSeparationSpinBoxValueChanged);
+
         const bool wrapTextFlag(true);
         dialog.setTextAtTop(("Workbench calculates separation when "
                              + spinBoxTitle
-                             + " is ZERO"),
+                             + " is Default"),
                             wrapTextFlag);
         if (dialog.exec() == WuQDataEntryDialog::Accepted) {
             const float separation(separationSpinBox->value());
@@ -289,6 +298,17 @@ VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested(const QPoin
     }
 }
 
+/**
+ * Called when depth separation spin box in pop-up dialog value is changed
+ * @param value
+ *    New value
+ */
+void
+VolumeSurfaceOutlineViewController::depthSeparationSpinBoxValueChanged(double value)
+{
+    this->outlineModel->setUserOutlineSlicePlaneDepthSeparation(value);
+    this->updateGraphics();
+}
 
 /**
  * Update this view controller.

@@ -66,6 +66,8 @@ namespace caret {
         
         void depthSpinBoxContextMenuRequested(const QPoint &pos);
         
+        void depthSeparationSpinBoxValueChanged(double value);
+
     private:
         VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
 
