@@ -195,6 +195,7 @@ namespace caret {
         
         WuQTrueFalseComboBox* m_yokingDefaultComboBox;
         
+        WuQTrueFalseComboBox* m_histologyIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_mediaIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_surfaceIdentificationSymbolComboBox;
         WuQTrueFalseComboBox* m_volumeIdentificationSymbolComboBox;

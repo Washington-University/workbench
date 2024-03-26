@@ -676,6 +676,10 @@ PreferencesDialog::createIdentificationSymbolWidget()
     QLabel* infoLabel = new QLabel("These are defaults for Information Properties");
     infoLabel->setWordWrap(true);
     
+    m_histologyIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(m_histologyIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(identificationSymbolToggled()));
+    
     m_mediaIdentificationSymbolComboBox = new WuQTrueFalseComboBox("On", "Off", this);
     QObject::connect(m_mediaIdentificationSymbolComboBox, SIGNAL(statusChanged(bool)),
                      this, SLOT(identificationSymbolToggled()));
@@ -721,6 +725,9 @@ PreferencesDialog::createIdentificationSymbolWidget()
     gridLayout->addWidget(infoLabel,
                           row, 0, 1, 2);
     addWidgetToLayout(gridLayout,
+                      IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::HISTOLOGY_PLANE_COORDINATE) + ": ",
+                      m_histologyIdentificationSymbolComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
                       IdentificationManager::getShowSymbolOnTypeLabel(IdentifiedItemUniversalTypeEnum::MEDIA_LOGICAL_COORDINATE) + ": ",
                       m_mediaIdentificationSymbolComboBox->getWidget());
     addWidgetToLayout(gridLayout,
@@ -755,6 +762,7 @@ PreferencesDialog::createIdentificationSymbolWidget()
 void
 PreferencesDialog::updateIdentificationWidget(CaretPreferences* prefs)
 {
+    m_histologyIdentificationSymbolComboBox->setStatus(prefs->isShowHistologyIdentificationSymbols());
     m_mediaIdentificationSymbolComboBox->setStatus(prefs->isShowMediaIdentificationSymbols());
     m_surfaceIdentificationSymbolComboBox->setStatus(prefs->isShowSurfaceIdentificationSymbols());
     m_volumeIdentificationSymbolComboBox->setStatus(prefs->isShowVolumeIdentificationSymbols());
@@ -771,6 +779,7 @@ void
 PreferencesDialog::identificationSymbolToggled()
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setShowHistologyIdentificationSymbols(m_histologyIdentificationSymbolComboBox->isTrue());
     prefs->setShowMediaIdentificationSymbols(m_mediaIdentificationSymbolComboBox->isTrue());
     prefs->setShowSurfaceIdentificationSymbols(m_surfaceIdentificationSymbolComboBox->isTrue());
     prefs->setShowVolumeIdentificationSymbols(m_volumeIdentificationSymbolComboBox->isTrue());
