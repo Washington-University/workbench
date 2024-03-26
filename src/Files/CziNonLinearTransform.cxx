@@ -351,7 +351,7 @@ CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& stereot
             }
         }
         else {
-            CaretLogWarning("("
+            CaretLogFine("("
                          + AString::number(niftiI)
                          + ", "
                          + AString::number(niftiJ)
@@ -361,7 +361,7 @@ CziNonLinearTransform::getNonLinearOffsetFromMillimeters(const Vector3D& stereot
         }
     }
     else {
-        CaretLogWarning("("
+        CaretLogFine("("
                         + AString::number(indexI)
                         + ", "
                         + AString::number(indexJ)
@@ -411,7 +411,7 @@ CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
             }
         }
         else {
-            CaretLogWarning("("
+            CaretLogFine("("
                          + AString::number(niftiI)
                          + ", "
                          + AString::number(niftiJ)
@@ -421,7 +421,7 @@ CziNonLinearTransform::getNonLinearOffsetToMillimeters(const Vector3D& planeXYZ,
         }
     }
     else {
-        CaretLogWarning("("
+        CaretLogFine("("
                         + AString::number(indexI)
                         + ", "
                         + AString::number(indexJ)
