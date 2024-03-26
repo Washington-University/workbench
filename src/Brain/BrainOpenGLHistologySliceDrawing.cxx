@@ -25,6 +25,7 @@
 
 #include <cmath>
 
+#include "AnnotationPointSizeText.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLFociDrawing.h"
@@ -265,6 +266,35 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     }
     
     if (m_mediaFilesAndDataToDraw.empty()) {
+        const GraphicsViewport vp(GraphicsViewport::newInstanceCurrentViewport());
+        glPushAttrib(GL_DEPTH_BITS
+                     | GL_TRANSFORM_BIT);
+        glDisable(GL_DEPTH_TEST);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        glOrtho(vp.getLeft(), vp.getRight(), vp.getBottom(), vp.getTop(), -1.0, 1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();
+        AnnotationPointSizeText text(AnnotationAttributesDefaultTypeEnum::NORMAL);
+        text.setFontPointSize(AnnotationTextFontPointSizeEnum::SIZE20);
+        text.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
+        text.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);
+        text.setTextColor(CaretColorEnum::CUSTOM);
+        text.setCustomTextColor(m_fixedPipelineDrawing->m_foregroundColorByte);
+        text.setBackgroundColor(CaretColorEnum::CUSTOM);
+        text.setCustomBackgroundColor(m_fixedPipelineDrawing->m_backgroundColorByte);
+        text.setText("No Images");
+        m_fixedPipelineDrawing->drawTextAtModelCoords(vp.getCenterX(),
+                                                      vp.getCenterY(),
+                                                      0.0,
+                                                      text);
+        glPopMatrix();
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix(); /* pop attrib below will restore matrix mode */
+        glPopAttrib();
+        
         return;
     }
     
@@ -275,6 +305,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     if ( ! getOrthoBounds(orthoLeft, orthoRight, orthoBottom, orthoTop)) {
         return;
     }
+
     if (s_debugFlag) {
         std::cout << "Ortho L=" << orthoLeft << ", R=" << orthoRight
         << ", B=" << orthoBottom << ", T=" << orthoTop << std::endl;

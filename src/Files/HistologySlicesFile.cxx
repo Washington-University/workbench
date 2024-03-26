@@ -263,7 +263,6 @@ HistologySlicesFile::getNumberOfHistologySlices() const
 HistologySlice*
 HistologySlicesFile::getHistologySliceByIndex(const int32_t sliceIndex)
 {
-    CaretAssertVectorIndex(m_histologySlices, sliceIndex);
     if ((sliceIndex >= 0)
         && (sliceIndex < static_cast<int32_t>(m_histologySlices.size()))) {
         return m_histologySlices[sliceIndex].get();
