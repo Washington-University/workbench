@@ -436,7 +436,7 @@ HistologyCoordinate::copyYokedSettings(const HistologySlicesFile* histologySlice
         *this = newCoord;
     }
     else {
-        CaretLogSevere("Histology coordinate must be valid with valid stereotaxic coordinates");
+        CaretLogFine("Histology coordinate must be valid with valid stereotaxic coordinates");
     }
 }
 
