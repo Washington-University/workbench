@@ -176,7 +176,13 @@ HistologySliceSettings::getHistologyCoordinate(const HistologySlicesFile* histol
     }
     else if (histologySlicesFile != NULL) {
         if (m_histologyCoordinate.getHistologySlicesFileName() != histologySlicesFile->getFileName()) {
-            updateFlag = true;
+            /*
+             * Disabled on 26mar2024
+             * If the histology coordinate filename is for a file not in the tab
+             * that uses these settings it will cause the updateFlag to go true
+             * and yoking will not work.
+             */
+            /*updateFlag = true;*/
         }
     }
 //    else if (m_histologyCoordinate.getHistologySlicesFile() != histologySlicesFile) {
