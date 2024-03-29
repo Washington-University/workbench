@@ -67,6 +67,8 @@ namespace caret {
             
             int32_t getBrowserTabIndex() const;
             
+            CaretColorEnum::Enum getColor() const;
+            
             CaretColorEnum::Enum getColor();
             
             virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -90,6 +92,8 @@ namespace caret {
         std::vector<Item*> getValidItems();
         
         void copyVolumeSurfaceOutlineColorOrTabModel(VolumeSurfaceOutlineColorOrTabModel* modelToCopy);
+        
+        const Item* getSelectedItem() const;
         
         Item* getSelectedItem();
         

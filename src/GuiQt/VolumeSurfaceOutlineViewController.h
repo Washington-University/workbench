@@ -29,6 +29,7 @@ class QGridLayout;
 
 namespace caret {
 
+    class EnumComboBoxTemplate;
     class Surface;
     class SurfaceSelectionViewController;
     class VolumeSurfaceOutlineModel;
@@ -64,10 +65,8 @@ namespace caret {
         
         void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
         
-        void depthSpinBoxContextMenuRequested(const QPoint &pos);
+        void volumeSurfaceOutlineDrawingModeEnumComboBoxItemActivated();
         
-        void depthSeparationSpinBoxValueChanged(double value);
-
     private:
         VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
 
@@ -88,6 +87,8 @@ namespace caret {
         WuQDoubleSpinBox* slicePlaneDepthSpinBox;
         
         SurfaceSelectionViewController* surfaceSelectionViewController;
+        
+        EnumComboBoxTemplate* m_volumeSurfaceOutlineDrawingModeEnumComboBox;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__

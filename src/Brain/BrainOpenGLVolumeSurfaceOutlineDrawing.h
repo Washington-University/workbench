@@ -30,6 +30,7 @@
 #include "ModelTypeEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSurfaceOutlineModel.h"
 
 namespace caret {
     
@@ -127,6 +128,8 @@ namespace caret {
                             const float slicePlaneDepth,
                             const float userOutlineSeparation,
                             std::vector<GraphicsPrimitive*>& contourPrimitives);
+        
+        float getSeparation(const VolumeSurfaceOutlineModel* outline) const;
         
         // ADD_NEW_MEMBERS_HERE
         

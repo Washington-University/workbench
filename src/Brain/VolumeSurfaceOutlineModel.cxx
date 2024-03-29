@@ -23,10 +23,12 @@
 #include "VolumeSurfaceOutlineModel.h"
 #undef __VOLUME_SURFACE_OUTLINE_MODEL_DECLARE__
 
+#include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "SessionManager.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeMappableInterface.h"
@@ -61,6 +63,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     m_slicePlaneDepth = 0.0;
+    m_drawingMode = VolumeSurfaceOutlineDrawingModeEnum::LINES;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_displayed", &m_displayed);
@@ -68,6 +71,8 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     m_sceneAssistant->add("m_slicePlaneDepth", &m_slicePlaneDepth);
+    m_sceneAssistant->add<VolumeSurfaceOutlineDrawingModeEnum, VolumeSurfaceOutlineDrawingModeEnum::Enum>("m_drawingMode",
+                                                                                                          &m_drawingMode);
     
     /*
      * Percentage viewport height thickness was added in Feb 2, 2017.
@@ -121,7 +126,7 @@ VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineMod
     m_thicknessPercentageViewportHeight = modelToCopy->m_thicknessPercentageViewportHeight;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     m_slicePlaneDepth = modelToCopy->getSlicePlaneDepth();
-    
+    m_drawingMode = modelToCopy->m_drawingMode;
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
     m_colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
     
@@ -261,26 +266,6 @@ VolumeSurfaceOutlineModel::setSlicePlaneDepth(const float slicePlaneDepth)
 }
 
 /**
- * @return The user override of the slice plane depth separation
- */
-float
-VolumeSurfaceOutlineModel::getUserOutlineSlicePlaneDepthSeparation() const
-{
-    return m_userOutlineSlicePlaneDepthSeparation;
-}
-
-/**
- * Set the user override of slice plane depth separation
- * @param depthSeparation
- *   New user override of slice plane depth separation
- */
-void
-VolumeSurfaceOutlineModel::setUserOutlineSlicePlaneDepthSeparation(const float depthSeparation)
-{
-    m_userOutlineSlicePlaneDepthSeparation = depthSeparation;
-}
-
-/**
  * @return  The surface selector used to select the surface.
  */
 SurfaceSelectionModel* 
@@ -324,6 +309,57 @@ VolumeSurfaceOutlineModel::getColorOrTabModel() const
 {
     return m_colorOrTabModel;
 }
+
+VolumeSurfaceOutlineDrawingModeEnum::Enum
+VolumeSurfaceOutlineModel::getDrawingMode() const
+{
+    return m_drawingMode;
+}
+
+void
+VolumeSurfaceOutlineModel::setDrawingMode(const VolumeSurfaceOutlineDrawingModeEnum::Enum drawingMode)
+{
+    m_drawingMode = drawingMode;
+}
+
+/**
+ * @return Is a drawing lines mode selected
+ */
+bool
+VolumeSurfaceOutlineModel::isDrawLinesModeSelected() const
+{
+    bool status(true);
+    switch (m_drawingMode) {
+        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+            status = false;
+            break;
+    }
+    return status;
+}
+
+/**
+ * @return Is a drawing surface mode selected
+ */
+bool
+VolumeSurfaceOutlineModel::isDrawSurfaceModeSelected() const
+{
+    bool status(true);
+    switch (m_drawingMode) {
+        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+            status = false;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+            break;
+    }
+    return status;
+}
+
 
 /**
  * Create a scene for an instance of a class.
@@ -513,7 +549,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
     m_surface = NULL;
     m_thicknessPercentageViewportHeight = -1.0;
     m_slicePlaneDepth = 0.0;
-    m_userOutlineSlicePlaneDepthSeparation = -100.0;
+    m_preferencesVolumeSurfaceOutlineSeparation = -100.0;
     m_colorItem.reset();
 }
 
@@ -546,12 +582,15 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
         else if (volumeMatchFlag) {
             CaretAssert( ! histologyMatchFlag);
         }
+        CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+        CaretAssert(prefs);
+
         if ((m_surface == surfaceOutlineModel->getSurface())
             && (histologyMatchFlag
                 || volumeMatchFlag)
             && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())
             && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())
-            && (m_userOutlineSlicePlaneDepthSeparation == surfaceOutlineModel->getUserOutlineSlicePlaneDepthSeparation())) {
+            && (m_preferencesVolumeSurfaceOutlineSeparation == prefs->getVolumeSurfaceOutlineSeparation())) {
             if (m_colorItem != NULL) {
                 if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
                     validFlag = true;
@@ -593,6 +632,9 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     m_surface = surfaceOutlineModel->getSurface();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
     m_slicePlaneDepth = surfaceOutlineModel->getSlicePlaneDepth();
-    m_userOutlineSlicePlaneDepthSeparation = surfaceOutlineModel->getUserOutlineSlicePlaneDepthSeparation();
     m_colorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem())));
+
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    CaretAssert(prefs);
+    m_preferencesVolumeSurfaceOutlineSeparation = prefs->getVolumeSurfaceOutlineSeparation();
 }

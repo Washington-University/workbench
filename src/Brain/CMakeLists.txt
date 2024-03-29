@@ -58,6 +58,7 @@ BrainOpenGLVolumeMprThreeDrawing.h
 BrainOpenGLVolumeMprTwoDrawing.h
 BrainOpenGLVolumeObliqueSliceDrawing.h
 BrainOpenGLVolumeSliceDrawing.h
+BrainOpenGLVolumeSurfaceClippedOutlineDrawing.h
 BrainOpenGLVolumeSurfaceOutlineDrawing.h
 BrainOpenGLWindowContent.h
 BrainStructure.h
@@ -252,6 +253,7 @@ VolumeSliceDrawingTypeEnum.h
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.h
 VolumeSliceSettings.h
 VolumeSurfaceOutlineColorOrTabModel.h
+VolumeSurfaceOutlineDrawingModeEnum.h
 VolumeSurfaceOutlineModel.h
 VolumeSurfaceOutlineModelCacheKey.h
 VolumeSurfaceOutlineModelCacheValue.h
@@ -289,6 +291,7 @@ BrainOpenGLVolumeMprThreeDrawing.cxx
 BrainOpenGLVolumeMprTwoDrawing.cxx
 BrainOpenGLVolumeObliqueSliceDrawing.cxx
 BrainOpenGLVolumeSliceDrawing.cxx
+BrainOpenGLVolumeSurfaceClippedOutlineDrawing.cxx
 BrainOpenGLVolumeSurfaceOutlineDrawing.cxx
 BrainOpenGLWindowContent.cxx
 BrainStructure.cxx
@@ -481,6 +484,7 @@ VolumeSliceDrawingTypeEnum.cxx
 VolumeSliceInterpolationEdgeEffectsMaskingEnum.cxx
 VolumeSliceSettings.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
+VolumeSurfaceOutlineDrawingModeEnum.cxx
 VolumeSurfaceOutlineModel.cxx
 VolumeSurfaceOutlineModelCacheKey.cxx
 VolumeSurfaceOutlineModelCacheValue.cxx

@@ -602,6 +602,19 @@ PreferencesDialog::createMiscellaneousWidget()
     QObject::connect(m_fileOpenFromOpSysTypeComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &PreferencesDialog::miscFileOpenFromOpSysTypeComboBoxItemActivated);
     
+    m_volumeSurfaceOutlineSeparationSpinBox = new QDoubleSpinBox();
+    m_volumeSurfaceOutlineSeparationSpinBox->setRange(0.0, 10000.0);
+    m_volumeSurfaceOutlineSeparationSpinBox->setSingleStep(0.1);
+    m_volumeSurfaceOutlineSeparationSpinBox->setDecimals(2);
+    /*
+     * Default is displayed when the spin box is set to the minimum value (0.0)
+     * which allows Workbench to compute the separation
+     */
+    m_volumeSurfaceOutlineSeparationSpinBox->setSpecialValueText("Default"); // Displayed when value is minimum
+    
+    QObject::connect(m_volumeSurfaceOutlineSeparationSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+                     this, &PreferencesDialog::volumeSurfaceOutlineSeparationValueChanged);
+
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
                       "Dynconn As Layer Default: ",
@@ -627,6 +640,9 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Display Cross at Histology/Volume Center",
                       m_crossAtViewportCenterEnabledComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
+                      "Volume Surface Outline Separation",
+                      m_volumeSurfaceOutlineSeparationSpinBox);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -665,6 +681,9 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     m_fileOpenFromOpSysTypeComboBox->setSelectedItem<FileOpenFromOpSysTypeEnum, FileOpenFromOpSysTypeEnum::Enum>(prefs->getFileOpenFromOpSysType());
     
     m_crossAtViewportCenterEnabledComboBox->setStatus(prefs->isCrossAtViewportCenterEnabled());
+    
+    QSignalBlocker vsoBlocker(m_volumeSurfaceOutlineSeparationSpinBox);
+    m_volumeSurfaceOutlineSeparationSpinBox->setValue(prefs->getVolumeSurfaceOutlineSeparation());
 }
 
 /**
@@ -1573,5 +1592,17 @@ PreferencesDialog::miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated()
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setManageFilesViewFileType(viewFilesType);
 }
+
+/**
+ * Called when volume surface outline separation is changed
+ */
+void
+PreferencesDialog::volumeSurfaceOutlineSeparationValueChanged(double value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeSurfaceOutlineSeparation(value);
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
 
 

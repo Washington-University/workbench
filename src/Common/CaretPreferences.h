@@ -351,6 +351,10 @@ namespace caret {
         
         void setMostRecentScenesEnabled(const bool status);
         
+        float getVolumeSurfaceOutlineSeparation() const;
+        
+        void setVolumeSurfaceOutlineSeparation(const float separation);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -481,6 +485,8 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_mostRecentScenesEnabled;
         
+        std::unique_ptr<CaretPreferenceDataValue> m_volumeSurfaceOutlineSeparation;
+
         bool splashScreenEnabled;
         
         bool developMenuEnabled;

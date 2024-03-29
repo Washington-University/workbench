@@ -28,7 +28,9 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "CaretPreferences.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLVolumeSurfaceClippedOutlineDrawing.h"
 #include "ElapsedTimer.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsPrimitive.h"
@@ -37,6 +39,7 @@
 #include "HistologySlicesFile.h"
 #include "MathFunctions.h"
 #include "Plane.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
 #include "SurfacePlaneIntersectionToContour.h"
@@ -191,6 +194,17 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
                                     fixedPipelineDrawing,
                                     useNegativePolygonOffsetFlag);
     }
+    
+    const bool testFlag(true);
+    if (testFlag) {
+        BrainOpenGLVolumeSurfaceClippedOutlineDrawing clippedDrawing(plane,
+                                                                     sliceXYZ,
+                                                                     outlineSet,
+                                                                     fixedPipelineDrawing);
+        clippedDrawing.drawSurfaceOutline();
+        return;
+    }
+
 }
 
 /**
@@ -352,7 +366,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
         std::vector<GraphicsPrimitive*> contourPrimitives;
         
         VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
-        if (outline->isDisplayed()) {
+        if (outline->isDisplayed()
+            && outline->isDrawLinesModeSelected()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 float thicknessPercentage = outline->getThicknessPercentageViewportHeight();
@@ -415,7 +430,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                    nodeColoringRGBA,
                                    thicknessPercentage,
                                    slicePlaneDepth,
-                                   outline->getUserOutlineSlicePlaneDepthSeparation(),
+                                   getSeparation(outline),
                                    contourPrimitives);
 
                     if (histologySlice != NULL) {
@@ -552,7 +567,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
         std::vector<GraphicsPrimitive*> contourPrimitives;
         
         VolumeSurfaceOutlineModel* outline = outlineSet->getVolumeSurfaceOutlineModel(io);
-        if (outline->isDisplayed()) {
+        if (outline->isDisplayed()
+            && outline->isDrawLinesModeSelected()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 float thicknessPercentage = outline->getThicknessPercentageViewportHeight();
@@ -601,7 +617,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
                                nodeColoringRGBA,
                                thicknessPercentage,
                                slicePlaneDepth,
-                               outline->getUserOutlineSlicePlaneDepthSeparation(),
+                               getSeparation(outline),
                                contourPrimitives);
             }
         }
@@ -697,7 +713,6 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
             << " Steps: " << numSteps
             << " Size: " << depthStepSize << std::endl;
         }
-        
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numSteps; i++) {
             const float depthOffset(depthStart +
@@ -785,11 +800,22 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
     }
     
     /*
+     * During testing, the Qt double spin box for the outline
+     * separation output a very small value just above zero
+     * (something like 0.000000239) and this resulted in an
+     * attempt to drawn millions of contours.
+     * So, don't let this happen !
+     */
+    const float smallSeparation(0.05);
+    const float outlineSeparation((userOutlineSeparation >= smallSeparation)
+                                  ? userOutlineSeparation
+                                  : 0.0);
+    /*
      * If spacing valid, use 1/2 spacing for step size; else 0.5mm
      */
     depthStepSizeOut = (sliceSpacingMM / 2.0);
-    if (userOutlineSeparation > 0.0) {
-        depthStepSizeOut = userOutlineSeparation;
+    if (outlineSeparation > 0.0) {
+        depthStepSizeOut = outlineSeparation;
     }
     if (depthStepSizeOut <= 0.0) {
         depthStepSizeOut = 0.5;
@@ -804,6 +830,15 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
         depthStartOut    = 0.0;
         depthStepSizeOut = 0.0;
         return;
+    }
+    
+    /*
+     * Limit number of steps in event user sets depth very
+     * large and separation very small
+     */
+    const int32_t maxSteps(51);
+    if (numStepsOut > maxSteps) {
+        numStepsOut = maxSteps;
     }
     
     /*
@@ -831,3 +866,24 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
     depthStepSizeOut = (slicePlaneDepth / (numStepsOut - 1));
     depthStartOut = -slicePlaneDepth / 2.0;
 }
+
+/**
+ * @return The outline separation for the given outline model
+ * @param outline
+ *    The outline model.
+ */
+float
+BrainOpenGLVolumeSurfaceOutlineDrawing::getSeparation(const VolumeSurfaceOutlineModel* outline) const
+{
+    /*
+     * When a "surface outline" is drawn it will fill in any
+     * gaps so no separation is needed
+     */
+    if (outline->isDrawSurfaceModeSelected()) {
+        return 0.0;
+    }
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    CaretAssert(prefs);
+    return prefs->getVolumeSurfaceOutlineSeparation();
+}
+

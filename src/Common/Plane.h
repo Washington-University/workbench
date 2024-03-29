@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 
 #include "CaretObject.h"
 #include "Vector3D.h"
@@ -91,11 +92,15 @@ namespace caret {
                       double& cOut,
                       double& dOut) const;
         
+        std::array<double, 4> getPlaneEquation() const;
+        
         void getNormalVector(double normalVectorOut[3]) const;
         
         void getNormalVector(float normalVectorOut[3]) const;
         
         Vector3D getNormalVector() const;
+        
+        void invertNormalVector();
         
         bool rayIntersection(const float rayOrigin[3],
                              const float rayVector[3],

@@ -27,6 +27,7 @@
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
+#include "VolumeSurfaceOutlineDrawingModeEnum.h"
 #include "VolumeSurfaceOutlineModelCacheKey.h"
 
 namespace caret {
@@ -67,10 +68,6 @@ namespace caret {
         
         void setSlicePlaneDepth(const float depth);
         
-        float getUserOutlineSlicePlaneDepthSeparation() const;
-        
-        void setUserOutlineSlicePlaneDepthSeparation(const float depthSeparation);
-        
         SurfaceSelectionModel* getSurfaceSelectionModel();
         
         const Surface* getSurface() const;
@@ -81,6 +78,14 @@ namespace caret {
         
         const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
+        VolumeSurfaceOutlineDrawingModeEnum::Enum getDrawingMode() const;
+        
+        void setDrawingMode(const VolumeSurfaceOutlineDrawingModeEnum::Enum drawingMode);
+        
+        bool isDrawLinesModeSelected() const;
+        
+        bool isDrawSurfaceModeSelected() const;
+
         void setOutlineCachePrimitives(const HistologySlice*          histologySlice,
                                        const VolumeMappableInterface* underlayVolume,
                                        const VolumeSurfaceOutlineModelCacheKey& key,
@@ -119,11 +124,11 @@ namespace caret {
         
         float m_slicePlaneDepth = 0.0;
         
-        float m_userOutlineSlicePlaneDepthSeparation = 0.0;
-        
         SurfaceSelectionModel* m_surfaceSelectionModel;
         
         VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
+        
+        VolumeSurfaceOutlineDrawingModeEnum::Enum m_drawingMode = VolumeSurfaceOutlineDrawingModeEnum::LINES;
         
         SceneClassAssistant* m_sceneAssistant;
         
@@ -155,8 +160,8 @@ namespace caret {
             /** slice plane depth when first added to cache */
             float m_slicePlaneDepth = 0.0;
             
-            /** User can override outline depth separation */
-            float m_userOutlineSlicePlaneDepthSeparation = 0.0;
+            /** Tracks changes in surface outline separation in preferences */
+            float m_preferencesVolumeSurfaceOutlineSeparation = 0.0;
             
             /** Surface when first outline is added to outline cache */
             Surface* m_surface = NULL;

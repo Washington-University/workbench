@@ -325,6 +325,21 @@ Plane::getPlane(double& aOut,
 }
 
 /**
+ * @return The plane equation (A, B, C, D) in a 4 element std::array
+ */
+std::array<double, 4>
+Plane::getPlaneEquation() const
+{
+    std::array<double, 4> eq {
+        static_cast<float>(m_A),
+        static_cast<float>(m_B),
+        static_cast<float>(m_C),
+        static_cast<float>(m_D)
+    };
+    return eq;
+}
+
+/**
  * Get the plane's normal vector.
  *
  * @param normalVectorOut
@@ -362,6 +377,21 @@ Plane::getNormalVector() const
     getNormalVector(n);
     return Vector3D(n);
 }
+
+/**
+ * Invert the normal vector (multiple by -1)
+ */
+void
+Plane::invertNormalVector()
+{
+    m_A *= -1.0;
+    m_B *= -1.0;
+    m_C *= -1.0;
+    m_normalVector[0] = m_A;
+    m_normalVector[1] = m_B;
+    m_normalVector[2] = m_C;
+}
+
 
 /**
  * Get absolute distance of point from the plane.

@@ -140,6 +140,18 @@ VolumeSurfaceOutlineColorOrTabModel::getValidItems()
  * @return Pointer to selected item (NULL if selection
  * is invalid.
  */
+const VolumeSurfaceOutlineColorOrTabModel::Item*
+VolumeSurfaceOutlineColorOrTabModel::getSelectedItem() const
+{
+    VolumeSurfaceOutlineColorOrTabModel* nonConstThis(const_cast<VolumeSurfaceOutlineColorOrTabModel*>(this));
+    CaretAssert(nonConstThis);
+    return nonConstThis->getSelectedItem();
+}
+
+/**
+ * @return Pointer to selected item (NULL if selection
+ * is invalid.
+ */
 VolumeSurfaceOutlineColorOrTabModel::Item* 
 VolumeSurfaceOutlineColorOrTabModel::getSelectedItem()
 {
@@ -495,6 +507,17 @@ VolumeSurfaceOutlineColorOrTabModel::Item::getBrowserTabIndex() const
 {
     return m_browserTabIndex;
 }
+
+/**
+ * @return Enumerated type for color in this item.  Returned
+ * value is undefined if a color is NOT in this item.
+ */
+CaretColorEnum::Enum
+VolumeSurfaceOutlineColorOrTabModel::Item::getColor() const
+{
+    return m_color;
+}
+
 
 /**
  * @return Enumerated type for color in this item.  Returned

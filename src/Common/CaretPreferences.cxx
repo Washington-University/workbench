@@ -106,6 +106,12 @@ CaretPreferences::CaretPreferences()
                                                       CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                       s_defaultCziDimension));
     
+    m_volumeSurfaceOutlineSeparation.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                        "volumeSurfaceOutlineSeparation",
+                                                                        CaretPreferenceDataValue::DataType::FLOAT,
+                                                                        CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                        0.0));
+    
     m_identificationStereotaxicDistance.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                                 "m_identificationStereotaxicDistance",
                                                                                 CaretPreferenceDataValue::DataType::FLOAT,
@@ -1777,6 +1783,26 @@ void
 CaretPreferences::setCziDimension(const int32_t dimension)
 {
     m_cziDimension->setValue(dimension);
+}
+
+/**
+ * @return The volume surface outline separartion
+ */
+float
+CaretPreferences::getVolumeSurfaceOutlineSeparation() const
+{
+    return m_volumeSurfaceOutlineSeparation->getValue().toFloat();
+}
+
+/**
+ * Set the volume surface outline separartion
+ * @param separatrion
+ *    New separation
+ */
+void
+CaretPreferences::setVolumeSurfaceOutlineSeparation(const float separation)
+{
+    m_volumeSurfaceOutlineSeparation->setValue(separation);
 }
 
 /**

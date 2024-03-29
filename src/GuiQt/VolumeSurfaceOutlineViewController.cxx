@@ -26,13 +26,13 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
-#include <QMenu>
 #include <QVBoxLayout>
 
 #define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
 #include "VolumeSurfaceOutlineViewController.h"
 #undef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
 
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "SurfaceSelectionModel.h"
@@ -131,11 +131,14 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                          slicePlaneToolTip);
     this->slicePlaneDepthSpinBox->getWidget()->setObjectName(objectNamePrefix
                                                        + ":SlicePlaneDepth");
-    this->slicePlaneDepthSpinBox->getWidget()->setContextMenuPolicy(Qt::CustomContextMenu);
-    QObject::connect(this->slicePlaneDepthSpinBox->getWidget(), &QWidget::customContextMenuRequested,
-                     this, &VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested);
     macroManager->addMacroSupportToObject(this->slicePlaneDepthSpinBox->getWidget(),
                                           "Set slice plane depth for volume surface outline for " + descriptivePrefix);
+    
+    m_volumeSurfaceOutlineDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_volumeSurfaceOutlineDrawingModeEnumComboBox->setup<VolumeSurfaceOutlineDrawingModeEnum,VolumeSurfaceOutlineDrawingModeEnum::Enum>();
+    QObject::connect(m_volumeSurfaceOutlineDrawingModeEnumComboBox, SIGNAL(itemActivated()),
+                     this, SLOT(volumeSurfaceOutlineDrawingModeEnumComboBoxItemActivated()));
+    m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget()->setToolTip(VolumeSurfaceOutlineDrawingModeEnum::getToolTip());
     
     if (orientation == Qt::Horizontal) {
         this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
@@ -145,7 +148,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
         this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
         this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3);
-        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 4);
+        this->gridLayoutGroup->addWidget(m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget(), row, 4);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 5);
     }
     else {
         QFrame* bottomHorizontalLineWidget = new QFrame();
@@ -157,11 +161,12 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                                        this);
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
-        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 3);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 4);
         row++;
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
         this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
-        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3, Qt::AlignLeft);
+        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3);
+        this->gridLayoutGroup->addWidget(m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget(), row, 4, Qt::AlignLeft);
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
@@ -252,65 +257,6 @@ VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged(double va
 }
 
 /**
- * Called to display context menu on depth spin box
- */
-void
-VolumeSurfaceOutlineViewController::depthSpinBoxContextMenuRequested(const QPoint &pos)
-{
-    QWidget* widget(this->slicePlaneDepthSpinBox->getWidget());
-    QMenu menu(widget);
-    menu.move(widget->mapToGlobal(pos));
-    QAction* separationAction = menu.addAction("Set outline separation...");
-    
-    const QAction* selectedAction = menu.exec();
-    if (selectedAction == separationAction) {
-        WuQDataEntryDialog dialog("Surface Outline",
-                                  widget);
-        
-        const QString spinBoxTitle("Maximum Outline Separation");
-        QDoubleSpinBox* separationSpinBox(dialog.addDoubleSpinBox(spinBoxTitle,
-                                                                  this->outlineModel->getUserOutlineSlicePlaneDepthSeparation()));
-        separationSpinBox->setRange(0.0, 10000.0);
-        separationSpinBox->setSingleStep(0.1);
-        separationSpinBox->setDecimals(2);
-        /*
-         * Default is displayed when the spin box is set to the minimum value (0.0)
-         * which allows Workbench to compute the separation
-         */
-        separationSpinBox->setSpecialValueText("Default"); // Displayed when value is minimum
-        
-        QObject::connect(separationSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-                         this, &VolumeSurfaceOutlineViewController::depthSeparationSpinBoxValueChanged);
-
-        const bool wrapTextFlag(true);
-        dialog.setTextAtTop(("Workbench calculates separation when "
-                             + spinBoxTitle
-                             + " is Default"),
-                            wrapTextFlag);
-        if (dialog.exec() == WuQDataEntryDialog::Accepted) {
-            const float separation(separationSpinBox->value());
-            this->outlineModel->setUserOutlineSlicePlaneDepthSeparation(separation);
-            this->updateGraphics();
-        }
-    }
-    else if (selectedAction != NULL) {
-        CaretAssertMessage(0, "Has a new action been added to the menu");
-    }
-}
-
-/**
- * Called when depth separation spin box in pop-up dialog value is changed
- * @param value
- *    New value
- */
-void
-VolumeSurfaceOutlineViewController::depthSeparationSpinBoxValueChanged(double value)
-{
-    this->outlineModel->setUserOutlineSlicePlaneDepthSeparation(value);
-    this->updateGraphics();
-}
-
-/**
  * Update this view controller.
  * @param outlineModel
  *    Outline model for use in this view controller.
@@ -331,12 +277,31 @@ VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineMod
         }
         this->thicknessSpinBox->setValue(thickness);
         this->thicknessSpinBox->blockSignals(false);
-        QSignalBlocker depthBlocker(slicePlaneDepthSpinBox);
+        
+        this->slicePlaneDepthSpinBox->blockSignals(true);
         this->slicePlaneDepthSpinBox->setValue(outlineModel->getSlicePlaneDepth());
+        this->slicePlaneDepthSpinBox->blockSignals(false);
+
         this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
         this->colorOrTabSelectionControl->updateViewController(outlineModel->getColorOrTabModel());
+        m_volumeSurfaceOutlineDrawingModeEnumComboBox->setSelectedItem<VolumeSurfaceOutlineDrawingModeEnum,
+              VolumeSurfaceOutlineDrawingModeEnum::Enum>(outlineModel->getDrawingMode());
     }
 }
+
+/**
+ * Called when drawing mode is  changed
+ */
+void
+VolumeSurfaceOutlineViewController::volumeSurfaceOutlineDrawingModeEnumComboBoxItemActivated()
+{
+    if (this->outlineModel != NULL) {
+        const VolumeSurfaceOutlineDrawingModeEnum::Enum drawMode = m_volumeSurfaceOutlineDrawingModeEnumComboBox->getSelectedItem<VolumeSurfaceOutlineDrawingModeEnum,VolumeSurfaceOutlineDrawingModeEnum::Enum>();
+        this->outlineModel->setDrawingMode(drawMode);
+    }
+    updateGraphics();
+}
+
 
 /**
  * Update the graphics.
