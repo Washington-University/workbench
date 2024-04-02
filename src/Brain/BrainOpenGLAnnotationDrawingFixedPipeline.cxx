@@ -5498,10 +5498,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
         if (m_selectionModeFlag
             && m_inputs->m_annotationUserInputModeFlag) {
             /*
-             * Only do selection of EDITABLE size handles on the
-             * near and far slices, NOT the middle slices.
+             * All selection on all slices
              */
-            if (drawEditableSizingHandlesFlag) {
+            if (drawEditableSizingHandlesFlag
+                || drawNonEditableSizingHandlesFlag) {
                 /*
                  * Draws lines between coordinates so that these lines can be
                  * selected for insertion of a new coordinate
