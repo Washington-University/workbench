@@ -38,6 +38,7 @@
 #include "DisplayGroupAndTabItemInterface.h"
 #include "DisplayGroupAndTabItemTreeWidgetItem.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DisplayPropertiesSamples.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -364,8 +365,14 @@ DisplayGroupAndTabItemViewController::getDisplayGroupAndTabIndex(DisplayGroupEnu
     tabIndexOut= tabContent->getTabNumber();
     CaretAssert(tabIndexOut >= 0);
     
-    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-    displayGroupOut = dpa->getDisplayGroupForTab(tabIndexOut);
+    if (m_dataFileType == DataFileTypeEnum::ANNOTATION) {
+        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+        displayGroupOut = dpa->getDisplayGroupForTab(tabIndexOut);
+    }
+    else if (m_dataFileType == DataFileTypeEnum::SAMPLES) {
+        DisplayPropertiesSamples* dps(GuiManager::get()->getBrain()->getDisplayPropertiesSamples());
+        displayGroupOut = dps->getDisplayGroupForTab(tabIndexOut);
+    }
 }
 
 
