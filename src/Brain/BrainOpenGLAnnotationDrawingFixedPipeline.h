@@ -543,6 +543,9 @@ namespace caret {
         /** volume space plane initialized to an invalid plane */
         Plane m_volumeSpacePlane = Plane();
         
+        /** histology slice plane initialized to invalid plane */
+        Plane m_histologySpacePlane = Plane();
+        
         /** Thickness of volume slice when drawing annotations on volume slices */
         float m_volumeSliceThickness = 0.0;
         

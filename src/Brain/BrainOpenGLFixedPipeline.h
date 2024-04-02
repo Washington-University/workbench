@@ -714,6 +714,7 @@ namespace caret {
         friend class BrainOpenGLChartTwoDrawingFixedPipeline;
         friend class BrainOpenGLFociDrawing;
         friend class BrainOpenGLHistologySliceDrawing;
+        friend class BrainOpenGLHistologyStereotaxicSliceDrawing;
         friend class BrainOpenGLIdentificationDrawing;
         friend class BrainOpenGLMediaCoordinateDrawing;
         friend class BrainOpenGLMediaDrawing;

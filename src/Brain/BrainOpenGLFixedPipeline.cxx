@@ -1369,7 +1369,6 @@ BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewpor
     m_annotationDrawing->drawModelSpaceAnnotationsOnHistologySlice(&inputs,
                                                                    histologySlice,
                                                                    sliceSpacing);
-    
     glPopAttrib();
 }
 

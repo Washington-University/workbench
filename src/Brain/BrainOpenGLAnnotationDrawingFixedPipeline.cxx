@@ -107,6 +107,7 @@ m_histologySpacePlaneValid(false),
 m_histologySliceThickness(0.0)
 {
     m_volumeSpacePlane = Plane();
+    m_histologySpacePlane = Plane();
     
     CaretAssert(brainOpenGLFixedPipeline);
     
@@ -213,6 +214,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             drawingSpaceXYZValid = true;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+        {
             modelXYZ[0] = annotationXYZ[0];
             modelXYZ[1] = annotationXYZ[1];
             modelXYZ[2] = annotationXYZ[2];
@@ -220,7 +222,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
             
             if (m_histologySpacePlaneValid) {
                 modelXYZValid = false;
-                
+
                 Vector3D planeXYZ;
                 Vector3D stereotaxicXYZ;
                 float distanceToSlice(0.0);
@@ -243,7 +245,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                     }
                 }
             }
-
+            
             if (m_volumeSpacePlane.isValidPlane()) {
                 float xyzFloat[3] = {
                     modelXYZ[0],
@@ -264,6 +266,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::getAnnotationDrawingSpaceCoordinate(c
                     modelXYZValid = false;
                 }
             }
+        }
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             if (surfaceDisplayed != NULL) {
@@ -631,6 +634,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnHistologyS
     m_histologySlice = histologySlice;
     if (m_histologySlice != NULL) {
         if (m_histologySlice->getStereotaxicPlane().isValidPlane()) {
+            m_histologySpacePlane = m_histologySlice->getStereotaxicPlane();
             m_histologySpacePlaneValid = true;
             
             std::vector<AnnotationColorBar*> emptyColorBars;
@@ -643,9 +647,19 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnHistologyS
                                     emptyNotInFileAnnotations,
                                     NULL,
                                     sliceThickness);
+
+//            m_volumeSpacePlane = m_histologySlice->getStereotaxicPlane();
+            drawAnnotationsInternal(DrawingDataType::SAMPLES,
+                                    AnnotationCoordinateSpaceEnum::STEREOTAXIC,
+                                    emptyColorBars,
+                                    emptyScaleBars,
+                                    emptyNotInFileAnnotations,
+                                    NULL,
+                                    sliceThickness);
         }
     }
     
+    m_histologySpacePlane = Plane();
     m_histologySpacePlaneValid = false;
     m_histologySlice = NULL;
     
@@ -815,34 +829,51 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
             break;
     }
     
-    const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
-    switch (drawingDataType) {
-        case DrawingDataType::ANNOTATIONS:
-            /*
-             * User may turn off display of all annotations.
-             * Color bars and other annotations not in a file are always
-             * drawn so continue processing.
-             */
-            if ( ! dpa->isDisplayAnnotations()) {
-                drawAnnotationsFromFilesFlag = false;
-            }
-            break;
-        case DrawingDataType::INVALID:
-            break;
-        case DrawingDataType::SAMPLES:
-            break;
-    }
-    
-    
     /*
      * Note: When window annotations are being drawn, the
      * tab index is invalid so it must be ignored.
      */
     DisplayGroupEnum::Enum displayGroup = DisplayGroupEnum::DISPLAY_GROUP_A;
-    if (haveDisplayGroupFlag) {
-        displayGroup = dpa->getDisplayGroupForTab(m_inputs->m_tabIndex);
+
+    switch (drawingDataType) {
+        case DrawingDataType::ANNOTATIONS:
+        {
+            /*
+             * User may turn off display of all annotations.
+             * Color bars and other annotations not in a file are always
+             * drawn so continue processing.
+             */
+            const DisplayPropertiesAnnotation* dpa = m_inputs->m_brain->getDisplayPropertiesAnnotation();
+            if ( ! dpa->isDisplayAnnotations()) {
+                drawAnnotationsFromFilesFlag = false;
+            }
+            if (haveDisplayGroupFlag) {
+                displayGroup = dpa->getDisplayGroupForTab(m_inputs->m_tabIndex);
+            }
+        }
+            break;
+        case DrawingDataType::INVALID:
+            break;
+        case DrawingDataType::SAMPLES:
+        {
+            /*
+             * User may turn off display of all annotations.
+             * Color bars and other annotations not in a file are always
+             * drawn so continue processing.
+             */
+            const DisplayPropertiesSamples* dps = m_inputs->m_brain->getDisplayPropertiesSamples();
+            if ( ! dps->isDisplaySamples()) {
+                drawAnnotationsFromFilesFlag = false;
+            }
+            if (haveDisplayGroupFlag) {
+                displayGroup = dps->getDisplayGroupForTab(m_inputs->m_tabIndex);
+            }
+        }
+            break;
     }
     
+    
+     
     SelectionItemAnnotation* annotationID = m_inputs->m_brain->getSelectionManager()->getAnnotationIdentification();
     switch (drawingDataType) {
         case DrawingDataType::ANNOTATIONS:
@@ -5159,16 +5190,28 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             return false;
         }
     }
+    
+    Plane drawingPlane;
+    if (m_volumeSpacePlane.isValidPlane()) {
+        drawingPlane = m_volumeSpacePlane;
+    }
+    else if (m_histologySpacePlane.isValidPlane()) {
+        drawingPlane = m_histologySpacePlane;
+    }
+    else {
+        CaretLogWarning("Invalid plane for drawing multi-paired coordinate shapes");
+        return false;
+    }
 
     uint8_t foregroundRGBA[4];
     multiPairedCoordShape->getLineColorRGBA(foregroundRGBA);
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
     
     float absAngle(-10000.0);
-    if (m_volumeSpacePlane.isValidPlane()) {
+    if (drawingPlane.isValidPlane()) {
         const Plane annPlane(polyhedron->getPlaneOne());
         if (annPlane.isValidPlane()) {
-            absAngle = std::fabs(Plane::angleDegreesOfPlaneNormalVectors(m_volumeSpacePlane,
+            absAngle = std::fabs(Plane::angleDegreesOfPlaneNormalVectors(drawingPlane,
                                                                          annPlane));
         }
         else {
@@ -5195,10 +5238,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
     if ((absAngle > 5.0)
         && (absAngle < 175.0)) {
         if ( ! polyhedron->isDrawingNewAnnotation()) {
-            drawPolyhedronEdgesOnPlane(annotationFile,
-                                       polyhedron,
-                                       m_volumeSpacePlane,
-                                       foregroundRGBA);
+            if (drawingPlane.isValidPlane()) {
+                drawPolyhedronEdgesOnPlane(annotationFile,
+                                           polyhedron,
+                                           drawingPlane,
+                                           foregroundRGBA);
+            }
         }
         return false;
     }
@@ -5295,14 +5340,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                     /*
                      * Points in between near and far
                      */
-                    if (m_volumeSpacePlane.isValidPlane()) {
+                    if (drawingPlane.isValidPlane()) {
                         for (int32_t i = 0; i < numHalfCoords; i++) {
                             Vector3D xyzOne, xyzTwo;
                             multiPairedCoordShape->getCoordinate(i)->getXYZ(xyzOne);
                             multiPairedCoordShape->getCoordinate(i + numHalfCoords)->getXYZ(xyzTwo);
                             
                             Vector3D xyz;
-                            if (m_volumeSpacePlane.lineSegmentIntersectPlane(xyzOne,
+                            if (drawingPlane.lineSegmentIntersectPlane(xyzOne,
                                                                              xyzTwo,
                                                                              xyz)) {
                                 AnnotationCoordinate ac(*multiPairedCoordShape->getCoordinate(0));
@@ -5318,7 +5363,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                         }
                         
                         if (polyhedron != NULL) {
-                            m_volumeSpacePlane.lineSegmentIntersectPlane(polyhedronNameOneXYZ,
+                            drawingPlane.lineSegmentIntersectPlane(polyhedronNameOneXYZ,
                                                                          polyhedronNameTwoXYZ,
                                                                          polyhedronNameXYZ);
                         }
