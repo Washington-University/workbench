@@ -942,7 +942,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = true;
                         haveLabels  = false;
-                        haveSamples = false;
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         defaultTabIndex = m_mediaTabIndex;
