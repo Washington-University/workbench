@@ -227,6 +227,7 @@ WorkbenchQtMessageHandler::isMessageTextSuppressed(const QString& msg)
         s_supressedMessagesText.push_back("fromIccProfile: failed general sanity check");
         s_supressedMessagesText.push_back("Unsupported ICC profile class");
         s_supressedMessagesText.push_back("Populating font family aliases");
+        s_supressedMessagesText.push_back("known incorrect sRGB profile");
     }
     
     for (const auto& smt : s_supressedMessagesText) {
