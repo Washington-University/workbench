@@ -37,26 +37,37 @@ namespace caret {
     public:
         class Edge {
         public:
-            Edge(const Vector3D& v1,
+            Edge(const int32_t index1,
+                 const int32_t index2,
+                 const Vector3D& v1,
                  const Vector3D& v2)
-            : m_v1(v1), m_v2(v2) { }
+            : m_index1(index1), m_index2(index2),
+            m_v1(v1), m_v2(v2) { }
+            
+            const int32_t m_index1;
+            const int32_t m_index2;
             
             const Vector3D m_v1;
-            
             const Vector3D m_v2;
         };
         
         class Triangle {
         public:
-            Triangle(const Vector3D& v1,
+            Triangle(const int32_t index1,
+                     const int32_t index2,
+                     const int32_t index3,
+                     const Vector3D& v1,
                      const Vector3D& v2,
                      const Vector3D& v3)
-            : m_v1(v1), m_v2(v2), m_v3(v3) { }
+            : m_index1(index1), m_index2(index2), m_index3(index3),
+            m_v1(v1), m_v2(v2), m_v3(v3) { }
             
-            const Vector3D m_v1;
-            
-            const Vector3D m_v2;
+            const int32_t m_index1;
+            const int32_t m_index2;
+            const int32_t m_index3;
 
+            const Vector3D m_v1;
+            const Vector3D m_v2;
             const Vector3D m_v3;
         };
         

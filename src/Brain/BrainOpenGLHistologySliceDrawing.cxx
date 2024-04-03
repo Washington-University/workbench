@@ -402,6 +402,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
 {
     SelectionItemHistologyCoordinate* idHistology = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getHistologyPlaneCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
+    SelectionItemAnnotation* sampleID(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getSamplesIdentification());
 
     /*
      * Check for a 'selection' type mode
@@ -414,8 +415,9 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
             if (idHistology->isEnabledForSelection()) {
                 selectImageFlag = true;
             }
-            else if (annotationID->isEnabledForSelection()) {
-                /* continue drawing so annotations get selected */
+            else if (annotationID->isEnabledForSelection()
+                     || sampleID->isEnabledForSelection()) {
+                /* continue drawing so annotations and samples get selected */
             }
             else {
                 return;

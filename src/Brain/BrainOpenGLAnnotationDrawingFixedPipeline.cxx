@@ -5888,18 +5888,11 @@ BrainOpenGLAnnotationDrawingFixedPipeline::computePolySizeHandleDiameter(const G
  *    True if the annotation was drawn while NOT selecting annotations.
  */
 bool
-BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(AnnotationFile* /*annotationFile*/,
+BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(AnnotationFile* annotationFile,
                                                                       AnnotationPolyhedron* polyhedron,
                                                                       const Plane& plane,
                                                                       const uint8_t foregroundRGBA[4])
 {
-    if (m_selectionModeFlag) {
-        /*
-         * No identification
-         */
-        return false;
-    }
-    
     std::vector<AnnotationPolyhedron::Edge> edges;
     std::vector<AnnotationPolyhedron::Triangle> triangles;
     polyhedron->getEdgesAndTriangles(edges,
@@ -5914,88 +5907,154 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(Annotation
         return false;
     }
     
+    const bool selectionFlag(m_selectionModeFlag
+                             && m_inputs->m_annotationUserInputModeFlag);
+    
     const float lineWidthPct(polyhedron->getLineWidthPercentage());
     
-    std::unique_ptr<GraphicsPrimitiveV3f> edgesPrimitive;
-    edgesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
+    std::unique_ptr<GraphicsPrimitiveV3f> pointsPrimitive;
+    pointsPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::OPENGL_POINTS,
                                                        foregroundRGBA));
-    CaretAssert(edgesPrimitive);
-    edgesPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT,
+    CaretAssert(pointsPrimitive);
+    pointsPrimitive->setPointDiameter(GraphicsPrimitive::PointSizeType::PERCENTAGE_VIEWPORT_HEIGHT,
                                 lineWidthPct);
     
-    std::unique_ptr<GraphicsPrimitiveV3f> trianglesPrimitive;
-    trianglesPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
-                                                            foregroundRGBA));
-    CaretAssert(trianglesPrimitive);
-    trianglesPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
+    std::unique_ptr<GraphicsPrimitiveV3f> lineSegmentPrimitive;
+    lineSegmentPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                                foregroundRGBA));
+    CaretAssert( lineSegmentPrimitive);
+    lineSegmentPrimitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                                      lineWidthPct);
     
-    for (const auto& e : edges) {
-        Vector3D intersectionXYZ;
-        if (plane.lineSegmentIntersectPlane(e.m_v1,
-                                            e.m_v2,
-                                            intersectionXYZ)) {
-            
-            AnnotationCoordinate ac(*polyhedron->getCoordinate(0));
-            ac.setXYZ(intersectionXYZ);
-            
-            const Surface* invalidSurface(NULL);
-            Vector3D xyz(intersectionXYZ);
-            if (getAnnotationDrawingSpaceCoordinate(polyhedron,
-                                                    &ac,
-                                                    invalidSurface,
-                                                    xyz)) {
-                edgesPrimitive->addVertex(xyz);
+    if ( ! selectionFlag) {
+        for (const auto& e : edges) {
+            Vector3D intersectionXYZ;
+            if (plane.lineSegmentIntersectPlane(e.m_v1,
+                                                e.m_v2,
+                                                intersectionXYZ)) {
+                
+                AnnotationCoordinate ac(*polyhedron->getCoordinate(0));
+                ac.setXYZ(intersectionXYZ);
+                
+                const Surface* invalidSurface(NULL);
+                Vector3D xyz(intersectionXYZ);
+                if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                        &ac,
+                                                        invalidSurface,
+                                                        xyz)) {
+                    pointsPrimitive->addVertex(xyz);
+                }
             }
         }
     }
     
-    for (const auto& t : triangles) {
-        Vector3D intersectionOneXYZ;
-        Vector3D intersectionTwoXYZ;
-        if (plane.triangleIntersectPlane(t.m_v1,
-                                         t.m_v2,
-                                         t.m_v3,
-                                         intersectionOneXYZ,
-                                         intersectionTwoXYZ)) {
-            AnnotationCoordinate acOne(*polyhedron->getCoordinate(0));
-            acOne.setXYZ(intersectionOneXYZ);
-            AnnotationCoordinate acTwo(*polyhedron->getCoordinate(0));
-            acTwo.setXYZ(intersectionTwoXYZ);
-
-            const Surface* invalidSurface(NULL);
-            Vector3D xyzOne(intersectionOneXYZ);
-            Vector3D xyzTwo(intersectionTwoXYZ);
-            if (getAnnotationDrawingSpaceCoordinate(polyhedron,
-                                                    &acOne,
-                                                    invalidSurface,
-                                                    xyzOne)
-                && getAnnotationDrawingSpaceCoordinate(polyhedron,
-                                                       &acTwo,
-                                                       invalidSurface,
-                                                       xyzTwo)) {
-                trianglesPrimitive->addVertex(xyzOne);
-                trianglesPrimitive->addVertex(xyzTwo);
+    if (selectionFlag) {
+        std::vector<Vector3D> windowXYZ;
+        for (const auto& t : triangles) {
+            Vector3D intersectionOneXYZ;
+            Vector3D intersectionTwoXYZ;
+            if (plane.triangleIntersectPlane(t.m_v1,
+                                             t.m_v2,
+                                             t.m_v3,
+                                             intersectionOneXYZ,
+                                             intersectionTwoXYZ)) {
+                AnnotationCoordinate acOne(*polyhedron->getCoordinate(0));
+                acOne.setXYZ(intersectionOneXYZ);
+                AnnotationCoordinate acTwo(*polyhedron->getCoordinate(0));
+                acTwo.setXYZ(intersectionTwoXYZ);
+                
+                const Surface* invalidSurface(NULL);
+                Vector3D xyzOne(intersectionOneXYZ);
+                Vector3D xyzTwo(intersectionTwoXYZ);
+                if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                        &acOne,
+                                                        invalidSurface,
+                                                        xyzOne)
+                    && getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                           &acTwo,
+                                                           invalidSurface,
+                                                           xyzTwo)) {
+                    windowXYZ.push_back(xyzOne);
+                }
+            }
+        }
+        
+        const int32_t numLineSegments(windowXYZ.size() / 2);
+        for (int32_t i = 0; i < numLineSegments; i++) {
+            const int32_t i2(i * 2);
+            
+            uint8_t selectionColorRGBA[4];
+            getIdentificationColor(selectionColorRGBA);
+            std::unique_ptr<GraphicsPrimitiveV3f> idPrimitive;
+            idPrimitive.reset(GraphicsPrimitive::newPrimitiveV3f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINES,
+                                                                 selectionColorRGBA));
+            
+            GraphicsPrimitive::LineWidthType lineWidthType = GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT;
+            float lineWidth(0.0);
+            idPrimitive->getLineWidth(lineWidthType, lineWidth);
+            lineWidth += 3.0; /* thicker to help with ID and reduce flashing of cursor */
+            idPrimitive->setLineWidth(lineWidthType, lineWidth);
+            
+            CaretAssertVectorIndex(windowXYZ, i2 + 1);
+            idPrimitive->addVertex(windowXYZ[i2]);
+            idPrimitive->addVertex(windowXYZ[i2+1]);
+            m_selectionInfo.push_back(SelectionInfo(annotationFile,
+                                                    polyhedron,
+                                                    AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE,
+                                                    0, //t.m_index1,
+                                                    windowXYZ[i2],
+                                                    windowXYZ));
+            GraphicsEngineDataOpenGL::draw(idPrimitive.get());
+        }
+    }
+    else {
+        for (const auto& t : triangles) {
+            Vector3D intersectionOneXYZ;
+            Vector3D intersectionTwoXYZ;
+            if (plane.triangleIntersectPlane(t.m_v1,
+                                             t.m_v2,
+                                             t.m_v3,
+                                             intersectionOneXYZ,
+                                             intersectionTwoXYZ)) {
+                AnnotationCoordinate acOne(*polyhedron->getCoordinate(0));
+                acOne.setXYZ(intersectionOneXYZ);
+                AnnotationCoordinate acTwo(*polyhedron->getCoordinate(0));
+                acTwo.setXYZ(intersectionTwoXYZ);
+                
+                const Surface* invalidSurface(NULL);
+                Vector3D xyzOne(intersectionOneXYZ);
+                Vector3D xyzTwo(intersectionTwoXYZ);
+                if (getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                        &acOne,
+                                                        invalidSurface,
+                                                        xyzOne)
+                    && getAnnotationDrawingSpaceCoordinate(polyhedron,
+                                                           &acTwo,
+                                                           invalidSurface,
+                                                           xyzTwo)) {
+                    lineSegmentPrimitive->addVertex(xyzOne);
+                    lineSegmentPrimitive->addVertex(xyzTwo);
+                }
             }
         }
     }
 
     
-    if (edgesPrimitive->getNumberOfVertices() >= 2) {
+    if (pointsPrimitive->getNumberOfVertices() >= 1) {
         const Surface* invalidSurface(NULL);
         const bool depthTestFlag = isDrawnWithDepthTesting(polyhedron,
                                                            invalidSurface);
         const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-        GraphicsEngineDataOpenGL::draw(edgesPrimitive.get());
+        GraphicsEngineDataOpenGL::draw(pointsPrimitive.get());
         setDepthTestingStatus(savedDepthTestStatus);
     }
     
-    if (trianglesPrimitive->getNumberOfVertices() >= 3) {
+    if ( lineSegmentPrimitive->getNumberOfVertices() >= 2) {
         const Surface* invalidSurface(NULL);
         const bool depthTestFlag = isDrawnWithDepthTesting(polyhedron,
                                                            invalidSurface);
         const bool savedDepthTestStatus = setDepthTestingStatus(depthTestFlag);
-        GraphicsEngineDataOpenGL::draw(trianglesPrimitive.get());
+        GraphicsEngineDataOpenGL::draw( lineSegmentPrimitive.get());
         setDepthTestingStatus(savedDepthTestStatus);
     }
     

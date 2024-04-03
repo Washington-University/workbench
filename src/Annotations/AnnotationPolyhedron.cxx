@@ -787,23 +787,33 @@ AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
          * Near face
          */
         const int32_t iNext((i == (halfNumCoords - 1)) ? 0 : i + 1);
-        edgesOut.push_back(Edge(getCoordinate(i)->getXYZ(),
+        edgesOut.push_back(Edge(i,
+                                iNext,
+                                getCoordinate(i)->getXYZ(),
                                 getCoordinate(iNext)->getXYZ()));
         
         /*
          * Far face
          */
         const int32_t farOffset(halfNumCoords);
-        edgesOut.push_back(Edge(getCoordinate(i + farOffset)->getXYZ(),
+        edgesOut.push_back(Edge(i + farOffset,
+                                iNext + farOffset,
+                                getCoordinate(i + farOffset)->getXYZ(),
                                 getCoordinate(iNext + farOffset)->getXYZ()));
         
         /*
          * Triangles
          */
-        trianglesOut.push_back(Triangle(getCoordinate(i)->getXYZ(),
+        trianglesOut.push_back(Triangle(i,
+                                        i + farOffset,
+                                        iNext,
+                                        getCoordinate(i)->getXYZ(),
                                         getCoordinate(i + farOffset)->getXYZ(),
                                         getCoordinate(iNext)->getXYZ()));
-        trianglesOut.push_back(Triangle(getCoordinate(iNext)->getXYZ(),
+        trianglesOut.push_back(Triangle(iNext,
+                                        i + farOffset,
+                                        iNext + farOffset,
+                                        getCoordinate(iNext)->getXYZ(),
                                         getCoordinate(i + farOffset)->getXYZ(),
                                         getCoordinate(iNext + farOffset)->getXYZ()));
     }
