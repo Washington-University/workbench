@@ -1369,6 +1369,25 @@ BrainOpenGLFixedPipeline::drawHistologySpaceAnnotations(const BrainOpenGLViewpor
     m_annotationDrawing->drawModelSpaceAnnotationsOnHistologySlice(&inputs,
                                                                    histologySlice,
                                                                    sliceSpacing);
+
+    {
+        const bool annotationModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING);
+        const bool tileTabsEditModeFlag = (m_windowUserInputMode == UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING);
+        BrainOpenGLAnnotationDrawingFixedPipeline::Inputs inputs(this->m_brain,
+                                                                 this->mode,
+                                                                 BrainOpenGLFixedPipeline::s_gluLookAtCenterFromEyeOffsetDistance,
+                                                                 m_windowIndex,
+                                                                 this->windowTabIndex,
+                                                                 SpacerTabIndex(),
+                                                                 BrainOpenGLAnnotationDrawingFixedPipeline::Inputs::WINDOW_DRAWING_NO,
+                                                                 emptyMediaFileNames,
+                                                                 annotationModeFlag,
+                                                                 tileTabsEditModeFlag);
+
+        m_annotationDrawing->drawModelSpaceSamplesOnHistologySlice(&inputs,
+                                                                   histologySlice,
+                                                                   sliceSpacing);
+    }
     glPopAttrib();
 }
 

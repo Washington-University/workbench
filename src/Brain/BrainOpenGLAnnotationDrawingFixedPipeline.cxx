@@ -647,8 +647,45 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceAnnotationsOnHistologyS
                                     emptyNotInFileAnnotations,
                                     NULL,
                                     sliceThickness);
+        }
+    }
+    
+    m_histologySpacePlane = Plane();
+    m_histologySpacePlaneValid = false;
+    m_histologySlice = NULL;
+    
+    m_inputs = NULL;
+}
 
-//            m_volumeSpacePlane = m_histologySlice->getStereotaxicPlane();
+/**
+ * Draw model space samples on the volume slice with the given plane.
+ *
+ * @param inputs
+ *     Inputs for drawing annotations.
+ * @param plane
+ *     The volume slice's plane.
+ * @param sliceThickness
+ *     Thickness of volume slice
+ */
+void
+BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnHistologySlice(Inputs* inputs,
+                                                                                 const HistologySlice* histologySlice,
+                                                                                 const float sliceThickness)
+{
+    CaretAssert(inputs);
+    m_inputs = inputs;
+    m_surfaceViewScaling = 1.0f;
+    m_histologySpacePlaneValid = false;
+    m_histologySlice = histologySlice;
+    if (m_histologySlice != NULL) {
+        if (m_histologySlice->getStereotaxicPlane().isValidPlane()) {
+            m_histologySpacePlane = m_histologySlice->getStereotaxicPlane();
+            m_histologySpacePlaneValid = true;
+            
+            std::vector<AnnotationColorBar*> emptyColorBars;
+            std::vector<AnnotationScaleBar*> emptyScaleBars;
+            std::vector<Annotation*> emptyNotInFileAnnotations;
+
             drawAnnotationsInternal(DrawingDataType::SAMPLES,
                                     AnnotationCoordinateSpaceEnum::STEREOTAXIC,
                                     emptyColorBars,
@@ -941,12 +978,12 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
         case DrawingDataType::INVALID:
             break;
         case DrawingDataType::SAMPLES:
-        {
-            std::vector<SamplesFile*> allSamplesFiles(m_inputs->m_brain->getAllSamplesFiles());
-            allAnnotationFiles.insert(allAnnotationFiles.end(),
-                                      allSamplesFiles.begin(),
-                                      allSamplesFiles.end());
-        }
+            if (drawAnnotationsFromFilesFlag) {
+                std::vector<SamplesFile*> allSamplesFiles(m_inputs->m_brain->getAllSamplesFiles());
+                allAnnotationFiles.insert(allAnnotationFiles.end(),
+                                          allSamplesFiles.begin(),
+                                          allSamplesFiles.end());
+            }
             break;
     }
 

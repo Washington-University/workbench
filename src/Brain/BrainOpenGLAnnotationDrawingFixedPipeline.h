@@ -142,6 +142,10 @@ namespace caret {
                                                        const HistologySlice* histologySlice,
                                                        const float sliceThickness);
         
+        void drawModelSpaceSamplesOnHistologySlice(Inputs* inputs,
+                                                   const HistologySlice* histologySlice,
+                                                   const float sliceThickness);
+
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
