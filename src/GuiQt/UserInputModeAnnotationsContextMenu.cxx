@@ -45,6 +45,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DisplayPropertiesSamples.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAtWindowXY.h"
@@ -910,9 +911,35 @@ UserInputModeAnnotationsContextMenu::duplicateAnnotationSelected(QAction* action
         Annotation* annCopy = tabAnn.second->clone();
         annCopy->setTabIndex(tabIndex);
         
-        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        dpa->updateForNewAnnotation(annCopy);
-        
+        switch (m_userInputModeAnnotations->getUserInputMode()) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+            {
+                DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+                dpa->updateForNewAnnotation(m_annotation);
+            }
+                break;
+            case UserInputModeEnum::Enum::BORDERS:
+                break;
+            case UserInputModeEnum::Enum::FOCI:
+                break;
+            case UserInputModeEnum::Enum::IMAGE:
+                break;
+            case UserInputModeEnum::Enum::INVALID:
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            {
+                DisplayPropertiesSamples* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+                dps->updateForNewSample(m_annotation);
+            }
+                break;
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                break;
+            case UserInputModeEnum::Enum::VIEW:
+                break;
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                break;
+        }
+
         fileAnnCopies.emplace_back(annCopy,
                                    tabAnn.first,
                                    tabAnn.second->getAnnotationGroupKey());

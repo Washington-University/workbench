@@ -66,6 +66,7 @@
 #include "CursorEnum.h"
 #include "CaretPreferences.h"
 #include "DisplayPropertiesAnnotation.h"
+#include "DisplayPropertiesSamples.h"
 #include "DrawingViewportContent.h"
 #include "EventDrawingViewportContentGet.h"
 #include "EventAnnotationCreateNewType.h"
@@ -490,8 +491,35 @@ UserInputModeAnnotations::initialize()
     if (defaultModeFlag) {
         setMode(Mode::MODE_SELECT);
     }
-    DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-    dpa->setDisplayAnnotations(true);
+    switch (getUserInputMode()) {
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+        {
+            DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+            dpa->setDisplayAnnotations(true);
+        }
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+        {
+            DisplayPropertiesSamples* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+            dps->setDisplaySamples(true);
+        }
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
+
     resetAnnotationUnderMouse();
 }
 
@@ -4214,8 +4242,34 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboard(const MouseEven
         CaretAssertVectorIndex(newPastedAnnotations, 0);
         selectAnnotation(newPastedAnnotations[0]);
         
-        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        dpa->updateForNewAnnotations(newPastedAnnotations);
+        switch (getUserInputMode()) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+            {
+                DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+                dpa->updateForNewAnnotations(newPastedAnnotations);
+            }
+                break;
+            case UserInputModeEnum::Enum::BORDERS:
+                break;
+            case UserInputModeEnum::Enum::FOCI:
+                break;
+            case UserInputModeEnum::Enum::IMAGE:
+                break;
+            case UserInputModeEnum::Enum::INVALID:
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            {
+                DisplayPropertiesSamples* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+                dps->updateForNewSamples(newPastedAnnotations);
+            }
+                break;
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                break;
+            case UserInputModeEnum::Enum::VIEW:
+                break;
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                break;
+        }
     }
     
     setMode(Mode::MODE_SELECT);
@@ -4242,8 +4296,34 @@ UserInputModeAnnotations::pasteAnnotationFromAnnotationClipboardAndChangeSpace(c
         CaretAssertVectorIndex(newPastedAnnotations, 0);
         selectAnnotation(newPastedAnnotations[0]);
         
-        DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
-        dpa->updateForNewAnnotations(newPastedAnnotations);
+        switch (getUserInputMode()) {
+            case UserInputModeEnum::Enum::ANNOTATIONS:
+            {
+                DisplayPropertiesAnnotation* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotation();
+                dpa->updateForNewAnnotations(newPastedAnnotations);
+            }
+                break;
+            case UserInputModeEnum::Enum::BORDERS:
+                break;
+            case UserInputModeEnum::Enum::FOCI:
+                break;
+            case UserInputModeEnum::Enum::IMAGE:
+                break;
+            case UserInputModeEnum::Enum::INVALID:
+                break;
+            case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            {
+                DisplayPropertiesSamples* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+                dps->updateForNewSamples(newPastedAnnotations);
+            }
+                break;
+            case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+                break;
+            case UserInputModeEnum::Enum::VIEW:
+                break;
+            case UserInputModeEnum::Enum::VOLUME_EDIT:
+                break;
+        }
     }
     
     setMode(Mode::MODE_SELECT);
