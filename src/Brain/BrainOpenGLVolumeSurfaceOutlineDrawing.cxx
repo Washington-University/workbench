@@ -166,7 +166,6 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
             drawCachedFlag = false;
             break;
         case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-            //drawCachedFlag = false;
             break;
     }
     /*
@@ -799,17 +798,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
         return ;
     }
     
-    /*
-     * During testing, the Qt double spin box for the outline
-     * separation output a very small value just above zero
-     * (something like 0.000000239) and this resulted in an
-     * attempt to drawn millions of contours.
-     * So, don't let this happen !
-     */
-    const float smallSeparation(0.05);
-    const float outlineSeparation((userOutlineSeparation >= smallSeparation)
-                                  ? userOutlineSeparation
-                                  : 0.0);
+    const float outlineSeparation(userOutlineSeparation);
+
     /*
      * If spacing valid, use 1/2 spacing for step size; else 0.5mm
      */
@@ -873,15 +863,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::computeDepthNumStepsAndStepSize(const fl
  *    The outline model.
  */
 float
-BrainOpenGLVolumeSurfaceOutlineDrawing::getSeparation(const VolumeSurfaceOutlineModel* outline) const
+BrainOpenGLVolumeSurfaceOutlineDrawing::getSeparation(const VolumeSurfaceOutlineModel* /*outline*/) const
 {
-    /*
-     * When a "surface outline" is drawn it will fill in any
-     * gaps so no separation is needed
-     */
-    if (outline->isDrawSurfaceModeSelected()) {
-        return 0.0;
-    }
     CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
     CaretAssert(prefs);
     return prefs->getVolumeSurfaceOutlineSeparation();

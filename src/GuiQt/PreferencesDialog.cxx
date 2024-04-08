@@ -604,7 +604,7 @@ PreferencesDialog::createMiscellaneousWidget()
     
     m_volumeSurfaceOutlineSeparationSpinBox = new QDoubleSpinBox();
     m_volumeSurfaceOutlineSeparationSpinBox->setRange(0.0, 10000.0);
-    m_volumeSurfaceOutlineSeparationSpinBox->setSingleStep(0.1);
+    m_volumeSurfaceOutlineSeparationSpinBox->setSingleStep(0.01);
     m_volumeSurfaceOutlineSeparationSpinBox->setDecimals(2);
     /*
      * Default is displayed when the spin box is set to the minimum value (0.0)
