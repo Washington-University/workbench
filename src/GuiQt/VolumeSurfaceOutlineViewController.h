@@ -25,6 +25,7 @@
 
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 class QCheckBox;
+class QDoubleSpinBox;
 class QGridLayout;
 
 namespace caret {
@@ -34,7 +35,6 @@ namespace caret {
     class SurfaceSelectionViewController;
     class VolumeSurfaceOutlineModel;
     class VolumeSurfaceOutlineColorOrTabViewController;
-    class WuQDoubleSpinBox;
     class WuQGridLayoutGroup;
     
     class VolumeSurfaceOutlineViewController : public QObject {
@@ -82,9 +82,9 @@ namespace caret {
         
         VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
         
-        WuQDoubleSpinBox* thicknessSpinBox;
+        QDoubleSpinBox* thicknessSpinBox;
         
-        WuQDoubleSpinBox* slicePlaneDepthSpinBox;
+        QDoubleSpinBox* slicePlaneDepthSpinBox;
         
         SurfaceSelectionViewController* surfaceSelectionViewController;
         

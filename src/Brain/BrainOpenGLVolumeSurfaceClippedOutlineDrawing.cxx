@@ -131,7 +131,10 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                 }
                 const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
 
-                const float slicePlaneDepth(outline->getSlicePlaneDepth());
+                float slicePlaneDepth(outline->getSlicePlaneDepth());
+                if (slicePlaneDepth <= 0.0001) {
+                    slicePlaneDepth = VolumeSurfaceOutlineModel::getDefaultSurfaceDepthMillimeters();
+                }
 
                 Plane planeOne;
                 Plane planeTwo;
@@ -183,47 +186,8 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                 drawSurfaceTrianglesWithVertexArrays(surface,
                                                      nodeColoringRGBA,
                                                      solidRGBA);
-                
-//                createContours(surface,
-//                               plane,
-//                               underlayVolume->getMaximumVoxelSpacing(),
-//                               outlineColor,
-//                               nodeColoringRGBA,
-//                               thicknessPercentage,
-//                               slicePlaneDepth,
-//                               outline->getUserOutlineSlicePlaneDepthSeparation(),
-//                               contourPrimitives);
             }
-        }
-        
-//        /**
-//         * Draw the contours.
-//         */
-//        for (auto primitive : contourPrimitives) {
-//            CaretAssert(primitive);
-//            if (useNegativePolygonOffsetFlag) {
-//                glPolygonOffset(-1.0, -1.0);
-//            }
-//            else {
-//                glPolygonOffset(1.0, 1.0);
-//            }
-//            glEnable(GL_POLYGON_OFFSET_FILL);
-//
-//            if (displayTransformMatrixValidFlag) {
-//                const int32_t numVerts(primitive->getNumberOfVertices());
-//                for (int32_t i = 0; i < numVerts; i++) {
-//                    Vector3D xyz;
-//                    primitive->getVertexFloatXYZ(i, xyz);
-//                    displayTransformMatrix.multiplyPoint3(xyz);
-//                    primitive->replaceVertexFloatXYZ(i, xyz);
-//                }
-//            }
-//
-//            GraphicsEngineDataOpenGL::draw(primitive);
-//            delete primitive;
-//
-//            glDisable(GL_POLYGON_OFFSET_FILL);
-//        }
+        }        
     }
     
     glPopAttrib();

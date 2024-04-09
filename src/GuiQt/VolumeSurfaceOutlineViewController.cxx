@@ -106,32 +106,40 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     macroManager->addMacroSupportToObject(this->colorOrTabSelectionControl->getWidget(),
                                           "Set surface outline color for " + descriptivePrefix);
     
-    this->thicknessSpinBox = new WuQDoubleSpinBox(this);
+    this->thicknessSpinBox = new QDoubleSpinBox();
     this->thicknessSpinBox->setRange(0.0, 100.0);
     this->thicknessSpinBox->setSingleStep(0.10);
     this->thicknessSpinBox->setSuffix("%");
-    QObject::connect(this->thicknessSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
+    QObject::connect(this->thicknessSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged);
-    this->thicknessSpinBox->getWidget()->setToolTip("Thickness of surface outline as percentage of viewport height");
-    this->thicknessSpinBox->getWidget()->setObjectName(objectNamePrefix
+    this->thicknessSpinBox->setToolTip("Thickness of surface outline as percentage of viewport height");
+    this->thicknessSpinBox->setObjectName(objectNamePrefix
                                           + ":Thickness");
-    macroManager->addMacroSupportToObject(this->thicknessSpinBox->getWidget(),
+    macroManager->addMacroSupportToObject(this->thicknessSpinBox,
                                           "Set thickness for volume surface outline for " + descriptivePrefix);
     
-    const QString slicePlaneToolTip("Depth in millimeters along slice plane normal."
-                                    "  Right click to adjust outline separation "
-                                    "(helps fill in gaps)");
-    this->slicePlaneDepthSpinBox = new WuQDoubleSpinBox(this);
+    const QString depthSpecialValueText("Default");
+    const QString slicePlaneToolTip("<html>"
+                                    "Depth in millimeters along slice plane normal vector.  "
+                                    "For <b>" + depthSpecialValueText + "</b>, "
+                                    + VolumeSurfaceOutlineDrawingModeEnum::toGuiName(VolumeSurfaceOutlineDrawingModeEnum::LINES)
+                                    + " are drawn with depth=0mm and "
+                                    + VolumeSurfaceOutlineDrawingModeEnum::toGuiName(VolumeSurfaceOutlineDrawingModeEnum::SURFACE)
+                                    + " is drawn with depth="
+                                    + AString::number(VolumeSurfaceOutlineModel::getDefaultSurfaceDepthMillimeters())
+                                    + "mm"
+                                    "</html>");
+    this->slicePlaneDepthSpinBox = new QDoubleSpinBox();
     this->slicePlaneDepthSpinBox->setRange(0.0, 100.0);
     this->slicePlaneDepthSpinBox->setSingleStep(0.10);
     this->slicePlaneDepthSpinBox->setSuffix("mm");
-    QObject::connect(this->slicePlaneDepthSpinBox, static_cast<void (WuQDoubleSpinBox::*)(double)>(&WuQDoubleSpinBox::valueChanged),
+    this->slicePlaneDepthSpinBox->setSpecialValueText(depthSpecialValueText);
+    QObject::connect(this->slicePlaneDepthSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged);
-    WuQtUtilities::setWordWrappedToolTip(this->slicePlaneDepthSpinBox->getWidget(),
-                                         slicePlaneToolTip);
-    this->slicePlaneDepthSpinBox->getWidget()->setObjectName(objectNamePrefix
-                                                       + ":SlicePlaneDepth");
-    macroManager->addMacroSupportToObject(this->slicePlaneDepthSpinBox->getWidget(),
+    this->slicePlaneDepthSpinBox->setToolTip(slicePlaneToolTip);
+    this->slicePlaneDepthSpinBox->setObjectName(objectNamePrefix
+                                                + ":SlicePlaneDepth");
+    macroManager->addMacroSupportToObject(this->slicePlaneDepthSpinBox,
                                           "Set slice plane depth for volume surface outline for " + descriptivePrefix);
     
     m_volumeSurfaceOutlineDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
@@ -146,8 +154,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
-        this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
-        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3);
+        this->gridLayoutGroup->addWidget(this->thicknessSpinBox, row, 2);
+        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox, row, 3);
         this->gridLayoutGroup->addWidget(m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget(), row, 4);
         this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 5);
     }
@@ -164,8 +172,8 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 4);
         row++;
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
-        this->gridLayoutGroup->addWidget(this->thicknessSpinBox->getWidget(), row, 2);
-        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox->getWidget(), row, 3);
+        this->gridLayoutGroup->addWidget(this->thicknessSpinBox, row, 2);
+        this->gridLayoutGroup->addWidget(this->slicePlaneDepthSpinBox, row, 3);
         this->gridLayoutGroup->addWidget(m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget(), row, 4, Qt::AlignLeft);
         row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
@@ -252,7 +260,15 @@ VolumeSurfaceOutlineViewController::slicePlaneDepthSpinBoxValueChanged(double va
 {
     if (this->outlineModel != NULL) {
         this->outlineModel->setSlicePlaneDepth(value);
+        
+        /*
+         * Need to update the value so that the special text value is
+         * displayed when value is at the minimum
+         */
+        QSignalBlocker blocker(this->slicePlaneDepthSpinBox);
+        this->slicePlaneDepthSpinBox->setValue(this->outlineModel->getSlicePlaneDepth());
     }
+    
     this->updateGraphics();
 }
 

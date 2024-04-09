@@ -388,7 +388,7 @@ VolumeSurfaceOutlineDrawingModeEnum::getToolTip()
     std::vector<Enum> allEnums;
     getAllEnums(allEnums);
     
-    AString text("<html>Outline drawing mode:");
+    AString text("<html>");
     text.append("<ul>");
     for (auto& e : allEnums) {
         AString s("<li> " + toGuiName(e) + ": ");
@@ -401,10 +401,10 @@ VolumeSurfaceOutlineDrawingModeEnum::getToolTip()
                          + ".");
                 break;
             case LINES:
-                s.append("Draw as lines, may get gaps.");
+                s.append("Draw as lines, may get gaps when depth is small.");
                 break;
             case SURFACE:
-                s.append("Draw part of surface within 'depth' distance from volume slice (eliminates gaps).  Some parts may be very thin.  DEPTH MUST NOT BE ZERO.");
+                s.append("Draw part of surface within 'depth' distance from volume slice (eliminates gaps).  Increasing depth may help for very thin regions.");
                 break;
         }
         text.append(s);

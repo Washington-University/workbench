@@ -638,3 +638,13 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     CaretAssert(prefs);
     m_preferencesVolumeSurfaceOutlineSeparation = prefs->getVolumeSurfaceOutlineSeparation();
 }
+
+/**
+ * @return Default value for an outline drawn using a surface model depth in millimeters
+ */
+float
+VolumeSurfaceOutlineModel::getDefaultSurfaceDepthMillimeters()
+{
+    return 0.5;
+}
+

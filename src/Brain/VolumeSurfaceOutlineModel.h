@@ -44,6 +44,8 @@ namespace caret {
     class VolumeSurfaceOutlineModel : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
     public:
+        static float getDefaultSurfaceDepthMillimeters();
+        
         VolumeSurfaceOutlineModel();
         
         virtual ~VolumeSurfaceOutlineModel();
