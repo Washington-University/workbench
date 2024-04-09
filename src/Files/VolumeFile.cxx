@@ -742,7 +742,6 @@ void VolumeFile::parseExtensions()
                 default:
                     break;
             }
-            break;
         }
         if (whichExt != -1)
         {
