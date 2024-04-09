@@ -2714,7 +2714,7 @@ SceneDialog::showSceneOptionsButtonClicked()
 
             if ( ! optionsResult.isUseSceneColorsSelected()) {
                 CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-                prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+                prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
                 EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
             }
         }
@@ -2754,7 +2754,7 @@ SceneDialog::useSceneColorsCheckBoxClicked(bool checked)
 {
     if ( ! checked) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
         EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }

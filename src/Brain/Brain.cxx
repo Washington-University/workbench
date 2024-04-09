@@ -6432,7 +6432,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->invalidateSceneDataValues();
-    prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
     
     const AString specFileName = sf->getFileName();
     if (DataFile::isFileOnNetwork(specFileName)) {

@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "BackgroundAndForegroundColors.h"
-#include "BackgroundAndForegroundColorsModeEnum.h"
+#include "CaretPreferenceSceneDataValueModeEnum.h"
 #include "CaretObject.h"
 #include "DisplayHighDpiModeEnum.h"
 #include "FileOpenFromOpSysTypeEnum.h"
@@ -66,13 +66,13 @@ namespace caret {
         
         void setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
-        BackgroundAndForegroundColorsModeEnum::Enum getBackgroundAndForegroundColorsMode() const;
+        CaretPreferenceSceneDataValueModeEnum::Enum getBackgroundAndForegroundColorsMode() const;
         
         BackgroundAndForegroundColors getSceneBackgroundAndForegroundColors();
         
         void setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
-        void setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode);
+        void setBackgroundAndForegroundColorsMode(const CaretPreferenceSceneDataValueModeEnum::Enum colorsMode);
                 
         void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName);
         
@@ -421,7 +421,7 @@ namespace caret {
         BackgroundAndForegroundColors sceneColors;
         
         /** NOTE: colors mode is NOT saved to preferences */
-        BackgroundAndForegroundColorsModeEnum::Enum m_colorsMode;
+        CaretPreferenceSceneDataValueModeEnum::Enum m_colorsMode;
         
         std::vector<AString> previousSpecFiles;
         

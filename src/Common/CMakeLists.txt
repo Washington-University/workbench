@@ -56,7 +56,6 @@ ApplicationTypeEnum.h
 AString.h
 AStringNaturalComparison.h
 BackgroundAndForegroundColors.h
-BackgroundAndForegroundColorsModeEnum.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
@@ -85,6 +84,7 @@ CaretPointer.h
 CaretPointLocator.h
 CaretPreferenceDataValue.h
 CaretPreferenceDataValueList.h
+CaretPreferenceSceneDataValueModeEnum.h
 CaretPreferences.h
 CaretResult.h
 CaretRgb.h
@@ -231,7 +231,6 @@ ApplicationTypeEnum.cxx
 AString.cxx
 AStringNaturalComparison.cxx
 BackgroundAndForegroundColors.cxx
-BackgroundAndForegroundColorsModeEnum.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx
@@ -252,6 +251,7 @@ CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferenceDataValue.cxx
 CaretPreferenceDataValueList.cxx
+CaretPreferenceSceneDataValueModeEnum.cxx
 CaretPreferences.cxx
 CaretResult.cxx
 CaretRgb.cxx

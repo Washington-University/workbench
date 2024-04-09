@@ -879,7 +879,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Default to user preferences for colors
      */
-    m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
     m_caretPreferences->invalidateSceneDataValues();
 
     m_sceneRestoredWithChartOldFlag = false;
@@ -1243,11 +1243,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         colorHelper.restoreFromScene(sceneAttributes,
                                      sceneClass->getClass("backgroundAndForegroundColors"));
         if (colorHelper.wasRestoredFromScene()) {
-            m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::SCENE);
+            m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::SCENE);
             m_caretPreferences->setSceneBackgroundAndForegroundColors(colors);
         }
         else {
-            m_caretPreferences->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+            m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
         }
     }
     

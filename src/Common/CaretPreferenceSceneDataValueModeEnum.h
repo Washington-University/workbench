@@ -1,5 +1,5 @@
-#ifndef __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_H__
-#define __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_H__
+#ifndef __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_H__
+#define __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_H__
 
 /*LICENSE_START*/
 /*
@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class BackgroundAndForegroundColorsModeEnum {
+class CaretPreferenceSceneDataValueModeEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~BackgroundAndForegroundColorsModeEnum();
+    ~CaretPreferenceSceneDataValueModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    BackgroundAndForegroundColorsModeEnum(const Enum enumValue, 
+    CaretPreferenceSceneDataValueModeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const BackgroundAndForegroundColorsModeEnum* findData(const Enum enumValue);
+    static const CaretPreferenceSceneDataValueModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<BackgroundAndForegroundColorsModeEnum> enumData;
+    static std::vector<CaretPreferenceSceneDataValueModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -94,11 +94,11 @@ private:
     AString guiName;
 };
 
-#ifdef __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_DECLARE__
-std::vector<BackgroundAndForegroundColorsModeEnum> BackgroundAndForegroundColorsModeEnum::enumData;
-bool BackgroundAndForegroundColorsModeEnum::initializedFlag = false;
-int32_t BackgroundAndForegroundColorsModeEnum::integerCodeCounter = 0; 
-#endif // __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_DECLARE__
+#ifdef __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
+std::vector<CaretPreferenceSceneDataValueModeEnum> CaretPreferenceSceneDataValueModeEnum::enumData;
+bool CaretPreferenceSceneDataValueModeEnum::initializedFlag = false;
+int32_t CaretPreferenceSceneDataValueModeEnum::integerCodeCounter = 0;
+#endif // __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_H__
+#endif  //__CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_H__

@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_DECLARE__
-#include "BackgroundAndForegroundColorsModeEnum.h"
-#undef __BACKGROUND_AND_FOREGROUND_COLORS_MODE_ENUM_DECLARE__
+#define __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
+#include "CaretPreferenceSceneDataValueModeEnum.h"
+#undef __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::BackgroundAndForegroundColorsModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::CaretPreferenceSceneDataValueModeEnum
+ * \brief Some scene values are stored in preferences and user may want to change and use value in the user's preferences
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -51,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "BackgroundAndForegroundColorsModeEnum.h"
+ *         #include "CaretPreferenceSceneDataValueModeEnum.h"
  * 
  *     Instatiate:
  *         m_backgroundAndForegroundColorsModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_backgroundAndForegroundColorsModeEnumComboBox->setup<BackgroundAndForegroundColorsModeEnum,BackgroundAndForegroundColorsModeEnum::Enum>();
+ *         m_backgroundAndForegroundColorsModeEnumComboBox->setup<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_backgroundAndForegroundColorsModeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(backgroundAndForegroundColorsModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_backgroundAndForegroundColorsModeEnumComboBox->setSelectedItem<BackgroundAndForegroundColorsModeEnum,BackgroundAndForegroundColorsModeEnum::Enum>(NEW_VALUE);
+ *         m_backgroundAndForegroundColorsModeEnumComboBox->setSelectedItem<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const BackgroundAndForegroundColorsModeEnum::Enum VARIABLE = m_backgroundAndForegroundColorsModeEnumComboBox->getSelectedItem<BackgroundAndForegroundColorsModeEnum,BackgroundAndForegroundColorsModeEnum::Enum>();
+ *         const CaretPreferenceSceneDataValueModeEnum::Enum VARIABLE = m_backgroundAndForegroundColorsModeEnumComboBox->getSelectedItem<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>();
  * 
  */
 
@@ -80,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-BackgroundAndForegroundColorsModeEnum::BackgroundAndForegroundColorsModeEnum(const Enum enumValue,
+CaretPreferenceSceneDataValueModeEnum::CaretPreferenceSceneDataValueModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -93,7 +91,7 @@ BackgroundAndForegroundColorsModeEnum::BackgroundAndForegroundColorsModeEnum(con
 /**
  * Destructor.
  */
-BackgroundAndForegroundColorsModeEnum::~BackgroundAndForegroundColorsModeEnum()
+CaretPreferenceSceneDataValueModeEnum::~CaretPreferenceSceneDataValueModeEnum()
 {
 }
 
@@ -101,18 +99,18 @@ BackgroundAndForegroundColorsModeEnum::~BackgroundAndForegroundColorsModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-BackgroundAndForegroundColorsModeEnum::initialize()
+CaretPreferenceSceneDataValueModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(BackgroundAndForegroundColorsModeEnum(SCENE, 
+    enumData.push_back(CaretPreferenceSceneDataValueModeEnum(SCENE,
                                     "SCENE", 
                                     "Scene"));
     
-    enumData.push_back(BackgroundAndForegroundColorsModeEnum(USER_PREFERENCES, 
+    enumData.push_back(CaretPreferenceSceneDataValueModeEnum(USER_PREFERENCES,
                                     "USER_PREFERENCES", 
                                     "User Preferences"));
     
@@ -125,14 +123,14 @@ BackgroundAndForegroundColorsModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const BackgroundAndForegroundColorsModeEnum*
-BackgroundAndForegroundColorsModeEnum::findData(const Enum enumValue)
+const CaretPreferenceSceneDataValueModeEnum*
+CaretPreferenceSceneDataValueModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const BackgroundAndForegroundColorsModeEnum* d = &enumData[i];
+        const CaretPreferenceSceneDataValueModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -149,10 +147,10 @@ BackgroundAndForegroundColorsModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-BackgroundAndForegroundColorsModeEnum::toName(Enum enumValue) {
+CaretPreferenceSceneDataValueModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const BackgroundAndForegroundColorsModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -166,18 +164,18 @@ BackgroundAndForegroundColorsModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-BackgroundAndForegroundColorsModeEnum::Enum 
-BackgroundAndForegroundColorsModeEnum::fromName(const AString& name, bool* isValidOut)
+CaretPreferenceSceneDataValueModeEnum::Enum
+CaretPreferenceSceneDataValueModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = BackgroundAndForegroundColorsModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const BackgroundAndForegroundColorsModeEnum& d = *iter;
+        const CaretPreferenceSceneDataValueModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -189,7 +187,7 @@ BackgroundAndForegroundColorsModeEnum::fromName(const AString& name, bool* isVal
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type BackgroundAndForegroundColorsModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
     }
     return enumValue;
 }
@@ -202,10 +200,10 @@ BackgroundAndForegroundColorsModeEnum::fromName(const AString& name, bool* isVal
  *     String representing enumerated value.
  */
 AString 
-BackgroundAndForegroundColorsModeEnum::toGuiName(Enum enumValue) {
+CaretPreferenceSceneDataValueModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const BackgroundAndForegroundColorsModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -219,18 +217,18 @@ BackgroundAndForegroundColorsModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-BackgroundAndForegroundColorsModeEnum::Enum 
-BackgroundAndForegroundColorsModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+CaretPreferenceSceneDataValueModeEnum::Enum
+CaretPreferenceSceneDataValueModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = BackgroundAndForegroundColorsModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const BackgroundAndForegroundColorsModeEnum& d = *iter;
+        const CaretPreferenceSceneDataValueModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -242,7 +240,7 @@ BackgroundAndForegroundColorsModeEnum::fromGuiName(const AString& guiName, bool*
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type BackgroundAndForegroundColorsModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
     }
     return enumValue;
 }
@@ -254,10 +252,10 @@ BackgroundAndForegroundColorsModeEnum::fromGuiName(const AString& guiName, bool*
  *    Integer code for data type.
  */
 int32_t
-BackgroundAndForegroundColorsModeEnum::toIntegerCode(Enum enumValue)
+CaretPreferenceSceneDataValueModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const BackgroundAndForegroundColorsModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -272,18 +270,18 @@ BackgroundAndForegroundColorsModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-BackgroundAndForegroundColorsModeEnum::Enum
-BackgroundAndForegroundColorsModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+CaretPreferenceSceneDataValueModeEnum::Enum
+CaretPreferenceSceneDataValueModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = BackgroundAndForegroundColorsModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const BackgroundAndForegroundColorsModeEnum& enumInstance = *iter;
+        const CaretPreferenceSceneDataValueModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -295,7 +293,7 @@ BackgroundAndForegroundColorsModeEnum::fromIntegerCode(const int32_t integerCode
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type BackgroundAndForegroundColorsModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
     }
     return enumValue;
 }
@@ -308,13 +306,13 @@ BackgroundAndForegroundColorsModeEnum::fromIntegerCode(const int32_t integerCode
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-BackgroundAndForegroundColorsModeEnum::getAllEnums(std::vector<BackgroundAndForegroundColorsModeEnum::Enum>& allEnums)
+CaretPreferenceSceneDataValueModeEnum::getAllEnums(std::vector<CaretPreferenceSceneDataValueModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -330,16 +328,16 @@ BackgroundAndForegroundColorsModeEnum::getAllEnums(std::vector<BackgroundAndFore
  *     If true, the names are sorted in alphabetical order.
  */
 void
-BackgroundAndForegroundColorsModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+CaretPreferenceSceneDataValueModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(BackgroundAndForegroundColorsModeEnum::toName(iter->enumValue));
+        allNames.push_back(CaretPreferenceSceneDataValueModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -356,16 +354,16 @@ BackgroundAndForegroundColorsModeEnum::getAllNames(std::vector<AString>& allName
  *     If true, the names are sorted in alphabetical order.
  */
 void
-BackgroundAndForegroundColorsModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+CaretPreferenceSceneDataValueModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<BackgroundAndForegroundColorsModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(BackgroundAndForegroundColorsModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(CaretPreferenceSceneDataValueModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

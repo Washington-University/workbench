@@ -473,11 +473,11 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs,
     }
     
     switch (prefs->getBackgroundAndForegroundColorsMode()) {
-        case BackgroundAndForegroundColorsModeEnum::SCENE:
+        case CaretPreferenceSceneDataValueModeEnum::SCENE:
             m_sceneColorsActiveCheckBox->setChecked(true);
             m_sceneColorsActiveCheckBox->setEnabled(true);
             break;
-        case BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES:
+        case CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES:
             m_sceneColorsActiveCheckBox->setChecked(false);
             m_sceneColorsActiveCheckBox->setEnabled(false);
             break;
@@ -492,10 +492,10 @@ PreferencesDialog::sceneColorsActiveCheckBoxClicked(bool checked)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     if (checked) {
-        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::SCENE);
+        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::SCENE);
     }
     else {
-        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
         m_sceneColorsActiveCheckBox->setEnabled(false);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -1357,7 +1357,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         }
         
         prefs->setUserBackgroundAndForegroundColors(colors);
-        prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
         
         updateColorWidget(prefs,
                           prefs->getUserBackgroundAndForegroundColors(),

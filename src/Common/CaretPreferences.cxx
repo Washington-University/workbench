@@ -186,7 +186,7 @@ CaretPreferences::CaretPreferences()
                                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                             VolumeMontageCoordinateDisplayTypeEnum::toName(VolumeMontageCoordinateDisplayTypeEnum::OFFSET)));
     
-    m_colorsMode = BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES;
+    m_colorsMode = CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES;
 }
 
 /**
@@ -1017,10 +1017,10 @@ const BackgroundAndForegroundColors*
 CaretPreferences::getBackgroundAndForegroundColors() const
 {
     switch (m_colorsMode) {
-        case BackgroundAndForegroundColorsModeEnum::SCENE:
+        case CaretPreferenceSceneDataValueModeEnum::SCENE:
             return &this->sceneColors;
             break;
-        case BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES:
+        case CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES:
             return &this->userColors;
             break;
     }
@@ -1139,7 +1139,7 @@ CaretPreferences::setSceneBackgroundAndForegroundColors(const BackgroundAndForeg
 /**
  * @return Mode for background and foreground colors.
  */
-BackgroundAndForegroundColorsModeEnum::Enum
+CaretPreferenceSceneDataValueModeEnum::Enum
 CaretPreferences::getBackgroundAndForegroundColorsMode() const
 {
     return m_colorsMode;
@@ -1153,7 +1153,7 @@ CaretPreferences::getBackgroundAndForegroundColorsMode() const
  *      New colors mode.
  */
 void
-CaretPreferences::setBackgroundAndForegroundColorsMode(const BackgroundAndForegroundColorsModeEnum::Enum colorsMode)
+CaretPreferences::setBackgroundAndForegroundColorsMode(const CaretPreferenceSceneDataValueModeEnum::Enum colorsMode)
 {
     m_colorsMode = colorsMode;
 }

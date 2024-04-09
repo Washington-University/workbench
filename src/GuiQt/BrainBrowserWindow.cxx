@@ -3349,7 +3349,7 @@ BrainBrowserWindow::processCloseAllFiles()
     brain->resetBrain();
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setBackgroundAndForegroundColorsMode(BackgroundAndForegroundColorsModeEnum::USER_PREFERENCES);
+    prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
     prefs->invalidateSceneDataValues();
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
