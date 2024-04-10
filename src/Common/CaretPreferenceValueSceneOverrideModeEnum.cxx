@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #define __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
-#include "CaretPreferenceSceneDataValueModeEnum.h"
+#include "CaretPreferenceValueSceneOverrideModeEnum.h"
 #undef __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -30,7 +30,7 @@ using namespace caret;
 
     
 /**
- * \class caret::CaretPreferenceSceneDataValueModeEnum
+ * \class caret::CaretPreferenceValueSceneOverrideModeEnum
  * \brief Some scene values are stored in preferences and user may want to change and use value in the user's preferences
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
@@ -49,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "CaretPreferenceSceneDataValueModeEnum.h"
+ *         #include "CaretPreferenceValueSceneOverrideModeEnum.h"
  * 
  *     Instatiate:
  *         m_backgroundAndForegroundColorsModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_backgroundAndForegroundColorsModeEnumComboBox->setup<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>();
+ *         m_backgroundAndForegroundColorsModeEnumComboBox->setup<CaretPreferenceValueSceneOverrideModeEnum,CaretPreferenceValueSceneOverrideModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_backgroundAndForegroundColorsModeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(backgroundAndForegroundColorsModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_backgroundAndForegroundColorsModeEnumComboBox->setSelectedItem<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>(NEW_VALUE);
+ *         m_backgroundAndForegroundColorsModeEnumComboBox->setSelectedItem<CaretPreferenceValueSceneOverrideModeEnum,CaretPreferenceValueSceneOverrideModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const CaretPreferenceSceneDataValueModeEnum::Enum VARIABLE = m_backgroundAndForegroundColorsModeEnumComboBox->getSelectedItem<CaretPreferenceSceneDataValueModeEnum,CaretPreferenceSceneDataValueModeEnum::Enum>();
+ *         const CaretPreferenceValueSceneOverrideModeEnum::Enum VARIABLE = m_backgroundAndForegroundColorsModeEnumComboBox->getSelectedItem<CaretPreferenceValueSceneOverrideModeEnum,CaretPreferenceValueSceneOverrideModeEnum::Enum>();
  * 
  */
 
@@ -78,7 +78,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-CaretPreferenceSceneDataValueModeEnum::CaretPreferenceSceneDataValueModeEnum(const Enum enumValue,
+CaretPreferenceValueSceneOverrideModeEnum::CaretPreferenceValueSceneOverrideModeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -91,7 +91,7 @@ CaretPreferenceSceneDataValueModeEnum::CaretPreferenceSceneDataValueModeEnum(con
 /**
  * Destructor.
  */
-CaretPreferenceSceneDataValueModeEnum::~CaretPreferenceSceneDataValueModeEnum()
+CaretPreferenceValueSceneOverrideModeEnum::~CaretPreferenceValueSceneOverrideModeEnum()
 {
 }
 
@@ -99,18 +99,18 @@ CaretPreferenceSceneDataValueModeEnum::~CaretPreferenceSceneDataValueModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-CaretPreferenceSceneDataValueModeEnum::initialize()
+CaretPreferenceValueSceneOverrideModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(CaretPreferenceSceneDataValueModeEnum(SCENE,
+    enumData.push_back(CaretPreferenceValueSceneOverrideModeEnum(SCENE,
                                     "SCENE", 
                                     "Scene"));
     
-    enumData.push_back(CaretPreferenceSceneDataValueModeEnum(USER_PREFERENCES,
+    enumData.push_back(CaretPreferenceValueSceneOverrideModeEnum(USER_PREFERENCES,
                                     "USER_PREFERENCES", 
                                     "User Preferences"));
     
@@ -123,14 +123,14 @@ CaretPreferenceSceneDataValueModeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const CaretPreferenceSceneDataValueModeEnum*
-CaretPreferenceSceneDataValueModeEnum::findData(const Enum enumValue)
+const CaretPreferenceValueSceneOverrideModeEnum*
+CaretPreferenceValueSceneOverrideModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const CaretPreferenceSceneDataValueModeEnum* d = &enumData[i];
+        const CaretPreferenceValueSceneOverrideModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -147,10 +147,10 @@ CaretPreferenceSceneDataValueModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-CaretPreferenceSceneDataValueModeEnum::toName(Enum enumValue) {
+CaretPreferenceValueSceneOverrideModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceValueSceneOverrideModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -164,18 +164,18 @@ CaretPreferenceSceneDataValueModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-CaretPreferenceSceneDataValueModeEnum::Enum
-CaretPreferenceSceneDataValueModeEnum::fromName(const AString& name, bool* isValidOut)
+CaretPreferenceValueSceneOverrideModeEnum::Enum
+CaretPreferenceValueSceneOverrideModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceValueSceneOverrideModeEnum::enumData[0].enumValue;
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const CaretPreferenceSceneDataValueModeEnum& d = *iter;
+        const CaretPreferenceValueSceneOverrideModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -187,7 +187,7 @@ CaretPreferenceSceneDataValueModeEnum::fromName(const AString& name, bool* isVal
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type CaretPreferenceValueSceneOverrideModeEnum"));
     }
     return enumValue;
 }
@@ -200,10 +200,10 @@ CaretPreferenceSceneDataValueModeEnum::fromName(const AString& name, bool* isVal
  *     String representing enumerated value.
  */
 AString 
-CaretPreferenceSceneDataValueModeEnum::toGuiName(Enum enumValue) {
+CaretPreferenceValueSceneOverrideModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceValueSceneOverrideModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -217,18 +217,18 @@ CaretPreferenceSceneDataValueModeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-CaretPreferenceSceneDataValueModeEnum::Enum
-CaretPreferenceSceneDataValueModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+CaretPreferenceValueSceneOverrideModeEnum::Enum
+CaretPreferenceValueSceneOverrideModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceValueSceneOverrideModeEnum::enumData[0].enumValue;
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const CaretPreferenceSceneDataValueModeEnum& d = *iter;
+        const CaretPreferenceValueSceneOverrideModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +240,7 @@ CaretPreferenceSceneDataValueModeEnum::fromGuiName(const AString& guiName, bool*
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type CaretPreferenceValueSceneOverrideModeEnum"));
     }
     return enumValue;
 }
@@ -252,10 +252,10 @@ CaretPreferenceSceneDataValueModeEnum::fromGuiName(const AString& guiName, bool*
  *    Integer code for data type.
  */
 int32_t
-CaretPreferenceSceneDataValueModeEnum::toIntegerCode(Enum enumValue)
+CaretPreferenceValueSceneOverrideModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const CaretPreferenceSceneDataValueModeEnum* enumInstance = findData(enumValue);
+    const CaretPreferenceValueSceneOverrideModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -270,18 +270,18 @@ CaretPreferenceSceneDataValueModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-CaretPreferenceSceneDataValueModeEnum::Enum
-CaretPreferenceSceneDataValueModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+CaretPreferenceValueSceneOverrideModeEnum::Enum
+CaretPreferenceValueSceneOverrideModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = CaretPreferenceSceneDataValueModeEnum::enumData[0].enumValue;
+    Enum enumValue = CaretPreferenceValueSceneOverrideModeEnum::enumData[0].enumValue;
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const CaretPreferenceSceneDataValueModeEnum& enumInstance = *iter;
+        const CaretPreferenceValueSceneOverrideModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -293,7 +293,7 @@ CaretPreferenceSceneDataValueModeEnum::fromIntegerCode(const int32_t integerCode
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type CaretPreferenceSceneDataValueModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type CaretPreferenceValueSceneOverrideModeEnum"));
     }
     return enumValue;
 }
@@ -306,13 +306,13 @@ CaretPreferenceSceneDataValueModeEnum::fromIntegerCode(const int32_t integerCode
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-CaretPreferenceSceneDataValueModeEnum::getAllEnums(std::vector<CaretPreferenceSceneDataValueModeEnum::Enum>& allEnums)
+CaretPreferenceValueSceneOverrideModeEnum::getAllEnums(std::vector<CaretPreferenceValueSceneOverrideModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -328,16 +328,16 @@ CaretPreferenceSceneDataValueModeEnum::getAllEnums(std::vector<CaretPreferenceSc
  *     If true, the names are sorted in alphabetical order.
  */
 void
-CaretPreferenceSceneDataValueModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+CaretPreferenceValueSceneOverrideModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(CaretPreferenceSceneDataValueModeEnum::toName(iter->enumValue));
+        allNames.push_back(CaretPreferenceValueSceneOverrideModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -354,16 +354,16 @@ CaretPreferenceSceneDataValueModeEnum::getAllNames(std::vector<AString>& allName
  *     If true, the names are sorted in alphabetical order.
  */
 void
-CaretPreferenceSceneDataValueModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+CaretPreferenceValueSceneOverrideModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<CaretPreferenceSceneDataValueModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<CaretPreferenceValueSceneOverrideModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(CaretPreferenceSceneDataValueModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(CaretPreferenceValueSceneOverrideModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

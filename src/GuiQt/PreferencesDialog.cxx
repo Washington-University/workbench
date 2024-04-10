@@ -472,12 +472,12 @@ PreferencesDialog::updateColorWidget(CaretPreferences* prefs,
                                          + ");");
     }
     
-    switch (prefs->getBackgroundAndForegroundColorsMode()) {
-        case CaretPreferenceSceneDataValueModeEnum::SCENE:
+    switch (prefs->getBackgroundAndForegroundColorsSceneOverrideMode()) {
+        case CaretPreferenceValueSceneOverrideModeEnum::SCENE:
             m_sceneColorsActiveCheckBox->setChecked(true);
             m_sceneColorsActiveCheckBox->setEnabled(true);
             break;
-        case CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES:
+        case CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES:
             m_sceneColorsActiveCheckBox->setChecked(false);
             m_sceneColorsActiveCheckBox->setEnabled(false);
             break;
@@ -492,10 +492,10 @@ PreferencesDialog::sceneColorsActiveCheckBoxClicked(bool checked)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     if (checked) {
-        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::SCENE);
+        prefs->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::SCENE);
     }
     else {
-        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
+        prefs->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES);
         m_sceneColorsActiveCheckBox->setEnabled(false);
     }
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
@@ -606,15 +606,22 @@ PreferencesDialog::createMiscellaneousWidget()
     m_volumeSurfaceOutlineSeparationSpinBox->setRange(0.0, 10000.0);
     m_volumeSurfaceOutlineSeparationSpinBox->setSingleStep(0.01);
     m_volumeSurfaceOutlineSeparationSpinBox->setDecimals(2);
-    /*
-     * Default is displayed when the spin box is set to the minimum value (0.0)
-     * which allows Workbench to compute the separation
-     */
-    m_volumeSurfaceOutlineSeparationSpinBox->setSpecialValueText("Default"); // Displayed when value is minimum
-    
+    m_volumeSurfaceOutlineSeparationSpinBox->setToolTip("<html>"
+                                                        "Distance in millimeters between adjacent surface outlines drawn as "
+                                                        "lines when DEPTH is greater than zero.  When SEPARATION is zero, "
+                                                        "separation is 1/2 underlay volume's voxel spacing."
+                                                        "</html>");
     QObject::connect(m_volumeSurfaceOutlineSeparationSpinBox, static_cast<void (QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
                      this, &PreferencesDialog::volumeSurfaceOutlineSeparationValueChanged);
 
+    /*
+     * Checked when scene value is active and displays scene value
+     */
+    m_volumeSurfaceOutlineSeparationSceneCheckBox = new QCheckBox();
+    m_volumeSurfaceOutlineSeparationSceneCheckBox->setToolTip("Uncheck to use preference's value");
+    QObject::connect(m_volumeSurfaceOutlineSeparationSceneCheckBox, &QCheckBox::clicked,
+                     this, &PreferencesDialog::volumeSurfaceOutlineSeparationSceneCheckBoxClicked);
+    
     QGridLayout* gridLayout = new QGridLayout();
     addWidgetToLayout(gridLayout,
                       "Dynconn As Layer Default: ",
@@ -640,10 +647,11 @@ PreferencesDialog::createMiscellaneousWidget()
     addWidgetToLayout(gridLayout,
                       "Display Cross at Histology/Volume Center",
                       m_crossAtViewportCenterEnabledComboBox->getWidget());
-    addWidgetToLayout(gridLayout,
-                      "Volume Surface Outline Separation",
-                      m_volumeSurfaceOutlineSeparationSpinBox);
-    
+    addWidgetsToLayout(gridLayout,
+                       new QLabel("Volume Surface Outline Separation"),
+                       m_volumeSurfaceOutlineSeparationSpinBox,
+                       m_volumeSurfaceOutlineSeparationSceneCheckBox);
+
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addLayout(gridLayout);
@@ -682,8 +690,36 @@ PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
     
     m_crossAtViewportCenterEnabledComboBox->setStatus(prefs->isCrossAtViewportCenterEnabled());
     
+    updateMiscellaneousSceneSeparationControls();
+}
+
+/**
+ * Update the scene separation controls
+ */
+void
+PreferencesDialog::updateMiscellaneousSceneSeparationControls()
+{
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    CaretAssert(prefs);
+    
+    float separationValue(0.0);
+    (void)prefs->getVolumeSurfaceOutlineSeparationPreferenceValue(separationValue);
     QSignalBlocker vsoBlocker(m_volumeSurfaceOutlineSeparationSpinBox);
-    m_volumeSurfaceOutlineSeparationSpinBox->setValue(prefs->getVolumeSurfaceOutlineSeparation());
+    m_volumeSurfaceOutlineSeparationSpinBox->setValue(separationValue);
+    
+    float sceneValue(0.0);
+    const bool sceneValueValid(prefs->getVolumeSurfaceOutlineSeparationSceneValue(sceneValue));
+    
+    QString checkBoxText("Scene value inactive");
+    if (sceneValueValid) {
+        checkBoxText = ("Scene Value Active: ");
+        checkBoxText.append(QString::number(sceneValue,
+                                            'f',
+                                            m_volumeSurfaceOutlineSeparationSpinBox->decimals()));
+    }
+    m_volumeSurfaceOutlineSeparationSceneCheckBox->setText(checkBoxText);
+    m_volumeSurfaceOutlineSeparationSceneCheckBox->setChecked(sceneValueValid);
+    m_volumeSurfaceOutlineSeparationSceneCheckBox->setEnabled(sceneValueValid);
 }
 
 /**
@@ -1357,7 +1393,7 @@ PreferencesDialog::updateColorWithDialog(const PREF_COLOR prefColor)
         }
         
         prefs->setUserBackgroundAndForegroundColors(colors);
-        prefs->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
+        prefs->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES);
         
         updateColorWidget(prefs,
                           prefs->getUserBackgroundAndForegroundColors(),
@@ -1595,13 +1631,36 @@ PreferencesDialog::miscSpecFileDialogViewFilesTypeEnumComboBoxItemActivated()
 
 /**
  * Called when volume surface outline separation is changed
+ * @param value
+ *    New value
  */
 void
 PreferencesDialog::volumeSurfaceOutlineSeparationValueChanged(double value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeSurfaceOutlineSeparation(value);
+    updateMiscellaneousSceneSeparationControls();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
+/**
+ * Called when  volume outline separation scene check box is clicked
+ * @param checked
+ *    New checked status
+ */
+void
+PreferencesDialog::volumeSurfaceOutlineSeparationSceneCheckBoxClicked(bool checked)
+{
+    /*
+     * Should never get turned ON (true) by user
+     */
+    CaretAssert(checked == false);
+    
+    /*
+     * Setting the value, even to itself, will turn off the scene value and
+     * switch to using the user's preference value.
+     */
+    volumeSurfaceOutlineSeparationValueChanged(m_volumeSurfaceOutlineSeparationSpinBox->value());
 }
 
 

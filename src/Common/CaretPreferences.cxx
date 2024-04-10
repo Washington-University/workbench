@@ -109,8 +109,9 @@ CaretPreferences::CaretPreferences()
     m_volumeSurfaceOutlineSeparation.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                         "volumeSurfaceOutlineSeparation",
                                                                         CaretPreferenceDataValue::DataType::FLOAT,
-                                                                        CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                        CaretPreferenceDataValue::SavedInScene::SAVE_YES,
                                                                         0.0));
+    m_preferenceStoredInSceneDataValues.push_back(m_volumeSurfaceOutlineSeparation.get());
     
     m_identificationStereotaxicDistance.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                                 "m_identificationStereotaxicDistance",
@@ -186,7 +187,7 @@ CaretPreferences::CaretPreferences()
                                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                             VolumeMontageCoordinateDisplayTypeEnum::toName(VolumeMontageCoordinateDisplayTypeEnum::OFFSET)));
     
-    m_colorsMode = CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES;
+    m_colorsMode = CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES;
 }
 
 /**
@@ -1017,10 +1018,10 @@ const BackgroundAndForegroundColors*
 CaretPreferences::getBackgroundAndForegroundColors() const
 {
     switch (m_colorsMode) {
-        case CaretPreferenceSceneDataValueModeEnum::SCENE:
+        case CaretPreferenceValueSceneOverrideModeEnum::SCENE:
             return &this->sceneColors;
             break;
-        case CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES:
+        case CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES:
             return &this->userColors;
             break;
     }
@@ -1139,8 +1140,8 @@ CaretPreferences::setSceneBackgroundAndForegroundColors(const BackgroundAndForeg
 /**
  * @return Mode for background and foreground colors.
  */
-CaretPreferenceSceneDataValueModeEnum::Enum
-CaretPreferences::getBackgroundAndForegroundColorsMode() const
+CaretPreferenceValueSceneOverrideModeEnum::Enum
+CaretPreferences::getBackgroundAndForegroundColorsSceneOverrideMode() const
 {
     return m_colorsMode;
 }
@@ -1153,7 +1154,7 @@ CaretPreferences::getBackgroundAndForegroundColorsMode() const
  *      New colors mode.
  */
 void
-CaretPreferences::setBackgroundAndForegroundColorsMode(const CaretPreferenceSceneDataValueModeEnum::Enum colorsMode)
+CaretPreferences::setBackgroundAndForegroundColorsSceneOverrideMode(const CaretPreferenceValueSceneOverrideModeEnum::Enum colorsMode)
 {
     m_colorsMode = colorsMode;
 }
@@ -1795,8 +1796,34 @@ CaretPreferences::getVolumeSurfaceOutlineSeparation() const
 }
 
 /**
- * Set the volume surface outline separartion
- * @param separatrion
+ * @return True if the scene value is active, else if false, preferences value is active.
+ * @param preferenceValueOut
+ *    Contains the scene value
+ */
+bool
+CaretPreferences::getVolumeSurfaceOutlineSeparationPreferenceValue(float& preferenceValueOut) const
+{
+    preferenceValueOut = m_volumeSurfaceOutlineSeparation->getPreferenceValue().toFloat();
+    return m_volumeSurfaceOutlineSeparation->isPreferenceValueActive();
+}
+
+
+/**
+ * @return True if the scene value is active, else if false, preferences value is active.
+ * @param sceneValueOut
+ *    Contains the scene value
+ */
+bool
+CaretPreferences::getVolumeSurfaceOutlineSeparationSceneValue(float& sceneValueOut) const
+{
+    sceneValueOut = m_volumeSurfaceOutlineSeparation->getSceneValue().toFloat();
+    return m_volumeSurfaceOutlineSeparation->isSceneValueActive();
+}
+
+/**
+ * Set the volume surface outline separartion.  Note: Calling this method turn off use of the scene
+ * value if it is active.
+ * @param separation
  *    New separation
  */
 void

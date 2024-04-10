@@ -68,6 +68,8 @@ namespace caret {
         
         QVariant getPreferenceValue() const;
         
+        QVariant getSceneValue() const;
+        
         QVariant getValue(/*const ValueType valueType*/) const;
         
         void setValue(const QVariant& value);
@@ -77,6 +79,10 @@ namespace caret {
         void setSceneValueValid(const bool validStatus);
 
         bool isSavedToScenes() const;
+        
+        bool isPreferenceValueActive() const;
+        
+        bool isSceneValueActive() const;
         
         // ADD_NEW_METHODS_HERE
 

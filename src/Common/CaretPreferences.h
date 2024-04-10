@@ -26,7 +26,7 @@
 #include <utility>
 
 #include "BackgroundAndForegroundColors.h"
-#include "CaretPreferenceSceneDataValueModeEnum.h"
+#include "CaretPreferenceValueSceneOverrideModeEnum.h"
 #include "CaretObject.h"
 #include "DisplayHighDpiModeEnum.h"
 #include "FileOpenFromOpSysTypeEnum.h"
@@ -66,13 +66,13 @@ namespace caret {
         
         void setUserBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
-        CaretPreferenceSceneDataValueModeEnum::Enum getBackgroundAndForegroundColorsMode() const;
-        
-        BackgroundAndForegroundColors getSceneBackgroundAndForegroundColors();
+         BackgroundAndForegroundColors getSceneBackgroundAndForegroundColors();
         
         void setSceneBackgroundAndForegroundColors(const BackgroundAndForegroundColors& colors);
         
-        void setBackgroundAndForegroundColorsMode(const CaretPreferenceSceneDataValueModeEnum::Enum colorsMode);
+        CaretPreferenceValueSceneOverrideModeEnum::Enum getBackgroundAndForegroundColorsSceneOverrideMode() const;
+        
+        void setBackgroundAndForegroundColorsSceneOverrideMode(const CaretPreferenceValueSceneOverrideModeEnum::Enum colorsMode);
                 
         void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName);
         
@@ -355,6 +355,10 @@ namespace caret {
         
         void setVolumeSurfaceOutlineSeparation(const float separation);
         
+        bool getVolumeSurfaceOutlineSeparationPreferenceValue(float& preferenceValueOut) const;
+        
+        bool getVolumeSurfaceOutlineSeparationSceneValue(float& sceneValueOut) const;
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -421,7 +425,7 @@ namespace caret {
         BackgroundAndForegroundColors sceneColors;
         
         /** NOTE: colors mode is NOT saved to preferences */
-        CaretPreferenceSceneDataValueModeEnum::Enum m_colorsMode;
+        CaretPreferenceValueSceneOverrideModeEnum::Enum m_colorsMode;
         
         std::vector<AString> previousSpecFiles;
         

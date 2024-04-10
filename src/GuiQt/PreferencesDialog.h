@@ -72,7 +72,8 @@ namespace caret {
         void openGLImageCaptureMethodEnumComboBoxItemActivated();
         void openGLGraphicsTimingComboBoxToggled(bool value);
         void volumeSurfaceOutlineSeparationValueChanged(double value);
-        
+        void volumeSurfaceOutlineSeparationSceneCheckBoxClicked(bool checked);
+
         void volumeAxesCrosshairsComboBoxToggled(bool value);
         void volumeAxesLabelsComboBoxToggled(bool value);
         void volumeAxesMontageCoordinatesComboBoxToggled(bool value);
@@ -144,6 +145,7 @@ namespace caret {
         void updateMiscellaneousWidget(CaretPreferences* prefs);
         void updateOpenGLWidget(CaretPreferences* prefs);
         void updateVolumeWidget(CaretPreferences* prefs);
+        void updateMiscellaneousSceneSeparationControls();
         
         void updateColorWithDialog(const PREF_COLOR prefColor);
 
@@ -181,6 +183,7 @@ namespace caret {
         EnumComboBoxTemplate* m_fileOpenFromOpSysTypeComboBox;
         WuQTrueFalseComboBox* m_crossAtViewportCenterEnabledComboBox;
         QDoubleSpinBox* m_volumeSurfaceOutlineSeparationSpinBox;
+        QCheckBox* m_volumeSurfaceOutlineSeparationSceneCheckBox;
         
         EnumComboBoxTemplate* m_openGLDrawingMethodEnumComboBox;
         EnumComboBoxTemplate* m_openGLImageCaptureMethodEnumComboBox;

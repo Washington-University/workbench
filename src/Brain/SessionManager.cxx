@@ -879,7 +879,7 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
     /*
      * Default to user preferences for colors
      */
-    m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
+    m_caretPreferences->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES);
     m_caretPreferences->invalidateSceneDataValues();
 
     m_sceneRestoredWithChartOldFlag = false;
@@ -1243,11 +1243,11 @@ SessionManager::restoreFromScene(const SceneAttributes* sceneAttributes,
         colorHelper.restoreFromScene(sceneAttributes,
                                      sceneClass->getClass("backgroundAndForegroundColors"));
         if (colorHelper.wasRestoredFromScene()) {
-            m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::SCENE);
+            m_caretPreferences->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::SCENE);
             m_caretPreferences->setSceneBackgroundAndForegroundColors(colors);
         }
         else {
-            m_caretPreferences->setBackgroundAndForegroundColorsMode(CaretPreferenceSceneDataValueModeEnum::USER_PREFERENCES);
+            m_caretPreferences->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES);
         }
     }
     
@@ -1297,7 +1297,7 @@ SessionManager::savePreferencesToScene(const SceneAttributes* /*sceneAttributes*
     for (auto scv : sceneDataValues) {
         if (scv->isSavedToScenes()) {
             sceneClass->addString(scv->getName(),
-                                  scv->getPreferenceValue().toString());
+                                  scv->getValue().toString());
         }
     }
     

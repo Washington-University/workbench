@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class CaretPreferenceSceneDataValueModeEnum {
+class CaretPreferenceValueSceneOverrideModeEnum {
 
 public:
     /**
@@ -42,7 +42,7 @@ public:
     };
 
 
-    ~CaretPreferenceSceneDataValueModeEnum();
+    ~CaretPreferenceValueSceneOverrideModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -63,14 +63,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    CaretPreferenceSceneDataValueModeEnum(const Enum enumValue,
+    CaretPreferenceValueSceneOverrideModeEnum(const Enum enumValue,
                  const AString& name,
                  const AString& guiName);
 
-    static const CaretPreferenceSceneDataValueModeEnum* findData(const Enum enumValue);
+    static const CaretPreferenceValueSceneOverrideModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<CaretPreferenceSceneDataValueModeEnum> enumData;
+    static std::vector<CaretPreferenceValueSceneOverrideModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -95,9 +95,9 @@ private:
 };
 
 #ifdef __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
-std::vector<CaretPreferenceSceneDataValueModeEnum> CaretPreferenceSceneDataValueModeEnum::enumData;
-bool CaretPreferenceSceneDataValueModeEnum::initializedFlag = false;
-int32_t CaretPreferenceSceneDataValueModeEnum::integerCodeCounter = 0;
+std::vector<CaretPreferenceValueSceneOverrideModeEnum> CaretPreferenceValueSceneOverrideModeEnum::enumData;
+bool CaretPreferenceValueSceneOverrideModeEnum::initializedFlag = false;
+int32_t CaretPreferenceValueSceneOverrideModeEnum::integerCodeCounter = 0;
 #endif // __CARET_PREFERENCES_SCENE_DATA_VALUE_MODE_ENUM_DECLARE__
 
 } // namespace

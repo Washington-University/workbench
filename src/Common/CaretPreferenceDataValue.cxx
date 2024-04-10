@@ -128,6 +128,15 @@ CaretPreferenceDataValue::getPreferenceValue() const
 }
 
 /**
+ * @return Always returns the scene value.
+ */
+QVariant
+CaretPreferenceDataValue::getSceneValue() const
+{
+    return m_sceneDataValue;
+}
+
+/**
  * Set the value.  This does invalidate the scene value.
  *
  * @param value
@@ -209,6 +218,26 @@ CaretPreferenceDataValue::isSavedToScenes() const
     }
 
     return savedFlag;
+}
+
+/*
+ * @return True if the preference value is currently active.
+ * If false, scene value is active.
+ */
+bool
+CaretPreferenceDataValue::isPreferenceValueActive() const
+{
+    return ( ! m_sceneDataValueValid);
+}
+
+/*
+ * @return True if the scene value is currently active.
+ * If false, preferences value is active.
+ */
+bool
+CaretPreferenceDataValue::isSceneValueActive() const
+{
+    return m_sceneDataValueValid;
 }
 
 

@@ -84,7 +84,7 @@ CaretPointer.h
 CaretPointLocator.h
 CaretPreferenceDataValue.h
 CaretPreferenceDataValueList.h
-CaretPreferenceSceneDataValueModeEnum.h
+CaretPreferenceValueSceneOverrideModeEnum.h
 CaretPreferences.h
 CaretResult.h
 CaretRgb.h
@@ -251,7 +251,7 @@ CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferenceDataValue.cxx
 CaretPreferenceDataValueList.cxx
-CaretPreferenceSceneDataValueModeEnum.cxx
+CaretPreferenceValueSceneOverrideModeEnum.cxx
 CaretPreferences.cxx
 CaretResult.cxx
 CaretRgb.cxx
