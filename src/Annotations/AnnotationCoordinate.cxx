@@ -160,6 +160,21 @@ AnnotationCoordinate::initializeAnnotationCoordinateMembers()
 }
 
 /**
+ * @return True if the XYZ coordinates of this and the given XYZ are equal
+ * @param xyz
+ *    XYZ for testing equality
+ */
+bool
+AnnotationCoordinate::equalXYZ(const Vector3D& xyz) const
+{
+    if (m_xyz[0] != xyz[0]) return false;
+    if (m_xyz[1] != xyz[1]) return false;
+    if (m_xyz[2] != xyz[2]) return false;
+    return true;
+}
+
+
+/**
  * @return The annotation's coordinate.
  *
  * For tab and window spaces, the Z value is a depth for ordering.

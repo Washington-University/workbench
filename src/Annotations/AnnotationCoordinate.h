@@ -44,6 +44,8 @@ namespace caret {
 
         AnnotationCoordinate& operator=(const AnnotationCoordinate& obj);
         
+        bool equalXYZ(const Vector3D& xyz) const;
+        
         const Vector3D getXYZ() const;
         
         void getXYZ(float xyzOut[3]) const;
@@ -102,23 +104,6 @@ namespace caret {
         
         void setHistologySpace(const HistologySpaceKey& histologySpaceKey,
                                const float xyz[3]);
-
-//        AString getHistologyFileName() const;
-//
-//
-//        void setHistologyFileName(const AString& histologyFileName);
-//
-//        void setHistologySliceIndex(const int32_t histologySliceIndex);
-//
-//        int32_t getHistologySliceIndex() const;
-//
-//        void getHistologySpace(AString& histologySlicesFileName,
-//                               int32_t& histologySliceIndex,
-//                               float xyz[3]) const;
-//
-//        void setHistologySpace(const AString& histologySlicesFileName,
-//                               const int32_t& histologySliceIndex,
-//                               const float xyz[3]);
         
         float getSurfaceOffsetLength() const;
         
