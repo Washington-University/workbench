@@ -42,7 +42,7 @@
 
 using namespace caret;
 
-
+static bool debugFlag = false;
     
 /**
  * \class caret::AnnotationPolyhedron
@@ -771,51 +771,149 @@ AnnotationPolyhedron::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) 
 
 /**
  * @param edgesOut
- *    Contains all edges from the polyhedron
+ *    Contains all edges from the polyhedron.  Edges connect a pair of vertices,
+ *    one at each end of the polyhedron (connect the polygons)
  * @param trianglesOut
- *    Contains all triangles from sides
+ *    Contains all triangles that form the ends of the polyhedron (the two polygons)
  */
 void
 AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                            std::vector<Triangle>& trianglesOut) const
 {
     edgesOut.clear();
+    trianglesOut.clear();
     
-    const int32_t halfNumCoords(getNumberOfCoordinates() / 2);
-    for (int32_t i = 0; i < halfNumCoords; i++) {
-        /*
-         * Near face
-         */
-        const int32_t iNext((i == (halfNumCoords - 1)) ? 0 : i + 1);
-        edgesOut.push_back(Edge(i,
-                                iNext,
-                                getCoordinate(i)->getXYZ(),
-                                getCoordinate(iNext)->getXYZ()));
+    /*
+     * The tessellated triangles are cached to avoid recomputation of them.
+     * A copy of the polyhedron's coordinates is also saved so that we
+     * can detect when the coordinates change so that new tessellated
+     * triangles can be generated.
+     */
+    const int32_t numCoordinates(getNumberOfCoordinates());
+    if (numCoordinates != static_cast<int32_t>(m_tessellationPreviousXYZ.size())) {
+        m_tessellatedTriangles.clear();
+        m_tessellationPreviousXYZ.clear();
+    }
+    else if (numCoordinates > 0) {
+        CaretAssert(numCoordinates == static_cast<int32_t>(m_tessellationPreviousXYZ.size()));
+        
+        for (int32_t i = 0; i < numCoordinates; i++) {
+            if ( ! getCoordinate(i)->equalXYZ(m_tessellationPreviousXYZ[i])) {
+                m_tessellatedTriangles.clear();
+                m_tessellationPreviousXYZ.clear();
+                break;
+            }
+        }
+    }
+    
+    if (m_tessellatedTriangles.empty()) {
+        m_tessellationPreviousXYZ.clear();
+        for (int32_t i = 0; i < numCoordinates; i++) {
+            m_tessellationPreviousXYZ.emplace_back(getCoordinate(i)->getXYZ());
+        }
+
+        const int32_t halfNumCoords(numCoordinates / 2);
         
         /*
-         * Far face
+         * Edges of polyhedron that connect the two polygons
          */
-        const int32_t farOffset(halfNumCoords);
-        edgesOut.push_back(Edge(i + farOffset,
-                                iNext + farOffset,
-                                getCoordinate(i + farOffset)->getXYZ(),
-                                getCoordinate(iNext + farOffset)->getXYZ()));
-        
+        for (int32_t i = 0; i < halfNumCoords; i++) {
+            /*
+             * Near face
+             */
+            const int32_t iNext((i == (halfNumCoords - 1)) ? 0 : i + 1);
+            edgesOut.push_back(Edge(getCoordinate(i)->getXYZ(),
+                                    getCoordinate(iNext)->getXYZ()));
+            
+            /*
+             * Far face
+             */
+            const int32_t farOffset(halfNumCoords);
+            edgesOut.push_back(Edge(getCoordinate(i + farOffset)->getXYZ(),
+                                    getCoordinate(iNext + farOffset)->getXYZ()));
+            
+            /*
+             * Triangles that make up sides of polyhedron
+             */
+            m_tessellatedTriangles.push_back(Triangle(getCoordinate(i)->getXYZ(),
+                                                      getCoordinate(i + farOffset)->getXYZ(),
+                                                      getCoordinate(iNext)->getXYZ()));
+            m_tessellatedTriangles.push_back(Triangle(getCoordinate(iNext)->getXYZ(),
+                                                      getCoordinate(i + farOffset)->getXYZ(),
+                                                      getCoordinate(iNext + farOffset)->getXYZ()));
+        }
+
         /*
-         * Triangles
+         * Ends of polyhedron
          */
-        trianglesOut.push_back(Triangle(i,
-                                        i + farOffset,
-                                        iNext,
-                                        getCoordinate(i)->getXYZ(),
-                                        getCoordinate(i + farOffset)->getXYZ(),
-                                        getCoordinate(iNext)->getXYZ()));
-        trianglesOut.push_back(Triangle(iNext,
-                                        i + farOffset,
-                                        iNext + farOffset,
-                                        getCoordinate(iNext)->getXYZ(),
-                                        getCoordinate(i + farOffset)->getXYZ(),
-                                        getCoordinate(iNext + farOffset)->getXYZ()));
+        std::vector<GraphicsPolygonTessellator::Vertex> verticesEndOne;
+        std::vector<GraphicsPolygonTessellator::Vertex> verticesEndTwo;
+        for (int32_t i = 0; i < halfNumCoords; i++) {
+            verticesEndOne.emplace_back(i, getCoordinate(i)->getXYZ());
+            verticesEndTwo.emplace_back((i + halfNumCoords),
+                                   getCoordinate(i + halfNumCoords)->getXYZ());
+        }
+        
+        
+        {
+            std::vector<Triangle> triangles;
+            tessellatePolygon(verticesEndOne, triangles);
+            m_tessellatedTriangles.insert(m_tessellatedTriangles.end(),
+                                triangles.begin(),
+                                triangles.end());
+        }
+        
+        {
+            std::vector<Triangle> triangles;
+            tessellatePolygon(verticesEndTwo, triangles);
+            m_tessellatedTriangles.insert(m_tessellatedTriangles.end(),
+                                triangles.begin(),
+                                triangles.end());
+        }
+    }
+    
+    trianglesOut = m_tessellatedTriangles;
+}
+
+/**
+ * Tessellate vertices in the polygon into triangles
+ * @param polygon
+ *    The input polygon
+ * @param trianglesOut
+ *    Output with triangles
+ */
+void
+AnnotationPolyhedron::tessellatePolygon(const std::vector<GraphicsPolygonTessellator::Vertex>& polygon,
+                                        std::vector<Triangle>& trianglesOut) const
+{
+    trianglesOut.clear();
+    
+    AString errorMessage;
+    GraphicsPolygonTessellator tess(polygon,
+                                    m_planeOne.getNormalVector());
+    std::vector<GraphicsPolygonTessellator::Vertex> triangleVertices;
+    if (tess.tessellate(triangleVertices,
+                        errorMessage)) {
+        const int32_t numTriangles(triangleVertices.size() / 3);
+        CaretAssert(static_cast<int32_t>(triangleVertices.size()) == (numTriangles * 3));
+        for (int32_t i = 0; i < numTriangles; i++) {
+            const int32_t i3(i * 3);
+            trianglesOut.push_back(Triangle(triangleVertices[i3].m_xyz,
+                                            triangleVertices[i3+1].m_xyz,
+                                            triangleVertices[i3+2].m_xyz));
+        }
+        
+        if (debugFlag) {
+            std::cout << "Back from tessellator: " << std::endl;
+            for (auto v : triangleVertices) {
+                std::cout << v.m_vertexIndex << " " << v.m_xyz.toString() << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+    else {
+        CaretLogSevere("Tessellator Failed: "
+                       + errorMessage);
     }
 }
 

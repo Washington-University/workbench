@@ -5948,7 +5948,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronEdgesOnPlane(Annotation
         }
     }
     
-    if (selectionFlag) {
+    /*
+     * Selecting coordinates on edges is a problem because not all
+     * edges are drawnk (windowXYZ.size() is not equal to number of coordinates
+     */
+    bool allowEdgeSelectionFlag(false);
+    
+    if (selectionFlag
+        && allowEdgeSelectionFlag) {
         std::vector<Vector3D> windowXYZ;
         for (const auto& t : triangles) {
             Vector3D intersectionOneXYZ;

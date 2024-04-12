@@ -23,6 +23,7 @@
 
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationMultiPairedCoordinateShape.h"
+#include "GraphicsPolygonTessellator.h"
 #include "Plane.h"
 #include "Vector3D.h"
 
@@ -37,15 +38,9 @@ namespace caret {
     public:
         class Edge {
         public:
-            Edge(const int32_t index1,
-                 const int32_t index2,
-                 const Vector3D& v1,
+            Edge(const Vector3D& v1,
                  const Vector3D& v2)
-            : m_index1(index1), m_index2(index2),
-            m_v1(v1), m_v2(v2) { }
-            
-            const int32_t m_index1;
-            const int32_t m_index2;
+            : m_v1(v1), m_v2(v2) { }
             
             const Vector3D m_v1;
             const Vector3D m_v2;
@@ -53,22 +48,14 @@ namespace caret {
         
         class Triangle {
         public:
-            Triangle(const int32_t index1,
-                     const int32_t index2,
-                     const int32_t index3,
-                     const Vector3D& v1,
+            Triangle(const Vector3D& v1,
                      const Vector3D& v2,
                      const Vector3D& v3)
-            : m_index1(index1), m_index2(index2), m_index3(index3),
-            m_v1(v1), m_v2(v2), m_v3(v3) { }
+            : m_v1(v1), m_v2(v2), m_v3(v3) { }
             
-            const int32_t m_index1;
-            const int32_t m_index2;
-            const int32_t m_index3;
-
-            const Vector3D m_v1;
-            const Vector3D m_v2;
-            const Vector3D m_v3;
+            Vector3D m_v1;
+            Vector3D m_v2;
+            Vector3D m_v3;
         };
         
         AnnotationPolyhedron(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType);
@@ -197,6 +184,9 @@ namespace caret {
         
         void initializeMembersAnnotationPolyhedron();
         
+        void tessellatePolygon(const std::vector<GraphicsPolygonTessellator::Vertex>& polygon,
+                               std::vector<Triangle>& trianglesOut) const;
+               
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Plane m_planeOne;
@@ -209,6 +199,10 @@ namespace caret {
                
         std::unique_ptr<AnnotationFontAttributes> m_fontAttributes;
         
+        mutable std::vector<Triangle> m_tessellatedTriangles;
+               
+        mutable std::vector<Vector3D> m_tessellationPreviousXYZ;
+               
         // ADD_NEW_MEMBERS_HERE
 
         /* Needs to call setPlane() and setDepth() */
