@@ -33,6 +33,7 @@ GraphicsOpenGLBufferObject.h
 GraphicsOpenGLError.h
 GraphicsOpenGLPolylineTriangles.h
 GraphicsOpenGLTextureName.h
+GraphicsPolygonTessellator.h
 GraphicsPrimitive.h
 GraphicsPrimitiveSelectionHelper.h
 GraphicsPrimitiveV3f.h
@@ -66,6 +67,7 @@ GraphicsOpenGLBufferObject.cxx
 GraphicsOpenGLError.cxx
 GraphicsOpenGLPolylineTriangles.cxx
 GraphicsOpenGLTextureName.cxx
+GraphicsPolygonTessellator.cxx
 GraphicsPrimitive.cxx
 GraphicsPrimitiveSelectionHelper.cxx
 GraphicsPrimitiveV3f.cxx
