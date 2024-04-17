@@ -72,6 +72,12 @@ namespace caret {
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
+                                uint8_t rgbaOut[4]) const;
+        
+        void getVoxelColorInMap(const int64_t i,
+                                const int64_t j,
+                                const int64_t k,
+                                const int64_t mapIndex,
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;

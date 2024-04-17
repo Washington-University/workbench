@@ -368,6 +368,12 @@ namespace caret {
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const override;
         
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t mapIndex,
+                                        uint8_t rgbaOut[4]) const override;
+        
         virtual void getVoxelColorInMapForLabelData(const std::vector<float>& dataForMap,
                                         const int64_t indexIn1,
                                         const int64_t indexIn2,

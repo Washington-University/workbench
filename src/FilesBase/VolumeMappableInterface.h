@@ -426,6 +426,26 @@ namespace caret {
                                         const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
         
+        /**
+         * Get the voxel coloring for the voxel at the given indices.
+         *
+         * @param indexIn1
+         *     First dimension (i).
+         * @param indexIn2
+         *     Second dimension (j).
+         * @param indexIn3
+         *     Third dimension (k).
+         * @param brickIndex
+         *     Time/map index.
+         * @param rgbaOut
+         *     Output containing RGBA values for voxel at the given indices.
+         */
+        virtual void getVoxelColorInMap(const int64_t indexIn1,
+                                        const int64_t indexIn2,
+                                        const int64_t indexIn3,
+                                        const int64_t tabIndex,
+                                        uint8_t rgbaOut[4]) const = 0;
+        
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
                                                                            const DisplayGroupEnum::Enum displayGroup,
                                                                            const int32_t tabIndex) const = 0;

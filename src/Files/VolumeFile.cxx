@@ -2032,7 +2032,43 @@ VolumeFile::getVoxelValuesForSliceInMap(const int32_t mapIndex,
 
 
 /**
- * Get the RGBA color components for voxel.
+ * Get the RGBA color components for voxel in a map.
+ * Does nothing if coloring is not enabled and output colors are undefined
+ * in this case.
+ *
+ * @param i
+ *    Parasaggital index
+ * @param j
+ *    Coronal index
+ * @param k
+ *    Axial index
+ * @param mapIndex
+ *    Index of map.
+ * @param rgbaOut
+ *    Contains voxel coloring on exit.
+ */
+void
+VolumeFile::getVoxelColorInMap(const int64_t i,
+                               const int64_t j,
+                               const int64_t k,
+                               const int64_t mapIndex,
+                               uint8_t rgbaOut[4]) const
+{
+    if (s_voxelColoringEnabled == false) {
+        return;
+    }
+    
+    CaretAssert(m_voxelColorizer);
+
+    m_voxelColorizer->getVoxelColorInMap(i,
+                                         j,
+                                         k,
+                                         mapIndex,
+                                         rgbaOut);
+}
+
+/**
+ * Get the RGBA color components for voxel in map with display group and tab.
  * Does nothing if coloring is not enabled and output colors are undefined
  * in this case.
  *
@@ -2065,7 +2101,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
     }
     
     CaretAssert(m_voxelColorizer);
-
+    
     m_voxelColorizer->getVoxelColorInMap(i,
                                          j,
                                          k,

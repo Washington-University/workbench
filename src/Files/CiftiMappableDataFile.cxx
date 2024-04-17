@@ -4740,6 +4740,59 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
 }
 
 /**
+ * Get the voxel coloring for the voxel at the given indices.
+ *
+ * @param indexIn1
+ *     First dimension (i).
+ * @param indexIn2
+ *     Second dimension (j).
+ * @param indexIn3
+ *     Third dimension (k).
+ * @param mapIndex
+ *     Time/map index.
+ * @param rgbaOut
+ *     Output containing RGBA values for voxel at the given indices.
+ */
+void
+CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
+                                          const int64_t indexIn2,
+                                          const int64_t indexIn3,
+                                          const int64_t mapIndex,
+                                          uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = 0;
+    rgbaOut[1] = 0;
+    rgbaOut[2] = 0;
+    rgbaOut[3] = 0;
+    
+    if ( ! isMapColoringValid(mapIndex)) {
+        CiftiMappableDataFile* nonConstThis = const_cast<CiftiMappableDataFile*>(this);
+        nonConstThis->updateScalarColoringForMap(mapIndex);
+    }
+    
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    
+    const int64_t mapRgbaCount = m_mapContent[mapIndex]->m_rgba.size();
+    if (mapRgbaCount <= 0) {
+        return;
+    }
+    
+    const uint8_t* mapRGBA = &m_mapContent[mapIndex]->m_rgba[0];
+    const int64_t dataOffset = m_voxelIndicesToOffsetForDataMapping->getOffsetForIndices(indexIn1,
+                                                                                         indexIn2,
+                                                                                         indexIn3);
+    if (dataOffset >= 0) {
+        const int64_t dataOffset4 = dataOffset * 4;
+        CaretAssert(dataOffset4 < mapRgbaCount);
+        
+        rgbaOut[0] = mapRGBA[dataOffset4];
+        rgbaOut[1] = mapRGBA[dataOffset4+1];
+        rgbaOut[2] = mapRGBA[dataOffset4+2];
+        rgbaOut[3] = mapRGBA[dataOffset4+3];
+    }
+}
+
+/**
  * Get the row and/or column for a surface vertex
  * @param structure
  *    The structure

@@ -378,7 +378,13 @@ namespace caret {
                                          const int64_t sliceIndex,
                                          float* sliceValues) const;
         
-        void getVoxelColorInMap(const int64_t i,
+        virtual void getVoxelColorInMap(const int64_t i,
+                                const int64_t j,
+                                const int64_t k,
+                                const int64_t mapIndex,
+                                uint8_t rgbaOut[4]) const override;
+        
+        virtual void getVoxelColorInMap(const int64_t i,
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
