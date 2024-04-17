@@ -64,6 +64,7 @@ namespace caret
         VolumeType m_type;
         SubvolumeAttributes() { m_type = UNKNOWN; }
         void writeAsXML(XmlWriter& xmlWriter, int index);
+        static AString getTypeNameFromType(SubvolumeAttributes::VolumeType volumeType);        
     };
     
     struct CaretVolumeExtension

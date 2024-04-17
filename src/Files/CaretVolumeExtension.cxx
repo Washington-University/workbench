@@ -152,6 +152,43 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
     xmlWriter.writeEndElement();
 }
 
+/**
+ * @return Name for the given volume type
+ * @param volumeType
+ *    The volume type
+ */
+AString SubvolumeAttributes::getTypeNameFromType(SubvolumeAttributes::VolumeType volumeType)
+{
+    AString name("INVALID");
+    switch (volumeType) {
+        case SubvolumeAttributes::ANATOMY:
+            name = "ANATOMY";
+            break;
+        case SubvolumeAttributes::FUNCTIONAL:
+            name = "FUNCTIONAL";
+            break;
+        case SubvolumeAttributes::LABEL:
+            name = "LABEL";
+            break;
+        case SubvolumeAttributes::RGB:
+            name = "RGB";
+            break;
+        case SubvolumeAttributes::RGB_WORKBENCH:
+            name = "RGB_WORKBENCH";
+            break;
+        case SubvolumeAttributes::SEGMENTATION:
+            name = "SEGMENTATION";
+            break;
+        case SubvolumeAttributes::UNKNOWN:
+            name = "UNKNOWN";
+            break;
+        case SubvolumeAttributes::VECTOR:
+            name = "VECTOR";
+            break;
+    }
+    return name;
+}
+
 void StudyMetadataLinkSet::writeAsXML(XmlWriter& xmlWriter)
 {//TODO: something
     xmlWriter.writeStartElement(CARET_VOL_EXT_VI_STUDY_META_SET);
