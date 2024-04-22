@@ -71,6 +71,7 @@ namespace caret {
     class EventOpenGLObjectToWindowTransform;
     class GraphicsFramesPerSecond;
     class GraphicsObjectToWindowTransform;
+    class GraphicsOrthographicProjection;
     class Model;
     class SurfaceProjectedItem;
     
@@ -337,6 +338,10 @@ namespace caret {
                                                  const double centerToEyeDistance,
                                                  const bool centerToEyeDistanceValidFlag) = 0;
 
+        virtual void loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                 const GraphicsOrthographicProjection& orthographicProjection,
+                                                 const double centerToEyeDistance,
+                                                 const bool centerToEyeDistanceValidFlag) = 0;
         Border* borderBeingDrawn;
         
         bool m_drawHighlightedEndPoints;

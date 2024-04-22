@@ -330,6 +330,10 @@ namespace caret {
         
         AString getMapUniqueID(const int32_t mapIndex) const;
         
+        virtual CaretMappableDataFile* castToVolumeMappableDataFile() override;
+        
+        virtual const CaretMappableDataFile* castToVolumeMappableDataFile() const override;
+
         void updateScalarColoringForMap(const int32_t mapIndex) override;
         
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
@@ -373,6 +377,13 @@ namespace caret {
                                                                             const DisplayGroupEnum::Enum displayGroup,
                                                                             const int32_t tabIndex) const override;
 
+        virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
+                                                                          const MediaFile* mediaFile,
+                                                                          const HistologyImageIntersectionMode intersectionMode,
+                                                                          AString& errorMessageOut) const override;
+        
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,

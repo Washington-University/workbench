@@ -24,6 +24,7 @@
 #undef __VOLUME_MAPPABLE_INTERFACE_DECLARE__
 
 #include "CaretAssert.h"
+#include "DataFile.h"
 #include "VolumeSpace.h"
 
 using namespace caret;
@@ -285,4 +286,36 @@ VolumeMappableInterface::indexToSpace(const float& indexIn1,
                  indexIn3,
                  xyz);
     return xyz;
+}
+
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param volumeFileMapIndex
+ *    Index of map in this volume file
+ * @param mediaFile
+ *    The medial file for drawing histology
+ * @param intersectionMode
+ *    The intersection mode
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+GraphicsPrimitive*
+VolumeMappableInterface::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                const DisplayGroupEnum::Enum displayGroup,
+                                                                const int32_t tabIndex,
+                                                                const MediaFile* mediaFile,
+                                                                const HistologyImageIntersectionMode intersectionMode,
+                                                                AString& errorMessageOut) const
+{
+    const DataFile* df(dynamic_cast<const DataFile*>(this));
+    AString filename("unknown filename");
+    if (df != NULL) {
+        filename = df->getFileName();
+    }
+    errorMessageOut = (AString(__FUNCTION__)
+                       + " not support for file of type: "
+                       + filename);
+    return NULL;
 }

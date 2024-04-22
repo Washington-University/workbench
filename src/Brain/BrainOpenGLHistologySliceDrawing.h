@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 #include "GraphicsTextureMagnificationFilterEnum.h"
 #include "GraphicsTextureMinificationFilterEnum.h"
+#include "GraphicsViewport.h"
 #include "HistologyOverlay.h"
 
 
@@ -37,6 +38,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class GraphicsObjectToWindowTransform;
+    class GraphicsOrthographicProjection;
     class GraphicsPrimitiveV3fT2f;
     class HistologyCoordinate;
     class HistologyOverlaySet;
@@ -67,32 +69,32 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void drawModelLayers(const std::array<float, 4>& orthoLRBT,
+        void drawModelLayers(const GraphicsOrthographicProjection& orthographicProjection,
                              const BrainOpenGLViewportContent* viewportContent,
-                             const GraphicsObjectToWindowTransform* transform,
-                             const int32_t tabIndex,
-                             const float orthoHeight,
-                             const float viewportHeight);
+                             const GraphicsObjectToWindowTransform* transform);
         
         void processSelection(const int32_t tabIndex,
                               const HistologyOverlay::DrawingData& drawingData,
                               GraphicsPrimitiveV3fT2f* primitive);
 
-        bool getOrthoBounds(double& orthoLeftOut,
-                            double& orthoRightOut,
-                            double& orthoBottomOut,
-                            double& orthoTopOut);
+        bool getOrthoBounds(GraphicsOrthographicProjection& orthographicsProjectionOut);
 
-        void drawCrosshairs(const std::array<float, 4>& orthoLRBT,
+        void drawCrosshairs(const GraphicsOrthographicProjection& orthographicsProjection,
                             const HistologyCoordinate& histologyCoordinate);
+        
+        void drawVolumeOverlays(const GraphicsOrthographicProjection& orthographicProjection);
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         
         BrowserTabContent* m_browserTabContent = NULL;
         
-        std::array<int32_t, 4> m_viewport;
+        GraphicsViewport m_viewport;
         
         std::vector<HistologyOverlay::DrawingData> m_mediaFilesAndDataToDraw;
+        
+        Vector3D m_identificationStereotaxicXYZ;
+        
+        bool m_identificationStereotaxicXYZValidFlag = false;
         
         static GraphicsTextureMagnificationFilterEnum::Enum s_textureMagnificationFilter;
         static GraphicsTextureMinificationFilterEnum::Enum  s_textureMinificationFilter;

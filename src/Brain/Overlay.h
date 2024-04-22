@@ -42,7 +42,8 @@ namespace caret {
     public:
         enum IncludeVolumeFiles {
             INCLUDE_VOLUME_FILES_YES,
-            INCLUDE_VOLUME_FILES_NO
+            INCLUDE_VOLUME_FILES_NO,
+            INCLUDE_VOLUME_FILES_FOR_HISTOLOGY_MODEL
         };
         
         Overlay(const std::vector<StructureEnum::Enum>& includeSurfaceStructures,
@@ -125,17 +126,11 @@ namespace caret {
         /** map yoking group */
         MapYokingGroupEnum::Enum m_mapYokingGroup;
         
-        /** available mappable files */
-        //std::vector<CaretMappableDataFile*> m_mapFiles;
-        
         /** selected mappable file */
         CaretMappableDataFile* m_selectedMapFile;
         
         /** selected map index */
         int32_t m_selectedMapIndex;
-        
-        /** selected data file map unique id */
-        //AString m_selectedMapUniqueID;
         
         /** Voxel drawing mode in Whole Brain View */
         WholeBrainVoxelDrawingMode::Enum m_wholeBrainVoxelDrawingMode;

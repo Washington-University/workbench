@@ -1048,6 +1048,7 @@ OverlaySet::initializeOverlays()
 {
     bool isMatchToVolumeUnderlay = false;
     bool isMatchToVolumeOverlays = false;
+    bool isVolumesForHistology   = false;
     
     switch (m_includeVolumeFiles) {
         case Overlay::INCLUDE_VOLUME_FILES_NO:
@@ -1061,6 +1062,9 @@ OverlaySet::initializeOverlays()
                 isMatchToVolumeOverlays = true;
             }
             isMatchToVolumeUnderlay = true;
+            break;
+        case Overlay::INCLUDE_VOLUME_FILES_FOR_HISTOLOGY_MODEL:
+            isVolumesForHistology = true;
             break;
     }
     
@@ -1202,6 +1206,13 @@ OverlaySet::initializeOverlays()
                 && (mapIndex >= 0)) {
                 overlay->setEnabled(true);
             }
+        }
+    }
+    
+    if (isVolumesForHistology) {
+        for (Overlay* overlay : m_overlays) {
+            CaretAssert(overlay);
+            overlay->setEnabled(false);
         }
     }
 }

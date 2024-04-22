@@ -129,6 +129,11 @@ public:
                               const int32_t overlayIndex,
                               const PixelLogicalIndex& pixelLogicalIndex,
                               uint8_t pixelRGBAOut[4]) const override;
+    
+    virtual void setPixelRGBA(const int32_t tabIndex,
+                              const int32_t overlayIndex,
+                              const PixelLogicalIndex& pixelLogicalIndex,
+                              const uint8_t pixelRGBA[4]);
 
     virtual int32_t getWidth() const override;
     
@@ -273,16 +278,10 @@ private:
     
     mutable QImage* m_image;
     
-    mutable bool m_sceneCreatedBeforeDefaultScaling = false;
-    
     mutable CaretPointer<GiftiMetaData> m_fileMetaData;
-    
-    mutable AString m_frameOneName;
     
     CaretPointer<ControlPointFile> m_controlPointFile;
     
-    mutable std::unique_ptr<RectangleTransform> m_pixelBottomLeftToTopLeftTransform;
-
     mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitive;
 
     mutable std::unique_ptr<GraphicsPrimitiveV3fT2f> m_featuresImageGraphicsPrimitive;

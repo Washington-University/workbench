@@ -22,6 +22,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <string>
 
@@ -37,10 +38,12 @@
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FastStatistics.h"
 #include "Histogram.h"
+#include "ImageFile.h"
 #include "MapFileDataSelector.h"
 #include "MultiDimIterator.h"
 #include "NiftiIO.h"
@@ -1713,6 +1716,24 @@ VolumeFile::getNonZeroVoxelCoordinateBoundingBox(const int32_t mapIndex,
 }
 
 /**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile
+ */
+CaretMappableDataFile*
+VolumeFile::castToVolumeMappableDataFile()
+{
+    return this;
+}
+
+/**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile (const method)
+ */
+const CaretMappableDataFile*
+VolumeFile::castToVolumeMappableDataFile() const
+{
+    return this;
+}
+
+/**
  * Update coloring for a map.
  * Does nothing if coloring is not enabled.
  *
@@ -1960,6 +1981,39 @@ VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
                                                                        displayGroup,
                                                                        tabIndex);
 }
+
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param mediaFile
+ *    The medial file for drawing histology
+ * @param intersectionMode
+ *    The intersection mode
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+GraphicsPrimitive*
+VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                   const int32_t tabIndex,
+                                                   const MediaFile* mediaFile,
+                                                   const HistologyImageIntersectionMode intersectionMode,
+                                                   AString& errorMessageOut) const
+{
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimtiveForMap(mediaFile,
+                                                                                 mapIndex,
+                                                                                 displayGroup,
+                                                                                 tabIndex);
+}
+
+
 /**
  * Get the voxel values for a slice in a map.
  *
@@ -3099,3 +3153,4 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
         }
     }
 }
+

@@ -936,12 +936,11 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                     case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
                         defaultTabIndex = m_histologyTabIndex;
                         enableHistology = true;
-                        enableLayers = false;
+                        enableLayers = true;
                         enableVolumeSurfaceOutline = true;
                         haveBorders = false;
                         haveFibers  = false;
                         haveFoci    = true;
-                        haveLabels  = false;
                         break;
                     case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
                         defaultTabIndex = m_mediaTabIndex;

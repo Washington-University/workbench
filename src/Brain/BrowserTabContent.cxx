@@ -2427,8 +2427,8 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
         return;
     }
 
+    bool addBrainordinateOverlaysFlag(false);
     const int32_t tabIndex = getTabNumber();
-    
     switch (model->getModelType()) {
         case ModelTypeEnum::MODEL_TYPE_INVALID:
         case ModelTypeEnum::MODEL_TYPE_CHART:
@@ -2491,6 +2491,8 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
                      }
                  }
              }
+             
+             addBrainordinateOverlaysFlag = true;
          }
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
@@ -2526,30 +2528,31 @@ BrowserTabContent::getFilesAndMapIndicesInOverlays(EventCaretMappableDataFilesAn
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
         case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
-        {
-            OverlaySet* overlaySet = model->getOverlaySet(tabIndex);
-            const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
-            for (int32_t i = 0; i < numOverlays; i++) {
-                Overlay* overlay = overlaySet->getOverlay(i);
-                if (overlay->isEnabled()) {
-                    CaretMappableDataFile* overlayDataFile = NULL;
-                    int32_t mapIndex;
-                    overlay->getSelectionData(overlayDataFile,
-                                              mapIndex);
-                    
-                    if (overlayDataFile != NULL) {
-                        if (mapIndex >= 0) {
-                            fileAndMapsEvent->addBrainordinateFileAndMap(overlayDataFile,
-                                                                         mapIndex,
-                                                                         m_tabNumber);
-                        }
+            addBrainordinateOverlaysFlag = true;
+            break;
+    }
+    
+    if (addBrainordinateOverlaysFlag) {
+        OverlaySet* overlaySet = model->getOverlaySet(tabIndex);
+        const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
+        for (int32_t i = 0; i < numOverlays; i++) {
+            Overlay* overlay = overlaySet->getOverlay(i);
+            if (overlay->isEnabled()) {
+                CaretMappableDataFile* overlayDataFile = NULL;
+                int32_t mapIndex;
+                overlay->getSelectionData(overlayDataFile,
+                                          mapIndex);
+                
+                if (overlayDataFile != NULL) {
+                    if (mapIndex >= 0) {
+                        fileAndMapsEvent->addBrainordinateFileAndMap(overlayDataFile,
+                                                                     mapIndex,
+                                                                     m_tabNumber);
                     }
                 }
             }
         }
-            break;
     }
-    
 }
 
 /**

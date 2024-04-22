@@ -99,7 +99,7 @@ ImageFile::ImageFile(const ImageFile& imageFile)
 : MediaFile(imageFile)
 {
     initializeMembersImageFile();
-
+    
     if (m_image != NULL) {
         delete m_image;
     }
@@ -109,8 +109,20 @@ ImageFile::ImageFile(const ImageFile& imageFile)
     else {
         m_image = new QImage();
     }
-
+    
     m_fileMetaData.grabNew(new GiftiMetaData(*imageFile.m_fileMetaData));
+    
+    if (imageFile.m_controlPointFile) {
+        /*CaretAssertMessage(0, "Need to implement copy contructor for ControlPointFile.");*/
+        //m_controlPointFile.grabNew(new ControlPointFile(*imageFile.m_controlPointFile));
+    }
+    m_graphicsPrimitive.reset();
+    m_featuresImageGraphicsPrimitive.reset();
+    
+    m_pixelPrimitiveVertexStartIndex = imageFile.m_pixelPrimitiveVertexStartIndex;;
+    m_pixelPrimitiveVertexCount      = imageFile.m_pixelPrimitiveVertexCount;
+    m_planePrimitiveVertexStartIndex = imageFile.m_planePrimitiveVertexStartIndex;
+    m_planePrimitiveVertexCount      = imageFile.m_planePrimitiveVertexCount;
 }
 
 /**
@@ -269,10 +281,6 @@ AString
 ImageFile::getFrameName(const int32_t frameIndex) const
 {
     AString frameName;
-    if (frameIndex == 0) {
-        frameName = m_frameOneName;
-    }
-    
     if (frameName.isEmpty()) {
         frameName = MediaFile::getFrameName(frameIndex);
     }
@@ -1410,6 +1418,43 @@ ImageFile::getPixelRGBA(const int32_t /*tabIndex*/,
 }
 
 /**
+ * Set the pixel RGBA at the given pixel I and J.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ * @param overlayIndex
+ *    Index of overlay
+ * @param pixelLogicalIndex
+ *     Logical pixel index
+ * @param pixelRGBAOut
+ *     RGBA at Pixel I, J
+ */
+
+void
+ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
+                        const int32_t /*overlayIndex*/,
+                        const PixelLogicalIndex& pixelLogicalIndex,
+                        const uint8_t pixelRGBA[4])
+{
+    if (m_image != NULL) {
+        const int32_t w = m_image->width();
+        const int32_t h = m_image->height();
+        
+        const int64_t pixelI(pixelLogicalIndex.getI());
+        const int64_t pixelJ(pixelLogicalIndex.getJ());
+        if ((pixelI >= 0)
+            && (pixelI < w)
+            && (pixelJ >= 0)
+            && (pixelJ < h)) {
+            m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
+                                                          pixelRGBA[1],
+                                                          pixelRGBA[2],
+                                                          pixelRGBA[3]));
+        }
+    }
+}
+
+/**
  * Get the RGBA bytes from the image resized into the given width and height.
  *
  * @param imageOrigin
@@ -1895,6 +1940,21 @@ ImageFile::createGraphicsPrimitive() const
     }
     
     /*
+     * Filtering for matching image pixel to screen pixel
+     */
+    GraphicsTextureMagnificationFilterEnum::Enum magFilter(GraphicsTextureMagnificationFilterEnum::NEAREST);
+    GraphicsTextureMinificationFilterEnum::Enum minFilter(GraphicsTextureMinificationFilterEnum::NEAREST);
+    const bool smoothFlag(false);
+    if (smoothFlag) {
+        /*
+         * This will break opacity on drawing volume slices over
+         * histology slices that results in white edges appearing
+         * when opacity is less than one.
+         */
+        magFilter = GraphicsTextureMagnificationFilterEnum::LINEAR;
+        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
+    }
+    /*
      * Compress texture if image is large and compression is enabled
      */
     const GraphicsTextureSettings::CompressionType textureCompressionType(isImageTextureCompressed()
@@ -1910,8 +1970,8 @@ ImageFile::createGraphicsPrimitive() const
                                             GraphicsTextureSettings::WrappingType::CLAMP,
                                             GraphicsTextureSettings::MipMappingType::ENABLED,
                                             textureCompressionType,
-                                            GraphicsTextureMagnificationFilterEnum::LINEAR,
-                                            GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR,
+                                            magFilter,
+                                            minFilter,
                                             textureBorderColorRGBA);
     GraphicsPrimitiveV3fT2f* primitive = GraphicsPrimitive::newPrimitiveV3fT2f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP,
                                                                                textureSettings);

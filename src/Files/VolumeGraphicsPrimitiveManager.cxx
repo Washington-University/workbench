@@ -26,9 +26,13 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "ImageFile.h"
 #include "VolumeMappableInterface.h"
+#include "VolumeToImageMapping.h"
+
 using namespace caret;
 
 
@@ -72,6 +76,7 @@ VolumeGraphicsPrimitiveManager::clear()
     m_mapGraphicsTriangleFanPrimitives.clear();
     m_mapGraphicsTriangleStripPrimitives.clear();
     m_mapGraphicsTrianglesPrimitives.clear();
+    m_mapIntersectionImageFiles.clear();
 }
 
 /**
@@ -89,6 +94,9 @@ VolumeGraphicsPrimitiveManager::invalidateAllColoring()
         p.reset();
     }
     for (auto& p : m_mapGraphicsTrianglesPrimitives) {
+        p.reset();
+    }
+    for (auto& p : m_mapIntersectionImageFiles) {
         p.reset();
     }
 }
@@ -112,6 +120,10 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
     if ((mapIndex >= 0)
         && (mapIndex < static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size()))) {
         m_mapGraphicsTrianglesPrimitives[mapIndex].reset();
+    }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapIntersectionImageFiles.size()))) {
+        m_mapIntersectionImageFiles[mapIndex].reset();
     }
 }
 
@@ -387,6 +399,59 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
         primitiveOut->addVertex(xyz, str);
     }
 
+    return primitiveOut;
+}
+
+/**
+ * Generate a graphics primitive for an image intersection with the volume
+ * 
+ * @param mediaFile
+ *    Media file for intersection
+ * @param mapIndex
+ *    Map index for creating the primitive
+ * @param displayGroup
+ *    Display gtroup selected
+ * @param tabIndex
+ *    Index of tab
+ * @return
+ *    Pointer to graphics primitive or NULL if failure
+ */
+GraphicsPrimitiveV3fT2f*
+VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
+                                                                   const int32_t mapIndex,
+                                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                                   const int32_t tabIndex) const
+{
+    GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
+    
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapIntersectionImageFiles.size())) {
+        m_mapIntersectionImageFiles.resize(mapIndex + 1);
+    }
+
+    CaretAssertVectorIndex(m_mapIntersectionImageFiles, mapIndex);
+    if ( ! m_mapIntersectionImageFiles[mapIndex]) {
+        AString errorMessage;
+        VolumeToImageMapping mapper(m_volumeInterface,
+                                    mapIndex,
+                                    displayGroup,
+                                    tabIndex,
+                                    mediaFile);
+        if (mapper.runMapping(errorMessage)) {
+            m_mapIntersectionImageFiles[mapIndex].reset(mapper.takeOutputImageFile());
+        }
+        else {
+            CaretLogSevere(errorMessage);
+        }
+    }
+    
+    ImageFile* imageFile(m_mapIntersectionImageFiles[mapIndex].get());
+
+    if (imageFile != NULL) {
+        int32_t invalidOverlayIndex(-1);
+        primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
+                                                                         invalidOverlayIndex);
+    }
+    
     return primitiveOut;
 }
 

@@ -115,6 +115,7 @@
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsFramesPerSecond.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GraphicsOrthographicProjection.h"
 #include "GraphicsPrimitiveV3fC4f.h"
 #include "GraphicsPrimitiveV3fC4ub.h"
 #include "GraphicsPrimitiveV3fN3fC4ub.h"
@@ -485,6 +486,36 @@ BrainOpenGLFixedPipeline::loadObjectToWindowTransform(GraphicsObjectToWindowTran
     else {
         CaretAssertMessage(0, "Received EventOpenGLObjectToWindowTransform but current context is invalid.");
     }
+}
+
+/**
+ * Setup the content of the transform  with current transformation data.
+ *
+ * @param transform
+ *     The transform.
+ * @param orthographicProjection
+ *     The orthographic projection
+ * @param centerToEyeDistance
+ *     Center to eye distance
+ * @param centerToEyeDistanceValidFlag
+ *     Validity of center to eye distance.  If not valid, s_gluLookAtCenterFromEyeOffsetDistance is used for the center to eye distnace
+ */
+void
+BrainOpenGLFixedPipeline::loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                      const GraphicsOrthographicProjection& orthographicProjection,
+                                                      const double centerToEyeDistance,
+                                                      const bool centerToEyeDistanceValidFlag)
+{
+    const std::array<float, 4> orthoLeftRightBottomTop {
+        static_cast<float>(orthographicProjection.getLeft()),
+        static_cast<float>(orthographicProjection.getRight()),
+        static_cast<float>(orthographicProjection.getBottom()),
+        static_cast<float>(orthographicProjection.getTop()),
+    };
+    loadObjectToWindowTransform(transform,
+                                orthoLeftRightBottomTop,
+                                centerToEyeDistance,
+                                centerToEyeDistanceValidFlag);
 }
 
 /**

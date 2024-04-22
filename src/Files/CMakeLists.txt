@@ -194,6 +194,7 @@ VolumePaddingHelper.h
 VolumePlaneIntersection.h
 VolumeSliceProjectionTypeEnum.h
 VolumeSpline.h
+VolumeToImageMapping.h
 VolumeVerticesEdgesFaces.h
 VoxelInterpolationTypeEnum.h
 VtkFileExporter.h
@@ -368,6 +369,7 @@ VolumePaddingHelper.cxx
 VolumePlaneIntersection.cxx
 VolumeSliceProjectionTypeEnum.cxx
 VolumeSpline.cxx
+VolumeToImageMapping.cxx
 VolumeVerticesEdgesFaces.cxx
 VoxelInterpolationTypeEnum.cxx
 VtkFileExporter.cxx

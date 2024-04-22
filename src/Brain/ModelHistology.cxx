@@ -52,8 +52,8 @@ ModelHistology::ModelHistology(Brain* brain)
 {
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;
     m_layerOverlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
-                                            Overlay::INCLUDE_VOLUME_FILES_YES,
-                                            "Chart View");
+                                            Overlay::INCLUDE_VOLUME_FILES_FOR_HISTOLOGY_MODEL,
+                                            "Histology View");
 
     m_histologyOverlaySetArray = new HistologyOverlaySetArray("Histology View");
     
@@ -93,15 +93,6 @@ ModelHistology::initializeHistology()
 void
 ModelHistology::updateModel()
 {
-}
-
-/**
- * Reset this model.
- */
-void
-ModelHistology::reset()
-{
-    initializeHistology();
 }
 
 /**
@@ -246,6 +237,13 @@ ModelHistology::saveModelSpecificInformationToScene(const SceneAttributes* scene
     SceneClassArray* fileModels = new SceneClassArray("fileSelectionClasses",
                                                       fileSelectionClasses);
     sceneClass->addChild(fileModels);
+    
+    /*
+     * Brainordinate (volume) layers were added to display label
+     * volumes over histology and this indicates their usage.
+     */
+    sceneClass->addBoolean("hasLayerOverlays",
+                           true);
 }
 
 /**
@@ -263,8 +261,6 @@ void
 ModelHistology::restoreModelSpecificInformationFromScene(const SceneAttributes* sceneAttributes,
                                                      const SceneClass* sceneClass)
 {
-    reset();
-    
     if (sceneClass == NULL) {
         return;
     }
@@ -283,6 +279,21 @@ ModelHistology::restoreModelSpecificInformationFromScene(const SceneAttributes* 
                                                       sceneClass->getClass("m_histologyOverlaySetArray"));
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    if (sceneClass->getBooleanValue("hasLayerOverlays",
+                                    false)) {
+        /* Nothing */
+    }
+    else {
+        /*
+         * If we are here, it indicates a scene that was created
+         * before brainordinate (volume) layers were used to display
+         * volume label files.  We need to initialize the layers
+         * so that it turns off any volume label files as they
+         * are turned on by default.
+         */
+        m_layerOverlaySetArray->initializeOverlaySelections();
+    }
 }
 
 /**

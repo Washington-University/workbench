@@ -66,6 +66,8 @@ namespace caret {
         
         bool containsWindowXY(const Vector3D& windowXY) const;
         
+        void applyWithOpenGL() const;
+        
         /** @return X of viewport */
         int32_t getX() const { return m_viewport[0]; }
         

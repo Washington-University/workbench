@@ -283,6 +283,16 @@ namespace caret {
         
         virtual void getMapDimensions(std::vector<int64_t> &dim) const;
 
+        /**
+         * @return Instance cast to a Volume Mappable CaretMappableDataFile
+         */
+        virtual CaretMappableDataFile* castToVolumeMappableDataFile() override;
+        
+        /**
+         * @return Instance cast to a Volume Mappable CaretMappableDataFile (const method)
+         */
+        virtual const CaretMappableDataFile* castToVolumeMappableDataFile() const override;
+
         virtual const int64_t& getNumberOfComponents() const override;
         
         virtual void indexToSpace(const float& indexIn1,
@@ -307,6 +317,9 @@ namespace caret {
                                     int64_t& indexOut2,
                                     int64_t& indexOut3) const override;
         
+        virtual void enclosingVoxel(const float* coordIn,
+                                    int64_t* indexOut) const override;
+        
         virtual void enclosingVoxelForDataLoading(const float& coordIn1,
                                     const float& coordIn2,
                                     const float& coordIn3,
@@ -317,6 +330,10 @@ namespace caret {
         virtual bool indexValid(const int64_t& indexIn1,
                                 const int64_t& indexIn2,
                                 const int64_t& indexIn3,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const override;
+        
+        virtual bool indexValid(const int64_t* indexIn,
                                 const int64_t brickIndex = 0,
                                 const int64_t component = 0) const override;
         
@@ -395,6 +412,13 @@ namespace caret {
                                                                             const DisplayGroupEnum::Enum displayGroup,
                                                                             const int32_t tabIndex) const override;
 
+        virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
+                                                                          const MediaFile* mediaFile,
+                                                                          const HistologyImageIntersectionMode intersectionMode,
+                                                                          AString& errorMessageOut) const override;
+        
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,
                                             const float xyz[3],
                                             int64_t ijkOut[3],

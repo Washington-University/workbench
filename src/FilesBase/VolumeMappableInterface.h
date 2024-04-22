@@ -29,6 +29,9 @@
 namespace caret {
     
     class BoundingBox;
+    class CaretMappableDataFile;
+    class MediaFile;
+    class GraphicsPrimitive;
     class GraphicsPrimitiveV3fT3f;
 
     /**
@@ -51,6 +54,15 @@ namespace caret {
         VolumeMappableInterface& operator=(const VolumeMappableInterface&);
         
     public:
+        /**
+         * @return Instance cast to a Volume Mappable CaretMappableDataFile
+         */
+        virtual CaretMappableDataFile* castToVolumeMappableDataFile() = 0;
+        
+        /**
+         * @return Instance cast to a Volume Mappable CaretMappableDataFile (const method)
+         */
+        virtual const CaretMappableDataFile* castToVolumeMappableDataFile() const = 0;
         
         /**
          * Get the dimensions of the volume.
@@ -213,7 +225,7 @@ namespace caret {
         
         /**
          * Convert a coordinate to indices.  Note that output indices
-         * MAY NOT BE WITHING THE VALID VOXEL DIMENSIONS.
+         * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
          *
          * @param coordIn1
          *     First (x) input coordinate.
@@ -236,6 +248,18 @@ namespace caret {
                                     int64_t& indexOut3) const = 0;
         
         /**
+         * Convert a coordinate to indices.  Note that output indices
+         * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
+         *
+         * @param coordIn1
+         *     First (x) input coordinate.
+         * @param coordIn2
+         *     Second (y) input coordinate.
+         */
+        virtual void enclosingVoxel(const float* coordIn,
+                                    int64_t* indexOut) const = 0;
+
+        /**
          * Determine in the given voxel indices are valid (within the volume).
          *
          * @param indexIn1
@@ -254,6 +278,20 @@ namespace caret {
         virtual bool indexValid(const int64_t& indexIn1,
                                 const int64_t& indexIn2,
                                 const int64_t& indexIn3,
+                                const int64_t brickIndex = 0,
+                                const int64_t component = 0) const = 0;
+        
+        /**
+         * Determine in the given voxel indices are valid (within the volume).
+         *
+         * @param indexIn
+         *     IJK
+         * @param brickIndex
+         *     Time/map index (default 0).
+         * @param component
+         *     Voxel component (default 0).
+         */
+        virtual bool indexValid(const int64_t* indexIn,
                                 const int64_t brickIndex = 0,
                                 const int64_t component = 0) const = 0;
         
@@ -458,6 +496,16 @@ namespace caret {
                                                                             const DisplayGroupEnum::Enum displayGroup,
                                                                             const int32_t tabIndex) const = 0;
 
+        enum class HistologyImageIntersectionMode {
+            LOW_QUALITY
+        };
+        
+        virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
+                                                                          const MediaFile* mediaFile,
+                                                                          const HistologyImageIntersectionMode intersectionMode,
+                                                                          AString& errorMessageOut) const;
         /**
          * Get the volume space object, so we have access to all functions associated with volume spaces
          */

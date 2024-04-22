@@ -39,11 +39,12 @@
 #include "CaretPreferences.h"
 #include "CziImage.h"
 #include "CziImageFile.h"
-#include "DisplayPropertiesCziImages.h"
+#include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
 #include "GraphicsObjectToWindowTransform.h"
+#include "GraphicsOrthographicProjection.h"
 #include "GraphicsRegionSelectionBox.h"
 #include "GraphicsPrimitiveV3f.h"
 #include "GraphicsPrimitiveV3fC4f.h"
@@ -56,10 +57,15 @@
 #include "ImageFile.h"
 #include "ModelHistology.h"
 #include "HistologyOverlaySet.h"
-#include "SelectionItemHistologyCoordinate.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
 #include "SelectionItemAnnotation.h"
+#include "SelectionItemHistologyCoordinate.h"
+#include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
+#include "VolumeFile.h"
+#include "VolumeMappableInterface.h"
 
 using namespace caret;
 
@@ -87,26 +93,14 @@ BrainOpenGLHistologySliceDrawing::~BrainOpenGLHistologySliceDrawing()
 
 /**
  * Setup the orthographic bounds for the underlay histology file
- * @param orthoLeftOut
- *    Output with orthographic left
- * @param orthoRightOut
- *    Output with orthographic right
- * @param orthoBottomOut
- *    Output with orthographic bottom
- * @param orthoTopOut
- *    Output with orthographic top
+ * @param orthographicsProjectionOut
+ *    Output with orthographic projection
  * @return True if othographic bounds are valid, else false.
  */
 bool
-BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
-                                                 double& orthoRightOut,
-                                                 double& orthoBottomOut,
-                                                 double& orthoTopOut)
+BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection& orthographicsProjectionOut)
 {
-    orthoLeftOut   = -1.0;
-    orthoRightOut  =  1.0;
-    orthoBottomOut = -1.0;
-    orthoTopOut    =  1.0;
+    orthographicsProjectionOut.resetToInvalid();
         
     BoundingBox boundingBox;
     
@@ -129,8 +123,8 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
         }
     }
     
-    const double viewportWidth(m_viewport[2]);
-    const double viewportHeight(m_viewport[3]);
+    const double viewportWidth(m_viewport.getWidthF());
+    const double viewportHeight(m_viewport.getHeightF());
     const double viewportAspectRatio = (viewportHeight
                                         / viewportWidth);
 
@@ -145,6 +139,10 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
     
     const bool originTopLeftFlag(true);
     
+    double orthoLeftOut(0.0);
+    double orthoRightOut(0.0);
+    double orthoBottomOut(0.0);
+    double orthoTopOut(0.0);
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
     if (imageAspectRatio > viewportAspectRatio) {
@@ -182,6 +180,15 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(double& orthoLeftOut,
         CaretAssert(orthoTopOut > orthoBottomOut);
     }
     
+    const double near(-1.0);
+    const double far(1.0);
+    
+    orthographicsProjectionOut.set(orthoLeftOut,
+                                   orthoRightOut,
+                                   orthoBottomOut,
+                                   orthoTopOut,
+                                   near,
+                                   far);
     return true;
 }
 
@@ -210,11 +217,13 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     
     m_fixedPipelineDrawing = fixedPipelineDrawing;
     m_browserTabContent    = browserTabContent;
-    m_viewport             = viewport;
+    m_viewport             = GraphicsViewport(viewport);
     m_mediaFilesAndDataToDraw.clear();
     
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning of BrainOpenGLHistologySliceDrawing::draw()");
 
+    m_identificationStereotaxicXYZValidFlag = false;
+    
     HistologyOverlaySet* overlaySet = histologyModel->getHistologyOverlaySet(m_browserTabContent->getTabNumber());
     CaretAssert(overlaySet);
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
@@ -298,36 +307,25 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         return;
     }
     
-    double orthoLeft(-1.0);
-    double orthoRight(1.0);
-    double orthoBottom(-1.0);
-    double orthoTop(1.0);
-    if ( ! getOrthoBounds(orthoLeft, orthoRight, orthoBottom, orthoTop)) {
+    GraphicsOrthographicProjection orthographicProjection;
+    if ( ! getOrthoBounds(orthographicProjection)) {
         return;
     }
 
     if (s_debugFlag) {
-        std::cout << "Ortho L=" << orthoLeft << ", R=" << orthoRight
-        << ", B=" << orthoBottom << ", T=" << orthoTop << std::endl;
+        std::cout << orthographicProjection.toString() << std::endl;
     }
 
-    if ((m_viewport[2] < 1)
-        || (m_viewport[3] < 1)) {
+    if ((m_viewport.getWidth() < 1)
+        || (m_viewport.getHeight() < 1)) {
         return;
     }
     
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "In BrainOpenGLHistologySliceDrawing::draw() before glViewport()");
 
-    glViewport(m_viewport[0],
-               m_viewport[1],
-               m_viewport[2],
-               m_viewport[3]);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(orthoLeft, orthoRight,
-            orthoBottom, orthoTop,
-            -1.0, 1.0);  /* JWH using (-100, 100) fixes foci sphere drawing but messes up inverse transform  */
+    m_viewport.applyWithOpenGL();
+    
+    orthographicProjection.applyWithOpenGL();
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -346,23 +344,13 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     const float scaling = m_browserTabContent->getScaling();
     glScalef(scaling, scaling, 1.0);
 
-    std::array<float, 4> orthoLRBT {
-        static_cast<float>(orthoLeft),
-        static_cast<float>(orthoRight),
-        static_cast<float>(orthoBottom),
-        static_cast<float>(orthoTop)
-    };
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
-    fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthoLRBT, 0.0, true);
+    fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthographicProjection, 0.0, true);
     viewportContent->setHistologyGraphicsObjectToWindowTransform(transform);
     
-    const float orthoHeight(std::fabs(orthoBottom - orthoTop));
-    drawModelLayers(orthoLRBT,
+    drawModelLayers(orthographicProjection,
                     viewportContent,
-                    transform,
-                    browserTabContent->getTabNumber(),
-                    orthoHeight,
-                    viewport[3]);
+                    transform);
     
     BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
                                                              GraphicsRegionSelectionBox::DrawMode::Z_PLANE,
@@ -381,7 +369,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
 
 /**
  * Draw the models layers
- * @param orthoLRBT
+ * @param orthographicProjection
  *    Orthographic projection
  * @param viewportContent
  *    The viewport content
@@ -393,13 +381,12 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
  *   Height of viewport
  */
 void
-BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& orthoLRBT,
+BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProjection& orthographicProjection,
                                                   const BrainOpenGLViewportContent* viewportContent,
-                                                  const GraphicsObjectToWindowTransform* transform,
-                                                  const int32_t /*tabIndex*/,
-                                                  const float /*orthoHeight*/,
-                                                  const float /*viewportHeight*/)
+                                                  const GraphicsObjectToWindowTransform* transform)
 {
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning of BrainOpenGLHistologySliceDrawing::drawModelLayers()");
+    
     SelectionItemHistologyCoordinate* idHistology = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getHistologyPlaneCoordinateIdentification();
     SelectionItemAnnotation* annotationID = m_fixedPipelineDrawing->m_brain->getSelectionManager()->getAnnotationIdentification();
     SelectionItemAnnotation* sampleID(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getSamplesIdentification());
@@ -428,11 +415,12 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
             break;
     }
     
-    glPushMatrix();
-    
     HistologySlice*      underlayHistologySlice(NULL);
     HistologySlicesFile* underlayHistologySlicesFile(NULL);
     AString              underlayHistologySliceName;
+    
+    glPushMatrix();
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
     
     const int32_t numMediaFiles(static_cast<int32_t>(m_mediaFilesAndDataToDraw.size()));
     for (int32_t i = 0; i < numMediaFiles; i++) {
@@ -448,7 +436,6 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
             const bool allFramesSelectedFlag(true);
             const int32_t channelIndex(0);
             const int32_t manualPyramidLayerIndex(0);
-            //CaretAssertToDoWarning();
             cziImageFile->updateImageForDrawingInTab(drawingData.m_tabIndex,
                                                      drawingData.m_overlayIndex,
                                                      frameIndex,
@@ -616,8 +603,13 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
         }
     }
     
+    glPopAttrib();
     glPopMatrix();
     
+    m_fixedPipelineDrawing->checkForOpenGLError(NULL, "After drawing histology slices in BrainOpenGLHistologySliceDrawing::drawModelLayers()");
+    
+    drawVolumeOverlays(orthographicProjection);
+
     /*
      * Slice spacing (thickness) used for drawing features histology slices
      */
@@ -676,7 +668,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const std::array<float, 4>& or
      */
     const BrowserTabContent* btc(viewportContent->getBrowserTabContent());
     CaretAssert(btc);
-    drawCrosshairs(orthoLRBT,
+    drawCrosshairs(orthographicProjection,
                    btc->getHistologySelectedCoordinate(underlayHistologySlicesFile));
     
     /*
@@ -829,6 +821,11 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
                         idHistology->setPixelRGBA(pixelByteRGBA);
                     }
                 }
+                
+                if (drawingData.m_mediaFile->planeXyzToStereotaxicXyz(hc.getPlaneXYZ(),
+                                                                      m_identificationStereotaxicXYZ)) {
+                    m_identificationStereotaxicXYZValidFlag = true;
+                }
             }
         }
     }
@@ -836,13 +833,13 @@ BrainOpenGLHistologySliceDrawing::processSelection(const int32_t tabIndex,
 
 /**
  * Draw the histology coordinate
- * @param orthoLRBT;
+ * @param orthographicsProjection;
  *    Orthographic projection
  * @param histologyCoordinate
  *    The histology coordinate
  */
 void
-BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& orthoLRBT,
+BrainOpenGLHistologySliceDrawing::drawCrosshairs(const GraphicsOrthographicProjection& orthographicsProjection,
                                                  const HistologyCoordinate& histologyCoordinate)
 {
     glPushAttrib(GL_DEPTH_BUFFER_BIT);
@@ -850,10 +847,10 @@ BrainOpenGLHistologySliceDrawing::drawCrosshairs(const std::array<float, 4>& ort
     
 
     
-    const float minX(orthoLRBT[0]);
-    const float maxX(orthoLRBT[1]);
-    const float maxY(orthoLRBT[2]);
-    const float minY(orthoLRBT[3]);
+    const float minX(orthographicsProjection.getLeft());
+    const float maxX(orthographicsProjection.getRight());
+    const float maxY(orthographicsProjection.getBottom());
+    const float minY(orthographicsProjection.getTop());
     
     const float* red(CaretColorEnum::toRGBA(CaretColorEnum::RED));
     const float* green(CaretColorEnum::toRGBA(CaretColorEnum::GREEN));
@@ -888,5 +885,122 @@ AString
 BrainOpenGLHistologySliceDrawing::toString() const
 {
     return "BrainOpenGLHistologySliceDrawing";
+}
+
+/**
+ * Draw the volume overlays
+ * @param orthographicProjection
+ *    Orthographic projection
+ */
+void
+BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicProjection& orthographicProjection)
+{
+    const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
+    const int32_t tabIndex(m_browserTabContent->getTabNumber());
+    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
+
+    glPushAttrib(GL_DEPTH_BUFFER_BIT
+                 | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    
+    bool drawFirstOnlyFlag(true);
+    
+    const int32_t numSlices(m_mediaFilesAndDataToDraw.size());
+    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
+        const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[iSlice].m_mediaFile);
+        CaretAssert(mediaFile);
+        const ImageFile* imageFile(mediaFile->castToImageFile());
+        if (imageFile == NULL) {
+            CaretLogSevere(mediaFile->getFileName()
+                           + " is not an image file for mapping volume to image.");
+            continue;
+        }
+        
+        OverlaySet* overlaySet(m_browserTabContent->getOverlaySet());
+        CaretAssert(overlaySet);
+        const int32_t numberOfOverlays(overlaySet->getNumberOfDisplayedOverlays());
+        for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+            Overlay* overlay(overlaySet->getOverlay(iOverlay));
+            CaretAssert(overlay);
+            if (overlay->isEnabled()) {
+                CaretMappableDataFile* mapFile(NULL);
+                int32_t mapIndex(-1);
+                overlay->getSelectionData(mapFile,
+                                          mapIndex);
+                
+                if (mapFile != NULL) {
+                    VolumeFile* vf(dynamic_cast<VolumeFile*>(mapFile));
+                    if (vf != NULL) {
+                        AString errorMessage;
+                        GraphicsPrimitive* primitive(vf->getHistologyImageIntersectionPrimitive(mapIndex,
+                                                                                                displayGroup,
+                                                                                                tabIndex,
+                                                                                                imageFile,
+                                                                                                VolumeFile::HistologyImageIntersectionMode::LOW_QUALITY,
+                                                                                                errorMessage));
+                        if (primitive) {
+                            const float alphaValue(overlay->getOpacity());
+                            glPushAttrib(GL_COLOR_BUFFER_BIT);
+                            if (alphaValue < 1.0) {
+                                CaretAssert((alphaValue >= 0.0)
+                                            && (alphaValue <= 1.0));
+                                
+                                /*
+                                 * The constant alpha comes from the overlay.
+                                 * The layer being drawn gets (RGB * alphaValue)
+                                 * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+                                 */
+                                glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
+                                glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                                    GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                                    GL_ONE,                /* source (incoming) Alpha blending factor */
+                                                    GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
+                                glEnable(GL_BLEND);
+                                
+                                /*
+                                 * Only allow framebuffer update if the incoming alpha is greater than
+                                 * zero.  For a label volume, voxels have alpha equal to zero
+                                 * where there is no label.  This prevents an drawing of these
+                                 * zero alpha voxels while allowing blending.
+                                 */
+                                glAlphaFunc(GL_GREATER, 0.0);
+                                glEnable(GL_ALPHA_TEST);
+
+                            }
+                            else {
+                                m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                                
+                            }
+                            GraphicsEngineDataOpenGL::draw(primitive);
+                            glPopAttrib();
+                            
+                            if (m_identificationStereotaxicXYZValidFlag) {
+                                const Plane* plane(mediaFile->getStereotaxicImagePlane());
+                                int64_t voxelIJK[3];
+                                vf->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
+                                const float screenDepth(0.0);
+                                SelectionItemVoxel* voxelSelection(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getVoxelIdentification());
+                                voxelSelection->setVoxelIdentification(m_fixedPipelineDrawing->m_brain,
+                                                                       vf,
+                                                                       voxelIJK,
+                                                                       m_identificationStereotaxicXYZ,
+                                                                       *plane,
+                                                                       screenDepth);
+                            }
+                        }
+                        else {
+                            CaretLogSevere(errorMessage);
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (drawFirstOnlyFlag) {
+            break;
+        }
+    }
+    
+    glPopAttrib();
 }
 

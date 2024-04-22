@@ -33,6 +33,9 @@
 namespace caret {
     class CaretMappableDataFile;
     class GraphicsPrimitiveV3fT3f;
+    class GraphicsPrimitiveV3fT2f;
+    class ImageFile;
+    class MediaFile;
     class VolumeMappableInterface;
 
     class VolumeGraphicsPrimitiveManager : public CaretObject {
@@ -66,6 +69,11 @@ namespace caret {
                                                                  const int32_t tabIndex) const;
 
 
+        GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
+                                                                           const int32_t mapIndex,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex) const;
+        
         void updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate);
 
         const VoxelColorUpdate* getVoxelColorUpdate(const int32_t mapIndex) const;
@@ -97,6 +105,8 @@ namespace caret {
         
         mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         
+        mutable std::vector<std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

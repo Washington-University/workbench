@@ -312,7 +312,6 @@ Overlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
     
     getSelectionData(mapFiles, 
                            selectedMapFileOut, 
-                           //mapUniqueID,
                            selectedMapIndexOut);
 }
 
@@ -324,15 +323,12 @@ Overlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
  *    Contains all map files that can be selected.
  * @param selectedMapFileOut
  *    The selected map file.  May be NULL.
- * @param selectedMapUniqueIDOut
- *    UniqueID of selected map.
  * @param selectedMapIndexOut
  *    Index of selected map in the selected file.
  */
 void 
 Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                           CaretMappableDataFile* &selectedMapFileOut,
-                          //AString& selectedMapUniqueIDOut,
                           int32_t& selectedMapIndexOut)
 {
     mapFilesOut.clear();
@@ -348,11 +344,15 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     eventGetMapDataFiles.getAllFiles(allDataFiles);
     
     bool showVolumeMapFiles  = false;
+    bool showVolumeMapFilesForHistology = false;
     switch (m_includeVolumeFiles) {
         case INCLUDE_VOLUME_FILES_NO:
             break;
         case INCLUDE_VOLUME_FILES_YES:
             showVolumeMapFiles = true;
+            break;
+        case INCLUDE_VOLUME_FILES_FOR_HISTOLOGY_MODEL:
+            showVolumeMapFilesForHistology = true;
             break;
     }
 
@@ -386,6 +386,11 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
         if (mapFile->isVolumeMappable()) {
             if (showVolumeMapFiles) {
                 useIt = true;
+            }
+            if (showVolumeMapFilesForHistology) {
+                if (mapFile->isMappedWithLabelTable()) {
+                    useIt = true;
+                }
             }
         }
         
@@ -534,21 +539,7 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     
     selectedMapFileOut = m_selectedMapFile;
     if (selectedMapFileOut != NULL) {
-//        /*
-//         * Update for overlay yoking
-//         */
-//        if (m_mapYokingGroup != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
-//            const int32_t yokeMapIndex = MapYokingGroupEnum::getSelectedMapIndex(m_mapYokingGroup);
-//            if ((yokeMapIndex >= 0)
-//                && (yokeMapIndex < selectedMapFileOut->getNumberOfMaps())) {
-//                m_selectedMapIndex = yokeMapIndex;
-//            }
-//            else if (yokeMapIndex >= selectedMapFileOut->getNumberOfMaps()) {
-//                m_selectedMapIndex = selectedMapFileOut->getNumberOfMaps() - 1;
-//            }
-//        }
-//        
-        selectedMapIndexOut = m_selectedMapIndex;  //m_selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
+        selectedMapIndexOut = m_selectedMapIndex;
     }
 }
 
@@ -570,13 +561,6 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
         if (m_selectedMapFile == NULL) {
             m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
         }
-//        if (selectedMapFile != NULL) {
-//            MapYokingGroupEnum::setSelectedMapIndex(m_mapYokingGroup,
-//                                                        selectedMapIndex);
-//        }
-//        else {
-//            m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-//        }
     }
 }
 
@@ -647,11 +631,9 @@ Overlay::saveToScene(const SceneAttributes* sceneAttributes,
     
     std::vector<CaretMappableDataFile*> mapFiles;
     CaretMappableDataFile* selectedMapFile = NULL;
-    //AString selectedMapUniqueID;
     int32_t selectedMapIndex;
     getSelectionData(mapFiles, 
                      selectedMapFile, 
-                     //selectedMapUniqueID,
                      selectedMapIndex);
     
     if ((selectedMapFile != NULL) 
@@ -709,7 +691,6 @@ Overlay::restoreFromScene(const SceneAttributes* sceneAttributes,
     int32_t unusedSelectedMapIndex;
     getSelectionData(mapFiles, 
                      unusedSelectedMapFile, 
-                     //unusedSelectedMapUniqueID,
                      unusedSelectedMapIndex);
     
     m_sceneAssistant->restoreMembers(sceneAttributes, 

@@ -269,4 +269,15 @@ GraphicsViewport::containsWindowXY(const Vector3D& windowXY) const
                             windowXY[1]);
 }
 
+/**
+ * Apply the viewport with OpenGL
+ */
+void
+GraphicsViewport::applyWithOpenGL() const
+{
+    glViewport(m_viewport[0],
+               m_viewport[1],
+               m_viewport[2],
+               m_viewport[3]);
+}
 

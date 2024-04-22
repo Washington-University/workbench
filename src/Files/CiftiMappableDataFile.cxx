@@ -3430,6 +3430,24 @@ CiftiMappableDataFile::getDimensionsForDataLoading(std::vector<int64_t>& dimsOut
 }
 
 /**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile
+ */
+CaretMappableDataFile*
+CiftiMappableDataFile::castToVolumeMappableDataFile()
+{
+    return this;
+}
+
+/**
+ * @return Instance cast to a Volume Mappable CaretMappableDataFile (const method)
+ */
+const CaretMappableDataFile*
+CiftiMappableDataFile::castToVolumeMappableDataFile() const
+{
+    return this;
+}
+
+/**
  * @return The number of componenents per voxel in the volume data.
  */
 const int64_t&
@@ -3562,6 +3580,28 @@ CiftiMappableDataFile::enclosingVoxel(const float& coordIn1,
 }
 
 /**
+ * Convert a coordinate to indices.  Note that output indices
+ * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
+ *
+ * @param coordIn1
+ *     First (x) input coordinate.
+ * @param coordIn2
+ *     Second (y) input coordinate.
+ */
+void
+CiftiMappableDataFile::enclosingVoxel(const float* coordIn,
+                                      int64_t* indexOut) const
+{
+    CaretAssert(m_voxelIndicesToOffsetForDataMapping);
+    m_voxelIndicesToOffsetForDataMapping->coordinateToIndices(coordIn[0],
+                                                              coordIn[1],
+                                                              coordIn[2],
+                                                              indexOut[0],
+                                                              indexOut[1],
+                                                              indexOut[2]);
+}
+
+/**
  * Use the method when LOADING data
  * Convert a coordinate to indices.  Note that output indices
  * MAY NOT BE WITHIN THE VALID VOXEL DIMENSIONS.
@@ -3633,6 +3673,29 @@ CiftiMappableDataFile::indexValid(const int64_t& indexIn1,
     
     return false;
 }
+
+/**
+ * Determine in the given voxel indices are valid (within the volume).
+ *
+ * @param indexIn
+ *     IJK
+ * @param brickIndex
+ *     Time/map index (default 0).
+ * @param component
+ *     Voxel component (default 0).
+ */
+bool
+CiftiMappableDataFile::indexValid(const int64_t* indexIn,
+                                  const int64_t brickIndex,
+                                  const int64_t component) const
+{
+    return indexValid(indexIn[0],
+                      indexIn[1],
+                      indexIn[2],
+                      brickIndex,
+                      component);
+}
+
 
 /**
  * Determine in the given voxel indices are valid (within the volume dimensions).
@@ -4600,6 +4663,37 @@ CiftiMappableDataFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex
                                                                        mapIndex,
                                                                        displayGroup,
                                                                        tabIndex);
+}
+
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param mediaFile
+ *    The medial file for drawing histology
+ * @param intersectionMode
+ *    The intersection mode
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+GraphicsPrimitive*
+CiftiMappableDataFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
+                                                              const DisplayGroupEnum::Enum displayGroup,
+                                                              const int32_t tabIndex,
+                                                              const MediaFile* mediaFile,
+                                                              const HistologyImageIntersectionMode intersectionMode,
+                                                              AString& errorMessageOut) const
+{
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimtiveForMap(mediaFile,
+                                                                                 mapIndex,
+                                                                                 displayGroup,
+                                                                                 tabIndex);
 }
 
 /**

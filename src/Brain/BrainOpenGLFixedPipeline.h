@@ -65,6 +65,7 @@ namespace caret {
     class FiberOrientation;
     class SelectionItem;
     class SelectionManager;
+    class GraphicsOrthographicProjection;
     class HistologySlice;
     class IdentificationWithColor;
     class ImageFile;
@@ -151,9 +152,15 @@ namespace caret {
         virtual void loadObjectToWindowTransform(EventOpenGLObjectToWindowTransform* transformEvent) override;
         
         virtual void loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
+                                                 const GraphicsOrthographicProjection& orthographicProjection,
+                                                 const double centerToEyeDistance,
+                                                 const bool centerToEyeDistanceValidFlag) override;
+
+        virtual void loadObjectToWindowTransform(GraphicsObjectToWindowTransform* transform,
                                                  const std::array<float, 4>& orthoLeftRightBottomTop,
                                                  const double centerToEyeDistance,
                                                  const bool centerToEyeDistanceValidFlag) override;
+
     private:
         class VolumeDrawInfo {
         public:

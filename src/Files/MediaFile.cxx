@@ -77,9 +77,51 @@ MediaFile::MediaFile(const MediaFile& mediaFile)
 : CaretDataFile(mediaFile)
 {
     initializeMembersMediaFile();
+    
     if (mediaFile.m_mediaFileChannelInfo) {
         m_mediaFileChannelInfo.reset(new MediaFileChannelInfo(*mediaFile.m_mediaFileChannelInfo.get()));
     }
+    
+    m_mediaFileTransforms = mediaFile.m_mediaFileTransforms;
+    
+    m_scaledToPlaneMatrix = mediaFile.m_scaledToPlaneMatrix;
+    
+    m_planeBoundingBox = mediaFile.m_planeBoundingBox;
+    
+    m_stereotaxicXyzBoundingBox = mediaFile.m_stereotaxicXyzBoundingBox;
+    
+    m_planeXyzRect = mediaFile.m_planeXyzRect;
+    
+    m_planeXyzBottomLeft = mediaFile.m_planeXyzBottomLeft;
+    
+    m_planeXyzBottomRight = mediaFile.m_planeXyzBottomRight;
+    
+    m_planeXyzTopRight = mediaFile.m_planeXyzTopRight;
+    
+    m_planeXyzTopLeft = mediaFile.m_planeXyzTopLeft;
+    
+    m_planeXyzValidFlag = mediaFile.m_planeXyzValidFlag;
+    
+    m_stereotaxicXyzBottomLeft = mediaFile.m_stereotaxicXyzBottomLeft;
+    
+    m_stereotaxicXyzBottomRight = mediaFile.m_stereotaxicXyzBottomRight;
+    
+    m_stereotaxicXyzTopRight = mediaFile.m_stereotaxicXyzTopRight;
+    
+    m_stereotaxicXyzTopLeft = mediaFile.m_stereotaxicXyzTopLeft;
+    
+    if (mediaFile.m_stereotaxicPlane) {
+        m_stereotaxicPlane.reset(new Plane(*mediaFile.m_stereotaxicPlane));
+    }
+    m_stereotaxicPlaneInvalidFlag = mediaFile.m_stereotaxicPlaneInvalidFlag;
+    
+    if (mediaFile.m_planeCoordinatesPlane) {
+        m_planeCoordinatesPlane.reset(new Plane(*mediaFile.m_planeCoordinatesPlane));
+    }
+    
+    m_planeCoordinatesPlaneInvalidFlag = mediaFile.m_planeCoordinatesPlaneInvalidFlag;
+    
+    m_scaledToPlaneMatrixValidFlag     = mediaFile.m_scaledToPlaneMatrixValidFlag;
 }
 
 /**
