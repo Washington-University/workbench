@@ -604,45 +604,70 @@ MovieRecorder::findFFmpegProgram(AString& programNameOut,
     
     std::vector<AString> ffmpegPaths;
 
+    bool linuxFlag(false);
+    bool macosFlag(false);
+    bool windowsFlag(false);
+#ifdef CARET_OS_LINUX
+    linuxFlag = true;
+#endif
+#ifdef CARET_OS_MACOSX
+    macosFlag = true;
+#endif
+#ifdef CARET_OS_WINDOWS
+    windowsFlag = true;
+#endif
+    CaretAssert(linuxFlag
+                || macosFlag
+                || windowsFlag);
+    
+    const AString executableName(windowsFlag
+                                 ? "ffmpeg.exe"
+                                 : "ffmpeg");
+
     const QString ffmpegEnv = qgetenv("WORKBENCH_FFMPEG_DIR").constData();
     if ( ! ffmpegEnv.isEmpty()) {
         ffmpegPaths.push_back(ffmpegEnv
                         + QDir::separator()
-                        + "ffmpeg");
+                        + executableName);
     }
 
-    /*
-     * ffmpeg in same directory as wb_view (Linux and Windows)
-     */
-    ffmpegPaths.push_back(workbenchHomeDirectory
-                    + QDir::separator()
-                    + "ffmpeg");
+    if (linuxFlag
+        || windowsFlag) {
+        /*
+         * ffmpeg in same directory as wb_view (Linux and Windows)
+         */
+        ffmpegPaths.push_back(workbenchHomeDirectory
+                              + QDir::separator()
+                              + executableName);
+    }
     
-    /*
-     * Newer mac with ffmpeg in wb_view.app/Contents/usr/exe
-     */
-    ffmpegPaths.push_back(workbenchHomeDirectory
-                    + QDir::separator()
-                    + ".."
-                    + QDir::separator()
-                    + "usr"
-                    + QDir::separator()
-                    + "exe"
-                    + QDir::separator()
-                    + "ffmpeg");
-    
-    /*
-     * Older Macs with ffmpeg in <path>/workbench/macosx64_apps"
-     */
-    ffmpegPaths.push_back(workbenchHomeDirectory
-                    + QDir::separator()
-                    + ".."
-                    + QDir::separator()
-                    + "..."
-                    + QDir::separator()
-                    + "..."
-                    + QDir::separator()
-                    + "ffmpeg");
+    if (macosFlag) {
+        /*
+         * Newer mac with ffmpeg in wb_view.app/Contents/usr/exe
+         */
+        ffmpegPaths.push_back(workbenchHomeDirectory
+                              + QDir::separator()
+                              + ".."
+                              + QDir::separator()
+                              + "usr"
+                              + QDir::separator()
+                              + "exe"
+                              + QDir::separator()
+                              + executableName);
+        
+        /*
+         * Older Macs with ffmpeg in <path>/workbench/macosx64_apps"
+         */
+        ffmpegPaths.push_back(workbenchHomeDirectory
+                              + QDir::separator()
+                              + ".."
+                              + QDir::separator()
+                              + "..."
+                              + QDir::separator()
+                              + "..."
+                              + QDir::separator()
+                              + executableName);
+    }
 
     for (auto ff : ffmpegPaths) {
         const FileInformation fileInfo(ff);
