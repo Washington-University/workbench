@@ -79,6 +79,7 @@ m_inputMediaFile(inputMediaFile)
     CaretAssert((volumeFileMapIndex >= 0)
                 && (volumeFileMapIndex < m_volumeMappableDataFile->getNumberOfMaps()));
     m_volumeFile = dynamic_cast<const VolumeFile*>(m_volumeMappableDataFile);
+    m_ciftiMappableDataFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeMappableDataFile);
 }
 
 /**
@@ -159,6 +160,22 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
         return false;
     }
 
+    bool cacheValuesFlag(false);
+    if (m_ciftiMappableDataFile != NULL) {
+        /*
+         * Accessing values from a CIFTI file can be very slow and
+         * it is possible that a CIFTI file is on a remote server.
+         * During testing, caching values is much faster.
+         */
+        cacheValuesFlag = true;
+    }
+    if (m_volumeFile != NULL) {
+        /*
+         * During testing, using cached values seemed to be slightly
+         * slower than just getting values from the volume file.
+         */
+        cacheValuesFlag = false;
+    }
     
     const int64_t imageWidth(m_outputImageFile->getWidth());
     const int64_t imageHeight(m_outputImageFile->getHeight());
@@ -202,13 +219,30 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                     if (m_volumeMappableDataFile->isMappedWithLabelTable()) {
                         const GiftiLabelTable* labelTable = m_volumeMappableDataFile->getMapLabelTable(m_volumeFileMapIndex);
                         CaretAssert(labelTable);
+                        
+                        const int32_t unassignedLabelKey(labelTable->getUnassignedLabelKey());
+                        
                         /*
                          * For label data, verify that the label is displayed.
                          * If NOT displayed, zero out the alpha value to
                          * prevent display of the data.
                          */
                         int32_t dataValue(-1);
-                        if (m_volumeFile != NULL) {
+                        bool dataValueValidFlag(false);
+                        
+                        
+                        VoxelIJK ijkVoxel(ijk);
+                        if (cacheValuesFlag) {
+                            const auto iter(m_ijkValuesMap.find(ijkVoxel));
+                            if (iter != m_ijkValuesMap.end()) {
+                                dataValue = iter->second;
+                                dataValueValidFlag = true;
+                            }
+                        }
+                        if (dataValueValidFlag) {
+                            /* nothing, have value */
+                        }
+                        else if (m_volumeFile != NULL) {
 //#pragma omp critical
                             {
                                 /*
@@ -219,12 +253,24 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                                                                                         ijk[1],
                                                                                         ijk[2],
                                                                                         m_volumeFileMapIndex));
+                                dataValueValidFlag = true;
                             }
+                        }
+                        else if (m_ciftiMappableDataFile != NULL) {
+                            dataValue = m_ciftiMappableDataFile->getVoxelValue(xyz,
+                                                                               &dataValueValidFlag,
+                                                                               m_volumeFileMapIndex);
                         }
                         else {
                             CaretAssertMessage(0, "File is not a volume file");
                         }
-                        if (dataValue >= 0) {
+                        
+                        if (dataValueValidFlag) {
+                            m_ijkValuesMap[ijkVoxel] = dataValue;
+                        }
+                        
+                        if ((dataValue != unassignedLabelKey)
+                            && (dataValueValidFlag)) {
                             const GiftiLabel* label = labelTable->getLabel(dataValue);
                             if (label != NULL) {
                                 const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();

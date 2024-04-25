@@ -21,16 +21,17 @@
  */
 /*LICENSE_END*/
 
-
-
+#include <map>
 #include <memory>
 
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "VoxelIJK.h"
 
 namespace caret {
 
     class CaretMappableDataFile;
+    class CiftiMappableDataFile;
     class ImageFile;
     class MediaFile;
     class VolumeFile;
@@ -82,7 +83,11 @@ namespace caret {
         
         const VolumeFile* m_volumeFile;
         
+        const CiftiMappableDataFile* m_ciftiMappableDataFile;
+        
         std::unique_ptr<ImageFile> m_outputImageFile;
+        
+        std::map<VoxelIJK, float> m_ijkValuesMap;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -929,10 +929,10 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicP
                                           mapIndex);
                 
                 if (mapFile != NULL) {
-                    VolumeFile* vf(dynamic_cast<VolumeFile*>(mapFile));
-                    if (vf != NULL) {
+                    VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(mapFile));
+                    if (vmi != NULL) {
                         AString errorMessage;
-                        GraphicsPrimitive* primitive(vf->getHistologyImageIntersectionPrimitive(mapIndex,
+                        GraphicsPrimitive* primitive(vmi->getHistologyImageIntersectionPrimitive(mapIndex,
                                                                                                 displayGroup,
                                                                                                 tabIndex,
                                                                                                 imageFile,
@@ -977,11 +977,11 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicP
                             if (m_identificationStereotaxicXYZValidFlag) {
                                 const Plane* plane(mediaFile->getStereotaxicImagePlane());
                                 int64_t voxelIJK[3];
-                                vf->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
+                                vmi->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
                                 const float screenDepth(0.0);
                                 SelectionItemVoxel* voxelSelection(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getVoxelIdentification());
                                 voxelSelection->setVoxelIdentification(m_fixedPipelineDrawing->m_brain,
-                                                                       vf,
+                                                                       vmi,
                                                                        voxelIJK,
                                                                        m_identificationStereotaxicXYZ,
                                                                        *plane,
@@ -991,6 +991,10 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicP
                         else {
                             CaretLogSevere(errorMessage);
                         }
+                    }
+                    else {
+                        CaretLogSevere("File for drawing volume is not a volume mappable file: "
+                                       + mapFile->getFileName());
                     }
                 }
             }
