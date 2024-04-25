@@ -177,22 +177,26 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
         cacheValuesFlag = false;
     }
     
+    int32_t unassignedLabelKey(-1);
+    if (m_volumeMappableDataFile->isMappedWithLabelTable()) {
+        const GiftiLabelTable* labelTable = m_volumeMappableDataFile->getMapLabelTable(m_volumeFileMapIndex);
+        CaretAssert(labelTable);
+        
+        unassignedLabelKey = labelTable->getUnassignedLabelKey();
+    }
+    
     const int64_t imageWidth(m_outputImageFile->getWidth());
     const int64_t imageHeight(m_outputImageFile->getHeight());
     
     int64_t validPixelCounter(0);
-    uint8_t pixelRGBA[4] { 0, 0, 0, 0 };
+    std::array<uint8_t, 4> pixelRGBA;
     for (int64_t j = 0; j < imageHeight; j++) {
-//#pragma omp CARET_PARFOR
         for (int64_t i = 0; i < imageWidth; i++) {
             /*
              * Initialize alpha to zero so nothing displayed
              */
-            pixelRGBA[0] = 0;
-            pixelRGBA[1] = 0;
-            pixelRGBA[2] = 0;
-            pixelRGBA[3] = 0;
-
+            pixelRGBA.fill(0);
+            
             /*
              * Note: Some pixels may not map to a stereotaxic coordinate
              */
@@ -205,102 +209,97 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                 m_volumeInterface->enclosingVoxel(xyz,
                                                   ijk);
                 if (m_volumeInterface->indexValid(ijk)) {
-//#pragma omp critical
-                    {
+                    bool havePixelRgbaFlag(false);
+                    const VoxelIJK ijkVoxel(ijk);
+                    if (cacheValuesFlag) {
+                        const auto iter(m_ijkRgbaMap.find(ijkVoxel));
+                        if (iter != m_ijkRgbaMap.end()) {
+                            pixelRGBA = iter->second;
+                            havePixelRgbaFlag = true;
+                        }
+                    }
+                    
+                    if ( ! havePixelRgbaFlag) {
                         /*
-                         * Note: Calling this method may assign colors for entire
-                         * volume so it must be in a critical section
+                         * Note: Calling this method may assign colors for entire volume
                          */
                         m_volumeInterface->getVoxelColorInMap(ijk[0], ijk[1], ijk[2],
                                                               m_volumeFileMapIndex,
-                                                              pixelRGBA);
-                    }
-                    
-                    if (m_volumeMappableDataFile->isMappedWithLabelTable()) {
-                        const GiftiLabelTable* labelTable = m_volumeMappableDataFile->getMapLabelTable(m_volumeFileMapIndex);
-                        CaretAssert(labelTable);
-                        
-                        const int32_t unassignedLabelKey(labelTable->getUnassignedLabelKey());
-                        
-                        /*
-                         * For label data, verify that the label is displayed.
-                         * If NOT displayed, zero out the alpha value to
-                         * prevent display of the data.
-                         */
-                        int32_t dataValue(-1);
-                        bool dataValueValidFlag(false);
+                                                              pixelRGBA.data());
                         
                         
-                        VoxelIJK ijkVoxel(ijk);
-                        if (cacheValuesFlag) {
-                            const auto iter(m_ijkValuesMap.find(ijkVoxel));
-                            if (iter != m_ijkValuesMap.end()) {
-                                dataValue = iter->second;
-                                dataValueValidFlag = true;
+                        
+                        if (m_volumeMappableDataFile->isMappedWithLabelTable()) {
+                            /*
+                             * For label data, we need to get the data value
+                             * so that we can use it to get the label and test
+                             * the label's selection status
+                             */
+                            int32_t dataValueInt(0.0);
+                            bool dataValueValidFlag(false);
+                            
+                            if (dataValueValidFlag) {
+                                /* nothing, have value */
                             }
-                        }
-                        if (dataValueValidFlag) {
-                            /* nothing, have value */
-                        }
-                        else if (m_volumeFile != NULL) {
-//#pragma omp critical
-                            {
+                            else if (m_volumeFile != NULL) {
                                 /*
                                  * This method might read from disk or if file is on remote server
                                  * so it must be in a critical section (need to verify this)
                                  */
-                                dataValue = static_cast<int32_t>(m_volumeFile->getValue(ijk[0],
-                                                                                        ijk[1],
-                                                                                        ijk[2],
-                                                                                        m_volumeFileMapIndex));
+                                dataValueInt = static_cast<int32_t>(m_volumeFile->getValue(ijk[0],
+                                                                                           ijk[1],
+                                                                                           ijk[2],
+                                                                                           m_volumeFileMapIndex));
                                 dataValueValidFlag = true;
                             }
-                        }
-                        else if (m_ciftiMappableDataFile != NULL) {
-                            dataValue = m_ciftiMappableDataFile->getVoxelValue(xyz,
-                                                                               &dataValueValidFlag,
-                                                                               m_volumeFileMapIndex);
-                        }
-                        else {
-                            CaretAssertMessage(0, "File is not a volume file");
-                        }
-                        
-                        if (dataValueValidFlag) {
-                            m_ijkValuesMap[ijkVoxel] = dataValue;
-                        }
-                        
-                        if ((dataValue != unassignedLabelKey)
-                            && (dataValueValidFlag)) {
-                            const GiftiLabel* label = labelTable->getLabel(dataValue);
-                            if (label != NULL) {
-                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                                if (item != NULL) {
-                                    if ( ! item->isSelected(m_displayGroup,
-                                                            m_tabIndex)) {
-                                        pixelRGBA[3] = 0;
+                            else if (m_ciftiMappableDataFile != NULL) {
+                                dataValueInt = m_ciftiMappableDataFile->getVoxelValue(xyz,
+                                                                                      &dataValueValidFlag,
+                                                                                      m_volumeFileMapIndex);
+                            }
+                            else {
+                                CaretAssertMessage(0, "File is not a volume file");
+                            }
+                            const GiftiLabelTable* labelTable = m_volumeMappableDataFile->getMapLabelTable(m_volumeFileMapIndex);
+                            CaretAssert(labelTable);
+                            
+                            
+                            if ((dataValueInt != unassignedLabelKey)
+                                && (dataValueValidFlag)) {
+                                const GiftiLabel* label = labelTable->getLabel(dataValueInt);
+                                if (label != NULL) {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    if (item != NULL) {
+                                        if ( ! item->isSelected(m_displayGroup,
+                                                                m_tabIndex)) {
+                                            pixelRGBA[3] = 0;
+                                        }
                                     }
                                 }
                             }
                         }
-                        else {
-                            pixelRGBA[3] = 0;
+                        
+                        /*
+                         * Cache the RGBA value for the voxel
+                         */
+                        if (cacheValuesFlag) {
+                            m_ijkRgbaMap[ijkVoxel] = pixelRGBA;
                         }
                     }
                 }
-            }
-            
-            const int32_t invalidTabIndex(-1);
-            const int32_t invalidOverlayIndex(-1);
-            const PixelLogicalIndex pixelLogicalIndex(m_outputImageFile->pixelIndexToPixelLogicalIndex(PixelIndex(i,j)));
-//#pragma omp critical
-            {
-                /*
-                 * Not sure if this must be in a critical section
-                 */
-                m_outputImageFile->setPixelRGBA(invalidTabIndex,
-                                                invalidOverlayIndex,
-                                                pixelLogicalIndex,
-                                                pixelRGBA);
+                
+                const int32_t invalidTabIndex(-1);
+                const int32_t invalidOverlayIndex(-1);
+                const PixelLogicalIndex pixelLogicalIndex(m_outputImageFile->pixelIndexToPixelLogicalIndex(PixelIndex(i,j)));
+                {
+                    /*
+                     * Not sure if this must be in a critical section
+                     */
+                    m_outputImageFile->setPixelRGBA(invalidTabIndex,
+                                                    invalidOverlayIndex,
+                                                    pixelLogicalIndex,
+                                                    pixelRGBA.data());
+                }
             }
         }
     }
@@ -335,38 +334,6 @@ VolumeToImageMapping::validateInputs(AString& errorMessageOut)
             || (dims[2] <= 0)) {
             errorMessageOut.appendWithNewLine("Volume dimensions are invalid: "
                                            + AString::fromNumbers(dims));
-        }
-        
-        if ( ! m_volumeMappableDataFile->isMappedWithLabelTable()) {
-            errorMessageOut.append("Volume file is not a label type volume file");
-        }
-        
-        if (m_volumeFile != NULL) {
-            bool supportedFlag(false);
-            switch (m_volumeFile->getType()) {
-                case SubvolumeAttributes::ANATOMY:
-                    break;
-                case SubvolumeAttributes::FUNCTIONAL:
-                    break;
-                case SubvolumeAttributes::LABEL:
-                    supportedFlag = true;
-                    break;
-                case SubvolumeAttributes::RGB:
-                    break;
-                case SubvolumeAttributes::RGB_WORKBENCH:
-                    break;
-                case SubvolumeAttributes::SEGMENTATION:
-                    break;
-                case SubvolumeAttributes::UNKNOWN:
-                    break;
-                case SubvolumeAttributes::VECTOR:
-                    break;
-            }
-            if ( ! supportedFlag) {
-                errorMessageOut.appendWithNewLine("Volume type "
-                                                  + SubvolumeAttributes::getTypeNameFromType(m_volumeFile->getType())
-                                                  + " not supported for mapping to image");
-            }
         }
     }
         

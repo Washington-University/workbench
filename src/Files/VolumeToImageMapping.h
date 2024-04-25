@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <map>
 #include <memory>
 
@@ -87,7 +88,7 @@ namespace caret {
         
         std::unique_ptr<ImageFile> m_outputImageFile;
         
-        std::map<VoxelIJK, float> m_ijkValuesMap;
+        std::map<VoxelIJK, std::array<uint8_t, 4>> m_ijkRgbaMap;
         
         // ADD_NEW_MEMBERS_HERE
 
