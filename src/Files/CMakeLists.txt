@@ -101,6 +101,7 @@ EventMapYokingValidation.h
 EventMediaFilesGet.h
 EventSurfaceColoringInvalidate.h
 EventSurfaceStructuresValidGet.h
+EventVolumeColoringInvalidate.h
 Fiber.h
 FiberOrientation.h
 FiberOrientationColoringTypeEnum.h
@@ -277,6 +278,7 @@ EventMapYokingValidation.cxx
 EventMediaFilesGet.cxx
 EventSurfaceColoringInvalidate.cxx
 EventSurfaceStructuresValidGet.cxx
+EventVolumeColoringInvalidate.cxx
 Fiber.cxx
 FiberOrientation.cxx
 FiberOrientationColoringTypeEnum.cxx

@@ -260,6 +260,8 @@ public:
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
+        /** Invalidate volume coloring */
+        EVENT_VOLUME_COLORING_INVALIDATE,
         /** Get surfaces */
         EVENT_SURFACES_GET,
         /** Get valid surface strucutures and their number of nodes */

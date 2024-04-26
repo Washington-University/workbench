@@ -71,10 +71,6 @@ namespace caret {
         
         void moveToCenterActionTriggered();
         
-        void nonLinearTransformEnabledCheckBoxClicked(bool checked);
-        
-        void overlapCheckBoxClicked(bool checked);
-        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -105,10 +101,6 @@ namespace caret {
         QAction* m_identificationMovesSlicesAction;
         
         QAction* m_moveToCenterAction;
-        
-        QCheckBox* m_nonLinearTransformEnabledCheckBox;
-        
-        QCheckBox* m_overlapCheckBox;
 };
     
     

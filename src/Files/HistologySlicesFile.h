@@ -38,10 +38,6 @@ namespace caret {
     class HistologySlicesFile : public CaretDataFile, public EventListenerInterface {
         
     public:
-        static bool isOverlapTestingEnabled();
-        
-        static void setOverlapTestingEnabled(const bool enabled);
-        
         HistologySlicesFile();
         
         virtual ~HistologySlicesFile();
@@ -160,14 +156,11 @@ namespace caret {
         
         mutable bool m_sliceSpacingValid = false;
         
-        static bool s_overlapTestingEnabled;
-        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __HISTOLOGY_SLICES_FILE_DECLARE__
-    bool HistologySlicesFile::s_overlapTestingEnabled = true;
 #endif // __HISTOLOGY_SLICES_FILE_DECLARE__
 
 } // namespace

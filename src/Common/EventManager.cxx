@@ -499,6 +499,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_SPACER_TAB_GET:
         case EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES:
         case EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE:
+        case EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE:
         case EventTypeEnum::EVENT_SURFACES_GET:
         case EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET:
         case EventTypeEnum::EVENT_TILE_TABS_MODIFICATION:

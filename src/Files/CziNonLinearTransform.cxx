@@ -64,26 +64,6 @@ CziNonLinearTransform::~CziNonLinearTransform()
 }
 
 /**
- * @return Is non-linear transforms enabled (affects ALL files)
- */
-bool
-CziNonLinearTransform::isNonLinearTransformEnabled()
-{
-    return s_nonLinearTransformEnabled;
-}
-
-/**
- * Set non-linear transforms enabled (affects ALL files)
- * @param enabled
- *    New status
- */
-void
-CziNonLinearTransform::setNonLinearTransformEnabled(const bool enabled)
-{
-    s_nonLinearTransformEnabled = enabled;
-}
-
-/**
  * @return Status of the transform
  */
 CziNonLinearTransform::Status
@@ -283,7 +263,7 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
     offsetXyzOut[1] = 0.0;
     offsetXyzOut[2] = 0.0;
     
-    if ( ! s_nonLinearTransformEnabled) {
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_NON_LINEAR)) {
         /*
          * Non-linear offsets disabled
          */

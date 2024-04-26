@@ -41,7 +41,7 @@
 #include "CaretAssert.h"
 #include "CaretUndoStack.h"
 #include "CursorDisplayScoped.h"
-#include "CziNonLinearTransform.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesCziImages.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventBrowserWindowGraphicsRedrawn.h"
@@ -178,19 +178,7 @@ m_parentToolBar(parentToolBar)
     QToolButton* moveToCenterToolButton = new QToolButton();
     moveToCenterToolButton->setDefaultAction(m_moveToCenterAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
-    
-    m_nonLinearTransformEnabledCheckBox = new QCheckBox("Non-Linear");
-    m_nonLinearTransformEnabledCheckBox->setToolTip("<html>"
-                                                    "Non-linear transformations enabled.  Affects all tabs "
-                                                    "and is not saved to scenes"
-                                                    "</html>");
-    QObject::connect(m_nonLinearTransformEnabledCheckBox, &QCheckBox::clicked,
-                     this, &BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked);
-    
-    m_overlapCheckBox = new QCheckBox("Overlap");
-    QObject::connect(m_overlapCheckBox, &QCheckBox::clicked,
-                     this, &BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked);
-    
+        
     /*
      * Layout widgets
      */
@@ -227,8 +215,6 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     ++row;
-    controlsLayout->addWidget(m_nonLinearTransformEnabledCheckBox,
-                              row, columnSliceLabels, 1, 2, Qt::AlignLeft);
     controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
@@ -236,8 +222,6 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignLeft);
-    controlsLayout->addWidget(m_overlapCheckBox,
-                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -390,10 +374,6 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     if (m_browserTabContent != NULL) {
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
     }
-    
-    m_nonLinearTransformEnabledCheckBox->setChecked(CziNonLinearTransform::isNonLinearTransformEnabled());
-    
-    m_overlapCheckBox->setChecked(HistologySlicesFile::isOverlapTestingEnabled());
     
     setEnabled(histologySlicesFile != NULL);
 }
@@ -739,32 +719,3 @@ BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered()
         }
     }
 }
-
-/**
- * Called when non-linear checkbox checked
- * @param checked
- *    New checked status
- */
-void
-BrainBrowserWindowToolBarHistology::nonLinearTransformEnabledCheckBoxClicked(bool checked)
-{
-    CziNonLinearTransform::setNonLinearTransformEnabled(checked);
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    updateGraphicsWindowAndYokedWindows();
-    updateUserInterface();
-}
-
-/**
- * Called when overlap checkbox checked
- * @param checked
- *    New checked status
- */
-void
-BrainBrowserWindowToolBarHistology::overlapCheckBoxClicked(bool checked)
-{
-    HistologySlicesFile::setOverlapTestingEnabled(checked);
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    updateGraphicsWindowAndYokedWindows();
-    updateUserInterface();
-}
-

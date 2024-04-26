@@ -96,6 +96,7 @@
 #include "EventProgressUpdate.h"
 #include "EventSceneActive.h"
 #include "EventSpecFileReadDataFiles.h"
+#include "EventVolumeColoringInvalidate.h"
 #include "EventManager.h"
 #include "FiberOrientationSamplesLoader.h"
 #include "FileInformation.h"
@@ -272,6 +273,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_PALETTE_GROUPS_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SCENE_ACTIVE);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE);
     
     m_isSpecFileBeingRead = false;
     
@@ -7219,6 +7222,19 @@ Brain::receiveEvent(Event* event)
             case EventSceneActive::MODE_SET:
                 m_activeScene = sceneEvent->getScene();
                 break;
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE) {
+        EventVolumeColoringInvalidate* colorEvent(dynamic_cast<EventVolumeColoringInvalidate*>(event));
+        CaretAssert(event);
+        
+        std::vector<CaretMappableDataFile*> allMapFiles;
+        getAllMappableDataFiles(allMapFiles);
+        
+        for (auto& mf : allMapFiles) {
+            if (mf->isVolumeMappable()) {
+                mf->updateScalarColoringForAllMaps();
+            }
         }
     }
 }

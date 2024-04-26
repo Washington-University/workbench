@@ -167,19 +167,24 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_META_IMAGE_NON_LINEAR,
+                                                "DEVELOPER_FLAG_META_IMAGE_NON_LINEAR",
+                                                "Correct for non-linear distortion in meta-images",
+                                                CheckableEnum::YES,
+                                                true));
+    
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_META_IMAGE_OVERLAP,
+                                                "DEVELOPER_FLAG_META_IMAGE_OVERLAP",
+                                                "Correct for image overlap in meta-image display",
+                                                CheckableEnum::YES,
+                                                true));
+        
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_VOXEL_EDIT,
                                                 "DEVELOPER_FLAG_VOXEL_EDIT",
                                                 "Voxel Edit Performance",
                                                 CheckableEnum::YES,
                                                 true));
     
-#ifdef HAVE_WEBKIT
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_BALSA,
-                                                "DEVELOPER_FLAG_BALSA",
-                                                "Visit BALSA...",
-                                                CheckableEnum::NO,
-                                                false));
-#endif
     
     std::vector<DeveloperFlagsEnum> notCheckableItems;
 
@@ -280,9 +285,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_SURFACE_BUFFER:
             toolTip = ("Draw surface using buffers (improved performance)");
             break;
-        case DEVELOPER_FLAG_BALSA:
-            toolTip = ("Load BALSA web page in Qt's WebKit (for demonstration only");
-            break;
         case DEVELOPER_FLAG_BLENDING:
             toolTip = ("Separately blend RGB and Alpha components so Alpha is always 1.0 in frame buffer"
                        " (fixes coloring problems and colors in some captured image formats)");
@@ -300,6 +302,13 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX:
             toolTip = ("MPR Three: Prevents slices from jumping if the selected slices are changed "
                        " and there is non-zero rotation.");
+            break;
+        case DEVELOPER_FLAG_META_IMAGE_NON_LINEAR:
+            toolTip = ("Corrects for non-linear distortion in images from meta-images files.");
+            break;
+        case DEVELOPER_FLAG_META_IMAGE_OVERLAP:
+            toolTip = ("Corrects to fix overlap when there are multiple images for a slice from "
+                       "a meta-image file.");
             break;
         case DEVELOPER_FLAG_VOXEL_EDIT:
             toolTip = ("Voxel edit performance improvements");

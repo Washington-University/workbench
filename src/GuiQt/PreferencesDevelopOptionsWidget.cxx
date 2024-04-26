@@ -38,6 +38,7 @@
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventVolumeColoringInvalidate.h"
 #include "GraphicsTextureMagnificationFilterEnum.h"
 #include "GraphicsTextureMinificationFilterEnum.h"
 #include "GuiManager.h"
@@ -150,6 +151,9 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
 {
     DeveloperFlagsEnum::setFlag(flag,
                                 status);
+    if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_NON_LINEAR) {
+        EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
+    }
     updateGraphicsAndUserInterface();
 }
 

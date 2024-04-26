@@ -39,6 +39,7 @@
 #include "CaretPreferences.h"
 #include "CziImage.h"
 #include "CziImageFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
@@ -466,7 +467,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
              * other images.
              */
             GraphicsPrimitiveV3fT2f* stencilMaskingPrimitive(NULL);
-            if (HistologySlicesFile::isOverlapTestingEnabled()) {
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_OVERLAP)) {
                 if (drawingData.m_histologySliceImage != NULL) {
                     stencilMaskingPrimitive = drawingData.m_histologySliceImage->getStencilMaskingImagePrimitive();
                 }

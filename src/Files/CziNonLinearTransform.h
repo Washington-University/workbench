@@ -35,10 +35,6 @@ namespace caret {
     class CziNonLinearTransform : public CaretObject {
         
     public:
-        static bool isNonLinearTransformEnabled();
-        
-        static void setNonLinearTransformEnabled(const bool enabled);
-        
         enum class Mode {
             FROM_MILLIMETERS,
             TO_MILLIMETERS
@@ -108,7 +104,6 @@ namespace caret {
         
         static bool s_debugFlag;
         
-        static bool s_nonLinearTransformEnabled;
         ///static bool
         // ADD_NEW_MEMBERS_HERE
 
@@ -116,7 +111,6 @@ namespace caret {
     
 #ifdef __CZI_NON_LINEAR_TRANSFORM_DECLARE__
     bool CziNonLinearTransform::s_debugFlag = false;
-    bool CziNonLinearTransform::s_nonLinearTransformEnabled = true;
 #endif // __CZI_NON_LINEAR_TRANSFORM_DECLARE__
 
 } // namespace

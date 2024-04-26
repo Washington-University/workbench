@@ -829,26 +829,6 @@ HistologySlicesFile::getSliceSpacing() const
 }
 
 /**
- * @return True if overlap testing is enabled
- */
-bool
-HistologySlicesFile::isOverlapTestingEnabled()
-{
-    return s_overlapTestingEnabled;
-}
-
-/**
- * Set overlap testing enabled
- * @param enabled
- *    New enabled status
- */
-void
-HistologySlicesFile::setOverlapTestingEnabled(const bool enabled)
-{
-    s_overlapTestingEnabled = enabled;
-}
-
-/**
  * Create the overlapping masking textures
  */
 void

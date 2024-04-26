@@ -506,6 +506,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_SURFACE_COLORING_INVALIDATE, 
                                      "EVENT_SURFACE_COLORING_INVALIDATE", 
                                      "Invalidate surface coloring"));
+
+    enumData.push_back(EventTypeEnum(EVENT_VOLUME_COLORING_INVALIDATE,
+                                     "EVENT_VOLUME_COLORING_INVALIDATE",
+                                     "Invalidate volume coloring"));
     
     enumData.push_back(EventTypeEnum(EVENT_SURFACES_GET, 
                                      "EVENT_SURFACES_GET", 
