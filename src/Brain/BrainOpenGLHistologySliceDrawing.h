@@ -82,7 +82,7 @@ namespace caret {
         void drawCrosshairs(const GraphicsOrthographicProjection& orthographicsProjection,
                             const HistologyCoordinate& histologyCoordinate);
         
-        void drawVolumeOverlays(const GraphicsOrthographicProjection& orthographicProjection);
+        void drawVolumeOverlays();
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         

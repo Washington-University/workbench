@@ -21,8 +21,7 @@
  */
 /*LICENSE_END*/
 
-
-
+#include <map>
 #include <memory>
 
 #include "CaretObject.h"
@@ -72,7 +71,8 @@ namespace caret {
         GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
                                                                            const int32_t mapIndex,
                                                                            const DisplayGroupEnum::Enum displayGroup,
-                                                                           const int32_t tabIndex) const;
+                                                                           const int32_t tabIndex,
+                                                                           AString& errorMessageOut) const;
         
         void updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate);
 
@@ -85,6 +85,43 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class ImageIntersectionKey {
+        public:
+            ImageIntersectionKey(MediaFile* mediaFile,
+                                 const int32_t mapIndex,
+                                 const int32_t tabIndex)
+            : m_mediaFile(mediaFile),
+            m_mapIndex(mapIndex),
+            m_tabIndex(tabIndex)
+            { }
+            
+//            bool operator==(const ImageIntersectionKey& rhs) const {
+//                if ((m_mediaFile == rhs.m_mediaFile)
+//                    && (m_mapIndex == rhs.m_mapIndex)
+//                    && (m_tabIndex == rhs.m_tabIndex)) {
+//                    return true;
+//                }
+//                return false;
+//            }
+            
+            bool operator<(const ImageIntersectionKey& rhs) const {
+                if (m_mediaFile == rhs.m_mediaFile) {
+                    if (m_mapIndex == rhs.m_mapIndex) {
+                        return (m_tabIndex < rhs.m_tabIndex);
+                    }
+                    else {
+                        return (m_mapIndex < rhs.m_mapIndex);
+                    }
+                }
+                return (m_mediaFile < rhs.m_mediaFile);
+            }
+
+            
+            MediaFile* m_mediaFile;
+            int32_t m_mapIndex;
+            int32_t m_tabIndex;
+        };
+        
         GraphicsPrimitiveV3fT3f* createPrimitive(const PrimitiveShape drawingType,
                                                  const int32_t mapIndex,
                                                  const DisplayGroupEnum::Enum displayGroup,
@@ -105,8 +142,9 @@ namespace caret {
         
         mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         
-        mutable std::vector<std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
+//        mutable std::vector<std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
 
+        mutable std::map<ImageIntersectionKey, std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
         // ADD_NEW_MEMBERS_HERE
 
     };

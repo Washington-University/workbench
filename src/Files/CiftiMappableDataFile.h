@@ -416,7 +416,6 @@ namespace caret {
                                                                           const DisplayGroupEnum::Enum displayGroup,
                                                                           const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
-                                                                          const HistologyImageIntersectionMode intersectionMode,
                                                                           AString& errorMessageOut) const override;
         
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,

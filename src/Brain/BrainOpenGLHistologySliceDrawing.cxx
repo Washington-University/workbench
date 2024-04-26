@@ -608,7 +608,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
     
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "After drawing histology slices in BrainOpenGLHistologySliceDrawing::drawModelLayers()");
     
-    drawVolumeOverlays(orthographicProjection);
+    drawVolumeOverlays();
 
     /*
      * Slice spacing (thickness) used for drawing features histology slices
@@ -889,11 +889,9 @@ BrainOpenGLHistologySliceDrawing::toString() const
 
 /**
  * Draw the volume overlays
- * @param orthographicProjection
- *    Orthographic projection
  */
 void
-BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicProjection& orthographicProjection)
+BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
 {
     const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
     const int32_t tabIndex(m_browserTabContent->getTabNumber());
@@ -936,7 +934,6 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays(const GraphicsOrthographicP
                                                                                                 displayGroup,
                                                                                                 tabIndex,
                                                                                                 imageFile,
-                                                                                                VolumeFile::HistologyImageIntersectionMode::LOW_QUALITY,
                                                                                                 errorMessage));
                         if (primitive) {
                             const float alphaValue(overlay->getOpacity());

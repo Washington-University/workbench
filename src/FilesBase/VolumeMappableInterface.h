@@ -496,16 +496,11 @@ namespace caret {
                                                                             const DisplayGroupEnum::Enum displayGroup,
                                                                             const int32_t tabIndex) const = 0;
 
-        enum class HistologyImageIntersectionMode {
-            LOW_QUALITY
-        };
-        
         virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
                                                                           const DisplayGroupEnum::Enum displayGroup,
                                                                           const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
-                                                                          const HistologyImageIntersectionMode intersectionMode,
-                                                                          AString& errorMessageOut) const;
+                                                                          AString& errorMessageOut) const = 0;
         /**
          * Get the volume space object, so we have access to all functions associated with volume spaces
          */

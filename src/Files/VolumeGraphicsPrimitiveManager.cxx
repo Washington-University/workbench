@@ -96,9 +96,7 @@ VolumeGraphicsPrimitiveManager::invalidateAllColoring()
     for (auto& p : m_mapGraphicsTrianglesPrimitives) {
         p.reset();
     }
-    for (auto& p : m_mapIntersectionImageFiles) {
-        p.reset();
-    }
+    m_mapIntersectionImageFiles.clear();
 }
 
 /**
@@ -121,9 +119,20 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
         && (mapIndex < static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size()))) {
         m_mapGraphicsTrianglesPrimitives[mapIndex].reset();
     }
-    if ((mapIndex >= 0)
-        && (mapIndex < static_cast<int32_t>(m_mapIntersectionImageFiles.size()))) {
-        m_mapIntersectionImageFiles[mapIndex].reset();
+    
+    /*
+     * Remove any items with key that contains map index
+     * (1) Get the key while avoiding invalidating the iterator
+     * (2) Remove items with keys
+     */
+    std::vector<ImageIntersectionKey> removeItemKeys;
+    for (auto& m : m_mapIntersectionImageFiles) {
+        if (m.first.m_mapIndex == mapIndex) {
+            removeItemKeys.push_back(m.first);
+        }
+    }
+    for (auto& key : removeItemKeys) {
+        m_mapIntersectionImageFiles.erase(key);
     }
 }
 
@@ -413,39 +422,44 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
  *    Display gtroup selected
  * @param tabIndex
  *    Index of tab
+ * @param errorMessageOut
+ *    Contains error information if failure to create primitive
  * @return
  *    Pointer to graphics primitive or NULL if failure
  */
 GraphicsPrimitiveV3fT2f*
 VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
-                                                                   const int32_t mapIndex,
-                                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                                   const int32_t tabIndex) const
+                                                                          const int32_t mapIndex,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
+                                                                          AString& errorMessageOut) const
 {
+    errorMessageOut.clear();
+    
     GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
     
-    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapIntersectionImageFiles.size())) {
-        m_mapIntersectionImageFiles.resize(mapIndex + 1);
+    ImageIntersectionKey key(const_cast<MediaFile*>(mediaFile),
+                             mapIndex,
+                             tabIndex);
+    
+    ImageFile* imageFile(NULL);
+    auto iter(m_mapIntersectionImageFiles.find(key));
+    if (iter != m_mapIntersectionImageFiles.end()) {
+        imageFile = iter->second.get();
     }
-
-    CaretAssertVectorIndex(m_mapIntersectionImageFiles, mapIndex);
-    if ( ! m_mapIntersectionImageFiles[mapIndex]) {
-        AString errorMessage;
+    else {
         VolumeToImageMapping mapper(m_volumeInterface,
                                     mapIndex,
                                     displayGroup,
                                     tabIndex,
                                     mediaFile);
-        if (mapper.runMapping(errorMessage)) {
-            m_mapIntersectionImageFiles[mapIndex].reset(mapper.takeOutputImageFile());
-        }
-        else {
-            CaretLogSevere(errorMessage);
+        if (mapper.runMapping(errorMessageOut)) {
+            imageFile = mapper.takeOutputImageFile();
+            m_mapIntersectionImageFiles.insert(std::make_pair(key,
+                                                              imageFile));
         }
     }
     
-    ImageFile* imageFile(m_mapIntersectionImageFiles[mapIndex].get());
-
     if (imageFile != NULL) {
         int32_t invalidOverlayIndex(-1);
         primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,

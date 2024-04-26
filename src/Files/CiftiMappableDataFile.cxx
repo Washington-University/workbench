@@ -4675,8 +4675,6 @@ CiftiMappableDataFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex
  *    Index of selected tab.
  * @param mediaFile
  *    The medial file for drawing histology
- * @param intersectionMode
- *    The intersection mode
  * @param errorMessageOut
  *    Ouput with error message
  * @return
@@ -4687,13 +4685,13 @@ CiftiMappableDataFile::getHistologyImageIntersectionPrimitive(const int32_t mapI
                                                               const DisplayGroupEnum::Enum displayGroup,
                                                               const int32_t tabIndex,
                                                               const MediaFile* mediaFile,
-                                                              const HistologyImageIntersectionMode intersectionMode,
                                                               AString& errorMessageOut) const
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimtiveForMap(mediaFile,
                                                                                  mapIndex,
                                                                                  displayGroup,
-                                                                                 tabIndex);
+                                                                                 tabIndex,
+                                                                                 errorMessageOut);
 }
 
 /**
