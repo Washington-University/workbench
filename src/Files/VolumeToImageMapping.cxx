@@ -188,6 +188,13 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
     const int64_t imageWidth(m_outputImageFile->getWidth());
     const int64_t imageHeight(m_outputImageFile->getHeight());
     
+    /*
+     * Note: Keep outside of loop as it inherits other classes
+     * and construction/deconstruction many, many times becomes
+     * slow. (time for some files dropped from 750ms to 590ms)
+     */
+    PixelIndex pixelIndex;
+
     int64_t validPixelCounter(0);
     std::array<uint8_t, 4> pixelRGBA;
     for (int64_t j = 0; j < imageHeight; j++) {
@@ -200,8 +207,9 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
             /*
              * Note: Some pixels may not map to a stereotaxic coordinate
              */
+            pixelIndex.setIJK(i, j, 0);
             Vector3D xyz;
-            if (m_outputImageFile->pixelIndexToStereotaxicXYZ(PixelIndex(i, j),
+            if (m_outputImageFile->pixelIndexToStereotaxicXYZ(pixelIndex,
                                                               xyz)) {
                 ++validPixelCounter;
                 
