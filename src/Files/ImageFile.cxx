@@ -1380,7 +1380,7 @@ ImageFile::getImageBytesRGBA(const QImage* qImage,
  * @param overlayIndex
  *    Index of overlay
  * @param pixelLogicalIndex
- *     Logical pixel index
+ *     Logical pixel index that may not have (0, 0) in top left corner
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  * @return
@@ -1425,11 +1425,10 @@ ImageFile::getPixelRGBA(const int32_t /*tabIndex*/,
  * @param overlayIndex
  *    Index of overlay
  * @param pixelLogicalIndex
- *     Logical pixel index
+ *     Logical pixel index that may not have (0, 0) in top left corner
  * @param pixelRGBAOut
  *     RGBA at Pixel I, J
  */
-
 void
 ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
                         const int32_t /*overlayIndex*/,
@@ -1442,6 +1441,42 @@ ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
         
         const int64_t pixelI(pixelLogicalIndex.getI());
         const int64_t pixelJ(pixelLogicalIndex.getJ());
+        if ((pixelI >= 0)
+            && (pixelI < w)
+            && (pixelJ >= 0)
+            && (pixelJ < h)) {
+            m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
+                                                          pixelRGBA[1],
+                                                          pixelRGBA[2],
+                                                          pixelRGBA[3]));
+        }
+    }
+}
+
+/**
+ * Set the pixel RGBA at the given pixel I and J.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ * @param overlayIndex
+ *    Index of overlay
+ * @param pixelIndex
+ *     Pixel index with (0, 0) in top left corner
+ * @param pixelRGBAOut
+ *     RGBA at Pixel I, J
+ */
+void
+ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
+                        const int32_t /*overlayIndex*/,
+                        const PixelIndex& pixelIndex,
+                        const uint8_t pixelRGBA[4])
+{
+    if (m_image != NULL) {
+        const int32_t w = m_image->width();
+        const int32_t h = m_image->height();
+        
+        const int64_t pixelI(pixelIndex.getI());
+        const int64_t pixelJ(pixelIndex.getJ());
         if ((pixelI >= 0)
             && (pixelI < w)
             && (pixelJ >= 0)

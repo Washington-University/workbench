@@ -188,17 +188,23 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
     const int64_t imageWidth(m_outputImageFile->getWidth());
     const int64_t imageHeight(m_outputImageFile->getHeight());
     
+    bool rowFlag(false);
+    std::vector<uint8_t> rowRGBA;
+    if (rowFlag) {
+        rowRGBA.resize(imageWidth * 4);
+    }
+    
     /*
-     * Note: Keep outside of loop as it inherits other classes
+     * Note: Keep pixelIndex outside of loop as it inherits other classes
      * and construction/deconstruction many, many times becomes
-     * slow. (time for some files dropped from 750ms to 590ms)
+     * slow.
      */
     PixelIndex pixelIndex;
 
     int64_t validPixelCounter(0);
     std::array<uint8_t, 4> pixelRGBA;
-    for (int64_t j = 0; j < imageHeight; j++) {
-        for (int64_t i = 0; i < imageWidth; i++) {
+    for (int64_t jRow = 0; jRow < imageHeight; jRow++) {
+        for (int64_t iCol = 0; iCol < imageWidth; iCol++) {
             /*
              * Initialize alpha to zero so nothing displayed
              */
@@ -207,7 +213,7 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
             /*
              * Note: Some pixels may not map to a stereotaxic coordinate
              */
-            pixelIndex.setIJK(i, j, 0);
+            pixelIndex.setIJK(iCol, jRow, 0);
             Vector3D xyz;
             if (m_outputImageFile->pixelIndexToStereotaxicXYZ(pixelIndex,
                                                               xyz)) {
@@ -296,21 +302,18 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                     }
                 }
                 
-                const int32_t invalidTabIndex(-1);
-                const int32_t invalidOverlayIndex(-1);
-                const PixelLogicalIndex pixelLogicalIndex(m_outputImageFile->pixelIndexToPixelLogicalIndex(PixelIndex(i,j)));
-                {
-                    /*
-                     * Not sure if this must be in a critical section
-                     */
-                    m_outputImageFile->setPixelRGBA(invalidTabIndex,
-                                                    invalidOverlayIndex,
-                                                    pixelLogicalIndex,
-                                                    pixelRGBA.data());
-                }
             }
-        }
-    }
+            
+            const int32_t invalidTabIndex(-1);
+            const int32_t invalidOverlayIndex(-1);
+            if ( ! rowFlag) {
+                m_outputImageFile->setPixelRGBA(invalidTabIndex,
+                                                invalidOverlayIndex,
+                                                pixelIndex,
+                                                pixelRGBA.data());
+            }
+        } /* for iCol */
+    } /* for jRow */
     
     return (validPixelCounter > 0);
 }

@@ -135,6 +135,11 @@ public:
                               const PixelLogicalIndex& pixelLogicalIndex,
                               const uint8_t pixelRGBA[4]);
 
+    virtual void setPixelRGBA(const int32_t tabIndex,
+                              const int32_t overlayIndex,
+                              const PixelIndex& pixelIndex,
+                              const uint8_t pixelRGBA[4]);
+    
     virtual int32_t getWidth() const override;
     
     virtual int32_t getHeight() const override;
