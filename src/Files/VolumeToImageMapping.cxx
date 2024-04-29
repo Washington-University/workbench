@@ -119,7 +119,7 @@ VolumeToImageMapping::runMapping(AString& errorMessageOut)
                                + errorMessageOut);
         }
     }
-    std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+    //std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
     
     return successFlag;
 }
@@ -140,20 +140,10 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                            + m_inputMediaFile->getFileName());
         return false;
     }
-    
-//    std::cout << "Input Image: " << std::endl;
-//    DataFileContentInformation inputDataFileInfo;
-//    const_cast<ImageFile*>(inputImageFile)->addToDataFileContentInformation(inputDataFileInfo);
-//    std::cout  << "Input: " << inputDataFileInfo.getInformationInString() << std::endl;
-    
+        
     m_outputImageFile.reset(new ImageFile(*inputImageFile));
     m_outputImageFile->setFileName("VolumeMapping.png");
-    
-//    std::cout << "Output Image: " << std::endl;
-//    DataFileContentInformation outputDataFileInfo;
-//    m_outputImageFile->addToDataFileContentInformation(outputDataFileInfo);
-//    std::cout << "Output: " << outputDataFileInfo.getInformationInString() << std::endl;
-    
+        
     if ( ! validateMediaFile(m_outputImageFile.get(),
                              "Output image file copied from input image file ",
                              errorMessageOut)) {
@@ -188,7 +178,7 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
     const int64_t imageWidth(m_outputImageFile->getWidth());
     const int64_t imageHeight(m_outputImageFile->getHeight());
     
-    bool rowFlag(false);
+    bool rowFlag(true);
     std::vector<uint8_t> rowRGBA;
     if (rowFlag) {
         rowRGBA.resize(imageWidth * 4);
@@ -306,13 +296,26 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
             
             const int32_t invalidTabIndex(-1);
             const int32_t invalidOverlayIndex(-1);
-            if ( ! rowFlag) {
+            if (rowFlag) {
+                const int64_t i4(iCol * 4);
+                CaretAssertVectorIndex(rowRGBA, i4+3);
+                rowRGBA[i4]   = pixelRGBA[0];
+                rowRGBA[i4+1] = pixelRGBA[1];
+                rowRGBA[i4+2] = pixelRGBA[2];
+                rowRGBA[i4+3] = pixelRGBA[3];
+            }
+            else {
                 m_outputImageFile->setPixelRGBA(invalidTabIndex,
                                                 invalidOverlayIndex,
                                                 pixelIndex,
                                                 pixelRGBA.data());
             }
         } /* for iCol */
+        
+        if (rowFlag) {
+            m_outputImageFile->setPixelRowRGBA(jRow,
+                                               rowRGBA);
+        }
     } /* for jRow */
     
     return (validPixelCounter > 0);
