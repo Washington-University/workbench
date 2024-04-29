@@ -140,6 +140,15 @@ public:
                               const PixelIndex& pixelIndex,
                               const uint8_t pixelRGBA[4]);
     
+    virtual void setPixelRGBA(const int32_t tabIndex,
+                              const int32_t overlayIndex,
+                              const int32_t pixelI,
+                              const int32_t pixelJ,
+                              const uint8_t pixelRGBA[4]);
+    
+    virtual void setPixelRowRGBA(const int32_t rowIndex,
+                                 const std::vector<uint8_t>& pixelRowRGBA);
+    
     virtual int32_t getWidth() const override;
     
     virtual int32_t getHeight() const override;

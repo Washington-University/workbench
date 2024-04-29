@@ -1436,20 +1436,12 @@ ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
                         const uint8_t pixelRGBA[4])
 {
     if (m_image != NULL) {
-        const int32_t w = m_image->width();
-        const int32_t h = m_image->height();
-        
         const int64_t pixelI(pixelLogicalIndex.getI());
         const int64_t pixelJ(pixelLogicalIndex.getJ());
-        if ((pixelI >= 0)
-            && (pixelI < w)
-            && (pixelJ >= 0)
-            && (pixelJ < h)) {
-            m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
-                                                          pixelRGBA[1],
-                                                          pixelRGBA[2],
-                                                          pixelRGBA[3]));
-        }
+        m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
+                                                      pixelRGBA[1],
+                                                      pixelRGBA[2],
+                                                      pixelRGBA[3]));
     }
 }
 
@@ -1472,20 +1464,104 @@ ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
                         const uint8_t pixelRGBA[4])
 {
     if (m_image != NULL) {
-        const int32_t w = m_image->width();
-        const int32_t h = m_image->height();
-        
         const int64_t pixelI(pixelIndex.getI());
         const int64_t pixelJ(pixelIndex.getJ());
-        if ((pixelI >= 0)
-            && (pixelI < w)
-            && (pixelJ >= 0)
-            && (pixelJ < h)) {
-            m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
-                                                          pixelRGBA[1],
-                                                          pixelRGBA[2],
-                                                          pixelRGBA[3]));
+        m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
+                                                      pixelRGBA[1],
+                                                      pixelRGBA[2],
+                                                      pixelRGBA[3]));
+    }
+}
+
+/**
+ * Set the pixel RGBA at the given pixel I and J.
+ *
+ * @param tabIndex
+ *    Index of the tab.
+ * @param overlayIndex
+ *    Index of overlay
+ * @param pixelI
+ *     Pixel I index (origin top left)
+ * @param pixelJ
+ *     Pixel J index (origin top left)
+ * @param pixelRGBAOut
+ *     RGBA at Pixel I, J
+ */
+void
+ImageFile::setPixelRGBA(const int32_t /*tabIndex*/,
+                        const int32_t /*overlayIndex*/,
+                        const int32_t pixelI,
+                        const int32_t pixelJ,
+                        const uint8_t pixelRGBA[4])
+{
+    if (m_image != NULL) {
+        m_image->setPixelColor(pixelI, pixelJ, QColor(pixelRGBA[0],
+                                                      pixelRGBA[1],
+                                                      pixelRGBA[2],
+                                                      pixelRGBA[3]));
+    }
+}
+
+/**
+ * Set a full row of pixels with RGBA colors
+ * @param rowIndex
+ *    Index of the row
+ * @param pixelRowRGBA
+ *    Vector containing RGBA for all pixels in the row
+ */
+void
+ImageFile::setPixelRowRGBA(const int32_t rowIndex,
+                           const std::vector<uint8_t>& pixelRowRGBA)
+{
+    const int32_t rowLength(getWidth());
+    if ((rowLength * 4) != static_cast<int32_t>(pixelRowRGBA.size())) {
+        const AString msg("pixel RGBA vector is incorrect length="
+                          + AString::number(pixelRowRGBA.size())
+                          + ", should be="
+                          + AString::number(rowLength * 4));
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+        return;
+    }
+    if ((rowIndex < 0)
+        || (rowIndex >= getHeight())) {
+        const AString msg("Row index="
+                          + AString::number(rowIndex)
+                          + " out of range, height="
+                          + AString::number(getHeight()));
+        CaretLogSevere(msg);
+        CaretAssertMessage(0, msg);
+        return;
+    }
+    
+    uint8_t* rowByteColor(m_image->scanLine(rowIndex));
+    uint32_t* rowIntColor((uint32_t*)rowByteColor);
+    switch (m_image->format()) {
+        case QImage::Format_ARGB32:
+            /*
+             * This format is typically used by image in Workbench
+             */
+            for (int32_t i = 0; i < rowLength; i++) {
+                const int32_t i4(i*4);
+                rowIntColor[i] = QRgba64::fromRgba(pixelRowRGBA[i4],
+                                                   pixelRowRGBA[i4+1],
+                                                   pixelRowRGBA[i4+2],
+                                                   pixelRowRGBA[i4+3]).toArgb32();
+            }
+            break;
+        default:
+        {
+            const int32_t pixelJ(rowIndex);
+            for (int32_t i = 0; i < rowLength; i++) {
+                const int32_t i4(i*4);
+                m_image->setPixelColor(i, pixelJ,
+                                       QColor(pixelRowRGBA[i4],
+                                              pixelRowRGBA[i4+1],
+                                              pixelRowRGBA[i4+2],
+                                              pixelRowRGBA[i4+3]));
+            }
         }
+            break;
     }
 }
 
