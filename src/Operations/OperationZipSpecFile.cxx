@@ -149,6 +149,11 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         AString absName = QDir::cleanPath(dataFileInfo.getAbsoluteFilePath());
         if (!absName.startsWith(myBaseDir))
         {
+            CaretLogFine("Outside Path: "
+                         "\n   myBaseDir: " + myBaseDir
+                         + "\n   dataFileName: " + dataFileName
+                         + "\n   absFilePath: " + dataFileInfo.getAbsoluteFilePath()
+                         + "\n   absName: " + absName);
             outsideBaseDirFiles += absName + "\n";
         }
         if (dataFileInfo.exists() == false) {
