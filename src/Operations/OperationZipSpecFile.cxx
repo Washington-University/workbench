@@ -125,7 +125,8 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     allDataFileNames.push_back(specFileName);
     
     CaretLogFine("Spec Info:"
-                 "\n   specFile.getFileName():" + specFile.getFileName()
+                 "\n   myParams->getString(1): " + myParams->getString(1)
+                 + "\n   specFile.getFileName(): " + specFile.getFileName()
                  + "\n   specFileName: " + specFileName
                  + "\n   specPath: " + specPath);
     
