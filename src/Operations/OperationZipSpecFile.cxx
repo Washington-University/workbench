@@ -124,6 +124,11 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     std::vector<AString> allDataFileNames = specFile.getAllDataFileNames();
     allDataFileNames.push_back(specFileName);
     
+    CaretLogFine("Spec Info:"
+                 "\n   specFile.getFileName():" + specFile.getFileName()
+                 + "\n   specFileName: " + specFileName
+                 + "\n   specPath: " + specPath);
+    
     /*
      * Verify that all data files exist
      */
@@ -151,6 +156,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         {
             CaretLogFine("Outside Path: "
                          "\n   myBaseDir: " + myBaseDir
+                         + "\n   allDataFileNames[i]: " + allDataFileNames[i]
                          + "\n   dataFileName: " + dataFileName
                          + "\n   absFilePath: " + dataFileInfo.getAbsoluteFilePath()
                          + "\n   absName: " + absName);
