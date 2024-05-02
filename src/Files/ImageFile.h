@@ -66,6 +66,9 @@ public:
               const int imageHeight,
               const IMAGE_DATA_ORIGIN_LOCATION imageOrigin);
     
+    ImageFile(const int imageWidth,
+              const int imageHeight);
+    
     ImageFile(const QImage& qimage);
     
     ~ImageFile();

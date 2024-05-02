@@ -29,6 +29,7 @@
 #include "GraphicsPrimitiveV3fT2f.h"
 #include "GraphicsPrimitiveV3fT3f.h"
 #include "GraphicsUtilitiesOpenGL.h"
+#include "HistologySlice.h"
 #include "ImageFile.h"
 #include "VolumeMappableInterface.h"
 #include "VolumeToImageMapping.h"
@@ -65,6 +66,7 @@ m_volumeInterface(volumeInterface)
  */
 VolumeGraphicsPrimitiveManager::~VolumeGraphicsPrimitiveManager()
 {
+    clear();
 }
 
 /**
@@ -76,6 +78,22 @@ VolumeGraphicsPrimitiveManager::clear()
     m_mapGraphicsTriangleFanPrimitives.clear();
     m_mapGraphicsTriangleStripPrimitives.clear();
     m_mapGraphicsTrianglesPrimitives.clear();
+    clearIntersectionImagePrimitives();
+}
+
+/**
+ * Clear the image intersection primitives
+ */
+void
+VolumeGraphicsPrimitiveManager::clearIntersectionImagePrimitives()
+{
+    for (auto& mif : m_mapIntersectionImageFiles) {
+        std::vector<ImageFile*>& imageFiles = mif.second;
+        for (auto& image : imageFiles) {
+            CaretAssert(image);
+            delete image;
+        }
+    }
     m_mapIntersectionImageFiles.clear();
 }
 
@@ -96,7 +114,7 @@ VolumeGraphicsPrimitiveManager::invalidateAllColoring()
     for (auto& p : m_mapGraphicsTrianglesPrimitives) {
         p.reset();
     }
-    m_mapIntersectionImageFiles.clear();
+    clearIntersectionImagePrimitives();
 }
 
 /**
@@ -129,6 +147,11 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
     for (auto& m : m_mapIntersectionImageFiles) {
         if (m.first.m_mapIndex == mapIndex) {
             removeItemKeys.push_back(m.first);
+            std::vector<ImageFile*>& imageFiles = m.second;
+            for (auto& image : imageFiles) {
+                CaretAssert(image);
+                delete image;
+            }
         }
     }
     for (auto& key : removeItemKeys) {
@@ -428,24 +451,32 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
  *    Pointer to graphics primitive or NULL if failure
  */
 GraphicsPrimitiveV3fT2f*
-VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
-                                                                          const int32_t mapIndex,
-                                                                          const DisplayGroupEnum::Enum displayGroup,
-                                                                          const int32_t tabIndex,
-                                                                          AString& errorMessageOut) const
+VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
+                                                                           const int32_t mapIndex,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex,
+                                                                           AString& errorMessageOut) const
 {
+    CaretLogSevere("This function is no longer used.  Use method that takes HistlogySlice.");
+    CaretAssertToDoFatal();
+    
     errorMessageOut.clear();
     
     GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
     
-    ImageIntersectionKey key(const_cast<MediaFile*>(mediaFile),
+    ImageIntersectionKey key((void*)mediaFile,
                              mapIndex,
                              tabIndex);
     
-    ImageFile* imageFile(NULL);
+    std::vector<ImageFile*> allImageFiles;
     auto iter(m_mapIntersectionImageFiles.find(key));
     if (iter != m_mapIntersectionImageFiles.end()) {
-        imageFile = iter->second.get();
+        const auto& imageFilesVector = iter->second;
+        const int32_t numImages(imageFilesVector.size());
+        for (int32_t i = 0; i < numImages; i++) {
+            CaretAssertVectorIndex(imageFilesVector, i);
+            allImageFiles.push_back(imageFilesVector[i]);
+        }
     }
     else {
         VolumeToImageMapping mapper(m_volumeInterface,
@@ -454,19 +485,99 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimtiveForMap(const 
                                     tabIndex,
                                     mediaFile);
         if (mapper.runMapping(errorMessageOut)) {
-            imageFile = mapper.takeOutputImageFile();
-            m_mapIntersectionImageFiles.insert(std::make_pair(key,
-                                                              imageFile));
+            const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
+            for (int32_t i = 0; i < numImageFiles; i++) {
+                ImageFile* imageFile(mapper.takeOutputImageFile(i));
+                CaretAssert(imageFile);
+                allImageFiles.push_back(imageFile);
+            }
+        }
+        m_mapIntersectionImageFiles.insert(std::make_pair(key,
+                                                          allImageFiles));
+    }
+    
+    if ( ! allImageFiles.empty()) {
+        for (auto& imageFile : allImageFiles) {
+            int32_t invalidOverlayIndex(-1);
+            primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
+                                                                             invalidOverlayIndex);
         }
     }
     
-    if (imageFile != NULL) {
-        int32_t invalidOverlayIndex(-1);
-        primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
-                                                                         invalidOverlayIndex);
+    return primitiveOut;
+}
+
+/**
+ * Generate a graphics primitive for an image intersection with the volume
+ *
+ * @param histologySlice
+ *    Histology slice for intersection
+ * @param mapIndex
+ *    Map index for creating the primitive
+ * @param displayGroup
+ *    Display gtroup selected
+ * @param tabIndex
+ *    Index of tab
+ * @param errorMessageOut
+ *    Contains error information if failure to create primitive
+ * @return
+ *    Pointer to graphics primitive or NULL if failure
+ */
+std::vector<GraphicsPrimitive*>
+VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
+                                                                           const int32_t mapIndex,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex,
+                                                                           AString& errorMessageOut) const
+{
+    errorMessageOut.clear();
+    
+    std::vector<GraphicsPrimitive*> primitivesOut;
+    
+    ImageIntersectionKey key((void*)histologySlice,
+                             mapIndex,
+                             tabIndex);
+    
+    std::vector<ImageFile*> allImageFiles;
+    auto iter(m_mapIntersectionImageFiles.find(key));
+    if (iter != m_mapIntersectionImageFiles.end()) {
+        const auto& imageFilesVector = iter->second;
+        const int32_t numImages(imageFilesVector.size());
+        for (int32_t i = 0; i < numImages; i++) {
+            CaretAssertVectorIndex(imageFilesVector, i);
+            allImageFiles.push_back(imageFilesVector[i]);
+        }
+    }
+    else {
+        VolumeToImageMapping mapper(m_volumeInterface,
+                                    mapIndex,
+                                    displayGroup,
+                                    tabIndex,
+                                    histologySlice);
+        if (mapper.runMapping(errorMessageOut)) {
+            const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
+            for (int32_t i = 0; i < numImageFiles; i++) {
+                ImageFile* imageFile(mapper.takeOutputImageFile(i));
+                CaretAssert(imageFile);
+                allImageFiles.push_back(imageFile);
+            }
+        }
+        m_mapIntersectionImageFiles.insert(std::make_pair(key,
+                                                          allImageFiles));
+    }
+
+    if ( ! allImageFiles.empty()) {
+        for (auto& imageFile : allImageFiles) {
+            int32_t invalidOverlayIndex(-1);
+            GraphicsPrimitiveV3fT2f* primitive = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
+                                                                                                   invalidOverlayIndex);
+            if (primitive != NULL) {
+                primitivesOut.push_back(primitive);
+            }
+        }
     }
     
-    return primitiveOut;
+    return primitivesOut;
 }
 
 /**

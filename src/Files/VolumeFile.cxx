@@ -2004,13 +2004,41 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
                                                    const MediaFile* mediaFile,
                                                    AString& errorMessageOut) const
 {
-    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimtiveForMap(mediaFile,
-                                                                                 mapIndex,
-                                                                                 displayGroup,
-                                                                                 tabIndex,
-                                                                                 errorMessageOut);
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(mediaFile,
+                                                                                  mapIndex,
+                                                                                  displayGroup,
+                                                                                  tabIndex,
+                                                                                  errorMessageOut);
 }
 
+/**
+ * Create a graphics primitive for showing part of volume that intersects with an image from histology
+ * @param mapIndex
+ *    Index of the map.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
+ * @param histologySlice
+ *    The histology slice being drawn
+ * @param errorMessageOut
+ *    Ouput with error message
+ * @return
+ *    Primitive for drawing intersection or NULL if failure
+ */
+std::vector<GraphicsPrimitive*>
+VolumeFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
+                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                   const int32_t tabIndex,
+                                                   const HistologySlice* histologySlice,
+                                                   AString& errorMessageOut) const
+{
+    return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(histologySlice,
+                                                                                  mapIndex,
+                                                                                  displayGroup,
+                                                                                  tabIndex,
+                                                                                  errorMessageOut);
+}
 
 /**
  * Get the voxel values for a slice in a map.

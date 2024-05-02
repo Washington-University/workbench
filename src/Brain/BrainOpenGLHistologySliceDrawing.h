@@ -44,6 +44,8 @@ namespace caret {
     class HistologyOverlaySet;
     class MediaFile;
     class ModelHistology;
+    class Overlay;
+    class VolumeMappableInterface;
     
     class BrainOpenGLHistologySliceDrawing : public CaretObject {
         
@@ -69,6 +71,20 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class VolumeDrawingInfo {
+        public:
+            VolumeDrawingInfo(Overlay* overlay,
+                              VolumeMappableInterface* volumeMappableInterface,
+                              int32_t mapIndex)
+            : m_overlay(overlay),
+            m_volumeMappableInterface(volumeMappableInterface),
+            m_mapIndex(mapIndex) { }
+
+            Overlay* m_overlay;
+            VolumeMappableInterface* m_volumeMappableInterface;
+            int32_t m_mapIndex;
+        };
+        
         void drawModelLayers(const GraphicsOrthographicProjection& orthographicProjection,
                              const BrainOpenGLViewportContent* viewportContent,
                              const GraphicsObjectToWindowTransform* transform);
@@ -83,6 +99,10 @@ namespace caret {
                             const HistologyCoordinate& histologyCoordinate);
         
         void drawVolumeOverlays();
+        
+        void drawVolumeOverlaysOnCziImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo);
+        
+        void drawVolumeOverlaysOnImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo);
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         

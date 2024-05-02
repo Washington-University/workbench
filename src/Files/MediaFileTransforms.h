@@ -151,6 +151,13 @@ namespace caret {
         
         virtual bool isPlaneToMillimetersMatrixValid() const;
 
+        void adjustForNewMediaFileSize(const int32_t oldWidth,
+                                       const int32_t oldHeight,
+                                       const int32_t newWidth,
+                                       const int32_t newHeight);
+        
+        void printPixelToPlaneValues(const QString& title);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

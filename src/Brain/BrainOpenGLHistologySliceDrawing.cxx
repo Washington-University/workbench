@@ -24,6 +24,7 @@
 #undef __BRAIN_OPEN_G_L_HISTOLOGY_SLICE_DRAWING_DECLARE__
 
 #include <cmath>
+#include <tuple>
 
 #include "AnnotationPointSizeText.h"
 #include "Brain.h"
@@ -894,6 +895,94 @@ BrainOpenGLHistologySliceDrawing::toString() const
 void
 BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
 {
+    if (m_mediaFilesAndDataToDraw.empty()) {
+        return;
+    }
+    
+    const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
+    const int32_t tabIndex(m_browserTabContent->getTabNumber());
+    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
+
+    /*
+     * Find any volumes to draw
+     */
+    std::vector<VolumeDrawingInfo> volumeDrawingInfo;
+    OverlaySet* overlaySet(m_browserTabContent->getOverlaySet());
+    CaretAssert(overlaySet);
+    const int32_t numberOfOverlays(overlaySet->getNumberOfDisplayedOverlays());
+    for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+        Overlay* overlay(overlaySet->getOverlay(iOverlay));
+        CaretAssert(overlay);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile(NULL);
+            int32_t mapIndex(-1);
+            overlay->getSelectionData(mapFile,
+                                      mapIndex);
+            
+            if (mapFile != NULL) {
+                VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(mapFile));
+                if (vmi != NULL) {
+                    volumeDrawingInfo.emplace_back(overlay,
+                                                   vmi,
+                                                   mapIndex);
+                }
+                else {
+                    CaretLogSevere("File for drawing volume is not a volume mappable file: "
+                                   + mapFile->getFileName());
+                }
+            }
+        }
+    }
+    
+    if (volumeDrawingInfo.empty()) {
+        /*
+         * No volumes to draw as overlays
+         */
+        return;
+    }
+    
+
+    bool haveCziImageUnderlayFileFlag(false);
+    bool haveImageUnderlayFileFlag(false);
+    const int32_t numMediaFiles(m_mediaFilesAndDataToDraw.size());
+    if (numMediaFiles > 0) {
+        const MediaFile* underlayMediaFile(m_mediaFilesAndDataToDraw[0].m_mediaFile);
+        if (underlayMediaFile->castToCziImageFile() != NULL) {
+            haveCziImageUnderlayFileFlag = true;
+        }
+        else if (underlayMediaFile->castToImageFile()) {
+            haveImageUnderlayFileFlag = true;
+        }
+        else {
+            /*
+             * Neither CZI nor Image File
+             */
+            static std::set<const MediaFile*> invalidMediaFiles;
+            if (invalidMediaFiles.find(underlayMediaFile) == invalidMediaFiles.end()) {
+                CaretLogSevere(underlayMediaFile->getFileName()
+                               + " is neither CZI nor Image File for mapping volume to histology.");
+                invalidMediaFiles.insert(underlayMediaFile);
+            }
+        }
+    }
+
+    drawVolumeOverlaysOnCziImageFile(volumeDrawingInfo);
+//    if (haveCziImageUnderlayFileFlag) {
+//        drawVolumeOverlaysOnCziImageFile(volumeDrawingInfo);
+//    }
+//    else if (haveImageUnderlayFileFlag) {
+//        drawVolumeOverlaysOnImageFile(volumeDrawingInfo);
+//    }
+}
+
+/**
+ * Draw volume overlays on Image Files
+ * @param volumeDrawingInfo
+ *    Info on volumes for drawing
+ */
+void
+BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo)
+{
     const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
     const int32_t tabIndex(m_browserTabContent->getTabNumber());
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
@@ -902,104 +991,185 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
                  | GL_COLOR_BUFFER_BIT);
     glDisable(GL_DEPTH_TEST);
     
-    bool drawFirstOnlyFlag(true);
-    
-    const int32_t numSlices(m_mediaFilesAndDataToDraw.size());
-    for (int32_t iSlice = 0; iSlice < numSlices; iSlice++) {
-        const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[iSlice].m_mediaFile);
+    const int32_t numMediaFiles(m_mediaFilesAndDataToDraw.size());
+    for (int32_t iFile = 0; iFile < numMediaFiles; iFile++) {
+        CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, iFile);
+        const MediaFile* mediaFile(m_mediaFilesAndDataToDraw[iFile].m_mediaFile);
         CaretAssert(mediaFile);
         const ImageFile* imageFile(mediaFile->castToImageFile());
         if (imageFile == NULL) {
-            CaretLogSevere(mediaFile->getFileName()
-                           + " is not an image file for mapping volume to image.");
+            /*
+             * Could be CZI file, avoid displaying message more than once for a file
+             */
+            static std::set<const MediaFile*> invalidMediaFiles;
+            if (invalidMediaFiles.find(mediaFile) == invalidMediaFiles.end()) {
+                CaretLogSevere(mediaFile->getFileName()
+                               + " is not an image file for mapping volume to image.");
+                invalidMediaFiles.insert(mediaFile);
+            }
             continue;
         }
         
-        OverlaySet* overlaySet(m_browserTabContent->getOverlaySet());
-        CaretAssert(overlaySet);
-        const int32_t numberOfOverlays(overlaySet->getNumberOfDisplayedOverlays());
-        for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
-            Overlay* overlay(overlaySet->getOverlay(iOverlay));
+        for (auto& vdi : volumeDrawingInfo) {
+            Overlay* overlay(vdi.m_overlay);
+            VolumeMappableInterface* vmi(vdi.m_volumeMappableInterface);
+            const int32_t mapIndex(vdi.m_mapIndex);
             CaretAssert(overlay);
-            if (overlay->isEnabled()) {
-                CaretMappableDataFile* mapFile(NULL);
-                int32_t mapIndex(-1);
-                overlay->getSelectionData(mapFile,
-                                          mapIndex);
+            CaretAssert(vmi);
+            CaretAssert(mapIndex >= 0);
+            AString errorMessage;
+            GraphicsPrimitive* primitive(vmi->getHistologyImageIntersectionPrimitive(mapIndex,
+                                                                                     displayGroup,
+                                                                                     tabIndex,
+                                                                                     imageFile,
+                                                                                     errorMessage));
+            if (primitive) {
+                const float alphaValue(overlay->getOpacity());
+                glPushAttrib(GL_COLOR_BUFFER_BIT);
+                if (alphaValue < 1.0) {
+                    CaretAssert((alphaValue >= 0.0)
+                                && (alphaValue <= 1.0));
+                    
+                    /*
+                     * The constant alpha comes from the overlay.
+                     * The layer being drawn gets (RGB * alphaValue)
+                     * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+                     */
+                    glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
+                    glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                        GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                        GL_ONE,                /* source (incoming) Alpha blending factor */
+                                        GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
+                    glEnable(GL_BLEND);
+                    
+                    /*
+                     * Only allow framebuffer update if the incoming alpha is greater than
+                     * zero.  For a label volume, voxels have alpha equal to zero
+                     * where there is no label.  This prevents an drawing of these
+                     * zero alpha voxels while allowing blending.
+                     */
+                    glAlphaFunc(GL_GREATER, 0.0);
+                    glEnable(GL_ALPHA_TEST);
+                }
+                else {
+                    m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                    
+                }
+                GraphicsEngineDataOpenGL::draw(primitive);
+                glPopAttrib();
                 
-                if (mapFile != NULL) {
-                    VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(mapFile));
-                    if (vmi != NULL) {
-                        AString errorMessage;
-                        GraphicsPrimitive* primitive(vmi->getHistologyImageIntersectionPrimitive(mapIndex,
-                                                                                                displayGroup,
-                                                                                                tabIndex,
-                                                                                                imageFile,
-                                                                                                errorMessage));
-                        if (primitive) {
-                            const float alphaValue(overlay->getOpacity());
-                            glPushAttrib(GL_COLOR_BUFFER_BIT);
-                            if (alphaValue < 1.0) {
-                                CaretAssert((alphaValue >= 0.0)
-                                            && (alphaValue <= 1.0));
-                                
-                                /*
-                                 * The constant alpha comes from the overlay.
-                                 * The layer being drawn gets (RGB * alphaValue)
-                                 * and current frame buffer gets (FrameRGB * (1 - alphaValue)
-                                 */
-                                glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
-                                glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
-                                                    GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
-                                                    GL_ONE,                /* source (incoming) Alpha blending factor */
-                                                    GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
-                                glEnable(GL_BLEND);
-                                
-                                /*
-                                 * Only allow framebuffer update if the incoming alpha is greater than
-                                 * zero.  For a label volume, voxels have alpha equal to zero
-                                 * where there is no label.  This prevents an drawing of these
-                                 * zero alpha voxels while allowing blending.
-                                 */
-                                glAlphaFunc(GL_GREATER, 0.0);
-                                glEnable(GL_ALPHA_TEST);
-
-                            }
-                            else {
-                                m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
-                                
-                            }
-                            GraphicsEngineDataOpenGL::draw(primitive);
-                            glPopAttrib();
-                            
-                            if (m_identificationStereotaxicXYZValidFlag) {
-                                const Plane* plane(mediaFile->getStereotaxicImagePlane());
-                                int64_t voxelIJK[3];
-                                vmi->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
-                                const float screenDepth(0.0);
-                                SelectionItemVoxel* voxelSelection(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getVoxelIdentification());
-                                voxelSelection->setVoxelIdentification(m_fixedPipelineDrawing->m_brain,
-                                                                       vmi,
-                                                                       voxelIJK,
-                                                                       m_identificationStereotaxicXYZ,
-                                                                       *plane,
-                                                                       screenDepth);
-                            }
-                        }
-                        else {
-                            CaretLogSevere(errorMessage);
-                        }
-                    }
-                    else {
-                        CaretLogSevere("File for drawing volume is not a volume mappable file: "
-                                       + mapFile->getFileName());
-                    }
+                if (m_identificationStereotaxicXYZValidFlag) {
+                    const Plane* plane(mediaFile->getStereotaxicImagePlane());
+                    int64_t voxelIJK[3];
+                    vmi->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
+                    const float screenDepth(0.0);
+                    SelectionItemVoxel* voxelSelection(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getVoxelIdentification());
+                    voxelSelection->setVoxelIdentification(m_fixedPipelineDrawing->m_brain,
+                                                           vmi,
+                                                           voxelIJK,
+                                                           m_identificationStereotaxicXYZ,
+                                                           *plane,
+                                                           screenDepth);
                 }
             }
+            else {
+                CaretLogSevere(errorMessage);
+            }
         }
-        
-        if (drawFirstOnlyFlag) {
-            break;
+    }
+    
+    glPopAttrib();
+}
+
+/**
+ * Draw volume overlays on a CziImage
+ * @param volumeDrawingInfo
+ *    Info on volumes for drawing
+ */
+void
+BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo)
+{
+    const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
+    const int32_t tabIndex(m_browserTabContent->getTabNumber());
+    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
+    
+    glPushAttrib(GL_DEPTH_BUFFER_BIT
+                 | GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    
+    CaretAssertVectorIndex(m_mediaFilesAndDataToDraw, 0);
+    MediaFile* mediaFile(m_mediaFilesAndDataToDraw[0].m_mediaFile);
+    CaretAssert(mediaFile);
+    const HistologySlice* histologySlice(m_mediaFilesAndDataToDraw[0].m_histologySlice);
+    CaretAssert(histologySlice);
+    
+    
+    for (auto& vdi : volumeDrawingInfo) {
+        Overlay* overlay(vdi.m_overlay);
+        VolumeMappableInterface* vmi(vdi.m_volumeMappableInterface);
+        const int32_t mapIndex(vdi.m_mapIndex);
+        CaretAssert(overlay);
+        CaretAssert(vmi);
+        CaretAssert(mapIndex >= 0);
+        AString errorMessage;
+        std::vector<GraphicsPrimitive*> primitives(vmi->getHistologySliceIntersectionPrimitive(mapIndex,
+                                                                                               displayGroup,
+                                                                                               tabIndex,
+                                                                                               histologySlice,
+                                                                                               errorMessage));
+        if ( ! primitives.empty()) {
+            const float alphaValue(overlay->getOpacity());
+            glPushAttrib(GL_COLOR_BUFFER_BIT);
+            if (alphaValue < 1.0) {
+                CaretAssert((alphaValue >= 0.0)
+                            && (alphaValue <= 1.0));
+                
+                /*
+                 * The constant alpha comes from the overlay.
+                 * The layer being drawn gets (RGB * alphaValue)
+                 * and current frame buffer gets (FrameRGB * (1 - alphaValue)
+                 */
+                glBlendColor(alphaValue, alphaValue, alphaValue, 0.0);
+                glBlendFuncSeparate(GL_CONSTANT_COLOR,           /* source (incoming) RGB blending factor */
+                                    GL_ONE_MINUS_CONSTANT_COLOR, /* destination (frame buffer) RGB blending factor */
+                                    GL_ONE,                /* source (incoming) Alpha blending factor */
+                                    GL_ZERO);                /* destination (frame buffer) Alpha blending factor */
+                glEnable(GL_BLEND);
+                
+                /*
+                 * Only allow framebuffer update if the incoming alpha is greater than
+                 * zero.  For a label volume, voxels have alpha equal to zero
+                 * where there is no label.  This prevents an drawing of these
+                 * zero alpha voxels while allowing blending.
+                 */
+                glAlphaFunc(GL_GREATER, 0.0);
+                glEnable(GL_ALPHA_TEST);
+            }
+            else {
+                m_fixedPipelineDrawing->setupBlending(BrainOpenGLFixedPipeline::BlendDataType::FEATURE_IMAGE);
+                
+            }
+            for (GraphicsPrimitive* p : primitives) {
+                GraphicsEngineDataOpenGL::draw(p);
+            }
+            glPopAttrib();
+            
+            if (m_identificationStereotaxicXYZValidFlag) {
+                const Plane* plane(mediaFile->getStereotaxicImagePlane());
+                int64_t voxelIJK[3];
+                vmi->enclosingVoxel(m_identificationStereotaxicXYZ, voxelIJK);
+                const float screenDepth(0.0);
+                SelectionItemVoxel* voxelSelection(m_fixedPipelineDrawing->m_brain->getSelectionManager()->getVoxelIdentification());
+                voxelSelection->setVoxelIdentification(m_fixedPipelineDrawing->m_brain,
+                                                       vmi,
+                                                       voxelIJK,
+                                                       m_identificationStereotaxicXYZ,
+                                                       *plane,
+                                                       screenDepth);
+            }
+        }
+        else {
+            CaretLogSevere(errorMessage);
         }
     }
     

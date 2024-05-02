@@ -30,6 +30,7 @@ namespace caret {
     
     class BoundingBox;
     class CaretMappableDataFile;
+    class HistologySlice;
     class MediaFile;
     class GraphicsPrimitive;
     class GraphicsPrimitiveV3fT3f;
@@ -501,6 +502,13 @@ namespace caret {
                                                                           const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
                                                                           AString& errorMessageOut) const = 0;
+        
+        virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
+                                                                                       const DisplayGroupEnum::Enum displayGroup,
+                                                                                       const int32_t tabIndex,
+                                                                                       const HistologySlice* histologySlice,
+                                                                                       AString& errorMessageOut) const = 0;
+
         /**
          * Get the volume space object, so we have access to all functions associated with volume spaces
          */

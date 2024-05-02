@@ -211,6 +211,36 @@ ImageFile::ImageFile(const unsigned char* imageDataRGBA,
 }
 
 /**
+ * Constructs an image file with black and zero alpha pixels
+ *
+ * @param imageWidth
+ *     Width of image.
+ * @param imageHeight
+ *     Height of image.
+ */
+ImageFile::ImageFile(const int imageWidth,
+                     const int imageHeight)
+: MediaFile(DataFileTypeEnum::IMAGE)
+{
+    initializeMembersImageFile();
+    
+    if (m_image != NULL) {
+        delete m_image;
+    }
+    m_image = new QImage(imageWidth,
+                         imageHeight,
+                         QImage::Format_ARGB32);
+    readFileMetaDataFromQImage();
+    
+    /*
+     * fill image with black with zero alpha
+     */
+    m_image->fill(QColor(0, 0, 0, 0));
+
+    readFileMetaDataFromQImage();
+}
+
+/**
  * Destructor.
  */
 ImageFile::~ImageFile()

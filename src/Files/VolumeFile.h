@@ -383,6 +383,12 @@ namespace caret {
                                                                           const MediaFile* mediaFile,
                                                                           AString& errorMessageOut) const override;
         
+        virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
+                                                                                       const DisplayGroupEnum::Enum displayGroup,
+                                                                                       const int32_t tabIndex,
+                                                                                       const HistologySlice* histologySlice,
+                                                                                       AString& errorMessageOut) const override;
+
         void getVoxelValuesForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,

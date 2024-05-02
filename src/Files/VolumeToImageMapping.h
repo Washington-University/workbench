@@ -33,6 +33,7 @@ namespace caret {
 
     class CaretMappableDataFile;
     class CiftiMappableDataFile;
+    class HistologySlice;
     class ImageFile;
     class MediaFile;
     class VolumeFile;
@@ -47,6 +48,12 @@ namespace caret {
                              const int32_t tabIndex,
                              const MediaFile* inputMediaFile);
         
+        VolumeToImageMapping(const VolumeMappableInterface* volumeInterface,
+                             const int32_t volumeFileMapIndex,
+                             const DisplayGroupEnum::Enum displayGroup,
+                             const int32_t tabIndex,
+                             const HistologySlice* histologySlice);
+        
         virtual ~VolumeToImageMapping();
         
         VolumeToImageMapping(const VolumeToImageMapping&) = delete;
@@ -55,16 +62,20 @@ namespace caret {
         
         bool runMapping(AString& errorMessageOut);
         
-        ImageFile* takeOutputImageFile();
+        int32_t getNumberOfOutputImageFiles() const;
+        
+        ImageFile* takeOutputImageFile(const int32_t index);
 
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
-        bool performMapping(AString& errorMessageOut);
+        bool performMapping(const MediaFile* mediaFile,
+                            AString& errorMessageOut);
         
-        bool validateInputs(AString& errorMessageOut);
+        bool validateInputs(const MediaFile* mediaFile,
+                            AString& errorMessageOut);
         
         bool validateMediaFile(const MediaFile* mediaFile,
                                const AString errorMessagePrefix,
@@ -82,11 +93,13 @@ namespace caret {
 
         const MediaFile* m_inputMediaFile;
         
+        const HistologySlice* m_histologySlice;
+        
         const VolumeFile* m_volumeFile;
         
         const CiftiMappableDataFile* m_ciftiMappableDataFile;
         
-        std::unique_ptr<ImageFile> m_outputImageFile;
+        std::vector<std::unique_ptr<ImageFile>> m_outputImageFiles;
         
         std::map<VoxelIJK, std::array<uint8_t, 4>> m_ijkRgbaMap;
         

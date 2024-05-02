@@ -127,6 +127,99 @@ MediaFileTransforms::copyHelper(const MediaFileTransforms& mft)
     m_inputs = mft.m_inputs;
 }
 
+/**
+ * Adjust for resizing of image
+ * @param oldWidth
+ *    Previous width of image
+ * @param oldHeight
+ *    Previous height of image
+ * @param newWidth
+ *    New width of image
+ * @param newHeight
+ *    New height of image
+ */
+void
+MediaFileTransforms::adjustForNewMediaFileSize(const int32_t oldWidth,
+                                               const int32_t oldHeight,
+                                               const int32_t newWidth,
+                                               const int32_t newHeight)
+{
+    if ((oldWidth == newWidth)
+        && (oldHeight == newHeight)) {
+        return;
+    }
+    if ((oldWidth <= 0)
+        || (oldHeight <= 0)
+        || (newWidth <= 0)
+        || (newHeight <= 0)) {
+        const AString msg("Values for adjusting media transforms must all be positive.  newWidth="
+                          + AString::number(newWidth)
+                          + ", newHeight=" + AString::number(newHeight)
+                          + ", oldWidth=" + AString::number(oldWidth)
+                          + ", oldHeight=" + AString::number(oldHeight));
+        CaretAssertMessage(0, msg);
+        return;
+    }
+    
+    if (debugFlag) {
+        printPixelToPlaneValues("Before Resize");
+    }
+    
+    m_inputs.m_logicalBoundsRect.setWidth(newWidth);
+    m_inputs.m_logicalBoundsRect.setHeight(newHeight);
+    const float widthScale(static_cast<float>(newWidth) / static_cast<float>(oldWidth));
+    const float heightScale(static_cast<float>(newHeight) / static_cast<float>(oldHeight));
+    
+    
+    if (m_inputs.m_pixelIndexToPlaneMatrixValidFlag) {
+        Matrix4x4 scaleMatrix;
+        scaleMatrix.scale(1.0 / widthScale, 1.0 / heightScale, 1.0);
+        m_inputs.m_pixelIndexToPlaneMatrix.premultiply(scaleMatrix);
+    }
+    
+    if (m_inputs.m_planeToPixelIndexMatrixValidFlag) {
+        Matrix4x4 scaleMatrix;
+        scaleMatrix.scale(widthScale, heightScale, 1.0);
+        m_inputs.m_planeToPixelIndexMatrix.premultiply(scaleMatrix);
+    }
+    
+    if (debugFlag) {
+        printPixelToPlaneValues("After Resize");
+    }
+}
+
+/**
+ * Print pixel to plane values at image corners
+ * @param title
+ *    Title for info printed
+ */
+void
+MediaFileTransforms::printPixelToPlaneValues(const QString& title)
+{
+    const PixelIndex originPixel(0, 0, 0);
+    Vector3D originPlaneXYZ, originStereoXYZ;
+    pixelIndexToPlaneXYZ(originPixel, originPlaneXYZ);
+    pixelIndexToStereotaxicXYZ(originPixel, originStereoXYZ);
+    
+    const PixelIndex farPixel(m_inputs.m_logicalBoundsRect.width() - 1,
+                              m_inputs.m_logicalBoundsRect.height() - 1,
+                              0);
+    Vector3D farPlaneXYZ, farStereoXYZ;
+    pixelIndexToPlaneXYZ(farPixel, farPlaneXYZ);
+    pixelIndexToStereotaxicXYZ(farPixel, farStereoXYZ);
+    
+    std::cout << title << ":" <<std::endl;
+    std::cout << "   Rect: " << m_inputs.m_logicalBoundsRect.x()
+    << ", " << m_inputs.m_logicalBoundsRect.y()
+    << ", " << m_inputs.m_logicalBoundsRect.width()
+    << ", " << m_inputs.m_logicalBoundsRect.height() << std::endl;
+    std::cout << "   Origin Pixel: " << originPixel.toString() << std::endl;
+    std::cout << "   Origin Plane XYZ: " << originPlaneXYZ.toString() << std::endl;
+    std::cout << "   Origin XYZ: " << originStereoXYZ.toString() << std::endl;
+    std::cout << "   Far Pixel: " << farPixel.toString() << std::endl;
+    std::cout << "   Far Plane XYZ: " << farPlaneXYZ.toString() << std::endl;
+    std::cout << "   Far XYZ: " << farStereoXYZ.toString() << std::endl;
+}
 
 /**
  * @return A pixel index converted from a pixel logical index.

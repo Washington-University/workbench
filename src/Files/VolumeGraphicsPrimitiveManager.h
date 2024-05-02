@@ -30,9 +30,12 @@
 #include "VoxelIJK.h"
 
 namespace caret {
+    class CaretDataFile;
     class CaretMappableDataFile;
+    class GraphicsPrimitive;
     class GraphicsPrimitiveV3fT3f;
     class GraphicsPrimitiveV3fT2f;
+    class HistologySlice;
     class ImageFile;
     class MediaFile;
     class VolumeMappableInterface;
@@ -68,12 +71,18 @@ namespace caret {
                                                                  const int32_t tabIndex) const;
 
 
-        GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimtiveForMap(const MediaFile* mediaFile,
-                                                                           const int32_t mapIndex,
-                                                                           const DisplayGroupEnum::Enum displayGroup,
-                                                                           const int32_t tabIndex,
-                                                                           AString& errorMessageOut) const;
+        GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
+                                                                            const int32_t mapIndex,
+                                                                            const DisplayGroupEnum::Enum displayGroup,
+                                                                            const int32_t tabIndex,
+                                                                            AString& errorMessageOut) const;
         
+        std::vector<GraphicsPrimitive*> getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
+                                                                                   const int32_t mapIndex,
+                                                                                   const DisplayGroupEnum::Enum displayGroup,
+                                                                                   const int32_t tabIndex,
+                                                                                   AString& errorMessageOut) const;
+
         void updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate);
 
         const VoxelColorUpdate* getVoxelColorUpdate(const int32_t mapIndex) const;
@@ -87,10 +96,10 @@ namespace caret {
     private:
         class ImageIntersectionKey {
         public:
-            ImageIntersectionKey(MediaFile* mediaFile,
+            ImageIntersectionKey(void* dataPtr,
                                  const int32_t mapIndex,
                                  const int32_t tabIndex)
-            : m_mediaFile(mediaFile),
+            : m_dataPtr(dataPtr),
             m_mapIndex(mapIndex),
             m_tabIndex(tabIndex)
             { }
@@ -105,7 +114,7 @@ namespace caret {
 //            }
             
             bool operator<(const ImageIntersectionKey& rhs) const {
-                if (m_mediaFile == rhs.m_mediaFile) {
+                if (m_dataPtr == rhs.m_dataPtr) {
                     if (m_mapIndex == rhs.m_mapIndex) {
                         return (m_tabIndex < rhs.m_tabIndex);
                     }
@@ -113,11 +122,11 @@ namespace caret {
                         return (m_mapIndex < rhs.m_mapIndex);
                     }
                 }
-                return (m_mediaFile < rhs.m_mediaFile);
+                return (m_dataPtr < rhs.m_dataPtr);
             }
 
             
-            MediaFile* m_mediaFile;
+            void* m_dataPtr;
             int32_t m_mapIndex;
             int32_t m_tabIndex;
         };
@@ -129,6 +138,8 @@ namespace caret {
                                                  AString& errorMessageOut) const;
 
         void updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const;
+        
+        void clearIntersectionImagePrimitives();
         
         CaretMappableDataFile* m_mapDataFile;
         
@@ -144,7 +155,8 @@ namespace caret {
         
 //        mutable std::vector<std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
 
-        mutable std::map<ImageIntersectionKey, std::unique_ptr<ImageFile>> m_mapIntersectionImageFiles;
+        mutable std::map<ImageIntersectionKey, std::vector<ImageFile*>> m_mapIntersectionImageFiles;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

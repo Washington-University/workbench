@@ -45,6 +45,7 @@ namespace caret {
     class BoundingBox;
     class CziNonLinearTransform;
     class GraphicsPrimitiveV3fT2f;
+    class ImageFile;
     class MediaFileChannelInfo;
     class Plane;
     class VolumeSpace;
@@ -67,6 +68,11 @@ namespace caret {
         MediaFile(const MediaFile& mediaFile);
 
         MediaFile& operator=(const MediaFile&) = delete;
+        
+        ImageFile* cloneAsImageFile(AString& errorMessageOut) const;
+        
+        ImageFile* cloneAsImageFileMaximumWidthHeight(const int32_t maximimumWidthHeight,
+                                                      AString& errorMessageOut) const;
         
         /**
          * @return The structure for this file.
@@ -286,6 +292,8 @@ namespace caret {
           
     protected: 
         MediaFile(const DataFileTypeEnum::Enum dataFileType);
+        
+        void copyMediaFileMembers(const MediaFile& mediaFile);
         
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);

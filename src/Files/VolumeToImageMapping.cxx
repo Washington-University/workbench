@@ -33,6 +33,8 @@
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
+#include "HistologySlice.h"
+#include "HistologySliceImage.h"
 #include "ImageFile.h"
 #include "VolumeFile.h"
 
@@ -69,7 +71,8 @@ m_volumeInterface(volumeInterface),
 m_volumeFileMapIndex(volumeFileMapIndex),
 m_displayGroup(displayGroup),
 m_tabIndex(tabIndex),
-m_inputMediaFile(inputMediaFile)
+m_inputMediaFile(inputMediaFile),
+m_histologySlice(NULL)
 {
     CaretAssert(m_volumeInterface);
     CaretAssert(m_inputMediaFile);
@@ -81,6 +84,44 @@ m_inputMediaFile(inputMediaFile)
     m_volumeFile = dynamic_cast<const VolumeFile*>(m_volumeMappableDataFile);
     m_ciftiMappableDataFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeMappableDataFile);
 }
+
+/**
+ * Constructor.
+ * @param volumeFile
+ *    Volume file mapped to image
+ * @param volumeFileMapIndex
+ *    Index of volume file for mapping to image
+ * @param displayGroup
+ *    The display group
+ * @param tabIndex
+ *    Index of the tab
+ * @param histologySlice
+ *    Histology slice for spatial information
+ */
+VolumeToImageMapping::VolumeToImageMapping(const VolumeMappableInterface* volumeInterface,
+                                           const int32_t volumeFileMapIndex,
+                                           const DisplayGroupEnum::Enum displayGroup,
+                                           const int32_t tabIndex,
+                                           const HistologySlice* histologySlice)
+: CaretObject(),
+m_volumeInterface(volumeInterface),
+m_volumeFileMapIndex(volumeFileMapIndex),
+m_displayGroup(displayGroup),
+m_tabIndex(tabIndex),
+m_inputMediaFile(NULL),
+m_histologySlice(histologySlice)
+{
+    CaretAssert(m_volumeInterface);
+    CaretAssert(m_histologySlice);
+    
+    m_volumeMappableDataFile = m_volumeInterface->castToVolumeMappableDataFile();
+    CaretAssert(m_volumeMappableDataFile);
+    CaretAssert((volumeFileMapIndex >= 0)
+                && (volumeFileMapIndex < m_volumeMappableDataFile->getNumberOfMaps()));
+    m_volumeFile = dynamic_cast<const VolumeFile*>(m_volumeMappableDataFile);
+    m_ciftiMappableDataFile = dynamic_cast<const CiftiMappableDataFile*>(m_volumeMappableDataFile);
+}
+
 
 /**
  * Destructor.
@@ -101,50 +142,93 @@ VolumeToImageMapping::runMapping(AString& errorMessageOut)
     bool successFlag(false);
     ElapsedTimer timer;
     timer.start();
-    if (validateInputs(errorMessageOut)) {
-        if (performMapping(errorMessageOut)) {
-            successFlag = true;
+    
+    std::vector<const MediaFile*> allInputMediaFiles;
+    
+    if (m_histologySlice != NULL) {
+        const int32_t numImages(m_histologySlice->getNumberOfHistologySliceImages());
+        for (int32_t i = 0; i < numImages; i++) {
+            const HistologySliceImage* hsi(m_histologySlice->getHistologySliceImage(i));
+            CaretAssert(hsi);
+            const MediaFile* mediaFile(hsi->getMediaFile());
+            CaretAssert(mediaFile);
+            allInputMediaFiles.push_back(mediaFile);
         }
+    }
+    else if (m_inputMediaFile != NULL) {
+        allInputMediaFiles.push_back(m_inputMediaFile);
     }
     
-    if ( ! successFlag) {
-        AString fileMsg;
-        AString volumeFileName("Invalid volume file name");
-        AString mediaFileName("Invalied media file name");
-        if (m_volumeMappableDataFile != NULL) {
-            fileMsg.appendWithNewLine("Volume File Name: " + m_volumeMappableDataFile->getFileName());
-            fileMsg.appendWithNewLine("Media File Name: " + mediaFileName);
-            errorMessageOut = (fileMsg
-                               + "\n"
-                               + errorMessageOut);
+    const int32_t numInputMediaFiles(allInputMediaFiles.size());
+    if (numInputMediaFiles <= 0) {
+        errorMessageOut.appendWithNewLine("No input images are available for mapping with volume data.");
+        return false;
+    }
+    
+    for (int32_t iMediaFileIndex = 0; iMediaFileIndex < numInputMediaFiles; iMediaFileIndex++) {
+        const MediaFile* mediaFile(allInputMediaFiles[iMediaFileIndex]);
+        CaretAssert(mediaFile);
+        
+        if (validateInputs(mediaFile,
+                           errorMessageOut)) {
+            if (performMapping(mediaFile,
+                               errorMessageOut)) {
+                successFlag = true;
+            }
+        }
+        
+        if ( ! successFlag) {
+            AString fileMsg;
+            AString volumeFileName("Invalid volume file name");
+            AString mediaFileName("Invalied media file name");
+            if (m_volumeMappableDataFile != NULL) {
+                fileMsg.appendWithNewLine("Volume File Name: " + m_volumeMappableDataFile->getFileName());
+                fileMsg.appendWithNewLine("Media File Name: " + mediaFileName);
+                errorMessageOut = (fileMsg
+                                   + "\n"
+                                   + errorMessageOut);
+                
+                /*
+                 * Exit loop since there is an error
+                 */
+                break;
+            }
         }
     }
-    //std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+//    std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
     
     return successFlag;
 }
 
 /**
  * @return True if the inputs are valid, else false.
+ * @param mediaFile
+ *    Media file that is being mapped to volume
  * @param errorMessageOut
  *   In inputs are not valid, contains error information
  */
 bool
-VolumeToImageMapping::performMapping(AString& errorMessageOut)
+VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
+                                     AString& errorMessageOut)
 {
     errorMessageOut.clear();
-    
-    const ImageFile* inputImageFile(m_inputMediaFile->castToImageFile());
-    if (inputImageFile == NULL) {
-        errorMessageOut = ("Mapping volume to image supports only image files for "
-                           + m_inputMediaFile->getFileName());
+            
+    /*
+     * Create output image file by cloning as an image file
+     */
+    const int32_t maxImageDim(2000);
+    ImageFile* outputImageFile(mediaFile->cloneAsImageFileMaximumWidthHeight(maxImageDim,
+                                                                             errorMessageOut));
+//    ImageFile* outputImageFile(mediaFile->cloneAsImageFile(errorMessageOut));
+    if (outputImageFile == NULL) {
         return false;
     }
+    outputImageFile->setFileName("VolumeMapping_"
+                                 + AString::number(m_outputImageFiles.size())
+                                 + ".png");
+    std::unique_ptr<ImageFile> ptrOutputImageFile(outputImageFile);
         
-    m_outputImageFile.reset(new ImageFile(*inputImageFile));
-    m_outputImageFile->setFileName("VolumeMapping.png");
-        
-    if ( ! validateMediaFile(m_outputImageFile.get(),
+    if ( ! validateMediaFile(outputImageFile,
                              "Output image file copied from input image file ",
                              errorMessageOut)) {
         return false;
@@ -175,8 +259,8 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
         unassignedLabelKey = labelTable->getUnassignedLabelKey();
     }
     
-    const int64_t imageWidth(m_outputImageFile->getWidth());
-    const int64_t imageHeight(m_outputImageFile->getHeight());
+    const int64_t imageWidth(outputImageFile->getWidth());
+    const int64_t imageHeight(outputImageFile->getHeight());
     
     bool rowFlag(true);
     std::vector<uint8_t> rowRGBA;
@@ -205,8 +289,8 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
              */
             pixelIndex.setIJK(iCol, jRow, 0);
             Vector3D xyz;
-            if (m_outputImageFile->pixelIndexToStereotaxicXYZ(pixelIndex,
-                                                              xyz)) {
+            if (outputImageFile->pixelIndexToStereotaxicXYZ(pixelIndex,
+                                                            xyz)) {
                 ++validPixelCounter;
                 
                 int64_t ijk[3];
@@ -305,29 +389,39 @@ VolumeToImageMapping::performMapping(AString& errorMessageOut)
                 rowRGBA[i4+3] = pixelRGBA[3];
             }
             else {
-                m_outputImageFile->setPixelRGBA(invalidTabIndex,
-                                                invalidOverlayIndex,
-                                                pixelIndex,
-                                                pixelRGBA.data());
+                outputImageFile->setPixelRGBA(invalidTabIndex,
+                                              invalidOverlayIndex,
+                                              pixelIndex,
+                                              pixelRGBA.data());
             }
         } /* for iCol */
         
         if (rowFlag) {
-            m_outputImageFile->setPixelRowRGBA(jRow,
-                                               rowRGBA);
+            outputImageFile->setPixelRowRGBA(jRow,
+                                             rowRGBA);
         }
     } /* for jRow */
+    
+    if (validPixelCounter > 0) {
+        m_outputImageFiles.push_back(std::move(ptrOutputImageFile));
+    }
+    else {
+        errorMessageOut.appendWithNewLine("No intersection between image and volume");
+    }
     
     return (validPixelCounter > 0);
 }
 
 /**
  * @return True if the inputs are valid, else false.
+ * @param mediaFile
+ *    Media file that is being mapped to volume
  * @param errorMessageOut
  *   In inputs are not valid, contains error information
  */
 bool
-VolumeToImageMapping::validateInputs(AString& errorMessageOut)
+VolumeToImageMapping::validateInputs(const MediaFile* mediaFile,
+                                     AString& errorMessageOut)
 {
     errorMessageOut.clear();
     
@@ -350,12 +444,11 @@ VolumeToImageMapping::validateInputs(AString& errorMessageOut)
                                            + AString::fromNumbers(dims));
         }
     }
-        
-    if (validateMediaFile(m_inputMediaFile,
-                          "Input media file ",
-                          errorMessageOut)) {
-    }
-    
+
+    validateMediaFile(mediaFile,
+                      "Input media file ",
+                      errorMessageOut);
+
     return (errorMessageOut.isEmpty());
 }
 
@@ -398,21 +491,32 @@ VolumeToImageMapping::validateMediaFile(const MediaFile* mediaFile,
 }
 
 /**
+ * @return Number of output image files
+ */
+int32_t
+VolumeToImageMapping::getNumberOfOutputImageFiles() const
+{
+    return m_outputImageFiles.size();
+}
+
+/**
  * @return Image file that was created by the mapping process.
  * This "takes" the image file that was created and caller is responsible
  * for destroying the returned image file.  NULL is returned if the
  * mapping process failed or if this method is called more than one time.
+ * @param index
+ *    Index of the image file
  */
 ImageFile*
-VolumeToImageMapping::takeOutputImageFile()
+VolumeToImageMapping::takeOutputImageFile(const int32_t index)
 {
     ImageFile* file(NULL);
-    if (m_outputImageFile) {
-        file = m_outputImageFile.release();
+    CaretAssertVectorIndex(m_outputImageFiles, index);
+    if (m_outputImageFiles[index]) {
+        file = m_outputImageFiles[index].release();
     }
     return file;
 }
-
 
 /**
  * Get a description of this object's content.

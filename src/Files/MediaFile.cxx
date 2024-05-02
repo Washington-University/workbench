@@ -27,6 +27,8 @@
 #include "CaretLogger.h"
 #include "CziUtilities.h"
 #include "DataFileContentInformation.h"
+#include "GraphicsUtilitiesOpenGL.h"
+#include "ImageFile.h"
 #include "MediaFileChannelInfo.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -76,8 +78,20 @@ MediaFile::MediaFile(const DataFileTypeEnum::Enum dataFileType)
 MediaFile::MediaFile(const MediaFile& mediaFile)
 : CaretDataFile(mediaFile)
 {
+    copyMediaFileMembers(mediaFile);
+}
+
+
+/**
+ * Copy constructor.
+ * @param mediaFile
+ *    Media file that is copied.
+ */
+void
+MediaFile::copyMediaFileMembers(const MediaFile& mediaFile)
+{
     initializeMembersMediaFile();
-    
+
     if (mediaFile.m_mediaFileChannelInfo) {
         m_mediaFileChannelInfo.reset(new MediaFileChannelInfo(*mediaFile.m_mediaFileChannelInfo.get()));
     }
@@ -142,6 +156,139 @@ MediaFile::initializeMembersMediaFile()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
 }
 
+/**
+ * @return This instance cloned as an ImageFile or NULL if cloning failed.
+ * @param errorMessageOut
+ *    Contains error information if failure.
+ */
+ImageFile*
+MediaFile::cloneAsImageFile(AString& errorMessageOut) const
+{
+    const int32_t width(getWidth());
+    const int32_t height(getHeight());
+    
+    const int32_t maxWH(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+    if ((width > maxWH)
+        || (height > maxWH)) {
+        errorMessageOut.appendWithNewLine("Media file is too large to clone as image.  "
+                                          "Width=" + AString::number(width)
+                                          + "Height=" + AString::number(height)
+                                          + " cannot be greater than "
+                                          + AString::number(maxWH));
+        return NULL;
+    }
+    
+    {
+        /*
+         * If this is an image file, simply copy it
+         */
+        const ImageFile* imageFile(castToImageFile());
+        if (imageFile != NULL) {
+            return new ImageFile(*imageFile);
+        }
+    }
+    
+    
+    ImageFile* imageFile(new ImageFile(width,
+                                       height));
+    if (imageFile != NULL) {
+        imageFile->copyMediaFileMembers(*this);
+    }
+    else {
+        errorMessageOut = "Memory failure cloning as image file";
+    }
+    
+    return imageFile;
+}
+
+/**
+ * Clone the image with the maximum width and/or height.  If this media file has a width
+ * or height greater than the maximumWidthHeight, the image is resized while keeping
+ * the aspect ratio.
+ * @param maximumWidthHeight
+ *    Maximum width/height for image
+ * @return This instance cloned as an ImageFile or NULL if cloning failed.
+ * @param errorMessageOut
+ *    Contains error information if failure.
+ */
+ImageFile*
+MediaFile::cloneAsImageFileMaximumWidthHeight(const int32_t maximimumWidthHeight,
+                                              AString& errorMessageOut) const
+{
+    const int32_t maxWH(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+    if (maximimumWidthHeight > maxWH) {
+        errorMessageOut = ("Maximimum Width Height for cloning image must be less than OpenGL limit of "
+                           + AString::number(maxWH));
+        return NULL;
+    }
+    else if (maximimumWidthHeight <= 0) {
+        errorMessageOut = ("Maximimum Width Height for cloning image must be positive, value= "
+                           + AString::number(maximimumWidthHeight));
+    }
+    const int32_t width(getWidth());
+    const int32_t height(getHeight());
+    
+    if (maximimumWidthHeight <= 0) {
+        if ((width > maxWH)
+            || (height > maxWH)) {
+            errorMessageOut = ("Media file is too large to clone as image.  "
+                               "Width=" + AString::number(width)
+                               + "Height=" + AString::number(height)
+                               + " cannot be greater than OpenGL limit of "
+                               + AString::number(maxWH));
+            return NULL;
+        }
+    }
+    
+    if (maximimumWidthHeight <= 0) {
+        /*
+         * If this is an image file, simply copy it
+         */
+        const ImageFile* imageFile(castToImageFile());
+        if (imageFile != NULL) {
+            return new ImageFile(*imageFile);
+        }
+    }
+    
+    const float aspectRatio(static_cast<float>(height) / static_cast<float>(width));
+    int32_t newWidth(width);
+    int32_t newHeight(height);
+    if (maximimumWidthHeight > 0) {
+        if (newWidth > newHeight) {
+            if (newWidth > maximimumWidthHeight) {
+                newWidth = maximimumWidthHeight;
+                newHeight = newWidth * aspectRatio;
+            }
+        }
+        else {
+            if (newHeight > maximimumWidthHeight) {
+                newHeight = maximimumWidthHeight;
+                newWidth  = ((aspectRatio > 0)
+                             ? (newHeight / aspectRatio)
+                             : newHeight);
+            }
+        }
+    }
+    ImageFile* imageFile(new ImageFile(newWidth,
+                                       newHeight));
+    if (imageFile != NULL) {
+        imageFile->copyMediaFileMembers(*this);
+        if ((newWidth != width)
+            || (newHeight != height)) {
+            imageFile->m_mediaFileTransforms.adjustForNewMediaFileSize(width,
+                                                                       height,
+                                                                       newWidth,
+                                                                       newHeight);
+        }
+    }
+    else {
+        errorMessageOut = "Memory failure cloning as image file";
+    }
+        
+    
+    return imageFile;
+
+}
 
 /**
  * @return Name of frame at given index.
