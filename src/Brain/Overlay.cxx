@@ -31,6 +31,7 @@
 #include "CaretMappableDataFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "DeveloperFlagsEnum.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventManager.h"
 #include "EventOverlayValidate.h"
@@ -388,7 +389,16 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                 useIt = true;
             }
             if (showVolumeMapFilesForHistology) {
-                if (mapFile->isMappedWithLabelTable()) {
+                if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER)) {
+                    /*
+                     * Any volume mappable
+                     */
+                    useIt = true;
+                }
+                else if (mapFile->isMappedWithLabelTable()) {
+                    /*
+                     * Volume label mappable ONLY
+                     */
                     useIt = true;
                 }
             }

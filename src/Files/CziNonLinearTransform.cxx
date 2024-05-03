@@ -263,7 +263,7 @@ CziNonLinearTransform::getNonLinearOffset(const Vector3D& xyz,
     offsetXyzOut[1] = 0.0;
     offsetXyzOut[2] = 0.0;
     
-    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_NON_LINEAR)) {
+    if ( ! DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION)) {
         /*
          * Non-linear offsets disabled
          */

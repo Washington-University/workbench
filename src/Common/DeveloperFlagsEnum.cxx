@@ -167,15 +167,21 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_META_IMAGE_NON_LINEAR,
-                                                "DEVELOPER_FLAG_META_IMAGE_NON_LINEAR",
-                                                "Correct for non-linear distortion in meta-images",
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER,
+                                                "DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER",
+                                                "Histology - Allow any volume type as layer",
+                                                CheckableEnum::YES,
+                                                false));
+
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION,
+                                                "DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION",
+                                                "Histology - Correct for non-linear distortion",
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_META_IMAGE_OVERLAP,
-                                                "DEVELOPER_FLAG_META_IMAGE_OVERLAP",
-                                                "Correct for image overlap in meta-image display",
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP,
+                                                "DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP",
+                                                "Histology - Correct for image overlap",
                                                 CheckableEnum::YES,
                                                 true));
         
@@ -303,10 +309,14 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
             toolTip = ("MPR Three: Prevents slices from jumping if the selected slices are changed "
                        " and there is non-zero rotation.");
             break;
-        case DEVELOPER_FLAG_META_IMAGE_NON_LINEAR:
+        case DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER:
+            toolTip = ("When ON, allow all volume mappable CIFTI Files and all Volume Files as a layer for "
+                       "Histology.  When OFF, only label type CIFTI and Volume Files.");
+            break;
+        case DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION:
             toolTip = ("Corrects for non-linear distortion in images from meta-images files.");
             break;
-        case DEVELOPER_FLAG_META_IMAGE_OVERLAP:
+        case DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP:
             toolTip = ("Corrects to fix overlap when there are multiple images for a slice from "
                        "a meta-image file.");
             break;

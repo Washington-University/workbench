@@ -151,7 +151,7 @@ PreferencesDevelopOptionsWidget::developerFlagSelected(const DeveloperFlagsEnum:
 {
     DeveloperFlagsEnum::setFlag(flag,
                                 status);
-    if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_NON_LINEAR) {
+    if (flag == DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION) {
         EventManager::get()->sendEvent(EventVolumeColoringInvalidate().getPointer());
     }
     updateGraphicsAndUserInterface();

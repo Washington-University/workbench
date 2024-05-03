@@ -468,7 +468,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
              * other images.
              */
             GraphicsPrimitiveV3fT2f* stencilMaskingPrimitive(NULL);
-            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_META_IMAGE_OVERLAP)) {
+            if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_HISTOLOGY_CORRECT_IMAGE_OVERLAP)) {
                 if (drawingData.m_histologySliceImage != NULL) {
                     stencilMaskingPrimitive = drawingData.m_histologySliceImage->getStencilMaskingImagePrimitive();
                 }
