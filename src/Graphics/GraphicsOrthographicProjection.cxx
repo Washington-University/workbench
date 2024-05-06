@@ -57,23 +57,23 @@ GraphicsOrthographicProjection::GraphicsOrthographicProjection()
  *    Bottom side of projection
  * @param top
  *    Top side of projection
- * @param near
+ * @param nearValue
  *    Near side of projection
- * @param far
+ * @param farValue
  *    Far side of projection
  */
 GraphicsOrthographicProjection::GraphicsOrthographicProjection(const double left,
                                                                const double right,
                                                                const double bottom,
                                                                const double top,
-                                                               const double near,
-                                                               const double far)
+                                                               const double nearValue,
+                                                               const double farValue)
 : m_left(left),
 m_right(right),
 m_bottom(bottom),
 m_top(top),
-m_near(near),
-m_far(far)
+m_near(nearValue),
+m_far(farValue)
 {
 }
 
@@ -278,9 +278,9 @@ GraphicsOrthographicProjection::resetToInvalid()
  *    Bottom side of projection
  * @param top
  *    Top side of projection
- * @param near
+ * @param nearValue
  *    Near side of projection
- * @param far
+ * @param farValue
  *    Far side of projection
  */
 void
@@ -288,15 +288,15 @@ GraphicsOrthographicProjection::set(const double left,
                                     const double right,
                                     const double bottom,
                                     const double top,
-                                    const double near,
-                                    const double far)
+                                    const double nearValue,
+                                    const double farValue)
 {
     m_left   = left;
     m_right  = right;
     m_bottom = bottom;
     m_top    = top;
-    m_near   = near;
-    m_far    = far;
+    m_near   = nearValue;
+    m_far    = farValue;
 }
 
 /**

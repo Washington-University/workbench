@@ -38,8 +38,8 @@ namespace caret {
                                        const double right,
                                        const double bottom,
                                        const double top,
-                                       const double near,
-                                       const double far);
+                                       const double nearValue,
+                                       const double farValue);
         
         virtual ~GraphicsOrthographicProjection();
         
@@ -81,8 +81,8 @@ namespace caret {
                  const double right,
                  const double bottom,
                  const double top,
-                 const double near,
-                 const double far);
+                 const double nearValue,
+                 const double farValue);
         
         // ADD_NEW_METHODS_HERE
 
