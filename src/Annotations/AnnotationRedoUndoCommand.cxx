@@ -143,7 +143,7 @@ AnnotationRedoUndoCommand::applyRedoOrUndo(Annotation* annotation,
             annotationBrowserTab->setBounds2D(minX, maxX, minY, maxY);
         }
             break;
-        case AnnotationRedoUndoCommandModeEnum::COLOR_BACKGROUND:
+        case AnnotationRedoUndoCommandModeEnum::COLOR_OF_BACKGROUND:
         {
             CaretAssert(annotationValue);
             annotation->setBackgroundColor(annotationValue->getBackgroundColor());
@@ -1578,7 +1578,7 @@ AnnotationRedoUndoCommand::setModeColorBackground(const CaretColorEnum::Enum col
                                               const float customColor[4],
                                               const std::vector<Annotation*>& annotations)
 {
-    m_mode        = AnnotationRedoUndoCommandModeEnum::COLOR_BACKGROUND;
+    m_mode        = AnnotationRedoUndoCommandModeEnum::COLOR_OF_BACKGROUND;
     setDescription("Background Color");
     
     for (std::vector<Annotation*>::const_iterator iter = annotations.begin();

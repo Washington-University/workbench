@@ -122,8 +122,8 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "BOUNDS_2D_SINGLE",
                                                          "Bounds 2D Single"));
     
-    enumData.push_back(AnnotationRedoUndoCommandModeEnum(COLOR_BACKGROUND,
-                                                     "COLOR_BACKGROUND",
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(COLOR_OF_BACKGROUND,
+                                                     "COLOR_OF_BACKGROUND",
                                                      "Color - Background"));
     
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(COLOR_FOREGROUND,

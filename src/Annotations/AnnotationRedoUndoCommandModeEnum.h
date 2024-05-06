@@ -43,8 +43,8 @@ public:
         BOUNDS_2D_ALL,
         /** Set one of the bounds in 2D */
         BOUNDS_2D_SINGLE,
-        /** Color - Background */
-        COLOR_BACKGROUND,
+        /** Color - Background Note "COLOR_BACKGROUND no longer compiles on Windows */
+        COLOR_OF_BACKGROUND,
         /** Color - Foreground */
         COLOR_FOREGROUND,
         /** Coordinate All */
