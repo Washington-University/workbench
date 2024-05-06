@@ -182,15 +182,15 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
         CaretAssert(orthoTopOut > orthoBottomOut);
     }
     
-    const double near(-1.0);
-    const double far(1.0);
+    const double nearValue(-1.0);
+    const double farValue(1.0);
     
     orthographicsProjectionOut.set(orthoLeftOut,
                                    orthoRightOut,
                                    orthoBottomOut,
                                    orthoTopOut,
-                                   near,
-                                   far);
+                                   nearValue,
+                                   farValue);
     return true;
 }
 
