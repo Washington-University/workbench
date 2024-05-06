@@ -104,10 +104,10 @@ Algorithms
 OperationsBase
 Brain
 Files
-Graphics
 ${FTGL_LIBRARIES}
 Annotations
 Palette
+Graphics
 Gifti
 Cifti
 Nifti

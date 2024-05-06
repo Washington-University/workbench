@@ -147,9 +147,9 @@ ${Qwt_LIBRARIES}
 OSMesaDummy
 Brain
 Files
-Graphics
 ${FTGL_LIBRARIES}
 Annotations
+Graphics
 Charting
 Palette
 Cifti
