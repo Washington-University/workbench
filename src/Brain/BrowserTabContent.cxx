@@ -4870,7 +4870,7 @@ void
 BrowserTabContent::setHistologyScalingFromGui(BrainOpenGLViewportContent* viewportContent,
                                               const float scaling)
 {
-    if (isMediaDisplayed()) {
+    if (isHistologyDisplayed()) {
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
         getViewingTransformation()->setHistologyScaling(xform,
                                                         scaling);
