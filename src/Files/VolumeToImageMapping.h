@@ -81,6 +81,9 @@ namespace caret {
                                const AString errorMessagePrefix,
                                AString& errorMessageInOut);
         
+        int32_t getImageBestDimension(const MediaFile* mediaFile,
+                                      const VolumeMappableInterface* volumeInterface) const;
+        
         const VolumeMappableInterface* m_volumeInterface;
         
         const int32_t m_volumeFileMapIndex;

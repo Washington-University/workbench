@@ -212,14 +212,20 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
                                      AString& errorMessageOut)
 {
     errorMessageOut.clear();
-            
+         
+    const bool limitDimensionsFlag(false);
+    if (limitDimensionsFlag) {
+        const int32_t bestDimension(getImageBestDimension(mediaFile,
+                                                          m_volumeInterface));
+        std::cout << "Best dimension: " << bestDimension << std::endl;
+    }
+
     /*
      * Create output image file by cloning as an image file
      */
     const int32_t maxImageDim(2000);
     ImageFile* outputImageFile(mediaFile->cloneAsImageFileMaximumWidthHeight(maxImageDim,
                                                                              errorMessageOut));
-//    ImageFile* outputImageFile(mediaFile->cloneAsImageFile(errorMessageOut));
     if (outputImageFile == NULL) {
         return false;
     }
@@ -517,6 +523,47 @@ VolumeToImageMapping::takeOutputImageFile(const int32_t index)
     }
     return file;
 }
+
+/**
+ * @return Best maximum dimension for output image file
+ * @param mediaFile
+ *    Media file for mapping to
+ * @param volumeInterface
+ *    Volume Interface mapped to image
+ */
+int32_t
+VolumeToImageMapping::getImageBestDimension(const MediaFile* mediaFile,
+                                            const VolumeMappableInterface* volumeInterface) const
+{
+    int32_t dimOut(-1);
+    
+    CaretAssert(mediaFile);
+    CaretAssert(volumeInterface);
+    
+    const PixelIndex topLeftPixel(0, 0);
+    const PixelIndex topRightPixel(0, mediaFile->getWidth() - 1);
+    Vector3D topLeftStereotaxicXYZ;
+    Vector3D topRightStereotaxicXYZ;
+    
+    if (mediaFile->pixelIndexToStereotaxicXYZ(topLeftPixel,
+                                                     topLeftStereotaxicXYZ)
+        && mediaFile->pixelIndexToStereotaxicXYZ(topRightPixel,
+                                                        topRightStereotaxicXYZ)) {
+        const float imageWidthMM((topLeftStereotaxicXYZ - topRightStereotaxicXYZ).length());
+        const float imageWidthPixels(mediaFile->getWidth());
+        const float imagePixelsPerMillimeter(imageWidthPixels
+                                             / imageWidthMM);
+        const float voxelSizeMM(volumeInterface->getMaximumVoxelSpacing());
+        const float pixelsPerVoxel(imagePixelsPerMillimeter * voxelSizeMM);
+        
+        
+        std::cout << "Pixels Per MM: " << imagePixelsPerMillimeter << std::endl;
+        std::cout << "Pixels Per Voxel: " << pixelsPerVoxel << std::endl;
+        
+    }
+    return dimOut;
+}
+
 
 /**
  * Get a description of this object's content.
