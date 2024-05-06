@@ -167,12 +167,6 @@ DeveloperFlagsEnum::initialize()
                                                 CheckableEnum::YES,
                                                 true));
     
-    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER,
-                                                "DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER",
-                                                "Histology - Allow any volume type as layer",
-                                                CheckableEnum::YES,
-                                                false));
-
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION,
                                                 "DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION",
                                                 "Histology - Correct for non-linear distortion",
@@ -308,10 +302,6 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
         case DEVELOPER_FLAG_MPR_THREE_SLICES_CHANGED_JUMP_FIX:
             toolTip = ("MPR Three: Prevents slices from jumping if the selected slices are changed "
                        " and there is non-zero rotation.");
-            break;
-        case DEVELOPER_FLAG_HISTOLOGY_ANY_VOLUME_TYPE_AS_LAYER:
-            toolTip = ("When ON, allow all volume mappable CIFTI Files and all Volume Files as a layer for "
-                       "Histology.  When OFF, only label type CIFTI and Volume Files.");
             break;
         case DEVELOPER_FLAG_HISTOLOGY_CORRECT_FOR_NON_LINEAR_DISTORTION:
             toolTip = ("Corrects for non-linear distortion in images from meta-images files.");
