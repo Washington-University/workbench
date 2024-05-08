@@ -1840,6 +1840,24 @@ Matrix4x4::setMatrixElement(
     this->setModified();
 }
 
+Vector3D
+Matrix4x4::getBasisVector(const int32_t columnIndex) const
+{
+    if ((columnIndex >= 0)
+        && (columnIndex <= 2)) {
+        Vector3D v(this->matrix[0][columnIndex],
+                   this->matrix[1][columnIndex],
+                   this->matrix[2][columnIndex]);
+        return v;
+    }
+    else {
+        CaretLogSevere("Invalid column index="
+                       + AString::number(columnIndex)
+                       + " for basis vector.  Must be in range [0, 2]");
+    }
+    return Vector3D();
+}
+
 /**
  * Determine if two matrices are approximately equal.
  * @param m -  matrix to compare.

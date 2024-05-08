@@ -171,6 +171,8 @@ public:
     void setColumn(const int32_t columnIndex,
                    const double column[4]);
     
+    Vector3D getBasisVector(const int32_t columnIndex) const;
+    
     double getMatrixElement(
             const int32_t i,
             const int32_t j) const;
