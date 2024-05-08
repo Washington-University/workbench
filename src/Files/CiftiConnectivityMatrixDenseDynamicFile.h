@@ -82,9 +82,9 @@ namespace caret {
         
         CiftiFile* m_parentDataSeriesCiftiFile;
         
-        int32_t m_numberOfBrainordinates;
+        int64_t m_numberOfBrainordinates;
         
-        int32_t m_numberOfTimePoints;
+        int64_t m_numberOfTimePoints;
         
         bool m_validDataFlag;
         
