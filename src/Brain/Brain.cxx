@@ -7226,7 +7226,8 @@ Brain::receiveEvent(Event* event)
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE) {
         EventVolumeColoringInvalidate* colorEvent(dynamic_cast<EventVolumeColoringInvalidate*>(event));
-        CaretAssert(event);
+        CaretAssert(colorEvent);
+        colorEvent->setEventProcessed();
         
         std::vector<CaretMappableDataFile*> allMapFiles;
         getAllMappableDataFiles(allMapFiles);

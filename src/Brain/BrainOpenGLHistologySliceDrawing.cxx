@@ -901,7 +901,6 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
     
     const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
     const int32_t tabIndex(m_browserTabContent->getTabNumber());
-    const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
 
     /*
      * Find any volumes to draw
@@ -941,17 +940,14 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
         return;
     }
     
-
-    bool haveCziImageUnderlayFileFlag(false);
-    bool haveImageUnderlayFileFlag(false);
     const int32_t numMediaFiles(m_mediaFilesAndDataToDraw.size());
     if (numMediaFiles > 0) {
         const MediaFile* underlayMediaFile(m_mediaFilesAndDataToDraw[0].m_mediaFile);
         if (underlayMediaFile->castToCziImageFile() != NULL) {
-            haveCziImageUnderlayFileFlag = true;
+            /* ok */
         }
         else if (underlayMediaFile->castToImageFile()) {
-            haveImageUnderlayFileFlag = true;
+            /* ok */
         }
         else {
             /*
@@ -967,12 +963,6 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
     }
 
     drawVolumeOverlaysOnCziImageFile(volumeDrawingInfo);
-//    if (haveCziImageUnderlayFileFlag) {
-//        drawVolumeOverlaysOnCziImageFile(volumeDrawingInfo);
-//    }
-//    else if (haveImageUnderlayFileFlag) {
-//        drawVolumeOverlaysOnImageFile(volumeDrawingInfo);
-//    }
 }
 
 /**
