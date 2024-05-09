@@ -483,6 +483,11 @@ namespace caret {
         void setTransformationsFromModelTransform(const ModelTransform& modelTransform,
                                                   const MprThreeRotationUpdateType mprThreeRotationUpdateType);
         
+        void setMprThreeRotationAnglesForYokingGroup(const YokingGroupEnum::Enum yokingGroup,
+                                                     const Vector3D& mprRotationAngles);
+
+        void setMprThreeRotationAngles(const Vector3D& mprRotationAngles);
+        
         ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties();
 
         const ChartTwoMatrixDisplayProperties* getChartTwoMatrixDisplayProperties() const;
@@ -641,6 +646,12 @@ namespace caret {
                                             const MoveYokedVolumeSlices moveYokedVolumeSlices);
                 
         void selectHistologySlicesAtOrigin(const HistologySlicesFile* histologySlicesFile);
+        
+        bool isHistologyOrientationAppliedToYoking() const;
+        
+        void setHistologyOrientationAppliedToYoking(const bool status);
+        
+        YokingGroupEnum::Enum applyHistologyOrientationYoking();
         
         bool isLightingEnabled() const;
         
@@ -949,6 +960,9 @@ namespace caret {
         
         /** aspect ratio locked */
         bool m_aspectRatioLocked;
+        
+        /** Apply orientation of histology to Yoking */
+        bool m_histologyOrientationAppliedToYokingFlag = false;
         
         /** 
          * If true, selected volume slices in tab move to location

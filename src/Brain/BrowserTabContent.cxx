@@ -198,6 +198,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     resetMprRotations();
     
     m_histologySliceSettings = new HistologySliceSettings();
+    m_histologyOrientationAppliedToYokingFlag = false;
     
     m_volumeSliceSettings = new VolumeSliceSettings();
     
@@ -256,6 +257,9 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_sceneClassAssistant->add("m_histologySliceSettings",
                                "HistologySliceSettings",
                                m_histologySliceSettings);
+    
+    m_sceneClassAssistant->add("m_histologyOrientationAppliedToYokingFlag",
+                               &m_histologyOrientationAppliedToYokingFlag);
     
     m_sceneClassAssistant->add("m_volumeSliceSettings",
                                "VolumeSliceSettings",
@@ -480,6 +484,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     *m_samplesDrawingSettings = *tabToClone->m_samplesDrawingSettings;
     
     Model* model = getModelForDisplay();
+    
+    /* not cloned m_histologyOrientationAppliedToYokingFlag = tabToClone->m_histologyOrientationAppliedToYokingFlag; */
     
     if (model != NULL) {
         Brain* brain = model->getBrain();
@@ -5985,6 +5991,44 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     updateYokedModelBrowserTabs();
 }
 
+/**
+ * Set the MPR rotation angles if this tab is yoked to the given yoking group (and not OFF)
+ * @param yokingGroup
+ *    The yoking group
+ * @param mprRotationAngles
+ *    The MPR rotation angles
+ */
+void
+BrowserTabContent::setMprThreeRotationAnglesForYokingGroup(const YokingGroupEnum::Enum yokingGroup,
+                                                           const Vector3D& mprRotationAngles)
+{
+    if (m_brainModelYokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+        if (m_brainModelYokingGroup == yokingGroup) {
+            setMprThreeRotationAngles(mprRotationAngles);
+            updateBrainModelYokedBrowserTabs();
+        }
+    }
+}
+
+/**
+ * Set the MPR rotation angles
+ * @param mprRotationAngles
+ *    The MPR rotation angles
+ */
+void
+BrowserTabContent::setMprThreeRotationAngles(const Vector3D& mprRotationAngles)
+{
+    m_mprThreeRotationSeparateQuaternion = QQuaternion::fromEulerAngles(mprRotationAngles[0],
+                                                                        mprRotationAngles[1],
+                                                                        mprRotationAngles[2]);
+    m_mprThreeAxialSeparateRotationQuaternion        = m_mprThreeRotationSeparateQuaternion;
+    m_mprThreeCoronalSeparateRotationQuaternion      = m_mprThreeRotationSeparateQuaternion;
+    m_mprThreeParasagittalSeparateRotationQuaternion = m_mprThreeRotationSeparateQuaternion;
+    
+    m_mprThreeAxialInverseRotationQuaternion        = QQuaternion();
+    m_mprThreeCoronalInverseRotationQuaternion      = QQuaternion();
+    m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
+}
 
 /**
  * Create a scene for an instance of a class.
@@ -7618,6 +7662,78 @@ BrowserTabContent::setHistologySelectedCoordinate(const HistologySlicesFile* his
             break;
     }
 }
+
+/**
+ * @return Are the histology orientation angles applied to yoking?
+ */
+bool
+BrowserTabContent::isHistologyOrientationAppliedToYoking() const
+{
+    return m_histologyOrientationAppliedToYokingFlag;
+}
+
+/**
+ * Set the histology orientation angles applied to yoking
+ * @param status
+ *    New status
+ */
+void
+BrowserTabContent::setHistologyOrientationAppliedToYoking(const bool status)
+{
+    m_histologyOrientationAppliedToYokingFlag = status;
+}
+
+/**
+ * Apply histology yoking of orientation to MPR rotation angles
+ * @return
+ *    Yoking group that was updated by this tab or YokingGroupEnum::YOKING_GROUP_OFF
+ *    if no action was taken.
+ */
+YokingGroupEnum::Enum
+BrowserTabContent::applyHistologyOrientationYoking()
+{
+    if (isHistologyDisplayed()) {
+        if (isHistologyOrientationAppliedToYoking()) {
+            if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
+                HistologyOverlaySet* overlaySet(getHistologyOverlaySet());
+                const int32_t numberOfOverlays(overlaySet->getNumberOfDisplayedOverlays());
+                for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
+                    HistologyOverlay* overlay = overlaySet->getOverlay(iOverlay);
+                    CaretAssert(overlay);
+                    
+                    if (overlay->isEnabled()) {
+                        const HistologyOverlay::SelectionData selectionData(overlay->getSelectionData());
+                        const HistologySlicesFile* selectedFile(selectionData.m_selectedFile);
+                        if (selectedFile != NULL) {
+                            const HistologyCoordinate histologyCoordinate(getHistologySelectedCoordinate(selectionData.m_selectedFile));
+                            if (histologyCoordinate.isValid()) {
+                                int32_t selectedSliceIndex(histologyCoordinate.getSliceIndex());
+                                const HistologySlice* histologySlice(selectedFile->getHistologySliceByIndex(selectedSliceIndex));
+                                if (histologySlice != NULL) {
+                                    Vector3D rotationAngles;
+                                    if (histologySlice->getSliceRotationAngles(rotationAngles)) {
+                                        /*
+                                         * Need to invert rotation angles (may have to do with quaternions)
+                                         */
+                                        rotationAngles = -rotationAngles;
+                                        
+                                        setMprThreeRotationAnglesForYokingGroup(getBrainModelYokingGroup(),
+                                                                                rotationAngles);
+                                        return getBrainModelYokingGroup();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+    
+            }
+        }
+    }
+    
+    return YokingGroupEnum::YOKING_GROUP_OFF;
+}
+
 
 /**
  * @return Is lighting enabled ?

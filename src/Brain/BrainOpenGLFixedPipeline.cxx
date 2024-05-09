@@ -95,6 +95,7 @@
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventAnnotationBarsGet.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowContent.h"
 #include "EventDrawingViewportContentAdd.h"
 #include "EventDrawingViewportContentClear.h"
@@ -841,6 +842,8 @@ BrainOpenGLFixedPipeline::drawModelsImplementation(const int32_t windowIndex,
     
     this->checkForOpenGLError(NULL, "At beginning of drawModels()");
     
+    applyHistologyOrientationYoking();
+
     /*
      * NULL will retrieve Window colors (window colors added on 07jul2019)
      */
@@ -9396,6 +9399,64 @@ BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(const GraphicsRegionSel
     }
     
     glPopAttrib();
+}
+
+/**
+ * Apply any orientation yoking from histology tabs
+ */
+void
+BrainOpenGLFixedPipeline::applyHistologyOrientationYoking()
+{
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    
+    std::vector<YokingGroupEnum::Enum> allYokingGroups;
+    YokingGroupEnum::getAllEnums(allYokingGroups);
+    const int32_t numYokingGroups(allYokingGroups.size());
+    std::vector<int32_t> yokedGroupCount(numYokingGroups, 0);
+
+    const int32_t numTabs(allTabsEvent.getNumberOfBrowserTabs());
+    for (int32_t i = 0; i < numTabs; i++) {
+        BrowserTabContent* btc(allTabsEvent.getBrowserTab(i));
+        CaretAssert(btc);
+        /*
+         * Apply histology orientation yoking in the brower tab
+         */
+        const YokingGroupEnum::Enum yokingGroup = btc->applyHistologyOrientationYoking();
+        
+        /*
+         * Track histology orientation yoking for each yoking group
+         */
+        if (yokingGroup != YokingGroupEnum::YOKING_GROUP_OFF) {
+            const int32_t yokingIndex(YokingGroupEnum::toIntegerCode(yokingGroup));
+            CaretAssertVectorIndex(yokedGroupCount, yokingIndex);
+            ++yokedGroupCount[yokingIndex];
+        }
+    }
+    
+    /*
+     * Log a warning if there is more than one histology tab with
+     * orienation yoked to a yoking group.
+     */
+    AString msg;
+    for (int32_t i = 0; i < numYokingGroups; i++) {
+        CaretAssertVectorIndex(yokedGroupCount, i);
+        if (yokedGroupCount[i] > 1) {
+            bool validFlag(false);
+            const YokingGroupEnum::Enum yokingGroup(YokingGroupEnum::fromIntegerCode(i,
+                                                                                     &validFlag));
+            if (validFlag) {
+                msg.appendWithNewLine(YokingGroupEnum::toGuiName(yokingGroup)
+                                      + " has MPR orientation yoked by "
+                                      + AString::number(yokedGroupCount[i])
+                                      + " histology tabs.");
+            }
+        }
+    }
+    
+    if ( ! msg.isEmpty()) {
+        CaretLogWarning(msg);
+    }
 }
 
 /* ============================================================================ */

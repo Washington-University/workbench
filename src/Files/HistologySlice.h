@@ -109,6 +109,8 @@ namespace caret {
         
         const Plane& getPlaneXyzPlane() const;
         
+        bool getSliceRotationAngles(Vector3D& rotationsOut) const;
+        
         void getIdentificationText(const int32_t tabIndex,
                                    const HistologyCoordinate& histologyCoordinate,
                                    std::vector<AString>& columnOneTextOut,
@@ -190,6 +192,12 @@ namespace caret {
         mutable bool m_planeXyzPlaneValidFlag = false;
         
         mutable float m_MillimetersToPlaneFactor = -1.0;
+        
+        mutable Vector3D m_mprVolumeRotationAngles;
+        
+        mutable bool m_mprVolumeRotationAnglesValidFlag = false;
+        
+        mutable bool m_mprVolumeRotationAnglesComputedFlag = false;
         
         bool m_maskingTexturesCreatedFlag = false;
         

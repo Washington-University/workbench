@@ -71,6 +71,8 @@ namespace caret {
         
         void moveToCenterActionTriggered();
         
+        void yokeOrientationCheckBoxChecked(bool checked);
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -101,6 +103,8 @@ namespace caret {
         QAction* m_identificationMovesSlicesAction;
         
         QAction* m_moveToCenterAction;
+        
+        QCheckBox* m_yokeOrientationCheckBox;
 };
     
     

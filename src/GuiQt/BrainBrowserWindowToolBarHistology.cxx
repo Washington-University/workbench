@@ -180,6 +180,16 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(moveToCenterToolButton);
         
     /*
+     * Yoke orientation check box
+     */
+    m_yokeOrientationCheckBox = new QCheckBox("Yoke Orientation to MPR");
+    m_yokeOrientationCheckBox->setToolTip("<html>"
+                                          "Copy slice orientation angles to yoking group MPR volume angles"
+                                          "</html>");
+    QObject::connect(m_yokeOrientationCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarHistology::yokeOrientationCheckBoxChecked);
+    
+    /*
      * Layout widgets
      */
     int columnIndex(0);
@@ -222,6 +232,8 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignLeft);
+    controlsLayout->addWidget(m_yokeOrientationCheckBox,
+                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -373,6 +385,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     
     if (m_browserTabContent != NULL) {
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
+        m_yokeOrientationCheckBox->setChecked(m_browserTabContent->isHistologyOrientationAppliedToYoking());
     }
     
     setEnabled(histologySlicesFile != NULL);
@@ -717,5 +730,20 @@ BrainBrowserWindowToolBarHistology::moveToCenterActionTriggered()
                 updateUserInterface();
             }
         }
+    }
+}
+
+/**
+ * Called when yoking orientation checkbox clicked
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::yokeOrientationCheckBoxChecked(bool checked)
+{
+    if (m_browserTabContent != NULL) {
+        m_browserTabContent->setHistologyOrientationAppliedToYoking(checked);
+        updateGraphicsWindowAndYokedWindows();
+        updateUserInterface();
     }
 }

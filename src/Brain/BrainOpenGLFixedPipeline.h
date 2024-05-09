@@ -394,6 +394,8 @@ namespace caret {
         
         void disableLineAntiAliasing();
         
+        void applyHistologyOrientationYoking();
+        
         bool getPixelDepthAndRGBA(const int32_t windowX,
                                   const int32_t windowY,
                                   float& depthOut,

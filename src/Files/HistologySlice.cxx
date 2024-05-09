@@ -35,6 +35,7 @@
 #include "GraphicsRegionSelectionBox.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlicesFile.h"
+#include "MathFunctions.h"
 #include "MediaFile.h"
 #include "Plane.h"
 #include "SceneClass.h"
@@ -829,6 +830,14 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
     dataFileInformation.addNameAndValue("Slice Index", getSliceIndex());
     dataFileInformation.addNameAndValue("Slice Number", getSliceName());
     
+    const AString mprAngleTitle("MPR Rotation Angles");
+    Vector3D mprAngles;
+    if (getSliceRotationAngles(mprAngles)) {
+        dataFileInformation.addNameAndValue(mprAngleTitle, mprAngles.toString());
+    }
+    else {
+        dataFileInformation.addNameAndValue(mprAngleTitle, "Invalid");
+    }
     const int32_t numImages(getNumberOfHistologySliceImages());
     for (int32_t jImage = 0; jImage < numImages; jImage++) {
         const HistologySliceImage* image(getHistologySliceImage(jImage));
@@ -854,4 +863,47 @@ HistologySlice::addToDataFileContentInformation(DataFileContentInformation& data
         CaretAssert(mediaFile);
         const_cast<MediaFile*>(mediaFile)->addToDataFileContentInformation(dataFileInformation);
     }
+}
+
+/**
+ * Get the rotations angles of the slice.  These angles are derived from
+ * the 'Plane to Millimeters' matrix and are used to orient the corresponding
+ * volume slice in MPR viewing mode.
+ * @param rotationsOut
+ *    X, Y, Z rotations angles output
+ * @return
+ *    True if the rotation angles are valid, else false.
+ */
+bool
+HistologySlice::getSliceRotationAngles(Vector3D& rotationsOut) const
+{
+    if ( ! m_planeToMillimetersMatrixValidFlag) {
+        rotationsOut.fill(0.0);
+        return false;
+    }
+    
+    if ( ! m_mprVolumeRotationAnglesComputedFlag) {
+        m_mprVolumeRotationAnglesComputedFlag = true;
+        
+        const Vector3D v1(m_planeToMillimetersMatrix.getBasisVector(0));
+        const Vector3D v2(m_planeToMillimetersMatrix.getBasisVector(1));
+        Vector3D crossvec(v1.cross(v2));
+        if (crossvec[1] < 0.0) {
+            CaretLogFine("Radiological orientation when computing Histology MPR Volume Rotation for "
+                         + getSliceName());
+            crossvec = -crossvec;
+        }
+        
+        const Vector3D normalVector(crossvec.normal());
+        const float rotationX(MathFunctions::toDegrees(std::asin(normalVector[2])));
+        const float rotationZ(-MathFunctions::toDegrees(std::atan2(normalVector[0],
+                                                                   normalVector[1])));
+        m_mprVolumeRotationAngles[0] = rotationX;
+        m_mprVolumeRotationAngles[1] = 0.0;
+        m_mprVolumeRotationAngles[2] = rotationZ;
+        m_mprVolumeRotationAnglesValidFlag = true;
+    }
+    
+    rotationsOut = m_mprVolumeRotationAngles;
+    return m_mprVolumeRotationAnglesValidFlag;
 }
