@@ -170,7 +170,7 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                                                     solidRGBA);
                     }
                     
-                    const float* surfaceCoordinateXYZ(surfaceCoordinateXYZ = surface->getCoordinate(0));
+                    const float* surfaceCoordinateXYZ(surface->getCoordinate(0));
                     
                     std::vector<float> surfaceTransformedXYZ;
                     if (m_histologySlice != NULL) {
