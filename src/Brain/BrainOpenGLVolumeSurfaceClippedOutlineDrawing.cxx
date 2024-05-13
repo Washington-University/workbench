@@ -26,6 +26,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "HistologySlice.h"
 #include "Plane.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
@@ -46,17 +47,19 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrainOpenGLVolumeSurfaceClippedOutlineDrawing::BrainOpenGLVolumeSurfaceClippedOutlineDrawing(const Plane& plane,
+BrainOpenGLVolumeSurfaceClippedOutlineDrawing::BrainOpenGLVolumeSurfaceClippedOutlineDrawing(const HistologySlice* histologySlice,
+                                                                                             const Plane& plane,
                                                                                              const Vector3D& pointOnPlane,
-                                                                                             const VolumeSurfaceOutlineSetModel* outlineSet,
+                                                                                             const VolumeSurfaceOutlineModel* outlineModel,
                                                                                              BrainOpenGLFixedPipeline* fixedPipelineDrawing)
 : CaretObject(),
+m_histologySlice(histologySlice),
 m_plane(plane),
 m_pointOnPlane(pointOnPlane),
-m_outlineSet(outlineSet),
+m_outlineModel(outlineModel),
 m_fixedPipelineDrawing(fixedPipelineDrawing)
 {
-    CaretAssert(outlineSet);
+    CaretAssert(outlineModel);
     CaretAssert(fixedPipelineDrawing);
 
 }
@@ -100,61 +103,49 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
     
-    /*
-     * Process each surface outline
-     * As of 24 May, "zero" is on top so draw in reverse order
-     */
-    const int32_t numberOfOutlines = m_outlineSet->getNumberOfDislayedVolumeSurfaceOutlines();
-    for (int32_t io = (numberOfOutlines - 1);
-         io >= 0;
-         io--) {
-        std::vector<GraphicsPrimitive*> contourPrimitives;
-        
-        const VolumeSurfaceOutlineModel* outline = m_outlineSet->getVolumeSurfaceOutlineModel(io);
-        if (outline->isDisplayed()
-            && outline->isDrawSurfaceModeSelected()) {
-            const Surface* surface = outline->getSurface();
-            if (surface != NULL) {
-                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
-                int32_t colorSourceBrowserTabIndex = -1;
-                
-                const VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
-                const VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
-                switch (selectedColorOrTabItem->getItemType()) {
-                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
-                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
-                        outlineColor = CaretColorEnum::CUSTOM;
-                        break;
-                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
-                        outlineColor = selectedColorOrTabItem->getColor();
-                        break;
-                }
-                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
-
-                float slicePlaneDepth(outline->getSlicePlaneDepth());
-                if (slicePlaneDepth <= 0.0001) {
-                    slicePlaneDepth = VolumeSurfaceOutlineModel::getDefaultSurfaceDepthMillimeters();
-                }
-
-                Plane planeOne;
-                Plane planeTwo;
-                getClippingPlanes(slicePlaneDepth,
-                                  planeOne,
-                                  planeTwo);
-                
-                bool validPlanesFlag(true);
-                if ( ! planeOne.isValidPlane()) {
-                    CaretLogWarning("Failed to create clipping plane one");
-                    validPlanesFlag = false;
-                }
-                if ( ! planeTwo.isValidPlane()) {
-                    CaretLogWarning("Failed to create clipping plane two");
-                    validPlanesFlag = false;
-                }
-                if ( ! validPlanesFlag) {
-                    continue;
-                }
-
+    std::vector<GraphicsPrimitive*> contourPrimitives;
+    
+    if (m_outlineModel->isDisplayed()
+        && m_outlineModel->isDrawSurfaceModeSelected()) {
+        const Surface* surface = m_outlineModel->getSurface();
+        if (surface != NULL) {
+            CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+            int32_t colorSourceBrowserTabIndex = -1;
+            
+            const VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = m_outlineModel->getColorOrTabModel();
+            const VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+            switch (selectedColorOrTabItem->getItemType()) {
+                case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                    colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                    outlineColor = CaretColorEnum::CUSTOM;
+                    break;
+                case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                    outlineColor = selectedColorOrTabItem->getColor();
+                    break;
+            }
+            const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
+            
+            float slicePlaneDepth(m_outlineModel->getSlicePlaneDepth());
+            if (slicePlaneDepth <= 0.0001) {
+                slicePlaneDepth = VolumeSurfaceOutlineModel::getDefaultSurfaceDepthMillimeters();
+            }
+            
+            Plane planeOne;
+            Plane planeTwo;
+            getClippingPlanes(slicePlaneDepth,
+                              planeOne,
+                              planeTwo);
+            
+            bool validPlanesFlag(true);
+            if ( ! planeOne.isValidPlane()) {
+                CaretLogWarning("Failed to create clipping plane one");
+                validPlanesFlag = false;
+            }
+            if ( ! planeTwo.isValidPlane()) {
+                CaretLogWarning("Failed to create clipping plane two");
+                validPlanesFlag = false;
+            }
+            if (validPlanesFlag) {
                 const auto planeEquationOne(planeOne.getPlaneEquation());
                 const auto planeEquationTwo(planeTwo.getPlaneEquation());
                 
@@ -164,32 +155,50 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                 glClipPlane(GL_CLIP_PLANE1,
                             planeEquationTwo.data());
                 glEnable(GL_CLIP_PLANE1);
-
-                Surface* surface(const_cast<Surface*>(outline->getSurface()));
-                if ( ! surface) {
-                    CaretLogWarning("Surface is invalid");
-                    continue;
-                }
                 
-                float solidRGBA[4] { 0.0f, 0.0f, 0.0f, 0.0f };
-                float* nodeColoringRGBA = NULL;
-                if (surfaceColorFlag) {
-                    nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL, 
-                                                                                                      surface,
-                                                                                                      colorSourceBrowserTabIndex);
+                Surface* surface(const_cast<Surface*>(m_outlineModel->getSurface()));
+                if (surface) {
+                    float solidRGBA[4] { 0.0f, 0.0f, 0.0f, 0.0f };
+                    float* nodeColoringRGBA = NULL;
+                    if (surfaceColorFlag) {
+                        nodeColoringRGBA = m_fixedPipelineDrawing->surfaceNodeColoring->colorSurfaceNodes(NULL,
+                                                                                                          surface,
+                                                                                                          colorSourceBrowserTabIndex);
+                    }
+                    else {
+                        CaretColorEnum::toRGBAFloat(outlineColor,
+                                                    solidRGBA);
+                    }
+                    
+                    const float* surfaceCoordinateXYZ(surfaceCoordinateXYZ = surface->getCoordinate(0));
+                    
+                    std::vector<float> surfaceTransformedXYZ;
+                    if (m_histologySlice != NULL) {
+                        const int32_t numXYZ(surface->getNumberOfNodes());
+                        surfaceTransformedXYZ.resize(numXYZ * 3);
+                        for (int32_t i = 0; i < numXYZ; i++) {
+                            Vector3D xyz;
+                            m_histologySlice->stereotaxicXyzToPlaneXyz(surface->getCoordinate(i),
+                                                                       xyz);
+                            surfaceTransformedXYZ[i*3]     = xyz[0];
+                            surfaceTransformedXYZ[i*3 + 1] = xyz[1];
+                            surfaceTransformedXYZ[i*3 + 2] = xyz[2];
+                        }
+                        
+                        surfaceCoordinateXYZ = &surfaceTransformedXYZ[0];
+                    }
+                    drawSurfaceTrianglesWithVertexArrays(surface,
+                                                         surfaceCoordinateXYZ,
+                                                         nodeColoringRGBA,
+                                                         solidRGBA);
                 }
                 else {
-                    CaretColorEnum::toRGBAFloat(outlineColor,
-                                                solidRGBA);
+                    CaretLogWarning("Surface is invalid");
                 }
-                
-                drawSurfaceTrianglesWithVertexArrays(surface,
-                                                     nodeColoringRGBA,
-                                                     solidRGBA);
             }
-        }        
+        }
     }
-    
+
     glPopAttrib();
 }
 
@@ -197,6 +206,8 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
  * Draw a surface triangles with vertex arrays.
  * @param surface
  *    Surface that is drawn.
+ * @param surfaceCoordinateXYZ
+ *    The surface's  coordinates
  * @param nodeColoringRGBA
  *    RGBA coloring for the nodes.
  * @param solidRGBA
@@ -204,6 +215,7 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
  */
 void
 BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                                                    const float* surfaceCoordinateXYZ,
                                                                                     const float* nodeColoringRGBA,
                                                                                     const float solidRGBA[4]) const
 {
@@ -215,7 +227,7 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceTrianglesWithVertexArr
     glVertexPointer(3,
                     GL_FLOAT,
                     0,
-                    reinterpret_cast<const GLvoid*>(surface->getCoordinate(0)));
+                    reinterpret_cast<const GLvoid*>(surfaceCoordinateXYZ));
     if (nodeColoringRGBA != NULL) {
         glColorPointer(4,
                        GL_FLOAT,

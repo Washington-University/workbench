@@ -30,16 +30,18 @@
 
 namespace caret {
     class BrainOpenGLFixedPipeline;
+    class HistologySlice;
     class Plane;
     class Surface;
-    class VolumeSurfaceOutlineSetModel;
+    class VolumeSurfaceOutlineModel;
 
     class BrainOpenGLVolumeSurfaceClippedOutlineDrawing : public CaretObject {
         
     public:
-        BrainOpenGLVolumeSurfaceClippedOutlineDrawing(const Plane& plane,
+        BrainOpenGLVolumeSurfaceClippedOutlineDrawing(const HistologySlice* histologySlice,
+                                                      const Plane& plane,
                                                       const Vector3D& pointOnPlane,
-                                                      const VolumeSurfaceOutlineSetModel* outlineSet,
+                                                      const VolumeSurfaceOutlineModel* outlineModel,
                                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing);
         
         virtual ~BrainOpenGLVolumeSurfaceClippedOutlineDrawing();
@@ -60,13 +62,16 @@ namespace caret {
                                Plane& planeTwoOut) const;
         
         void drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                  const float* surfaceCoordinateXYZ,
                                                   const float* nodeColoringRGBA,
                                                   const float solidRGBA[4]) const;
+        const HistologySlice* m_histologySlice;
+        
         const Plane& m_plane;
         
         const Vector3D m_pointOnPlane;
         
-        const VolumeSurfaceOutlineSetModel* m_outlineSet;
+        const VolumeSurfaceOutlineModel* m_outlineModel;
         
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing;
         

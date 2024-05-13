@@ -42,6 +42,7 @@ namespace caret {
     class Plane;
     class SurfaceFile;
     class VolumeMappableInterface;
+    class VolumeSurfaceOutlineModel;
     class VolumeSurfaceOutlineModelCacheKey;
     class VolumeSurfaceOutlineSetModel;
     
@@ -58,6 +59,7 @@ namespace caret {
         
         void drawSurfaceOutline(const HistologySlicesFile* histologySlicesFile,
                                 const HistologySlice* histologySlice,
+                                const Vector3D& sliceXYZ,
                                 VolumeSurfaceOutlineSetModel* outlineSet,
                                 BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                 const bool useNegativePolygonOffsetFlag);
@@ -86,7 +88,7 @@ namespace caret {
                                       const ModelTypeEnum::Enum modelType,
                                       const Plane& plane,
                                       VolumeSurfaceOutlineModelCacheKey& outlineCacheKey,
-                                      VolumeSurfaceOutlineSetModel* outlineSet,
+                                      VolumeSurfaceOutlineModel* outlineModel,
                                       BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                       const bool useNegativePolygonOffsetFlag);
         
@@ -96,7 +98,7 @@ namespace caret {
                                               const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                               const float sliceXYZ[3],
                                               const Plane& plane,
-                                              VolumeSurfaceOutlineSetModel* outlineSet,
+                                              VolumeSurfaceOutlineModel* outlineModel,
                                               BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                               const bool useNegativePolygonOffsetFlag);
         
@@ -105,7 +107,7 @@ namespace caret {
                                          const Plane& plane,
                                          const Matrix4x4& displayTransformMatrix,
                                          const bool displayTransformMatrixValidFlag,
-                                         VolumeSurfaceOutlineSetModel* outlineSet,
+                                         VolumeSurfaceOutlineModel* outlineModel,
                                          BrainOpenGLFixedPipeline* fixedPipelineDrawing,
                                          const bool useNegativePolygonOffsetFlag);
         

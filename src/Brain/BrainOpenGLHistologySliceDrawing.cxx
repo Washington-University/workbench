@@ -352,7 +352,8 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     
     drawModelLayers(orthographicProjection,
                     viewportContent,
-                    transform);
+                    transform,
+                    underlayStereotaxicXYZ);
     
     BrainOpenGLFixedPipeline::drawGraphicsRegionSelectionBox(m_browserTabContent->getRegionSelectionBox(),
                                                              GraphicsRegionSelectionBox::DrawMode::Z_PLANE,
@@ -375,17 +376,16 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
  *    Orthographic projection
  * @param viewportContent
  *    The viewport content
- * @param objectToWindowTransform
+ * @param transform
  *   Transforms point from object to window space
- * @param tabIndex
- *   Index of the tab
- * @param viewportHeight
- *   Height of viewport
+ * @param underlayStereotaxicXYZ
+ *   Stereotaxic coordinate on the underlay histology slice
  */
 void
 BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProjection& orthographicProjection,
                                                   const BrainOpenGLViewportContent* viewportContent,
-                                                  const GraphicsObjectToWindowTransform* transform)
+                                                  const GraphicsObjectToWindowTransform* transform,
+                                                  const Vector3D& underlayStereotaxicXYZ)
 {
     m_fixedPipelineDrawing->checkForOpenGLError(NULL, "At beginning of BrainOpenGLHistologySliceDrawing::drawModelLayers()");
     
@@ -618,12 +618,19 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
     const float sliceSpacing(underlayHistologySlicesFile->getSliceSpacing());
     
     /*
+     * Project histology coordinate to slice
+     */
+    const Plane plane(underlayHistologySlice->getStereotaxicPlane());
+    const Vector3D pointOnPlane(plane.projectPointToPlane(underlayStereotaxicXYZ));
+    
+    /*
      * Draw surface outlines
      */
     const bool useNegativePolygonOffsetFlag(true);
     BrainOpenGLVolumeSurfaceOutlineDrawing outlineDrawing;
     outlineDrawing.drawSurfaceOutline(underlayHistologySlicesFile,
                                       underlayHistologySlice,
+                                      pointOnPlane,
                                       m_browserTabContent->getVolumeSurfaceOutlineSet(),
                                       m_fixedPipelineDrawing,
                                       useNegativePolygonOffsetFlag);

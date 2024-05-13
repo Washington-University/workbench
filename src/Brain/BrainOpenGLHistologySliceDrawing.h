@@ -87,7 +87,8 @@ namespace caret {
         
         void drawModelLayers(const GraphicsOrthographicProjection& orthographicProjection,
                              const BrainOpenGLViewportContent* viewportContent,
-                             const GraphicsObjectToWindowTransform* transform);
+                             const GraphicsObjectToWindowTransform* transform,
+                             const Vector3D& underlayStereotaxicXYZ);
         
         void processSelection(const int32_t tabIndex,
                               const HistologyOverlay::DrawingData& drawingData,
