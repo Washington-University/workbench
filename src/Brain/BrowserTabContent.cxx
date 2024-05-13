@@ -5214,59 +5214,60 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                                            mouseY,
                                            mouseDX,
                                            mouseDY);
-            return;
         }
-        
-        const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
-        ModelVolume* modelVolume = getDisplayedVolumeModel();
-        VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
-        BoundingBox mybox;
-        vf->getVoxelSpaceBoundingBox(mybox);
-        float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
-        float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
-        slowdown = 1.0;
-        
-        float dx = 0.0;
-        float dy = 0.0;
-        float dz = 0.0;
-        
-        int viewport[4];
-        viewportContent->getModelViewport(viewport);
-        int sliceViewport[4];
-        viewportContent->getModelViewport(sliceViewport);
-        
-        VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
-        if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
-            slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
-                                                                                            getVolumeSlicePlanesAllViewLayout(),
-                                                                                            mousePressX,
-                                                                                            mousePressY,
-                                                                                            sliceViewport);
+        else {
+            
+            const float volumeSliceScaling = m_volumeSliceViewingTransformation->getScaling();
+            ModelVolume* modelVolume = getDisplayedVolumeModel();
+            VolumeMappableInterface* vf = modelVolume->getUnderlayVolumeFile(tabIndex);
+            BoundingBox mybox;
+            vf->getVoxelSpaceBoundingBox(mybox);
+            float cubesize = std::max(std::max(mybox.getDifferenceX(), mybox.getDifferenceY()), mybox.getDifferenceZ());//factor volume bounding box into slowdown for zoomed in
+            float slowdown = 0.005f * cubesize / volumeSliceScaling;//when zoomed in, make the movements slower to match - still changes based on viewport currently
+            slowdown = 1.0;
+            
+            float dx = 0.0;
+            float dy = 0.0;
+            float dz = 0.0;
+            
+            int viewport[4];
+            viewportContent->getModelViewport(viewport);
+            int sliceViewport[4];
+            viewportContent->getModelViewport(sliceViewport);
+            
+            VolumeSliceViewPlaneEnum::Enum slicePlane = getVolumeSliceViewPlane();
+            if (slicePlane == VolumeSliceViewPlaneEnum::ALL) {
+                slicePlane = BrainOpenGLViewportContent::getSliceViewPlaneForVolumeAllSliceView(viewport,
+                                                                                                getVolumeSlicePlanesAllViewLayout(),
+                                                                                                mousePressX,
+                                                                                                mousePressY,
+                                                                                                sliceViewport);
+            }
+            
+            switch (slicePlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    dx = mouseDX * slowdown;
+                    dy = mouseDY * slowdown;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    dx = mouseDX * slowdown;
+                    dz = mouseDY * slowdown;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    dy = -mouseDX * slowdown;
+                    dz = mouseDY * slowdown;
+                    break;
+            }
+            
+            float translation[3];
+            m_volumeSliceViewingTransformation->getTranslation(translation);
+            translation[0] += dx;
+            translation[1] += dy;
+            translation[2] += dz;
+            m_volumeSliceViewingTransformation->setTranslation(translation);
         }
-        
-        switch (slicePlane) {
-            case VolumeSliceViewPlaneEnum::ALL:
-                break;
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                dx = mouseDX * slowdown;
-                dy = mouseDY * slowdown;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                dx = mouseDX * slowdown;
-                dz = mouseDY * slowdown;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                dy = -mouseDX * slowdown;
-                dz = mouseDY * slowdown;
-                break;
-        }
-        
-        float translation[3];
-        m_volumeSliceViewingTransformation->getTranslation(translation);
-        translation[0] += dx;
-        translation[1] += dy;
-        translation[2] += dz;
-        m_volumeSliceViewingTransformation->setTranslation(translation);
     }
     else if (isChartOneDisplayed()) {
         ModelChart* modelChart = getDisplayedChartOneModel();
