@@ -597,6 +597,14 @@ SurfaceFile::computeNormals()
     int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
         this->normalVectors.resize(numCoords * 3);
+
+        /*
+         * Need to fill with zeros so calculations are correct
+         * especially when normal get recomputed (resize does nothing)
+         */
+        std::fill(this->normalVectors.begin(),
+                  this->normalVectors.end(),
+                  0.0);
     }
     else {
         this->normalVectors.clear();
