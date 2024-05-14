@@ -73,6 +73,8 @@ namespace caret {
         
         void yokeOrientationCheckBoxChecked(bool checked);
         
+        void axisCrosshairActionTriggered(bool checked);
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -105,6 +107,8 @@ namespace caret {
         QAction* m_moveToCenterAction;
         
         QCheckBox* m_yokeOrientationCheckBox;
+        
+        QAction* m_showAxisCrosshairsAction;
 };
     
     

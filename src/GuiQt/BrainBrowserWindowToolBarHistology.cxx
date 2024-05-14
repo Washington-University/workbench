@@ -35,6 +35,7 @@
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBarSlicePlane.h"
 #include "BrainBrowserWindowToolBarSliceSelection.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainOpenGLWidget.h"
@@ -108,6 +109,9 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_sliceNameComboBox, QOverload<int>::of(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated);
 
+    WuQtUtilities::matchWidgetWidths(m_sliceIndexSpinBox,
+                                     m_sliceNameComboBox);
+    
     /*
      * Plane and stereotaxic coordinates
      */
@@ -190,6 +194,26 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarHistology::yokeOrientationCheckBoxChecked);
     
     /*
+     * Crosshair button
+     */
+    m_showAxisCrosshairsAction = new QAction(this);
+    m_showAxisCrosshairsAction->setCheckable(true);
+    m_showAxisCrosshairsAction->setToolTip("Show crosshairs on histology slice");
+    QObject::connect(m_showAxisCrosshairsAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarHistology::axisCrosshairActionTriggered);
+    m_showAxisCrosshairsAction->setObjectName(objectNamePrefix
+                                              + "ShowHistologySliceCrosshairs");
+    macroManager->addMacroSupportToObject(m_showAxisCrosshairsAction,
+                                          "Show histology axis crosshairs");
+    
+    QToolButton* showCrosshairsToolButton = new QToolButton();
+    QPixmap xhairPixmap = BrainBrowserWindowToolBarSlicePlane::createCrosshairsIcon(showCrosshairsToolButton);
+    showCrosshairsToolButton->setDefaultAction(m_showAxisCrosshairsAction);
+    m_showAxisCrosshairsAction->setIcon(QIcon(xhairPixmap));
+    showCrosshairsToolButton->setIconSize(xhairPixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairsToolButton);
+
+    /*
      * Layout widgets
      */
     int columnIndex(0);
@@ -197,6 +221,7 @@ m_parentToolBar(parentToolBar)
     const int columnSliceSpinBoxes(columnIndex++);
     const int columnPlaneSpinBoxes(columnIndex++);
     const int columnStereotaxicSpinBoxes(columnIndex++);
+    const int numColummns(columnIndex++);
     
     QGridLayout* controlsLayout(new QGridLayout());
     int row(0);
@@ -225,13 +250,15 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     ++row;
+    controlsLayout->addWidget(identificationMovesSlicesToolButton,
+                              row, columnSliceLabels, Qt::AlignHCenter);
     controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     ++row;
-    controlsLayout->addWidget(identificationMovesSlicesToolButton,
-                              row, columnSliceLabels, Qt::AlignLeft);
+    controlsLayout->addWidget(showCrosshairsToolButton,
+                              row, columnSliceLabels, Qt::AlignHCenter);
     controlsLayout->addWidget(m_yokeOrientationCheckBox,
                               row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(moveToCenterToolButton,
@@ -386,6 +413,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     if (m_browserTabContent != NULL) {
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
         m_yokeOrientationCheckBox->setChecked(m_browserTabContent->isHistologyOrientationAppliedToYoking());
+        m_showAxisCrosshairsAction->setChecked(m_browserTabContent->isHistologyAxesCrosshairsDisplayed());
     }
     
     setEnabled(histologySlicesFile != NULL);
@@ -747,3 +775,19 @@ BrainBrowserWindowToolBarHistology::yokeOrientationCheckBoxChecked(bool checked)
         updateUserInterface();
     }
 }
+
+/**
+ * Called when crosshairs action is triggered
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::axisCrosshairActionTriggered(bool checked)
+{
+    if (m_browserTabContent != NULL) {
+        m_browserTabContent->setHistologyAxesCrosshairsDisplayed(checked);
+        updateGraphicsWindowAndYokedWindows();
+        updateUserInterface();
+    }
+}
+

@@ -677,8 +677,10 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
      */
     const BrowserTabContent* btc(viewportContent->getBrowserTabContent());
     CaretAssert(btc);
-    drawCrosshairs(orthographicProjection,
-                   btc->getHistologySelectedCoordinate(underlayHistologySlicesFile));
+    if (btc->isHistologyAxesCrosshairsDisplayed()) {
+        drawCrosshairs(orthographicProjection,
+                       btc->getHistologySelectedCoordinate(underlayHistologySlicesFile));
+    }
     
     /*
      * Draw annotation in histology space

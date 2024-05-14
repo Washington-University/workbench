@@ -603,6 +603,10 @@ namespace caret {
 
         void setIdentificationUpdatesHistologySlices(const bool status);
         
+        bool isHistologyAxesCrosshairsDisplayed() const;
+        
+        void setHistologyAxesCrosshairsDisplayed(const bool displayed);
+        
         bool isIdentificationUpdatesVolumeSlices() const;
         
         void setIdentificationUpdatesVolumeSlices(const bool status);
@@ -975,6 +979,9 @@ namespace caret {
          *  of the identification operation.
          */
         bool m_identificationUpdatesHistologySlices;
+        
+        /** display crosshairs on histology slices */
+        bool m_displayHistologyAxesCrosshairs;
         
         /** display crosshairs on volume slices */
         bool m_displayVolumeAxesCrosshairs;
