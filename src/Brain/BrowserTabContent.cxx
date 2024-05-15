@@ -5643,7 +5643,12 @@ BrowserTabContent::applyMouseTranslationVolumeMPR(BrainOpenGLViewportContent* vi
                 dz = verticalMovement;
                 break;
             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                dy =  horizontalMovement;
+                /*
+                 * Need to invert 'dy' since parasagittal
+                 * has postitive on the left and negative
+                 * on the right
+                 */
+                dy = -horizontalMovement;
                 dz =  verticalMovement;
                 break;
         }

@@ -2434,8 +2434,12 @@ BrainOpenGLVolumeMprThreeDrawing::setViewingTransformation(const VolumeSliceView
             userTransY = translation[2];
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-            userTransX = translation[1];
-            userTransY = translation[2];
+            /*
+             * Note: Use negative for horizontal since parasagittal
+             * has positive on left, negative on right
+             */
+            userTransX = -translation[1];
+            userTransY =  translation[2];
             break;
     }
     glTranslatef(userTransX, userTransY, userTransZ);
