@@ -412,11 +412,12 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
             break;
     }
     
-    std::vector<GraphicsPrimitive*> contourPrimitives;
+    std::vector<std::pair<GraphicsPrimitive*, float>> contourPrimitivesAndOpacity;
 
     if (outlineModel->isDisplayed()
         && outlineModel->isDrawLinesModeSelected()) {
         Surface* surface = outlineModel->getSurface();
+        const float opacity(outlineModel->getOpacity());
         if (surface != NULL) {
             float thicknessPercentage = outlineModel->getThicknessPercentageViewportHeight();
             const float thicknessPixels = outlineModel->getThicknessPixelsObsolete();
@@ -433,10 +434,11 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                 }
             }
             
+            std::vector<GraphicsPrimitive*> primitives;
             if (outlineModel->getOutlineCachePrimitives(histologySlice,
                                                         underlayVolume,
                                                         outlineCacheKey,
-                                                        contourPrimitives)) {
+                                                        primitives)) {
                 /* OK, have cached primitives to draw */
             }
             else {
@@ -476,20 +478,25 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                sliceSpacing,
                                outlineColor,
                                nodeColoringRGBA,
+                               opacity,
                                thicknessPercentage,
                                slicePlaneDepth,
                                getSeparation(outlineModel),
-                               contourPrimitives);
+                               primitives);
                 
                 if (histologySlice != NULL) {
                     projectContoursToHistologySlice(histologySlice,
-                                                    contourPrimitives);
+                                                    primitives);
                 }
                 
                 outlineModel->setOutlineCachePrimitives(histologySlice,
                                                         underlayVolume,
                                                         outlineCacheKey,
-                                                        contourPrimitives);
+                                                        primitives);
+            }
+            
+            for (auto p : primitives) {
+                contourPrimitivesAndOpacity.push_back(std::make_pair(p, opacity));
             }
         }
     }
@@ -498,7 +505,19 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
      * Draw the contours.
      * Note: The primitives are now cached so DO NOT delete them.
      */
-    for (auto primitive : contourPrimitives) {
+    for (auto primitiveAndOpacity : contourPrimitivesAndOpacity) {
+        GraphicsPrimitive* primitive(primitiveAndOpacity.first);
+        const float opacity(primitiveAndOpacity.second);
+        
+        /*
+         * Opacity
+         */
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        if ((opacity >= 0.0)
+            && (opacity < 1.0)) {
+            BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::SEPARATE_BLENDING);
+        }
+        
         if (useNegativePolygonOffsetFlag) {
             glPolygonOffset(-1.0, -1.0);
         }
@@ -510,6 +529,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
         GraphicsEngineDataOpenGL::draw(primitive);
         
         glDisable(GL_POLYGON_OFFSET_FILL);
+        
+        glPopAttrib();
     }
 
     glPopAttrib();
@@ -653,6 +674,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
                            underlayVolume->getMaximumVoxelSpacing(),
                            outlineColor,
                            nodeColoringRGBA,
+                           outlineModel->getOpacity(),
                            thicknessPercentage,
                            slicePlaneDepth,
                            getSeparation(outlineModel),
@@ -705,6 +727,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
  *     outline coloring or, if value is CUSTOM, use the vertex coloring
  * @param nodeColoringRGBA
  *     The per-vertex coloring if 'caretColor' is CUSTOM
+ * @param opacity
+ *     Opacity for contour primitives
  * @param thicknessPercentage
  *     Thickness of outlines percentage of viewport height
  * @param slicePlaneDepth
@@ -721,6 +745,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                        const float sliceSpacingMM,
                                                        const CaretColorEnum::Enum outlineColor,
                                                        const float* nodeColoringRGBA,
+                                                       const float opacity,
                                                        const float thicknessPercentage,
                                                        const float slicePlaneDepth,
                                                        const float userOutlineSeparation,
@@ -766,6 +791,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                       drawOnPlane,
                                                       outlineColor,
                                                       nodeColoringRGBA,
+                                                      opacity,
                                                       thicknessPercentage);
             AString errorMessage;
             std::vector<GraphicsPrimitive*> primitives;
@@ -791,6 +817,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                   plane,
                                                   outlineColor,
                                                   nodeColoringRGBA,
+                                                  opacity,
                                                   thicknessPercentage);
         AString errorMessage;
         if ( ! contour.createContours(contourPrimitivesOut,

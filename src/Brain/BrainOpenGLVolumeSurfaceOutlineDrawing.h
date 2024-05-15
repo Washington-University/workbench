@@ -126,6 +126,7 @@ namespace caret {
                             const float sliceSpacingMM,
                             const CaretColorEnum::Enum caretColor,
                             const float* vertexColoringRGBA,
+                            const float opacity,
                             const float contourThicknessMillimeters,
                             const float slicePlaneDepth,
                             const float userOutlineSeparation,

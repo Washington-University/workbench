@@ -601,6 +601,7 @@ namespace caret {
             CHART_TWO_MATRIX,
             FEATURE_IMAGE, /* older image display selected in Features ToolBox*/
             FIBER_TRAJECTORIES,
+            SEPARATE_BLENDING,
             SURFACE_PROPERTIES_OPACITY,
             VOLUME_ALL_VIEW_CUBES,
             VOLUME_ALL_VIEW_SLICES,

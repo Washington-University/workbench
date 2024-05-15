@@ -70,6 +70,10 @@ namespace caret {
         
         void setSlicePlaneDepth(const float depth);
         
+        float getOpacity() const;
+        
+        void setOpacity(const float opacity);
+        
         SurfaceSelectionModel* getSurfaceSelectionModel();
         
         const Surface* getSurface() const;
@@ -126,6 +130,8 @@ namespace caret {
         
         float m_slicePlaneDepth = 0.0;
         
+        float m_opacity = 1.0;
+        
         SurfaceSelectionModel* m_surfaceSelectionModel;
         
         VolumeSurfaceOutlineColorOrTabModel* m_colorOrTabModel;
@@ -161,6 +167,9 @@ namespace caret {
             
             /** slice plane depth when first added to cache */
             float m_slicePlaneDepth = 0.0;
+            
+            /** opacity when first added to cache */
+            float m_opacity = 0.0;
             
             /** Tracks changes in surface outline separation in preferences */
             float m_preferencesVolumeSurfaceOutlineSeparation = 0.0;

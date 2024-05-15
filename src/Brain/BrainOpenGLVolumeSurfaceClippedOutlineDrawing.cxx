@@ -170,6 +170,17 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                                                     solidRGBA);
                     }
                     
+                    /*
+                     * Opacity
+                     */
+                    glPushAttrib(GL_COLOR_BUFFER_BIT);
+                    const float opacity(m_outlineModel->getOpacity());
+                    if ((opacity >= 0.0)
+                        && (opacity < 1.0)) {
+                        solidRGBA[3] = opacity;
+                        BrainOpenGLFixedPipeline::setupBlending(BrainOpenGLFixedPipeline::BlendDataType::SEPARATE_BLENDING);
+                    }
+                    
                     const float* surfaceCoordinateXYZ(surface->getCoordinate(0));
                     
                     std::vector<float> surfaceTransformedXYZ;
@@ -187,10 +198,32 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
                         
                         surfaceCoordinateXYZ = &surfaceTransformedXYZ[0];
                     }
+                    
+                    std::vector<float> tempRGBA;
+                    const float* nodeRGBA(nodeColoringRGBA);
+                    if (surfaceColorFlag) {
+                        if (opacity > 0.0) {
+                            const int64_t numNodes(surface->getNumberOfNodes());
+                            if (numNodes > 0) {
+                                const int64_t numRGBA(numNodes * 4);
+                                tempRGBA.resize(numRGBA);
+                                for (int64_t i = 0; i < numNodes; i++) {
+                                    const int64_t i4(i * 4);
+                                    tempRGBA[i4] = nodeColoringRGBA[i4];
+                                    tempRGBA[i4+1] = nodeColoringRGBA[i4+1];
+                                    tempRGBA[i4+2] = nodeColoringRGBA[i4+2];
+                                    tempRGBA[i4+3] = nodeColoringRGBA[i4+3] * opacity;
+                                }
+                                
+                                nodeRGBA = &tempRGBA[0];
+                            }
+                        }
+                    }
                     drawSurfaceTrianglesWithVertexArrays(surface,
                                                          surfaceCoordinateXYZ,
-                                                         nodeColoringRGBA,
+                                                         nodeRGBA,
                                                          solidRGBA);
+                    glPopAttrib();
                 }
                 else {
                     CaretLogWarning("Surface is invalid");
@@ -235,7 +268,7 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceTrianglesWithVertexArr
                        reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
     }
     else {
-        glColor3fv(solidRGBA);
+        glColor4fv(solidRGBA);
     }
     glNormalPointer(GL_FLOAT,
                     0,

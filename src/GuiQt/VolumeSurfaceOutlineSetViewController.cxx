@@ -79,22 +79,25 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 0);
-        gridLayout->setColumnStretch(5, 100);
+        gridLayout->setColumnStretch(5, 0);
+        gridLayout->setColumnStretch(6, 100);
 
         QLabel* onLabel = new QLabel("On");
         QLabel* colorLabel = new QLabel("Color Source");
         QLabel* thicknessLabel = new QLabel("Thickness");
         QLabel* depthLabel = new QLabel("Depth");
-        QLabel* fileLabel = new QLabel("File");
+        QLabel* opacityLabel = new QLabel("Opacity");
         QLabel* drawingLabel = new QLabel("Drawing");
+        QLabel* fileLabel = new QLabel("File");
         
         const int row = gridLayout->rowCount();
         gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
         gridLayout->addWidget(colorLabel, row, 1, Qt::AlignHCenter);
         gridLayout->addWidget(thicknessLabel, row, 2, Qt::AlignHCenter);
         gridLayout->addWidget(depthLabel, row, 3, Qt::AlignHCenter);
-        gridLayout->addWidget(drawingLabel, row, 4, Qt::AlignHCenter);
-        gridLayout->addWidget(fileLabel, row, 5, Qt::AlignHCenter);
+        gridLayout->addWidget(opacityLabel, row, 4, Qt::AlignHCenter);
+        gridLayout->addWidget(drawingLabel, row, 5, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 6, Qt::AlignHCenter);
         
     }
     else {
@@ -102,7 +105,8 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
-        gridLayout->setColumnStretch(4, 100);
+        gridLayout->setColumnStretch(4, 0);
+        gridLayout->setColumnStretch(5, 100);
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {

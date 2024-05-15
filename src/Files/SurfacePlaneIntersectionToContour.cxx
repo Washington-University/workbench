@@ -78,12 +78,14 @@ SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const Surfa
                                                                      const Plane& intersectionPlane,
                                                                      const CaretColorEnum::Enum caretColor,
                                                                      const float* vertexColoringRGBA,
+                                                                     const float opacity,
                                                                      const float contourThicknessPercentOfViewportHeight)
 : SurfacePlaneIntersectionToContour(surfaceFile,
                                     intersectionPlane,
                                     intersectionPlane,
                                     caretColor,
                                     vertexColoringRGBA,
+                                    opacity,
                                     contourThicknessPercentOfViewportHeight)
 {
 }
@@ -101,6 +103,8 @@ SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const Surfa
  *     Solid coloring or, if value is CUSTOM, use the vertex coloring
  * @param vertexColoringRGBA
  *     The per-vertex coloring if 'caretColor' is CUSTOM
+ * @param opacity
+ *     Opacity for drawing
  * @param contourThicknessPercentOfViewportHeight
  *     Thickness for the contour as a percentage of viewport height.
  */
@@ -109,6 +113,7 @@ SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const Surfa
                                                                      const Plane& drawOnPlane,
                                                                      const CaretColorEnum::Enum caretColor,
                                                                      const float* vertexColoringRGBA,
+                                                                     const float opacity,
                                                                      const float contourThicknessPercentOfViewportHeight)
 : CaretObject(),
 m_surfaceFile(surfaceFile),
@@ -116,6 +121,7 @@ m_intersectionPlane(intersectionPlane),
 m_drawOnPlane(drawOnPlane),
 m_caretColor(caretColor),
 m_vertexColoringRGBA(vertexColoringRGBA),
+m_opacity(opacity),
 m_contourThicknessPercentOfViewportHeight(contourThicknessPercentOfViewportHeight)
 {
     CaretAssert(m_surfaceFile);
@@ -381,6 +387,12 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
         std::cout << "Start: " << startingEdge->toString() << std::endl;
     }
     
+    float alphaValue(1.0);
+    if ((m_opacity > 0.0)
+        && (m_opacity <= 1.0)) {
+        alphaValue = m_opacity;
+    }
+    
     while (edge != NULL) {
         edge->m_processedFlag = true;
         
@@ -435,6 +447,8 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
                 }
             }
         }
+        
+        colorRGBA[3] = alphaValue;
         
         Vector3D xyzOne;
         m_drawOnPlane.projectPointToPlane(edge->m_intersectionXYZ.data(),

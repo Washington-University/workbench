@@ -61,6 +61,8 @@ namespace caret {
 
         void slicePlaneDepthSpinBoxValueChanged(double);
         
+        void opacityValueChanged(double);
+        
         void surfaceSelected(Surface*);
         
         void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
@@ -85,6 +87,8 @@ namespace caret {
         QDoubleSpinBox* thicknessSpinBox;
         
         QDoubleSpinBox* slicePlaneDepthSpinBox;
+        
+        QDoubleSpinBox* opacitySpinBox;
         
         SurfaceSelectionViewController* surfaceSelectionViewController;
         

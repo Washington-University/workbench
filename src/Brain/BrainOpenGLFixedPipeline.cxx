@@ -9242,6 +9242,9 @@ BrainOpenGLFixedPipeline::setupBlending(const BlendDataType blendDataType)
         case BlendDataType::FIBER_TRAJECTORIES:
             separateBlendingFlag = true;
             break;
+        case BlendDataType::SEPARATE_BLENDING:
+            separateBlendingFlag = true;
+            break;
         case BlendDataType::SURFACE_PROPERTIES_OPACITY:
             separateBlendingFlag = true;
             break;

@@ -43,6 +43,7 @@ namespace caret {
                                           const Plane& intersectionPlane,
                                           const CaretColorEnum::Enum caretColor,
                                           const float* vertexColoringRGBA,
+                                          const float opacity,
                                           const float contourThicknessMillimeters);
         
         SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
@@ -50,6 +51,7 @@ namespace caret {
                                           const Plane& drawOnPlane,
                                           const CaretColorEnum::Enum caretColor,
                                           const float* vertexColoringRGBA,
+                                          const float opacity,
                                           const float contourThicknessMillimeters);
         
         virtual ~SurfacePlaneIntersectionToContour();
@@ -198,6 +200,8 @@ namespace caret {
         const CaretColorEnum::Enum m_caretColor;
         
         const float* m_vertexColoringRGBA;
+        
+        const float m_opacity;
         
         const float m_contourThicknessPercentOfViewportHeight;
         

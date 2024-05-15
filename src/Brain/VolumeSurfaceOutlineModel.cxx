@@ -63,6 +63,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_surfaceSelectionModel = new SurfaceSelectionModel(validSurfaceTypes);
     m_colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
     m_slicePlaneDepth = 0.0;
+    m_opacity = 1.0;
     m_drawingMode = VolumeSurfaceOutlineDrawingModeEnum::LINES;
     
     m_sceneAssistant = new SceneClassAssistant();
@@ -71,6 +72,7 @@ VolumeSurfaceOutlineModel::VolumeSurfaceOutlineModel()
     m_sceneAssistant->add("m_surfaceSelectionModel", "SurfaceSelectionModel", m_surfaceSelectionModel);
     m_sceneAssistant->add("m_colorOrTabModel", "VolumeSurfaceOutlineColorOrTabModel", m_colorOrTabModel);
     m_sceneAssistant->add("m_slicePlaneDepth", &m_slicePlaneDepth);
+    m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add<VolumeSurfaceOutlineDrawingModeEnum, VolumeSurfaceOutlineDrawingModeEnum::Enum>("m_drawingMode",
                                                                                                           &m_drawingMode);
     
@@ -126,6 +128,7 @@ VolumeSurfaceOutlineModel::copyVolumeSurfaceOutlineModel(VolumeSurfaceOutlineMod
     m_thicknessPercentageViewportHeight = modelToCopy->m_thicknessPercentageViewportHeight;
     m_surfaceSelectionModel->setSurface(modelToCopy->getSurface());
     m_slicePlaneDepth = modelToCopy->getSlicePlaneDepth();
+    m_opacity = modelToCopy->getOpacity();
     m_drawingMode = modelToCopy->m_drawingMode;
     VolumeSurfaceOutlineColorOrTabModel* colorTabToCopy = modelToCopy->getColorOrTabModel();
     m_colorOrTabModel->copyVolumeSurfaceOutlineColorOrTabModel(colorTabToCopy);
@@ -263,6 +266,26 @@ void
 VolumeSurfaceOutlineModel::setSlicePlaneDepth(const float slicePlaneDepth)
 {
     m_slicePlaneDepth = slicePlaneDepth;
+}
+
+/**
+ * @return The opacity
+ */
+float
+VolumeSurfaceOutlineModel::getOpacity() const
+{
+    return m_opacity;
+}
+
+/**
+ * Set the opacity
+ * @param opacity
+ *    New opacity value
+ */
+void
+VolumeSurfaceOutlineModel::setOpacity(const float opacity)
+{
+    m_opacity = opacity;
 }
 
 /**
@@ -590,6 +613,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
                 || volumeMatchFlag)
             && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())
             && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())
+            && (m_opacity == surfaceOutlineModel->getOpacity())
             && (m_preferencesVolumeSurfaceOutlineSeparation == prefs->getVolumeSurfaceOutlineSeparation())) {
             if (m_colorItem != NULL) {
                 if (m_colorItem->equals(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem()))) {
@@ -630,6 +654,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     m_histologySlice = histologySlice;
     m_underlayVolume = underlayVolume;
     m_surface = surfaceOutlineModel->getSurface();
+    m_opacity = surfaceOutlineModel->getOpacity();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();
     m_slicePlaneDepth = surfaceOutlineModel->getSlicePlaneDepth();
     m_colorItem.reset(new VolumeSurfaceOutlineColorOrTabModel::Item(*(surfaceOutlineModel->getColorOrTabModel()->getSelectedItem())));
