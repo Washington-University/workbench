@@ -1438,7 +1438,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                                                                          m_browserTabContent,
                                                                          m_volumeDrawInfo[0].volumeFile,
                                                                          m_volumeDrawInfo[0].mapIndex,
-                                                                         mprSliceView.getOriginalUtransformedPlane(),
+                                                                         mprSliceView.getVirtualPlane(),
                                                                          sliceThickness);
             }
         }
