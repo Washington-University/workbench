@@ -88,9 +88,9 @@ namespace caret {
         
         void setDrawingMode(const VolumeSurfaceOutlineDrawingModeEnum::Enum drawingMode);
         
-        bool isDrawLinesModeSelected() const;
-        
-        bool isDrawSurfaceModeSelected() const;
+//        bool isDrawLinesModeSelected() const;
+//        
+//        bool isDrawSurfaceModeSelected() const;
 
         void setOutlineCachePrimitives(const HistologySlice*          histologySlice,
                                        const VolumeMappableInterface* underlayVolume,
@@ -161,6 +161,9 @@ namespace caret {
             
             /** The underlay volume */
             const VolumeMappableInterface* m_underlayVolume;
+            
+            /** drawing type */
+            VolumeSurfaceOutlineDrawingModeEnum::Enum m_drawingType = VolumeSurfaceOutlineDrawingModeEnum::LINES;
             
             /** Thickness when first outline is added to outline cache */
             float m_thicknessPercentageViewportHeight = -1.0;

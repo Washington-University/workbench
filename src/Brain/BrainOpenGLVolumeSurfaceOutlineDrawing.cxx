@@ -122,7 +122,25 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlices
          io--) {
         VolumeSurfaceOutlineModel* outlineModel = outlineSet->getVolumeSurfaceOutlineModel(io);
         if (outlineModel->isDisplayed()) {
-            if (outlineModel->isDrawSurfaceModeSelected()) {
+            bool drawLinesFlag(false);
+            bool drawOpenglLinesFlag(false);
+            bool drawSurfaceFlag(false);
+            switch (outlineModel->getDrawingMode()) {
+                case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+                    drawLinesFlag = true;
+                    drawSurfaceFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+                    drawLinesFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::LINES_OPENGL:
+                    drawOpenglLinesFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+                    drawSurfaceFlag = true;
+                    break;
+            }
+            if (drawSurfaceFlag) {
                 const bool supportedFlag(false);
                 if (supportedFlag) {
                     /*
@@ -146,7 +164,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const HistologySlices
                 }
             }
             
-            if (outlineModel->isDrawLinesModeSelected()) {
+            if (drawLinesFlag
+                || drawOpenglLinesFlag) {
                 drawSurfaceOutlineCached(histologySlicesFile,
                                          histologySlice,
                                          underlayVolume,
@@ -220,7 +239,25 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
          io--) {
         VolumeSurfaceOutlineModel* outlineModel = outlineSet->getVolumeSurfaceOutlineModel(io);
         if (outlineModel->isDisplayed()) {
-            if (outlineModel->isDrawSurfaceModeSelected()) {
+            bool drawLinesFlag(false);
+            bool drawOpenglLinesFlag(false);
+            bool drawSurfaceFlag(false);
+            switch (outlineModel->getDrawingMode()) {
+                case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+                    drawLinesFlag = true;
+                    drawSurfaceFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+                    drawLinesFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::LINES_OPENGL:
+                    drawOpenglLinesFlag = true;
+                    break;
+                case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+                    drawSurfaceFlag = true;
+                    break;
+            }
+            if (drawSurfaceFlag) {
                 const bool testFlag(true);
                 if (testFlag) {
                     const HistologySlice* histologySlice(NULL);
@@ -233,7 +270,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutline(const VolumeMappableI
                 }
             }
         
-            if (outlineModel->isDrawLinesModeSelected()) {
+            if (drawLinesFlag
+                || drawOpenglLinesFlag) {
                 /*
                  * Code still here to allow comparison with
                  * previous algorithm
@@ -414,8 +452,25 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
     
     std::vector<std::pair<GraphicsPrimitive*, float>> contourPrimitivesAndOpacity;
 
+    bool drawLinesFlag(false);
+    bool drawOpenglLinesFlag(false);
+    switch (outlineModel->getDrawingMode()) {
+        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+            drawLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+            drawLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES_OPENGL:
+            drawOpenglLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+            break;
+    }
+
     if (outlineModel->isDisplayed()
-        && outlineModel->isDrawLinesModeSelected()) {
+        && (drawLinesFlag
+            || drawOpenglLinesFlag)) {
         Surface* surface = outlineModel->getSurface();
         const float opacity(outlineModel->getOpacity());
         if (surface != NULL) {
@@ -482,6 +537,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineCached(const Histology
                                thicknessPercentage,
                                slicePlaneDepth,
                                getSeparation(outlineModel),
+                               drawOpenglLinesFlag,
                                primitives);
                 
                 if (histologySlice != NULL) {
@@ -626,8 +682,25 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
     
     std::vector<GraphicsPrimitive*> contourPrimitives;
     
+    bool drawLinesFlag(false);
+    bool drawOpenglLinesFlag(false);
+    switch (outlineModel->getDrawingMode()) {
+        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+            drawLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+            drawLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES_OPENGL:
+            drawOpenglLinesFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+            break;
+    }
+
     if (outlineModel->isDisplayed()
-        && outlineModel->isDrawLinesModeSelected()) {
+        && (drawLinesFlag
+            || drawOpenglLinesFlag)) {
         Surface* surface = outlineModel->getSurface();
         if (surface != NULL) {
             float thicknessPercentage = outlineModel->getThicknessPercentageViewportHeight();
@@ -678,6 +751,7 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
                            thicknessPercentage,
                            slicePlaneDepth,
                            getSeparation(outlineModel),
+                           drawOpenglLinesFlag,
                            contourPrimitives);
         }
     }
@@ -735,6 +809,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::drawSurfaceOutlineNotCached(const Volume
  *     Depth that slice plane along normal vector
  * @param userOutlineSeparation
  *     User override for outline separation when depth is greater than zero
+ * @param openglLinesFlag
+ *     Draw lines with opengl lines
  * @param contourPrimitivesOut
  *     Output with contour primitives
  */
@@ -749,10 +825,16 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                        const float thicknessPercentage,
                                                        const float slicePlaneDepth,
                                                        const float userOutlineSeparation,
+                                                       const bool openglLinesFlag,
                                                        std::vector<GraphicsPrimitive*>& contourPrimitivesOut)
 {
     contourPrimitivesOut.clear();
     
+    SurfacePlaneIntersectionToContour::DrawingLineType drawLineType = SurfacePlaneIntersectionToContour::DrawingLineType::POLYGONAL_LINES;
+    if (openglLinesFlag) {
+        drawLineType = SurfacePlaneIntersectionToContour::DrawingLineType::OPENGL_LINES;
+    }
+
     const bool timingFlag(false);
     ElapsedTimer timer;
     if (timingFlag) {
@@ -792,7 +874,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                       outlineColor,
                                                       nodeColoringRGBA,
                                                       opacity,
-                                                      thicknessPercentage);
+                                                      thicknessPercentage,
+                                                      drawLineType);
             AString errorMessage;
             std::vector<GraphicsPrimitive*> primitives;
             if (contour.createContours(primitives,
@@ -818,7 +901,8 @@ BrainOpenGLVolumeSurfaceOutlineDrawing::createContours(const SurfaceFile* surfac
                                                   outlineColor,
                                                   nodeColoringRGBA,
                                                   opacity,
-                                                  thicknessPercentage);
+                                                  thicknessPercentage,
+                                                  drawLineType);
         AString errorMessage;
         if ( ! contour.createContours(contourPrimitivesOut,
                                       errorMessage)) {

@@ -153,8 +153,10 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     macroManager->addMacroSupportToObject(this->opacitySpinBox,
                                           "Set opacity for volume surface outline for " + descriptivePrefix);
     
+    std::vector<VolumeSurfaceOutlineDrawingModeEnum::Enum> drawingModes;
+    VolumeSurfaceOutlineDrawingModeEnum::getSupportedEnums(drawingModes);
     m_volumeSurfaceOutlineDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
-    m_volumeSurfaceOutlineDrawingModeEnumComboBox->setup<VolumeSurfaceOutlineDrawingModeEnum,VolumeSurfaceOutlineDrawingModeEnum::Enum>();
+    m_volumeSurfaceOutlineDrawingModeEnumComboBox->setupWithItems<VolumeSurfaceOutlineDrawingModeEnum,VolumeSurfaceOutlineDrawingModeEnum::Enum>(drawingModes);
     QObject::connect(m_volumeSurfaceOutlineDrawingModeEnumComboBox, SIGNAL(itemActivated()),
                      this, SLOT(volumeSurfaceOutlineDrawingModeEnumComboBoxItemActivated()));
     m_volumeSurfaceOutlineDrawingModeEnumComboBox->getWidget()->setToolTip(VolumeSurfaceOutlineDrawingModeEnum::getToolTip());

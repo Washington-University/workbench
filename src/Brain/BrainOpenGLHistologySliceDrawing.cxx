@@ -908,9 +908,6 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
         return;
     }
     
-    const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
-    const int32_t tabIndex(m_browserTabContent->getTabNumber());
-
     /*
      * Find any volumes to draw
      */

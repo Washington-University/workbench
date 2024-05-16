@@ -130,6 +130,7 @@ namespace caret {
                             const float contourThicknessMillimeters,
                             const float slicePlaneDepth,
                             const float userOutlineSeparation,
+                            const bool openglLinesFlag,
                             std::vector<GraphicsPrimitive*>& contourPrimitives);
         
         float getSeparation(const VolumeSurfaceOutlineModel* outline) const;

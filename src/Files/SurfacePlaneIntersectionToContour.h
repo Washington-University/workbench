@@ -39,12 +39,18 @@ namespace caret {
     class SurfacePlaneIntersectionToContour : public CaretObject {
         
     public:
+        enum DrawingLineType {
+            OPENGL_LINES,
+            POLYGONAL_LINES
+        };
+        
         SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
                                           const Plane& intersectionPlane,
                                           const CaretColorEnum::Enum caretColor,
                                           const float* vertexColoringRGBA,
                                           const float opacity,
-                                          const float contourThicknessMillimeters);
+                                          const float contourThicknessMillimeters,
+                                          const DrawingLineType drawingLineType);
         
         SurfacePlaneIntersectionToContour(const SurfaceFile* surfaceFile,
                                           const Plane& intersectionPlane,
@@ -52,7 +58,8 @@ namespace caret {
                                           const CaretColorEnum::Enum caretColor,
                                           const float* vertexColoringRGBA,
                                           const float opacity,
-                                          const float contourThicknessMillimeters);
+                                          const float contourThicknessMillimeters,
+                                          const DrawingLineType drawingLineType);
         
         virtual ~SurfacePlaneIntersectionToContour();
 
@@ -204,6 +211,8 @@ namespace caret {
         const float m_opacity;
         
         const float m_contourThicknessPercentOfViewportHeight;
+        
+        const DrawingLineType m_drawingLineType;
         
         std::array<float, 4> m_solidRGBA;
         

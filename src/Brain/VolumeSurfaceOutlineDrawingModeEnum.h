@@ -35,11 +35,13 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** Polygonal lines */
         LINES,
-        /** */
+        /** OpenGL Lines (limited width) */
+        LINES_OPENGL,
+        /** clipped surface */
         SURFACE,
-        /** */
+        /** Polygonal lines and clipped surface */
         BOTH
     };
 
@@ -60,6 +62,8 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
 
+    static void getSupportedEnums(std::vector<Enum>& allEnums);
+    
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);

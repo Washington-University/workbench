@@ -221,7 +221,6 @@ m_parentToolBar(parentToolBar)
     const int columnSliceSpinBoxes(columnIndex++);
     const int columnPlaneSpinBoxes(columnIndex++);
     const int columnStereotaxicSpinBoxes(columnIndex++);
-    const int numColummns(columnIndex++);
     
     QGridLayout* controlsLayout(new QGridLayout());
     int row(0);

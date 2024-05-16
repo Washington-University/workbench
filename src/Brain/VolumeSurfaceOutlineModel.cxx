@@ -345,43 +345,43 @@ VolumeSurfaceOutlineModel::setDrawingMode(const VolumeSurfaceOutlineDrawingModeE
     m_drawingMode = drawingMode;
 }
 
-/**
- * @return Is a drawing lines mode selected
- */
-bool
-VolumeSurfaceOutlineModel::isDrawLinesModeSelected() const
-{
-    bool status(true);
-    switch (m_drawingMode) {
-        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
-            break;
-        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
-            break;
-        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
-            status = false;
-            break;
-    }
-    return status;
-}
-
-/**
- * @return Is a drawing surface mode selected
- */
-bool
-VolumeSurfaceOutlineModel::isDrawSurfaceModeSelected() const
-{
-    bool status(true);
-    switch (m_drawingMode) {
-        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
-            break;
-        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
-            status = false;
-            break;
-        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
-            break;
-    }
-    return status;
-}
+///**
+// * @return Is a drawing lines mode selected
+// */
+//bool
+//VolumeSurfaceOutlineModel::isDrawLinesModeSelected() const
+//{
+//    bool status(true);
+//    switch (m_drawingMode) {
+//        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+//            break;
+//        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+//            break;
+//        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+//            status = false;
+//            break;
+//    }
+//    return status;
+//}
+//
+///**
+// * @return Is a drawing surface mode selected
+// */
+//bool
+//VolumeSurfaceOutlineModel::isDrawSurfaceModeSelected() const
+//{
+//    bool status(true);
+//    switch (m_drawingMode) {
+//        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+//            break;
+//        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+//            status = false;
+//            break;
+//        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+//            break;
+//    }
+//    return status;
+//}
 
 
 /**
@@ -569,6 +569,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::~OutlineCacheInfo()
 void
 VolumeSurfaceOutlineModel::OutlineCacheInfo::clear()
 {
+    m_drawingType = VolumeSurfaceOutlineDrawingModeEnum::LINES;
     m_surface = NULL;
     m_thicknessPercentageViewportHeight = -1.0;
     m_slicePlaneDepth = 0.0;
@@ -611,6 +612,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::isValid(VolumeSurfaceOutlineModel* 
         if ((m_surface == surfaceOutlineModel->getSurface())
             && (histologyMatchFlag
                 || volumeMatchFlag)
+            && (m_drawingType == surfaceOutlineModel->getDrawingMode())
             && (m_thicknessPercentageViewportHeight == surfaceOutlineModel->getThicknessPercentageViewportHeight())
             && (m_slicePlaneDepth == surfaceOutlineModel->getSlicePlaneDepth())
             && (m_opacity == surfaceOutlineModel->getOpacity())
@@ -653,6 +655,7 @@ VolumeSurfaceOutlineModel::OutlineCacheInfo::update(VolumeSurfaceOutlineModel* s
     }
     m_histologySlice = histologySlice;
     m_underlayVolume = underlayVolume;
+    m_drawingType = surfaceOutlineModel->getDrawingMode();
     m_surface = surfaceOutlineModel->getSurface();
     m_opacity = surfaceOutlineModel->getOpacity();
     m_thicknessPercentageViewportHeight = surfaceOutlineModel->getThicknessPercentageViewportHeight();

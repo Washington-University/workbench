@@ -105,8 +105,22 @@ BrainOpenGLVolumeSurfaceClippedOutlineDrawing::drawSurfaceOutline()
     
     std::vector<GraphicsPrimitive*> contourPrimitives;
     
+    bool drawFlag(false);
+    switch (m_outlineModel->getDrawingMode()) {
+        case VolumeSurfaceOutlineDrawingModeEnum::BOTH:
+            drawFlag = true;
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES:
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::LINES_OPENGL:
+            break;
+        case VolumeSurfaceOutlineDrawingModeEnum::SURFACE:
+            drawFlag = true;
+            break;
+    }
+
     if (m_outlineModel->isDisplayed()
-        && m_outlineModel->isDrawSurfaceModeSelected()) {
+        && drawFlag) {
         const Surface* surface = m_outlineModel->getSurface();
         if (surface != NULL) {
             CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;

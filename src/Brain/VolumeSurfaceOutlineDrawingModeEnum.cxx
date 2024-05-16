@@ -112,7 +112,11 @@ VolumeSurfaceOutlineDrawingModeEnum::initialize()
                                     "LINES", 
                                     "Lines"));
     
-    enumData.push_back(VolumeSurfaceOutlineDrawingModeEnum(SURFACE, 
+    enumData.push_back(VolumeSurfaceOutlineDrawingModeEnum(LINES_OPENGL,
+                                                           "LINES_OPENGL",
+                                                           "OG-Lines"));
+    
+    enumData.push_back(VolumeSurfaceOutlineDrawingModeEnum(SURFACE,
                                     "SURFACE", 
                                     "Surface"));
     
@@ -326,6 +330,27 @@ VolumeSurfaceOutlineDrawingModeEnum::getAllEnums(std::vector<VolumeSurfaceOutlin
 }
 
 /**
+ * Get all of the enumerated type values.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param supportedEnums
+ *     A vector that is OUTPUT containing all of the supported enumerated values.
+ */
+void
+VolumeSurfaceOutlineDrawingModeEnum::getSupportedEnums(std::vector<VolumeSurfaceOutlineDrawingModeEnum::Enum>& supportedEnums)
+{
+    std::vector<Enum> allEnums;
+    getAllEnums(allEnums);
+    
+    supportedEnums.clear();
+    for (auto& e : allEnums) {
+        if (e != LINES_OPENGL) {
+            supportedEnums.push_back(e);
+        }
+    }
+}
+
+/**
  * Get all of the names of the enumerated type values.
  *
  * @param allNames
@@ -400,8 +425,11 @@ VolumeSurfaceOutlineDrawingModeEnum::getToolTip()
                          + toGuiName(SURFACE)
                          + ".");
                 break;
+            case LINES_OPENGL:
+                s.append("Draw with OpenGL lines.  Works well with opacity but limited width.");
+                break;
             case LINES:
-                s.append("Draw as lines, may get gaps when depth is small.");
+                s.append("Draw as lines, may get gaps when depth is small.  Does not work well with opacity.");
                 break;
             case SURFACE:
                 s.append("Draw part of surface within 'depth' distance from volume slice (eliminates gaps).  Increasing depth may help for very thin regions.");

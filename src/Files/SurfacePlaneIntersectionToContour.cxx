@@ -79,14 +79,16 @@ SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const Surfa
                                                                      const CaretColorEnum::Enum caretColor,
                                                                      const float* vertexColoringRGBA,
                                                                      const float opacity,
-                                                                     const float contourThicknessPercentOfViewportHeight)
+                                                                     const float contourThicknessPercentOfViewportHeight,
+                                                                     const DrawingLineType drawingLineType)
 : SurfacePlaneIntersectionToContour(surfaceFile,
                                     intersectionPlane,
                                     intersectionPlane,
                                     caretColor,
                                     vertexColoringRGBA,
                                     opacity,
-                                    contourThicknessPercentOfViewportHeight)
+                                    contourThicknessPercentOfViewportHeight,
+                                    drawingLineType)
 {
 }
 
@@ -114,7 +116,8 @@ SurfacePlaneIntersectionToContour::SurfacePlaneIntersectionToContour(const Surfa
                                                                      const CaretColorEnum::Enum caretColor,
                                                                      const float* vertexColoringRGBA,
                                                                      const float opacity,
-                                                                     const float contourThicknessPercentOfViewportHeight)
+                                                                     const float contourThicknessPercentOfViewportHeight,
+                                                                     const DrawingLineType drawingLineType)
 : CaretObject(),
 m_surfaceFile(surfaceFile),
 m_intersectionPlane(intersectionPlane),
@@ -122,7 +125,8 @@ m_drawOnPlane(drawOnPlane),
 m_caretColor(caretColor),
 m_vertexColoringRGBA(vertexColoringRGBA),
 m_opacity(opacity),
-m_contourThicknessPercentOfViewportHeight(contourThicknessPercentOfViewportHeight)
+m_contourThicknessPercentOfViewportHeight(contourThicknessPercentOfViewportHeight),
+m_drawingLineType(drawingLineType)
 {
     CaretAssert(m_surfaceFile);
     
@@ -376,7 +380,16 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
     
     const std::vector<TopologyTileInfo>& allTileInfo = m_topologyHelper->getTileInfo();
     
-    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN));
+    std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive;
+    switch (m_drawingLineType) {
+        case OPENGL_LINES:
+            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP));
+            break;
+        case POLYGONAL_LINES:
+            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN));
+            break;
+    }
+    CaretAssert(primitive.get());
     primitive->setLineWidth(GraphicsPrimitive::LineWidthType::PERCENTAGE_VIEWPORT_HEIGHT,
                             m_contourThicknessPercentOfViewportHeight);
     primitive->reserveForNumberOfVertices(m_numberOfIntersectingEdges + 5);
