@@ -1018,6 +1018,8 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnImageFile(std::vector<Volu
                                                                                      displayGroup,
                                                                                      tabIndex,
                                                                                      imageFile,
+                                                                                     overlay->getVolumeToImageMappingMode(),
+                                                                                     overlay->getVolumeToImageMappingThickness(),
                                                                                      errorMessage));
             if (primitive) {
                 const float alphaValue(overlay->getOpacity());
@@ -1112,6 +1114,8 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
                                                                                                displayGroup,
                                                                                                tabIndex,
                                                                                                histologySlice,
+                                                                                               overlay->getVolumeToImageMappingMode(),
+                                                                                               overlay->getVolumeToImageMappingThickness(),
                                                                                                errorMessage));
         if ( ! primitives.empty()) {
             const float alphaValue(overlay->getOpacity());

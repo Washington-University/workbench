@@ -79,6 +79,9 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_colorBar = new AnnotationColorBar(AnnotationAttributesDefaultTypeEnum::NORMAL);
     m_colorBar->setCoordinateSpace(AnnotationCoordinateSpaceEnum::TAB);
     
+    m_volumeToImageMappingMode = VolumeToImageMappingModeEnum::NORMAL;
+    m_volumeToImageMappingThickness = 1.0;
+    
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_opacity", &m_opacity);
     m_sceneAssistant->add("m_enabled", &m_enabled);
@@ -87,7 +90,10 @@ m_includeVolumeFiles(includeVolumeFiles)
     m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
                                                                         &m_mapYokingGroup);
     m_sceneAssistant->add("m_colorBar", "AnnotationColorBar", m_colorBar);
-    
+    m_sceneAssistant->add<VolumeToImageMappingModeEnum, VolumeToImageMappingModeEnum::Enum>("m_volumeToImageMappingMode",
+                                                                                            &m_volumeToImageMappingMode);
+    m_sceneAssistant->add("m_volumeToImageMappingThickness", &m_volumeToImageMappingThickness);
+
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_OVERLAY_VALIDATE);
 }
@@ -275,6 +281,9 @@ Overlay::copyData(const Overlay* overlay)
     m_wholeBrainVoxelDrawingMode = overlay->m_wholeBrainVoxelDrawingMode;
     
     *m_colorBar = *overlay->m_colorBar;
+    
+    m_volumeToImageMappingMode = overlay->m_volumeToImageMappingMode;
+    m_volumeToImageMappingThickness = overlay->m_volumeToImageMappingThickness;
 }
 
 /**
@@ -603,6 +612,46 @@ const AnnotationColorBar*
 Overlay::getColorBar() const
 {
     return m_colorBar;
+}
+
+/**
+ * @return The volume to image mapping mode
+ */
+VolumeToImageMappingModeEnum::Enum
+Overlay::getVolumeToImageMappingMode() const
+{
+    return m_volumeToImageMappingMode;
+}
+
+/**
+ * @return The volume to image mapping thickness
+ */
+float
+Overlay::getVolumeToImageMappingThickness() const
+{
+    return m_volumeToImageMappingThickness;
+}
+
+/**
+ * Set the volume to image mapping mode
+ * @param mode
+ *    New mode
+ */
+void
+Overlay::setVolumeToImageMappingMode(const VolumeToImageMappingModeEnum::Enum mode)
+{
+    m_volumeToImageMappingMode = mode;
+}
+
+/**
+ * Set the volume to image mapping thickness
+ * @param thickness
+ *    New thickness
+ */
+void
+Overlay::setVolumeToImageMappingThickness(const float thickness)
+{
+    m_volumeToImageMappingThickness = thickness;
 }
 
 

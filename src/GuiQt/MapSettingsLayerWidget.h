@@ -24,7 +24,7 @@
 
 #include <QWidget>
 
-class QPushButton;
+class QDoubleSpinBox;
 
 namespace caret {
 
@@ -43,7 +43,9 @@ namespace caret {
         void updateContent(Overlay* overlay);
         
     private slots:
-        void applySelections();
+        void applyWholeBrainSelections();
+        
+        void applyVolumeToImageSelections();
         
     private:
         MapSettingsLayerWidget(const MapSettingsLayerWidget&);
@@ -58,9 +60,21 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        QWidget* createWholeBrainWidget();
+        
+        QWidget* createVolumeToImageWidget();
+        
+        QWidget* m_wholeBrainWidget;
+        
+        QWidget* m_volumeToImageWidget;
+        
         Overlay* m_overlay;
         
         EnumComboBoxTemplate* m_wholeBrainVoxelDrawingModeComboBox;
+        
+        EnumComboBoxTemplate* m_volumeToImageModeComboBox;
+        
+        QDoubleSpinBox* m_volumeToImageThicknessSpinBox;
     };
     
 #ifdef __MAP_SETTINGS_LAYER_WIDGET_DECLARE__

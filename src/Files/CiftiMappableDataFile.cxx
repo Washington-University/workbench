@@ -4676,6 +4676,10 @@ CiftiMappableDataFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex
  *    Index of selected tab.
  * @param mediaFile
  *    The medial file for drawing histology
+ * @param volumeMappingMode
+ *    The volume to image mapping mode
+ * @param volumeSliceThickness
+ *    The volume slice thickness for mapping volume to image
  * @param errorMessageOut
  *    Ouput with error message
  * @return
@@ -4686,12 +4690,16 @@ CiftiMappableDataFile::getHistologyImageIntersectionPrimitive(const int32_t mapI
                                                               const DisplayGroupEnum::Enum displayGroup,
                                                               const int32_t tabIndex,
                                                               const MediaFile* mediaFile,
+                                                              const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                              const float volumeSliceThickness,
                                                               AString& errorMessageOut) const
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(mediaFile,
                                                                                   mapIndex,
                                                                                   displayGroup,
                                                                                   tabIndex,
+                                                                                  volumeMappingMode,
+                                                                                  volumeSliceThickness,
                                                                                   errorMessageOut);
 }
 
@@ -4705,6 +4713,10 @@ CiftiMappableDataFile::getHistologyImageIntersectionPrimitive(const int32_t mapI
  *    Index of selected tab.
  * @param histologySlice
  *    The histology slice being drawn
+ * @param volumeMappingMode
+ *    The volume to image mapping mode
+ * @param volumeSliceThickness
+ *    The volume slice thickness for mapping volume to image
  * @param errorMessageOut
  *    Ouput with error message
  * @return
@@ -4715,12 +4727,16 @@ CiftiMappableDataFile::getHistologySliceIntersectionPrimitive(const int32_t mapI
                                                               const DisplayGroupEnum::Enum displayGroup,
                                                               const int32_t tabIndex,
                                                               const HistologySlice* histologySlice,
+                                                              const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                              const float volumeSliceThickness,
                                                               AString& errorMessageOut) const
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(histologySlice,
                                                                                   mapIndex,
                                                                                   displayGroup,
                                                                                   tabIndex,
+                                                                                  volumeMappingMode,
+                                                                                  volumeSliceThickness,
                                                                                   errorMessageOut);
 }
 

@@ -416,12 +416,16 @@ namespace caret {
                                                                           const DisplayGroupEnum::Enum displayGroup,
                                                                           const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
+                                                                          const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                          const float volumeSliceThickness,
                                                                           AString& errorMessageOut) const override;
         
         virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
                                                                                        const DisplayGroupEnum::Enum displayGroup,
                                                                                        const int32_t tabIndex,
                                                                                        const HistologySlice* histologySlice,
+                                                                                       const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                                       const float volumeSliceThickness,
                                                                                        AString& errorMessageOut) const override;
 
         virtual bool getMapVolumeVoxelValue(const int32_t mapIndex,

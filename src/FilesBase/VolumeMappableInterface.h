@@ -25,6 +25,7 @@
 #include "Vector3D.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSpace.h"
+#include "VolumeToImageMappingModeEnum.h"
 
 namespace caret {
     
@@ -501,12 +502,16 @@ namespace caret {
                                                                           const DisplayGroupEnum::Enum displayGroup,
                                                                           const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
+                                                                          const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                          const float volumeSliceThickness,
                                                                           AString& errorMessageOut) const = 0;
         
         virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
                                                                                        const DisplayGroupEnum::Enum displayGroup,
                                                                                        const int32_t tabIndex,
                                                                                        const HistologySlice* histologySlice,
+                                                                                       const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                                       const float volumeSliceThickness,
                                                                                        AString& errorMessageOut) const = 0;
 
         /**

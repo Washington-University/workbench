@@ -29,6 +29,7 @@
 #include "MapYokingGroupEnum.h"
 #include "PlainTextStringBuilder.h"
 #include "SceneableInterface.h"
+#include "VolumeToImageMappingModeEnum.h"
 #include "WholeBrainVoxelDrawingMode.h"
 #include "StructureEnum.h"
 
@@ -95,6 +96,14 @@ namespace caret {
         
         const AnnotationColorBar* getColorBar() const;
         
+        VolumeToImageMappingModeEnum::Enum getVolumeToImageMappingMode() const;
+        
+        float getVolumeToImageMappingThickness() const;
+
+        void setVolumeToImageMappingMode(const VolumeToImageMappingModeEnum::Enum mode);
+        
+        void setVolumeToImageMappingThickness(const float thickness);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
@@ -137,6 +146,12 @@ namespace caret {
         
         /** The color bar displayed in the graphics window */
         AnnotationColorBar* m_colorBar;
+        
+        /** Volume to image mapping mode */
+        VolumeToImageMappingModeEnum::Enum m_volumeToImageMappingMode = VolumeToImageMappingModeEnum::NORMAL;
+        
+        /** Volume to image mapping thickness */
+        float m_volumeToImageMappingThickness = 0.0;
         
         /** helps with scene save/restore */
         SceneClassAssistant* m_sceneAssistant;

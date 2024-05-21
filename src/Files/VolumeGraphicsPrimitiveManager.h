@@ -26,6 +26,7 @@
 
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "VolumeToImageMappingModeEnum.h"
 #include "VoxelColorUpdate.h"
 #include "VoxelIJK.h"
 
@@ -75,12 +76,16 @@ namespace caret {
                                                                             const int32_t mapIndex,
                                                                             const DisplayGroupEnum::Enum displayGroup,
                                                                             const int32_t tabIndex,
+                                                                            const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                            const float volumeSliceThickness,
                                                                             AString& errorMessageOut) const;
         
         std::vector<GraphicsPrimitive*> getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
                                                                                    const int32_t mapIndex,
                                                                                    const DisplayGroupEnum::Enum displayGroup,
                                                                                    const int32_t tabIndex,
+                                                                                   const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                                   const float volumeSliceThickness,
                                                                                    AString& errorMessageOut) const;
 
         void updateVoxelColorsInMapTexture(const VoxelColorUpdate& voxelColorUpdate);
@@ -98,25 +103,31 @@ namespace caret {
         public:
             ImageIntersectionKey(void* dataPtr,
                                  const int32_t mapIndex,
-                                 const int32_t tabIndex)
+                                 const int32_t tabIndex,
+                                 const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                 const float volumeSliceThickness)
             : m_dataPtr(dataPtr),
             m_mapIndex(mapIndex),
-            m_tabIndex(tabIndex)
+            m_tabIndex(tabIndex),
+            m_volumeMappingMode(volumeMappingMode),
+            m_volumeSliceThickness(volumeSliceThickness)
             { }
             
-//            bool operator==(const ImageIntersectionKey& rhs) const {
-//                if ((m_mediaFile == rhs.m_mediaFile)
-//                    && (m_mapIndex == rhs.m_mapIndex)
-//                    && (m_tabIndex == rhs.m_tabIndex)) {
-//                    return true;
-//                }
-//                return false;
-//            }
             
             bool operator<(const ImageIntersectionKey& rhs) const {
                 if (m_dataPtr == rhs.m_dataPtr) {
                     if (m_mapIndex == rhs.m_mapIndex) {
-                        return (m_tabIndex < rhs.m_tabIndex);
+                        if (m_tabIndex == rhs.m_tabIndex) {
+                            if ((int)m_volumeMappingMode == (int)rhs.m_volumeMappingMode) {
+                                return (m_volumeSliceThickness < rhs.m_volumeSliceThickness);
+                            }
+                            else {
+                                return ((int)m_volumeMappingMode < (int)rhs.m_volumeMappingMode);
+                            }
+                        }
+                        else {
+                            return (m_tabIndex < rhs.m_tabIndex);
+                        }
                     }
                     else {
                         return (m_mapIndex < rhs.m_mapIndex);
@@ -129,6 +140,8 @@ namespace caret {
             void* m_dataPtr;
             int32_t m_mapIndex;
             int32_t m_tabIndex;
+            VolumeToImageMappingModeEnum::Enum m_volumeMappingMode;
+            float m_volumeSliceThickness;
         };
         
         GraphicsPrimitiveV3fT3f* createPrimitive(const PrimitiveShape drawingType,

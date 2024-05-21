@@ -27,6 +27,7 @@
 
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "VolumeToImageMappingModeEnum.h"
 #include "VoxelIJK.h"
 
 namespace caret {
@@ -44,12 +45,16 @@ namespace caret {
     public:
         VolumeToImageMapping(const VolumeMappableInterface* volumeInterface,
                              const int32_t volumeFileMapIndex,
+                             const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                             const float volumeSliceThickness,
                              const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const MediaFile* inputMediaFile);
         
         VolumeToImageMapping(const VolumeMappableInterface* volumeInterface,
                              const int32_t volumeFileMapIndex,
+                             const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                             const float volumeSliceThickness,
                              const DisplayGroupEnum::Enum displayGroup,
                              const int32_t tabIndex,
                              const HistologySlice* histologySlice);
@@ -81,12 +86,23 @@ namespace caret {
                                const AString errorMessagePrefix,
                                AString& errorMessageInOut);
         
+        bool performRgbaMapping(ImageFile* outputImageFile,
+                                AString& errorMessageOut);
+        
+        bool performIntensityMapping(const MediaFile* mediaFile,
+                                     ImageFile* outputImageFile,
+                                     AString& errorMessageOut);
+        
         int32_t getImageBestDimension(const MediaFile* mediaFile,
                                       const VolumeMappableInterface* volumeInterface) const;
         
         const VolumeMappableInterface* m_volumeInterface;
         
         const int32_t m_volumeFileMapIndex;
+        
+        const VolumeToImageMappingModeEnum::Enum m_inputVolumeMappingMode;
+        
+        const float m_volumeSliceThickness;
         
         const CaretMappableDataFile* m_volumeMappableDataFile;
         

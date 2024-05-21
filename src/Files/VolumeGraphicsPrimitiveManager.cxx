@@ -445,6 +445,10 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
  *    Display gtroup selected
  * @param tabIndex
  *    Index of tab
+ * @param volumeMappingMode
+ *    Mode for volume mapping
+ * @param volumeSliceThickness
+ *    Thickness of volume slice for some modes
  * @param errorMessageOut
  *    Contains error information if failure to create primitive
  * @return
@@ -455,6 +459,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                                                            const int32_t mapIndex,
                                                                            const DisplayGroupEnum::Enum displayGroup,
                                                                            const int32_t tabIndex,
+                                                                           const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                           const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
 {
     CaretLogSevere("This function is no longer used.  Use method that takes HistlogySlice.");
@@ -466,7 +472,10 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)mediaFile,
                              mapIndex,
-                             tabIndex);
+                             tabIndex,
+                             volumeMappingMode,
+                             volumeSliceThickness);
+    std::cout << "Slice thickness1: " << volumeSliceThickness << std::endl;
     
     std::vector<ImageFile*> allImageFiles;
     auto iter(m_mapIntersectionImageFiles.find(key));
@@ -481,6 +490,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     else {
         VolumeToImageMapping mapper(m_volumeInterface,
                                     mapIndex,
+                                    volumeMappingMode,
+                                    volumeSliceThickness,
                                     displayGroup,
                                     tabIndex,
                                     mediaFile);
@@ -518,6 +529,10 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
  *    Display gtroup selected
  * @param tabIndex
  *    Index of tab
+ * @param volumeMappingMode
+ *    Mode for volume mapping
+ * @param volumeSliceThickness
+ *    Thickness of volume slice for some modes
  * @param errorMessageOut
  *    Contains error information if failure to create primitive
  * @return
@@ -528,6 +543,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                                                            const int32_t mapIndex,
                                                                            const DisplayGroupEnum::Enum displayGroup,
                                                                            const int32_t tabIndex,
+                                                                           const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
+                                                                           const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
 {
     errorMessageOut.clear();
@@ -536,8 +553,10 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)histologySlice,
                              mapIndex,
-                             tabIndex);
-    
+                             tabIndex,
+                             volumeMappingMode,
+                             volumeSliceThickness);
+
     std::vector<ImageFile*> allImageFiles;
     auto iter(m_mapIntersectionImageFiles.find(key));
     if (iter != m_mapIntersectionImageFiles.end()) {
@@ -551,6 +570,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     else {
         VolumeToImageMapping mapper(m_volumeInterface,
                                     mapIndex,
+                                    volumeMappingMode,
+                                    volumeSliceThickness,
                                     displayGroup,
                                     tabIndex,
                                     histologySlice);
