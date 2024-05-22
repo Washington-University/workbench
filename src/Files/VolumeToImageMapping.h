@@ -96,6 +96,10 @@ namespace caret {
         int32_t getImageBestDimension(const MediaFile* mediaFile,
                                       const VolumeMappableInterface* volumeInterface) const;
         
+        void printInputOutputImageDimensions(const std::vector<const MediaFile*> inputMediaFiles) const;
+        
+        AString getResolutionString(const MediaFile* mediaFile) const;
+        
         const VolumeMappableInterface* m_volumeInterface;
         
         const int32_t m_volumeFileMapIndex;
@@ -122,12 +126,13 @@ namespace caret {
         
         std::map<VoxelIJK, std::array<uint8_t, 4>> m_ijkRgbaMap;
         
+        static bool s_debugFlag;
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __VOLUME_TO_IMAGE_MAPPING_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool VolumeToImageMapping::s_debugFlag = false;
 #endif // __VOLUME_TO_IMAGE_MAPPING_DECLARE__
 
 } // namespace

@@ -40,8 +40,6 @@
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::VolumeToImageMapping 
  * \brief Map a volume file to an image that has stereotaxic information available
@@ -211,9 +209,53 @@ VolumeToImageMapping::runMapping(AString& errorMessageOut)
             }
         }
     }
-    //std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+    
+    if (s_debugFlag) {
+        std::cout << "Time to map volume to image: " << timer.getElapsedTimeMilliseconds() << "ms" << std::endl;
+        printInputOutputImageDimensions(allInputMediaFiles);
+    }
     
     return successFlag;
+}
+
+/**
+ * Print dimensions of input and output files
+ * @param inputMediaFiles
+ *    The input files
+ */
+void
+VolumeToImageMapping::printInputOutputImageDimensions(const std::vector<const MediaFile*> inputMediaFiles) const
+{
+    const int32_t numInputFiles(inputMediaFiles.size());
+    const int32_t numOutputFiles(m_outputImageFiles.size());
+    const int32_t maxFiles(std::max(numInputFiles, numOutputFiles));
+    
+    for (int32_t i = 0; i < maxFiles; i++) {
+        std::cout << "   ";
+        if (i < numInputFiles) {
+            std::cout << "Input=" << getResolutionString(inputMediaFiles[i]) << " ";
+        }
+        if (i < numOutputFiles) {
+            std::cout << "Output=" << getResolutionString(m_outputImageFiles[i].get());
+        }
+        std::cout << std::endl;
+    }
+}
+
+/**
+ * @return  width/height in string for file
+ * @mediaFile
+ *    The media file
+ */
+AString
+VolumeToImageMapping::getResolutionString(const MediaFile* mediaFile) const
+{
+    AString txt("("
+                + AString::number(mediaFile->getWidth())
+                + ", "
+                + AString::number(mediaFile->getHeight())
+                + ")");
+    return txt;
 }
 
 /**
@@ -250,18 +292,20 @@ VolumeToImageMapping::performMapping(const MediaFile* mediaFile,
         }
     }
     
-    const bool limitDimensionsFlag(false);
+    int32_t maximumImageDimension(2000);
+    const bool limitDimensionsFlag(true);
     if (limitDimensionsFlag) {
-        const int32_t bestDimension(getImageBestDimension(mediaFile,
-                                                          m_volumeInterface));
-        std::cout << "Best dimension: " << bestDimension << std::endl;
+        const int dim(getImageBestDimension(mediaFile,
+                                            m_volumeInterface));
+        if(dim > 0) {
+            maximumImageDimension = dim;
+        }
     }
 
     /*
      * Create output image file by cloning as an image file
      */
-    const int32_t maxImageDim(2000);
-    ImageFile* outputImageFile(mediaFile->cloneAsImageFileMaximumWidthHeight(maxImageDim,
+    ImageFile* outputImageFile(mediaFile->cloneAsImageFileMaximumWidthHeight(maximumImageDimension,
                                                                              errorMessageOut));
     if (outputImageFile == NULL) {
         return false;
@@ -605,27 +649,60 @@ VolumeToImageMapping::getImageBestDimension(const MediaFile* mediaFile,
     CaretAssert(mediaFile);
     CaretAssert(volumeInterface);
     
-    const PixelIndex topLeftPixel(0, 0);
-    const PixelIndex topRightPixel(0, mediaFile->getWidth() - 1);
-    Vector3D topLeftStereotaxicXYZ;
-    Vector3D topRightStereotaxicXYZ;
+    /*
+     * Note: Cannot use pixels at corners of image since they
+     * sometimes to not map to a stereotaxic coordinate.  So
+     * use pixels well away from the image edges.
+     */
+    const int64_t mediaWidth(mediaFile->getWidth());
+    const int64_t mediaHeight(mediaFile->getHeight());
+    const int64_t horizLeft(mediaWidth * 0.25);
+    const int64_t horizRight(mediaWidth - horizLeft);
+    const int64_t vertOffset(mediaHeight * 0.25);
+    const PixelIndex leftPixel(horizLeft, vertOffset);
+    const PixelIndex rightPixel(horizRight, vertOffset);
+    Vector3D leftStereotaxicXYZ;
+    Vector3D rightStereotaxicXYZ;
     
-    if (mediaFile->pixelIndexToStereotaxicXYZ(topLeftPixel,
-                                                     topLeftStereotaxicXYZ)
-        && mediaFile->pixelIndexToStereotaxicXYZ(topRightPixel,
-                                                        topRightStereotaxicXYZ)) {
-        const float imageWidthMM((topLeftStereotaxicXYZ - topRightStereotaxicXYZ).length());
-        const float imageWidthPixels(mediaFile->getWidth());
-        const float imagePixelsPerMillimeter(imageWidthPixels
-                                             / imageWidthMM);
-        const float voxelSizeMM(volumeInterface->getMaximumVoxelSpacing());
-        const float pixelsPerVoxel(imagePixelsPerMillimeter * voxelSizeMM);
-        
-        
-        std::cout << "Pixels Per MM: " << imagePixelsPerMillimeter << std::endl;
-        std::cout << "Pixels Per Voxel: " << pixelsPerVoxel << std::endl;
-        
+    if (mediaFile->pixelIndexToStereotaxicXYZ(leftPixel,
+                                              leftStereotaxicXYZ)
+        && mediaFile->pixelIndexToStereotaxicXYZ(rightPixel,
+                                                 rightStereotaxicXYZ)) {
+        const float imageWidthMM((leftStereotaxicXYZ - rightStereotaxicXYZ).length());
+        if (imageWidthMM > 0.0) {
+            const float widthPixels(horizRight - horizLeft);
+            const float pixelsPerMillimeter(widthPixels
+                                            / imageWidthMM);
+            const float voxelSizeMM(volumeInterface->getMaximumVoxelSpacing());
+            const float pixelsPerVoxel(pixelsPerMillimeter * voxelSizeMM);
+            
+            
+            if (s_debugFlag) {
+                std::cout << "Image Width/Height: " << mediaWidth << " " << mediaHeight << std::endl;
+                std::cout << "   Image pixels Per MM: " << pixelsPerMillimeter << std::endl;
+                std::cout << "   Image Pixels Per Voxel: " << pixelsPerVoxel << std::endl;
+            }
+            
+            const float maximumPixelsPerVoxel(3);
+            if (pixelsPerVoxel > maximumPixelsPerVoxel) {
+                const float ratio(maximumPixelsPerVoxel / pixelsPerVoxel);
+                const int64_t limitedWidth(mediaWidth * ratio);
+                const int64_t limitedHeight(mediaHeight * ratio);
+                if (limitedWidth > limitedHeight) {
+                    dimOut = limitedWidth;
+                }
+                else {
+                    dimOut = limitedHeight;
+                }
+                
+                if (s_debugFlag) {
+                    std::cout << "   Max Dim: " << dimOut
+                    << " W: " << limitedWidth << " H: " << limitedHeight << std::endl;
+                }
+            }
+        }
     }
+    
     return dimOut;
 }
 
