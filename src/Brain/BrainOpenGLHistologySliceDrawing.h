@@ -103,8 +103,6 @@ namespace caret {
         
         void drawVolumeOverlaysOnCziImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo);
         
-        void drawVolumeOverlaysOnImageFile(std::vector<VolumeDrawingInfo>& volumeDrawingInfo);
-        
         BrainOpenGLFixedPipeline* m_fixedPipelineDrawing = NULL;
         
         BrowserTabContent* m_browserTabContent = NULL;
