@@ -786,10 +786,14 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
                 pixelFloatRGBA[3] = 0.0;
 
                 /*
-                 * Tracks voxels so we don't use the same voxel
-                 * more than one time when stepping through volume
+                 * We iterate along a vector that goes throught the volume.
+                 * As we iterate, we might remain in the same voxel as the
+                 * previous iteration.  So, to prevent that, keep track of
+                 * the previous voxel to avoid one voxel from contributing
+                 * to the average more than one time.
                  */
-                std::set<std::array<int64_t, 3>> pixelsUsed;
+                std::array<int64_t, 3> previousVoxel;
+                previousVoxel.fill(-1);
                 
                 /*
                  * NEED TO MAKE SURE WE DO NOT ACCESS A PIXEL MORE THAN
@@ -813,14 +817,13 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
                     m_volumeInterface->enclosingVoxel(xyz,
                                                       ijk.data());
                     if (m_volumeInterface->indexValid(ijk.data())) {
-                        if (pixelsUsed.find(ijk) != pixelsUsed.end()) {
+                        if (ijk == previousVoxel) {
                             /*
-                             * Voxel was already used when iterating
-                             * through the voxels
+                             * We are still in the same voxel so ignore it
                              */
                         }
                         else {
-                            pixelsUsed.insert(ijk);
+                            previousVoxel = ijk;
                             
                             std::array<uint8_t, 4> voxelRGBA;
                             bool voxelRGBAValidFlag(false);
