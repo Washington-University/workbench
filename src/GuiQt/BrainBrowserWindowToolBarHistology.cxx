@@ -214,6 +214,17 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairsToolButton);
 
     /*
+     * Angles
+     */
+    QLabel* anglesLabel(new QLabel("Angles"));
+    m_rotationAngleXLabel = new QLabel("-000.0");
+    m_rotationAngleXLabel->setAlignment(Qt::AlignRight);
+    m_rotationAngleYLabel = new QLabel("-000.0");
+    m_rotationAngleYLabel->setAlignment(Qt::AlignRight);
+    m_rotationAngleZLabel = new QLabel("-000.0");
+    m_rotationAngleZLabel->setAlignment(Qt::AlignRight);
+
+    /*
      * Layout widgets
      */
     int columnIndex(0);
@@ -221,6 +232,7 @@ m_parentToolBar(parentToolBar)
     const int columnSliceSpinBoxes(columnIndex++);
     const int columnPlaneSpinBoxes(columnIndex++);
     const int columnStereotaxicSpinBoxes(columnIndex++);
+    const int columnAngles(columnIndex++);
     
     QGridLayout* controlsLayout(new QGridLayout());
     int row(0);
@@ -230,6 +242,8 @@ m_parentToolBar(parentToolBar)
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(stereotaxicLabel,
                               row, columnStereotaxicSpinBoxes);
+    controlsLayout->addWidget(anglesLabel,
+                              row, columnAngles);
     ++row;
     controlsLayout->addWidget(sliceIndexLabel,
                               row, columnSliceLabels);
@@ -239,6 +253,8 @@ m_parentToolBar(parentToolBar)
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[0]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
+    controlsLayout->addWidget(m_rotationAngleXLabel,
+                              row, columnAngles);
     ++row;
     controlsLayout->addWidget(sliceNameLabel,
                               row, columnSliceLabels);
@@ -248,6 +264,8 @@ m_parentToolBar(parentToolBar)
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
+    controlsLayout->addWidget(m_rotationAngleYLabel,
+                              row, columnAngles);
     ++row;
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceLabels, Qt::AlignHCenter);
@@ -255,6 +273,8 @@ m_parentToolBar(parentToolBar)
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
+    controlsLayout->addWidget(m_rotationAngleZLabel,
+                              row, columnAngles);
     ++row;
     controlsLayout->addWidget(showCrosshairsToolButton,
                               row, columnSliceLabels, Qt::AlignHCenter);
@@ -270,7 +290,6 @@ m_parentToolBar(parentToolBar)
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_BROWSER_WINDOW_GRAPHICS_HAVE_BEEN_REDRAWN);
-
 }
 
 /**
@@ -318,6 +337,10 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
 {
     m_browserTabContent = browserTabContent;
 
+    m_rotationAngleXLabel->setText("");
+    m_rotationAngleYLabel->setText("");
+    m_rotationAngleZLabel->setText("");
+
     HistologySlicesFile* histologySlicesFile = getHistologySlicesFile(browserTabContent);
     if (histologySlicesFile != NULL) {
         const HistologyCoordinate histologyCoordinate(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
@@ -325,6 +348,8 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
         m_sliceIndexSpinBox->setRange(0, histologySlicesFile->getNumberOfHistologySlices() - 1);
         m_sliceIndexSpinBox->setValue(histologyCoordinate.getSliceIndex());
 
+        Vector3D rotationAngles;
+        bool rotationAnglesValidFlag(false);
         int32_t selectedItemIndex(0);
         m_sliceNameComboBox->clear();
         const int32_t numSlices(histologySlicesFile->getNumberOfHistologySlices());
@@ -333,6 +358,9 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
             CaretAssert(slice);
             if (slice->getSliceIndex() == histologyCoordinate.getSliceIndex()) {
                 selectedItemIndex = i;
+                if (slice->getSliceRotationAngles(rotationAngles)) {
+                    rotationAnglesValidFlag = true;
+                }
             }
             m_sliceNameComboBox->addItem(slice->getSliceName(),
                                            i);
@@ -376,6 +404,12 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
              * Plane coordinates are 2D.
              */
             m_planeXyzSpinBox[2]->getWidget()->setEnabled(false);
+            
+            if (rotationAnglesValidFlag) {
+                m_rotationAngleXLabel->setText(AString::number(rotationAngles[0], 'f', 1));
+                m_rotationAngleYLabel->setText(AString::number(rotationAngles[1], 'f', 1));
+                m_rotationAngleZLabel->setText(AString::number(rotationAngles[2], 'f', 1));
+            }
         }
         
         const BoundingBox stereotaxicBB(histologySlicesFile->getStereotaxicXyzBoundingBox());

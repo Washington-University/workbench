@@ -25,6 +25,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QLabel;
 
 namespace caret {
 
@@ -109,6 +110,13 @@ namespace caret {
         QCheckBox* m_yokeOrientationCheckBox;
         
         QAction* m_showAxisCrosshairsAction;
+        
+        QLabel* m_rotationAngleXLabel;
+        
+        QLabel* m_rotationAngleYLabel;
+        
+        QLabel* m_rotationAngleZLabel;
+        
 };
     
     
