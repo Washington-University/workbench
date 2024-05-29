@@ -1886,9 +1886,10 @@ BrowserTabContent::receiveEvent(Event* event)
             
             if (isIdentificationUpdatesVolumeSlices()) {
                 /*
-                 * Use XYZ of voxel center for slice selection
+                 * Use the identified XYZ.  Note that using voxel center
+                 * may cause MPR slices to jump to a different slice (5/29/2024)
                  */
-                Vector3D volumeSliceXYZ(idLocationEvent->getVoxelCenterXYZ());
+                Vector3D volumeSliceXYZ(idLocationEvent->getStereotaxicXYZ());
                 
                 /*
                  * If othogonal/montage viewing, do not alter the slice
