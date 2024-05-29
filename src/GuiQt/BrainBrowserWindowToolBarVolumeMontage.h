@@ -74,11 +74,11 @@ namespace caret {
         
         QAction* m_showSliceCoordinateAction;
         QMenu*    m_sliceCoordinateTypeMenu;
-        QSpinBox* m_sliceCoordinatePrecisionSpinBox;
         QDoubleSpinBox* m_sliceCoordinateFontHeightSpinBox;
         EnumComboBoxTemplate* m_sliceCoordinateTextAlignmentEnumComboBox;
         EnumComboBoxTemplate* m_sliceCoordinateDisplayTypeEnumComboBox;
-        
+        QSpinBox* m_sliceCoordinatePrecisionSpinBox;
+
         QAction* m_montageEnabledAction;
         
         WuQWidgetObjectGroup* m_volumeMontageWidgetGroup;

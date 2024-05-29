@@ -127,6 +127,20 @@ m_parentToolBar(parentToolBar)
     QObject::connect(m_sliceCoordinateDisplayTypeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateDisplayTypeEnumComboBoxItemActivated);
 
+    QLabel* precisionLabel = new QLabel("Precision:");
+    precisionLabel->setToolTip("Digits right of decimal in slice coordinates");
+    m_sliceCoordinatePrecisionSpinBox = WuQFactory::newSpinBox();
+    m_sliceCoordinatePrecisionSpinBox->setRange(0, 10);
+    m_sliceCoordinatePrecisionSpinBox->setMaximumWidth(spinBoxWidth);
+    m_sliceCoordinatePrecisionSpinBox->setToolTip(precisionLabel->toolTip());
+    m_sliceCoordinatePrecisionSpinBox->setAlignment(Qt::AlignRight);
+    QObject::connect(m_sliceCoordinatePrecisionSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged);
+    m_sliceCoordinatePrecisionSpinBox->setObjectName(objectNamePrefix
+                                                        + "Precision");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_sliceCoordinatePrecisionSpinBox,
+                                                         "Set volume montage coordinate precision");
+
     QWidget* textWidget(new QWidget());
     QGridLayout* textLayout(new QGridLayout(textWidget));
     textLayout->setContentsMargins(5, 0, 5, 0);
@@ -139,6 +153,9 @@ m_parentToolBar(parentToolBar)
     ++textRow;
     textLayout->addWidget(new QLabel("Font Height: "), textRow, 0);
     textLayout->addWidget(m_sliceCoordinateFontHeightSpinBox, textRow, 1);
+    ++textRow;
+    textLayout->addWidget(precisionLabel, textRow, 0);
+    textLayout->addWidget(m_sliceCoordinatePrecisionSpinBox, textRow, 1, Qt::AlignRight);
     ++textRow;
     textLayout->addWidget(new QLabel("Show As: "), textRow, 0);
     textLayout->addWidget(m_sliceCoordinateDisplayTypeEnumComboBox->getWidget(), textRow, 1);
@@ -170,20 +187,6 @@ m_parentToolBar(parentToolBar)
     showSliceCoordToolButton->setDefaultAction(m_showSliceCoordinateAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(showSliceCoordToolButton);
 
-    QLabel* decimalsLabel = new QLabel("Prec:");
-    decimalsLabel->setToolTip("Digits right of decimal in slice coordinates");
-    m_sliceCoordinatePrecisionSpinBox = WuQFactory::newSpinBox();
-    m_sliceCoordinatePrecisionSpinBox->setRange(0, 10);
-    m_sliceCoordinatePrecisionSpinBox->setMaximumWidth(spinBoxWidth);
-    m_sliceCoordinatePrecisionSpinBox->setToolTip(decimalsLabel->toolTip());
-    QObject::connect(m_sliceCoordinatePrecisionSpinBox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-                     this, &BrainBrowserWindowToolBarVolumeMontage::slicePrecisionSpinBoxValueChanged);
-    m_sliceCoordinatePrecisionSpinBox->setObjectName(objectNamePrefix
-                                                     + "Precision");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_sliceCoordinatePrecisionSpinBox,
-                                                         "Set volume montage coordinate precision");
-
-
     QToolButton* montageEnabledToolButton = new QToolButton();
     m_montageEnabledAction = WuQtUtilities::createAction("On",
                                                          "View a montage of parallel slices",
@@ -207,10 +210,8 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_montageColumnsSpinBox, 1, 1);
     gridLayout->addWidget(spacingLabel, 2, 0);
     gridLayout->addWidget(m_montageSpacingSpinBox, 2, 1);
-    gridLayout->addWidget(decimalsLabel, 3, 0);
-    gridLayout->addWidget(m_sliceCoordinatePrecisionSpinBox, 3, 1);
-    gridLayout->addWidget(showSliceCoordToolButton, 4, 0, Qt::AlignLeft);
-    gridLayout->addWidget(montageEnabledToolButton, 4, 1, Qt::AlignRight);
+    gridLayout->addWidget(showSliceCoordToolButton, 3, 0, Qt::AlignLeft);
+    gridLayout->addWidget(montageEnabledToolButton, 3, 1, Qt::AlignRight);
     
     m_volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeMontageWidgetGroup->add(m_montageRowsSpinBox);
@@ -218,7 +219,6 @@ m_parentToolBar(parentToolBar)
     m_volumeMontageWidgetGroup->add(m_montageSpacingSpinBox);
     m_volumeMontageWidgetGroup->add(m_montageEnabledAction);
     m_volumeMontageWidgetGroup->add(m_showSliceCoordinateAction);
-    m_volumeMontageWidgetGroup->add(m_sliceCoordinatePrecisionSpinBox);
 }
 
 /**
@@ -347,6 +347,12 @@ BrainBrowserWindowToolBarVolumeMontage::sliceCoordinateTypeMenuAboutToShow()
     
     QSignalBlocker fontHeightBlocker(m_sliceCoordinateFontHeightSpinBox);
     m_sliceCoordinateFontHeightSpinBox->setValue(btc->getVolumeMontageCoordinateFontHeight());
+    
+    QSignalBlocker precisionBlocker(m_sliceCoordinatePrecisionSpinBox);
+    m_sliceCoordinatePrecisionSpinBox->setValue(btc->getVolumeMontageCoordinatePrecision());
+    
+    WuQtUtilities::matchWidgetWidths(m_sliceCoordinateTextAlignmentEnumComboBox->getWidget(),
+                                     m_sliceCoordinatePrecisionSpinBox);
 }
 
 /**
