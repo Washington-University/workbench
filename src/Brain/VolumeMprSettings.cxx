@@ -48,6 +48,7 @@ VolumeMprSettings::VolumeMprSettings()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     m_sceneAssistant->add<VolumeMprOrientationModeEnum, VolumeMprOrientationModeEnum::Enum>("m_orientationMode", &m_orientationMode);
+    m_sceneAssistant->add<VolumeMprSliceDirectionModeEnum, VolumeMprSliceDirectionModeEnum::Enum>("m_sliceDirectionMode", &m_sliceDirectionMode);
     m_sceneAssistant->add<VolumeMprViewModeEnum, VolumeMprViewModeEnum::Enum>("m_viewMode", &m_viewMode);
     m_sceneAssistant->add("m_sliceThickness", &m_sliceThickness);
     m_sceneAssistant->add("m_allViewThicknessEnabled", &m_allViewThicknessEnabled);
@@ -100,9 +101,10 @@ VolumeMprSettings::operator=(const VolumeMprSettings& obj)
 void 
 VolumeMprSettings::copyHelperVolumeMprSettings(const VolumeMprSettings& obj)
 {
-    m_orientationMode = obj.m_orientationMode;
-    m_viewMode        = obj.m_viewMode;
-    m_sliceThickness  = obj.m_sliceThickness;
+    m_orientationMode    = obj.m_orientationMode;
+    m_viewMode           = obj.m_viewMode;
+    m_sliceThickness     = obj.m_sliceThickness;
+    m_sliceDirectionMode = obj.m_sliceDirectionMode;
     m_allViewThicknessEnabled           = obj.m_allViewThicknessEnabled;
     m_axialSliceThicknessEnabled        = obj.m_axialSliceThicknessEnabled;
     m_coronalSliceThicknessEnabled      = obj.m_coronalSliceThicknessEnabled;
@@ -116,6 +118,7 @@ void
 VolumeMprSettings::reset()
 {
     m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
+    m_sliceDirectionMode = VolumeMprSliceDirectionModeEnum::WORKBENCH;
     m_viewMode        = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
     m_sliceThickness  = 20.0;
     m_allViewThicknessEnabled           = false;
@@ -152,6 +155,26 @@ void
 VolumeMprSettings::setOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode)
 {
     m_orientationMode = orientationMode;
+}
+
+/**
+ * @return The slice direction mode
+ */
+VolumeMprSliceDirectionModeEnum::Enum
+VolumeMprSettings::getSliceDirectionMode() const
+{
+    return m_sliceDirectionMode;
+}
+
+/**
+ * Set the slice direction mode
+ * @param sliceDirectionMode
+ *    The slice direction mode
+ */
+void
+VolumeMprSettings::setSliceDirectionMode(const VolumeMprSliceDirectionModeEnum::Enum sliceDirectionMode)
+{
+    m_sliceDirectionMode = sliceDirectionMode;
 }
 
 /**
@@ -292,7 +315,7 @@ VolumeMprSettings::saveToScene(const SceneAttributes* sceneAttributes,
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "VolumeMprSettings",
-                                            1);
+                                            2); /* 2 Added slice direction mode */
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
     
@@ -322,8 +345,18 @@ VolumeMprSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
+    const int32_t sceneVersion(sceneClass->getVersionNumber());
+    
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    
+    
+    if (sceneVersion <= 1) {
+        /*
+         * Slice direction was added in version 2.  So, for older scenes,
+         * set orientation to WORKBENCH so that older scenes function correctly
+         */
+        m_sliceDirectionMode = VolumeMprSliceDirectionModeEnum::WORKBENCH;
+    }
     
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,

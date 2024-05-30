@@ -48,6 +48,7 @@
 #include "TabContentBase.h"
 #include "Vector3D.h"
 #include "VolumeMprOrientationModeEnum.h"
+#include "VolumeMprSliceDirectionModeEnum.h"
 #include "VolumeMprViewModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
@@ -496,6 +497,10 @@ namespace caret {
         
         void setVolumeMprOrientationMode(const VolumeMprOrientationModeEnum::Enum orientationMode);
         
+        VolumeMprSliceDirectionModeEnum::Enum getVolumeMprSliceDirectionMode() const;
+        
+        void setVolumeMprSliceDirectionMode(const VolumeMprSliceDirectionModeEnum::Enum sliceDirectionMode);
+
         VolumeMprViewModeEnum::Enum getVolumeMprViewMode() const;
         
         void setVolumeMprViewMode(const VolumeMprViewModeEnum::Enum viewType);

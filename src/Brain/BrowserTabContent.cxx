@@ -6999,6 +6999,19 @@ BrowserTabContent::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnu
     updateBrainModelYokedBrowserTabs();
 }
 
+VolumeMprSliceDirectionModeEnum::Enum
+BrowserTabContent::getVolumeMprSliceDirectionMode() const
+{
+    return m_volumeSliceSettings->getMprSettings()->getSliceDirectionMode();
+}
+
+void
+BrowserTabContent::setVolumeMprSliceDirectionMode(const VolumeMprSliceDirectionModeEnum::Enum sliceDirectionMode)
+{
+    m_volumeSliceSettings->getMprSettings()->setSliceDirectionMode(sliceDirectionMode);
+    updateBrainModelYokedBrowserTabs();
+}
+
 /**
  * @return MPR volume view mode
  */

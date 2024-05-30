@@ -109,6 +109,18 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSpacingSpinBox,
                                                          "Set volume montage spacing");
     
+    QLabel* directionLabel(new QLabel("Dir:"));
+    m_montageSliceDirectionComboBox = new EnumComboBoxTemplate(this);
+    m_montageSliceDirectionComboBox->setup<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>();
+    QObject::connect(m_montageSliceDirectionComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated);
+    m_montageSliceDirectionComboBox->setObjectName(objectNamePrefix
+                                           + "SliceDirection");
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSliceDirectionComboBox,
+                                                         "Set volume montage slice Direction");
+    directionLabel->setToolTip(VolumeMprSliceDirectionModeEnum::getGuiToolTip());
+    m_montageSliceDirectionComboBox->getWidget()->setToolTip(VolumeMprSliceDirectionModeEnum::getGuiToolTip());
+
     m_sliceCoordinateFontHeightSpinBox = new QDoubleSpinBox();
     m_sliceCoordinateFontHeightSpinBox->setMinimum(0.1);
     m_sliceCoordinateFontHeightSpinBox->setMaximum(100.0);
@@ -201,6 +213,12 @@ m_parentToolBar(parentToolBar)
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageEnabledAction,
                                                          "Enable volume slice montage");
 
+    QHBoxLayout* directionLayout(new QHBoxLayout());
+    directionLayout->setContentsMargins(0, 0, 0, 0);
+    directionLayout->addWidget(directionLabel);
+    directionLayout->addStretch();
+    directionLayout->addWidget(m_montageSliceDirectionComboBox->getWidget());
+    
     QGridLayout* gridLayout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(gridLayout, 0, 0);
     gridLayout->setVerticalSpacing(2);
@@ -210,8 +228,9 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(m_montageColumnsSpinBox, 1, 1);
     gridLayout->addWidget(spacingLabel, 2, 0);
     gridLayout->addWidget(m_montageSpacingSpinBox, 2, 1);
-    gridLayout->addWidget(showSliceCoordToolButton, 3, 0, Qt::AlignLeft);
-    gridLayout->addWidget(montageEnabledToolButton, 3, 1, Qt::AlignRight);
+    gridLayout->addLayout(directionLayout, 3, 0, 1, 2);
+    gridLayout->addWidget(showSliceCoordToolButton, 4, 0, Qt::AlignLeft);
+    gridLayout->addWidget(montageEnabledToolButton, 4, 1, Qt::AlignRight);
     
     m_volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
     m_volumeMontageWidgetGroup->add(m_montageRowsSpinBox);
@@ -251,6 +270,8 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
     m_montageColumnsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfColumns());
     m_montageSpacingSpinBox->setValue(browserTabContent->getVolumeMontageSliceSpacing());
     
+    const auto sliceDirection(browserTabContent->getVolumeMprSliceDirectionMode());
+    m_montageSliceDirectionComboBox->setSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>(sliceDirection);
     m_showSliceCoordinateAction->setChecked(browserTabContent->isVolumeMontageAxesCoordinatesDisplayed());
     m_sliceCoordinatePrecisionSpinBox->setValue(browserTabContent->getVolumeMontageCoordinatePrecision());
     
@@ -312,6 +333,18 @@ BrainBrowserWindowToolBarVolumeMontage::montageSpacingSpinBoxValueChanged(int /*
     
     btc->setVolumeMontageSliceSpacing(m_montageSpacingSpinBox->value());
     
+    this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
+ * Called when volume slice direction combo box is changed
+ */
+void
+BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated()
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const auto sliceDirection(m_montageSliceDirectionComboBox->getSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>());
+    btc->setVolumeMprSliceDirectionMode(sliceDirection);
     this->updateGraphicsWindowAndYokedWindows();
 }
 

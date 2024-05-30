@@ -51,6 +51,8 @@ namespace caret {
         void montageRowsSpinBoxValueChanged(int i);
         void montageColumnsSpinBoxValueChanged(int i);
         void montageSpacingSpinBoxValueChanged(int i);
+        void montageSliceDirectionComboBoxItemActivated();
+        
         
         void montageEnabledActionToggled(bool);
         
@@ -71,6 +73,7 @@ namespace caret {
         QSpinBox* m_montageRowsSpinBox;
         QSpinBox* m_montageColumnsSpinBox;
         QSpinBox* m_montageSpacingSpinBox;
+        EnumComboBoxTemplate* m_montageSliceDirectionComboBox;
         
         QAction* m_showSliceCoordinateAction;
         QMenu*    m_sliceCoordinateTypeMenu;

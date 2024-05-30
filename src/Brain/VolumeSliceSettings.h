@@ -26,7 +26,6 @@
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
-#include "VolumeMprOrientationModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
