@@ -114,9 +114,9 @@ m_parentToolBar(parentToolBar)
     m_montageSliceDirectionComboBox->setup<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>();
     QObject::connect(m_montageSliceDirectionComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated);
-    m_montageSliceDirectionComboBox->setObjectName(objectNamePrefix
+    m_montageSliceDirectionComboBox->getComboBox()->setObjectName(objectNamePrefix
                                            + "SliceDirection");
-    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSliceDirectionComboBox,
+    WuQMacroManager::instance()->addMacroSupportToObject(m_montageSliceDirectionComboBox->getComboBox(),
                                                          "Set volume montage slice Direction");
     directionLabel->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
     m_montageSliceDirectionComboBox->getWidget()->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
