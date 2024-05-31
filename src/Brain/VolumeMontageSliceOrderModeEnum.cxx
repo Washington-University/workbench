@@ -21,7 +21,7 @@
 
 #include <algorithm>
 #define __VOLUME_MPR_SLICE_DIRECTION_MODE_ENUM_DECLARE__
-#include "VolumeMprSliceDirectionModeEnum.h"
+#include "VolumeMontageSliceOrderModeEnum.h"
 #undef __VOLUME_MPR_SLICE_DIRECTION_MODE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -30,10 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::VolumeMprSliceDirectionModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \class caret::VolumeMontageSliceOrderModeEnum 
+ * \brief Enumerated type for volume slice montage order
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -51,21 +49,21 @@ using namespace caret;
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "VolumeMprSliceDirectionModeEnum.h"
+ *         #include "VolumeMontageSliceOrderModeEnum.h"
  * 
  *     Instatiate:
  *         m_volumeMprSliceDirectionModeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_volumeMprSliceDirectionModeEnumComboBox->setup<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>();
+ *         m_volumeMprSliceDirectionModeEnumComboBox->setup<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
  *         QObject::connect(m_volumeMprSliceDirectionModeEnumComboBox, SIGNAL(itemActivated()),
  *                          this, SLOT(volumeMprSliceDirectionModeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_volumeMprSliceDirectionModeEnumComboBox->setSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>(NEW_VALUE);
+ *         m_volumeMprSliceDirectionModeEnumComboBox->setSelectedItem<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const VolumeMprSliceDirectionModeEnum::Enum VARIABLE = m_volumeMprSliceDirectionModeEnumComboBox->getSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>();
+ *         const VolumeMontageSliceOrderModeEnum::Enum VARIABLE = m_volumeMprSliceDirectionModeEnumComboBox->getSelectedItem<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>();
  * 
  */
 
@@ -81,7 +79,7 @@ using namespace caret;
  * @param longGuiName
  *    Long User-friendly name for use in user-interface.
  */
-VolumeMprSliceDirectionModeEnum::VolumeMprSliceDirectionModeEnum(const Enum enumValue,
+VolumeMontageSliceOrderModeEnum::VolumeMontageSliceOrderModeEnum(const Enum enumValue,
                                                                  const AString& name,
                                                                  const AString& guiName,
                                                                  const AString& longGuiName)
@@ -96,7 +94,7 @@ VolumeMprSliceDirectionModeEnum::VolumeMprSliceDirectionModeEnum(const Enum enum
 /**
  * Destructor.
  */
-VolumeMprSliceDirectionModeEnum::~VolumeMprSliceDirectionModeEnum()
+VolumeMontageSliceOrderModeEnum::~VolumeMontageSliceOrderModeEnum()
 {
 }
 
@@ -104,37 +102,37 @@ VolumeMprSliceDirectionModeEnum::~VolumeMprSliceDirectionModeEnum()
  * Initialize the enumerated metadata.
  */
 void
-VolumeMprSliceDirectionModeEnum::initialize()
+VolumeMontageSliceOrderModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(VolumeMprSliceDirectionModeEnum(WORKBENCH,
+    enumData.push_back(VolumeMontageSliceOrderModeEnum(NEGATIVE,
+                                                       "NEGATIVE",
+                                                       "-", /* + QString(QChar(0x2193)),*/
+                                                       "Negative"));
+    
+    enumData.push_back(VolumeMontageSliceOrderModeEnum(POSITIVE,
+                                                       "POSITIVE",
+                                                       "+", /* + QString(QChar(0x2191)),*/
+                                                       "Positive"));
+    
+    enumData.push_back(VolumeMontageSliceOrderModeEnum(WORKBENCH,
                                                        "WORKBENCH",
                                                        "W",
                                                        "Workbench"));
-    
-    enumData.push_back(VolumeMprSliceDirectionModeEnum(POSITIVE,
-                                                       "POSITIVE",
-                                                       "+",
-                                                       "Positive"));
-    
-    enumData.push_back(VolumeMprSliceDirectionModeEnum(NEGATIVE,
-                                                       "NEGATIVE",
-                                                       "-",
-                                                       "Negative"));
 }
 
 AString
-VolumeMprSliceDirectionModeEnum::getGuiToolTip()
+VolumeMontageSliceOrderModeEnum::getGuiToolTip()
 {
-    std::vector<VolumeMprSliceDirectionModeEnum::Enum> allEnums;
+    std::vector<VolumeMontageSliceOrderModeEnum::Enum> allEnums;
     getAllEnums(allEnums);
     
     AString txt("<html>");
-    txt.appendWithNewLine("The slice at the selected coordinate is in the center of the montage.");
+    txt.appendWithNewLine("The slice at the selected coordinate is at the center of the montage.");
     txt.appendWithNewLine("<ul>");
     
     for (auto e : allEnums) {
@@ -156,9 +154,10 @@ VolumeMprSliceDirectionModeEnum::getGuiToolTip()
             case WORKBENCH:
                 txt.appendWithNewLine("<li> "
                                       + modeName
-                                      + "This mode has Parasagittal slices increasing and "
-                       "both Axial and Coronal slices decreasing which is how "
-                       "Workbench ordered slices before this control was added");
+                                      + ("This mode orders slices in a manner prior to the addition of this control so that older scenes display correctly.  "
+                                         "For MPR mode, all slices are in a decreasing coordinate order.  "
+                                         "For Oblique and Ortho modes, Parasagittal slices are increasing and "
+                                         "both Axial and Coronal slices are decreasing."));
                 break;
         }
     }
@@ -176,14 +175,14 @@ VolumeMprSliceDirectionModeEnum::getGuiToolTip()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const VolumeMprSliceDirectionModeEnum*
-VolumeMprSliceDirectionModeEnum::findData(const Enum enumValue)
+const VolumeMontageSliceOrderModeEnum*
+VolumeMontageSliceOrderModeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const VolumeMprSliceDirectionModeEnum* d = &enumData[i];
+        const VolumeMontageSliceOrderModeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -200,10 +199,10 @@ VolumeMprSliceDirectionModeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-VolumeMprSliceDirectionModeEnum::toName(Enum enumValue) {
+VolumeMontageSliceOrderModeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeMprSliceDirectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMontageSliceOrderModeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -217,18 +216,18 @@ VolumeMprSliceDirectionModeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeMprSliceDirectionModeEnum::Enum 
-VolumeMprSliceDirectionModeEnum::fromName(const AString& name, bool* isValidOut)
+VolumeMontageSliceOrderModeEnum::Enum 
+VolumeMontageSliceOrderModeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprSliceDirectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMontageSliceOrderModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprSliceDirectionModeEnum& d = *iter;
+        const VolumeMontageSliceOrderModeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -240,7 +239,7 @@ VolumeMprSliceDirectionModeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type VolumeMprSliceDirectionModeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type VolumeMontageSliceOrderModeEnum"));
     }
     return enumValue;
 }
@@ -253,10 +252,10 @@ VolumeMprSliceDirectionModeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-VolumeMprSliceDirectionModeEnum::toGuiName(Enum enumValue) {
+VolumeMontageSliceOrderModeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeMprSliceDirectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMontageSliceOrderModeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -268,10 +267,10 @@ VolumeMprSliceDirectionModeEnum::toGuiName(Enum enumValue) {
  *     String representing enumerated value.
  */
 AString
-VolumeMprSliceDirectionModeEnum::toLongGuiName(Enum enumValue) {
+VolumeMontageSliceOrderModeEnum::toLongGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const VolumeMprSliceDirectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMontageSliceOrderModeEnum* enumInstance = findData(enumValue);
     return enumInstance->longGuiName;
 }
 
@@ -285,18 +284,18 @@ VolumeMprSliceDirectionModeEnum::toLongGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-VolumeMprSliceDirectionModeEnum::Enum 
-VolumeMprSliceDirectionModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+VolumeMontageSliceOrderModeEnum::Enum 
+VolumeMontageSliceOrderModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprSliceDirectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMontageSliceOrderModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprSliceDirectionModeEnum& d = *iter;
+        const VolumeMontageSliceOrderModeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -308,7 +307,7 @@ VolumeMprSliceDirectionModeEnum::fromGuiName(const AString& guiName, bool* isVal
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type VolumeMprSliceDirectionModeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type VolumeMontageSliceOrderModeEnum"));
     }
     return enumValue;
 }
@@ -320,10 +319,10 @@ VolumeMprSliceDirectionModeEnum::fromGuiName(const AString& guiName, bool* isVal
  *    Integer code for data type.
  */
 int32_t
-VolumeMprSliceDirectionModeEnum::toIntegerCode(Enum enumValue)
+VolumeMontageSliceOrderModeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const VolumeMprSliceDirectionModeEnum* enumInstance = findData(enumValue);
+    const VolumeMontageSliceOrderModeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -338,18 +337,18 @@ VolumeMprSliceDirectionModeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-VolumeMprSliceDirectionModeEnum::Enum
-VolumeMprSliceDirectionModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+VolumeMontageSliceOrderModeEnum::Enum
+VolumeMontageSliceOrderModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = VolumeMprSliceDirectionModeEnum::enumData[0].enumValue;
+    Enum enumValue = VolumeMontageSliceOrderModeEnum::enumData[0].enumValue;
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const VolumeMprSliceDirectionModeEnum& enumInstance = *iter;
+        const VolumeMontageSliceOrderModeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -361,7 +360,7 @@ VolumeMprSliceDirectionModeEnum::fromIntegerCode(const int32_t integerCode, bool
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type VolumeMprSliceDirectionModeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type VolumeMontageSliceOrderModeEnum"));
     }
     return enumValue;
 }
@@ -374,13 +373,13 @@ VolumeMprSliceDirectionModeEnum::fromIntegerCode(const int32_t integerCode, bool
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-VolumeMprSliceDirectionModeEnum::getAllEnums(std::vector<VolumeMprSliceDirectionModeEnum::Enum>& allEnums)
+VolumeMontageSliceOrderModeEnum::getAllEnums(std::vector<VolumeMontageSliceOrderModeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -396,16 +395,16 @@ VolumeMprSliceDirectionModeEnum::getAllEnums(std::vector<VolumeMprSliceDirection
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeMprSliceDirectionModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+VolumeMontageSliceOrderModeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(VolumeMprSliceDirectionModeEnum::toName(iter->enumValue));
+        allNames.push_back(VolumeMontageSliceOrderModeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -422,16 +421,16 @@ VolumeMprSliceDirectionModeEnum::getAllNames(std::vector<AString>& allNames, con
  *     If true, the names are sorted in alphabetical order.
  */
 void
-VolumeMprSliceDirectionModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+VolumeMontageSliceOrderModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<VolumeMprSliceDirectionModeEnum>::iterator iter = enumData.begin();
+    for (std::vector<VolumeMontageSliceOrderModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(VolumeMprSliceDirectionModeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(VolumeMontageSliceOrderModeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

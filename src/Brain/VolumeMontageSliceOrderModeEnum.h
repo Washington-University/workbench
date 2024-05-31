@@ -28,7 +28,7 @@
 
 namespace caret {
 
-class VolumeMprSliceDirectionModeEnum {
+class VolumeMontageSliceOrderModeEnum {
 
 public:
     /**
@@ -44,7 +44,7 @@ public:
     };
 
 
-    ~VolumeMprSliceDirectionModeEnum();
+    ~VolumeMontageSliceOrderModeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -69,15 +69,15 @@ public:
     static AString getGuiToolTip();
     
 private:
-    VolumeMprSliceDirectionModeEnum(const Enum enumValue, 
+    VolumeMontageSliceOrderModeEnum(const Enum enumValue, 
                                     const AString& name,
                                     const AString& guiName,
                                     const AString& longGuiName);
 
-    static const VolumeMprSliceDirectionModeEnum* findData(const Enum enumValue);
+    static const VolumeMontageSliceOrderModeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<VolumeMprSliceDirectionModeEnum> enumData;
+    static std::vector<VolumeMontageSliceOrderModeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -105,9 +105,9 @@ private:
 };
 
 #ifdef __VOLUME_MPR_SLICE_DIRECTION_MODE_ENUM_DECLARE__
-std::vector<VolumeMprSliceDirectionModeEnum> VolumeMprSliceDirectionModeEnum::enumData;
-bool VolumeMprSliceDirectionModeEnum::initializedFlag = false;
-int32_t VolumeMprSliceDirectionModeEnum::integerCodeCounter = 0; 
+std::vector<VolumeMontageSliceOrderModeEnum> VolumeMontageSliceOrderModeEnum::enumData;
+bool VolumeMontageSliceOrderModeEnum::initializedFlag = false;
+int32_t VolumeMontageSliceOrderModeEnum::integerCodeCounter = 0; 
 #endif // __VOLUME_MPR_SLICE_DIRECTION_MODE_ENUM_DECLARE__
 
 } // namespace

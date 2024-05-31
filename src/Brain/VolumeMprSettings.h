@@ -27,7 +27,6 @@
 
 #include "CaretObject.h"
 #include "VolumeMprOrientationModeEnum.h"
-#include "VolumeMprSliceDirectionModeEnum.h"
 #include "VolumeMprViewModeEnum.h"
 #include "SceneableInterface.h"
 
@@ -49,10 +48,6 @@ namespace caret {
         VolumeMprOrientationModeEnum::Enum getOrientationMode() const;
         
         void setOrientationMode(const VolumeMprOrientationModeEnum::Enum orientation);
-        
-        VolumeMprSliceDirectionModeEnum::Enum getSliceDirectionMode() const;
-        
-        void setSliceDirectionMode(const VolumeMprSliceDirectionModeEnum::Enum sliceDirectionMode);
         
         VolumeMprViewModeEnum::Enum getViewMode() const;
         
@@ -113,8 +108,6 @@ namespace caret {
         VolumeMprViewModeEnum::Enum m_viewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
         
         VolumeMprOrientationModeEnum::Enum m_orientationMode = VolumeMprOrientationModeEnum::NEUROLOGICAL;
-        
-        VolumeMprSliceDirectionModeEnum::Enum m_sliceDirectionMode = VolumeMprSliceDirectionModeEnum::WORKBENCH;
         
         float m_sliceThickness = 20.0f;
         

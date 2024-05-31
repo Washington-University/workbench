@@ -630,9 +630,19 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawVolumeSliceViewTypeMontage(const Brain
         sliceIndex -= sliceStep;
     }
     
+    const bool flipFlag = m_browserTabContent->isVolumeMontageSliceOrderFlippedForSliceViewPlane(sliceViewPlane);
+
     if (sliceIndex >= 0) {
-        for (int32_t i = 0; i < numRows; i++) {
-            for (int32_t j = 0; j < numCols; j++) {
+        for (int32_t i1 = 0; i1 < numRows; i1++) {
+            int32_t i(i1);
+            if (flipFlag) {
+                i = numRows - 1 - i;
+            }
+            for (int32_t j1 = 0; j1 < numCols; j1++) {
+                int32_t j(j1);
+                if (flipFlag) {
+                    j = numCols - 1 - j;
+                }
                 if ((sliceIndex >= 0)
                     && (sliceIndex < maximumSliceIndex)) {
                     const int32_t vpX = (j * (vpSizeX + horizontalMargin));

@@ -245,7 +245,7 @@ ViewingTransformationsUndoCommand.h
 ViewingTransformationsVolume.h
 VolumeMprOrientationModeEnum.h
 VolumeMprSettings.h
-VolumeMprSliceDirectionModeEnum.h
+VolumeMontageSliceOrderModeEnum.h
 VolumeMprViewModeEnum.h
 VolumeMprViewportSlice.h
 VolumeMprVirtualSliceView.h
@@ -477,7 +477,7 @@ ViewingTransformationsUndoCommand.cxx
 ViewingTransformationsVolume.cxx
 VolumeMprOrientationModeEnum.cxx
 VolumeMprSettings.cxx
-VolumeMprSliceDirectionModeEnum.cxx
+VolumeMontageSliceOrderModeEnum.cxx
 VolumeMprViewModeEnum.cxx
 VolumeMprViewportSlice.cxx
 VolumeMprVirtualSliceView.cxx

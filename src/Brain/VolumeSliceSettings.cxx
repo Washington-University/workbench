@@ -72,7 +72,9 @@ VolumeSliceSettings::VolumeSliceSettings()
                           &m_montageNumberOfRows);
     m_sceneAssistant->add("m_montageSliceSpacing",
                           &m_montageSliceSpacing);
-    
+    m_sceneAssistant->add<VolumeMontageSliceOrderModeEnum, VolumeMontageSliceOrderModeEnum::Enum>("m_montageSliceOrderMode",
+                                                                                                  &m_montageSliceOrderMode);
+
     m_sceneAssistant->add("m_sliceCoordinateAxial", &m_sliceCoordinateAxial);
     m_sceneAssistant->add("m_sliceCoordinateCoronal", &m_sliceCoordinateCoronal);
     m_sceneAssistant->add("m_sliceCoordinateParasagittal", &m_sliceCoordinateParasagittal);
@@ -135,6 +137,7 @@ VolumeSliceSettings::copyHelperVolumeSliceSettings(const VolumeSliceSettings& ob
     m_montageNumberOfColumns = obj.m_montageNumberOfColumns;
     m_montageNumberOfRows    = obj.m_montageNumberOfRows;
     m_montageSliceSpacing    = obj.m_montageSliceSpacing;
+    m_montageSliceOrderMode  = obj.m_montageSliceOrderMode;
 
     m_sliceCoordinateParasagittal = obj.m_sliceCoordinateParasagittal;
     m_sliceCoordinateCoronal      = obj.m_sliceCoordinateCoronal;
@@ -446,6 +449,26 @@ VolumeSliceSettings::setMontageSliceSpacing(const int32_t montageSliceSpacing)
 }
 
 /**
+ * @return The montage slice order mode
+ */
+VolumeMontageSliceOrderModeEnum::Enum
+VolumeSliceSettings::getMontageSliceOrderMode() const
+{
+    return m_montageSliceOrderMode;
+}
+
+/**
+ * Set the montage slice direction mode
+ * @param montageSliceOrderMode
+ *    The montage slice order mode
+ */
+void
+VolumeSliceSettings::setMontageSliceOrderMode(const VolumeMontageSliceOrderModeEnum::Enum montageSliceOrderMode)
+{
+    m_montageSliceOrderMode = montageSliceOrderMode;
+}
+
+/**
  * Reset the slices.
  */
 void
@@ -461,7 +484,8 @@ VolumeSliceSettings::reset()
     m_montageNumberOfColumns = 6;
     m_montageNumberOfRows    = 4;
     m_montageSliceSpacing    = 5;
-    
+    m_montageSliceOrderMode  = VolumeMontageSliceOrderModeEnum::WORKBENCH;
+
     m_sliceCoordinateAxial = 0.0;
     m_sliceCoordinateCoronal = 0.0;
     m_sliceCoordinateParasagittal = 0.0;
@@ -1067,6 +1091,13 @@ VolumeSliceSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
                 m_mprSettings->setOrientationMode(VolumeMprOrientationModeEnum::RADIOLOGICAL);
             }
         }
+    }
+    
+    /*
+     * Scene may have been created before slice order mode was added
+     */
+    if (sceneClass->getObjectWithName("m_montageSliceOrderMode") == NULL) {
+        m_montageSliceOrderMode = VolumeMontageSliceOrderModeEnum::WORKBENCH;
     }
     
     /*

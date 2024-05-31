@@ -26,6 +26,7 @@
 #include "CaretObject.h"
 #include "ModelTypeEnum.h"
 #include "SceneableInterface.h"
+#include "VolumeMontageSliceOrderModeEnum.h"
 #include "VolumeSliceDrawingTypeEnum.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
 #include "VolumeSliceProjectionTypeEnum.h"
@@ -83,6 +84,10 @@ namespace caret {
         int32_t getMontageSliceSpacing() const;
         
         void setMontageSliceSpacing(const int32_t montageSliceSpacing);
+        
+        VolumeMontageSliceOrderModeEnum::Enum getMontageSliceOrderMode() const;
+        
+        void setMontageSliceOrderMode(const VolumeMontageSliceOrderModeEnum::Enum sliceOrderMode);
         
         void getSlicesParasagittalCoronalAxial(const VolumeMappableInterface* volumeInterface,
                                                int64_t& parasagittalIndexOut,
@@ -185,6 +190,8 @@ namespace caret {
         /** Montage slice spacing */
         int32_t m_montageSliceSpacing;
         
+        VolumeMontageSliceOrderModeEnum::Enum m_montageSliceOrderMode = VolumeMontageSliceOrderModeEnum::WORKBENCH;
+
         mutable float m_sliceCoordinateParasagittal;
         
         mutable float m_sliceCoordinateCoronal;

@@ -4572,6 +4572,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
 
     const SamplesDrawingSettings* samplesSettings(m_browserTabContent->getSamplesDrawingSettings());
     
+    const bool flipFlag = m_browserTabContent->isVolumeMontageSliceOrderFlippedForSliceViewPlane(sliceViewPlane);
+
     /*
      * When "middle/center" slice is drawn, need to update
      * the graphics object to window transform
@@ -4581,8 +4583,16 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewTypeMontage(const BrainOpen
                                  ? (numSlices / 2)
                                  : 1);
     int32_t sliceCounter(1);
-    for (int32_t i = 0; i < numRows; i++) {
-        for (int32_t j = 0; j < numCols; j++) {
+    for (int32_t i1 = 0; i1 < numRows; i1++) {
+        int32_t i(i1);
+        if (flipFlag) {
+            i = numRows - 1 - i;
+        }
+        for (int32_t j1 = 0; j1 < numCols; j1++) {
+            int32_t j(j1);
+            if (flipFlag) {
+                j = numCols - 1 - j;
+            }
             const int32_t vpX = (j * (vpSizeX + horizontalMargin));
             const int32_t vpY = ((numRows - i - 1) * (vpSizeY + verticalMargin));
             

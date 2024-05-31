@@ -111,15 +111,15 @@ m_parentToolBar(parentToolBar)
     
     QLabel* directionLabel(new QLabel("Dir:"));
     m_montageSliceDirectionComboBox = new EnumComboBoxTemplate(this);
-    m_montageSliceDirectionComboBox->setup<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>();
+    m_montageSliceDirectionComboBox->setup<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>();
     QObject::connect(m_montageSliceDirectionComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated);
     m_montageSliceDirectionComboBox->setObjectName(objectNamePrefix
                                            + "SliceDirection");
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSliceDirectionComboBox,
                                                          "Set volume montage slice Direction");
-    directionLabel->setToolTip(VolumeMprSliceDirectionModeEnum::getGuiToolTip());
-    m_montageSliceDirectionComboBox->getWidget()->setToolTip(VolumeMprSliceDirectionModeEnum::getGuiToolTip());
+    directionLabel->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
+    m_montageSliceDirectionComboBox->getWidget()->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
 
     m_sliceCoordinateFontHeightSpinBox = new QDoubleSpinBox();
     m_sliceCoordinateFontHeightSpinBox->setMinimum(0.1);
@@ -270,8 +270,8 @@ BrainBrowserWindowToolBarVolumeMontage::updateContent(BrowserTabContent* browser
     m_montageColumnsSpinBox->setValue(browserTabContent->getVolumeMontageNumberOfColumns());
     m_montageSpacingSpinBox->setValue(browserTabContent->getVolumeMontageSliceSpacing());
     
-    const auto sliceDirection(browserTabContent->getVolumeMprSliceDirectionMode());
-    m_montageSliceDirectionComboBox->setSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>(sliceDirection);
+    const auto sliceDirection(browserTabContent->getVolumeMontageSliceOrderMode());
+    m_montageSliceDirectionComboBox->setSelectedItem<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>(sliceDirection);
     m_showSliceCoordinateAction->setChecked(browserTabContent->isVolumeMontageAxesCoordinatesDisplayed());
     m_sliceCoordinatePrecisionSpinBox->setValue(browserTabContent->getVolumeMontageCoordinatePrecision());
     
@@ -343,8 +343,8 @@ void
 BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated()
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    const auto sliceDirection(m_montageSliceDirectionComboBox->getSelectedItem<VolumeMprSliceDirectionModeEnum,VolumeMprSliceDirectionModeEnum::Enum>());
-    btc->setVolumeMprSliceDirectionMode(sliceDirection);
+    const auto sliceDirection(m_montageSliceDirectionComboBox->getSelectedItem<VolumeMontageSliceOrderModeEnum,VolumeMontageSliceOrderModeEnum::Enum>());
+    btc->setVolumeMontageSliceOrderMode(sliceDirection);
     this->updateGraphicsWindowAndYokedWindows();
 }
 

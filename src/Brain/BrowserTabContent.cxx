@@ -6999,17 +6999,83 @@ BrowserTabContent::setVolumeMprOrientationMode(const VolumeMprOrientationModeEnu
     updateBrainModelYokedBrowserTabs();
 }
 
-VolumeMprSliceDirectionModeEnum::Enum
-BrowserTabContent::getVolumeMprSliceDirectionMode() const
+VolumeMontageSliceOrderModeEnum::Enum
+BrowserTabContent::getVolumeMontageSliceOrderMode() const
 {
-    return m_volumeSliceSettings->getMprSettings()->getSliceDirectionMode();
+    return m_volumeSliceSettings->getMontageSliceOrderMode();
 }
 
 void
-BrowserTabContent::setVolumeMprSliceDirectionMode(const VolumeMprSliceDirectionModeEnum::Enum sliceDirectionMode)
+BrowserTabContent::setVolumeMontageSliceOrderMode(const VolumeMontageSliceOrderModeEnum::Enum sliceDirectionMode)
 {
-    m_volumeSliceSettings->getMprSettings()->setSliceDirectionMode(sliceDirectionMode);
+    m_volumeSliceSettings->setMontageSliceOrderMode(sliceDirectionMode);
     updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * Is the order of the slices in the volume monage flipped (inverted)
+ * @param sliceViewPlane
+ *    The slice view plane
+ * @return
+ *    True if order should be flipped (first slice drawn at bottom right), else false (first slice drawn at top left)
+ */
+bool
+BrowserTabContent::isVolumeMontageSliceOrderFlippedForSliceViewPlane(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane) const
+{
+    bool flipFlag(false);
+    
+    const bool mprFlag(getVolumeSliceProjectionType() == VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE);
+    
+    const VolumeMontageSliceOrderModeEnum::Enum direction(getVolumeMontageSliceOrderMode());
+    switch (direction) {
+        case VolumeMontageSliceOrderModeEnum::NEGATIVE:
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    flipFlag = false;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    flipFlag = false;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    if (mprFlag) {
+                        flipFlag = false;
+                    }
+                    else {
+                        flipFlag = true;
+                    }
+                    break;
+            }
+            break;
+        case VolumeMontageSliceOrderModeEnum::POSITIVE:
+            switch (sliceViewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    CaretAssert(0);
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    flipFlag = true;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    flipFlag = true;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    if (mprFlag) {
+                        flipFlag = true;
+                    }
+                    else {
+                        flipFlag = false;
+                    }
+                    break;
+            }
+            break;
+        case VolumeMontageSliceOrderModeEnum::WORKBENCH:
+            flipFlag = false;
+            break;
+    }
+
+    return flipFlag;
 }
 
 /**
