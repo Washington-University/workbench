@@ -116,10 +116,10 @@ m_parentToolBar(parentToolBar)
                      this, &BrainBrowserWindowToolBarVolumeMontage::montageSliceDirectionComboBoxItemActivated);
     m_montageSliceDirectionComboBox->getComboBox()->setObjectName(objectNamePrefix
                                            + "SliceDirection");
+    m_montageSliceDirectionComboBox->getComboBox()->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
     WuQMacroManager::instance()->addMacroSupportToObject(m_montageSliceDirectionComboBox->getComboBox(),
                                                          "Set volume montage slice Direction");
     directionLabel->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
-    m_montageSliceDirectionComboBox->getWidget()->setToolTip(VolumeMontageSliceOrderModeEnum::getGuiToolTip());
 
     m_sliceCoordinateFontHeightSpinBox = new QDoubleSpinBox();
     m_sliceCoordinateFontHeightSpinBox->setMinimum(0.1);
