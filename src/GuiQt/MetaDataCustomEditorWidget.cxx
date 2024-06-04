@@ -50,12 +50,14 @@
 #include "CaretLogger.h"
 #include "DingOntologyTermsDialog.h"
 #include "GiftiMetaData.h"
+#include "GiftiMetaDataValidatorInterface.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GuiManager.h"
 #include "LabelSelectionDialog.h"
 #include "SamplesFile.h"
 #include "SamplesMetaDataManager.h"
 #include "StructureEnum.h"
+#include "WuQMessageBox.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -443,6 +445,56 @@ MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(const std::vector<AS
     saveMetaData();
     return m_userMetaData->validateRequiredMetaData(requiredMetaDataNames,
                                                       errorMessageOut);
+}
+
+/**
+ * @param metaDataValidator
+ *    Validator for the metadata.
+ * @param errorMessageSuffix
+ *    If there is an error, this text is displayed at the top of the error message dialog.
+ * @return
+ *    True if metadata is valid, else false.
+ */
+bool
+MetaDataCustomEditorWidget::validateAndSaveRequiredMetaData(GiftiMetaDataValidatorInterface* metaDataValidator,
+                                                            const AString& errorMessageSuffix)
+{
+    CaretAssert(metaDataValidator);
+    CaretAssert(m_editorMetaData);
+    
+    saveMetaData();
+    
+    AString errorMessage;
+    if ( ! metaDataValidator->checkMetaDataForErrors(m_editorMetaData.get(),
+                                                     errorMessage)) {
+        if ( ! errorMessageSuffix.isEmpty()) {
+            errorMessage.append("\n"
+                                + errorMessageSuffix);
+        }
+        
+        WuQMessageBox::errorOk(this,
+                               errorMessage);
+
+        return false;
+    }
+
+    AString warningMessage;
+    if ( ! metaDataValidator->checkMetaDataForWarnings(m_editorMetaData.get(),
+                                                       warningMessage)) {
+        const QString acceptButtonText("Edit");
+        const QString rejectButtonText("Create");
+        warningMessage.appendWithNewLine(" ");
+        warningMessage.appendWithNewLine("Click " + acceptButtonText + " to resume editing the metadata.");
+        warningMessage.appendWithNewLine("Click " + rejectButtonText + " to disregard this warning and create the Sample.");
+        warningMessage.appendWithNewLine(" ");
+        if (WuQMessageBox::warningAcceptReject(this, warningMessage,
+                                               acceptButtonText,
+                                               rejectButtonText)) {
+            return false;
+        }
+    }
+    
+    return true;
 }
 
 /**

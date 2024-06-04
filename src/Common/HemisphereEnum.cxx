@@ -253,7 +253,7 @@ HemisphereEnum::fromGuiName(const AString& guiName, bool* isValidOut)
          iter != enumData.end();
          iter++) {
         const HemisphereEnum& d = *iter;
-        if (d.guiName == guiName) {
+        if (d.guiName.toLower() == guiName.toLower()) {
             enumValue = d.enumValue;
             validFlag = true;
             break;

@@ -26,8 +26,11 @@
 #include <cmath>
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QSpinBox>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "AnnotationFile.h"
@@ -36,6 +39,7 @@
 #include "AnnotationMetaDataNames.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationMetaDataValidator.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
@@ -105,16 +109,17 @@ m_volumeSliceThickness(volumeSliceThickness)
     
     initializeMetaData(annotationFile);
     
-    QWidget* metaDataWidget = ((m_annotationType == AnnotationTypeEnum::POLYHEDRON)
-                               ? createMetaDataEditorWidget()
-                               : NULL);
+    CaretAssert(m_annotationType == AnnotationTypeEnum::POLYHEDRON);
+    QWidget* metaDataWidget(createMetaDataEditorWidget());
+    QWidget* advancedWidget(createAdvancedWidget());
+    
+    QTabWidget* tabWidget(new QTabWidget());
+    tabWidget->addTab(metaDataWidget, "Metadata");
+    tabWidget->addTab(advancedWidget, "Advanced");
 
     QWidget* dialogWidget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(dialogWidget);
-    
-    if (metaDataWidget != NULL) {
-        layout->addWidget(metaDataWidget, 0);
-    }
+    layout->addWidget(tabWidget, 0);
     
     setSizePolicy(dialogWidget->sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
@@ -185,13 +190,57 @@ AnnotationSamplesCreateDialog::createMetaDataEditorWidget()
 
     m_metaDataRequiredCheckBox = new QCheckBox("Require Metadata (* indicates required metadata elements)");
     m_metaDataRequiredCheckBox->setChecked(s_previousMetaDataRequiredCheckedStatus);
-        
-    QGroupBox* groupBox(new QGroupBox("Metadata"));
-    QVBoxLayout* groupLayout = new QVBoxLayout(groupBox);
+
+    QWidget* widget(new QWidget());
+    QVBoxLayout* groupLayout = new QVBoxLayout(widget);
     groupLayout->addWidget(m_metaDataEditorWidget);
     groupLayout->addWidget(m_metaDataRequiredCheckBox, 0, Qt::AlignLeft);
     
-    return groupBox;
+    return widget;
+}
+
+/**
+ * @return A metadata editor widget for polyhedrons
+ */
+QWidget*
+AnnotationSamplesCreateDialog::createAdvancedWidget()
+{
+    QLabel* firstLeftSlabNumberLabel(new QLabel("First Left Hemisphere Allen Slab Number"));
+    m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox = new QSpinBox();
+    m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox->setRange(1, 999999);
+    m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox->setSingleStep(1);
+    m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox->setValue(1);
+    
+    QLabel* firstRightSlabNumberLabel(new QLabel("First Right Hemisphere Allen Slab Number"));
+    m_advancedFirstAllenSlabRightHemisphereNumberSpinBox = new QSpinBox();
+    m_advancedFirstAllenSlabRightHemisphereNumberSpinBox->setRange(1, 999999);
+    m_advancedFirstAllenSlabRightHemisphereNumberSpinBox->setSingleStep(1);
+    m_advancedFirstAllenSlabRightHemisphereNumberSpinBox->setValue(40);
+    
+    QLabel* lastRightSlabNumberLabel(new QLabel("Last Right Hemisphere Allen Slab Number"));
+    m_advancedLastAllenSlabRightHemisphereNumberSpinBox = new QSpinBox();
+    m_advancedLastAllenSlabRightHemisphereNumberSpinBox->setRange(1, 999999);
+    m_advancedLastAllenSlabRightHemisphereNumberSpinBox->setSingleStep(1);
+    m_advancedLastAllenSlabRightHemisphereNumberSpinBox->setValue(99);
+    
+    QGridLayout* gridLayout(new QGridLayout());
+    int32_t rowIndex(0);
+    gridLayout->addWidget(firstLeftSlabNumberLabel, rowIndex, 0);
+    gridLayout->addWidget(m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox, rowIndex, 1);
+    ++rowIndex;
+    gridLayout->addWidget(firstRightSlabNumberLabel, rowIndex, 0);
+    gridLayout->addWidget(m_advancedFirstAllenSlabRightHemisphereNumberSpinBox, rowIndex, 1);
+    ++rowIndex;
+    gridLayout->addWidget(lastRightSlabNumberLabel, rowIndex, 0);
+    gridLayout->addWidget(m_advancedLastAllenSlabRightHemisphereNumberSpinBox, rowIndex, 1);
+    ++rowIndex;
+
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
+    layout->addLayout(gridLayout);
+    layout->addStretch();
+    
+    return widget;
 }
 
 /**
@@ -273,7 +322,7 @@ AnnotationSamplesCreateDialog::initializeMetaData(AnnotationFile* toolbarSamples
 void
 AnnotationSamplesCreateDialog::okButtonClicked()
 {
-    AString errorMessage;
+//    AString errorMessage;
     
     QString userText;
     CaretAssert(m_annotation);
@@ -282,14 +331,26 @@ AnnotationSamplesCreateDialog::okButtonClicked()
         CaretAssert(m_metaDataRequiredCheckBox);
         s_previousMetaDataRequiredCheckedStatus = m_metaDataRequiredCheckBox->isChecked();
         if (m_metaDataRequiredCheckBox->isChecked()) {
-            AString message;
-            if ( ! m_metaDataEditorWidget->validateAndSaveRequiredMetaData(m_requiredMetaDataNames,
-                                                                           message)) {
-                message.appendWithNewLine("\nUncheck \""
-                                          + m_metaDataRequiredCheckBox->text()
-                                          + "\" to finish metadata entry later");
-                errorMessage.appendWithNewLine(message);
+            AnnotationMetaDataValidator validator(m_annotation,
+                                                        m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox->value(),
+                                                        m_advancedFirstAllenSlabRightHemisphereNumberSpinBox->value(),
+                                                        m_advancedLastAllenSlabRightHemisphereNumberSpinBox->value());
+            
+            const AString errorMessageSuffix("\nUncheck \""
+                                             + m_metaDataRequiredCheckBox->text()
+                                             + "\" to finish metadata entry later");
+            if ( ! m_metaDataEditorWidget->validateAndSaveRequiredMetaData(&validator,
+                                                                           errorMessageSuffix)) {
+                return;
             }
+//            AString message;
+//            if ( ! m_metaDataEditorWidget->validateAndSaveRequiredMetaData(m_requiredMetaDataNames,
+//                                                                           message)) {
+//                message.appendWithNewLine("\nUncheck \""
+//                                          + m_metaDataRequiredCheckBox->text()
+//                                          + "\" to finish metadata entry later");
+//                errorMessage.appendWithNewLine(message);
+//            }
         }
         else {
             m_metaDataEditorWidget->saveMetaData();
@@ -299,11 +360,11 @@ AnnotationSamplesCreateDialog::okButtonClicked()
     if (m_metaDataEditorWidget != NULL) {
         s_previousMetaDataNamesAndValues = m_annotationMetaData->getAsMap();
     }
-    if ( ! errorMessage.isEmpty()) {
-        WuQMessageBox::errorOk(this,
-                               errorMessage);
-        return;
-    }
+//    if ( ! errorMessage.isEmpty()) {
+//        WuQMessageBox::errorOk(this,
+//                               errorMessage);
+//        return;
+//    }
     
     CaretAssert(m_annotationFile);
     

@@ -25,6 +25,7 @@ ADD_LIBRARY(Xml
 GiftiException.h
 GiftiMetaData.h
 GiftiMetaDataElementDataTypeEnum.h
+GiftiMetaDataValidatorInterface.h
 GiftiMetaDataXmlElements.h
 GiftiXmlElements.h
 

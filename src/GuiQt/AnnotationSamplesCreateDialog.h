@@ -31,6 +31,7 @@
 #include "WuQDialogModal.h"
 
 class QCheckBox;
+class QSpinBox;
 
 namespace caret {
     class Annotation;
@@ -69,6 +70,8 @@ namespace caret {
     private:
         QWidget* createMetaDataEditorWidget();
         
+        QWidget* createAdvancedWidget();
+        
         void initializeMetaData(AnnotationFile* toolbarSamplesFile);
         
         static void finishAnnotationCreation(const UserInputModeEnum::Enum userInputMode,
@@ -97,6 +100,12 @@ namespace caret {
         
         QCheckBox* m_metaDataRequiredCheckBox = NULL;
         
+        QSpinBox* m_advandedFirstAllenSlabLeftHemisphereNumberSpinBox;
+        
+        QSpinBox* m_advancedFirstAllenSlabRightHemisphereNumberSpinBox;
+        
+        QSpinBox* m_advancedLastAllenSlabRightHemisphereNumberSpinBox;
+
         std::unique_ptr<GiftiMetaData> m_annotationMetaData;
         
         std::vector<AString> m_requiredMetaDataNames;

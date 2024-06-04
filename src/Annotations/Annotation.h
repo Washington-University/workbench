@@ -344,9 +344,9 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
-        GiftiMetaData* getMetaData();
+        AnnotationMetaData* getMetaData();
         
-        const GiftiMetaData* getMetaData() const;
+        const AnnotationMetaData* getMetaData() const;
         
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         

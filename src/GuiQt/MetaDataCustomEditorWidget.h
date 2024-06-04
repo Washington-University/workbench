@@ -40,6 +40,7 @@ class QToolButton;
 namespace caret {
 
     class GiftiMetaData;
+    class GiftiMetaDataValidatorInterface;
     
     class MetaDataCustomEditorWidget : public QWidget {
         
@@ -71,6 +72,9 @@ namespace caret {
         bool validateAndSaveRequiredMetaData(const std::vector<AString>& requiredMetaDataNames,
                                              AString& errorMessageOut);
 
+        bool validateAndSaveRequiredMetaData(GiftiMetaDataValidatorInterface* metaDataValidator,
+                                             const AString& errorMessageSuffix);
+        
         bool isMetaDataModified() const;
         
         void saveMetaData();

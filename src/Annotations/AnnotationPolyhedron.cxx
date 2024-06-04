@@ -28,10 +28,10 @@
 
 #include "AnnotationCoordinate.h"
 #include "AnnotationFontAttributes.h"
+#include "AnnotationMetaData.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "GiftiMetaData.h"
 #include "HtmlStringBuilder.h"
 #include "HtmlTableBuilder.h"
 #include "MathFunctions.h"

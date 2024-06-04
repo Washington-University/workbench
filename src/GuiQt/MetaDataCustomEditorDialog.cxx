@@ -29,10 +29,10 @@
 #include <QVBoxLayout>
 
 #include "Annotation.h"
+#include "AnnotationMetaData.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
-#include "GiftiMetaData.h"
 #include "MetaDataCustomEditorWidget.h"
 #include "WuQMessageBox.h"
 

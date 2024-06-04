@@ -1766,7 +1766,7 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
 /**
  * @return Pointer to the metadata
  */
-GiftiMetaData*
+AnnotationMetaData*
 Annotation::getMetaData()
 {
     return m_metaData.get();
@@ -1775,7 +1775,7 @@ Annotation::getMetaData()
 /**
  * @return Pointer to the metadata (const method)
  */
-const GiftiMetaData*
+const AnnotationMetaData*
 Annotation::getMetaData() const
 {
     return m_metaData.get();
