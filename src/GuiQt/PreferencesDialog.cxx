@@ -1654,7 +1654,9 @@ PreferencesDialog::volumeSurfaceOutlineSeparationSceneCheckBoxClicked(bool check
     /*
      * Should never get turned ON (true) by user
      */
-    CaretAssert(checked == false);
+    if (checked) {
+        CaretLogSevere("PROGRAM ERROR: surface outline scene box should never get checked");
+    }
     
     /*
      * Setting the value, even to itself, will turn off the scene value and

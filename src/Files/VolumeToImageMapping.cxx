@@ -845,7 +845,7 @@ VolumeToImageMapping::performIntensityMapping(const MediaFile* mediaFile,
                                                             pixelXYZ)) {
                 ++validPixelCounter;
                 
-                std::array<float, 4> pixelFloatRGBA;
+                std::array<float, 4> pixelFloatRGBA { 0.0f, 0.0f, 0.0f, 0.0f };
                 int32_t pixelFloatRGBACounter(0);
                 
                 /*
