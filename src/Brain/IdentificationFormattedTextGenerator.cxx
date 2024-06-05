@@ -476,7 +476,14 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                         CaretAssertVectorIndex(brainordinateFilesInOverlays, i);
                         if (brainordinateFilesInOverlays[i].m_mapFile == mapFile) {
                             MapFileAndMapIndices mapFileAndIndices(mapFile);
-                            mapFileAndIndices.addMapIndices(brainordinateFilesInOverlays[i].m_mapIndices);
+                            if (allMapsFlag) {
+                                for (int32_t i = 0; i < mapFile->getNumberOfMaps(); i++) {
+                                    mapFileAndIndices.addMapIndex(i);
+                                }
+                            }
+                            else {
+                                mapFileAndIndices.addMapIndices(brainordinateFilesInOverlays[i].m_mapIndices);
+                            }
                             mapFilesAndIndicesOut.push_back(mapFileAndIndices);
                             break;
                         }
@@ -487,7 +494,14 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                         CaretAssertVectorIndex(mediaFilesInOverlays, i);
                         if (mediaFilesInOverlays[i].m_mediaFile == mediaFile) {
                             MapFileAndMapIndices mapFileAndIndices(mediaFile);
-                            mapFileAndIndices.addMapIndices(mediaFilesInOverlays[i].m_frameIndices);
+                            if (allMapsFlag) {
+                                for (int32_t i = 0; i < mediaFile->getNumberOfFrames(); i++) {
+                                    mapFileAndIndices.addMapIndex(i);
+                                }
+                            }
+                            else {
+                                mapFileAndIndices.addMapIndices(mediaFilesInOverlays[i].m_frameIndices);
+                            }
                             mediaFilesAndIndicesOut.push_back(mapFileAndIndices);
                             break;
                         }
@@ -498,7 +512,14 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
                         CaretAssertVectorIndex(histologyFilesInOverlays, i);
                         if (histologyFilesInOverlays[i].m_histologySlicesFile == histologyFile) {
                             MapFileAndMapIndices mapFileAndIndices(histologyFile);
-                            mapFileAndIndices.addMapIndices(histologyFilesInOverlays[i].m_sliceIndices);
+                            if (allMapsFlag) {
+                                for (int32_t i = 0; i < histologyFile->getNumberOfHistologySlices(); i++) {
+                                    mapFileAndIndices.addMapIndex(i);
+                                }
+                            }
+                            else {
+                                mapFileAndIndices.addMapIndices(histologyFilesInOverlays[i].m_sliceIndices);
+                            }
                             histologyFilesAndIndicesOut.push_back(mapFileAndIndices);
                         }
                     }
