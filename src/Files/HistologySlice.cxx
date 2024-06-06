@@ -827,7 +827,10 @@ HistologySlice::restoreFromScene(const SceneAttributes* sceneAttributes,
 void
 HistologySlice::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
-    dataFileInformation.addNameAndValue("Slice Index", getSliceIndex());
+    /*
+     * Note: Slice indices range 0 to N-1 but we display as 1 to N
+     */
+    dataFileInformation.addNameAndValue("Slice Index", getSliceIndex() + 1);
     dataFileInformation.addNameAndValue("Slice Number", getSliceName());
     
     const AString mprAngleTitle("MPR Rotation Angles");

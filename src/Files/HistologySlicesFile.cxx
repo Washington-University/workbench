@@ -435,10 +435,13 @@ HistologySlicesFile::getIdentificationText(const int32_t tabIndex,
 {
     std::vector<AString> columnOneText, columnTwoText, toolTipText;
     
+    /*
+     * Note: Slice indices range 0 to N-1 but we display as 1 to N
+     */
     columnOneText.push_back("Histology File");
     columnTwoText.push_back(getFileNameNoPath());
     columnOneText.push_back("Slice Index / Number");
-    columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex())
+    columnTwoText.push_back(AString::number(histologyCoordinate.getSliceIndex() + 1)
                             + " / "
                             + getSliceNameBySliceIndex(histologyCoordinate.getSliceIndex()));
     

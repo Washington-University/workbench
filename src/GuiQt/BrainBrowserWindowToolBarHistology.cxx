@@ -345,8 +345,12 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
     if (histologySlicesFile != NULL) {
         const HistologyCoordinate histologyCoordinate(m_browserTabContent->getHistologySelectedCoordinate(histologySlicesFile));
         QSignalBlocker indexBlocker(m_sliceIndexSpinBox);
-        m_sliceIndexSpinBox->setRange(0, histologySlicesFile->getNumberOfHistologySlices() - 1);
-        m_sliceIndexSpinBox->setValue(histologyCoordinate.getSliceIndex());
+        
+        /*
+         * Note: Slice indices range 0 to N-1 but we display as 1 to N
+         */
+        m_sliceIndexSpinBox->setRange(1, histologySlicesFile->getNumberOfHistologySlices());
+        m_sliceIndexSpinBox->setValue(histologyCoordinate.getSliceIndex() + 1);
 
         Vector3D rotationAngles;
         bool rotationAnglesValidFlag(false);
@@ -564,12 +568,17 @@ BrainBrowserWindowToolBarHistology::getStereotaxicCoordinateAtViewportCenter(con
 
 /**
  * Called when slice index is changed
- * @param sliceIndex
+ * @param sliceIndexIn
  *    New slice index
  */
 void
-BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndex)
+BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndexIn)
 {
+    /*
+     * Note: Slice indices range 0 to N-1 but we display as 1 to N
+     */
+    const int sliceIndex(sliceIndexIn - 1);
+    
     const bool debugFlag(false);
     
     if (m_browserTabContent != NULL) {
@@ -693,7 +702,12 @@ BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated(int index)
         if (histologySlicesFile != NULL) {
             const int32_t sliceIndex(m_sliceNameComboBox->itemData(index).toInt());
             if (sliceIndex >= 0) {
-                sliceIndexValueChanged(sliceIndex);
+                /*
+                 * Note: Slice indices range 0 to N-1 but we display as 1 to N
+                 * 'sliceIndexValueChanged' is called by spin box and expects
+                 * 1 to N
+                 */
+                sliceIndexValueChanged(sliceIndex + 1);
             }
         }
     }
@@ -715,7 +729,10 @@ BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged()
                               m_planeXyzSpinBox[1]->value(),
                               m_planeXyzSpinBox[2]->value());
 
-            const int32_t sliceIndex(m_sliceIndexSpinBox->value());
+            /*
+             * Note: Slice indices range 0 to N-1 but we display as 1 to N
+             */
+            const int32_t sliceIndex(m_sliceIndexSpinBox->value() - 1);
             HistologyCoordinate hc(HistologyCoordinate::newInstancePlaneXYZChanged(histologySlicesFile,
                                                                                     sliceIndex,
                                                                                     planeXYZ));
