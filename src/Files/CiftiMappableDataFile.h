@@ -943,6 +943,8 @@ namespace caret {
         /** Prevents logging 'too large' message more than once for a file */
         mutable bool m_matrixDimensionsTooLargeLoggedFlag = false;
         
+        bool m_blockInvalidateColorsInAllMapsFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
         
     };

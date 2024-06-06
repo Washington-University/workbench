@@ -1256,7 +1256,18 @@ CiftiMappableDataFile::initializeAfterReading(const AString& filename)
     m_classNameHierarchy->update(this,
                                  true);
     m_forceUpdateOfGroupAndNameHierarchy = false;
+    
+    /*
+     * Selection of items in name hierarchy causes invalidation
+     * of colors and if there are many items in the hierarchy
+     * this can be very slow.  Blocking invalidation of
+     * colors makes things much faster.
+     */
+    m_blockInvalidateColorsInAllMapsFlag = true;
     m_classNameHierarchy->setAllSelected(true);
+    m_blockInvalidateColorsInAllMapsFlag = false;
+    
+    invalidateColoringInAllMaps();
     
     m_fileFastStatistics.grabNew(NULL);
     m_fileHistogram.grabNew(NULL);
@@ -1607,6 +1618,10 @@ CiftiMappableDataFile::updateForChangeInMapDataWithMapIndex(const int32_t mapInd
 void
 CiftiMappableDataFile::invalidateColoringInAllMaps()
 {
+    if (m_blockInvalidateColorsInAllMapsFlag) {
+        return;
+    }
+    
     const int64_t numMaps = static_cast<int64_t>(getNumberOfMaps());
     for (int64_t i = 0; i < numMaps; i++) {
         CaretAssertVectorIndex(m_mapContent, i);
