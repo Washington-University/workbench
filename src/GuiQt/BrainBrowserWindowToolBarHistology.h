@@ -81,10 +81,6 @@ namespace caret {
         
         const BrainOpenGLViewportContent* getBrainOpenGLViewportContent() const;
         
-//        bool getPlaneAndStereotaxicAtViewportCenter(const HistologySlice* histologySlice,
-//                                                    Vector3D& planeXyzOut,
-//                                                    Vector3D& stereotaxicXyzOut);
-        
         bool getPlaneCoordinateAtViewportCenter(Vector3D& planeXyzOut) const;
         
         bool getStereotaxicCoordinateAtViewportCenter(const HistologySlice* histologySlice,
@@ -99,7 +95,7 @@ namespace caret {
         
         QComboBox* m_sliceNameComboBox;
         
-        WuQDoubleSpinBox* m_planeXyzSpinBox[3];
+        WuQDoubleSpinBox* m_planeXyzSpinBox[2];
         
         WuQDoubleSpinBox* m_stereotaxicXyzSpinBox[3];
         

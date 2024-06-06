@@ -120,14 +120,15 @@ m_parentToolBar(parentToolBar)
     const int numberSpinBoxWidth(80);
     QLabel* planeLabel(new QLabel("Plane"));
     QLabel* stereotaxicLabel(new QLabel("XYZ"));
-    for (int32_t i = 0; i < 3; i++) {
+    for (int32_t i = 0; i < 2; i++) {
         m_planeXyzSpinBox[i] = new WuQDoubleSpinBox(this);
         m_planeXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
         m_planeXyzSpinBox[i]->setDecimalsModeAuto();
         m_planeXyzSpinBox[i]->setSingleStepPercentage(1.0);
         QObject::connect(m_planeXyzSpinBox[i], &WuQDoubleSpinBox::valueChanged,
                          this, &BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged);
-
+    }
+    for (int32_t i = 0; i < 3; i++) {
         m_stereotaxicXyzSpinBox[i] = new WuQDoubleSpinBox(this);
         m_stereotaxicXyzSpinBox[i]->setFixedWidth(numberSpinBoxWidth);
         m_stereotaxicXyzSpinBox[i]->setDecimalsModeAuto();
@@ -267,8 +268,6 @@ m_parentToolBar(parentToolBar)
     ++row;
     controlsLayout->addWidget(m_yokeOrientationCheckBox,
                               row, columnSliceLabels, 1, 2);
-    controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
-                              row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     controlsLayout->addWidget(m_rotationAngleZLabel,
@@ -374,7 +373,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
                 
         const BoundingBox planeBB(histologySlicesFile->getPlaneXyzBoundingBox());
         const Vector3D planeXYZ(histologyCoordinate.getPlaneXYZ());
-        for (int32_t i = 0; i < 3; i++) {
+        for (int32_t i = 0; i < 2; i++) {
             if (histologyCoordinate.isPlaneXYValid()) {
                 double minValue(0.0);
                 double maxValue(0.0);
@@ -400,20 +399,14 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
             else {
                 m_planeXyzSpinBox[i]->getWidget()->setEnabled(false);
             }
-            
-            /*
-             * Plane Z always disabled since it should be the same for all slices.
-             * Plane coordinates are 2D.
-             */
-            m_planeXyzSpinBox[2]->getWidget()->setEnabled(false);
-            
-            if (rotationAnglesValidFlag) {
-                m_rotationAngleXLabel->setText(AString::number(rotationAngles[0], 'f', 1));
-                m_rotationAngleYLabel->setText(AString::number(rotationAngles[1], 'f', 1));
-                m_rotationAngleZLabel->setText(AString::number(rotationAngles[2], 'f', 1));
-            }
         }
         
+        if (rotationAnglesValidFlag) {
+            m_rotationAngleXLabel->setText(AString::number(rotationAngles[0], 'f', 1));
+            m_rotationAngleYLabel->setText(AString::number(rotationAngles[1], 'f', 1));
+            m_rotationAngleZLabel->setText(AString::number(rotationAngles[2], 'f', 1));
+        }
+
         const BoundingBox stereotaxicBB(histologySlicesFile->getStereotaxicXyzBoundingBox());
         const Vector3D stereotaxicXYZ(histologyCoordinate.getStereotaxicXYZ());
         for (int32_t i = 0; i < 3; i++) {
@@ -725,7 +718,7 @@ BrainBrowserWindowToolBarHistology::planeXyzSpinBoxValueChanged()
 
             Vector3D planeXYZ(m_planeXyzSpinBox[0]->value(),
                               m_planeXyzSpinBox[1]->value(),
-                              m_planeXyzSpinBox[2]->value());
+                              0.0);
 
             /*
              * Note: Slice indices range 0 to N-1 but we display as 1 to N
