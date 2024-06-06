@@ -94,23 +94,25 @@ m_parentToolBar(parentToolBar)
     /*
      * Slice controls
      */
-    const int32_t sliceIndexNumberWidth(60);
-    
-    QLabel* sliceLabel(new QLabel("Slice"));
-    QLabel* sliceIndexLabel(new QLabel("Index"));
+    const int32_t sliceIndexNumberWidth(80);
+    QLabel* sliceIndexLabel(new QLabel("Slice Index"));
     m_sliceIndexSpinBox = new WuQSpinBox();
     m_sliceIndexSpinBox->setSingleStep(1);
     m_sliceIndexSpinBox->setFixedWidth(sliceIndexNumberWidth);
+    m_sliceIndexSpinBox->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                       m_sliceIndexSpinBox->sizePolicy().verticalPolicy());
     QObject::connect(m_sliceIndexSpinBox, QOverload<int>::of(&QSpinBox::valueChanged),
                      this, &BrainBrowserWindowToolBarHistology::sliceIndexValueChanged);
-    
-    QLabel* sliceNameLabel(new QLabel("Name"));
+
     m_sliceNameComboBox = new QComboBox();
+    m_sliceNameComboBox->setMinimumContentsLength(12); /* characters */
     QObject::connect(m_sliceNameComboBox, QOverload<int>::of(&QComboBox::activated),
                      this, &BrainBrowserWindowToolBarHistology::sliceNameComboBoxActivated);
-
-    WuQtUtilities::matchWidgetWidths(m_sliceIndexSpinBox,
-                                     m_sliceNameComboBox);
+    /*
+     * Size policy should make combo box fill all available space
+     */
+    m_sliceNameComboBox->setSizePolicy(QSizePolicy::MinimumExpanding,
+                                       m_sliceNameComboBox->sizePolicy().verticalPolicy());
     
     /*
      * Plane and stereotaxic coordinates
@@ -186,7 +188,7 @@ m_parentToolBar(parentToolBar)
     /*
      * Yoke orientation check box
      */
-    m_yokeOrientationCheckBox = new QCheckBox("Yoke Orientation to MPR");
+    m_yokeOrientationCheckBox = new QCheckBox("Yoke Orientation to MPR ");
     m_yokeOrientationCheckBox->setToolTip("<html>"
                                           "Copy slice orientation angles to yoking group MPR volume angles"
                                           "</html>");
@@ -236,17 +238,15 @@ m_parentToolBar(parentToolBar)
     
     QGridLayout* controlsLayout(new QGridLayout());
     int row(0);
-    controlsLayout->addWidget(sliceLabel,
-                              row, columnSliceLabels, 1, 2, Qt::AlignHCenter);
     controlsLayout->addWidget(planeLabel,
-                              row, columnPlaneSpinBoxes);
+                              row, columnPlaneSpinBoxes, Qt::AlignHCenter);
     controlsLayout->addWidget(stereotaxicLabel,
-                              row, columnStereotaxicSpinBoxes);
+                              row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     controlsLayout->addWidget(anglesLabel,
                               row, columnAngles);
     ++row;
     controlsLayout->addWidget(sliceIndexLabel,
-                              row, columnSliceLabels);
+                              row, columnSliceLabels, Qt::AlignHCenter);
     controlsLayout->addWidget(m_sliceIndexSpinBox,
                               row, columnSliceSpinBoxes, Qt::AlignRight);
     controlsLayout->addWidget(m_planeXyzSpinBox[0]->getWidget(),
@@ -254,12 +254,10 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[0]->getWidget(),
                               row, columnStereotaxicSpinBoxes);
     controlsLayout->addWidget(m_rotationAngleXLabel,
-                              row, columnAngles);
+                              row, columnAngles, Qt::AlignHCenter);
     ++row;
-    controlsLayout->addWidget(sliceNameLabel,
-                              row, columnSliceLabels);
     controlsLayout->addWidget(m_sliceNameComboBox,
-                              row, columnSliceSpinBoxes, Qt::AlignRight);
+                              row, columnSliceLabels, 1, 2);
     controlsLayout->addWidget(m_planeXyzSpinBox[1]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[1]->getWidget(),
@@ -267,8 +265,8 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_rotationAngleYLabel,
                               row, columnAngles);
     ++row;
-    controlsLayout->addWidget(identificationMovesSlicesToolButton,
-                              row, columnSliceLabels, Qt::AlignHCenter);
+    controlsLayout->addWidget(m_yokeOrientationCheckBox,
+                              row, columnSliceLabels, 1, 2);
     controlsLayout->addWidget(m_planeXyzSpinBox[2]->getWidget(),
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(m_stereotaxicXyzSpinBox[2]->getWidget(),
@@ -277,9 +275,9 @@ m_parentToolBar(parentToolBar)
                               row, columnAngles);
     ++row;
     controlsLayout->addWidget(showCrosshairsToolButton,
-                              row, columnSliceLabels, Qt::AlignHCenter);
-    controlsLayout->addWidget(m_yokeOrientationCheckBox,
-                              row, columnSliceSpinBoxes, 1, 2, Qt::AlignHCenter);
+                              row, columnSliceLabels, Qt::AlignRight);
+    controlsLayout->addWidget(identificationMovesSlicesToolButton,
+                              row, columnSliceSpinBoxes, Qt::AlignLeft);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -367,7 +365,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
                 }
             }
             m_sliceNameComboBox->addItem(slice->getSliceName(),
-                                           i);
+                                         i);
         }
         if ((selectedItemIndex >= 0)
             && (selectedItemIndex < m_sliceNameComboBox->count())) {
