@@ -304,23 +304,13 @@ namespace caret {
         
         void createObliqueTransformationMatrix(const float sliceCoordinates[3],
                                                Matrix4x4& obliqueTransformationMatrixOut);
-        
-        void addVoxelToIdentification(const int32_t volumeIndex,
-                                      const int32_t mapIndex,
-                                      const int32_t voxelI,
-                                      const int32_t voxelJ,
-                                      const int32_t voxelK,
-                                      const float voxelDiffXYZ[3],
-                                      uint8_t rgbaForColorIdentificationOut[4]);
-        
+                
         bool getVolumeDrawingViewDependentCulling(const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                   const float selectedSliceCoordinate,
                                                   const VolumeMappableInterface* volumeFile,
                                                   int64_t culledFirstVoxelIJKOut[3],
                                                   int64_t culledLastVoxelIJKOut[3],
                                                   float voxelDeltaXYZOut[3]);
-        
-        void processIdentification(const Plane& plane);
         
         void resetIdentification();
         
