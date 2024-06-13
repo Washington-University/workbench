@@ -38,6 +38,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "VolumeMprSettingsWidget.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -80,6 +81,14 @@ m_objectNamePrefix(objectNamePrefix
                      this, &VolumeMprSettingsWidget::orientationComboBoxActivated);
     m_orientationComboBox->getWidget()->setToolTip("Select orientation");
     
+    m_orientationWarningLabelDefaultText = (" ");
+    m_orientationWarningLabel = new QLabel(m_orientationWarningLabelDefaultText);
+    m_orientationWarningLabel->setWordWrap(true);
+    
+    m_showAxisLabelsCheckBox = new QCheckBox("Show Axis Orientation Labels");
+    QObject::connect(m_showAxisLabelsCheckBox, &QCheckBox::clicked,
+                     this, &VolumeMprSettingsWidget::showAxisLabelsCheckBoxClicked);
+
     QLabel* thicknessLabel(new QLabel("Slice Thickness: "));
     m_sliceThicknessSpinBox = new QDoubleSpinBox();
     QObject::connect(m_sliceThicknessSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
@@ -119,6 +128,10 @@ m_objectNamePrefix(objectNamePrefix
     ++row;
     gridLayout->addWidget(orientationLabel, row, 0);
     gridLayout->addWidget(m_orientationComboBox->getWidget(), row, 1);
+    ++row;
+    gridLayout->addWidget(m_orientationWarningLabel, row, 1);
+    ++row;
+    gridLayout->addWidget(m_showAxisLabelsCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     ++row;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     ++row;
@@ -185,6 +198,10 @@ VolumeMprSettingsWidget::updateContent(const int32_t tabIndex)
     
     m_viewModeComboBox->setSelectedItem<VolumeMprViewModeEnum, VolumeMprViewModeEnum::Enum>(btc->getVolumeMprViewMode());
     m_orientationComboBox->setSelectedItem<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>(btc->getVolumeMprOrientationMode());
+
+    updateShowAxisLabelsCheckBox();
+    updateOrientationLabel();
+    
     QSignalBlocker thicknessBlocker(m_sliceThicknessSpinBox);
     m_sliceThicknessSpinBox->setValue(btc->getVolumeMprSliceThickness());
     m_allViewThicknessCheckBox->setChecked(btc->isVolumeMprAllViewThicknessEnabled());
@@ -194,6 +211,40 @@ VolumeMprSettingsWidget::updateContent(const int32_t tabIndex)
     
     updateOrientationComboBoxColor();
     setEnabled(true);
+}
+
+/**
+ * Update the show axis labels checkbox status
+ */
+void
+VolumeMprSettingsWidget::updateShowAxisLabelsCheckBox()
+{
+    BrowserTabContent* btc = getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    m_showAxisLabelsCheckBox->setChecked(btc->isVolumeAxesCrosshairLabelsDisplayed());
+}
+
+void
+VolumeMprSettingsWidget::updateOrientationLabel()
+{
+    BrowserTabContent* btc = getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    AString msg;
+    switch (btc->getVolumeMprOrientationMode()) {
+        case VolumeMprOrientationModeEnum::NEUROLOGICAL:
+            msg = ("The <b>LEFT</b> side of the brain is on the <b>LEFT</b>");
+            break;
+        case VolumeMprOrientationModeEnum::RADIOLOGICAL:
+            msg = ("The <font color=red><b>RIGHT</b></font> side of the brain is on the <b>LEFT</b>");
+            break;
+    }
+    m_orientationWarningLabel->setText("<html>"
+                                       + msg
+                                       + "</html>");
 }
 
 /**
@@ -248,15 +299,47 @@ VolumeMprSettingsWidget::orientationComboBoxActivated()
         return;
     }
 
+    /*
+     * Use a dialog to warn user when changing orientation (left-on-left vs right-on-left)
+     */
     const VolumeMprOrientationModeEnum::Enum orientationMode = m_orientationComboBox->getSelectedItem<VolumeMprOrientationModeEnum,VolumeMprOrientationModeEnum::Enum>();
+    if (orientationMode != btc->getVolumeMprOrientationMode()) {
+        /*
+         * Turn on orientation labels
+         */
+        btc->setVolumeAxesCrosshairLabelsDisplayed(true);
+    }
+    else {
+        m_orientationWarningLabel->setText(m_orientationWarningLabelDefaultText);
+    }
+    m_orientationWarningLabel->repaint();
+
     btc->setVolumeMprOrientationMode(orientationMode);
+    
     updateGraphicsWindow();
     
     /* Force update of combo box */
     updateOrientationComboBoxColor();
     m_orientationComboBox->getWidget()->update();
+    
+    updateShowAxisLabelsCheckBox();
+    updateOrientationLabel();
 }
 
+/**
+ * Called when axis labels checkbox is toggled by user
+ */
+void
+VolumeMprSettingsWidget::showAxisLabelsCheckBoxClicked(bool clicked)
+{
+    BrowserTabContent* btc(getBrowserTabContent());
+    if (btc == NULL) {
+        return;
+    }
+    
+    btc->setVolumeAxesCrosshairLabelsDisplayed(clicked);
+    updateGraphicsWindow();
+}
 
 /**
  * Called when slice thickness value is changed

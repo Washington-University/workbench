@@ -31,6 +31,7 @@
 
 class QCheckBox;
 class QDoubleSpinBox;
+class QLabel;
 
 namespace caret {
 
@@ -53,7 +54,6 @@ namespace caret {
         
         void updateContent(const int32_t tabIndex);
         
-
         // ADD_NEW_METHODS_HERE
 
         virtual void receiveEvent(Event* event);
@@ -62,6 +62,8 @@ namespace caret {
         void modeComboBoxActivated();
         
         void orientationComboBoxActivated();
+        
+        void showAxisLabelsCheckBoxClicked(bool);
         
         void sliceThicknessSpinBoxValueChanged(double);
         
@@ -80,6 +82,10 @@ namespace caret {
         
         void updateOrientationComboBoxColor();
         
+        void updateShowAxisLabelsCheckBox();
+        
+        void updateOrientationLabel();
+        
         const QString m_objectNamePrefix;
         
         int32_t m_tabIndex = -1;
@@ -91,6 +97,12 @@ namespace caret {
         QPalette m_viewModeComboBoxRedTextPalette;
         
         EnumComboBoxTemplate* m_orientationComboBox;
+        
+        QLabel* m_orientationWarningLabel;
+        
+        QString m_orientationWarningLabelDefaultText;
+        
+        QCheckBox* m_showAxisLabelsCheckBox;
         
         QDoubleSpinBox* m_sliceThicknessSpinBox;
         
