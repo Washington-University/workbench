@@ -47,6 +47,7 @@
 #include "DisplayPropertiesLabels.h"
 #include "ElapsedTimer.h"
 #include "EventDrawingViewportContentAdd.h"
+#include "EventOpenGLObjectToWindowTransform.h"
 #include "GapsAndMargins.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -3752,11 +3753,91 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::draw(BrainOpenGLFixedPipelin
                 if ((m_selectionIJK[0] >= 0)
                     && (m_selectionIJK[1] >= 0)
                     && (m_selectionIJK[2])) {
+                    Vector3D slicePlaneXYZ;
+                    bool slicePlaneXYZValidFlag(false);
+                    
+                    /*
+                     * When true, wb_view attempts to use the exect location under the mouse.
+                     * When false, the center of the voxel is used for identification.
+                     */
+                    const bool useStereotaxicIdentificationFlag(true);
+                    if (useStereotaxicIdentificationFlag) {
+                        /*
+                         * Get the depth value at the mouse X, Y
+                         */
+                        float depthValue(0.0);
+                        float rgbaValue[4];
+                        if (fixedPipelineDrawing->getPixelDepthAndRGBA(fixedPipelineDrawing->mouseX,
+                                                                       fixedPipelineDrawing->mouseY,
+                                                                       depthValue,
+                                                                       rgbaValue)) {
+
+                            /*
+                             * Transform Window (X, Y, Depth) to model coordinates
+                             */
+                            Vector3D windowXYZ(fixedPipelineDrawing->mouseX,
+                                               fixedPipelineDrawing->mouseY,
+                                               depthValue);
+                            EventOpenGLObjectToWindowTransform transformEvent(EventOpenGLObjectToWindowTransform::SpaceType::MODEL);
+                            EventManager::get()->sendEvent(transformEvent.getPointer());
+                            const Vector3D xyz(transformEvent.inverseTransformPoint(windowXYZ));
+                            
+                            /*
+                             * Project the XYZ to the current plane being drawn
+                             */
+                            slicePlaneXYZ = slicePlane.projectPointToPlane(xyz);
+                            if (debugFlag) {
+                                std::cout << "XYZ: " << xyz.toString() << " Projected: " << slicePlaneXYZ.toString() << std::endl;
+                            }
+                            
+                            int64_t slicePlaneIJK[3];
+                            m_volumeInterface->enclosingVoxel(slicePlaneXYZ,
+                                                              slicePlaneIJK);
+                            if (m_volumeInterface->indexValid(slicePlaneIJK)) {
+                                const int64_t dI(std::abs(slicePlaneIJK[0] - m_selectionIJK[0]));
+                                const int64_t dJ(std::abs(slicePlaneIJK[1] - m_selectionIJK[1]));
+                                const int64_t dK(std::abs(slicePlaneIJK[2] - m_selectionIJK[2]));
+                                if ((dI <= 1)
+                                    && (dJ <= 1)
+                                    && (dK <= 1)) {
+                                    slicePlaneXYZValidFlag = true;
+                                }
+                                else {
+                                    if (debugFlag) {
+                                        std::cout << "Rejected: " << dI << ", " << dJ << ", " << dK << std::endl;
+                                    }
+                                }
+                                if (debugFlag) {
+                                    std::cout << "Selected XYZ: " << slicePlaneXYZ.toString() << std::endl;
+                                    std::cout << "   IJK: " << AString::fromNumbers(slicePlaneIJK, 3)
+                                    << " SelIJK: " << AString::fromNumbers(m_selectionIJK, 3) << std::endl << std::flush;
+                                }
+                            }
+                        }
+                    }
+
                     if (selectionItemVoxel->isEnabledForSelection()) {
                         if (selectionItemVoxel->isOtherScreenDepthCloserToViewer(selectedDepth)) {
-                            float voxelCoordinates[3];
-                            m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
-                                                            voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                            Vector3D voxelCoordinates;
+                            if (slicePlaneXYZValidFlag) {
+                                /*
+                                 * Use true stereotaxic coordinate at mouse
+                                 */
+                                voxelCoordinates = slicePlaneXYZ;
+                                
+                                /*
+                                 * Update IJK that might be off by one voxel or so
+                                 */
+                                m_volumeInterface->enclosingVoxel(voxelCoordinates,
+                                                                  m_selectionIJK);
+                            }
+                            else {
+                                /*
+                                 * Use coordinate at center of voxel
+                                 */
+                                m_volumeInterface->indexToSpace(m_selectionIJK[0], m_selectionIJK[1], m_selectionIJK[2],
+                                                                voxelCoordinates[0], voxelCoordinates[1], voxelCoordinates[2]);
+                            }
                             selectionItemVoxel->setVoxelIdentification(brain,
                                                                        m_volumeInterface,
                                                                        m_selectionIJK,
