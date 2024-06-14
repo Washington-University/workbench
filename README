@@ -27,7 +27,7 @@ make install
 
 It should be noted that wb_import, provided in the HCP binary releases of Connectome Workbench, is actually part of caret5 (http://brainvis.wustl.edu/wiki/index.php/Caret:Download).
 
-Connectome Workbench source code is licensed under GPLv2 or later, copyright 2014-2021 Washington University School of Medicine, see LICENSE file.
+Connectome Workbench source code is licensed under GPLv2 or later, copyright 2014-2024 Washington University School of Medicine, see LICENSE file.
 However, it uses a GPLv3 (or later) library, libCZI, and thus the executables are GPLv3.
 
 Some source files are licensed under an MIT license (Expat), for easier code reuse in non-GPL projects:
@@ -35,7 +35,7 @@ Files/SurfaceResamplingHelper.cxx
 Cifti/examples/*
 CommandLine/wb_shortcuts
 CommandLine/bashcomplete_wb_*
-Copyright (C) 2014-2018 Washington University School of Medicine
+Copyright (C) 2014-2022 Washington University School of Medicine
 
 Some GPLv2 source files can be used under the MIT license (Expat) specifically in FSL or MSM code:
 Files/SignedDistanceHelper.*
