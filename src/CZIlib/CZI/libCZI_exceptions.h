@@ -24,6 +24,7 @@
 
 #include <exception>
 #include <stdexcept>
+#include <cstdint>
 
 namespace libCZI
 {
