@@ -92,6 +92,14 @@ namespace caret {
         
         void setSaveToFileEnabled(const bool enabled);
         
+        bool isBackgroundAlphaEnabled() const;
+        
+        void setBackgroundAlphaEnabled(const bool enabled);
+        
+        uint8_t getBackgroundAlpha() const;
+        
+        void setBackgroundAlpha(const uint8_t alpha);
+        
         AString getImageFileName() const;
         
         void setImageFileName(const AString& filename);
@@ -185,6 +193,10 @@ namespace caret {
         ImageResolutionUnitsEnum::Enum m_imageResolutionUnits;
         
         ImageSpatialUnitsEnum::Enum m_spatialUnits;
+        
+        bool m_backgroundAlphaEnabledFlag = false;
+        
+        int32_t m_backgroundAlphaValue = 0;
         
         static const float CENTIMETERS_PER_INCH;
         static const float CENTIMETERS_PER_METER;

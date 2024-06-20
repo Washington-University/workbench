@@ -74,6 +74,8 @@ SceneableInterface()
     m_copyToClipboardEnabled = false;
     m_imageFileName = "";
     
+    m_backgroundAlphaValue = 0;
+    m_backgroundAlphaEnabledFlag = false;
     
     m_sceneAssistant = new SceneClassAssistant();
     m_sceneAssistant->add("m_pixelWidth",
@@ -98,6 +100,11 @@ SceneableInterface()
                           &m_saveToFileEnabled);
     m_sceneAssistant->add("m_scaleProportionatelyEnabled",
                           &m_scaleProportionatelyEnabled);
+    
+    m_sceneAssistant->add("m_backgroundAlphaValue",
+                          &m_backgroundAlphaValue);
+    m_sceneAssistant->add("m_backgroundAlphaEnabledFlag",
+                          &m_backgroundAlphaEnabledFlag);
     
     m_sceneAssistant->add("m_cropToTabWindowLockAspectRegionEnabled",
                           &m_cropToTabWindowLockAspectRegionEnabled);
@@ -170,6 +177,8 @@ ImageCaptureDialogSettings::copyHelperImageDimensionsModel(const ImageCaptureDia
     m_dimensionsMode              = obj.m_dimensionsMode;
     m_imageResolutionUnits        = obj.m_imageResolutionUnits;
     m_spatialUnits                = obj.m_spatialUnits;
+    m_backgroundAlphaValue        = obj.m_backgroundAlphaValue;
+    m_backgroundAlphaEnabledFlag  = obj.m_backgroundAlphaEnabledFlag;
 }
 
 /**
@@ -221,6 +230,8 @@ ImageCaptureDialogSettings::getSettingsAsText(const std::vector<int32_t>& window
     info.addNameAndValue("Crop to Tab/Window Lock Aspect Region", isCropToTabWindowLockAspectRegionEnabled());
     info.addNameAndValue("Crop Image with Margin", isCroppingEnabled());
     info.addNameAndValue("Image Margin", getMargin());
+    info.addNameAndValue("Background Alpha Enabled", isBackgroundAlphaEnabled());
+    info.addNameAndValue("Background Alpha", getBackgroundAlpha());
     
     return info.getInformationInString();
 }
@@ -677,6 +688,46 @@ void
 ImageCaptureDialogSettings::setSaveToFileEnabled(const bool enabled)
 {
     m_saveToFileEnabled = enabled;
+}
+
+/**
+ * @return True if background alpha is enabled
+ */
+bool
+ImageCaptureDialogSettings::isBackgroundAlphaEnabled() const
+{
+    return m_backgroundAlphaEnabledFlag;
+}
+
+/**
+ * Set the background alpha enabled
+ * @param enabled
+ *    New status
+ */
+void
+ImageCaptureDialogSettings::setBackgroundAlphaEnabled(const bool enabled)
+{
+    m_backgroundAlphaEnabledFlag = enabled;
+}
+
+/**
+ * @return The background alpha value
+ */
+uint8_t
+ImageCaptureDialogSettings::getBackgroundAlpha() const
+{
+    return static_cast<uint8_t>(m_backgroundAlphaValue);
+}
+
+/**
+ * Set the background alpha value
+ * @param alpha
+ *    New alpha value
+ */
+void
+ImageCaptureDialogSettings::setBackgroundAlpha(const uint8_t alpha)
+{
+    m_backgroundAlphaValue = alpha;
 }
 
 /**

@@ -85,6 +85,10 @@ namespace caret {
         
         void imageMarginValueChanged(int);
         
+        void backgroundAlphaCheckBoxClicked(bool);
+        
+        void backgroundAlphaSpinBoxValueChanged(int);
+
         void copyImageToClipboardCheckBoxClicked(bool);
         
         void saveImageToFileCheckBoxClicked(bool);
@@ -140,6 +144,9 @@ namespace caret {
         
         QCheckBox* m_imageAutoCropCheckBox;
         QSpinBox*  m_imageMarginSpinBox;
+        
+        QCheckBox* m_backgroundAlphaCheckBox;
+        QSpinBox*  m_backgroundAlphaSpinBox;
         
         QSpinBox* m_windowSelectionSpinBox;
         QCheckBox* m_windowCropToLockAspectRegionCheckBox;

@@ -210,11 +210,34 @@ ImageCaptureDialog::createImageOptionsSection()
     cropMarginLayout->addWidget(m_imageMarginSpinBox);
     cropMarginLayout->addStretch();
     
-    QGroupBox* groupBox = new QGroupBox("Image Options");
-    QVBoxLayout* layout = new QVBoxLayout(groupBox);
-    layout->addWidget(m_imageAutoCropCheckBox);
-    layout->addLayout(cropMarginLayout);
+    m_backgroundAlphaCheckBox = new QCheckBox("Background Alpha");
+    QObject::connect(m_backgroundAlphaCheckBox, &QCheckBox::clicked,
+                     this, &ImageCaptureDialog::backgroundAlphaCheckBoxClicked);
     
+    m_backgroundAlphaSpinBox  = new QSpinBox();
+    m_backgroundAlphaSpinBox->setRange(0, 255);
+    m_backgroundAlphaSpinBox->setSingleStep(1);
+    QObject::connect(m_backgroundAlphaSpinBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+                     this, &ImageCaptureDialog::backgroundAlphaSpinBoxValueChanged);
+    
+    /*
+     * Disable until implemented
+     */
+    m_backgroundAlphaCheckBox->setEnabled(false);
+    m_backgroundAlphaSpinBox->setEnabled(false);
+    
+    QGroupBox* groupBox = new QGroupBox("Image Options");
+    QGridLayout* groupLayout = new QGridLayout(groupBox);
+    groupLayout->setColumnStretch(0, 0);
+    groupLayout->setColumnStretch(1, 100);
+    int groupRow(0);
+    groupLayout->addWidget(m_imageAutoCropCheckBox, groupRow, 0);
+    groupLayout->addWidget(m_imageMarginSpinBox, groupRow, 1, Qt::AlignLeft);
+    ++groupRow;
+    groupLayout->addWidget(m_backgroundAlphaCheckBox, groupRow, 0);
+    groupLayout->addWidget(m_backgroundAlphaSpinBox, groupRow, 1, Qt::AlignLeft);
+    ++groupRow;
+
     return groupBox;
 }
 
@@ -553,9 +576,12 @@ ImageCaptureDialog::updateImageOptionsSection()
     CaretAssert(imageCaptureSettings);
     
     m_imageAutoCropCheckBox->setChecked(imageCaptureSettings->isCroppingEnabled());
-    m_imageMarginSpinBox->blockSignals(true);
+    QSignalBlocker marginSpinBoxLocker(m_imageMarginSpinBox);
     m_imageMarginSpinBox->setValue(imageCaptureSettings->getMargin());
-    m_imageMarginSpinBox->blockSignals(false);
+    
+    m_backgroundAlphaCheckBox->setChecked(imageCaptureSettings->isBackgroundAlphaEnabled());
+    QSignalBlocker backgroundAlphaSpinBoxBlocker(m_backgroundAlphaSpinBox);
+    m_backgroundAlphaSpinBox->setValue(imageCaptureSettings->getBackgroundAlpha());
 }
 
 /**
@@ -777,6 +803,33 @@ ImageCaptureDialog::imageCroppingCheckBoxClicked(bool checked)
 {
     ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
     imageCaptureSettings->setCroppingEnabled(checked);
+}
+
+
+/**
+ * Called when background alpha check box clicked.
+ *
+ * @parm checked
+ *     New checked status.
+ */
+void
+ImageCaptureDialog::backgroundAlphaCheckBoxClicked(bool checked)
+{
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setBackgroundAlphaEnabled(checked);
+}
+
+/**
+ * Called when background alpha spin box value changed.
+ *
+ * @parm value
+ *     New alpha.
+ */
+void
+ImageCaptureDialog::backgroundAlphaSpinBoxValueChanged(int value)
+{
+    ImageCaptureDialogSettings* imageCaptureSettings = SessionManager::get()->getImageCaptureDialogSettings();
+    imageCaptureSettings->setBackgroundAlpha(value);
 }
 
 /**
