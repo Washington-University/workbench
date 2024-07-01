@@ -131,7 +131,7 @@ BalsaDatabaseManager::login(const AString& databaseURL,
          mapIter != loginResponse.m_headers.end();
          mapIter++) {
         
-        if (mapIter->first == "Set-Cookie") {
+        if (mapIter->first.toLower() == "set-cookie") {
             const AString value = mapIter->second;
             const int equalPos = value.indexOf("=");
             const int semiPos  = value.indexOf(";");
@@ -380,7 +380,7 @@ BalsaDatabaseManager::verifyUploadFileResponse(const std::map<AString, AString>&
          iter++) {
         if (m_debugFlag) std::cout << "Response Header: " << iter->first << " -> " << iter->second << std::endl;
         
-        if (iter->first == "Content-Type") {
+        if (iter->first.toLower() == "content-type") {
             haveContentTypeFlag = true;
             contentTypeString = iter->second;
         }
@@ -692,7 +692,7 @@ BalsaDatabaseManager::processUploadedFile(SceneFile* sceneFile,
         }
         
         
-        AString contentType = getHeaderValue(uploadResponse, "Content-Type");
+        AString contentType = getHeaderValue(uploadResponse, "content-type");
         if (contentType.isNull()) {
             errorMessageOut = ("Process Upload Content type returned by BALSA is unknown");
             return false;
@@ -1138,7 +1138,7 @@ BalsaDatabaseManager::getSceneIDs(const int32_t numberOfSceneIDs,
         std::cout << "Request Scene IDs body:\n" << responseContent << std::endl << std::endl;
     }
     
-    AString contentType = getHeaderValue(response, "Content-Type");
+    AString contentType = getHeaderValue(response, "content-type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting Scene IDs failed.  Content type returned by BALSA is unknown");
         return false;
@@ -1237,7 +1237,7 @@ BalsaDatabaseManager::requestStudyID(const AString& databaseURL,
         return false;
     }
     
-    AString contentType = getHeaderValue(studyResponse, "Content-Type");
+    AString contentType = getHeaderValue(studyResponse, "content-type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting study ID failed.  Content type returned by BALSA is unknown");
         return false;
@@ -1373,7 +1373,7 @@ BalsaDatabaseManager::getUserRoles(BalsaUserRoles& userRolesOut,
         return false;
     }
     
-    AString contentType = getHeaderValue(studyResponse, "Content-Type");
+    AString contentType = getHeaderValue(studyResponse, "content-type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting roles failed.  Content type returned by BALSA is unknown");
         return false;
@@ -1480,7 +1480,7 @@ BalsaDatabaseManager::getStudyExtractDirectoryPrefix(const AString& studyID,
         return false;
     }
     
-    AString contentType = getHeaderValue(studyResponse, "Content-Type");
+    AString contentType = getHeaderValue(studyResponse, "content-type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting extract directory failed.  Content type returned by BALSA is unknown");
         return false;
@@ -1568,7 +1568,7 @@ BalsaDatabaseManager::getAllStudyInformation(std::vector<BalsaStudyInformation>&
         return false;
     }
     
-    AString contentType = getHeaderValue(idResponse, "Content-Type");
+    AString contentType = getHeaderValue(idResponse, "content-type");
     if (contentType.isNull()) {
         errorMessageOut = ("Requesting all study information failed.  Content type returned by BALSA is unknown");
         return false;
