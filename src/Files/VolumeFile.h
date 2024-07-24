@@ -199,11 +199,11 @@ namespace caret {
 
         void freeSpline(const int64_t brickIndex = 0, const int64_t component = 0) const;
 
-        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
+        float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0, const float backgroundVal = INVALID_INTERP_VALUE) const;
 
-        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
+        float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0, const float backgroundVal = INVALID_INTERP_VALUE) const;
 
-        float interpolateValue(const float* coordIn, const VoxelInterpolationTypeEnum::Enum interpType = VoxelInterpolationTypeEnum::TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0) const;
+        float interpolateValue(const float* coordIn, const VoxelInterpolationTypeEnum::Enum interpType = VoxelInterpolationTypeEnum::TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0, const float backgroundVal = INVALID_INTERP_VALUE) const;
         
         ///returns true if volume space matches in spatial dimensions and sform
         bool matchesVolumeSpace(const VolumeFile* right) const;

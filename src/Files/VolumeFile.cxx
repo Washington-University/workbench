@@ -502,7 +502,8 @@ VolumeFile::interpolateValue(const float* coordIn,
                              const VoxelInterpolationTypeEnum::Enum interpType,
                              bool* validOut,
                              const int64_t brickIndex,
-                             const int64_t component) const
+                             const int64_t component,
+                             const float backgroundVal) const
 {
     InterpType interp = CUBIC;
     switch (interpType) {
@@ -521,15 +522,16 @@ VolumeFile::interpolateValue(const float* coordIn,
                             interp,
                             validOut,
                             brickIndex,
-                            component);
+                            component,
+                            backgroundVal);
 }
 
-float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
+float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component, const float backgroundVal) const
 {
-    return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);
+    return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component, backgroundVal);
 }
 
-float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
+float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component, const float backgroundVal) const
 {
     /*
      * If the volume is a single slice, CUBIC and TRILINEAR will fail they
@@ -559,7 +561,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 {
                     return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                 } else {
-                    return INVALID_INTERP_VALUE;
+                    return backgroundVal;
                 }
             }
             int64_t whichFrame = component * dimensions[3] + brickIndex;
@@ -585,7 +587,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                     {
                         return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                     } else {
-                        return INVALID_INTERP_VALUE;
+                        return backgroundVal;
                     }
                 }
             }
@@ -629,7 +631,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 {
                     return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                 } else {
-                    return INVALID_INTERP_VALUE;
+                    return backgroundVal;
                 }
             }
         }
@@ -640,7 +642,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     {
         return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
     } else {
-        return INVALID_INTERP_VALUE;
+        return backgroundVal;
     }
 }
 
