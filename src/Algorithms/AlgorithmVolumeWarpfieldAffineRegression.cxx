@@ -62,7 +62,7 @@ OperationParameters* AlgorithmVolumeWarpfieldAffineRegression::getParameters()
         AString("For all voxels in the warpfield, do a regression that predicts the post-warp coordinate from the source coordinate.  ") +
         "When -roi is specified, only consider voxels with a value greater than 0 in <roi-vol>.\n\n" +
         "The default is to expect the warpfield to be in relative world coordinates (mm space), and to write the output as a world affine (mm space to mm space).  " +
-        "If you are using FSL-created files and utilities, specify -fnirt and -flirt as needed, as their coordinate conventions are different."
+        "If you are using FSL-created files and utilities, specify -fnirt and -flirt-out as needed, as their coordinate conventions are different."
     );
     return ret;
 }
