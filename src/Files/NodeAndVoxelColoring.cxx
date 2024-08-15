@@ -539,16 +539,51 @@ NodeAndVoxelColoring::colorScalarsWithRGBAPrivate(const float* redComponents,
             break;
     }
     
+    /*
+     * Examine data to see if it ranges [0,1].
+     * Otherwise, it is [0, 255].
+     */
+    bool rangeOneFlag(false);
+    bool autoRangeDetectFlag(true);
+    if (autoRangeDetectFlag) {
+        rangeOneFlag = true;
+        const float valueOne(1.001);
+        for (int64_t i = 0; i < numberOfComponents; i++) {
+            if ((redComponents[i] > valueOne)
+                || (redComponents[i] < -valueOne)
+                || (greenComponents[i] > valueOne)
+                || (greenComponents[i] < -valueOne)
+                || (blueComponents[i] > valueOne)
+                || (blueComponents[i] < -valueOne)) {
+                rangeOneFlag = false;
+                break;
+            }
+        }
+    }
+    
+    const float scaleValue(rangeOneFlag
+                           ? 255.0
+                           : 1.0);
+    
     for (int64_t i = 0; i < numberOfComponents; i++) {
-        const float red   = redComponents[i];
-        const float green = greenComponents[i];
-        const float blue  = blueComponents[i];
+        float red   = redComponents[i]   * scaleValue;
+        float green = greenComponents[i] * scaleValue;
+        float blue  = blueComponents[i]  * scaleValue;
         float alpha = 0.0;
         
+        if (red < 0.0)   red   = -red;
+        if (green < 0.0) green = -green;
+        if (blue < 0.0)  blue  = -blue;
+        if (red > 255.0)   red   = 255.0;
+        if (green > 255.0) green = 255.0;
+        if (blue > 255.0)  blue  = 255.0;
+
         if ((red      >= thresholdRed)
             && (green >= thresholdGreen)
             && (blue  >= thresholdBlue)) {
-            alpha = ((alphaComponents == NULL) ? 255.0 : alphaComponents[i]);
+            alpha = ((alphaComponents == NULL) ? 255.0 : (alphaComponents[i] * scaleValue));
+            if (alpha < 0.0) alpha = -alpha;
+            if (alpha > 255.0) alpha = 255.0;
         }
         
         const int64_t i4 = i * 4;
