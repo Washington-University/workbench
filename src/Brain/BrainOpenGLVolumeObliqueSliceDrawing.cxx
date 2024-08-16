@@ -2843,8 +2843,22 @@ m_bottomLayerFlag(bottomLayerFlag)
     const CiftiMappableDataFile* ciftiMappableFileConst = dynamic_cast<const CiftiMappableDataFile*>(volumeInterface);
     m_ciftiMappableFile = const_cast<CiftiMappableDataFile*>(ciftiMappableFileConst);
     
+    /*
+     * Special case for detecting "Special-RGB-Volume" for
+     * displaying a 3 map volume file as RGB values
+     */
+    bool volumeSpecialRgbFlag(false);
+    if (m_volumeFile != NULL) {
+        if (m_volumeFile->getType() == SubvolumeAttributes::RGB_WORKBENCH) {
+            volumeSpecialRgbFlag = true;
+        }
+    }
     m_dataValueType = DataValueType::INVALID;
-    if (m_mapFile->isMappedWithPalette()) {
+
+    if (volumeSpecialRgbFlag) {
+        m_dataValueType = DataValueType::VOLUME_RGB_WORKBENCH;
+    }
+    else if (m_mapFile->isMappedWithPalette()) {
         if (m_volumeFile != NULL) {
             m_dataValueType = DataValueType::VOLUME_PALETTE;
         }
@@ -3207,27 +3221,28 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             break;
         case DataValueType::VOLUME_RGB_WORKBENCH:
         {
-            const bool range255Flag(true);
             CaretAssert(m_data.size() == m_rgba.size());
-            const int32_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
-            if (range255Flag) {
-                for (int32_t i = 0; i < numVoxels; i++) {
-                    const int32_t i4 = i * 4;
-                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4]);
-                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
-                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
-                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3]);
-                }
+            const int64_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
+            std::vector<float> red(numVoxels);
+            std::vector<float> green(numVoxels);
+            std::vector<float> blue(numVoxels);
+            std::vector<float> alpha(numVoxels);
+            for (int64_t i = 0; i < numVoxels; i++) {
+                const int64_t i4(i * 4);
+                red[i] = m_data[i4];
+                green[i] = m_data[i4+1];
+                blue[i] = m_data[i4+2];
+                alpha[i] = m_data[i4+3];
             }
-            else {
-                for (int32_t i = 0; i < numVoxels; i++) {
-                    const int32_t i4 = i * 4;
-                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4] * 255.0);
-                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1] * 255.0);
-                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2] * 255.0);
-                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3] * 255.0);
-                }
-            }
+            
+            uint8_t rgbThreshold[3] { 0, 0, 0};
+            NodeAndVoxelColoring::colorScalarsWithRGBA(&red[0],
+                                                       &green[0],
+                                                       &blue[0],
+                                                       &alpha[0],
+                                                       numVoxels,
+                                                       rgbThreshold,
+                                                       &m_rgba[0]);
         }
             break;
     }
