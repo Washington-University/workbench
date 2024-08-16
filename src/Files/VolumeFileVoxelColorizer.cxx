@@ -248,7 +248,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                  * Use first 3 maps as RGB components
                  */
                 const float* alphaComponents(NULL);
-                const uint8_t thresholdRGB[3] = { 5, 5, 5 };
+                const uint8_t thresholdRGB[3] = { 0, 0, 0 };
                 NodeAndVoxelColoring::colorScalarsWithRGBA(m_volumeFile->getFrame(0),
                                                            m_volumeFile->getFrame(1),
                                                            m_volumeFile->getFrame(2),
