@@ -119,14 +119,14 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
             if (xml.isStartElement())
             {
                 auto name = xml.name();
-                if (name == "CaretHierarchy")
+                if (name == QLatin1String("CaretHierarchy"))
                 {
                     if (haveRoot) throw CaretException("found root 'CaretHierarchy' element more than once");
                     haveRoot = true;
                     QXmlStreamAttributes attributes = xml.attributes();
                     if (!attributes.hasAttribute("Version")) throw CaretException("no Version attribute in hierarch XML");
                     if (attributes.value("Version").toString() != "1") throw CaretException("unknown hierarchy version '" + attributes.value("Version").toString() + "'");
-                } else if (name == "Item") {
+                } else if (name == QLatin1String("Item")) {
                     if (!haveRoot) throw CaretException("hierarchy XML is missing root element");
                     if (rootEnded) throw CaretException("found Item tag after closing root tag in hierarchy XML");
                     QXmlStreamAttributes attributes = xml.attributes();
@@ -139,11 +139,11 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
                 }
             } else if (xml.isEndElement()) {
                 auto name = xml.name();
-                if (name == "Item")
+                if (name == QLatin1String("Item"))
                 {
                     parents.pop_back();
                 } else {
-                    CaretAssert(name == "CaretHierarchy");
+                    CaretAssert(name == QLatin1String("CaretHierarchy"));
                     rootEnded = true;
                 } //start element case will already have sanity checked the tag names
             }
