@@ -21,10 +21,17 @@
 #include "OperationVolumeLabelImport.h"
 #include "OperationException.h"
 
+#include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
 #include "VolumeFile.h"
+
+#include <QFile>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <cmath>
 #include <cstdlib>
@@ -66,6 +73,10 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
     
+    OptionalParameter* hierOpt = ret->createOptionalParameter(8, "-hierarchy", "read label name hierarchy from a json file");
+    hierOpt->addStringParameter(1, "file", "the input json file");
+    hierOpt->createOptionalParameter(2, "-add-abbreviation-to-name", "put the abbreviation specified in the json onto the front of each label/group name as '<abbrev> - <name>'");
+    
     ret->setHelpText(
         AString("Creates a label volume from an integer-valued volume file.  ") +
         "The label name and color information is stored in the volume header in a nifti extension, with a similar format as in caret5, see -volume-help.  " +
@@ -82,6 +93,28 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
         "list file, specify -discard-others to instead set these values to the \"unlabeled\" key."
     );
     return ret;
+}
+
+namespace
+{
+    void recurseJson(CaretHierarchy& hierarchyOut, const QJsonArray& elements, const bool addAbbrev, const AString parent = "")
+    {
+        for (auto iter = elements.constBegin(); iter != elements.constEnd(); ++iter)
+        {
+            QJsonObject thisobj = iter->toObject();
+            AString name = thisobj.value("name").toString();
+            if (addAbbrev)
+            {
+                name = thisobj.value("acronym").toString() + " - " + name;
+            }
+            AString id = AString::number(thisobj.value("id").toInt());
+            hierarchyOut.addItem(name, parent, id);
+            if (thisobj.contains("children"))
+            {
+                recurseJson(hierarchyOut, thisobj.value("children").toArray(), addAbbrev, name);
+            }
+        }
+    }
 }
 
 void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
@@ -114,6 +147,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         }
     }
     bool dropUnused = myParams->getOptionalParameter(7)->m_present;
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(8);
     GiftiLabelTable myTable;
     map<int32_t, int32_t> translate;
     if (listfileName != "")
@@ -212,12 +246,34 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             translate[value] = newValue;
         }
     }
+    int32_t tableUnlabeledKey = myTable.getUnassignedLabelKey();
+    if (hierOpt->m_present)
+    {
+        AString hierfileName = hierOpt->getString(1);
+        bool addAbbrev = hierOpt->getOptionalParameter(2)->m_present;
+        QFile jsonfile(hierfileName);
+        jsonfile.open(QIODevice::ReadOnly | QIODevice::Text);
+        QJsonDocument myjson = QJsonDocument::fromJson(jsonfile.readAll());
+        QJsonArray myarray = myjson.array();
+        CaretHierarchy myHier;
+        recurseJson(myHier, myarray, addAbbrev);
+        auto hierNames = myHier.getAllNames();
+        map<int32_t, AString> tableMap; //not needed, but API requires it
+        myTable.getKeysAndNames(tableMap);
+        for (auto iter : tableMap)
+        {
+            if (iter.first != tableUnlabeledKey && hierNames.find(iter.second) == hierNames.end())
+            {
+                CaretLogWarning("label name '" + iter.second + "' not found in specified hierarchy");
+            }
+        }
+        myTable.setHierarchy(myHier);
+    }
     vector<int64_t> myDims;
     myVol->getDimensions(myDims);
     const int64_t FRAMESIZE = myDims[0] * myDims[1] * myDims[2];
     CaretArray<float> frameOut(FRAMESIZE);
-    int32_t unusedLabel = myTable.getUnassignedLabelKey();
-    translate[unlabeledValue] = unusedLabel;
+    translate[unlabeledValue] = tableUnlabeledKey;
     if (subvol == -1)
     {
         outVol->reinitialize(myVol->getOriginalDimensions(), myVol->getSform(), myDims[4], SubvolumeAttributes::LABEL);
@@ -239,7 +295,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                     {
                         if (discardOthers)
                         {
-                            frameOut[i] = unusedLabel;
+                            frameOut[i] = tableUnlabeledKey;
                         } else {//use a random color, but fully opaque for the label
                             GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
                             if (myTable.getLabelKeyFromName(myLabel.getName()) != GiftiLabel::getInvalidLabelKey())
@@ -302,7 +358,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                 {
                     if (discardOthers)
                     {
-                        frameOut[i] = unusedLabel;
+                        frameOut[i] = tableUnlabeledKey;
                     } else {//use a random color, but fully opaque for the label
                         GiftiLabel myLabel(labelval, AString("LABEL_") + AString::number(labelval), rand() & 255, rand() & 255, rand() & 255, 255);
                         if (myTable.getLabelKeyFromName(myLabel.getName()) != GiftiLabel::getInvalidLabelKey())

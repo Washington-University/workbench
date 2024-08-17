@@ -26,6 +26,7 @@
 #include "AStringNaturalComparison.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretHierarchy.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
@@ -101,6 +102,7 @@ GiftiLabelTable::copyHelper(const GiftiLabelTable& glt)
             addLabel(iter->second);
         }
     }
+    m_hierarchy = glt.m_hierarchy;
 }
 
 void
@@ -123,6 +125,7 @@ GiftiLabelTable::initializeMembersGiftiLabelTable()
 void
 GiftiLabelTable::clear()
 {
+    m_hierarchy->clear();
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
          iter != labelsMap.end();
          iter++) {
@@ -1716,4 +1719,20 @@ GiftiLabelTable::exportToCaret5ColorFile(const AString& filename) const
     file.close();
 }
 
+//could special case NULL and use =, but this is simpler and performance is probably about the same (vector has to call the destructors anyway)
+void GiftiLabelTable::setHierarchy(const CaretHierarchy& hierarchy)
+{
+    m_hierarchy = hierarchy; //for =, it pretends to be a non-pointer member
+    setModified();
+}
 
+void GiftiLabelTable::clearHierarchy()
+{
+    m_hierarchy->clear(); //can't overload . operator in forward-declare helper, need -> for member access
+    setModified();
+}
+
+const CaretHierarchy& GiftiLabelTable::getHierarchy() const
+{
+    return m_hierarchy; //converts to template type
+}

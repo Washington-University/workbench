@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #include "TracksModificationInterface.h"
 
+#include "CaretPointer.h"
 #include "GiftiException.h"
 
 #include <map>
@@ -37,6 +38,7 @@
 
 namespace caret {
 
+class CaretHierarchy;
 class GiftiLabel;
     
 class XmlWriter;
@@ -198,6 +200,10 @@ public:
                         const int32_t newKey);
     
     void exportToCaret5ColorFile(const AString& filename) const;
+    
+    void setHierarchy(const CaretHierarchy& hierarchy);
+    void clearHierarchy();
+    const CaretHierarchy& getHierarchy() const;
 
 private:
     void issueLabelKeyZeroWarning(const AString& name) const;
@@ -222,6 +228,7 @@ private:
     int32_t m_tableModelColumnIndexBlue;
     int32_t m_tableModelColumnCount;
     
+    CaretForwardHelper<CaretHierarchy> m_hierarchy; //helper for implementing forward-declared members with reduced per-class code
 };
 
 } // namespace

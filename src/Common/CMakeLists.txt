@@ -73,6 +73,7 @@ CaretCompactLookup.h
 CaretException.h
 CaretFunctionName.h
 CaretHeap.h
+CaretHierarchy.h
 CaretHttpManager.h
 CaretLogger.h
 CaretMathExpression.h
@@ -243,6 +244,7 @@ CaretColor.cxx
 CaretColorEnum.cxx
 CaretCommandLine.cxx
 CaretException.cxx
+CaretHierarchy.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx
 CaretMathExpression.cxx
