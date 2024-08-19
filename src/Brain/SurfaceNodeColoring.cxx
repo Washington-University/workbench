@@ -509,6 +509,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                  numNodes, 
                                                                  overlayRGBV);
                     break;
+                case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                    break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:

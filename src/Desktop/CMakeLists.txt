@@ -162,6 +162,7 @@ Xml
 CZICmd
 CZI
 CZIJxrDecode
+${OME_ZARR_LIB}
 Common
 ${GLEW_LIBRARIES}
 ${QUAZIP_LIBRARIES}
@@ -173,6 +174,13 @@ ${ZLIB_LIBRARIES}
 ${OPENMP_LIBRARY}
 #${LIBS}
 )
+
+IF (WORKBENCH_USE_TENSORSTORE)
+    TARGET_LINK_LIBRARIES(
+        ${EXE_NAME}
+        tensorstore::tensorstore tensorstore::all_drivers
+    )
+ENDIF(WORKBENCH_USE_TENSORSTORE)
 
 INCLUDE(GNUInstallDirs)
 
@@ -228,6 +236,7 @@ ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Graphics
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
+${CMAKE_SOURCE_DIR}/OmeZarr
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti

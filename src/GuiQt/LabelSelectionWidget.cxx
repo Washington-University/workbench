@@ -132,6 +132,8 @@ m_saveRestoreStateName(saveRestoreStateName)
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:

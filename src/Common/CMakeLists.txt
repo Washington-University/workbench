@@ -137,6 +137,7 @@ FileAdapter.h
 FileInformation.h
 FileOpenFromOpSysTypeEnum.h
 FloatMatrix.h
+FunctionResult.h
 HemisphereEnum.h
 Histogram.h
 HtmlStringBuilder.h

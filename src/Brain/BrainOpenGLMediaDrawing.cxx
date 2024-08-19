@@ -44,6 +44,7 @@
 #include "ModelMedia.h"
 #include "MediaOverlay.h"
 #include "MediaOverlaySet.h"
+#include "OmeZarrImageFile.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionItemMediaLogicalCoordinate.h"
 #include "SelectionManager.h"
@@ -334,6 +335,7 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                 GraphicsPrimitiveV3fT2f* primitive(NULL);
                 CziImageFile* cziImageFile = selectionData.m_selectedCziImageFile;
                 ImageFile* imageFile = selectionData.m_selectedMediaFile->castToImageFile();
+                OmeZarrImageFile* omeZarrImageFile(selectionData.m_selectedMediaFile->castToOmeZarrImageFile());
                 float mediaHeight(-1.0);
                 if (imageFile != NULL) {
                     /*
@@ -359,6 +361,17 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                     primitive = cziImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
                                                                                   iOverlay);
                     mediaHeight = cziImageFile->getHeight();
+                }
+                else if (omeZarrImageFile != NULL) {
+                    omeZarrImageFile->updateImageForDrawingInTab(tabIndex,
+                                                                 iOverlay,
+                                                                 selectionData.m_selectedFrameIndex,
+                                                                 selectionData.m_selectedFrameIndex,
+                                                                 selectionData.m_cziManualPyramidLayerIndex,
+                                                                 selectionData.m_cziResolutionChangeMode);
+                    primitive = omeZarrImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
+                                                                                      iOverlay);
+                    mediaHeight = omeZarrImageFile->getHeight();
                 }
                 else {
                     CaretAssertMessage(0, ("Unrecognized file type "

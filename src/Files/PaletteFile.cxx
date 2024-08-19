@@ -1871,6 +1871,9 @@ PaletteFile::setDefaultPaletteColorMapping(PaletteColorMapping* paletteColorMapp
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            invalid = true;
+            break;
         case DataFileTypeEnum::PALETTE:
             invalid = true;
             break;

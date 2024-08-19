@@ -105,6 +105,7 @@ namespace caret {
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
+    class OmeZarrImageFile;
     class PaletteFile;
     class PaletteGroupStandardPalettes;
     class PaletteGroupUserCustomPalettes;
@@ -169,6 +170,14 @@ namespace caret {
         
         const CziImageFile* getCziImageFile(const int32_t indx) const;
         
+        const std::vector<OmeZarrImageFile*> getAllOmeZarrImageFiles() const;
+        
+        int32_t getNumberOfOmeZarrImageFiles() const;
+        
+        OmeZarrImageFile* getOmeZarrImageFile(const int32_t indx);
+        
+        const OmeZarrImageFile* getOmeZarrImageFile(const int32_t indx) const;
+
         const std::vector<HistologySlicesFile*> getAllHistologySlicesFiles() const;
         
         int32_t getNumberOfHistologySlicesFiles() const;
@@ -790,6 +799,10 @@ namespace caret {
                                                   CaretDataFile* caretDataFile,
                                                   const AString& filename);
 
+        OmeZarrImageFile* addReadOrReloadOmeZarrImageFile(const FileModeAddReadReload fileMode,
+                                                          CaretDataFile* caretDataFile,
+                                                          const AString& filename);
+
         HistologySlicesFile* addReadOrReloadHistologySlicesFile(const FileModeAddReadReload fileMode,
                                                                 CaretDataFile* caretDataFile,
                                                                 const AString& filename);
@@ -857,6 +870,8 @@ namespace caret {
         std::vector<BorderFile*> m_borderFiles;
         
         std::vector<CziImageFile*> m_cziImageFiles;
+        
+        std::vector<OmeZarrImageFile*> m_omeZarrImageFiles;
         
         std::vector<HistologySlicesFile*> m_histologySlicesFiles;
         

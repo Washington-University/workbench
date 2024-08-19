@@ -190,6 +190,7 @@ namespace caret {
         void processDuplicateTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
+        void processOmeZarrDirectoryOpen();
         void processOpenRecent();
         void processManageSaveLoadedFiles();
         void processCaptureImage();
@@ -252,6 +253,7 @@ namespace caret {
 
         void processDevelopExportVtkFile();
         void processDevelopCziFileTransformTesting();
+        void processDevelopOmeZarrOpenTesting();
         void developerMenuAboutToShow();
         
         void processProjectFoci();
@@ -378,6 +380,8 @@ namespace caret {
         
         QAction* m_reopenLastClosedTabAction;
         
+        QAction* m_openOmeZarrDirectoryAction;
+        
         QAction* m_openFileAction;
         
         QAction* m_openLocationAction;
@@ -449,6 +453,7 @@ namespace caret {
         QAction* m_developerExportVtkFileAction;
         QAction* m_developerCziFileTransformTestingAction;
         QAction* m_developerOpenMPTestingAction;
+        QAction* m_developerOmeZarrOpenAction;
         
         QAction* m_overlayToolBoxAction;
         

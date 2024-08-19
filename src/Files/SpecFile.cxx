@@ -1956,6 +1956,8 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
         case DataFileTypeEnum::METRIC_DYNAMIC:
             allowedFlag = false;
             break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:

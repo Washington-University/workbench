@@ -474,6 +474,8 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                                 break;
                             case DataFileTypeEnum::METRIC_DYNAMIC:
                                 break;
+                            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                                break;
                             case DataFileTypeEnum::PALETTE:
                                 break;
                             case DataFileTypeEnum::RGBA:
@@ -639,6 +641,8 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                 case DataFileTypeEnum::METRIC:
                     break;
                 case DataFileTypeEnum::METRIC_DYNAMIC:
+                    break;
+                case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
                     break;
                 case DataFileTypeEnum::PALETTE:
                     break;

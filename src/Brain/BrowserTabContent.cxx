@@ -2821,6 +2821,8 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         displayedDataFiles.insert(metricDynFile);
                     }
                         break;
+                    case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                        break;
                     case DataFileTypeEnum::PALETTE:
                         break;
                     case DataFileTypeEnum::RGBA:

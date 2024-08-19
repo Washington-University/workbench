@@ -869,6 +869,8 @@ GiftiTypeFile::isMappedWithPalette() const
         case DataFileTypeEnum::METRIC_DYNAMIC:
             paletteFlag = true;
             break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:
@@ -959,6 +961,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
             modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
+            break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
             break;
         case DataFileTypeEnum::PALETTE:
             break;
@@ -1292,6 +1296,8 @@ GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile
         case DataFileTypeEnum::METRIC_DYNAMIC:
             giftiFlag = true;
             break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:
@@ -1446,6 +1452,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                     textOut = valuesText;
                 }
             }
+                break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
                 break;
             case DataFileTypeEnum::PALETTE:
                 break;

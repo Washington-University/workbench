@@ -575,7 +575,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += (" *    Object that is copied.\n");
         t += (" */\n");
         t += ("" + className + "::" + className + "(const " + className + "& obj)\n");
-        t += (": " + derivedFromClassName + "(obj)\n");
+        if ( ! derivedFromClassName.isEmpty()) {
+            t += (": " + derivedFromClassName + "(obj)\n");
+        }
         t += ("{\n");
         t += ("    this->copyHelper" + className + "(obj);\n");
         t += ("}\n");
@@ -591,7 +593,9 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
         t += ("" + className + "::operator=(const " + className + "& obj)\n");
         t += ("{\n");
         t += ("    if (this != &obj) {\n");
-        t += ("        " + derivedFromClassName + "::operator=(obj);\n");
+        if ( ! derivedFromClassName.isEmpty()) {
+            t += ("        " + derivedFromClassName + "::operator=(obj);\n");
+        }
         t += ("        this->copyHelper" + className + "(obj);\n");
         t += ("    }\n");
         t += ("    return *this;    \n");

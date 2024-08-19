@@ -172,6 +172,7 @@ MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
 NodeAndVoxelColoring.h
+OmeZarrImageFile.h
 OxfordSparseThreeFile.h
 PaletteFile.h
 PixelCoordinate.h
@@ -355,6 +356,7 @@ MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx
 NodeAndVoxelColoring.cxx
+OmeZarrImageFile.cxx
 OxfordSparseThreeFile.cxx
 PaletteFile.cxx
 PixelCoordinate.cxx
@@ -433,3 +435,11 @@ ${CMAKE_SOURCE_DIR}/Scenes
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )
+
+IF (${WORKBENCH_USE_TENSORSTORE})
+    INCLUDE_DIRECTORIES(
+        ${TENSOR_STORE_INCLUDE_DIRECTORIES}
+        ${CMAKE_SOURCE_DIR}/OmeZarr
+    )
+ENDIF ()
+

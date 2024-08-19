@@ -339,6 +339,14 @@ DataFileTypeEnum::initialize()
                                         true,
                                         "func_dynconn")); // this file is never written
     
+    enumData.push_back(DataFileTypeEnum(OME_ZARR_IMAGE_FILE,
+                                        "OME_ZARR_IMAGE_FILE",
+                                        "OME-ZARR Image File",
+                                        "OME-ZARR",
+                                        false,
+                                        "ome.zarr",
+                                        "ome.zarr.zip"));
+    
     enumData.push_back(DataFileTypeEnum(PALETTE,
                                         "PALETTE", 
                                         "Palette",
@@ -859,6 +867,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 validFlag = includeNonWritableFileTypesFlag;
                 break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:
@@ -1202,6 +1212,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
                     addEnumFlag = false;
                 }
                 break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:
@@ -1514,5 +1526,92 @@ DataFileTypeEnum::getQtSupportedMovieFileExtensions(std::vector<AString>& readab
     readableExtensionsOut.insert(readableExtensionsOut.end(),
                                  qtReadExtensions.begin(),
                                  qtReadExtensions.end());
+}
+
+/**
+ * @return The dialog filter type for the given file type (show/select files or directories)
+ * @param enumValue
+ *    The enumerated type
+ */
+DataFileTypeEnum::DialogFilterShowType
+DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
+{
+    DialogFilterShowType dialogFilterShowType(DialogFilterShowType::SHOW_FILES);
+    
+    switch (enumValue) {
+        case DataFileTypeEnum::ANNOTATION:
+            break;
+        case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+            break;
+        case DataFileTypeEnum::BORDER:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+            break;
+        case DataFileTypeEnum::CZI_IMAGE_FILE:
+            break;
+        case DataFileTypeEnum::FOCI:
+            break;
+        case DataFileTypeEnum::HISTOLOGY_SLICES:
+            break;
+        case DataFileTypeEnum::IMAGE:
+            break;
+        case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::METRIC:
+            break;
+        case DataFileTypeEnum::METRIC_DYNAMIC:
+            break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            dialogFilterShowType = DialogFilterShowType::SHOW_DIRECTORY;
+            break;
+        case DataFileTypeEnum::PALETTE:
+            break;
+        case DataFileTypeEnum::RGBA:
+            break;
+        case DataFileTypeEnum::SAMPLES:
+            break;
+        case DataFileTypeEnum::SCENE:
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            break;
+        case DataFileTypeEnum::SURFACE:
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            break;
+        case DataFileTypeEnum::VOLUME:
+            break;
+        case DataFileTypeEnum::VOLUME_DYNAMIC:
+            break;
+    }
+
+    return dialogFilterShowType;
 }
 

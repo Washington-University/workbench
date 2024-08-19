@@ -132,6 +132,8 @@
 #include "WuQtUtilities.h"
 #include "WuQTextEditorDialog.h"
 #include "VtkFileExporter.h"
+#include "OmeZarrImageFile.h"
+
 
 using namespace caret;
 
@@ -1621,6 +1623,13 @@ BrainBrowserWindow::createActions()
     m_reopenLastClosedTabAction->setObjectName(m_objectNamePrefix
                                                + ":Menu:ReopenLastClosedTabAction"); /* NOTE: No Macro support for this item */
     
+    m_openOmeZarrDirectoryAction =
+    WuQtUtilities::createAction("Open OME-ZARR Directory...",
+                                "Open an OME-ZARR directory",
+                                this,
+                                this,
+                                SLOT(processOmeZarrDirectoryOpen()));
+    
     m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
                                 "Open a data file including a spec file located on the computer",
@@ -1942,7 +1951,14 @@ BrainBrowserWindow::createActions()
                                 "Test CZI File Transformation IJK -> XYZ -> IJK",
                                 this,
                                 this,
-                                SLOT(processDevelopCziFileTransformTesting()));
+                                SLOT(processOm()));
+    
+    m_developerOmeZarrOpenAction =
+    WuQtUtilities::createAction("OME-ZARR Open...",
+                                "Test OME-ZARR reading",
+                                this,
+                                this,
+                                SLOT(processDevelopOmeZarrOpenTesting()));
 }
 
 /**
@@ -2030,6 +2046,9 @@ BrainBrowserWindow::createMenuDevelop()
     menu->addAction(m_developerGraphicsTimingAction);
     menu->addAction(m_developerGraphicsTimingDurationAction);
     
+    menu->addSeparator();
+    menu->addAction(m_developerOmeZarrOpenAction);
+    
     return menu;
 }
 
@@ -2084,6 +2103,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_duplicateTabAction);
     menu->addAction(m_reopenLastClosedTabAction);
     menu->addSeparator();
+    menu->addAction(m_openOmeZarrDirectoryAction);
     menu->addAction(m_openFileAction);
     menu->addAction(m_openRecentAction);
     menu->addMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::FILE_MENU,
@@ -3272,6 +3292,22 @@ BrainBrowserWindow::processDevelopCziFileTransformTesting()
 }
 
 /**
+ * Test opening OME-ZARR
+ */
+void
+BrainBrowserWindow::processDevelopOmeZarrOpenTesting()
+{
+    AString filename("/Users/john/caret_data/ome-zarr/QM23.50.001.CX.43.01.ome.zarr");
+    OmeZarrImageFile omeZarrFile;
+    try {
+        omeZarrFile.readFile(filename);
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+}
+
+/**
  * Project foci.
  */
 void
@@ -3408,6 +3444,63 @@ BrainBrowserWindow::processDataFileLocationOpen()
 }
 
 /**
+ * Called to open an OME-ZARR directory
+ */
+void
+BrainBrowserWindow::processOmeZarrDirectoryOpen()
+{
+    /*
+     * Setup file selection dialog.
+     */
+    CaretFileDialog fd(CaretFileDialog::Mode::MODE_OPEN,
+                       this);
+    fd.setAcceptMode(CaretFileDialog::AcceptOpen);
+    AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(DataFileTypeEnum::OME_ZARR_IMAGE_FILE);
+    QStringList filenameFilterList;
+    filenameFilterList.append(filterName);
+    fd.setNameFilters(filenameFilterList);
+    fd.setFileMode(CaretFileDialog::Directory);
+//    if ( ! s_previousOpenFileDirectory.isEmpty()) {
+//        FileInformation fileInfo(s_previousOpenFileDirectory);
+//        if (fileInfo.exists()) {
+//            fd.setDirectory(s_previousOpenFileDirectory);
+//        }
+//    }
+    
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        QStringList selectedFiles = fd.selectedFiles();
+        if ( ! selectedFiles.empty()) {
+            /*
+             * Load the files.
+             */
+            std::vector<AString> filenamesVector;
+            QStringListIterator nameIter(selectedFiles);
+            while (nameIter.hasNext()) {
+                const QString name = nameIter.next();
+                filenamesVector.push_back(name);
+            }
+            
+            std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+            loadFiles(this,
+                      filenamesVector,
+                      dataFileTypesDummyNotUsed,
+                      LOAD_SPEC_FILE_WITH_DIALOG,
+                      "",
+                      "");
+            
+//            for (auto name : filenamesVector) {
+//                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//                prefs->addToRecentFilesAndOrDirectories(name);
+//            }
+        }
+//        s_previousOpenFileNameFilter = fd.selectedNameFilter();
+//        s_previousOpenFileDirectory  = fd.directory().absolutePath();
+//        s_previousOpenFileGeometry   = fd.saveGeometry();
+    }
+
+}
+
+/**
  * Called when open data file is selected.
  */
 void 
@@ -3429,6 +3522,10 @@ BrainBrowserWindow::processDataFileOpen()
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
          iter != dataFileTypes.end();
          iter++) {
+//        if (*iter == DataFileTypeEnum::OME_ZARR_IMAGE_FILE) {
+//            CaretLogWarning("Skipping OME-ZARR for Open Dialog filters");
+//            continue;
+//        }
         AString filterName = DataFileTypeEnum::toQFileDialogFilterForReading(*iter);
         filenameFilterList.append(filterName);
     }

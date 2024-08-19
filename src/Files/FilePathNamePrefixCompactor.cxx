@@ -190,6 +190,8 @@ FilePathNamePrefixCompactor::removeMatchingPathPrefixFromCaretDataFiles(const st
             case DataFileTypeEnum::METRIC_DYNAMIC:
                 fileSpecialPrefix = "metricdynconn - ";
                 break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                break;
             case DataFileTypeEnum::PALETTE:
                 break;
             case DataFileTypeEnum::RGBA:

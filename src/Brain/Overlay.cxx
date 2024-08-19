@@ -472,6 +472,8 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                     useIt = metricDynFile->isEnabledAsLayer();
                 }
                     break;
+                case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                    break;
                 case DataFileTypeEnum::PALETTE:
                     break;
                 case DataFileTypeEnum::RGBA:

@@ -57,10 +57,12 @@ namespace caret {
                                       const AString& ifdefNameStaticDeclaration,
                                       const int32_t numberOfEnumValues,
                                       const std::vector<AString>& enumValueNames,
-                                      const bool isAutoNumber);
+                                      const bool isAutoNumber,
+                                      const AString description);
         
         AString getEnumComboBoxTemplateHelpInfo(const AString& enumClassName) const;
         
+        AString createGuiNameFromName(const AString& name) const;
     };
     
 } // namespace

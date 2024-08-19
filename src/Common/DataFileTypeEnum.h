@@ -85,6 +85,8 @@ public:
         METRIC,
         /** Metric Dynamic Connectivity */
         METRIC_DYNAMIC,
+        /** OME-ZARR Image File*/
+        OME_ZARR_IMAGE_FILE,
         /** Palette */
         PALETTE,
         /** RGBA */
@@ -124,9 +126,16 @@ public:
         OPTIONS_INCLUDE_UNKNOWN = 16
     };
     
+    enum DialogFilterShowType {
+        SHOW_DIRECTORY,
+        SHOW_FILES
+    };
+    
     ~DataFileTypeEnum();
 
     static void reinitializeDataFileTypeEnums();
+    
+    static DialogFilterShowType getDialogFilterShowType(const Enum enumValue);
     
     static AString toName(Enum enumValue);
     

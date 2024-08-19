@@ -128,6 +128,7 @@ Xml
 CZICmd
 CZI
 CZIJxrDecode
+${OME_ZARR_LIB}
 Common
 ${QT5_LINK_LIBS}
 ${QT6_LINK_LIBS}
@@ -140,6 +141,13 @@ ${ZLIB_LIBRARIES}
 ${OPENMP_LIBRARY}
 #${LIBS}
 )
+
+IF (WORKBENCH_USE_TENSORSTORE)
+    TARGET_LINK_LIBRARIES(
+        test_driver 
+        tensorstore::tensorstore tensorstore::all_drivers
+    )
+ENDIF(WORKBENCH_USE_TENSORSTORE)
 
 IF(WIN32)
     TARGET_LINK_LIBRARIES(test_driver

@@ -126,6 +126,9 @@ SceneableInterface()
         case DataFileTypeEnum::METRIC_DYNAMIC:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+            supportsIdentificationAttributesFlag = true;
+            break;
         case DataFileTypeEnum::PALETTE:
             break;
         case DataFileTypeEnum::RGBA:
@@ -682,6 +685,26 @@ CaretDataFile::castToHistologySlicesFile() const
  */
 HistologySlicesFile*
 CaretDataFile::castToHistologySlicesFile()
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to a OME-ZARR Image File (avoids use of dynamic_cast that can be slow)
+ * Overidden in OmeZarrImageFile
+ */
+const OmeZarrImageFile*
+CaretDataFile::castToOmeZarrImageFile() const
+{
+    return NULL;
+}
+
+/**
+ * @return File casted to a OME-ZARR Image File (avoids use of dynamic_cast that can be slow)
+ * Overidden in OmeZarrImageFile
+ */
+OmeZarrImageFile*
+CaretDataFile::castToOmeZarrImageFile()
 {
     return NULL;
 }

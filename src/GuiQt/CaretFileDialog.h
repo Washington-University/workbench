@@ -48,7 +48,7 @@ namespace caret {
                         const QString& caption = QString(),
                         const QString& directory = QString(),
                         const QString& filter = QString());
-
+ 
         virtual ~CaretFileDialog();
         
         // modal method to get open file name

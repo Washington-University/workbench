@@ -58,6 +58,7 @@ CommandClassCreateEnum::getHelpInformation(const AString& /*programName*/)
                         "Usage:  <enum-class-name>\n"
                         "        <number-of-values>\n"
                         "        <auto-number>\n"
+                        "        [-description <text description of enum>]\n"
                         "\n"
                         "    enum-class-name\n"
                         "        Name of the enumerated type.  Must end in \"Enum\"\n"
@@ -79,6 +80,8 @@ CommandClassCreateEnum::getHelpInformation(const AString& /*programName*/)
                         "        of names is is less than the \"number-of-values\",\n"
                         "        empty entries will be created.\n"
                         "        \n"
+                        "    [-description <text description of enum>]\n"
+                        "        Optional description of enum's purpose/function for doxygen comment\n"
                         );
     return helpInfo; 
 }
@@ -99,10 +102,22 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters)
     const AString enumClassName = parameters.nextString("Enum Class Name");
     int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");
     const bool isAutoNumber = parameters.nextBoolean("Auto Number (true/false)");
-    
+
+    AString description;
     std::vector<AString> enumValueNames;
     while (parameters.hasNext()) {
-        enumValueNames.push_back(parameters.nextString("Enum Value"));
+        const AString paramValue(parameters.nextString("Parameter"));
+        if (paramValue == "-description") {
+            if (parameters.hasNext()) {
+                description = parameters.nextString("Description text");
+            }
+            else {
+                throw CommandException("Description missing for -description option");
+            }
+        }
+        else {
+            enumValueNames.push_back(paramValue.toUpper());
+        }
     }
     const int32_t numEnumValueNames = static_cast<int32_t>(enumValueNames.size());
     if (numEnumValueNames > 0) {
@@ -158,7 +173,8 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters)
                                    ifdefNameStaticDeclarations, 
                                    numberOfEnumValues,
                                    enumValueNames,
-                                   isAutoNumber);
+                                   isAutoNumber,
+                                   description);
 }
 
 /**
@@ -194,7 +210,6 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("#define " + ifndefName + "\n");
     t += this->getCopyright();
     t += ("\n");
-    
     t += ("#include <stdint.h>\n");
     t += ("#include <vector>\n");
     t += ("#include \"AString.h\"\n");
@@ -210,7 +225,7 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("    enum Enum {\n");
     
     for (int indx = 0; indx < numberOfEnumValues; indx++) {
-        t += ("        /** */\n");
+        t += ("        /** " + createGuiNameFromName(enumValueNames[indx]) + " */\n");
         
         t += ("        ");
         if (indx < static_cast<int32_t>(enumValueNames.size())) {
@@ -323,6 +338,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
  *    Names for the enumerated values.
  * @param isAutoNumber
  *    Automatically assign numers/indices to the enumerated values.
+ * @param description
+ *    Description of enum
  */
 void 
 CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
@@ -330,7 +347,8 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const int32_t numberOfEnumValues,
                                                  const std::vector<AString>& enumValueNames,
-                                                 const bool isAutoNumber)
+                                                 const bool isAutoNumber,
+                                                 const AString description)
 {
     AString t;
     
@@ -348,12 +366,20 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    \n");
     t += ("/**\n");
     t += (" * \\class caret::" + enumClassName + " \n");
-    t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    t += (" * \\brief " + description + "\n");
     t += (" *\n");
-    t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
     t += (" *\n");
     t += (getEnumComboBoxTemplateHelpInfo(enumClassName));
     t += (" */\n");
+    t += ("\n");
+    t += ("/*\n");
+    t += ("switch (value) {\n");
+    for (int indx = 0; indx < numberOfEnumValues; indx++) {
+        t += ("    case " + enumClassName + "::" + enumValueNames[indx] + ":\n");
+        t += ("        break;\n");
+    }
+    t += ("}\n");
+    t += ("*/\n");
     t += ("\n");
     t += ("/**\n");
     t += (" * Constructor.\n");
@@ -422,20 +448,21 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
              *    Name: "NAME_OF_ENUM_VALUE"
              * guiName: "Name Of Enum Value"
              */
-            guiName = name.toLower();
-            const int numChars = guiName.length();
-            for (int32_t k = 0; k < numChars; k++) {
-                if (k == 0) {
-                    guiName[k] = guiName[k].toUpper();
-                }
-                else if (guiName[k] == '_') {
-                    guiName[k] = ' ';
-                    if (k < (numChars - 1)) {
-                        k++;
-                        guiName[k] = guiName[k].toUpper();
-                    }
-                }
-            }
+            guiName = createGuiNameFromName(name);
+//            guiName = name.toLower();
+//            const int numChars = guiName.length();
+//            for (int32_t k = 0; k < numChars; k++) {
+//                if (k == 0) {
+//                    guiName[k] = guiName[k].toUpper();
+//                }
+//                else if (guiName[k] == '_') {
+//                    guiName[k] = ' ';
+//                    if (k < (numChars - 1)) {
+//                        k++;
+//                        guiName[k] = guiName[k].toUpper();
+//                    }
+//                }
+//            }
         }
         t += ("    enumData.push_back(" + enumClassName + "(" + name + ", \n");
         if (isAutoNumber == false) {
@@ -734,6 +761,29 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
 }
 
 /**
+ * @return the GUI name created from the all uppercase name
+ */
+AString 
+CommandClassCreateEnum::createGuiNameFromName(const AString& name) const
+{
+    AString guiName = name.toLower();
+    const int numChars = guiName.length();
+    for (int32_t k = 0; k < numChars; k++) {
+        if (k == 0) {
+            guiName[k] = guiName[k].toUpper();
+        }
+        else if (guiName[k] == '_') {
+            guiName[k] = ' ';
+            if (k < (numChars - 1)) {
+                k++;
+                guiName[k] = guiName[k].toUpper();
+            }
+        }
+    }
+    return guiName;
+}
+
+/**
  * Get a string containing information on how to use this enumerated type
  * with the EnumComboBoxTemplate in the GUI.
  *
@@ -792,7 +842,8 @@ CommandClassCreateEnum::getEnumComboBoxTemplateHelpInfo(const AString& enumClass
               " * \n"
               " *     Read the selection:\n"
               " *         const " + enumClassName + "::Enum VARIABLE = " + memberName + "->getSelectedItem" + templateParameter + "();\n"
-              " * \n");
+              " * \n"
+              );
     
     return s;
 }
