@@ -1892,24 +1892,11 @@ BrowserTabContent::receiveEvent(Event* event)
                 Vector3D volumeSliceXYZ(idLocationEvent->getStereotaxicXYZ());
                 
                 /*
-                 * If othogonal/montage viewing, do not alter the slice
+                 * If montage viewing, do not alter the slice
                  * coordinate in the axis being viewed
                  */
                 if (getDisplayedVolumeModel() != NULL) {
                     bool keepSliceCoordinateForSelectedAxis = false;
-                    switch (m_volumeSliceSettings->getSliceProjectionType()) {
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                            if (getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-                                keepSliceCoordinateForSelectedAxis = true;
-                            }
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                            break;
-                    }
                     switch (m_volumeSliceSettings->getSliceDrawingType()) {
                         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
                             keepSliceCoordinateForSelectedAxis = true;
