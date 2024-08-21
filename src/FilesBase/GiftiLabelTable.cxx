@@ -794,56 +794,6 @@ GiftiLabelTable::setLabel(const int32_t key,
 }
 
 /**
- * Get the selection status of the label at the specified key.  If there
- * is no label at the key, false is returned.
- * @param key - key of label
- * @return  selection status of label.
- *
- */
-bool
-GiftiLabelTable::isLabelSelected(const int32_t key) const
-{
-    LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.find(key);
-    if (iter != this->labelsMap.end()) {
-        return iter->second->isSelected();
-    }
-    return false;
-}
-
-/**
- * Set the selection status of a label.
- * @param key - key of label.
- * @param sel - new selection status.
- *
- */
-void
-GiftiLabelTable::setLabelSelected(
-                   const int32_t key,
-                   const bool sel)
-{
-    LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
-    if (iter != this->labelsMap.end()) {
-        iter->second->setSelected(sel);
-    }
-}
-
-/**
- * Set the selection status for all labels.
- * @param newStatus  New selection status.
- *
- */
-void
-GiftiLabelTable::setSelectionStatusForAllLabels(const bool newStatus)
-{
-    for (LABELS_MAP_ITERATOR iter = this->labelsMap.begin();
-         iter != this->labelsMap.end();
-         iter++) {
-        GiftiLabel* gl = iter->second;
-        gl->setSelected(newStatus);
-    }
-}
-
-/**
  * Get the alpha color component for a label.  If the key is not a
  * valid label, an alpha of zero is returned.
  * @param key - Key of label.

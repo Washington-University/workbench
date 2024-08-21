@@ -286,7 +286,6 @@ GiftiLabel::copyHelper(const GiftiLabel& gl)
     this->initializeMembersGiftiLabel();
     setNamePrivate(gl.name);
     this->key = gl.key;
-    this->selected = gl.selected;
     this->red = gl.red;
     this->green = gl.green;    
     this->blue = gl.blue;    
@@ -308,7 +307,6 @@ GiftiLabel::initializeMembersGiftiLabel()
     this->medialWallNameFlag = false;
     this->name = "";
     this->key = s_invalidLabelKey;
-    this->selected = true;
     this->red = 1.0;
     this->green = 1.0;    
     this->blue = 1.0;    
@@ -435,30 +433,6 @@ GiftiLabel::getNameAndKeyForLabelEditor() const
                                  + ":   "
                                  + (this->name));
     return keyAndNameText;
-}
-
-/**
- * Is this label selected (for display)?
- *
- * @return  true if label selected for display, else false.
- *
- */
-bool
-GiftiLabel::isSelected() const
-{
-    return this->selected;
-}
-
-/**
- * Set the label selected (for display).
- *
- * @param selected - new selection status.
- *
- */
-void
-GiftiLabel::setSelected(const bool selected)
-{
-    this->selected = selected;
 }
 
 /**

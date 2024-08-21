@@ -137,14 +137,6 @@ public:
                   const float y, 
                   const float z);
     
-    bool isLabelSelected(const int32_t key) const;
-
-    void setLabelSelected(
-                    const int32_t key,
-                    const bool sel);
-
-    void setSelectionStatusForAllLabels(const bool newStatus);
-
     float getLabelAlpha(const int32_t key) const;
 
     void getLabelColor(const int32_t key, float rgbaOut[4]) const;
