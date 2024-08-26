@@ -43,7 +43,7 @@ namespace caret {
     class HistologyOverlaySetViewController;
     class IdentificationDisplayWidget;
     class ImageSelectionViewController;
-    class LabelSelectionViewController;
+    class LabelSelectionViewWidget;
     class MediaOverlaySetViewController;
     class OverlaySetViewController;
     class SamplesSelectionViewController;
@@ -118,7 +118,7 @@ namespace caret {
         
         ImageSelectionViewController* m_imageSelectionViewController;
         
-        LabelSelectionViewController* m_labelSelectionViewController;
+        LabelSelectionViewWidget* m_labelSelectionWidget;
         
         MediaOverlaySetViewController* m_mediaSelectionViewController;
         

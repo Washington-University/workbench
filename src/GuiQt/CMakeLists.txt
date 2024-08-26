@@ -171,6 +171,8 @@ ELSE()
 	LabelSelectionDialog.h
 	LabelSelectionWidget.h
         LabelSelectionViewController.h
+	LabelSelectionViewHierarchyController.h
+	LabelSelectionViewWidget.h
     	LockAspectWarningDialog.h
         MacApplication.h
         MacDockMenu.h
@@ -495,6 +497,8 @@ KeyEvent.h
 LabelSelectionDialog.h
 LabelSelectionWidget.h
 LabelSelectionViewController.h
+LabelSelectionViewHierarchyController.h
+LabelSelectionViewWidget.h
 LockAspectWarningDialog.h
 MacApplication.h
 MacDockMenu.h
@@ -841,6 +845,8 @@ KeyEvent.cxx
 LabelSelectionDialog.cxx
 LabelSelectionWidget.cxx
 LabelSelectionViewController.cxx
+LabelSelectionViewHierarchyController.cxx
+LabelSelectionViewWidget.cxx
 LockAspectWarningDialog.cxx
 MacApplication.cxx
 MacDockMenu.cxx

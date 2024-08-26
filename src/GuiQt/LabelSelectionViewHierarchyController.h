@@ -1,5 +1,5 @@
-#ifndef __LABEL_SELECTION_VIEW_CONTROLLER__H_
-#define __LABEL_SELECTION_VIEW_CONTROLLER__H_
+#ifndef __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER__H_
+#define __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -28,22 +28,25 @@
 
 #include "SceneableInterface.h"
 
-class QCheckBox;
+class QModelIndex;
+class QStandardItem;
+class QStandardItemModel;
+class QTreeView;
 
 namespace caret {
 
-    class GroupAndNameHierarchyViewController;
+    class CaretMappableDataFileAndMapSelectorObject;
     
-    class LabelSelectionViewController : public QWidget, public SceneableInterface {
+    class LabelSelectionViewHierarchyController : public QWidget, public SceneableInterface {
         
         Q_OBJECT
 
     public:
-        LabelSelectionViewController(const int32_t browserWindowIndex,
+        LabelSelectionViewHierarchyController(const int32_t browserWindowIndex,
                                      const QString& parentObjectName,
                                      QWidget* parent = 0);
         
-        virtual ~LabelSelectionViewController();
+        virtual ~LabelSelectionViewHierarchyController();
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -54,35 +57,39 @@ namespace caret {
         void updateLabelViewController();
         
     private slots:
+        void processFileSelectionChanged();
+        
         void processLabelSelectionChanges();
         
         void processSelectionChanges();
         
-    private:
-        LabelSelectionViewController(const LabelSelectionViewController&);
-
-        LabelSelectionViewController& operator=(const LabelSelectionViewController&);
-
-        void updateOtherLabelViewControllers();
+        void treeItemClicked(const QModelIndex& modelIndex);
         
-        QWidget* createSelectionWidget();
+        void collapseAllActionTriggered();
+        
+        void expandAllActionTriggered();
+        
+    private:
+        LabelSelectionViewHierarchyController(const LabelSelectionViewHierarchyController&);
+
+        LabelSelectionViewHierarchyController& operator=(const LabelSelectionViewHierarchyController&);
+
+        void setCheckedStatusOfAllChildren(QStandardItem* item,
+                                           const Qt::CheckState checkState);
         
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
         
-        GroupAndNameHierarchyViewController* m_labelClassNameHierarchyViewController;
+        QTreeView* m_treeView;
         
-        QCheckBox* m_labelsDisplayCheckBox;
+        QStandardItemModel* m_labelHierarchyModel = NULL;
         
-        QCheckBox* m_labelsContralateralCheckBox;
-        
-        static std::set<LabelSelectionViewController*> allLabelSelectionViewControllers;
+        CaretMappableDataFileAndMapSelectorObject* m_labelFileAndMapSelector;
     };
     
-#ifdef __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
-    std::set<LabelSelectionViewController*> LabelSelectionViewController::allLabelSelectionViewControllers;
-#endif // __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
+#ifdef __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER_DECLARE__
+#endif // __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__LABEL_SELECTION_VIEW_CONTROLLER__H_
+#endif  //__LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER__H_

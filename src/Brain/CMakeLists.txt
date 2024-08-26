@@ -163,6 +163,7 @@ IdentifiedItemUniversal.h
 IdentifiedItemUniversalTypeEnum.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
+LabelViewModeEnum.h
 MediaOverlay.h
 MediaOverlaySet.h
 MediaOverlaySetArray.h
@@ -395,6 +396,7 @@ IdentifiedItemUniversal.cxx
 IdentifiedItemUniversalTypeEnum.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
+LabelViewModeEnum.cxx
 MediaOverlay.cxx
 MediaOverlaySet.cxx
 MediaOverlaySetArray.cxx

@@ -56,7 +56,7 @@
 #include "HistologyOverlaySetViewController.h"
 #include "IdentificationDisplayWidget.h"
 #include "ImageSelectionViewController.h"
-#include "LabelSelectionViewController.h"
+#include "LabelSelectionViewWidget.h"
 #include "MediaOverlaySetViewController.h"
 #include "OverlaySetViewController.h"
 #include "SamplesSelectionViewController.h"
@@ -155,7 +155,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_fociSelectionViewController       = NULL;
     m_histologyOverlaySetViewController = NULL;
     m_imageSelectionViewController      = NULL;
-    m_labelSelectionViewController      = NULL;
+    m_labelSelectionWidget              = NULL;
     m_mediaSelectionViewController      = NULL;
     m_overlaySetViewController          = NULL;
     m_samplesSelectionViewController    = NULL;
@@ -291,11 +291,11 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     }
     
     if (isFeaturesToolBox) {
-        m_labelSelectionViewController = new LabelSelectionViewController(browserWindowIndex,
-                                                                          objectNamePrefix,
-                                                                          this);
-        m_labelTabIndex = addToTabWidget(m_labelSelectionViewController,
-                       "Labels");
+        m_labelSelectionWidget = new LabelSelectionViewWidget(browserWindowIndex,
+                                                              objectNamePrefix,
+                                                              this);
+        m_labelTabIndex = addToTabWidget(m_labelSelectionWidget,
+                                         "Labels");
     }
     
     if (isOverlayToolBox) {
@@ -596,9 +596,9 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_imageSelectionViewController->saveToScene(sceneAttributes,
                                                                          "m_imageSelectionViewController"));
     }
-    if (m_labelSelectionViewController != NULL) {
-        sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
-                                                     "m_labelSelectionViewController"));
+    if (m_labelSelectionWidget != NULL) {
+        sceneClass->addClass(m_labelSelectionWidget->saveToScene(sceneAttributes,
+                                                     "m_labelSelectionWidget"));
     }
     if (m_samplesSelectionViewController != NULL) {
         sceneClass->addClass(m_samplesSelectionViewController->saveToScene(sceneAttributes,
@@ -709,9 +709,9 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_imageSelectionViewController->restoreFromScene(sceneAttributes,
                                                          sceneClass->getClass("m_imageSelectionViewController"));
     }
-    if (m_labelSelectionViewController != NULL) {
-        m_labelSelectionViewController->restoreFromScene(sceneAttributes,
-                                                          sceneClass->getClass("m_labelSelectionViewController"));
+    if (m_labelSelectionWidget != NULL) {
+        m_labelSelectionWidget->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_labelSelectionWidget"));
     }
     if (m_samplesSelectionViewController != NULL) {
         m_samplesSelectionViewController->restoreFromScene(sceneAttributes,
