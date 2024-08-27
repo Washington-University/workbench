@@ -93,6 +93,7 @@ OperationSurfaceCutResample.h
 OperationSurfaceFlipNormals.h
 OperationSurfaceGeodesicDistance.h
 OperationSurfaceGeodesicDistanceAllToAll.h
+OperationSurfaceGeodesicDistanceSparseText.h
 OperationSurfaceGeodesicROIs.h
 OperationSurfaceInformation.h
 OperationSurfaceNormals.h
@@ -189,6 +190,7 @@ OperationSurfaceCutResample.cxx
 OperationSurfaceFlipNormals.cxx
 OperationSurfaceGeodesicDistance.cxx
 OperationSurfaceGeodesicDistanceAllToAll.cxx
+OperationSurfaceGeodesicDistanceSparseText.cxx
 OperationSurfaceGeodesicROIs.cxx
 OperationSurfaceInformation.cxx
 OperationSurfaceNormals.cxx
