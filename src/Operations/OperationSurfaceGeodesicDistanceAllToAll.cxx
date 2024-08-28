@@ -54,7 +54,7 @@ OperationParameters* OperationSurfaceGeodesicDistanceAllToAll::getParameters()
     OptionalParameter* limitOpt = ret->createOptionalParameter(4, "-limit", "stop at a specified distance");
     limitOpt->addDoubleParameter(1, "limit-mm", "distance in mm to stop at");
     
-    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(5, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    OptionalParameter* corrAreaOpt = ret->createOptionalParameter(5, "-corrected-areas", "vertex areas to use to correct the distances on a group-average surface");
     corrAreaOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
 
     ret->createOptionalParameter(6, "-naive", "use only neighbors, don't crawl triangles (not recommended)");
@@ -92,7 +92,6 @@ void OperationSurfaceGeodesicDistanceAllToAll::useParameters(OperationParameters
         distLimit = limitOpt->getDouble(1);
         if (!(distLimit > 0.0f)) throw OperationException("<limit-mm> must be positive");
     }
-    CaretPointer<GeodesicHelper> myHelp;
     CaretPointer<GeodesicHelperBase> myBase;
     OptionalParameter* corrAreaOpt = myParams->getOptionalParameter(5);
     if (corrAreaOpt->m_present)
@@ -100,9 +99,6 @@ void OperationSurfaceGeodesicDistanceAllToAll::useParameters(OperationParameters
         MetricFile* corrAreas = corrAreaOpt->getMetric(1);
         if (corrAreas->getNumberOfNodes() != mySurf->getNumberOfNodes()) throw OperationException("corrected vertex areas metric does not match surface number of vertices");
         myBase.grabNew(new GeodesicHelperBase(mySurf, corrAreas->getValuePointerForColumn(0)));
-        myHelp.grabNew(new GeodesicHelper(myBase));
-    } else {
-        myHelp = mySurf->getGeodesicHelper();
     }
     bool naive = myParams->getOptionalParameter(6)->m_present;
     CiftiBrainModelsMap myMap;
