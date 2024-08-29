@@ -39,6 +39,8 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "Histogram.h"
 #include "LabelDrawingProperties.h"
+#include "LabelSelectionItemModel.h"
+#include "DataFileLabelSelectionDelegate.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
@@ -490,6 +492,27 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
             }
         }
     }
+    
+    if (isMappedWithLabelTable()) {
+        SceneObjectMapIntegerKey* lhMap = new SceneObjectMapIntegerKey("LabelHierarchyMap",
+                                                                       SceneObjectDataTypeEnum::SCENE_CLASS);
+        const int32_t numLH(m_labelHierarchySelectionDelegate.size());
+        for (int32_t i = 0; i < numLH; i++) {
+            if (m_labelHierarchySelectionDelegate[i]) {
+                const AString lhName("LabelHierarchy_" + AString::number(i));
+                lhMap->addClass(i, m_labelHierarchySelectionDelegate[i]->saveToScene(sceneAttributes,
+                                                                                     lhName));
+            }
+        }
+        
+        if (lhMap->isEmpty()) {
+            delete lhMap;
+            lhMap = NULL;
+        }
+        else {
+            sceneClass->addChild(lhMap);
+        }
+    }
 }
 
 /**
@@ -817,6 +840,22 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
          * saved a scene, the scene would not display correctly due to the palette color mapping
          * no longer being added to the scene.
          */
+    }
+    
+    if (isMappedWithLabelTable()) {
+        const SceneObjectMapIntegerKey* lhMap(sceneClass->getMapIntegerKey("LabelHierarchyMap"));
+        if (lhMap != NULL) {
+            const std::vector<int32_t> mapIndices(lhMap->getKeys());
+            for (int32_t mapIndex : mapIndices) {
+                if (static_cast<int32_t>(m_labelHierarchySelectionDelegate.size()) < (mapIndex + 1)) {
+                    m_labelHierarchySelectionDelegate.resize(mapIndex + 1);
+                }
+                m_labelHierarchySelectionDelegate[mapIndex].reset(new DataFileLabelSelectionDelegate(this,
+                                                                                                     mapIndex));
+                m_labelHierarchySelectionDelegate[mapIndex]->restoreFromScene(sceneAttributes,
+                                                                              lhMap->classValue(mapIndex));
+            }
+        }
     }
 }
 
@@ -1461,6 +1500,59 @@ CaretMappableDataFile::updateAfterFileDataChanges()
     }
 
     m_applyToAllMapsSelected = isPaletteColorMappingEqualForAllMaps();
+}
+
+/**
+ * @return Label selection hierarchy for the map in the tab (may be NULL)
+ * @param mapIndex
+ *    Index of map
+ * @param displayGroup
+ *    The display group
+ * @param tabIndex
+ *    Index of the tab if displayGroup is TAB
+ */
+LabelSelectionItemModel* 
+CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
+                                                              const DisplayGroupEnum::Enum displayGroup,
+                                                              const int32_t tabIndex)
+{
+    if (getDataFileType() == DataFileTypeEnum::VOLUME) {
+        if (isMappedWithLabelTable()) {
+            if (static_cast<int32_t>(m_labelHierarchySelectionDelegate.size()) < getNumberOfMaps()) {
+                m_labelHierarchySelectionDelegate.resize(getNumberOfMaps());
+            }
+            if ( ! m_labelHierarchySelectionDelegate[mapIndex]) {
+                m_labelHierarchySelectionDelegate[mapIndex].reset(new DataFileLabelSelectionDelegate(this,
+                                                                                                     mapIndex));
+            }
+            
+            if (m_labelHierarchySelectionDelegate[mapIndex]) {
+                return m_labelHierarchySelectionDelegate[mapIndex]->getSelectionModelForMapAndTab(displayGroup,
+                                                                                                  tabIndex);
+            }
+        }
+    }
+    return NULL;
+}
+
+/**
+ * @return Label selection hierarchy for the map in the tab (may be NULL)
+ * @param mapIndex
+ *    Index of map
+ * @param displayGroup
+ *    The display group
+ * @param tabIndex
+ *    Index of the tab if displayGroup is TAB
+ */
+const LabelSelectionItemModel*
+CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
+                                                              const DisplayGroupEnum::Enum displayGroup,
+                                                              const int32_t tabIndex) const
+{
+    CaretMappableDataFile* nonConstThis(const_cast<CaretMappableDataFile*>(this));
+    return nonConstThis->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                displayGroup,
+                                                                tabIndex);
 }
 
 /**

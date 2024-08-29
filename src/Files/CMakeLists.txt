@@ -18,6 +18,26 @@ if(Qt5_FOUND)
 endif()
 
 #
+# With AUTOMOC, do not need to specify files
+# that contain Q_OBJECT macro for Qt to process with 'moc'
+# (meta-object compiler).
+#
+IF(WORKBENCH_USE_CMAKE_AUTOMOC)
+    SET(CMAKE_AUTOMOC ON)
+ELSE()
+    SET(MOC_INPUT_HEADER_FILES
+        LabelSelectionItemModel.h
+    )
+
+    IF(Qt6_FOUND)
+        QT6_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+    IF(Qt5_FOUND)
+        QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+ENDIF()
+
+#
 # Files Library
 #
 ADD_LIBRARY(Files
@@ -89,6 +109,7 @@ CziImageResolutionChangeModeEnum.h
 CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
+DataFileLabelSelectionDelegate.h
 DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
@@ -138,6 +159,8 @@ ImageSpatialUnitsEnum.h
 LabelDrawingProperties.h
 LabelDrawingTypeEnum.h
 LabelFile.h
+LabelSelectionItem.h
+LabelSelectionItemModel.h
 MapYokingGroupEnum.h
 MediaDisplayCoordinateModeEnum.h
 MediaFile.h
@@ -203,6 +226,8 @@ WarpfieldFile.h
 XmlStreamReaderHelper.h
 XmlStreamWriterHelper.h
 
+${MOC_SOURCE_FILES}
+
 AffineFile.cxx
 AffineSeriesFile.cxx
 AnnotationFile.cxx
@@ -266,6 +291,7 @@ CziImageResolutionChangeModeEnum.cxx
 CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
+DataFileLabelSelectionDelegate.cxx
 DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
@@ -314,6 +340,8 @@ ImageSpatialUnitsEnum.cxx
 LabelDrawingProperties.cxx
 LabelDrawingTypeEnum.cxx
 LabelFile.cxx
+LabelSelectionItem.cxx
+LabelSelectionItemModel.cxx
 MapYokingGroupEnum.cxx
 MediaDisplayCoordinateModeEnum.cxx
 MediaFile.cxx

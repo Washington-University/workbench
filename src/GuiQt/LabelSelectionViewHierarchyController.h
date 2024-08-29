@@ -23,6 +23,7 @@
 
 #include <cstdint>
 #include <set>
+#include <utility>
 
 #include <QWidget>
 
@@ -35,7 +36,9 @@ class QTreeView;
 
 namespace caret {
 
+    class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
+    class LabelSelectionItemModel;
     
     class LabelSelectionViewHierarchyController : public QWidget, public SceneableInterface {
         
@@ -59,8 +62,6 @@ namespace caret {
     private slots:
         void processFileSelectionChanged();
         
-        void processLabelSelectionChanges();
-        
         void processSelectionChanges();
         
         void treeItemClicked(const QModelIndex& modelIndex);
@@ -77,13 +78,15 @@ namespace caret {
         void setCheckedStatusOfAllChildren(QStandardItem* item,
                                            const Qt::CheckState checkState);
         
+        std::pair<CaretMappableDataFile*, int32_t> getSelectedFileAndMapIndex();
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex;
         
         QTreeView* m_treeView;
         
-        QStandardItemModel* m_labelHierarchyModel = NULL;
+        LabelSelectionItemModel* m_labelHierarchyModel = NULL;
         
         CaretMappableDataFileAndMapSelectorObject* m_labelFileAndMapSelector;
     };

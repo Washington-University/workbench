@@ -169,6 +169,7 @@
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
+#include "TabDrawingInfo.h"
 #include "TopologyHelper.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
@@ -4869,6 +4870,10 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
+    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
+    const TabDrawingInfo tabDrawingInfo(displayGroup,
+                                        labelViewMode,
+                                        this->windowTabIndex);
     
     /*
      * For identification, five items per voxel
@@ -4939,6 +4944,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             glDisable(GL_LIGHTING);
         }
         
+        
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -4949,8 +4955,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                                        jVoxel,
                                                                        kVoxel,
                                                                        volInfo.mapIndex,
-                                                                       displayGroup,
-                                                                       this->windowTabIndex,
+                                                                       tabDrawingInfo,
                                                                        rgba);
                     }
                     else {
@@ -4958,8 +4963,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                        jVoxel,
                                                        kVoxel,
                                                        volInfo.mapIndex,
-                                                       displayGroup,
-                                                       this->windowTabIndex,
+                                                       tabDrawingInfo,
                                                        rgba);
                     }
                     if (rgba[3] > 0) {
@@ -5172,7 +5176,10 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
-    
+    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
+    const TabDrawingInfo tabDrawingInfo(displayGroup,
+                                        labelViewMode,
+                                        this->windowTabIndex);
     /*
      * For identification, five items per voxel
      * 1) volume index
@@ -5326,8 +5333,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
             volumeFile->getVoxelColorsForSliceInMap(volInfo.mapIndex,
                                                     VolumeSliceViewPlaneEnum::AXIAL,
                                                     kVoxel,
-                                                    displayGroup,
-                                                    this->windowTabIndex,
+                                                    tabDrawingInfo,
                                                     axialSliceRGBA.data());
             /*
              * Apply layer opacity

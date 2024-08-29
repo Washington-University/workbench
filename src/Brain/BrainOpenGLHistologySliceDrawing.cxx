@@ -66,6 +66,7 @@
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
+#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
 
@@ -982,6 +983,7 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
     const int32_t tabIndex(m_browserTabContent->getTabNumber());
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
+    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(tabIndex));
     
     glPushAttrib(GL_DEPTH_BUFFER_BIT
                  | GL_COLOR_BUFFER_BIT);
@@ -1002,9 +1004,11 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
         CaretAssert(vmi);
         CaretAssert(mapIndex >= 0);
         AString errorMessage;
+        const TabDrawingInfo tabDrawingInfo(displayGroup,
+                                            labelViewMode,
+                                            tabIndex);
         std::vector<GraphicsPrimitive*> primitives(vmi->getHistologySliceIntersectionPrimitive(mapIndex,
-                                                                                               displayGroup,
-                                                                                               tabIndex,
+                                                                                               tabDrawingInfo,
                                                                                                histologySlice,
                                                                                                overlay->getVolumeToImageMappingMode(),
                                                                                                overlay->getVolumeToImageMappingThickness(),

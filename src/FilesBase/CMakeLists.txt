@@ -27,9 +27,11 @@ endif()
 ADD_LIBRARY(FilesBase
 GiftiLabel.h
 GiftiLabelTable.h
+LabelViewModeEnum.h
 nifti1.h
 nifti2.h
 NiftiEnums.h
+TabDrawingInfo.h
 VolumeBase.h
 VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
@@ -39,7 +41,9 @@ VolumeToImageMappingModeEnum.h
 
 GiftiLabel.cxx
 GiftiLabelTable.cxx
+LabelViewModeEnum.cxx
 NiftiEnums.cxx
+TabDrawingInfo.cxx
 VolumeBase.cxx
 VolumeMappableInterface.cxx
 VolumeSliceViewPlaneEnum.cxx

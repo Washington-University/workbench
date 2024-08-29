@@ -25,7 +25,6 @@
 #include <memory>
 
 #include "CaretObject.h"
-#include "DisplayGroupEnum.h"
 #include "VolumeToImageMappingModeEnum.h"
 #include "VoxelColorUpdate.h"
 #include "VoxelIJK.h"
@@ -39,6 +38,7 @@ namespace caret {
     class HistologySlice;
     class ImageFile;
     class MediaFile;
+    class TabDrawingInfo;
     class VolumeMappableInterface;
 
     class VolumeGraphicsPrimitiveManager : public CaretObject {
@@ -68,22 +68,19 @@ namespace caret {
         
         GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitiveForMap(const PrimitiveShape drawingType,
                                                                  const int32_t mapIndex,
-                                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                                 const int32_t tabIndex) const;
+                                                                 const TabDrawingInfo& tabDrawingInfo) const;
 
 
         GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
                                                                             const int32_t mapIndex,
-                                                                            const DisplayGroupEnum::Enum displayGroup,
-                                                                            const int32_t tabIndex,
+                                                                            const TabDrawingInfo& tabDrawingInfo,
                                                                             const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                             const float volumeSliceThickness,
                                                                             AString& errorMessageOut) const;
         
         std::vector<GraphicsPrimitive*> getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
                                                                                    const int32_t mapIndex,
-                                                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                                                   const int32_t tabIndex,
+                                                                                   const TabDrawingInfo& tabDrawingInfo,
                                                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                                    const float volumeSliceThickness,
                                                                                    AString& errorMessageOut) const;
@@ -146,8 +143,7 @@ namespace caret {
         
         GraphicsPrimitiveV3fT3f* createPrimitive(const PrimitiveShape drawingType,
                                                  const int32_t mapIndex,
-                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                 const int32_t tabIndex,
+                                                 const TabDrawingInfo& tabDrawingInfo,
                                                  AString& errorMessageOut) const;
 
         void updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const;

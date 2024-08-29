@@ -28,6 +28,7 @@
 #include "ChartOneDataTypeEnum.h"
 #include "CaretPointer.h"
 #include "CiftiXML.h"
+#include "DisplayGroupEnum.h"
 #include "NiftiEnums.h"
 #include "PaletteModifiedStatusEnum.h"
 #include "PaletteNormalizationModeEnum.h"
@@ -36,11 +37,13 @@ namespace caret {
 
     class ChartDataCartesian;
     class ChartableTwoFileDelegate;
+    class DataFileLabelSelectionDelegate;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
     class Histogram;
     class LabelDrawingProperties;
+    class LabelSelectionItemModel;
     class MapFileDataSelector;
     class PaletteColorMapping;
     
@@ -384,6 +387,32 @@ namespace caret {
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
         
+        /*
+         * @return Label selection hierarchy for the map in the tab (may be NULL)
+         * @param mapIndex
+         *    Index of map
+         * @param displayGroup
+         *    The display group
+         * @param tabIndex
+         *    Index of the tab if displayGroup is TAB
+         */
+        LabelSelectionItemModel* getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
+                                                                        const DisplayGroupEnum::Enum displayGroup,
+                                                                        const int32_t tabIndex);
+        
+        /*
+         * @return Label selection delegate for the map in the tab (may be NULL)
+         * @param mapIndex
+         *    Index of map
+         * @param displayGroup
+         *    The display group
+         * @param tabIndex
+         *    Index of the tab if displayGroup is TAB
+         */
+        const LabelSelectionItemModel* getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
+                                                                              const DisplayGroupEnum::Enum displayGroup,
+                                                                              const int32_t tabIndex) const;
+
         bool isMedialWallLabelInMapLabelTable(const int32_t mapIndex) const;
         
         /**
@@ -554,6 +583,8 @@ namespace caret {
         std::unique_ptr<LabelDrawingProperties> m_labelDrawingProperties;
 
         mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
+        
+        mutable std::vector<std::unique_ptr<DataFileLabelSelectionDelegate>> m_labelHierarchySelectionDelegate;
         
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         

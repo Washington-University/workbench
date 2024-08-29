@@ -31,6 +31,7 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
 #include "ImageFile.h"
+#include "TabDrawingInfo.h"
 #include "VolumeMappableInterface.h"
 #include "VolumeToImageMapping.h"
 
@@ -166,18 +167,15 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
  *    Shape for primitive drawing
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveShape primitiveShape,
                                                                 const int32_t mapIndex,
-                                                                const DisplayGroupEnum::Enum displayGroup,
-                                                                const int32_t tabIndex) const
+                                                                const TabDrawingInfo& tabDrawingInfo) const
 {
     if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size())) {
         m_mapGraphicsTriangleFanPrimitives.resize(mapIndex + 1);
@@ -227,8 +225,7 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
         AString errorMessage;
         primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitive(primitiveShape,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex,
+                                                                       tabDrawingInfo,
                                                                        errorMessage);
         if (primitiveOut != NULL) {
             switch (primitiveShape) {
@@ -271,10 +268,8 @@ VolumeGraphicsPrimitiveManager::toString() const
  *    Shape for primitive drawing
  * @param mapIndex
  *    Map index for creating the primitive
- * @param displayGroup
- *    Display gtroup selected
- * @param tabIndex
- *    Index of tab
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
  * @param errorMessageOut
  *    Contains information if error occurs
  * @return
@@ -283,8 +278,7 @@ VolumeGraphicsPrimitiveManager::toString() const
 GraphicsPrimitiveV3fT3f*
 VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveShape,
                                                 const int32_t mapIndex,
-                                                const DisplayGroupEnum::Enum displayGroup,
-                                                const int32_t tabIndex,
+                                                const TabDrawingInfo& tabDrawingInfo,
                                                 AString& errorMessageOut) const
 {
     CaretAssert(m_volumeInterface);
@@ -346,8 +340,7 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
                                                      columnStepIJK,
                                                      numberOfRows,
                                                      numberOfColumns,
-                                                     displayGroup,
-                                                     tabIndex,
+                                                     tabDrawingInfo,
                                                      &rgbaSlice[0]);
         
         for (int64_t j = 0; j < numberOfRows; j++) {
@@ -441,10 +434,8 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
  *    Media file for intersection
  * @param mapIndex
  *    Map index for creating the primitive
- * @param displayGroup
- *    Display gtroup selected
- * @param tabIndex
- *    Index of tab
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
  * @param volumeMappingMode
  *    Mode for volume mapping
  * @param volumeSliceThickness
@@ -457,8 +448,7 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
 GraphicsPrimitiveV3fT2f*
 VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
                                                                            const int32_t mapIndex,
-                                                                           const DisplayGroupEnum::Enum displayGroup,
-                                                                           const int32_t tabIndex,
+                                                                           const TabDrawingInfo& tabDrawingInfo,
                                                                            const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                            const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
@@ -472,7 +462,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)mediaFile,
                              mapIndex,
-                             tabIndex,
+                             tabDrawingInfo.getTabIndex(),
                              volumeMappingMode,
                              volumeSliceThickness);
     std::cout << "Slice thickness1: " << volumeSliceThickness << std::endl;
@@ -492,8 +482,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                     mapIndex,
                                     volumeMappingMode,
                                     volumeSliceThickness,
-                                    displayGroup,
-                                    tabIndex,
+                                    tabDrawingInfo.getDisplayGroup(),
+                                    tabDrawingInfo.getTabIndex(),
                                     mediaFile);
         if (mapper.runMapping(errorMessageOut)) {
             const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
@@ -510,7 +500,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     if ( ! allImageFiles.empty()) {
         for (auto& imageFile : allImageFiles) {
             int32_t invalidOverlayIndex(-1);
-            primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
+            primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabDrawingInfo.getTabIndex(),
                                                                              invalidOverlayIndex);
         }
     }
@@ -525,10 +515,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
  *    Histology slice for intersection
  * @param mapIndex
  *    Map index for creating the primitive
- * @param displayGroup
- *    Display gtroup selected
- * @param tabIndex
- *    Index of tab
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
  * @param volumeMappingMode
  *    Mode for volume mapping
  * @param volumeSliceThickness
@@ -541,8 +529,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
 std::vector<GraphicsPrimitive*>
 VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
                                                                            const int32_t mapIndex,
-                                                                           const DisplayGroupEnum::Enum displayGroup,
-                                                                           const int32_t tabIndex,
+                                                                           const TabDrawingInfo& tabDrawingInfo,
                                                                            const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                            const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
@@ -553,7 +540,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)histologySlice,
                              mapIndex,
-                             tabIndex,
+                             tabDrawingInfo.getTabIndex(),
                              volumeMappingMode,
                              volumeSliceThickness);
 
@@ -572,8 +559,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                     mapIndex,
                                     volumeMappingMode,
                                     volumeSliceThickness,
-                                    displayGroup,
-                                    tabIndex,
+                                    tabDrawingInfo.getDisplayGroup(),
+                                    tabDrawingInfo.getTabIndex(),
                                     histologySlice);
         if (mapper.runMapping(errorMessageOut)) {
             const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
@@ -590,7 +577,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     if ( ! allImageFiles.empty()) {
         for (auto& imageFile : allImageFiles) {
             int32_t invalidOverlayIndex(-1);
-            GraphicsPrimitiveV3fT2f* primitive = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
+            GraphicsPrimitiveV3fT2f* primitive = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabDrawingInfo.getTabIndex(),
                                                                                                    invalidOverlayIndex);
             if (primitive != NULL) {
                 primitivesOut.push_back(primitive);

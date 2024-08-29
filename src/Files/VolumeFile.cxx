@@ -1770,10 +1770,8 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
  *    Plane for which colors are requested.
  * @param sliceIndex
  *    Index of the slice.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    Contains colors upon exit.
  * @return
@@ -1783,8 +1781,7 @@ int64_t
 VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                         const int64_t sliceIndex,
-                                        const DisplayGroupEnum::Enum displayGroup,
-                                        const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                         uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1796,8 +1793,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     return m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
                                                   slicePlane,
                                                   sliceIndex,
-                                                  displayGroup,
-                                                  tabIndex,
+                                                  tabDrawingInfo,
                                                   rgbaOut);
 }
 
@@ -1816,10 +1812,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Number of rows.
  * @param numberOfColumns
  *    Number of columns.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    RGBA color components out.
  * @return
@@ -1832,8 +1826,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                 const int64_t columnStepIJK[3],
                                 const int64_t numberOfRows,
                                 const int64_t numberOfColumns,
-                                const DisplayGroupEnum::Enum displayGroup,
-                                const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                 uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1848,8 +1841,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                  columnStepIJK,
                                                  numberOfRows,
                                                  numberOfColumns,
-                                                 displayGroup,
-                                                 tabIndex,
+                                                 tabDrawingInfo,
                                                  rgbaOut);
 }
 
@@ -1868,10 +1860,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
   *    Indices of voxel for last corner of sub-slice (inclusive).
   * @param voxelCountIJK
   *    Voxel counts for each axis.
-  * @param displayGroup
-  *    The selected display group.
-  * @param tabIndex
-  *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
   * @param rgbaOut
   *    Output containing the rgba values (must have been allocated
   *    by caller to sufficient count of elements in the slice).
@@ -1885,8 +1875,7 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                            const int64_t firstCornerVoxelIndex[3],
                                            const int64_t lastCornerVoxelIndex[3],
                                            const int64_t voxelCountIJK[3],
-                                           const DisplayGroupEnum::Enum displayGroup,
-                                           const int32_t tabIndex,
+                                           const TabDrawingInfo& tabDrawingInfo,
                                            uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1901,8 +1890,7 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                      firstCornerVoxelIndex,
                                                      lastCornerVoxelIndex,
                                                      voxelCountIJK,
-                                                     displayGroup,
-                                                     tabIndex,
+                                                     tabDrawingInfo,
                                                      rgbaOut);
 }
 
@@ -1911,25 +1899,18 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
-                                              const DisplayGroupEnum::Enum displayGroup,
-                                              const int32_t tabIndex) const
+                                                   const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_STRIP,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
@@ -1937,25 +1918,18 @@ VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
-                                      const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t tabIndex) const
+                                                 const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
@@ -1963,35 +1937,26 @@ VolumeFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
-                                               const DisplayGroupEnum::Enum displayGroup,
-                                               const int32_t tabIndex) const
+                                               const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLES,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param mediaFile
  *    The medial file for drawing histology
  * @param volumeMappingMode
@@ -2005,8 +1970,7 @@ VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
  */
 GraphicsPrimitive*
 VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
-                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                   const int32_t tabIndex,
+                                                   const TabDrawingInfo& tabDrawingInfo,
                                                    const MediaFile* mediaFile,
                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                    const float volumeSliceThickness,
@@ -2014,8 +1978,7 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(mediaFile,
                                                                                   mapIndex,
-                                                                                  displayGroup,
-                                                                                  tabIndex,
+                                                                                  tabDrawingInfo,
                                                                                   volumeMappingMode,
                                                                                   volumeSliceThickness,
                                                                                   errorMessageOut);
@@ -2025,10 +1988,8 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param histologySlice
  *    The histology slice being drawn
  * @param errorMessageOut
@@ -2038,8 +1999,7 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
  */
 std::vector<GraphicsPrimitive*>
 VolumeFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
-                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                   const int32_t tabIndex,
+                                                   const TabDrawingInfo& tabDrawingInfo,
                                                    const HistologySlice* histologySlice,
                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                    const float volumeSliceThickness,
@@ -2047,8 +2007,7 @@ VolumeFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(histologySlice,
                                                                                   mapIndex,
-                                                                                  displayGroup,
-                                                                                  tabIndex,
+                                                                                  tabDrawingInfo,
                                                                                   volumeMappingMode,
                                                                                   volumeSliceThickness,
                                                                                   errorMessageOut);
@@ -2174,10 +2133,8 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
  *    Axial index
  * @param mapIndex
  *    Index of map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    Contains voxel coloring on exit.
  */
@@ -2186,8 +2143,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                                const int64_t j,
                                const int64_t k,
                                const int64_t mapIndex,
-                               const DisplayGroupEnum::Enum displayGroup,
-                               const int32_t tabIndex,
+                               const TabDrawingInfo& tabDrawingInfo,
                                uint8_t rgbaOut[4]) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -2200,8 +2156,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                                          j,
                                          k,
                                          mapIndex,
-                                         displayGroup,
-                                         tabIndex,
+                                         tabDrawingInfo,
                                          rgbaOut);
 }
 

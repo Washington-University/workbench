@@ -34,6 +34,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretHierarchy.h"
+#include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -41,6 +42,8 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "LabelSelectionItem.h"
+#include "LabelSelectionItemModel.h"
 #include "SceneClass.h"
 #include "WuQMacroManager.h"
 
@@ -163,31 +166,39 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
                 if (model == m_labelHierarchyModel) {
                     QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
                     if (standardItem != NULL) {
-                        AString checkText;
-                        const auto checkState(standardItem->checkState());
-                        switch (checkState) {
-                            case Qt::Unchecked:
-                                checkText = "Unchecked";
-                                standardItem->setCheckState(checkState);
-                                setCheckedStatusOfAllChildren(standardItem,
-                                                              checkState);
-                                break;
-                            case Qt::PartiallyChecked:
-                                checkText = "Partially Checked";
-                                break;
-                            case Qt::Checked:
-                                checkText = "Checked";
-                                standardItem->setCheckState(checkState);
-                                setCheckedStatusOfAllChildren(standardItem, 
-                                                              checkState);
-                                break;
+                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
+                        if (labelItem != NULL) {
+                            const auto checkState(standardItem->checkState());
+                            labelItem->setAllChildrenChecked(checkState == Qt::Checked);
                         }
-                        std::cout << "Row: " << modelIndex.row()
-                        << " Column: " << modelIndex.column()
-                        << " Name: "
-                        << standardItem->text()
-                        << " Checked: "
-                        << checkText << std::endl;
+                        else {
+                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
+                        }
+//                        AString checkText;
+//                        const auto checkState(standardItem->checkState());
+//                        switch (checkState) {
+//                            case Qt::Unchecked:
+//                                checkText = "Unchecked";
+//                                standardItem->setCheckState(checkState);
+//                                setCheckedStatusOfAllChildren(standardItem,
+//                                                              checkState);
+//                                break;
+//                            case Qt::PartiallyChecked:
+//                                checkText = "Partially Checked";
+//                                break;
+//                            case Qt::Checked:
+//                                checkText = "Checked";
+//                                standardItem->setCheckState(checkState);
+//                                setCheckedStatusOfAllChildren(standardItem, 
+//                                                              checkState);
+//                                break;
+//                        }
+//                        std::cout << "Row: " << modelIndex.row()
+//                        << " Column: " << modelIndex.column()
+//                        << " Name: "
+//                        << standardItem->text()
+//                        << " Checked: "
+//                        << checkText << std::endl;
                         
                         processSelectionChanges();
                     }
@@ -235,7 +246,7 @@ LabelSelectionViewHierarchyController::processFileSelectionChanged()
     /*
      * Apply the changes.
      */
-    processLabelSelectionChanges();
+    processSelectionChanges();
 }
 
 /**
@@ -252,12 +263,11 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
         setEnabled(false);
         return;
     }
+    const int32_t browserTabIndex(browserTabContent->getTabNumber());
     
-    CaretMappableDataFileAndMapSelectionModel* model = m_labelFileAndMapSelector->getModel();
-    m_labelFileAndMapSelector->updateFileAndMapSelector(model);
-    
-    CaretMappableDataFile* mapFile  = model->getSelectedFile();
-    const int32_t          mapIndex = model->getSelectedMapIndex();
+    std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+    CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+    const int32_t mapIndex(fileAndMapIndex.second);
     
     if (mapFile == NULL) {
         m_treeView->setEnabled(false);
@@ -276,20 +286,22 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
         return;
     }
 
-    const GiftiLabelTable* labelTable(mapFile->getMapLabelTable(mapIndex));
-    if (labelTable == NULL) {
+    const DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
+    CaretAssert(dsl);
+    LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                            dsl->getDisplayGroupForTab(browserTabIndex),
+                                                                                            browserTabIndex));
+    if (selectionModel == NULL) {
         m_treeView->setEnabled(false);
         return;
     }
-    
-    const CaretHierarchy& caretHierarchy = labelTable->getHierarchy();
-    if (caretHierarchy.isEmpty()) {
+    if ( ! selectionModel->isValid()) {
         m_treeView->setEnabled(false);
         return;
     }
     
     const auto oldModel(m_labelHierarchyModel);
-    m_labelHierarchyModel = caretHierarchy.buildQSIModel();
+    m_labelHierarchyModel = selectionModel;
     m_treeView->setModel(m_labelHierarchyModel);
     m_treeView->setEnabled(true);
     if (oldModel != m_treeView->model()) {
@@ -299,21 +311,26 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
 }
 
 /**
- * Gets called when label selections are changed.
- */
-void 
-LabelSelectionViewHierarchyController::processLabelSelectionChanges()
-{
-    processSelectionChanges();
-}
-
-/**
  * Issue update events after selections are changed.
  */
 void 
 LabelSelectionViewHierarchyController::processSelectionChanges()
 {
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->updateCheckedStateOfAllItems();
+    }
+    
+    std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+    CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+    const int32_t mapIndex(fileAndMapIndex.second);
+    
+    if (mapFile != NULL) {
+        mapFile->updateScalarColoringForMap(mapIndex);
+        if (mapFile->isSurfaceMappable()) {
+            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        }
+    }
+
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
@@ -333,6 +350,23 @@ void
 LabelSelectionViewHierarchyController::expandAllActionTriggered()
 {
     m_treeView->expandAll();
+}
+
+/**
+ * @return A pair containing the selected file and map index
+ */
+std::pair<CaretMappableDataFile*, int32_t>
+LabelSelectionViewHierarchyController::getSelectedFileAndMapIndex()
+{
+    CaretAssert(m_labelFileAndMapSelector);
+    CaretMappableDataFileAndMapSelectionModel* model = m_labelFileAndMapSelector->getModel();
+    CaretAssert(model);
+    m_labelFileAndMapSelector->updateFileAndMapSelector(model);
+    
+    CaretMappableDataFile* mapFile  = model->getSelectedFile();
+    const int32_t          mapIndex = model->getSelectedMapIndex();
+
+    return std::make_pair(mapFile, mapIndex);
 }
 
 /**
