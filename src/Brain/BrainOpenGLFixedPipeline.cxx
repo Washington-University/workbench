@@ -4871,9 +4871,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
     const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
-    const TabDrawingInfo tabDrawingInfo(displayGroup,
-                                        labelViewMode,
-                                        this->windowTabIndex);
     
     /*
      * For identification, five items per voxel
@@ -4944,7 +4941,12 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             glDisable(GL_LIGHTING);
         }
         
-        
+        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
+                                            volInfo.mapIndex,
+                                            displayGroup,
+                                            labelViewMode,
+                                            this->windowTabIndex);
+
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -5177,9 +5179,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
     const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
-    const TabDrawingInfo tabDrawingInfo(displayGroup,
-                                        labelViewMode,
-                                        this->windowTabIndex);
     /*
      * For identification, five items per voxel
      * 1) volume index
@@ -5322,6 +5321,12 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
         const int64_t numRGBA(numVoxels * 4);
         std::vector<uint8_t> axialSliceRGBA(numAxialSizeRGBA);
         std::vector<uint8_t> volumeRGBA(numRGBA, 0);
+
+        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
+                                            volInfo.mapIndex,
+                                            displayGroup,
+                                            labelViewMode,
+                                            this->windowTabIndex);
 
         /*
          * Get coloring for all voxels in volume

@@ -25,6 +25,8 @@
 #include <memory>
 
 #include "CaretObject.h"
+#include "DisplayGroupEnum.h"
+#include "LabelViewModeEnum.h"
 #include "VolumeToImageMappingModeEnum.h"
 #include "VoxelColorUpdate.h"
 #include "VoxelIJK.h"
@@ -96,6 +98,24 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class PrimitiveKey {
+        public:
+            PrimitiveKey(const int32_t mapIndex,
+                         const int32_t tabIndex)
+            : m_mapIndex(mapIndex),
+            m_tabIndex(tabIndex)
+            { }
+            
+            bool operator<(const PrimitiveKey& rhs) const {
+                if (m_mapIndex == rhs.m_mapIndex) {
+                    return (m_tabIndex < rhs.m_tabIndex);
+                }
+                return (m_mapIndex < rhs.m_mapIndex);
+            }
+            int32_t m_mapIndex;
+            int32_t m_tabIndex;
+        };
+        
         class ImageIntersectionKey {
         public:
             ImageIntersectionKey(void* dataPtr,
@@ -154,11 +174,11 @@ namespace caret {
         
         VolumeMappableInterface* m_volumeInterface;
         
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleFanPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleFanPrimitives;
 
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
         
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
         
         mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         

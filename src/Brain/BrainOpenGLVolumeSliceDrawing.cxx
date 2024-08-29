@@ -1462,7 +1462,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSlice(const VolumeSliceViewPlaneEnu
         /*
          * Get colors for all voxels in the slice.
          */
-        TabDrawingInfo tabDrawingInfo(displayGroup,
+        TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
+                                      volInfo.mapIndex,
+                                      displayGroup,
                                       displayPropertiesLabels->getLabelViewModeForTab(browserTabIndex),
                                       browserTabIndex);
         const int64_t validVoxelCount = volumeFile->getVoxelColorsForSliceInMap(volInfo.mapIndex,
@@ -1992,7 +1994,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceWithCulling(const VolumeSliceV
             numVoxelsZ
         };//only used to multiply them all together to get an element count for the presumed array size, so just provide them as XYZ
         
-        const TabDrawingInfo tabDrawingInfo(displayGroup,
+        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
+                                            volInfo.mapIndex,
+                                            displayGroup,
                                             displayPropertiesLabels->getLabelViewModeForTab(browserTabIndex),
                                             browserTabIndex);
         const int64_t validVoxelCount =
@@ -4935,7 +4939,9 @@ BrainOpenGLVolumeSliceDrawing::drawOrthogonalSliceAllView(const VolumeSliceViewP
             << " rowstep IJK: " << AString::fromNumbers(rowStepIJK, 3, ",")
             << " colstep IJK: " << AString::fromNumbers(columnStepIJK, 3, ",") << std::endl;
         }
-        const TabDrawingInfo tabDrawingInfo(displayGroup,
+        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
+                                            volInfo.mapIndex,
+                                            displayGroup,
                                             displayPropertiesLabels->getLabelViewModeForTab(browserTabIndex),
                                             browserTabIndex);
         const int64_t validVoxelCount = volumeInterface->getVoxelColorsForSliceInMap(volInfo.mapIndex,

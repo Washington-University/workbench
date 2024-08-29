@@ -1004,7 +1004,9 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
         CaretAssert(vmi);
         CaretAssert(mapIndex >= 0);
         AString errorMessage;
-        const TabDrawingInfo tabDrawingInfo(displayGroup,
+        const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(vmi),
+                                            mapIndex,
+                                            displayGroup,
                                             labelViewMode,
                                             tabIndex);
         std::vector<GraphicsPrimitive*> primitives(vmi->getHistologySliceIntersectionPrimitive(mapIndex,

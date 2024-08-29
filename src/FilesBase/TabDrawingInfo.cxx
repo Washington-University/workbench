@@ -23,6 +23,7 @@
 #include "TabDrawingInfo.h"
 #undef __TAB_DRAWING_INFO_DECLARE__
 
+#include "BrainConstants.h"
 #include "CaretAssert.h"
 using namespace caret;
 
@@ -38,16 +39,33 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param mapFile
+ *    The map file being drawn
+ * @parm mapIndex
+ *    Map in file that is being drawn
+ * @param displayGroup
+ *    The display group selected
+ * @param labelViewMode
+ *    The label viewing mode
+ * @param tabIndex
+ *    Index of tab being drawn
  */
-TabDrawingInfo::TabDrawingInfo(const DisplayGroupEnum::Enum displayGroup,
+TabDrawingInfo::TabDrawingInfo(CaretMappableDataFile* mapFile,
+                               const int32_t mapIndex,
+                               const DisplayGroupEnum::Enum displayGroup,
                                const LabelViewModeEnum::Enum labelViewMode,
                                const int32_t tabIndex)
 : CaretObject(),
+m_mapFile(mapFile),
+m_mapIndex(mapIndex),
 m_displayGroup(displayGroup),
 m_labelViewMode(labelViewMode),
 m_tabIndex(tabIndex)
 {
-    
+    CaretAssert(mapFile);
+    CaretAssert(mapIndex >= 0);
+    CaretAssert((tabIndex >= 0)
+                && (tabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
 }
 
 /**
@@ -93,9 +111,29 @@ TabDrawingInfo::operator=(const TabDrawingInfo& obj)
 void 
 TabDrawingInfo::copyHelperTabDrawingInfo(const TabDrawingInfo& obj)
 {
+    m_mapFile       = obj.m_mapFile;
+    m_mapIndex      = obj.m_mapIndex;
     m_displayGroup  = obj.m_displayGroup;
     m_labelViewMode = obj.m_labelViewMode;
     m_tabIndex      = obj.m_tabIndex;
+}
+
+/**
+ * @return Map file being drawn
+ */
+CaretMappableDataFile*
+TabDrawingInfo::getMapFile() const
+{
+    return m_mapFile;
+}
+
+/**
+ * @return Map index being drawn
+ */
+int32_t
+TabDrawingInfo::getMapIndex() const
+{
+    return m_mapIndex;
 }
 
 /**

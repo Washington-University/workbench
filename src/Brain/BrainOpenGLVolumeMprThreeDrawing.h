@@ -258,7 +258,8 @@ namespace caret {
         
         void performIntensityIdentification(const VolumeMprVirtualSliceView& mprSliceView,
                                             const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                            VolumeMappableInterface* volume);
+                                            VolumeMappableInterface* volume,
+                                            const int32_t mapIndex);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
         

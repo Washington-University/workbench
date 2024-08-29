@@ -2808,7 +2808,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         CaretAssertToDoFatal(); /* should be using normal slice ID */
         performIntensityIdentification(mprSliceView,
                                        sliceViewPlane,
-                                       volumeFile);
+                                       volumeFile,
+                                       mapIndex);
         return;
     }
     
@@ -3157,7 +3158,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     glPolygonOffset(-2.0, 2.0);
                 }
             }
-            const TabDrawingInfo tabDrawingInfo(m_displayGroup,
+            const TabDrawingInfo tabDrawingInfo(vdi.mapFile,
+                                                vdi.mapIndex,
+                                                m_displayGroup,
                                                 m_labelViewMode,
                                                 m_tabIndex);
             GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
@@ -4114,7 +4117,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
     if (idModeFlag) {
         performIntensityIdentification(mprSliceView,
                                        sliceViewPlane,
-                                       volumeFile);
+                                       volumeFile,
+                                       mapIndex);
         return;
     }
     
@@ -4183,7 +4187,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
         }
 
         for (int32_t iStep = 0; iStep < numSteps; iStep++) {
-            const TabDrawingInfo tabDrawingInfo(m_displayGroup,
+            const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volumeFile),
+                                                mapIndex,
+                                                m_displayGroup,
                                                 m_labelViewMode,
                                                 m_tabIndex);
             GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTrianglesPrimitive(mapIndex,
@@ -4273,11 +4279,14 @@ BrainOpenGLVolumeMprThreeDrawing::getVoxelSize(const VolumeMappableInterface* vo
  *    Slice view plane being drawn
  * @param volume
  *    Volume being drawn
+ * @param mapIndex
+ *    Map file index
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMprVirtualSliceView& mprSliceView,
                                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                 VolumeMappableInterface* volume)
+                                                                 VolumeMappableInterface* volume,
+                                                                 const int32_t mapIndex)
 {
     CaretAssertToDoFatal(); /* should be using normal slice ID for identification */
 
@@ -4371,7 +4380,9 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                 }
             }
             
-            const TabDrawingInfo tabDrawingInfo(m_displayGroup,
+            const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volume),
+                                                mapIndex,
+                                                m_displayGroup,
                                                 m_labelViewMode,
                                                 m_tabIndex);
             int64_t minMaxIJK[3] { -1, -1, -1 };

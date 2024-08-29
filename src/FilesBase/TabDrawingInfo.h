@@ -32,10 +32,14 @@
 
 namespace caret {
 
+    class CaretMappableDataFile;
+    
     class TabDrawingInfo : public CaretObject {
         
     public:
-        TabDrawingInfo(const DisplayGroupEnum::Enum displayGroup,
+        TabDrawingInfo(CaretMappableDataFile* mapFile,
+                       const int32_t mapIndex,
+                       const DisplayGroupEnum::Enum displayGroup,
                        const LabelViewModeEnum::Enum labelViewMode,
                        const int32_t tabIndex);
         
@@ -45,6 +49,10 @@ namespace caret {
 
         TabDrawingInfo& operator=(const TabDrawingInfo& obj);
         
+        CaretMappableDataFile* getMapFile() const;
+        
+        int32_t getMapIndex() const;
+
         DisplayGroupEnum::Enum getDisplayGroup() const;
         
         LabelViewModeEnum::Enum getLabelViewMode() const;
@@ -58,6 +66,10 @@ namespace caret {
     private:
         void copyHelperTabDrawingInfo(const TabDrawingInfo& obj);
 
+        CaretMappableDataFile* m_mapFile;
+        
+        int32_t m_mapIndex;
+        
         DisplayGroupEnum::Enum m_displayGroup;
         
         LabelViewModeEnum::Enum m_labelViewMode;

@@ -256,7 +256,8 @@ namespace caret {
         std::vector<std::pair<VolumeMappableInterface*,int32_t>> getIntensityVolumeFilesAndMapIndices() const;
         
         void performIntensityIdentification(const SliceInfo& sliceInfo,
-                                            VolumeMappableInterface* volume);
+                                            VolumeMappableInterface* volume,
+                                            const int32_t mapIndex);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
         
