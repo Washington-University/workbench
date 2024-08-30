@@ -4810,7 +4810,7 @@ CiftiMappableDataFile::getVoxelColorInMap(const int64_t indexIn1,
                                           const int64_t indexIn2,
                                           const int64_t indexIn3,
                                           const int64_t mapIndex,
-                                          const TabDrawingInfo& tabDrawingInfo,
+                                          const TabDrawingInfo& /*tabDrawingInfo*/,
                                           uint8_t rgbaOut[4]) const
 {
     rgbaOut[0] = 0;

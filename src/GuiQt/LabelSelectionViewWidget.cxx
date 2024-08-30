@@ -122,6 +122,7 @@ m_browserWindowIndex(browserWindowIndex)
  */
 LabelSelectionViewWidget::~LabelSelectionViewWidget()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
