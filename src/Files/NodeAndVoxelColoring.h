@@ -32,6 +32,7 @@ namespace caret {
     class FastStatistics;
     class GiftiLabelTable;
     class PaletteColorMapping;
+    class TabDrawingInfo;
     
     class NodeAndVoxelColoring {
         
@@ -62,23 +63,12 @@ namespace caret {
                                          const uint8_t rgbThreshold[3],
                                          uint8_t* rgbaOut);
         
-        // JWH 24 April 2015  static const float SMALL_POSITIVE;
-        // JWH 24 April 2015  static const float SMALL_NEGATIVE;
-        
-        static void colorIndicesWithLabelTableForDisplayGroupTab(const GiftiLabelTable* labelTable,
-                                               const float* labelIndices,
-                                               const int64_t numberOfIndices,
-                                               const DisplayGroupEnum::Enum displayGroup,
-                                               const int32_t tabIndex,
-                                               float* rgbv);
-        
-        static void colorIndicesWithLabelTableForDisplayGroupTab(const GiftiLabelTable* labelTable,
-                                               const float* labelIndices,
-                                               const int64_t numberOfIndices,
-                                               const DisplayGroupEnum::Enum displayGroup,
-                                               const int32_t tabIndex,
-                                               uint8_t* rgbv);
-        
+        static void colorIndicesWithLabelTableForObliqueVolume(const GiftiLabelTable* labelTable,
+                                                               const float* labelIndices,
+                                                               const int64_t numberOfIndices,
+                                                               const TabDrawingInfo& tabDrawingInfo,
+                                                               uint8_t* rgbv);
+
         static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
                                                const float* labelIndices,
                                                const int64_t numberOfIndices,

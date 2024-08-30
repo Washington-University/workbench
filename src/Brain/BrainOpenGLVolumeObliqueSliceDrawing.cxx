@@ -73,6 +73,7 @@
 #include "SpacerTabIndex.h"
 #include "Surface.h"
 #include "SurfacePlaneIntersectionToContour.h"
+#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
@@ -196,6 +197,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
+    m_labelViewMode = dsl->getLabelViewModeForTab(m_fixedPipelineDrawing->windowTabIndex);
     
     m_tabIndex = m_browserTabContent->getTabNumber();
     
@@ -2663,7 +2665,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         
         const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
         const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+//        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
         
         bool haveAlphaBlendingFlag(false);
         std::vector<ObliqueSlice*> slices;
@@ -2687,7 +2689,8 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                                                    numberOfColumns,
                                                    browserTabIndex,
                                                    displayPropertiesLabels,
-                                                   displayGroup,
+                                                   m_displayGroup,
+                                                   m_labelViewMode,
                                                    bottomLeft,
                                                    leftToRightStepXYZ,
                                                    bottomToTopStepXYZ,
@@ -2794,6 +2797,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixe
                                                                  const int32_t browserTabIndex,
                                                                  const DisplayPropertiesLabels* displayPropertiesLabels,
                                                                  const DisplayGroupEnum::Enum displayGroup,
+                                                                 const LabelViewModeEnum::Enum labelViewMode,
                                                                  const float originXYZ[3],
                                                                  const float leftToRightStepXYZ[3],
                                                                  const float bottomToTopStepXYZ[3],
@@ -2812,6 +2816,7 @@ m_numberOfColumns(numberOfColumns),
 m_browserTabIndex(browserTabIndex),
 m_displayPropertiesLabels(displayPropertiesLabels),
 m_displayGroup(displayGroup),
+m_labelViewMode(labelViewMode),
 m_identificationX(fixedPipelineDrawing->mouseX),
 m_identificationY(fixedPipelineDrawing->mouseY),
 m_identificationModeFlag(identificationModeFlag),
@@ -3116,14 +3121,18 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
         case DataValueType::CIFTI_LABEL:
         {
             CaretAssert(m_ciftiMappableFile);
+            const TabDrawingInfo tabDrawingInfo(m_ciftiMappableFile,
+                                                m_mapIndex,
+                                                m_displayGroup,
+                                                m_labelViewMode,
+                                                m_browserTabIndex);
             const GiftiLabelTable* labelTable = m_ciftiMappableFile->getMapLabelTable(m_mapIndex);
             CaretAssert(labelTable);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
-                                                                               &m_data[0],
-                                                                               m_data.size(),
-                                                                               m_displayGroup,
-                                                                               m_browserTabIndex,
-                                                                               &m_rgba[0]);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(labelTable,
+                                                                             &m_data[0],
+                                                                             m_data.size(),
+                                                                             tabDrawingInfo,
+                                                                             &m_rgba[0]);
         }
             break;
         case DataValueType::CIFTI_PALETTE:
@@ -3152,12 +3161,16 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             CaretAssert(m_volumeFile);
             const GiftiLabelTable* labelTable = m_volumeFile->getMapLabelTable(m_mapIndex);
             CaretAssert(labelTable);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
-                                                                               &m_data[0],
-                                                                               m_data.size(),
-                                                                               m_displayGroup,
-                                                                               m_browserTabIndex,
-                                                                               &m_rgba[0]);
+            const TabDrawingInfo tabDrawingInfo(m_volumeFile,
+                                                m_mapIndex,
+                                                m_displayGroup,
+                                                m_labelViewMode,
+                                                m_browserTabIndex);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(labelTable,
+                                                                             &m_data[0],
+                                                                             m_data.size(),
+                                                                             tabDrawingInfo,
+                                                                             &m_rgba[0]);
         }
             break;
         case DataValueType::VOLUME_PALETTE:
