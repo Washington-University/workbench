@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <set>
 
 #include <QStandardItemModel>
 
@@ -42,7 +43,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        LabelSelectionItemModel(const GiftiLabelTable* giftiLabelTable,
+        LabelSelectionItemModel(const AString& fileAndMapName,
+                                const GiftiLabelTable* giftiLabelTable,
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex);
         
@@ -59,6 +61,8 @@ namespace caret {
         void setCheckedStatusOfAllItems(const bool checked);
         
         void updateCheckedStateOfAllItems();
+        
+        std::vector<LabelSelectionItem*> getAllDescendants();
         
         std::vector<LabelSelectionItem*> getAllDescendantsOfType(const LabelSelectionItem::ItemType itemType);
         
@@ -91,6 +95,8 @@ namespace caret {
         LabelSelectionItem* buildTree(const CaretHierarchy::Item* hierarchyItem,
                                       const GiftiLabelTable* giftiLabelTable);
         
+        const AString& m_fileAndMapName;
+        
         const DisplayGroupEnum::Enum m_displayGroup;
         
         const int32_t m_tabIndex;
@@ -98,6 +104,8 @@ namespace caret {
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         std::map<int32_t, LabelSelectionItem*> m_labelIndexToLabelSelectionItem;
+        
+        std::set<AString> m_buildTreeMissingLabelNames;
         
         bool m_validFlag = false;
         

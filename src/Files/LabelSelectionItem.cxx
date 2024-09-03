@@ -350,6 +350,31 @@ LabelSelectionItem::getThisAndAllDescendantsOfType(const LabelSelectionItem::Ite
 }
 
 /**
+ * @return This and all descendants
+ */
+std::vector<LabelSelectionItem*>
+LabelSelectionItem::getThisAndAllDescendants()
+{
+    std::vector<LabelSelectionItem*> itemsOut;
+    
+    itemsOut.push_back(this);
+    
+    if (hasChildren()) {
+        const int32_t numRows(rowCount());
+        for (int32_t iRow = 0; iRow < numRows; iRow++) {
+            QStandardItem* itemChild(child(iRow));
+            LabelSelectionItem* labelChild(dynamic_cast<LabelSelectionItem*>(itemChild));
+            CaretAssert(labelChild);
+            std::vector<LabelSelectionItem*> childItems(labelChild->getThisAndAllDescendants());
+            itemsOut.insert(itemsOut.end(),
+                            childItems.begin(), childItems.end());
+        }
+    }
+
+    return itemsOut;
+}
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes

@@ -45,6 +45,7 @@
 #include "LabelSelectionItem.h"
 #include "LabelSelectionItemModel.h"
 #include "SceneClass.h"
+#include "SceneStringArray.h"
 #include "WuQMacroManager.h"
 
 using namespace caret;
@@ -157,7 +158,6 @@ LabelSelectionViewHierarchyController::~LabelSelectionViewHierarchyController()
 void
 LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelIndex)
 {
-    std::cout << "Clicked " << std::endl;
     if (modelIndex.isValid()) {
         auto model(modelIndex.model());
         if (model != NULL) {
@@ -174,31 +174,6 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
                         else {
                             CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
                         }
-//                        AString checkText;
-//                        const auto checkState(standardItem->checkState());
-//                        switch (checkState) {
-//                            case Qt::Unchecked:
-//                                checkText = "Unchecked";
-//                                standardItem->setCheckState(checkState);
-//                                setCheckedStatusOfAllChildren(standardItem,
-//                                                              checkState);
-//                                break;
-//                            case Qt::PartiallyChecked:
-//                                checkText = "Partially Checked";
-//                                break;
-//                            case Qt::Checked:
-//                                checkText = "Checked";
-//                                standardItem->setCheckState(checkState);
-//                                setCheckedStatusOfAllChildren(standardItem, 
-//                                                              checkState);
-//                                break;
-//                        }
-//                        std::cout << "Row: " << modelIndex.row()
-//                        << " Column: " << modelIndex.column()
-//                        << " Name: "
-//                        << standardItem->text()
-//                        << " Checked: "
-//                        << checkText << std::endl;
                         
                         processSelectionChanges();
                     }
@@ -388,7 +363,20 @@ LabelSelectionViewHierarchyController::saveToScene(const SceneAttributes* /*scen
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "LabelSelectionViewHierarchyController",
                                             1);
-    
+ 
+    if (m_labelHierarchyModel != NULL) {
+        std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
+        std::vector<AString> expandedNames;
+        for (const LabelSelectionItem* lsi : items) {
+            if (m_treeView->isExpanded(lsi->index())) {
+                expandedNames.push_back(lsi->text());
+            }
+        }
+        
+        if ( ! expandedNames.empty()) {
+            sceneClass->addStringArray("expandedNames", &expandedNames[0], expandedNames.size());
+        }
+    }
     return sceneClass;
 }
 
@@ -408,8 +396,32 @@ void
 LabelSelectionViewHierarchyController::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
                                                 const SceneClass* sceneClass)
 {
-    if (sceneClass == NULL) {
+    updateLabelViewController();
+    m_treeView->expandAll();
+    
+    if ((sceneClass == NULL)
+        || (m_labelHierarchyModel == NULL)) {
         return;
+    }
+    
+    const ScenePrimitiveArray* expandedNamesArray(sceneClass->getPrimitiveArray("expandedNames"));
+    if (expandedNamesArray != NULL) {
+        std::set<AString> expandedNames;
+        const int32_t numNames(expandedNamesArray->getNumberOfArrayElements());
+        for (int32_t i = 0; i < numNames; i++) {
+            expandedNames.insert(expandedNamesArray->stringValue(i));
+        }
+        
+        if ( ! expandedNames.empty()) {
+            m_treeView->collapseAll();
+            
+            const std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
+            for (LabelSelectionItem* lsi : items) {
+                if (expandedNames.find(lsi->text()) != expandedNames.end()) {
+                    m_treeView->expand(lsi->index());
+                }
+            }
+        }
     }
 }
 

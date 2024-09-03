@@ -259,12 +259,17 @@ LabelSelectionViewWidget::updateAfterSelectionChanges()
  *    returned.  Caller will take ownership of returned object.
  */
 SceneClass*
-LabelSelectionViewWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/,
-                                                   const AString& instanceName)
+LabelSelectionViewWidget::saveToScene(const SceneAttributes* sceneAttributes,
+                                      const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "LabelSelectionViewHierarchyController",
                                             1);
+    
+    sceneClass->addClass(m_labelViewController->saveToScene(sceneAttributes, 
+                                                            "m_labelViewController"));
+    sceneClass->addClass(m_labelViewHierarchyController->saveToScene(sceneAttributes, 
+                                                                     "m_labelViewHierarchyController"));
     
     return sceneClass;
 }
@@ -282,10 +287,15 @@ LabelSelectionViewWidget::saveToScene(const SceneAttributes* /*sceneAttributes*/
  *     saved and should be restored.
  */
 void
-LabelSelectionViewWidget::restoreFromScene(const SceneAttributes* /*sceneAttributes*/,
-                                                        const SceneClass* sceneClass)
+LabelSelectionViewWidget::restoreFromScene(const SceneAttributes* sceneAttributes,
+                                           const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {
         return;
     }
+    
+    m_labelViewController->restoreFromScene(sceneAttributes,
+                                            sceneClass->getClass("m_labelViewController"));
+    m_labelViewHierarchyController->restoreFromScene(sceneAttributes,
+                                                     sceneClass->getClass("m_labelViewHierarchyController"));
 }

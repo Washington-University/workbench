@@ -119,8 +119,17 @@ LabelSelectionItemModel*
 DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex)
 {
+    AString mapName(m_mapFile->getMapName(m_mapIndex));
+    if (mapName.isEmpty()) {
+        mapName = AString::number(m_mapIndex + 1);
+    }
+    const AString filenameAndMap("File: "
+                                 + m_mapFile->getFileNameNoPath()
+                                 + " Map: "
+                                 + mapName);
     const GiftiLabelTable* labelTable(m_mapFile->getMapLabelTable(m_mapIndex));
-    LabelSelectionItemModel* modelOut(new LabelSelectionItemModel(labelTable,
+    LabelSelectionItemModel* modelOut(new LabelSelectionItemModel(filenameAndMap,
+                                                                  labelTable,
                                                                   displayGroup,
                                                                   tabIndex));
     CaretAssert(modelOut);

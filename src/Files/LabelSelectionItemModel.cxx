@@ -46,6 +46,8 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param fileAndMapName
+ *    Name of file and map containing label table
  * @param GiftiLabelTable
  *    GIFTI label tabel from which this hierarchy is build
  * @param displayGroup
@@ -53,10 +55,12 @@ using namespace caret;
  * @param tabIndex
  *    Index of the tab if displayGroup is TAB
  */
-LabelSelectionItemModel::LabelSelectionItemModel(const GiftiLabelTable* giftiLabelTable,
+LabelSelectionItemModel::LabelSelectionItemModel(const AString& fileAndMapName,
+                                                 const GiftiLabelTable* giftiLabelTable,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex)
 : QStandardItemModel(),
+m_fileAndMapName(fileAndMapName),
 m_displayGroup(displayGroup),
 m_tabIndex(tabIndex)
 {
@@ -151,10 +155,20 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
     }
     const CaretHierarchy::Item& root(caretHierarchy.getInvisibleRoot());
     
+    m_buildTreeMissingLabelNames.clear();
     LabelSelectionItem* rootItem(buildTree(&root,
                                            giftiLabelTable));
     invisibleRootItem()->appendRow(rootItem);
 
+    if ( ! m_buildTreeMissingLabelNames.empty()) {
+        AString text(m_fileAndMapName);
+        text.appendWithNewLine("   No labels were found for these names in hieararchy:");
+        for (const AString& name : m_buildTreeMissingLabelNames) {
+            text.appendWithNewLine("      " + name);
+        }
+        CaretLogWarning(text);
+    }
+    
     setCheckedStatusOfAllItems(true);
     
     updateCheckedStateOfAllItems();
@@ -206,9 +220,8 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
             labelIndex = label->getKey();
         }
         else {
-            name.append(" MISSING");
-            CaretLogSevere("No label in label table for name from hierarchy: "
-                           + hierarchyItem->name);
+            name.append(" (No Label Found)");
+            m_buildTreeMissingLabelNames.insert(hierarchyItem->name);
         }
         
         itemOut = new LabelSelectionItem(name,
@@ -248,6 +261,29 @@ LabelSelectionItemModel::getAllDescendantsOfType(const LabelSelectionItem::ItemT
     
     return itemsOut;
 }
+
+/**
+ * @return All descendants
+ */
+std::vector<LabelSelectionItem*> 
+LabelSelectionItemModel::getAllDescendants()
+{
+    std::vector<LabelSelectionItem*> itemsOut;
+    
+    QStandardItem* rootItem(invisibleRootItem());
+    const int32_t numChildren(rootItem->rowCount());
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* childItem(rootItem->child(iRow));
+        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(childItem));
+        CaretAssert(labelItem);
+        std::vector<LabelSelectionItem*> items(labelItem->getThisAndAllDescendants());
+        itemsOut.insert(itemsOut.end(),
+                        items.begin(), items.end());
+    }
+    
+    return itemsOut;
+}
+
 
 /**
  * Save information specific to this type of model to the scene.
