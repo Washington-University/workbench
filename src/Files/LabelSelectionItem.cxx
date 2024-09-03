@@ -43,19 +43,15 @@ using namespace caret;
  *    Text displayed in the item
  * @param labelIndex
  *    Index of the label
- * @param labelName
- *    Name of the label
  * @param labelRGBA
  *    Color for icon
  */
 LabelSelectionItem::LabelSelectionItem(const AString& text,
                                        const int32_t labelIndex,
-                                       const AString& labelName,
                                        const std::array<uint8_t, 4>& labelRGBA)
 : QStandardItem(),
 m_itemType(ItemType::ITEM_LABEL),
-m_labelIndex(labelIndex),
-m_labelName(labelName)
+m_labelIndex(labelIndex)
 {
     initializeInstance();
     setText(text);
@@ -75,8 +71,7 @@ m_labelName(labelName)
 LabelSelectionItem::LabelSelectionItem(const AString& text)
 : QStandardItem(),
 m_itemType(ItemType::ITEM_HIERARCHY),
-m_labelIndex(-1),
-m_labelName("")
+m_labelIndex(-1)
 {
     initializeInstance();
     setText(text);
@@ -126,7 +121,6 @@ LabelSelectionItem::copyHelper(const LabelSelectionItem& other)
 {
     setText(other.text());
     m_labelIndex = other.m_labelIndex;
-    m_labelName  = other.m_labelName;
     if (m_labelIndex >= 0) {
         setIcon(other.icon());
     }
@@ -175,15 +169,6 @@ int32_t
 LabelSelectionItem::getLabelIndex() const
 {
     return m_labelIndex;
-}
-
-/**
- * Name of the label
- */
-AString
-LabelSelectionItem::getLabelName() const
-{
-    return m_labelName;
 }
 
 /**

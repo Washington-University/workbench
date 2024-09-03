@@ -209,7 +209,7 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
         }
         
         if ( ! labelIsParentInHierarchyNames.empty()) {
-            text.appendWithNewLine("   Label from label table is an element hierarchy but element has children:");
+            text.appendWithNewLine("   Label from label table is in the element hierarchy but element contains children:");
             for (const AString& name : labelIsParentInHierarchyNames) {
                 text.appendWithNewLine("      " + name);
             }
@@ -279,7 +279,6 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
         
         itemOut = new LabelSelectionItem(name,
                                          labelKey,
-                                         name,
                                          rgba);
         if (labelKey >= 0) {
             m_labelKeyToLabelSelectionItem[labelKey] = itemOut;

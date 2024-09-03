@@ -48,7 +48,6 @@ namespace caret {
         
         LabelSelectionItem(const AString& text,
                            const int32_t labelIndex,
-                           const AString& labelName,
                            const std::array<uint8_t, 4>& labelRGBA);
         
         LabelSelectionItem(const AString& text);
@@ -60,8 +59,6 @@ namespace caret {
         virtual int type() const;
 
         int32_t getLabelIndex() const;
-        
-        AString getLabelName() const;
         
         void setAllChildrenChecked(const bool checked);
 
@@ -110,8 +107,6 @@ namespace caret {
         const ItemType m_itemType;
         
         int32_t m_labelIndex;
-        
-        AString m_labelName;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
