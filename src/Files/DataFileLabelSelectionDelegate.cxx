@@ -128,12 +128,24 @@ DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum display
                                  + " Map: "
                                  + mapName);
     const GiftiLabelTable* labelTable(m_mapFile->getMapLabelTable(m_mapIndex));
+    CaretAssert(labelTable);
+    
+    /*
+     * One LabelSelectionItemModel is created for each tab and display group.
+     * This prevents logging missing labels more than one time.
+     */
+    const bool logMismatchedLabelsFlag( ! m_modelHasBeenCreatedFlag);
+    
     LabelSelectionItemModel* modelOut(new LabelSelectionItemModel(filenameAndMap,
                                                                   labelTable,
                                                                   displayGroup,
-                                                                  tabIndex));
+                                                                  tabIndex,
+                                                                  logMismatchedLabelsFlag));
     CaretAssert(modelOut);
-    if ( ! modelOut->isValid()) {
+    if (modelOut->isValid()) {
+        m_modelHasBeenCreatedFlag = true;
+    }
+    else {
         const AString txt("Label Model is invalid for map index="
                           + AString::number(m_mapIndex + 1)
                           + " in file "

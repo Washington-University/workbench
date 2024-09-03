@@ -54,15 +54,19 @@ using namespace caret;
  *    The display group
  * @param tabIndex
  *    Index of the tab if displayGroup is TAB
+ * @param logMismatchedLabelsFlag
+ *    If true, log a message if any labels are in hierarchy but not in label table
  */
 LabelSelectionItemModel::LabelSelectionItemModel(const AString& fileAndMapName,
                                                  const GiftiLabelTable* giftiLabelTable,
                                                  const DisplayGroupEnum::Enum displayGroup,
-                                                 const int32_t tabIndex)
+                                                 const int32_t tabIndex,
+                                                 const bool logMismatchedLabelsFlag)
 : QStandardItemModel(),
 m_fileAndMapName(fileAndMapName),
 m_displayGroup(displayGroup),
-m_tabIndex(tabIndex)
+m_tabIndex(tabIndex),
+m_logMismatchedLabelsFlag(logMismatchedLabelsFlag)
 {
     CaretAssert(giftiLabelTable);
     
@@ -129,8 +133,8 @@ LabelSelectionItemModel::updateCheckedStateOfAllItems()
 bool
 LabelSelectionItemModel::isLabelChecked(const int32_t labelKey) const
 {
-    auto iter(m_labelIndexToLabelSelectionItem.find(labelKey));
-    if (iter != m_labelIndexToLabelSelectionItem.end()) {
+    auto iter(m_labelKeyToLabelSelectionItem.find(labelKey));
+    if (iter != m_labelKeyToLabelSelectionItem.end()) {
         const LabelSelectionItem* item(iter->second);
         if (item != NULL) {
             return (item->checkState() == Qt::Checked);
@@ -147,7 +151,7 @@ LabelSelectionItemModel::isLabelChecked(const int32_t labelKey) const
 void
 LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
 {
-    m_labelIndexToLabelSelectionItem.clear();
+    m_labelKeyToLabelSelectionItem.clear();
     
     const CaretHierarchy& caretHierarchy(giftiLabelTable->getHierarchy());
     if (caretHierarchy.isEmpty()) {
@@ -156,17 +160,65 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
     const CaretHierarchy::Item& root(caretHierarchy.getInvisibleRoot());
     
     m_buildTreeMissingLabelNames.clear();
+    
     LabelSelectionItem* rootItem(buildTree(&root,
                                            giftiLabelTable));
     invisibleRootItem()->appendRow(rootItem);
 
-    if ( ! m_buildTreeMissingLabelNames.empty()) {
-        AString text(m_fileAndMapName);
-        text.appendWithNewLine("   No labels were found for these names in hieararchy:");
-        for (const AString& name : m_buildTreeMissingLabelNames) {
-            text.appendWithNewLine("      " + name);
+    if (m_logMismatchedLabelsFlag) {
+        AString text;
+        
+        /*
+         * Name in hiearchy has not children and name is not found in label table
+         */
+        if ( ! m_buildTreeMissingLabelNames.empty()) {
+            text.appendWithNewLine("   No labels in the label table were found for these childless elements in the hierarchy:");
+            for (const AString& name : m_buildTreeMissingLabelNames) {
+                text.appendWithNewLine("      " + name);
+            }
         }
-        CaretLogWarning(text);
+        
+        /*
+         * Name is in the label table but not found in the hierarchy
+         * OR label is in hierarchy but has children
+         * (Except for unassigned label key)
+         */
+        const int32_t unassignedLabelKey(giftiLabelTable->getUnassignedLabelKey());
+        std::set<AString> buildTreeMissingHierarchyNames;
+        std::set<AString> labelIsParentInHierarchyNames;
+        const std::vector<int32_t> labelKeys(giftiLabelTable->getLabelKeysSortedByName());
+        for (const int32_t key : labelKeys) {
+            if (key != unassignedLabelKey) {
+                if (m_labelKeyToLabelSelectionItem.find(key) == m_labelKeyToLabelSelectionItem.end()) {
+                    const AString labelName(giftiLabelTable->getLabelName(key));
+                    if (m_hierarchyParentNames.find(labelName) != m_hierarchyParentNames.end()) {
+                        labelIsParentInHierarchyNames.insert(labelName);
+                    }
+                    else {
+                        buildTreeMissingHierarchyNames.insert(labelName);
+                    }
+                }
+            }
+        }
+        
+        if ( ! buildTreeMissingHierarchyNames.empty()) {
+            text.appendWithNewLine("   No elements in the hierarchy were found for these labels in the label table:");
+            for (const AString& name : buildTreeMissingHierarchyNames) {
+                text.appendWithNewLine("      " + name);
+            }
+        }
+        
+        if ( ! labelIsParentInHierarchyNames.empty()) {
+            text.appendWithNewLine("   Label from label table is an element hierarchy but element has children:");
+            for (const AString& name : labelIsParentInHierarchyNames) {
+                text.appendWithNewLine("      " + name);
+            }
+        }
+        
+        if ( ! text.isEmpty()) {
+            text.insert(0, (m_fileAndMapName + "\n"));
+            CaretLogWarning(text);
+        }
     }
     
     setCheckedStatusOfAllItems(true);
@@ -198,11 +250,12 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
             itemOut->appendRow(buildTree(&hierarchyItem->children[i],
                                          giftiLabelTable));
         }
+        m_hierarchyParentNames.insert(hierarchyItem->name);
     }
     else {
         AString name(hierarchyItem->name);
         std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
-        int32_t labelIndex(-1);
+        int32_t labelKey(-1);
         const GiftiLabel* label(giftiLabelTable->getLabel(hierarchyItem->name));
         if (label != NULL) {
             const std::array<float, 4> rgbaFloat {
@@ -217,7 +270,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
                 if (c < 0) c = 0;
                 rgba[i] = c;
             }
-            labelIndex = label->getKey();
+            labelKey = label->getKey();
         }
         else {
             name.append(" (No Label Found)");
@@ -225,11 +278,11 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
         }
         
         itemOut = new LabelSelectionItem(name,
-                                         labelIndex,
+                                         labelKey,
                                          name,
                                          rgba);
-        if (labelIndex >= 0) {
-            m_labelIndexToLabelSelectionItem[labelIndex] = itemOut;
+        if (labelKey >= 0) {
+            m_labelKeyToLabelSelectionItem[labelKey] = itemOut;
         }
     }
     

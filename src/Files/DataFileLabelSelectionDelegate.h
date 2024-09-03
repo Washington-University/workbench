@@ -88,6 +88,9 @@ namespace caret {
         std::vector<std::unique_ptr<LabelSelectionItemModel>> m_tabSelectionModels;
         
         std::vector<std::unique_ptr<LabelSelectionItemModel>> m_displayGroupSelectionModels;
+        
+        bool m_modelHasBeenCreatedFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

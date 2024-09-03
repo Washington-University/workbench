@@ -46,7 +46,8 @@ namespace caret {
         LabelSelectionItemModel(const AString& fileAndMapName,
                                 const GiftiLabelTable* giftiLabelTable,
                                 const DisplayGroupEnum::Enum displayGroup,
-                                const int32_t tabIndex);
+                                const int32_t tabIndex,
+                                const bool logMismatchedLabelsFlag);
         
         virtual ~LabelSelectionItemModel();
         
@@ -101,11 +102,15 @@ namespace caret {
         
         const int32_t m_tabIndex;
         
+        const bool m_logMismatchedLabelsFlag;
+        
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::map<int32_t, LabelSelectionItem*> m_labelIndexToLabelSelectionItem;
+        std::map<int32_t, LabelSelectionItem*> m_labelKeyToLabelSelectionItem;
         
         std::set<AString> m_buildTreeMissingLabelNames;
+        
+        std::set<AString> m_hierarchyParentNames;
         
         bool m_validFlag = false;
         
