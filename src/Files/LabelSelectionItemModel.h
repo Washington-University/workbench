@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -35,6 +36,7 @@
 
 
 namespace caret {
+    class GiftiLabel;
     class GiftiLabelTable;
     class SceneClassAssistant;
 
@@ -95,6 +97,8 @@ namespace caret {
         
         LabelSelectionItem* buildTree(const CaretHierarchy::Item* hierarchyItem,
                                       const GiftiLabelTable* giftiLabelTable);
+        
+        std::array<uint8_t, 4> getLabelRGBA(const GiftiLabel* label) const;
         
         const AString& m_fileAndMapName;
         

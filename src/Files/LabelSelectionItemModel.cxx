@@ -241,10 +241,25 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
 {
     LabelSelectionItem* itemOut(NULL);
     
+    std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
+    int32_t labelKey(-1);
+    const GiftiLabel* label(giftiLabelTable->getLabel(hierarchyItem->name));
+    if (label != NULL) {
+        rgba = getLabelRGBA(label);
+        labelKey = label->getKey();
+    }
+
     CaretAssert(hierarchyItem);
     const int32_t numChildren(hierarchyItem->children.size());
     if (numChildren > 0) {
-        itemOut = new LabelSelectionItem(hierarchyItem->name);
+        if (label != NULL) {
+            itemOut = new LabelSelectionItem(hierarchyItem->name,
+                                             labelKey,
+                                             rgba);
+        }
+        else {
+            itemOut = new LabelSelectionItem(hierarchyItem->name);
+        }
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(hierarchyItem->children, i);
             itemOut->appendRow(buildTree(&hierarchyItem->children[i],
@@ -254,25 +269,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     }
     else {
         AString name(hierarchyItem->name);
-        std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
-        int32_t labelKey(-1);
-        const GiftiLabel* label(giftiLabelTable->getLabel(hierarchyItem->name));
-        if (label != NULL) {
-            const std::array<float, 4> rgbaFloat {
-                label->getRed(),
-                label->getGreen(),
-                label->getBlue(),
-                label->getAlpha()
-            };
-            for (int i = 0; i < 4; i++) {
-                int32_t c(static_cast<int32_t>(rgbaFloat[i] * 255.0));
-                if (c > 255) c = 255;
-                if (c < 0) c = 0;
-                rgba[i] = c;
-            }
-            labelKey = label->getKey();
-        }
-        else {
+        if (label == NULL) {
             name.append(" (No Label Found)");
             m_buildTreeMissingLabelNames.insert(hierarchyItem->name);
         }
@@ -286,6 +283,37 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     }
     
     return itemOut;
+}
+
+/**
+ * @return The RGBA color for the label as four bytes.  If the label is NULL,
+ * white it returned.
+ * @param label
+ *    The GIFTI label
+ */
+std::array<uint8_t, 4>
+LabelSelectionItemModel::getLabelRGBA(const GiftiLabel* label) const
+{
+    std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
+    if (label == NULL) {
+        return rgba;
+    }
+
+    const std::array<float, 4> rgbaFloat {
+        label->getRed(),
+        label->getGreen(),
+        label->getBlue(),
+        label->getAlpha()
+    };
+    
+    for (int i = 0; i < 4; i++) {
+        int32_t c(static_cast<int32_t>(rgbaFloat[i] * 255.0));
+        if (c > 255) c = 255;
+        if (c < 0) c = 0;
+        rgba[i] = c;
+    }
+    
+    return rgba;
 }
 
 /**
