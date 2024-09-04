@@ -376,6 +376,11 @@ SceneClass*
 LabelSelectionViewHierarchyController::saveToScene(const SceneAttributes* /*sceneAttributes*/,
                                            const AString& instanceName)
 {
+    /*
+     * Make sure current model (m_labelHierarchyModel) is valid
+     */
+    updateLabelViewController();
+    
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "LabelSelectionViewHierarchyController",
                                             1);
