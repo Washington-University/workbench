@@ -142,17 +142,8 @@ DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum display
                                                                   tabIndex,
                                                                   logMismatchedLabelsFlag));
     CaretAssert(modelOut);
-    if (modelOut->isValid()) {
-        m_modelHasBeenCreatedFlag = true;
-    }
-    else {
-        const AString txt("Label Model is invalid for map index="
-                          + AString::number(m_mapIndex + 1)
-                          + " in file "
-                          + m_mapFile->getFileName());
-        CaretLogSevere(txt);
-    }
-    
+    m_modelHasBeenCreatedFlag = true;
+
     return modelOut;
 }
 

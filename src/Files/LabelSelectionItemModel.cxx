@@ -152,17 +152,24 @@ void
 LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
 {
     m_labelKeyToLabelSelectionItem.clear();
+    m_buildTreeMissingLabelNames.clear();
     
     const CaretHierarchy& caretHierarchy(giftiLabelTable->getHierarchy());
     if (caretHierarchy.isEmpty()) {
         return;
     }
-    const CaretHierarchy::Item& root(caretHierarchy.getInvisibleRoot());
+    const CaretHierarchy::Item& caretRootItem(caretHierarchy.getInvisibleRoot());
     
-    m_buildTreeMissingLabelNames.clear();
+    std::vector<LabelSelectionItem*> topLevelItems;
+    const int32_t numChildren(caretRootItem.children.size());
+    if (numChildren > 0) {
+        for (int32_t i = 0; i < numChildren; i++) {
+            CaretAssertVectorIndex(caretRootItem.children, i);
+            topLevelItems.push_back(buildTree(&caretRootItem.children[i],
+                                              giftiLabelTable));
+        }
+    }
     
-    LabelSelectionItem* rootItem(buildTree(&root,
-                                           giftiLabelTable));
     if (m_logMismatchedLabelsFlag) {
         AString text;
         
@@ -213,10 +220,8 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
                     parentItem->appendRow(item);
                 }
             }
-            if (rootItem == NULL) {
-                rootItem = new LabelSelectionItem("");
-            }
-            rootItem->appendRow(parentItem);
+            
+            topLevelItems.push_back(parentItem);
             
             text.appendWithNewLine("   These labels not in hierarchy have been added to the group \""
                                    + parentItem->text()
@@ -235,16 +240,18 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
         
         if ( ! text.isEmpty()) {
             text.insert(0, (m_fileAndMapName + "\n"));
-            CaretLogWarning(text);
+            CaretLogInfo(text);
         }
     }
     
-    invisibleRootItem()->appendRow(rootItem);
+    for (LabelSelectionItem* item : topLevelItems) {
+        invisibleRootItem()->appendRow(item);
+    }
     
     setCheckedStatusOfAllItems(true);
     
     updateCheckedStateOfAllItems();
-
+    
     m_validFlag = true;
 }
 
@@ -290,7 +297,6 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     else {
         AString name(hierarchyItem->name);
         if (label == NULL) {
-            name.append(" (No Label Found)");
             m_buildTreeMissingLabelNames.insert(hierarchyItem->name);
         }
         
@@ -362,6 +368,25 @@ LabelSelectionItemModel::getAllDescendantsOfType(const LabelSelectionItem::ItemT
     return itemsOut;
 }
 
+/**
+ * @return All items at the top level of the hierarchy
+ */
+std::vector<LabelSelectionItem*>
+LabelSelectionItemModel::getTopLevelItems()
+{
+    std::vector<LabelSelectionItem*> itemsOut;
+    
+    QStandardItem* rootItem(invisibleRootItem());
+    const int32_t numChildren(rootItem->rowCount());
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* childItem(rootItem->child(iRow));
+        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(childItem));
+        CaretAssert(labelItem);
+        itemsOut.push_back(labelItem);
+    }
+    
+    return itemsOut;
+}
 /**
  * @return All descendants
  */

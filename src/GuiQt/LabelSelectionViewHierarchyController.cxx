@@ -260,11 +260,20 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                             m_treeView->setModel(m_labelHierarchyModel);
                             m_treeView->setEnabled(true);
                             if (m_labelHierarchyModel != oldHierarchyModel) {
-                                const QModelIndex rootIndex(m_treeView->rootIndex());
-                                if (rootIndex.isValid()) {
-                                    if ( ! m_treeView->isExpanded(rootIndex)) {
-                                        m_treeView->expandAll();
+                                /*
+                                 * If model has changed and NO top level items are expanded,
+                                 * expand all items
+                                 */
+                                bool topLevelItemExpandedFlag(false);
+                                const std::vector<LabelSelectionItem*> topLevelItems(m_labelHierarchyModel->getTopLevelItems());
+                                for (const LabelSelectionItem* item : topLevelItems) {
+                                    if (m_treeView->isExpanded(item->index())) {
+                                        topLevelItemExpandedFlag = true;
+                                        break;
                                     }
+                                }
+                                if ( ! topLevelItemExpandedFlag) {
+                                    m_treeView->expandAll();
                                 }
                             }
                             m_treeView->adjustSize();
@@ -299,19 +308,20 @@ LabelSelectionViewHierarchyController::processSelectionChanges()
 {
     if (m_labelHierarchyModel != NULL) {
         m_labelHierarchyModel->updateCheckedStateOfAllItems();
-    }
-    
-    std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
-    CaretMappableDataFile* mapFile(fileAndMapIndex.first);
-    const int32_t mapIndex(fileAndMapIndex.second);
-    
-    if (mapFile != NULL) {
-        mapFile->updateScalarColoringForMap(mapIndex);
-        if (mapFile->isSurfaceMappable()) {
-            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        
+        std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+        CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+        const int32_t mapIndex(fileAndMapIndex.second);
+        
+        if (mapFile != NULL) {
+            mapFile->updateScalarColoringForMap(mapIndex);
+            if (mapFile->isSurfaceMappable()) {
+                EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+            }
         }
+        
     }
-
+    
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 

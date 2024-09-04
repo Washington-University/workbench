@@ -69,6 +69,8 @@ namespace caret {
         
         std::vector<LabelSelectionItem*> getAllDescendantsOfType(const LabelSelectionItem::ItemType itemType);
         
+        std::vector<LabelSelectionItem*> getTopLevelItems();
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
