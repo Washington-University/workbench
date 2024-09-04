@@ -170,80 +170,82 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
         }
     }
     
-    if (m_logMismatchedLabelsFlag) {
-        AString text;
-        
-        /*
-         * Name in hiearchy has not children and name is not found in label table
-         */
-        if ( ! m_buildTreeMissingLabelNames.empty()) {
-            text.appendWithNewLine("   No labels in the label table were found for these childless elements in the hierarchy:");
-            for (const AString& name : m_buildTreeMissingLabelNames) {
-                text.appendWithNewLine("      " + name);
-            }
+    AString text;
+    
+    /*
+     * Name in hiearchy has not children and name is not found in label table
+     */
+    if ( ! m_buildTreeMissingLabelNames.empty()) {
+        text.appendWithNewLine("   No labels in the label table were found for these childless elements in the hierarchy:");
+        for (const AString& name : m_buildTreeMissingLabelNames) {
+            text.appendWithNewLine("      " + name);
         }
-        
-        /*
-         * Name is in the label table but not found in the hierarchy
-         * OR label is in hierarchy but has children
-         * (Except for unassigned label key)
-         */
-        const int32_t unassignedLabelKey(giftiLabelTable->getUnassignedLabelKey());
-        std::set<AString> buildTreeMissingHierarchyNames;
-        std::set<AString> labelIsParentInHierarchyNames;
-        const std::vector<int32_t> labelKeys(giftiLabelTable->getLabelKeysSortedByName());
-        for (const int32_t key : labelKeys) {
-            if (key != unassignedLabelKey) {
-                if (m_labelKeyToLabelSelectionItem.find(key) == m_labelKeyToLabelSelectionItem.end()) {
-                    const AString labelName(giftiLabelTable->getLabelName(key));
-                    if (m_hierarchyParentNames.find(labelName) != m_hierarchyParentNames.end()) {
-                        labelIsParentInHierarchyNames.insert(labelName);
-                    }
-                    else {
-                        buildTreeMissingHierarchyNames.insert(labelName);
-                    }
+    }
+    
+    /*
+     * Name is in the label table but not found in the hierarchy
+     * OR label is in hierarchy but has children
+     * (Except for unassigned label key)
+     */
+    const int32_t unassignedLabelKey(giftiLabelTable->getUnassignedLabelKey());
+    std::set<AString> buildTreeMissingHierarchyNames;
+    std::set<AString> labelIsParentInHierarchyNames;
+    const std::vector<int32_t> labelKeys(giftiLabelTable->getLabelKeysSortedByName());
+    for (const int32_t key : labelKeys) {
+        if (key != unassignedLabelKey) {
+            if (m_labelKeyToLabelSelectionItem.find(key) == m_labelKeyToLabelSelectionItem.end()) {
+                const AString labelName(giftiLabelTable->getLabelName(key));
+                if (m_hierarchyParentNames.find(labelName) != m_hierarchyParentNames.end()) {
+                    labelIsParentInHierarchyNames.insert(labelName);
+                }
+                else {
+                    buildTreeMissingHierarchyNames.insert(labelName);
                 }
             }
         }
-        
-        if ( ! buildTreeMissingHierarchyNames.empty()) {
-            /*
-             * Add labels from label table that are not in the hierarchy to the hierarchy
-             */
-            LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
-            for (const AString& name : buildTreeMissingHierarchyNames) {
-                const GiftiLabel* giftiLabel(giftiLabelTable->getLabel(name));
-                if (giftiLabel != NULL) {
-                    LabelSelectionItem* item(new LabelSelectionItem(name,
-                                                                    giftiLabel->getKey(),
-                                                                    getLabelRGBA(giftiLabel)));
-                    parentItem->appendRow(item);
-                }
-            }
-            
-            topLevelItems.push_back(parentItem);
-            
-            text.appendWithNewLine("   These labels not in hierarchy have been added to the group \""
-                                   + parentItem->text()
-                                   + "\": ");
-            for (const AString& name : buildTreeMissingHierarchyNames) {
-                text.appendWithNewLine("      " + name);
+    }
+    
+    if ( ! buildTreeMissingHierarchyNames.empty()) {
+        /*
+         * Add labels from label table that are not in the hierarchy to the hierarchy
+         */
+        LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
+        for (const AString& name : buildTreeMissingHierarchyNames) {
+            const GiftiLabel* giftiLabel(giftiLabelTable->getLabel(name));
+            if (giftiLabel != NULL) {
+                const int32_t labelKey(giftiLabel->getKey());
+                LabelSelectionItem* item(new LabelSelectionItem(name,
+                                                                labelKey,
+                                                                getLabelRGBA(giftiLabel)));
+                parentItem->appendRow(item);
+                m_labelKeyToLabelSelectionItem[labelKey] = item;
             }
         }
         
-        if ( ! labelIsParentInHierarchyNames.empty()) {
-            text.appendWithNewLine("   Label from label table is in the element hierarchy but element contains children:");
-            for (const AString& name : labelIsParentInHierarchyNames) {
-                text.appendWithNewLine("      " + name);
-            }
-        }
+        topLevelItems.push_back(parentItem);
         
-        if ( ! text.isEmpty()) {
+        text.appendWithNewLine("   These labels not in hierarchy have been added to the group \""
+                               + parentItem->text()
+                               + "\": ");
+        for (const AString& name : buildTreeMissingHierarchyNames) {
+            text.appendWithNewLine("      " + name);
+        }
+    }
+    
+    if ( ! labelIsParentInHierarchyNames.empty()) {
+        text.appendWithNewLine("   Label from label table is in the element hierarchy but element contains children:");
+        for (const AString& name : labelIsParentInHierarchyNames) {
+            text.appendWithNewLine("      " + name);
+        }
+    }
+    
+    if ( ! text.isEmpty()) {
+        if (m_logMismatchedLabelsFlag) {
             text.insert(0, (m_fileAndMapName + "\n"));
             CaretLogInfo(text);
         }
     }
-    
+
     for (LabelSelectionItem* item : topLevelItems) {
         invisibleRootItem()->appendRow(item);
     }
