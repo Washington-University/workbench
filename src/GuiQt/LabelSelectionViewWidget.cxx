@@ -241,6 +241,9 @@ LabelSelectionViewWidget::receiveEvent(Event* event)
 void
 LabelSelectionViewWidget::updateAfterSelectionChanges()
 {
+    m_labelViewController->updateLabelViewController();
+    m_labelViewHierarchyController->updateLabelViewController();
+    
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }

@@ -99,20 +99,37 @@ m_objectNamePrefix(parentObjectName
                                                            mapIndexSpinBox,
                                                            mapNameComboBox);
     
-    QAction* collapseAllAction(new QAction("Collpase All"));
-    QObject::connect(collapseAllAction, &QAction::triggered,
+    QLabel* allLabel(new QLabel("All: "));
+    
+    m_collapseAllAction = new QAction("Collpase");
+    QObject::connect(m_collapseAllAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::collapseAllActionTriggered);
     QToolButton* collapseAllToolButton(new QToolButton());
-    collapseAllToolButton->setDefaultAction(collapseAllAction);
+    collapseAllToolButton->setDefaultAction(m_collapseAllAction);
     
-    QAction* expandAllAction(new QAction("Expand All"));
-    QObject::connect(expandAllAction, &QAction::triggered,
+    m_expandAllAction = new QAction("Expand");
+    QObject::connect(m_expandAllAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::expandAllActionTriggered);
     QToolButton* expandAllToolButton(new QToolButton());
-    expandAllToolButton->setDefaultAction(expandAllAction);
+    expandAllToolButton->setDefaultAction(m_expandAllAction);
+
+    m_allOnAction = new QAction("On");
+    QObject::connect(m_allOnAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::allOnActionTriggered);
+    QToolButton* allOnToolButton(new QToolButton());
+    allOnToolButton->setDefaultAction(m_allOnAction);
+    
+    m_allOffAction = new QAction("Off");
+    QObject::connect(m_allOffAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::allOffActionTriggered);
+    QToolButton* allOffToolButton(new QToolButton());
+    allOffToolButton->setDefaultAction(m_allOffAction);
 
     QHBoxLayout* collpaseExpandLayout(new QHBoxLayout());
     collpaseExpandLayout->setContentsMargins(2, 2, 2, 2);
+    collpaseExpandLayout->addWidget(allLabel);
+    collpaseExpandLayout->addWidget(allOnToolButton);
+    collpaseExpandLayout->addWidget(allOffToolButton);
     collpaseExpandLayout->addWidget(collapseAllToolButton);
     collpaseExpandLayout->addWidget(expandAllToolButton);
     collpaseExpandLayout->addStretch();
@@ -297,6 +314,11 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
     
     m_treeView->adjustSize();
     
+    m_allOnAction->setEnabled(enableTreeViewFlag);
+    m_allOffAction->setEnabled(enableTreeViewFlag);
+    m_collapseAllAction->setEnabled(enableTreeViewFlag);
+    m_expandAllAction->setEnabled(enableTreeViewFlag);
+    
     setEnabled(enableWidgetFlag);
 }
 
@@ -341,6 +363,30 @@ void
 LabelSelectionViewHierarchyController::expandAllActionTriggered()
 {
     m_treeView->expandAll();
+}
+
+/**
+ * Called when expand all action is triggered
+ */
+void
+LabelSelectionViewHierarchyController::allOnActionTriggered()
+{
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->setCheckedStatusOfAllItems(true);
+        processSelectionChanges();
+    }
+}
+
+/**
+ * Called when expand all action is triggered
+ */
+void
+LabelSelectionViewHierarchyController::allOffActionTriggered()
+{
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->setCheckedStatusOfAllItems(false);
+        processSelectionChanges();
+    }
 }
 
 /**

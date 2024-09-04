@@ -70,6 +70,10 @@ namespace caret {
         
         void expandAllActionTriggered();
         
+        void allOnActionTriggered();
+        
+        void allOffActionTriggered();
+        
     private:
         LabelSelectionViewHierarchyController(const LabelSelectionViewHierarchyController&);
 
@@ -85,6 +89,14 @@ namespace caret {
         int32_t m_browserWindowIndex;
         
         QTreeView* m_treeView;
+        
+        QAction* m_collapseAllAction;
+        
+        QAction* m_expandAllAction;
+        
+        QAction* m_allOnAction;
+        
+        QAction* m_allOffAction;
         
         LabelSelectionItemModel* m_labelHierarchyModel = NULL;
         
