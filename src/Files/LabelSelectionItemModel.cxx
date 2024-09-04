@@ -163,8 +163,6 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
     
     LabelSelectionItem* rootItem(buildTree(&root,
                                            giftiLabelTable));
-    invisibleRootItem()->appendRow(rootItem);
-
     if (m_logMismatchedLabelsFlag) {
         AString text;
         
@@ -202,7 +200,27 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
         }
         
         if ( ! buildTreeMissingHierarchyNames.empty()) {
-            text.appendWithNewLine("   No elements in the hierarchy were found for these labels in the label table:");
+            /*
+             * Add labels from label table that are not in the hierarchy to the hierarchy
+             */
+            LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
+            for (const AString& name : buildTreeMissingHierarchyNames) {
+                const GiftiLabel* giftiLabel(giftiLabelTable->getLabel(name));
+                if (giftiLabel != NULL) {
+                    LabelSelectionItem* item(new LabelSelectionItem(name,
+                                                                    giftiLabel->getKey(),
+                                                                    getLabelRGBA(giftiLabel)));
+                    parentItem->appendRow(item);
+                }
+            }
+            if (rootItem == NULL) {
+                rootItem = new LabelSelectionItem("");
+            }
+            rootItem->appendRow(parentItem);
+            
+            text.appendWithNewLine("   These labels not in hierarchy have been added to the group \""
+                                   + parentItem->text()
+                                   + "\": ");
             for (const AString& name : buildTreeMissingHierarchyNames) {
                 text.appendWithNewLine("      " + name);
             }
@@ -220,6 +238,8 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
             CaretLogWarning(text);
         }
     }
+    
+    invisibleRootItem()->appendRow(rootItem);
     
     setCheckedStatusOfAllItems(true);
     

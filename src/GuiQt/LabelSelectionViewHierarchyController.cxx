@@ -227,62 +227,68 @@ LabelSelectionViewHierarchyController::processFileSelectionChanged()
 /**
  * Update the label selection widget.
  */
-void 
+void
 LabelSelectionViewHierarchyController::updateLabelViewController()
 {
-    setWindowTitle("Labels");
+    bool enableTreeViewFlag(false);
+    bool enableWidgetFlag(false);
     
-    BrowserTabContent* browserTabContent = 
+    BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    if (browserTabContent == NULL) {
-        setEnabled(false);
-        return;
-    }
-    const int32_t browserTabIndex(browserTabContent->getTabNumber());
-    
-    std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
-    CaretMappableDataFile* mapFile(fileAndMapIndex.first);
-    const int32_t mapIndex(fileAndMapIndex.second);
-    
-    if (mapFile == NULL) {
-        m_treeView->setEnabled(false);
-        return;
-    }
-    
-    setEnabled(true);
-    
-    if ((mapIndex < 0)
-        || (mapIndex >= mapFile->getNumberOfMaps())) {
-        m_treeView->setEnabled(false);
-        return;
-    }
-    if ( ! mapFile->isMappedWithLabelTable()) {
-        m_treeView->setEnabled(false);
-        return;
+    if (browserTabContent != NULL) {
+        const int32_t browserTabIndex(browserTabContent->getTabNumber());
+        
+        std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+        CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+        
+        if (mapFile != NULL) {
+            if (mapFile->isMappedWithLabelTable()) {
+                const int32_t mapIndex(fileAndMapIndex.second);
+                if ((mapIndex >= 0)
+                    && (mapIndex < mapFile->getNumberOfMaps())) {
+                    enableWidgetFlag = true;
+                    
+                    const DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
+                    CaretAssert(dsl);
+                    LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                            dsl->getDisplayGroupForTab(browserTabIndex),
+                                                                                                            browserTabIndex));
+                    if (selectionModel != NULL) {
+                        if (selectionModel->isValid()) {
+                            const LabelSelectionItemModel* oldHierarchyModel(m_labelHierarchyModel);
+                            m_labelHierarchyModel = selectionModel;
+                            m_treeView->setModel(m_labelHierarchyModel);
+                            m_treeView->setEnabled(true);
+                            if (m_labelHierarchyModel != oldHierarchyModel) {
+                                const QModelIndex rootIndex(m_treeView->rootIndex());
+                                if (rootIndex.isValid()) {
+                                    if ( ! m_treeView->isExpanded(rootIndex)) {
+                                        m_treeView->expandAll();
+                                    }
+                                }
+                            }
+                            m_treeView->adjustSize();
+                            
+                            enableTreeViewFlag = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    const DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
-    CaretAssert(dsl);
-    LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
-                                                                                            dsl->getDisplayGroupForTab(browserTabIndex),
-                                                                                            browserTabIndex));
-    if (selectionModel == NULL) {
-        m_treeView->setEnabled(false);
-        return;
+    if (enableTreeViewFlag) {
+        m_treeView->setEnabled(true);
     }
-    if ( ! selectionModel->isValid()) {
+    else {
+        m_labelHierarchyModel = NULL;
+        m_treeView->setModel(NULL);
         m_treeView->setEnabled(false);
-        return;
     }
     
-    const auto oldModel(m_labelHierarchyModel);
-    m_labelHierarchyModel = selectionModel;
-    m_treeView->setModel(m_labelHierarchyModel);
-    m_treeView->setEnabled(true);
-    if (oldModel != m_treeView->model()) {
-        m_treeView->expandAll();
-    }
-    m_treeView->adjustSize();    
+    m_treeView->adjustSize();
+    
+    setEnabled(enableWidgetFlag);
 }
 
 /**
