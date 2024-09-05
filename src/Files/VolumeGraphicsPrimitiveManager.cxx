@@ -269,18 +269,19 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
                                                                        tabDrawingInfo,
                                                                        errorMessage);
         if (primitiveOut != NULL) {
+            std::unique_ptr<GraphicsPrimitiveV3fT3f> ptr(primitiveOut);
             switch (primitiveShape) {
                 case PrimitiveShape::TRIANGLE_FAN:
                     m_mapGraphicsTriangleFanPrimitives.insert(std::make_pair(key,
-                                                                             std::move(primitiveOut)));
+                                                                             std::move(ptr)));
                     break;
                 case PrimitiveShape::TRIANGLE_STRIP:
                     m_mapGraphicsTriangleStripPrimitives.insert(std::make_pair(key,
-                                                                               std::move(primitiveOut)));
+                                                                               std::move(ptr)));
                     break;
                 case PrimitiveShape::TRIANGLES:
                     m_mapGraphicsTrianglesPrimitives.insert(std::make_pair(key,
-                                                                           std::move(primitiveOut)));
+                                                                           std::move(ptr)));
                     break;
             }
         }
