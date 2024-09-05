@@ -216,16 +216,6 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
     PrimitiveKey key(tabDrawingInfo.getMapIndex(),
                      (labelVolumeFlag ? tabDrawingInfo.getTabIndex() : tabZeroIndex));
     
-//    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size())) {
-//        m_mapGraphicsTriangleFanPrimitives.resize(mapIndex + 1);
-//    }
-//    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleStripPrimitives.size())) {
-//        m_mapGraphicsTriangleStripPrimitives.resize(mapIndex + 1);
-//    }
-//    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size())) {
-//        m_mapGraphicsTrianglesPrimitives.resize(mapIndex + 1);
-//    }
-
     GraphicsPrimitiveV3fT3f* primitiveOut(NULL);
     switch (primitiveShape) {
         case PrimitiveShape::TRIANGLE_FAN:
@@ -235,8 +225,6 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
                 primitiveOut = iter->second.get();
             }
         }
-//            CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
-//            primitiveOut = m_mapGraphicsTriangleFanPrimitives[mapIndex].get();
             break;
         case PrimitiveShape::TRIANGLE_STRIP:
         {
@@ -245,8 +233,6 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
                 primitiveOut = iter->second.get();
             }
         }
-//            CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
-//            primitiveOut = m_mapGraphicsTriangleStripPrimitives[mapIndex].get();
             break;
         case PrimitiveShape::TRIANGLES:
         {
@@ -255,8 +241,6 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
                 primitiveOut = iter->second.get();
             }
         }
-//            CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
-//            primitiveOut = m_mapGraphicsTrianglesPrimitives[mapIndex].get();
             break;
     }
     
@@ -288,21 +272,15 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
             switch (primitiveShape) {
                 case PrimitiveShape::TRIANGLE_FAN:
                     m_mapGraphicsTriangleFanPrimitives.insert(std::make_pair(key,
-                                                                             primitiveOut));
-//                    CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
-//                    m_mapGraphicsTriangleFanPrimitives[mapIndex].reset(primitiveOut);
+                                                                             std::move(primitiveOut)));
                     break;
                 case PrimitiveShape::TRIANGLE_STRIP:
                     m_mapGraphicsTriangleStripPrimitives.insert(std::make_pair(key,
-                                                                               primitiveOut));
-//                    CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
-//                    m_mapGraphicsTriangleStripPrimitives[mapIndex].reset(primitiveOut);
+                                                                               std::move(primitiveOut)));
                     break;
                 case PrimitiveShape::TRIANGLES:
                     m_mapGraphicsTrianglesPrimitives.insert(std::make_pair(key,
-                                                                           primitiveOut));
-//                    CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
-//                    m_mapGraphicsTrianglesPrimitives[mapIndex].reset(primitiveOut);
+                                                                           std::move(primitiveOut)));
                     break;
             }
         }

@@ -19,6 +19,7 @@
  */
 /*LICENSE_END*/
 
+#include <QAction>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
