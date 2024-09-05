@@ -435,7 +435,7 @@ Focus::getClassRgba(float rgba[4]) const
  * @param rgba
  *     Red, green, blue, alpha ranging zero to one.
  */
-void Focus::setClassRgba(const float rgba[3])
+void Focus::setClassRgba(const float rgba[4])
 {
     m_classRgbaColor[0] = rgba[0];
     m_classRgbaColor[1] = rgba[1];

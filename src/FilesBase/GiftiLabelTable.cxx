@@ -834,7 +834,7 @@ GiftiLabelTable::getLabelColor(const int32_t key, float rgbaOut[4]) const
 void
 GiftiLabelTable::setLabelColor(
                    const int32_t key,
-                   const float color[])
+                   const float color[4])
 {
     if (key == 0)
     {

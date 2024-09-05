@@ -203,7 +203,7 @@ CaretFileDialog::initializeCaretFileDialog()
     m_filterFilesProxyModel = new FilterFilesProxyModel();
     this->setProxyModel(m_filterFilesProxyModel);
     
-#ifdef Q_OS_MACX
+#ifdef Q_OS_MACOS
     /*
      * On Macs, add /Volumes to the sidebar URLs 
      * so that mounted disks can be accessed.
@@ -211,7 +211,7 @@ CaretFileDialog::initializeCaretFileDialog()
     QList<QUrl> urls = this->sidebarUrls();
     urls.append(QUrl::fromLocalFile("/Volumes"));
     this->setSidebarUrls(urls);
-#endif // Q_OS_MACX
+#endif // Q_OS_MACOS
     
     QObject::connect(this, SIGNAL(filterSelected(const QString&)),
                      this, SLOT(fileFilterWasChanged(const QString&)));

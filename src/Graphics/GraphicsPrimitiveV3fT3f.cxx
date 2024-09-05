@@ -92,7 +92,7 @@ GraphicsPrimitiveV3fT3f::copyHelperGraphicsPrimitiveV3fT3f(const GraphicsPrimiti
  */
 void
 GraphicsPrimitiveV3fT3f::addVertex(const float xyz[3],
-                                   const float str[2])
+                                   const float str[3])
 {
     addVertexProtected(xyz,
                        NULL,

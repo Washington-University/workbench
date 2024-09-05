@@ -38,11 +38,11 @@ namespace caret {
         virtual ~EventNodeIdentificationColorsGetFromCharts();
         
         void addNode(const int32_t nodeIndex,
-                     const float rgba[4]);
+                     const float rgba[3]);
 
 
         void applyChartColorToNode(const int32_t nodeIndex,
-                                   uint8_t rgba[4]);
+                                   uint8_t rgb[3]);
         
         AString getStructureName() const;
         
