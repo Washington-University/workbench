@@ -165,6 +165,10 @@ namespace caret {
             
             VolumeFile* m_volumeFile = NULL;
             
+            const VolumeFile* m_modulationVolumeFile = NULL;
+            
+            int32_t m_modulationMapIndex = -1;
+            
             uint8_t m_opacityByte = 255;
             
             CiftiMappableDataFile* m_thresholdCiftiMappableFile = NULL;
@@ -188,6 +192,8 @@ namespace caret {
             std::vector<float> m_thresholdData;
             
             std::vector<uint8_t> m_rgba;
+            
+            std::vector<float> m_modulationData;
             
             std::vector<int64_t> m_identificationIJK;
             

@@ -41,6 +41,7 @@ namespace caret {
     class MapSettingsFiberTrajectoryWidget;
     class MapSettingsLabelsWidget;
     class MapSettingsLayerWidget;
+    class MapSettingsModulateWidget;
     class MapSettingsPaletteColorMappingWidget;
     class MapSettingsParcelsWidget;
     class Overlay;
@@ -124,6 +125,8 @@ namespace caret {
         
         MapSettingsChartTwoLineHistoryWidget* m_lineHistoryWidget;
         
+        MapSettingsModulateWidget* m_modulateWidget;
+        
         QPushButton* m_editLabelTablePushButton;
         
         QLabel* m_selectedMapFileNameLabel;
@@ -146,6 +149,7 @@ namespace caret {
         
         int32_t m_lineHistoryWidgetTabIndex;
         
+        int32_t m_modulateWidgetTabIndex;
     };
     
 #ifdef __OVERLAY_SETTINGS_EDITOR_DIALOG_DECLARE__

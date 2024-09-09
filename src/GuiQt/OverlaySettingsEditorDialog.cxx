@@ -47,6 +47,7 @@
 #include "MapSettingsFiberTrajectoryWidget.h"
 #include "MapSettingsLabelsWidget.h"
 #include "MapSettingsLayerWidget.h"
+#include "MapSettingsModulateWidget.h"
 #include "MapSettingsPaletteColorMappingWidget.h"
 #include "MapSettingsParcelsWidget.h"
 #include "Overlay.h"
@@ -107,6 +108,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
     
     m_lineHistoryWidget = new MapSettingsChartTwoLineHistoryWidget();
     
+    m_modulateWidget = new MapSettingsModulateWidget();
+    
     m_tabWidget = new QTabWidget();
     
     m_colorBarWidgetTabIndex = m_tabWidget->addTab(m_colorBarWidget,
@@ -118,7 +121,8 @@ OverlaySettingsEditorDialog::OverlaySettingsEditorDialog(QWidget* parent)
 
     m_layersWidgetTabIndex = m_tabWidget->addTab(m_layerWidget,
                       "Layer");
-    
+    m_modulateWidgetTabIndex = m_tabWidget->addTab(m_modulateWidget,
+                                                   "Modulate");
     m_lineHistoryWidgetTabIndex = m_tabWidget->addTab(m_lineHistoryWidget,
                                                       "Dyn-Lines");
     m_metadataWidgetTabIndex = m_tabWidget->addTab(new QWidget(),
@@ -371,6 +375,9 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                     }
                 }
                 
+                m_modulateWidget->updateEditor(m_caretMappableDataFile, 
+                                               m_selectedMapFileIndex);
+                
                 CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(m_caretMappableDataFile);
                 if (trajFile != NULL) {
                     /*
@@ -539,6 +546,8 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                                isFiberTrajectoryValid);
     m_tabWidget->setTabEnabled(m_lineHistoryWidgetTabIndex,
                                isLineHistoryValid);
+    m_tabWidget->setTabEnabled(m_modulateWidgetTabIndex,
+                               isVolumeLayer);
 
     /*
      * When the selected tab is invalid, we want to select the
@@ -550,6 +559,7 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
     priorityTabIndices.push_back(m_lineHistoryWidgetTabIndex);
     priorityTabIndices.push_back(m_colorBarWidgetTabIndex);
     priorityTabIndices.push_back(m_labelsWidgetTabIndex);
+    priorityTabIndices.push_back(m_modulateWidgetTabIndex);
     priorityTabIndices.push_back(m_parcelsWidgetTabIndex);
     priorityTabIndices.push_back(m_trajectoryWidgetTabIndex);
     priorityTabIndices.push_back(m_layersWidgetTabIndex);

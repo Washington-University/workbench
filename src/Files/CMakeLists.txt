@@ -109,6 +109,7 @@ CziImageResolutionChangeModeEnum.h
 CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
+DataFileColorModulateSelector.h
 DataFileLabelSelectionDelegate.h
 DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
@@ -291,6 +292,7 @@ CziImageResolutionChangeModeEnum.cxx
 CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
+DataFileColorModulateSelector.cxx
 DataFileLabelSelectionDelegate.cxx
 DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx

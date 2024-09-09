@@ -37,6 +37,7 @@ namespace caret {
 
     class ChartDataCartesian;
     class ChartableTwoFileDelegate;
+    class DataFileColorModulateSelector;
     class DataFileLabelSelectionDelegate;
     class FastStatistics;
     class GiftiMetaData;
@@ -521,8 +522,10 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
         
-        /**
-         * Are all brainordinates in this file also in the given file?  
+        DataFileColorModulateSelector* getMapColorModulateFileSelector(const int32_t mapIndex);
+        
+        /*
+         * Are all brainordinates in this file also in the given file?
          * That is, the brainordinates are equal to or a subset of the brainordinates
          * in the given file.
          *
@@ -587,6 +590,8 @@ namespace caret {
         mutable std::vector<std::unique_ptr<DataFileLabelSelectionDelegate>> m_labelHierarchySelectionDelegate;
         
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
+        
+        std::map<int32_t, std::unique_ptr<DataFileColorModulateSelector>> m_mapColorModulateFileSelectors;
         
         /**
          * Added by WB-781 Apply to All Maps for ColorBar.

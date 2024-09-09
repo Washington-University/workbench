@@ -182,6 +182,7 @@ ELSE()
         MapSettingsFiberTrajectoryWidget.h
         MapSettingsLabelsWidget.h
         MapSettingsLayerWidget.h
+	MapSettingsModulateWidget.h
         MapSettingsPaletteColorMappingWidget.h
         MapSettingsParcelsWidget.h
         MapYokingGroupComboBox.h
@@ -508,6 +509,7 @@ MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
+MapSettingsModulateWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
 MapYokingGroupComboBox.h
@@ -856,6 +858,7 @@ MapSettingsColorBarWidget.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx
+MapSettingsModulateWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MapSettingsParcelsWidget.cxx
 MapYokingGroupComboBox.cxx

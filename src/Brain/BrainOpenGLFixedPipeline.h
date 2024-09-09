@@ -171,6 +171,7 @@ namespace caret {
                            const FastStatistics* statistics,
                            const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                            const int32_t mapIndex,
+                           const int32_t tabIndex,
                            const float opacity);
             Brain* brain;
             CaretMappableDataFile* mapFile;
@@ -180,6 +181,7 @@ namespace caret {
             WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode;
             const FastStatistics* statistics;
             int32_t mapIndex;
+            int32_t tabIndex;
             float opacity;
         };
 

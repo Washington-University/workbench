@@ -31,6 +31,7 @@
 #include "ChartableTwoFileHistogramChart.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiXML.h"
+#include "DataFileColorModulateSelector.h"
 #include "DataFileContentInformation.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
@@ -123,6 +124,7 @@ CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile& cm
 {
     *m_labelDrawingProperties = *cmdf.m_labelDrawingProperties;
     m_mapThresholdFileSelectionModels.clear();
+    m_mapColorModulateFileSelectors.clear();
 }
 
 // note: method is documented in header file
@@ -513,6 +515,16 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
             sceneClass->addChild(lhMap);
         }
     }
+    
+    if ( ! m_mapColorModulateFileSelectors.empty()) {
+        SceneObjectMapIntegerKey* sceneModMap = new SceneObjectMapIntegerKey("m_mapColorModulateFileSelectors",
+                                                                             SceneObjectDataTypeEnum::SCENE_CLASS);
+        for (auto& iter : m_mapColorModulateFileSelectors) {
+            sceneModMap->addClass(iter.first,
+                                  iter.second->saveToScene(sceneAttributes, "modSelElement"));
+        }
+        sceneClass->addChild(sceneModMap);
+    }
 }
 
 /**
@@ -854,6 +866,22 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                                                                                                      mapIndex));
                 m_labelHierarchySelectionDelegate[mapIndex]->restoreFromScene(sceneAttributes,
                                                                               lhMap->classValue(mapIndex));
+            }
+        }
+    }
+    
+    {
+        m_mapColorModulateFileSelectors.clear();
+        
+        const SceneObjectMapIntegerKey* sceneModMap = sceneClass->getMapIntegerKey("m_mapColorModulateFileSelectors");
+        if (sceneModMap != NULL) {
+            const std::vector<int32_t> keys = sceneModMap->getKeys();
+            for (auto mapIndex : keys) {
+                CaretAssert(mapIndex < getNumberOfMaps());
+                const SceneClass* modSel = dynamic_cast<const SceneClass*>(sceneModMap->getObject(mapIndex));
+                CaretAssert(modSel);
+                getMapColorModulateFileSelector(mapIndex)->restoreFromScene(sceneAttributes,
+                                                                            modSel);
             }
         }
     }
@@ -1238,6 +1266,7 @@ CaretMappableDataFile::clear()
     m_chartingDelegate.reset();
     
     m_mapThresholdFileSelectionModels.clear();
+    m_mapColorModulateFileSelectors.clear();
 }
 
 /**
@@ -1486,6 +1515,20 @@ CaretMappableDataFile::getMapThresholdFileSelectionModel(const int32_t mapIndex)
     
     CaretAssertVectorIndex(m_mapThresholdFileSelectionModels, mapIndex);
     return m_mapThresholdFileSelectionModels[mapIndex].get();
+}
+
+/**
+ * @return The modulate file selection model for the given map index.
+ */
+DataFileColorModulateSelector*
+CaretMappableDataFile::getMapColorModulateFileSelector(const int32_t mapIndex)
+{
+    if (m_mapColorModulateFileSelectors.find(mapIndex) == m_mapColorModulateFileSelectors.end()) {
+        std::unique_ptr<DataFileColorModulateSelector> ptr(new DataFileColorModulateSelector(this));
+        m_mapColorModulateFileSelectors.insert(std::make_pair(mapIndex, std::move(ptr)));
+    }
+    CaretAssert(m_mapColorModulateFileSelectors[mapIndex]);
+    return m_mapColorModulateFileSelectors[mapIndex].get();
 }
 
 /**

@@ -4585,6 +4585,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 {
     volumeDrawInfoOut.clear();
     
+    const int32_t tabIndex(browserTabContent->getTabNumber());
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t iOver = (numberOfOverlays - 1); iOver >= 0; iOver--) {
@@ -4645,6 +4646,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                            statistics,
                                                            wholeBrainVoxelDrawingMode,
                                                            mapIndex,
+                                                           tabIndex,
                                                            opacity);
                                         volumeDrawInfoOut.push_back(vdi);
                                     }
@@ -4663,6 +4665,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                NULL,
                                                wholeBrainVoxelDrawingMode,
                                                mapIndex,
+                                               tabIndex,
                                                opacity);
                             volumeDrawInfoOut.push_back(vdi);
                         }
@@ -9484,7 +9487,8 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
                                                          const FastStatistics* statistics,
                                                          const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                                                          const int32_t mapIndex,
-                                                         const float opacity) 
+                                                         const int32_t tabIndex,
+                                                         const float opacity)
 : statistics(statistics) {
     this->mapFile = mapFile;
     this->volumeFile = volumeFile;
@@ -9492,6 +9496,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->paletteColorMapping = paletteColorMapping;
     this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
     this->mapIndex = mapIndex;
+    this->tabIndex = tabIndex;
     this->opacity    = opacity;
     this->volumeType = SubvolumeAttributes::UNKNOWN;
     if (this->volumeFile != NULL) {

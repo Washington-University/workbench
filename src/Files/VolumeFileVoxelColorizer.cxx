@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileColorModulateSelector.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
@@ -271,6 +272,10 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
             break;
     }
     
+    if (m_mapColoringValid[mapIndex]) {
+        applyColorModulation(mapIndex);
+    }
+    
     CaretLogFine("Time to color map named \""
                    + m_volumeFile->getMapName(mapIndex)
                    + " in volume file "
@@ -278,6 +283,56 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                    + " was "
                    + AString::number(timer.getElapsedTimeMilliseconds())
                    + " milliseconds");
+}
+
+/**
+ * Apply color modulation with another volume file.
+ * Data in modulation file should range [0, 1] and be a single component map.
+ * @param mapIndex
+ *    Index of map in file being colorized
+ */
+void
+VolumeFileVoxelColorizer::applyColorModulation(const int32_t mapIndex) const
+{
+    const DataFileColorModulateSelector* modulateSelector(m_volumeFile->getMapColorModulateFileSelector(mapIndex));
+    CaretAssert(modulateSelector);
+    if (modulateSelector->isEnabled()) {
+        const VolumeFile* modulateVolumeFile(modulateSelector->getSelectedVolumeFile());
+        if (modulateVolumeFile != NULL) {
+            const int32_t modulateMapIndex(modulateSelector->getSelectedMapIndex());
+            if ((modulateMapIndex >= 0)
+                && (modulateMapIndex < modulateVolumeFile->getNumberOfMaps())) {
+                int64_t dimI, dimJ, dimK, mapCount, numComps;
+                modulateVolumeFile->getDimensions(dimI,
+                                                  dimJ,
+                                                  dimK,
+                                                  mapCount,
+                                                  numComps);
+                if ((dimI == m_dimI)
+                    && (dimJ == m_dimJ)
+                    && (dimK == m_dimK)) {
+                    const int64_t componentIndex(0);
+                    const float* modData(modulateVolumeFile->getFrame(modulateMapIndex,
+                                                                      componentIndex));
+                    
+                    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
+                    uint8_t* rgba(m_mapRGBA[mapIndex]);
+                    
+                    for (int64_t i = 0; i < m_voxelCountPerMap; i++) {
+                        float modValue(modData[i]);
+                        if (modValue > 1.0) modValue = 1.0;
+                        if (modValue < 0.0) modValue = 0.0;
+
+                        const int64_t i4(i * 4);
+                        for (int64_t j = 0; j < 3; j++) {
+                            const float v(static_cast<float>(rgba[i4 + j]) * modValue);
+                            rgba[i4 + j] = static_cast<uint8_t>(v);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**

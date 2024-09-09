@@ -109,6 +109,8 @@ namespace caret {
                          + ((ijk[2] * m_dimI * m_dimJ))));
         }
         
+        void applyColorModulation(const int32_t mapIndex) const;
+        
         // ADD_NEW_MEMBERS_HERE
 
         VolumeFile* m_volumeFile;
