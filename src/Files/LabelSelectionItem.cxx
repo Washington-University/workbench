@@ -23,6 +23,7 @@
 #include "LabelSelectionItem.h"
 #undef __LABEL_SELECTION_ITEM_DECLARE__
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -55,12 +56,19 @@ m_labelIndex(labelIndex)
 {
     initializeInstance();
     setText(text);
-    QPixmap iconPixmap(24, 24);
-    iconPixmap.fill(QColor(labelRGBA[0],
-                           labelRGBA[1],
-                           labelRGBA[2],
-                           labelRGBA[3]));
-    setIcon(iconPixmap);
+    
+    /*
+     * Only create pixmap when GUI is available (QApplication / wb_view) otherwise a crash
+     * will occur without a GUI (QCoreApplication / wb_command).
+     */
+    if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+        QPixmap iconPixmap(24, 24);
+        iconPixmap.fill(QColor(labelRGBA[0],
+                               labelRGBA[1],
+                               labelRGBA[2],
+                               labelRGBA[3]));
+        setIcon(iconPixmap);
+    }
 }
 
 /**
@@ -357,6 +365,33 @@ LabelSelectionItem::getThisAndAllDescendants()
     }
 
     return itemsOut;
+}
+
+/**
+ * @return A formatted string showing the hierarchy
+ * @param indentation
+ *    Indentation for the string
+ */
+AString
+LabelSelectionItem::toFormattedString(const AString& indentation) const
+{
+    AString text;
+    
+    text.appendWithNewLine(indentation + AString(this->text()));
+    
+    if (hasChildren()) {
+        const AString& childIndentation(indentation + "   ");
+
+        const int32_t numRows(rowCount());
+        for (int32_t iRow = 0; iRow < numRows; iRow++) {
+            QStandardItem* itemChild(child(iRow));
+            LabelSelectionItem* labelChild(dynamic_cast<LabelSelectionItem*>(itemChild));
+            CaretAssert(labelChild);
+            text.appendWithNewLine(labelChild->toFormattedString(childIndentation));
+        }
+    }
+    
+    return text;
 }
 
 /**

@@ -1119,6 +1119,19 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                             + getMapLabelTable(mapIndex)->toFormattedString("    ")
                                             + "\n");
                 
+                const int32_t tabZero(0);
+                const LabelSelectionItemModel* labelModel(getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                 DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                                                 tabZero));
+                if (labelModel != NULL) {
+                    const AString labelModelText(labelModel->toFormattedString("    "));
+                    if ( ! labelModelText.isEmpty()) {
+                        dataFileInformation.addText(labelTableName
+                                                    + labelModelText
+                                                    + "\n");
+                    }
+                }
+                
                 if ( ! haveLabelTableForEachMap) {
                     break;
                 }

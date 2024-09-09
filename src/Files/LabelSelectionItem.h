@@ -68,6 +68,8 @@ namespace caret {
         
         std::vector<LabelSelectionItem*> getThisAndAllDescendants();
         
+        AString toFormattedString(const AString& indentation) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,

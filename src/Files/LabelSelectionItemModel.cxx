@@ -411,6 +411,27 @@ LabelSelectionItemModel::getAllDescendants()
     return itemsOut;
 }
 
+/**
+ * @return A formatted string showing the hierarchy
+ * @param indentation
+ *    Indentation for the string
+ */
+AString
+LabelSelectionItemModel::toFormattedString(const AString& indentation) const
+{
+    AString text;
+    
+    QStandardItem* rootItem(invisibleRootItem());
+    const int32_t numChildren(rootItem->rowCount());
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* childItem(rootItem->child(iRow));
+        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(childItem));
+        CaretAssert(labelItem);
+        text.appendWithNewLine(labelItem->toFormattedString(indentation + "   "));
+    }
+    
+    return text;
+}
 
 /**
  * Save information specific to this type of model to the scene.
