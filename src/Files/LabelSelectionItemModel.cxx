@@ -294,6 +294,9 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
             itemOut->appendRow(buildTree(&hierarchyItem->children[i],
                                          giftiLabelTable));
         }
+        if (labelKey >= 0) {
+            m_labelKeyToLabelSelectionItem[labelKey] = itemOut;
+        }
         m_hierarchyParentNames.insert(hierarchyItem->name);
     }
     else {
