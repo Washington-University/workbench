@@ -38,6 +38,7 @@ namespace caret {
 
     class CaretMappableDataFile;
     class CaretMappableDataFileAndMapSelectorObject;
+    class LabelSelectionItem;
     class LabelSelectionItemModel;
     
     class LabelSelectionViewHierarchyController : public QWidget, public SceneableInterface {
@@ -59,12 +60,21 @@ namespace caret {
         
         void updateLabelViewController();
         
+    protected:
+//        void contextMenuEvent(QContextMenuEvent* contextMenuEvent) override;
+        
     private slots:
+        LabelSelectionItem* getLabelSelectionItemAtModelIndex(const QModelIndex& modelIndex);
+        
+        void showTreeViewContextMenu(const QPoint& pos);
+        
         void processFileSelectionChanged();
         
         void processSelectionChanges();
         
         void treeItemClicked(const QModelIndex& modelIndex);
+        
+        void treeItemDoubleClicked(const QModelIndex& modelIndex);
         
         void collapseAllActionTriggered();
         

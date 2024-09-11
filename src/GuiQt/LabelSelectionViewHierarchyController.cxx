@@ -20,9 +20,11 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QContextMenuEvent>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
+#include <QMenu>
 #include <QToolButton>
 #include <QTreeView>
 
@@ -48,6 +50,7 @@
 #include "SceneClass.h"
 #include "SceneStringArray.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBoxTwo.h"
 
 using namespace caret;
 
@@ -136,13 +139,20 @@ m_objectNamePrefix(parentObjectName
     collpaseExpandLayout->addStretch();
     
     m_treeView = new QTreeView();
+    m_treeView->setEditTriggers(QTreeView::NoEditTriggers); /* prevent editing text if double-clicked */
+    m_treeView->setExpandsOnDoubleClick(false); /* do not collapse/expand if double-clicked */
     m_treeView->setHeaderHidden(true);
     m_treeView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_treeView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     m_treeView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    m_treeView->setContextMenuPolicy(Qt::CustomContextMenu);
     QObject::connect(m_treeView, &QTreeView::clicked,
                      this, &LabelSelectionViewHierarchyController::treeItemClicked);
-    
+    QObject::connect(m_treeView, &QTreeView::doubleClicked,
+                     this, &LabelSelectionViewHierarchyController::treeItemDoubleClicked);
+    QObject::connect(m_treeView, &QTreeView::customContextMenuRequested,
+                     this, &LabelSelectionViewHierarchyController::showTreeViewContextMenu);
+
     QGridLayout* layout(new QGridLayout(this));
     layout->setVerticalSpacing(layout->verticalSpacing() / 2);
     layout->setColumnStretch(2, 100);
@@ -174,7 +184,17 @@ LabelSelectionViewHierarchyController::~LabelSelectionViewHierarchyController()
  *     Model index that is
  */
 void
-LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelIndex)
+LabelSelectionViewHierarchyController::treeItemDoubleClicked(const QModelIndex& /*modelIndex*/)
+{
+}
+
+/**
+ * @return The LabelSelectionItem at the model index or NULL if not available.
+ * @param modelIndex
+ *    The model index.
+ */
+LabelSelectionItem*
+LabelSelectionViewHierarchyController::getLabelSelectionItemAtModelIndex(const QModelIndex& modelIndex)
 {
     if (modelIndex.isValid()) {
         auto model(modelIndex.model());
@@ -185,24 +205,167 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
                     QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
                     if (standardItem != NULL) {
                         LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
-                        if (labelItem != NULL) {
-                            const auto checkState(standardItem->checkState());
-                            labelItem->setAllChildrenChecked(checkState == Qt::Checked);
-                        }
-                        else {
-                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
-                        }
-                        
-                        processSelectionChanges();
+                        return labelItem;
                     }
-                }
-                else {
-                    CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
                 }
             }
         }
     }
+    return NULL;
 }
+
+/**
+ * Called when tree item is
+ * @param modelIndex
+ *     Model index that is
+ */
+void
+LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelIndex)
+{
+    LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(modelIndex));
+    if (labelItem != NULL) {
+        const auto checkState(labelItem->checkState());
+        labelItem->setAllChildrenChecked(checkState == Qt::Checked);
+    }
+    
+    processSelectionChanges();
+    
+//    if (modelIndex.isValid()) {
+//        auto model(modelIndex.model());
+//        if (model != NULL) {
+//            const QAbstractItemModel* model(modelIndex.model());
+//            if (model != NULL) {
+//                if (model == m_labelHierarchyModel) {
+//                    QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
+//                    if (standardItem != NULL) {
+//                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
+//                        if (labelItem != NULL) {
+//                            const auto checkState(standardItem->checkState());
+//                            labelItem->setAllChildrenChecked(checkState == Qt::Checked);
+//                        }
+//                        else {
+//                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
+//                        }
+//                        
+//                        processSelectionChanges();
+//                    }
+//                }
+//                else {
+//                    CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
+//                }
+//            }
+//        }
+//    }
+}
+
+/**
+ * Show a context menu for the tree view
+ * @param pos
+ *    Position in the tree view
+ */
+void
+LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos)
+{
+    const QModelIndex modelIndex(m_treeView->indexAt(pos));
+    LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(modelIndex));
+    if (labelItem != NULL) {
+        const QString name(labelItem->text());
+        
+        QMenu menu(this);
+        QAction* centerAction(menu.addAction("Go to " + name));
+        QAction* leftAction(menu.addAction("Go to left " + name));
+        QAction* rightAction(menu.addAction("Go to right " + name));
+        QAction* selectedAction(menu.exec(mapToGlobal(pos)));
+        if (selectedAction == centerAction) {
+            
+        }
+        else if (selectedAction == leftAction) {
+            
+        }
+        else if (selectedAction == rightAction) {
+            
+        }
+        else if (selectedAction != NULL) {
+            CaretAssertMessage(0, "Unknown menu item selected " + selectedAction->text());
+        }
+        
+        WuQMessageBoxTwo::information(this, "Info", "not implemented");
+    }
+    
+    processSelectionChanges();
+
+    //    const QModelIndex modelIndex(m_treeView->indexAt(pos));
+//    if (modelIndex.isValid()) {
+//        auto model(modelIndex.model());
+//        if (model != NULL) {
+//            const QAbstractItemModel* model(modelIndex.model());
+//            if (model != NULL) {
+//                if (model == m_labelHierarchyModel) {
+//                    QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
+//                    if (standardItem != NULL) {
+//                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
+//                        if (labelItem != NULL) {
+//                            std::cout << "   Label Item: " << labelItem->text() << std::endl << std::flush;
+//                        }
+//                        else {
+//                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
+//                        }
+//                        
+//                        processSelectionChanges();
+//                    }
+//                }
+//                else {
+//                    CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
+//                }
+//            }
+//        }
+//    }
+}
+
+
+///**
+// * Receive Content Menu events from Qt.
+// * @param contextMenuEvent
+// *    The context menu event.
+// */
+//void
+//LabelSelectionViewHierarchyController::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
+//{
+//    const int x(contextMenuEvent->x());
+//    const int y(contextMenuEvent->y());
+//    const QRect rect(m_treeView->rect());
+//    if (rect.contains(contextMenuEvent->pos())) {
+//        const int treeX(x - m_treeView->x());
+//        const int treeY(y - m_treeView->y());
+//        std::cout << "In tree view: " << treeX << ", " << treeY << std::endl;
+//        const QModelIndex modelIndex(m_treeView->indexAt(QPoint(treeX, treeY)));
+//        if (modelIndex.isValid()) {
+//            auto model(modelIndex.model());
+//            if (model != NULL) {
+//                const QAbstractItemModel* model(modelIndex.model());
+//                if (model != NULL) {
+//                    if (model == m_labelHierarchyModel) {
+//                        QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
+//                        if (standardItem != NULL) {
+//                            LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
+//                            if (labelItem != NULL) {
+//                                std::cout << "   Label Item: " << labelItem->text() << std::endl << std::flush;
+//                            }
+//                            else {
+//                                CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
+//                            }
+//                            
+//                            processSelectionChanges();
+//                        }
+//                    }
+//                    else {
+//                        CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 /**
  * Set the checked status of all children
