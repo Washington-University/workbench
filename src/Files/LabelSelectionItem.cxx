@@ -269,32 +269,32 @@ LabelSelectionItem::setCheckStateFromChildren()
         }
     }
     
-    Qt::CheckState checkStateOut(Qt::Unchecked);
+    Qt::CheckState childrenCheckState(Qt::Unchecked);
     
     if (partiallyCheckedFlag) {
         /*
          * At least one child is partially checked so this instance is partially checked
          */
-        checkStateOut = Qt::PartiallyChecked;
+        childrenCheckState = Qt::PartiallyChecked;
     }
     else if (numChildrenChecked == numChildren) {
         /*
          * All children are checked so this instance is checked
          */
-        checkStateOut = Qt::Checked;
+        childrenCheckState = Qt::Checked;
     }
     else if (numChildrenChecked == 0) {
         /*
          * All children and unchecked so this instance is unchecked
          */
-        checkStateOut = Qt::Unchecked;
+        childrenCheckState = Qt::Unchecked;
     }
     else if (numChildrenChecked > 0) {
         /*
          * Have children that are both checked and unchecked so this
          * instance is partially checked
          */
-        checkStateOut = Qt::PartiallyChecked;;
+        childrenCheckState = Qt::PartiallyChecked;;
     }
     else {
         /*
@@ -303,6 +303,26 @@ LabelSelectionItem::setCheckStateFromChildren()
         CaretAssert(0);
     }
 
+    Qt::CheckState checkStateOut(childrenCheckState);
+    
+    /*
+     * If this item corresponds to a label, its status
+     * is INDEPENDENT of its children.
+     */
+    if (getLabelIndex() >= 0) {
+        switch (checkState()) {
+            case Qt::Checked:
+                checkStateOut = Qt::Checked;
+                break;
+            case Qt::Unchecked:
+                checkStateOut = Qt::Unchecked;
+                break;
+            case Qt::PartiallyChecked:
+                checkStateOut = Qt::Checked;
+                break;
+        }
+    }
+    
     /*
      * Set check state of this instance
      */
