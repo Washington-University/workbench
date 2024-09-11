@@ -60,9 +60,6 @@ namespace caret {
         
         void updateLabelViewController();
         
-    protected:
-//        void contextMenuEvent(QContextMenuEvent* contextMenuEvent) override;
-        
     private slots:
         LabelSelectionItem* getLabelSelectionItemAtModelIndex(const QModelIndex& modelIndex);
         
@@ -96,7 +93,9 @@ namespace caret {
         
         const QString m_objectNamePrefix;
         
-        int32_t m_browserWindowIndex;
+        int32_t m_browserWindowIndex = -1;
+        
+        int32_t m_browserTabIndex = -1;
         
         QTreeView* m_treeView;
         

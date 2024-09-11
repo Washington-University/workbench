@@ -46,7 +46,7 @@ namespace caret {
 
     public:
         LabelSelectionItemModel(const AString& fileAndMapName,
-                                const GiftiLabelTable* giftiLabelTable,
+                                GiftiLabelTable* giftiLabelTable,
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
                                 const bool logMismatchedLabelsFlag);
@@ -73,6 +73,8 @@ namespace caret {
         
         AString toFormattedString(const AString& indentation) const;
         
+        void synchronizeSelectionsWithLabelTable(const bool copyToLabelTableFlag);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -97,7 +99,7 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void buildModel(const GiftiLabelTable* giftiLabelTable);
+        void buildModel();
         
         LabelSelectionItem* buildTree(const CaretHierarchy::Item* hierarchyItem,
                                       const GiftiLabelTable* giftiLabelTable);
@@ -105,6 +107,8 @@ namespace caret {
         std::array<uint8_t, 4> getLabelRGBA(const GiftiLabel* label) const;
         
         const AString& m_fileAndMapName;
+        
+        GiftiLabelTable* m_giftiLabelTable;
         
         const DisplayGroupEnum::Enum m_displayGroup;
         

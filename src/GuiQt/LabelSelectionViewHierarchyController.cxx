@@ -229,33 +229,6 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
     }
     
     processSelectionChanges();
-    
-//    if (modelIndex.isValid()) {
-//        auto model(modelIndex.model());
-//        if (model != NULL) {
-//            const QAbstractItemModel* model(modelIndex.model());
-//            if (model != NULL) {
-//                if (model == m_labelHierarchyModel) {
-//                    QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
-//                    if (standardItem != NULL) {
-//                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
-//                        if (labelItem != NULL) {
-//                            const auto checkState(standardItem->checkState());
-//                            labelItem->setAllChildrenChecked(checkState == Qt::Checked);
-//                        }
-//                        else {
-//                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
-//                        }
-//                        
-//                        processSelectionChanges();
-//                    }
-//                }
-//                else {
-//                    CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
-//                }
-//            }
-//        }
-//    }
 }
 
 /**
@@ -291,81 +264,7 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
         
         WuQMessageBoxTwo::information(this, "Info", "not implemented");
     }
-    
-    processSelectionChanges();
-
-    //    const QModelIndex modelIndex(m_treeView->indexAt(pos));
-//    if (modelIndex.isValid()) {
-//        auto model(modelIndex.model());
-//        if (model != NULL) {
-//            const QAbstractItemModel* model(modelIndex.model());
-//            if (model != NULL) {
-//                if (model == m_labelHierarchyModel) {
-//                    QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
-//                    if (standardItem != NULL) {
-//                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
-//                        if (labelItem != NULL) {
-//                            std::cout << "   Label Item: " << labelItem->text() << std::endl << std::flush;
-//                        }
-//                        else {
-//                            CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
-//                        }
-//                        
-//                        processSelectionChanges();
-//                    }
-//                }
-//                else {
-//                    CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
-//                }
-//            }
-//        }
-//    }
 }
-
-
-///**
-// * Receive Content Menu events from Qt.
-// * @param contextMenuEvent
-// *    The context menu event.
-// */
-//void
-//LabelSelectionViewHierarchyController::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
-//{
-//    const int x(contextMenuEvent->x());
-//    const int y(contextMenuEvent->y());
-//    const QRect rect(m_treeView->rect());
-//    if (rect.contains(contextMenuEvent->pos())) {
-//        const int treeX(x - m_treeView->x());
-//        const int treeY(y - m_treeView->y());
-//        std::cout << "In tree view: " << treeX << ", " << treeY << std::endl;
-//        const QModelIndex modelIndex(m_treeView->indexAt(QPoint(treeX, treeY)));
-//        if (modelIndex.isValid()) {
-//            auto model(modelIndex.model());
-//            if (model != NULL) {
-//                const QAbstractItemModel* model(modelIndex.model());
-//                if (model != NULL) {
-//                    if (model == m_labelHierarchyModel) {
-//                        QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
-//                        if (standardItem != NULL) {
-//                            LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
-//                            if (labelItem != NULL) {
-//                                std::cout << "   Label Item: " << labelItem->text() << std::endl << std::flush;
-//                            }
-//                            else {
-//                                CaretLogSevere("Item in label hieararchy is not a LabelSelectionItem");
-//                            }
-//                            
-//                            processSelectionChanges();
-//                        }
-//                    }
-//                    else {
-//                        CaretAssert("Model in label hieararchy is not m_labelHierarchyModel");
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
 
 /**
  * Set the checked status of all children
@@ -416,8 +315,9 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
     
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    m_browserTabIndex = -1;
     if (browserTabContent != NULL) {
-        const int32_t browserTabIndex(browserTabContent->getTabNumber());
+        m_browserTabIndex = browserTabContent->getTabNumber();
         
         std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
         CaretMappableDataFile* mapFile(fileAndMapIndex.first);
@@ -432,8 +332,8 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                     const DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
                     CaretAssert(dsl);
                     LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
-                                                                                                            dsl->getDisplayGroupForTab(browserTabIndex),
-                                                                                                            browserTabIndex));
+                                                                                                            dsl->getDisplayGroupForTab(m_browserTabIndex),
+                                                                                                            m_browserTabIndex));
                     if (selectionModel != NULL) {
                         if (selectionModel->isValid()) {
                             const LabelSelectionItemModel* oldHierarchyModel(m_labelHierarchyModel);
@@ -506,6 +406,8 @@ LabelSelectionViewHierarchyController::processSelectionChanges()
             }
         }
         
+        const bool copyToLabelTableFlag(true);
+        m_labelHierarchyModel->synchronizeSelectionsWithLabelTable(copyToLabelTableFlag);
     }
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());

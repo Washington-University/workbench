@@ -50,7 +50,7 @@ using namespace caret;
  * @param mapIndex
  *    Index of the map
  */
-DataFileLabelSelectionDelegate::DataFileLabelSelectionDelegate(const CaretMappableDataFile* mapFile,
+DataFileLabelSelectionDelegate::DataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
                                                                const int32_t mapIndex)
 : CaretObject(),
 m_mapFile(mapFile),
@@ -127,7 +127,7 @@ DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum display
                                  + m_mapFile->getFileNameNoPath()
                                  + " Map: "
                                  + mapName);
-    const GiftiLabelTable* labelTable(m_mapFile->getMapLabelTable(m_mapIndex));
+    GiftiLabelTable* labelTable(m_mapFile->getMapLabelTable(m_mapIndex));
     CaretAssert(labelTable);
     
     /*

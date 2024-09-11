@@ -30,6 +30,7 @@
 #include "CaretLogger.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GroupAndNameHierarchyItem.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "ScenePrimitiveArray.h"
@@ -58,21 +59,22 @@ using namespace caret;
  *    If true, log a message if any labels are in hierarchy but not in label table
  */
 LabelSelectionItemModel::LabelSelectionItemModel(const AString& fileAndMapName,
-                                                 const GiftiLabelTable* giftiLabelTable,
+                                                 GiftiLabelTable* giftiLabelTable,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex,
                                                  const bool logMismatchedLabelsFlag)
 : QStandardItemModel(),
 m_fileAndMapName(fileAndMapName),
+m_giftiLabelTable(giftiLabelTable),
 m_displayGroup(displayGroup),
 m_tabIndex(tabIndex),
 m_logMismatchedLabelsFlag(logMismatchedLabelsFlag)
 {
-    CaretAssert(giftiLabelTable);
+    CaretAssert(m_giftiLabelTable);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    buildModel(giftiLabelTable);
+    buildModel();
 }
 
 /**
@@ -105,6 +107,9 @@ LabelSelectionItemModel::setCheckedStatusOfAllItems(const bool checked)
         QStandardItem* childItem(rootItem->child(iRow));
         LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(childItem));
         CaretAssert(labelItem);
+        labelItem->setCheckState(checked
+                                 ? Qt::Checked
+                                 : Qt::Unchecked);
         labelItem->setAllChildrenChecked(checked);
     }
 }
@@ -149,12 +154,14 @@ LabelSelectionItemModel::isLabelChecked(const int32_t labelKey) const
  *    The GIFTI label table
  */
 void
-LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
+LabelSelectionItemModel::buildModel()
 {
+    CaretAssert(m_giftiLabelTable);
+    
     m_labelKeyToLabelSelectionItem.clear();
     m_buildTreeMissingLabelNames.clear();
     
-    const CaretHierarchy& caretHierarchy(giftiLabelTable->getHierarchy());
+    const CaretHierarchy& caretHierarchy(m_giftiLabelTable->getHierarchy());
     if (caretHierarchy.isEmpty()) {
         return;
     }
@@ -166,7 +173,7 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(caretRootItem.children, i);
             topLevelItems.push_back(buildTree(&caretRootItem.children[i],
-                                              giftiLabelTable));
+                                              m_giftiLabelTable));
         }
     }
     
@@ -187,14 +194,14 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
      * OR label is in hierarchy but has children
      * (Except for unassigned label key)
      */
-    const int32_t unassignedLabelKey(giftiLabelTable->getUnassignedLabelKey());
+    const int32_t unassignedLabelKey(m_giftiLabelTable->getUnassignedLabelKey());
     std::set<AString> buildTreeMissingHierarchyNames;
     std::set<AString> labelIsParentInHierarchyNames;
-    const std::vector<int32_t> labelKeys(giftiLabelTable->getLabelKeysSortedByName());
+    const std::vector<int32_t> labelKeys(m_giftiLabelTable->getLabelKeysSortedByName());
     for (const int32_t key : labelKeys) {
         if (key != unassignedLabelKey) {
             if (m_labelKeyToLabelSelectionItem.find(key) == m_labelKeyToLabelSelectionItem.end()) {
-                const AString labelName(giftiLabelTable->getLabelName(key));
+                const AString labelName(m_giftiLabelTable->getLabelName(key));
                 if (m_hierarchyParentNames.find(labelName) != m_hierarchyParentNames.end()) {
                     labelIsParentInHierarchyNames.insert(labelName);
                 }
@@ -211,7 +218,7 @@ LabelSelectionItemModel::buildModel(const GiftiLabelTable* giftiLabelTable)
          */
         LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
         for (const AString& name : buildTreeMissingHierarchyNames) {
-            const GiftiLabel* giftiLabel(giftiLabelTable->getLabel(name));
+            const GiftiLabel* giftiLabel(m_giftiLabelTable->getLabel(name));
             if (giftiLabel != NULL) {
                 const int32_t labelKey(giftiLabel->getKey());
                 LabelSelectionItem* item(new LabelSelectionItem(name,
@@ -437,6 +444,44 @@ LabelSelectionItemModel::toFormattedString(const AString& indentation) const
 }
 
 /**
+ * Synchronize selections between this label hiearchy and the list in the label table
+ * @param copyToLabelTableFlag
+ *   If true, copy selections from this model to the label table,
+ *      else copy selections from the label table to this model.
+ */
+void 
+LabelSelectionItemModel::synchronizeSelectionsWithLabelTable(const bool copyToLabelTableFlag)
+{
+    for (auto& keyItem : m_labelKeyToLabelSelectionItem) {
+        const int32_t key(keyItem.first);
+        CaretAssert(key >= 0);
+        LabelSelectionItem* labelSelectionItem(keyItem.second);
+        CaretAssert(labelSelectionItem);
+        
+        GiftiLabel* label(m_giftiLabelTable->getLabel(key));
+        if (label != NULL) {
+            GroupAndNameHierarchyItem* gnhn(label->getGroupNameSelectionItem());
+            CaretAssert(gnhn);
+            if (copyToLabelTableFlag) {
+                const bool selectedFlag(labelSelectionItem->checkState() != Qt::Unchecked);
+                gnhn->setSelected(m_displayGroup, m_tabIndex, selectedFlag);
+            }
+            else {
+                const Qt::CheckState checkState(gnhn->isSelected(m_displayGroup, m_tabIndex)
+                                                ? Qt::Checked
+                                                : Qt::Unchecked);
+                labelSelectionItem->setCheckState(checkState);
+            }
+        }
+    }
+    
+    if ( ! copyToLabelTableFlag) {
+        updateCheckedStateOfAllItems();
+    }
+}
+
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -538,6 +583,5 @@ LabelSelectionItemModel::restoreFromScene(const SceneAttributes* sceneAttributes
     //Uncomment if sub-classes must restore from scene
     //restoreSubClassDataFromScene(sceneAttributes,
     //                             sceneClass);
-    
 }
 

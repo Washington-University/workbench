@@ -38,7 +38,7 @@ namespace caret {
     class DataFileLabelSelectionDelegate : public CaretObject, public SceneableInterface {
         
     public:
-        DataFileLabelSelectionDelegate(const CaretMappableDataFile* mapFile,
+        DataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
                                        const int32_t mapIndex);
         
         virtual ~DataFileLabelSelectionDelegate();
@@ -79,7 +79,7 @@ namespace caret {
         LabelSelectionItemModel* createModel(const DisplayGroupEnum::Enum displayGroup,
                                              const int32_t tabIndex);
         
-        const CaretMappableDataFile* m_mapFile;
+        CaretMappableDataFile* m_mapFile;
         
         const int32_t m_mapIndex;
         
