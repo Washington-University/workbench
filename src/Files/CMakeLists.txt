@@ -60,6 +60,7 @@ CaretDataFileHelper.h
 CaretDataFileSelectionModel.h
 CaretMappableDataFile.h
 CaretMappableDataFileAndMapSelectionModel.h
+CaretMappableDataFileClusterFinder.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 ChartableLineSeriesBrainordinateInterface.h
@@ -247,6 +248,7 @@ CaretDataFileHelper.cxx
 CaretDataFileSelectionModel.cxx
 CaretMappableDataFile.cxx
 CaretMappableDataFileAndMapSelectionModel.cxx
+CaretMappableDataFileClusterFinder.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx

@@ -31,6 +31,8 @@
 #include "ApplicationInformation.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFileClusterFinder.h"
+#include "CaretResult.h"
 #include "CaretTemporaryFile.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
@@ -2566,6 +2568,32 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
     dataFileInformation.addNameAndValue("Spacing",
                                         AString::fromNumbers(spacing, 3, ", "));
     
+    if (isMappedWithLabelTable()) {
+        for (int32_t i = 0; i < getNumberOfMaps(); i++) {
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::VOLUME_LABEL,
+                                                      this,
+                                                      i);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                const AString mapName(getMapName(i).isEmpty()
+                                      ? AString::number(i + 1)
+                                      : getMapName(i));
+                dataFileInformation.addText("Clusters for map: " + mapName + "\n");
+                dataFileInformation.addText(finder.getClustersInFormattedString());
+                
+//                std::cout << "Map Clusters " << AString::number(i + 1) << std::endl;
+//                const std::vector<BrainordinateCluster>& clusters(finder.getClusters());
+//                for (const auto& c : clusters) {
+//                    dataFileInformation.a
+//                    std::cout << "   " << c.toString() << std::endl;
+//                }
+            }
+            else {
+                CaretLogWarning("Finding clusters error: "
+                                + result->getErrorDescription());
+            }
+        }
+    }
 }
 
 /**
@@ -3144,6 +3172,69 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
                  * texture gets reloaded with the new RGBA coloring.
                  */
                 m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
+            }
+        }
+    }
+}
+
+/**
+ * Get the 26 connected neighbors for a voxel.l
+ * @param voxelIJK
+ *    Indices of voxel
+ *  @param voxelValues
+ *    Pointer to first value in the slice (must contain I * J * K values) also known as 'frame'
+ * @param minValue
+ *    Minimum data value for neighbor (inclusive)
+ * @param maxValue
+ *    Maximum data value for neighbor (inclusive)
+ * @param voxelHasBeenSearchedFlags
+ *    A vector that indicates a voxel has been searched and is not added to the neighbors.
+ *    These flags are updated for any voxel that is added to the neighbors.
+ * @param neighborIJKs
+ *    Voxels that are neighbors with a value in the range and have not been searched
+ *    are APPENDED to this vector (any values in thie vector on entry remain in the
+ *    vector on exit)..
+ */
+void
+VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
+                          const float* voxelValues,
+                          const float minimumValue,
+                          const float maximumValue,
+                          std::vector<char>& voxelHasBeenSearchedFlags,
+                          std::vector<VoxelIJK>& neighborIJKs) const
+{
+    const VolumeSpace vs(getVolumeSpace());
+    const int64_t* dims(vs.getDims());
+    CaretAssert(static_cast<int64_t>(voxelHasBeenSearchedFlags.size())
+                == (dims[0] * dims[1] * dims[2]));
+    
+    CaretAssert((voxelIJK.m_ijk[0] >= 0) && (voxelIJK.m_ijk[0] < dims[0]));
+    CaretAssert((voxelIJK.m_ijk[1] >= 0) && (voxelIJK.m_ijk[1] < dims[1]));
+    CaretAssert((voxelIJK.m_ijk[2] >= 0) && (voxelIJK.m_ijk[2] < dims[2]));
+
+    for (int64_t i = -1; i <= 1; i++) {
+        for (int64_t j = -1; j <= 1; j++) {
+            for (int64_t k = -1; k <= 1; k++) {
+                if ((i != 0) || (j != 0) || (k != 0)) {
+                    const int64_t vi(voxelIJK.m_ijk[0] + i);
+                    const int64_t vj(voxelIJK.m_ijk[1] + j);
+                    const int64_t vk(voxelIJK.m_ijk[2] + k);
+                    if (vs.indexValid(vi, vj, vk)) {
+                        const int64_t offset(vs.getIndex(vi, vj, vk));
+                        CaretAssertVectorIndex(voxelHasBeenSearchedFlags, offset);
+                        if ( ! voxelHasBeenSearchedFlags[offset]) {
+                            voxelHasBeenSearchedFlags[offset] = 1;
+                            const float v(voxelValues[offset]);
+                            if ((v >= minimumValue)
+                                && (v <= maximumValue)) {
+                                CaretAssert((vi >= 0) && (vi < dims[0]));
+                                CaretAssert((vj >= 0) && (vj < dims[1]));
+                                CaretAssert((vk >= 0) && (vk < dims[2]));
+                                neighborIJKs.emplace_back(vi, vj, vk);
+                            }
+                        }
+                    }
+                }
             }
         }
     }

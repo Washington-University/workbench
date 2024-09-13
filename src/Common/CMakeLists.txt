@@ -59,6 +59,7 @@ BackgroundAndForegroundColors.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
+BrainordinateCluster.h
 ByteOrderEnum.h
 ByteSwapping.h
 CardinalDirectionEnum.h
@@ -235,6 +236,7 @@ BackgroundAndForegroundColors.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx
+BrainordinateCluster.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CardinalDirectionEnum.cxx

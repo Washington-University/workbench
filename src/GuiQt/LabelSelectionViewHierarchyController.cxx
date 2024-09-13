@@ -245,9 +245,9 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
         const QString name(labelItem->text());
         
         QMenu menu(this);
-        QAction* centerAction(menu.addAction("Go to " + name));
-        QAction* leftAction(menu.addAction("Go to left " + name));
-        QAction* rightAction(menu.addAction("Go to right " + name));
+        QAction* centerAction(menu.addAction("Identify " + name));
+        QAction* leftAction(menu.addAction("Identify left " + name));
+        QAction* rightAction(menu.addAction("Identify right " + name));
         QAction* selectedAction(menu.exec(mapToGlobal(pos)));
         if (selectedAction == centerAction) {
             

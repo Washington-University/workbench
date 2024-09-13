@@ -462,6 +462,15 @@ namespace caret {
         void setValuesForVoxelEditing(const int32_t mapIndex,
                                       const std::vector<VoxelIJK>& voxelsIJK,
                                       const float value);
+        
+        void getNeigbors26(const VoxelIJK& voxelIJK,
+                           const float* voxelValues,
+                           const float minimumValue,
+                           const float maximumValue,
+                           std::vector<char>& voxelHasBeenSearchedFlags,
+                           std::vector<VoxelIJK>& neighborIJKs) const;
+        
+
     };
 
 }
