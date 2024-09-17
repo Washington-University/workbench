@@ -1277,6 +1277,7 @@ CaretMappableDataFile::clear()
     CaretDataFile::clear();
     
     m_chartingDelegate.reset();
+    m_labelHierarchySelectionDelegate.clear();
     
     m_mapThresholdFileSelectionModels.clear();
     m_mapColorModulateFileSelectors.clear();
