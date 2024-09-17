@@ -24,9 +24,11 @@
 
 #include <array>
 #include <memory>
+#include <vector>
 
 #include <QStandardItem>
 
+#include "Cluster.h"
 #include "SceneableInterface.h"
 
 
@@ -70,6 +72,10 @@ namespace caret {
         
         AString toFormattedString(const AString& indentation) const;
         
+        const std::vector<const Cluster>& getClusters() const;
+        
+        void setClusters(const std::vector<const Cluster*>& clusters);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -77,21 +83,6 @@ namespace caret {
 
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
-
-          
-          
-          
-          
-          
-// If there will be sub-classes of this class that need to save
-// and restore data from scenes, these pure virtual methods can
-// be uncommented to force their implementation by sub-classes.
-//    protected: 
-//        virtual void saveSubClassDataToScene(const SceneAttributes* sceneAttributes,
-//                                             SceneClass* sceneClass) = 0;
-//
-//        virtual void restoreSubClassDataFromScene(const SceneAttributes* sceneAttributes,
-//                                                  const SceneClass* sceneClass) = 0;
 
     protected:
         LabelSelectionItem(const LabelSelectionItem& other);
@@ -112,6 +103,8 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
+        std::vector<const Cluster> m_clusters;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };

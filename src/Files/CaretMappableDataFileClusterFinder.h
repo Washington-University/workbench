@@ -26,7 +26,6 @@
 #include <memory>
 #include <vector>
 
-#include "BrainordinateCluster.h"
 #include "CaretObject.h"
 #include "CaretResult.h"
 #include "Vector3D.h"
@@ -34,26 +33,10 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class ClusterContainer;
     class VolumeFile;
     
     class CaretMappableDataFileClusterFinder : public CaretObject {
-//        class Cluster {
-//        public:
-//            Cluster(const AString  roiName,
-//                         const int32_t  labelIndex,
-//                         const Vector3D roiCenterXYZ,
-//                         const int64_t  numberOfBrainordinatesInROI)
-//            : m_roiName(roiName),
-//            m_labelIndex(labelIndex),
-//            m_roiCenterXYZ(roiCenterXYZ),
-//            m_numberOfBrainordinatesInROI(numberOfBrainordinatesInROI)
-//            { }
-//            
-//            const AString m_roiName;
-//            const int32_t m_labelIndex;
-//            const Vector3D m_roiCenterXYZ;
-//            const int64_t m_numberOfBrainordinatesInROI;
-//        };
             
     public:
         /**
@@ -75,7 +58,9 @@ namespace caret {
         
         std::unique_ptr<CaretResult> findClusters();
         
-        const std::vector<BrainordinateCluster>& getClusters() const;
+        const ClusterContainer* getClusterContainer() const;
+        
+        ClusterContainer* takeClusterContainer();
         
         AString getClustersInFormattedString() const;
         
@@ -90,16 +75,8 @@ namespace caret {
         
         const int32_t m_mapIndex;
         
-        std::vector<BrainordinateCluster> m_clusters;
-        
-//        float m_valueLow = 0.0;
-//        
-//        float m_valueHigh = 0.0;
-        
-//        std::vector<int8_t> m_voxelSearchedFlag;
-//        
-//        VolumeSpace m_volumeSpace;
-        
+        std::unique_ptr<ClusterContainer> m_clusterContainer;
+                
         // ADD_NEW_MEMBERS_HERE
 
     };

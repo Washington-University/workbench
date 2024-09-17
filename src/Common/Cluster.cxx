@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __BRAINORDINATE_CLUSTER_DECLARE__
-#include "BrainordinateCluster.h"
-#undef __BRAINORDINATE_CLUSTER_DECLARE__
+#define __CLUSTER_DECLARE__
+#include "Cluster.h"
+#undef __CLUSTER_DECLARE__
 
 #include "CaretAssert.h"
 using namespace caret;
@@ -29,7 +29,7 @@ using namespace caret;
 
     
 /**
- * \class caret::BrainordinateCluster 
+ * \class caret::Cluster 
  * \brief Data for a brainordinate cluster
  * \ingroup Common
  */
@@ -45,7 +45,7 @@ using namespace caret;
  * @param numberOfBrainordinates
  *    Number of brainordinates in the cluster
  */
-BrainordinateCluster::BrainordinateCluster(const AString& name,
+Cluster::Cluster(const AString& name,
                                            const int32_t key,
                                            const Vector3D& centerOfGravityXYZ,
                                            const int64_t numberOfBrainordinates)
@@ -61,7 +61,7 @@ m_numberOfBrainordinates(numberOfBrainordinates)
 /**
  * Destructor.
  */
-BrainordinateCluster::~BrainordinateCluster()
+Cluster::~Cluster()
 {
 }
 
@@ -70,10 +70,10 @@ BrainordinateCluster::~BrainordinateCluster()
  * @param obj
  *    Object that is copied.
  */
-BrainordinateCluster::BrainordinateCluster(const BrainordinateCluster& obj)
+Cluster::Cluster(const Cluster& obj)
 : CaretObject(obj)
 {
-    this->copyHelperBrainordinateCluster(obj);
+    this->copyHelperCluster(obj);
 }
 
 /**
@@ -83,12 +83,12 @@ BrainordinateCluster::BrainordinateCluster(const BrainordinateCluster& obj)
  * @return 
  *    Reference to this object.
  */
-BrainordinateCluster&
-BrainordinateCluster::operator=(const BrainordinateCluster& obj)
+Cluster&
+Cluster::operator=(const Cluster& obj)
 {
     if (this != &obj) {
         CaretObject::operator=(obj);
-        this->copyHelperBrainordinateCluster(obj);
+        this->copyHelperCluster(obj);
     }
     return *this;    
 }
@@ -99,7 +99,7 @@ BrainordinateCluster::operator=(const BrainordinateCluster& obj)
  *    Object that is copied.
  */
 void 
-BrainordinateCluster::copyHelperBrainordinateCluster(const BrainordinateCluster& obj)
+Cluster::copyHelperCluster(const Cluster& obj)
 {
     m_name                   = obj.m_name;
     m_key                    = obj.m_key;
@@ -108,44 +108,10 @@ BrainordinateCluster::copyHelperBrainordinateCluster(const BrainordinateCluster&
 }
 
 /**
- * Equality operator.
- * @param obj
- *    Instance compared to this for equality.
- * @return 
- *    True if this instance and 'obj' instance are considered equal.
- */
-bool
-BrainordinateCluster::operator<(const BrainordinateCluster& obj) const
-{
-    if (m_name < obj.m_name) {
-        return true;
-    }
-    else if (m_name > obj.m_name) {
-        return false;
-    }
-    
-    if (m_key < obj.m_key) {
-        return true;
-    }
-    else if (m_key > obj.m_key) {
-        return false;
-    }
-    
-    if (m_numberOfBrainordinates < obj.m_numberOfBrainordinates) {
-        return true;
-    }
-    else if (m_numberOfBrainordinates > obj.m_numberOfBrainordinates) {
-        return false;
-    }
-    
-    return (m_centerOfGravityXYZ < obj.m_centerOfGravityXYZ);
-}
-
-/**
  * @return Name of cluster
  */
 AString
-BrainordinateCluster::getName() const
+Cluster::getName() const
 {
     return m_name;
 }
@@ -154,7 +120,7 @@ BrainordinateCluster::getName() const
  * @return Key for cluster
  */
 int32_t
-BrainordinateCluster::getKey() const
+Cluster::getKey() const
 {
     return m_key;
 }
@@ -163,7 +129,7 @@ BrainordinateCluster::getKey() const
  * @return Center of gravity for cluster
  */
 Vector3D
-BrainordinateCluster::getCenterOfGravityXYZ() const
+Cluster::getCenterOfGravityXYZ() const
 {
     return m_centerOfGravityXYZ;
 }
@@ -172,7 +138,7 @@ BrainordinateCluster::getCenterOfGravityXYZ() const
  * @return Number of brainordinates in cluster
  */
 int64_t
-BrainordinateCluster::getNumberOfBrainordinates() const
+Cluster::getNumberOfBrainordinates() const
 {
     return m_numberOfBrainordinates;
 }
@@ -182,7 +148,7 @@ BrainordinateCluster::getNumberOfBrainordinates() const
  * @return String describing this object's content.
  */
 AString 
-BrainordinateCluster::toString() const
+Cluster::toString() const
 {
     AString text;
     text.append("Name=" + m_name);

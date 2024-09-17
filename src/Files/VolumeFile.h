@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <memory>
 
 #include "BrainConstants.h"
@@ -143,6 +144,8 @@ namespace caret {
         bool m_writingDoScale;
 
         double m_minScalingVal, m_maxScalingVal;
+        
+        mutable std::map<int32_t, std::unique_ptr<ClusterContainer>> m_mapLabelClusterContainers;
         
     protected:
         VolumeFile(const DataFileTypeEnum::Enum dataFileType);
@@ -319,6 +322,8 @@ namespace caret {
         GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
         
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
+
+        virtual const ClusterContainer* getMapLabelTableClusters(const int32_t mapIndex) const override;
 
         void getVoxelIndicesWithLabelKey(const int32_t mapIndex,
                                          const int32_t labelKey,

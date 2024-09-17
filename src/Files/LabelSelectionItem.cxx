@@ -25,13 +25,12 @@
 
 #include "ApplicationInformation.h"
 #include "CaretAssert.h"
+#include "Cluster.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
 using namespace caret;
 
-
-    
 /**
  * \class caret::LabelSelectionItem 
  * \brief Extends QStandardItem for label hierarchy
@@ -415,6 +414,30 @@ LabelSelectionItem::toFormattedString(const AString& indentation) const
 }
 
 /**
+ * @return Reference to the clusters
+ */
+const std::vector<const Cluster>&
+LabelSelectionItem::getClusters() const
+{
+    return m_clusters;
+}
+
+/**
+ * Set the clusters
+ * @param clusters
+ *    Clusters that are copied to this instance
+ */
+void
+LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
+{
+    m_clusters.clear();
+    for (const auto& c : clusters) {
+        m_clusters.push_back(Cluster(*c));
+    }
+}
+
+
+/**
  * Save information specific to this type of model to the scene.
  *
  * @param sceneAttributes
@@ -433,42 +456,7 @@ LabelSelectionItem::saveToScene(const SceneAttributes* sceneAttributes,
                                             "LabelSelectionItem",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
-                                  sceneClass);
-    
-//    if (hasChildren()) {
-//        const int32_t numRows(rowCount());
-//        for (int32_t iRow = 0; iRow < numRows; iRow++) {
-//            QStandardItem* itemChild(child(iRow));
-//            LabelSelectionItem* labelChild(dynamic_cast<LabelSelectionItem*>(itemChild));
-//            CaretAssert(labelChild);
-//            sceneClass->addChild(labelChild->saveToScene(sceneAttributes,
-//                                                         labelChild->text()));
-//        }
-//    }
-//    else {
-//        /*
-//         * Only save checked status if no children
-//         */
-//        AString checkText("invalid");
-//        switch (checkState()) {
-//            case Qt::Unchecked:
-//                checkText = "Unchecked";
-//                break;
-//            case Qt::Checked:
-//                checkText = "Checked";
-//                break;
-//            case Qt::PartiallyChecked:
-//                checkText = "PartiallyChecked";
-//                break;
-//        }
-//        sceneClass->addString("checkState",
-//                              checkText);
-//    }
-    
-    // Uncomment if sub-classes must save to scene
-    //saveSubClassDataToScene(sceneAttributes,
-    //                        sceneClass);
-    
+                                  sceneClass);        
     return sceneClass;
 }
 
@@ -492,23 +480,6 @@ LabelSelectionItem::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
-                                     sceneClass);    
-    
-    
-//    const AString checkText(sceneClass->getStringValue("checkState"));
-//    if (checkText == "Unchecked") {
-//        setCheckState(Qt::Unchecked);
-//    }
-//    else if (checkText == "Checked") {
-//        setCheckState(Qt::Checked);
-//    }
-//    else if (checkText == "PartiallyChecked") {
-//        setCheckState(Qt::PartiallyChecked);
-//    }
-    
-    //Uncomment if sub-classes must restore from scene
-    //restoreSubClassDataFromScene(sceneAttributes,
-    //                             sceneClass);
-    
+                                     sceneClass);
 }
 

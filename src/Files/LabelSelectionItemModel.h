@@ -36,6 +36,7 @@
 
 
 namespace caret {
+    class ClusterContainer;
     class GiftiLabel;
     class GiftiLabelTable;
     class SceneClassAssistant;
@@ -47,6 +48,7 @@ namespace caret {
     public:
         LabelSelectionItemModel(const AString& fileAndMapName,
                                 GiftiLabelTable* giftiLabelTable,
+                                const ClusterContainer* clusterContainer,
                                 const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex,
                                 const bool logMismatchedLabelsFlag);
@@ -99,10 +101,11 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private:
-        void buildModel();
+        void buildModel(const ClusterContainer* clusterContainer);
         
         LabelSelectionItem* buildTree(const CaretHierarchy::Item* hierarchyItem,
-                                      const GiftiLabelTable* giftiLabelTable);
+                                      const GiftiLabelTable* giftiLabelTable,
+                                      const ClusterContainer* clusterContainer);
         
         std::array<uint8_t, 4> getLabelRGBA(const GiftiLabel* label) const;
         

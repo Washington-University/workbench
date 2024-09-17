@@ -37,8 +37,9 @@ namespace caret {
 
     class ChartDataCartesian;
     class ChartableTwoFileDelegate;
+    class ClusterContainer;
     class DataFileColorModulateSelector;
-    class DataFileLabelSelectionDelegate;
+    class CaretMappableDataFileLabelSelectionDelegate;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
@@ -387,6 +388,13 @@ namespace caret {
          *    not mapped using a label table).
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
+
+        /**
+         * @return The clusters for the given map's label table (may be NULL)
+         * @param mapIndex
+         *    Index of the map
+         */
+        virtual const ClusterContainer* getMapLabelTableClusters(const int32_t mapIndex) const;
         
         /*
          * @return Label selection hierarchy for the map in the tab (may be NULL)
@@ -587,7 +595,7 @@ namespace caret {
 
         mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
         
-        mutable std::vector<std::unique_ptr<DataFileLabelSelectionDelegate>> m_labelHierarchySelectionDelegate;
+        mutable std::vector<std::unique_ptr<CaretMappableDataFileLabelSelectionDelegate>> m_labelHierarchySelectionDelegate;
         
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         

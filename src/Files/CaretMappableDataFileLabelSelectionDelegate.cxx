@@ -19,9 +19,9 @@
  */
 /*LICENSE_END*/
 
-#define __DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
-#include "DataFileLabelSelectionDelegate.h"
-#undef __DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
+#define __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
+#include "CaretMappableDataFileLabelSelectionDelegate.h"
+#undef __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
 
 #include "BrainConstants.h"
 #include "CaretAssert.h"
@@ -38,7 +38,7 @@ using namespace caret;
 
     
 /**
- * \class caret::DataFileLabelSelectionDelegate 
+ * \class caret::CaretMappableDataFileLabelSelectionDelegate 
  * \brief Handles label hierarchies for data files
  * \ingroup Files
  */
@@ -50,7 +50,7 @@ using namespace caret;
  * @param mapIndex
  *    Index of the map
  */
-DataFileLabelSelectionDelegate::DataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
+CaretMappableDataFileLabelSelectionDelegate::CaretMappableDataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
                                                                const int32_t mapIndex)
 : CaretObject(),
 m_mapFile(mapFile),
@@ -73,7 +73,7 @@ m_mapIndex(mapIndex)
 /**
  * Destructor.
  */
-DataFileLabelSelectionDelegate::~DataFileLabelSelectionDelegate()
+CaretMappableDataFileLabelSelectionDelegate::~CaretMappableDataFileLabelSelectionDelegate()
 {
 }
 
@@ -85,7 +85,7 @@ DataFileLabelSelectionDelegate::~DataFileLabelSelectionDelegate()
  *    Index of the tab
  */
 LabelSelectionItemModel* 
-DataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const DisplayGroupEnum::Enum displayGroup,
+CaretMappableDataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const DisplayGroupEnum::Enum displayGroup,
                                                               const int32_t tabIndex)
 {
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
@@ -116,7 +116,7 @@ DataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const DisplayGroup
  *    Index of the tab
  */
 LabelSelectionItemModel*
-DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum displayGroup,
+CaretMappableDataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum displayGroup,
                                             const int32_t tabIndex)
 {
     AString mapName(m_mapFile->getMapName(m_mapIndex));
@@ -136,8 +136,10 @@ DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum display
      */
     const bool logMismatchedLabelsFlag( ! m_modelHasBeenCreatedFlag);
     
+    const ClusterContainer* labelClusterContainer(m_mapFile->getMapLabelTableClusters(m_mapIndex));
     LabelSelectionItemModel* modelOut(new LabelSelectionItemModel(filenameAndMap,
                                                                   labelTable,
+                                                                  labelClusterContainer,
                                                                   displayGroup,
                                                                   tabIndex,
                                                                   logMismatchedLabelsFlag));
@@ -152,9 +154,9 @@ DataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum::Enum display
  * @return String describing this object's content.
  */
 AString 
-DataFileLabelSelectionDelegate::toString() const
+CaretMappableDataFileLabelSelectionDelegate::toString() const
 {
-    return "DataFileLabelSelectionDelegate";
+    return "CaretMappableDataFileLabelSelectionDelegate";
 }
 
 /**
@@ -169,11 +171,11 @@ DataFileLabelSelectionDelegate::toString() const
  *    Name of instance in the scene.
  */
 SceneClass*
-DataFileLabelSelectionDelegate::saveToScene(const SceneAttributes* sceneAttributes,
+CaretMappableDataFileLabelSelectionDelegate::saveToScene(const SceneAttributes* sceneAttributes,
                                  const AString& instanceName)
 {
     SceneClass* sceneClass = new SceneClass(instanceName,
-                                            "DataFileLabelSelectionDelegate",
+                                            "CaretMappableDataFileLabelSelectionDelegate",
                                             1);
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
@@ -241,7 +243,7 @@ DataFileLabelSelectionDelegate::saveToScene(const SceneAttributes* sceneAttribut
  *     sceneClass from which model specific information is obtained.
  */
 void
-DataFileLabelSelectionDelegate::restoreFromScene(const SceneAttributes* sceneAttributes,
+CaretMappableDataFileLabelSelectionDelegate::restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass)
 {
     if (sceneClass == NULL) {

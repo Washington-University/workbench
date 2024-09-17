@@ -59,7 +59,6 @@ BackgroundAndForegroundColors.h
 Base64.h
 BoundingBox.h
 BrainConstants.h
-BrainordinateCluster.h
 ByteOrderEnum.h
 ByteSwapping.h
 CardinalDirectionEnum.h
@@ -94,6 +93,8 @@ CaretTemporaryFile.h
 CaretUndoCommand.h
 CaretUndoStack.h
 CaretUnitsTypeEnum.h
+Cluster.h
+ClusterContainer.h
 ColorFunctions.h
 CubicSpline.h
 DataCompressZLib.h
@@ -236,7 +237,6 @@ BackgroundAndForegroundColors.cxx
 Base64.cxx
 BoundingBox.cxx
 BrainConstants.cxx
-BrainordinateCluster.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CardinalDirectionEnum.cxx
@@ -263,6 +263,8 @@ CaretTemporaryFile.cxx
 CaretUndoCommand.cxx
 CaretUndoStack.cxx
 CaretUnitsTypeEnum.cxx
+Cluster.cxx
+ClusterContainer.cxx
 ColorFunctions.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx

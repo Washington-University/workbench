@@ -41,7 +41,7 @@
 #include "Histogram.h"
 #include "LabelDrawingProperties.h"
 #include "LabelSelectionItemModel.h"
-#include "DataFileLabelSelectionDelegate.h"
+#include "CaretMappableDataFileLabelSelectionDelegate.h"
 #include "NodeAndVoxelColoring.h"
 #include "PaletteColorMapping.h"
 #include "SceneClass.h"
@@ -862,7 +862,7 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
                 if (static_cast<int32_t>(m_labelHierarchySelectionDelegate.size()) < (mapIndex + 1)) {
                     m_labelHierarchySelectionDelegate.resize(mapIndex + 1);
                 }
-                m_labelHierarchySelectionDelegate[mapIndex].reset(new DataFileLabelSelectionDelegate(this,
+                m_labelHierarchySelectionDelegate[mapIndex].reset(new CaretMappableDataFileLabelSelectionDelegate(this,
                                                                                                      mapIndex));
                 m_labelHierarchySelectionDelegate[mapIndex]->restoreFromScene(sceneAttributes,
                                                                               lhMap->classValue(mapIndex));
@@ -1559,6 +1559,17 @@ CaretMappableDataFile::updateAfterFileDataChanges()
 }
 
 /**
+ * @return The clusters for the given map's label table (may be NULL)
+ * @param mapIndex
+ *    Index of the map
+ */
+const ClusterContainer* 
+CaretMappableDataFile::getMapLabelTableClusters(const int32_t /*mapIndex*/) const
+{
+    return NULL;
+}
+
+/**
  * @return Label selection hierarchy for the map in the tab (may be NULL)
  * @param mapIndex
  *    Index of map
@@ -1578,7 +1589,7 @@ CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapI
                 m_labelHierarchySelectionDelegate.resize(getNumberOfMaps());
             }
             if ( ! m_labelHierarchySelectionDelegate[mapIndex]) {
-                m_labelHierarchySelectionDelegate[mapIndex].reset(new DataFileLabelSelectionDelegate(this,
+                m_labelHierarchySelectionDelegate[mapIndex].reset(new CaretMappableDataFileLabelSelectionDelegate(this,
                                                                                                      mapIndex));
             }
             

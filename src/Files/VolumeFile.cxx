@@ -36,6 +36,7 @@
 #include "CaretTemporaryFile.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
+#include "ClusterContainer.h"
 #include "DataFileContentInformation.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
@@ -1538,6 +1539,43 @@ VolumeFile::getMapLabelTable(const int32_t mapIndex) const
 }
 
 /**
+ * @return The clusters for the given map's label table (may be NULL)
+ * @param mapIndex
+ *    Index of the map
+ */
+const ClusterContainer*
+VolumeFile::getMapLabelTableClusters(const int32_t mapIndex) const
+{
+    if (isMappedWithLabelTable()) {
+        /*
+         * If it does not exist, no attempt has been made to create it
+         */
+        if (m_mapLabelClusterContainers.find(mapIndex) == m_mapLabelClusterContainers.end()) {
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::VOLUME_LABEL,
+                                                      this,
+                                                      mapIndex);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(finder.takeClusterContainer());
+            }
+            else {
+                CaretLogWarning(result->getErrorDescription());
+                ClusterContainer* nullPointer(NULL);
+                /*
+                 * Putting a NULL in here, prevents running find clusters again
+                 */
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(nullPointer);
+                CaretAssertToDoFatal();
+            }
+        }
+
+        return m_mapLabelClusterContainers[mapIndex].get();
+    }
+    
+    return NULL;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * Red, Green, Blue, Alpha values.
  */
@@ -2579,14 +2617,7 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
                                       ? AString::number(i + 1)
                                       : getMapName(i));
                 dataFileInformation.addText("Clusters for map: " + mapName + "\n");
-                dataFileInformation.addText(finder.getClustersInFormattedString());
-                
-//                std::cout << "Map Clusters " << AString::number(i + 1) << std::endl;
-//                const std::vector<BrainordinateCluster>& clusters(finder.getClusters());
-//                for (const auto& c : clusters) {
-//                    dataFileInformation.a
-//                    std::cout << "   " << c.toString() << std::endl;
-//                }
+                dataFileInformation.addText(finder.getClustersInFormattedString());                
             }
             else {
                 CaretLogWarning("Finding clusters error: "

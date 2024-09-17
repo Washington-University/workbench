@@ -61,6 +61,7 @@ CaretDataFileSelectionModel.h
 CaretMappableDataFile.h
 CaretMappableDataFileAndMapSelectionModel.h
 CaretMappableDataFileClusterFinder.h
+CaretMappableDataFileLabelSelectionDelegate.h
 CaretSparseFile.h
 CaretVolumeExtension.h
 ChartableLineSeriesBrainordinateInterface.h
@@ -111,7 +112,6 @@ CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 DataFileColorModulateSelector.h
-DataFileLabelSelectionDelegate.h
 DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
@@ -249,6 +249,7 @@ CaretDataFileSelectionModel.cxx
 CaretMappableDataFile.cxx
 CaretMappableDataFileAndMapSelectionModel.cxx
 CaretMappableDataFileClusterFinder.cxx
+CaretMappableDataFileLabelSelectionDelegate.cxx
 CaretSparseFile.cxx
 CaretVolumeExtension.cxx
 ChartableLineSeriesInterface.cxx
@@ -295,7 +296,6 @@ CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 DataFileColorModulateSelector.cxx
-DataFileLabelSelectionDelegate.cxx
 DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx

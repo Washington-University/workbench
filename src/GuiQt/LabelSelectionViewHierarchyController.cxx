@@ -39,8 +39,10 @@
 #include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
+#include "Cluster.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -244,25 +246,37 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
     if (labelItem != NULL) {
         const QString name(labelItem->text());
         
-        QMenu menu(this);
-        QAction* centerAction(menu.addAction("Identify " + name));
-        QAction* leftAction(menu.addAction("Identify left " + name));
-        QAction* rightAction(menu.addAction("Identify right " + name));
-        QAction* selectedAction(menu.exec(mapToGlobal(pos)));
-        if (selectedAction == centerAction) {
+        const std::vector<const Cluster> clusters(labelItem->getClusters());
+        if ( ! clusters.empty()) {
+            QMenu menu(this);
+
+            std::vector<QAction*> actions;
+            for (const Cluster& c : clusters) {
+                QAction* a(menu.addAction(AString::number(c.getNumberOfBrainordinates())
+                                          + " Brainordinates; "
+                                          + "COG: "
+                                          + c.getCenterOfGravityXYZ().toString()));
+                actions.push_back(a);
+            }
+            CaretAssert(actions.size() == clusters.size());
             
+            QAction* selectedAction(menu.exec(m_treeView->mapToGlobal(pos)));
+            for (int32_t i = 0; i < static_cast<int32_t>(clusters.size()); i++) {
+                if (selectedAction == actions[i]) {
+                    CaretAssertVectorIndex(clusters, i);
+                    const Vector3D cogXYZ(clusters[i].getCenterOfGravityXYZ());
+                    
+                    EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
+                                                                           cogXYZ,
+                                                                           cogXYZ,
+                                                                           EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
+                    EventManager::get()->sendEvent(highlightLocation.getPointer());
+                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                    break;
+                }
+            }
         }
-        else if (selectedAction == leftAction) {
-            
-        }
-        else if (selectedAction == rightAction) {
-            
-        }
-        else if (selectedAction != NULL) {
-            CaretAssertMessage(0, "Unknown menu item selected " + selectedAction->text());
-        }
-        
-        WuQMessageBoxTwo::information(this, "Info", "not implemented");
     }
 }
 

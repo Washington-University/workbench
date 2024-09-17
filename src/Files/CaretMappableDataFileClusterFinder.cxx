@@ -24,6 +24,8 @@
 #undef __CARET_MAPPABLE_DATA_FILE_CLUSTER_FINDER_DECLARE__
 
 #include "CaretLogger.h"
+#include "Cluster.h"
+#include "ClusterContainer.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "CaretAssert.h"
@@ -46,6 +48,8 @@ using namespace caret;
  *   Map file for searching
  * @param findMode
  *   The find mode
+ * @param mapIndex
+ *   Index of map that is searched
  */
 CaretMappableDataFileClusterFinder::CaretMappableDataFileClusterFinder(const FindMode findMode,
                                                                        const CaretMappableDataFile* mapFile,
@@ -56,6 +60,8 @@ m_mapFile(mapFile),
 m_mapIndex(mapIndex)
 {
     CaretAssert(m_mapFile);
+    
+    m_clusterContainer.reset(new ClusterContainer);
 }
 
 /**
@@ -67,7 +73,7 @@ CaretMappableDataFileClusterFinder::~CaretMappableDataFileClusterFinder()
 
 /**
  * Run the search for custers
- * @return String describing this object's content.
+ * @return Result of the search.
  */
 std::unique_ptr<CaretResult>
 CaretMappableDataFileClusterFinder::findClusters()
@@ -83,6 +89,8 @@ CaretMappableDataFileClusterFinder::findClusters()
                                              + m_mapFile->getFileName());
     }
     
+    std::unique_ptr<CaretResult> result;
+    
     switch (m_findMode) {
         case FindMode::VOLUME_LABEL:
         {
@@ -96,20 +104,33 @@ CaretMappableDataFileClusterFinder::findClusters()
                                                      + " is not a label volume file");
             }
             
-            return findLabelVolumeClusters(volumeFile);
+            result = findLabelVolumeClusters(volumeFile);
         }
             break;
     }
-    return CaretResult::newInstanceError("Not implemented");
+    
+    CaretAssert(result);
+    return result;
 }
 
 /**
  * @return The clusters that were found
  */
-const std::vector<BrainordinateCluster>&
-CaretMappableDataFileClusterFinder::getClusters() const
+const ClusterContainer*
+CaretMappableDataFileClusterFinder::getClusterContainer() const
 {
-    return m_clusters;
+    return m_clusterContainer.get();
+}
+
+/**
+ * @return A pointer to the cluster contain that the caller takes ownership
+ * of and is responsible for deleting.  After calling this function, calling this
+ * function again or calling 'getClusterContainer()' will return NULL.
+ */
+ClusterContainer*
+CaretMappableDataFileClusterFinder::takeClusterContainer()
+{
+    return m_clusterContainer.release();
 }
 
 /**
@@ -118,41 +139,16 @@ CaretMappableDataFileClusterFinder::getClusters() const
 AString
 CaretMappableDataFileClusterFinder::getClustersInFormattedString() const
 {
-    const int32_t numClusters(m_clusters.size());
-    if (numClusters <= 0) {
-        return "No clusters were found.";
+    if (m_clusterContainer) {
+        return m_clusterContainer->getClustersInFormattedString();
     }
-    
-    StringTableModel stm(numClusters + 1, 6);
-    stm.setColumnAlignment(0, StringTableModel::ALIGN_RIGHT);
-    stm.setElement(0, 0, "Key");
-    stm.setColumnAlignment(1, StringTableModel::ALIGN_RIGHT);
-    stm.setElement(0, 1, "Count");
-    stm.setColumnAlignment(2, StringTableModel::ALIGN_RIGHT);
-    stm.setElement(0, 2, "X");
-    stm.setColumnAlignment(3, StringTableModel::ALIGN_RIGHT);
-    stm.setElement(0, 3, "Y");
-    stm.setColumnAlignment(4, StringTableModel::ALIGN_RIGHT);
-    stm.setElement(0, 4, "Z");
-    stm.setColumnAlignment(5, StringTableModel::ALIGN_LEFT);
-    stm.setElement(0, 5, "Cluster Name");
-    for (int32_t i = 0; i < numClusters; i++) {
-        const BrainordinateCluster& c = m_clusters[i];
-        const int32_t row(i + 1);
-        stm.setElement(row, 0, c.getKey());
-        stm.setElement(row, 1, c.getNumberOfBrainordinates());
-        const Vector3D& cog = c.getCenterOfGravityXYZ();
-        stm.setElement(row, 2, cog[0]);
-        stm.setElement(row, 3, cog[1]);
-        stm.setElement(row, 4, cog[2]);
-        stm.setElement(row, 5, c.getName());
-    }
-    
-    return stm.getInString();
+    return AString("");
 }
 
 /**
  * Find clusters in a label volume
+ * @param volumeFile
+ *    Volume that is searched
  * @return The result
  */
 std::unique_ptr<CaretResult>
@@ -170,7 +166,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     CaretAssert(voxelData);
 
     /*
-     * Do not search unassiged labels
+     * Set unassiged labels as searched
      */
     const int32_t unassignedLabelKey(labelTable->getUnassignedLabelKey());
     for (int64_t m = 0; m < numVoxels; m++) {
@@ -182,12 +178,22 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
             
     const VolumeSpace& volumeSpace(volumeFile->getVolumeSpace());
     
+    std::set<int32_t> labelKeysWithClusters;
+    
+    /*
+     * Loop through all voxels
+     */
     for (int64_t i = 0; i < dimI; i++) {
         for (int64_t j = 0; j < dimJ; j++) {
             for (int64_t k = 0; k < dimK; k++) {
                 const int64_t voxelOffset(volumeSpace.getIndex(i, j, k));
+                CaretAssertVectorIndex(voxelHasBeenSearchedFlags, voxelOffset);
                 if ( ! voxelHasBeenSearchedFlags[voxelOffset]) {
                     voxelHasBeenSearchedFlags[voxelOffset] = 1;
+                    
+                    /*
+                     * Search for connected voxels with 'labelKey'
+                     */
                     const float labelKey(volumeFile->getValue(i, j, k, m_mapIndex, 0));
                     if (labelTable->getLabel(labelKey) == NULL) {
                         CaretLogInfo("Finding clusters, skipping label key="
@@ -196,31 +202,38 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                         continue;
                     }
                     
-                    CaretAssert((i >= 0) && (i < dimI));
-                    CaretAssert((j >= 0) && (j < dimJ));
-                    CaretAssert((k >= 0) && (k < dimK));
-
-                    VoxelIJK voxelIJK(i, j, k);
+                    labelKeysWithClusters.insert(labelKey);
+                    
+                    const VoxelIJK voxelIJK(i, j, k);
                     Vector3D voxelXYZ;
                     volumeSpace.indexToSpace(voxelIJK, voxelXYZ);
                     
+                    /*
+                     * Sum is used to compute cluster's center of gravity
+                     */
                     Vector3D voxelClusterSumXYZ(voxelXYZ);
                     float numVoxelsInCluster(1.0);
                     
                     std::vector<VoxelIJK> neighboringVoxelIJKsToSearch;
                     neighboringVoxelIJKsToSearch.reserve(500); /* avoid reallocations */
                     
-                    volumeFile->getNeigbors26(voxelIJK, 
+                    /*
+                     * Get neighbors of current voxel
+                     */
+                    volumeFile->getNeigbors26(voxelIJK,
                                               voxelData,
                                               labelKey,
                                               labelKey,
                                               voxelHasBeenSearchedFlags,
                                               neighboringVoxelIJKsToSearch);
                     
+                    /*
+                     * Loop through neighbors
+                     * 'neighboringVoxelIJKsToSearch' will increase as neighbors of neighbors are added
+                     */
                     for (int64_t index = 0; index < static_cast<int64_t>(neighboringVoxelIJKsToSearch.size()); index++) {
                         CaretAssertVectorIndex(neighboringVoxelIJKsToSearch, index);
                         const VoxelIJK& vijk(neighboringVoxelIJKsToSearch[index]);
-                        const int64_t vOffset(volumeSpace.getIndex(vijk.m_ijk));
                         Vector3D xyz;
                         voxelClusterSumXYZ += volumeSpace.indexToSpace(vijk);
                         numVoxelsInCluster += 1.0;
@@ -233,20 +246,41 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                                                   neighboringVoxelIJKsToSearch);
                     }
                     
+                    /*
+                     * Save the cluster
+                     */
+                    CaretAssert(numVoxelsInCluster >= 1.0);
                     const Vector3D clusterCogXYZ(voxelClusterSumXYZ / numVoxelsInCluster);
-                    m_clusters.emplace_back(labelTable->getLabelName(labelKey),
-                                            labelKey,
-                                            clusterCogXYZ,
-                                            static_cast<int64_t>(numVoxelsInCluster));
+                    Cluster* cluster = new Cluster(labelTable->getLabelName(labelKey),
+                                                   labelKey,
+                                                   clusterCogXYZ,
+                                                   static_cast<int64_t>(numVoxelsInCluster));
+                    m_clusterContainer->addCluster(cluster);
                 }
             }
         }
     }
     
-    std::sort(m_clusters.begin(), m_clusters.end());
-    for (const auto& cluster : m_clusters) {
-        std::cout << cluster.toString() << std::endl;
+    const std::set<int32_t> allKeys(labelTable->getKeys());
+    std::set<AString> labelNames;
+    for (const int32_t key : allKeys) {
+        if (labelKeysWithClusters.find(key) == labelKeysWithClusters.end()) {
+            m_clusterContainer->addKeyThatIsNotInAnyCluster(key);
+            labelNames.insert(labelTable->getLabelName(key));
+        }
     }
+    if ( ! labelNames.empty()) {
+        AString text("File: "
+                     + volumeFile->getFileNameNoPath()
+                     + " map: "
+                     + volumeFile->getMapName(m_mapIndex)
+                     + "   \nLabels are not used by any voxels:");
+        for (const AString& name : labelNames) {
+            text.appendWithNewLine("      " + name);
+        }
+        CaretLogInfo(text);
+    }
+    
     
     return CaretResult::newInstanceSuccess();
 }

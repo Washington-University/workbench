@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretHierarchy.h"
 #include "CaretLogger.h"
+#include "ClusterContainer.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GroupAndNameHierarchyItem.h"
@@ -51,6 +52,8 @@ using namespace caret;
  *    Name of file and map containing label table
  * @param GiftiLabelTable
  *    GIFTI label tabel from which this hierarchy is build
+ * @param clusterContainer
+ *    The cluster  container (may be NULL)
  * @param displayGroup
  *    The display group
  * @param tabIndex
@@ -60,6 +63,7 @@ using namespace caret;
  */
 LabelSelectionItemModel::LabelSelectionItemModel(const AString& fileAndMapName,
                                                  GiftiLabelTable* giftiLabelTable,
+                                                 const ClusterContainer* clusterContainer,
                                                  const DisplayGroupEnum::Enum displayGroup,
                                                  const int32_t tabIndex,
                                                  const bool logMismatchedLabelsFlag)
@@ -74,7 +78,7 @@ m_logMismatchedLabelsFlag(logMismatchedLabelsFlag)
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
-    buildModel();
+    buildModel(clusterContainer);
 }
 
 /**
@@ -150,11 +154,11 @@ LabelSelectionItemModel::isLabelChecked(const int32_t labelKey) const
 
 /**
  * Build the tree model from the hierarchy and the label table
- * @param giftiLabelTable
- *    The GIFTI label table
+ * @param clusterContainer
+ *    The cluster container (may be NULL)
  */
 void
-LabelSelectionItemModel::buildModel()
+LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
 {
     CaretAssert(m_giftiLabelTable);
     
@@ -173,7 +177,8 @@ LabelSelectionItemModel::buildModel()
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(caretRootItem.children, i);
             topLevelItems.push_back(buildTree(&caretRootItem.children[i],
-                                              m_giftiLabelTable));
+                                              m_giftiLabelTable,
+                                              clusterContainer));
         }
     }
     
@@ -224,6 +229,9 @@ LabelSelectionItemModel::buildModel()
                 LabelSelectionItem* item(new LabelSelectionItem(name,
                                                                 labelKey,
                                                                 getLabelRGBA(giftiLabel)));
+                if (clusterContainer != NULL) {
+                    item->setClusters(clusterContainer->getClustersWithKey(labelKey));
+                }
                 parentItem->appendRow(item);
                 m_labelKeyToLabelSelectionItem[labelKey] = item;
             }
@@ -257,6 +265,22 @@ LabelSelectionItemModel::buildModel()
         invisibleRootItem()->appendRow(item);
     }
     
+    const std::set<int32_t> keysNotInClusters(clusterContainer->getKeysThatAreNotInAnyClusters());
+    for (auto& keyItem : m_labelKeyToLabelSelectionItem) {
+        const int32_t key(keyItem.first);
+        if (keysNotInClusters.find(key) != keysNotInClusters.end()) {
+            LabelSelectionItem* labelItem(keyItem.second);
+            labelItem->setToolTip("This label is not used by any brainordinates");
+            if ( ! labelItem->hasChildren()) {
+                /*
+                 * Will not do anything since not used by any brainordinates
+                 * AND it has no children so disable it
+                 */
+                labelItem->setEnabled(false);
+            }
+        }
+    }
+    
     setCheckedStatusOfAllItems(true);
     
     updateCheckedStateOfAllItems();
@@ -270,10 +294,13 @@ LabelSelectionItemModel::buildModel()
  *    Hierarchy item and its children are added
  * @param giftiLabelTable
  *    The GIFTI label table
+ * @param clusterContainer
+ *    The cluster container (may be NULL)
  */
 LabelSelectionItem*
 LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
-                                   const GiftiLabelTable* giftiLabelTable)
+                                   const GiftiLabelTable* giftiLabelTable,
+                                   const ClusterContainer* clusterContainer)
 {
     LabelSelectionItem* itemOut(NULL);
     
@@ -292,6 +319,9 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
             itemOut = new LabelSelectionItem(hierarchyItem->name,
                                              labelKey,
                                              rgba);
+            if (clusterContainer != NULL) {
+                itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
+            }
         }
         else {
             itemOut = new LabelSelectionItem(hierarchyItem->name);
@@ -299,7 +329,8 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(hierarchyItem->children, i);
             itemOut->appendRow(buildTree(&hierarchyItem->children[i],
-                                         giftiLabelTable));
+                                         giftiLabelTable,
+                                         clusterContainer));
         }
         if (labelKey >= 0) {
             m_labelKeyToLabelSelectionItem[labelKey] = itemOut;
@@ -308,15 +339,26 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     }
     else {
         AString name(hierarchyItem->name);
-        if (label == NULL) {
-            m_buildTreeMissingLabelNames.insert(hierarchyItem->name);
-        }
-        
         itemOut = new LabelSelectionItem(name,
                                          labelKey,
                                          rgba);
+        if (clusterContainer != NULL) {
+            itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
+        }
+
         if (labelKey >= 0) {
             m_labelKeyToLabelSelectionItem[labelKey] = itemOut;
+        }
+        if (label == NULL) {
+            m_buildTreeMissingLabelNames.insert(name);
+            itemOut->setToolTip("There is no label in the label table for this name");
+            if ( ! itemOut->hasChildren()) {
+                /*
+                 * Will not do anything since there is no label in the label table
+                 * AND it has no children so disable it
+                 */
+                itemOut->setEnabled(false);
+            }
         }
     }
     

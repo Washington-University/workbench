@@ -1,5 +1,5 @@
-#ifndef __DATA_FILE_LABEL_SELECTION_DELEGATE_H__
-#define __DATA_FILE_LABEL_SELECTION_DELEGATE_H__
+#ifndef __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_H__
+#define __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_H__
 
 /*LICENSE_START*/
 /*
@@ -35,17 +35,17 @@ namespace caret {
     class LabelSelectionItemModel;
     class SceneClassAssistant;
 
-    class DataFileLabelSelectionDelegate : public CaretObject, public SceneableInterface {
+    class CaretMappableDataFileLabelSelectionDelegate : public CaretObject, public SceneableInterface {
         
     public:
-        DataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
+        CaretMappableDataFileLabelSelectionDelegate(CaretMappableDataFile* mapFile,
                                        const int32_t mapIndex);
         
-        virtual ~DataFileLabelSelectionDelegate();
+        virtual ~CaretMappableDataFileLabelSelectionDelegate();
         
-        DataFileLabelSelectionDelegate(const DataFileLabelSelectionDelegate&) = delete;
+        CaretMappableDataFileLabelSelectionDelegate(const CaretMappableDataFileLabelSelectionDelegate&) = delete;
 
-        DataFileLabelSelectionDelegate& operator=(const DataFileLabelSelectionDelegate&) = delete;
+        CaretMappableDataFileLabelSelectionDelegate& operator=(const CaretMappableDataFileLabelSelectionDelegate&) = delete;
         
         LabelSelectionItemModel* getSelectionModelForMapAndTab(const DisplayGroupEnum::Enum displayGroup,
                                                                const int32_t tabIndex);
@@ -95,9 +95,9 @@ namespace caret {
 
     };
     
-#ifdef __DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
+#ifdef __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
+#endif // __CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_DECLARE__
 
 } // namespace
-#endif  //__DATA_FILE_LABEL_SELECTION_DELEGATE_H__
+#endif  //__CARET_MAPPABLE_DATA_FILE_LABEL_SELECTION_DELEGATE_H__

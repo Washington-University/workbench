@@ -1,5 +1,5 @@
-#ifndef __BRAINORDINATE_CLUSTER_H__
-#define __BRAINORDINATE_CLUSTER_H__
+#ifndef __CLUSTER_H__
+#define __CLUSTER_H__
 
 /*LICENSE_START*/
 /*
@@ -30,21 +30,19 @@
 
 namespace caret {
 
-    class BrainordinateCluster : public CaretObject {
+    class Cluster : public CaretObject {
         
     public:
-        BrainordinateCluster(const AString& name,
+        Cluster(const AString& name,
                              const int32_t key,
                              const Vector3D& centerOfGravityXYZ,
                              const int64_t numberOfBrainordinates);
         
-        virtual ~BrainordinateCluster();
+        virtual ~Cluster();
         
-        BrainordinateCluster(const BrainordinateCluster& obj);
+        Cluster(const Cluster& obj);
 
-        BrainordinateCluster& operator=(const BrainordinateCluster& obj);
-        
-        bool operator<(const BrainordinateCluster& obj) const;
+        Cluster& operator=(const Cluster& obj);
         
         AString getName() const;
         
@@ -59,7 +57,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void copyHelperBrainordinateCluster(const BrainordinateCluster& obj);
+        void copyHelperCluster(const Cluster& obj);
 
         AString m_name;
         
@@ -71,11 +69,12 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
 
+        friend class ClusterContainer;
     };
     
-#ifdef __BRAINORDINATE_CLUSTER_DECLARE__
+#ifdef __CLUSTER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __BRAINORDINATE_CLUSTER_DECLARE__
+#endif // __CLUSTER_DECLARE__
 
 } // namespace
-#endif  //__BRAINORDINATE_CLUSTER_H__
+#endif  //__CLUSTER_H__
