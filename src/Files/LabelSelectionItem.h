@@ -49,10 +49,12 @@ namespace caret {
         };
         
         LabelSelectionItem(const AString& text,
+                           const AString& ontologyID,
                            const int32_t labelIndex,
                            const std::array<uint8_t, 4>& labelRGBA);
         
-        LabelSelectionItem(const AString& text);
+        LabelSelectionItem(const AString& text,
+                           const AString& ontologyID);
         
         virtual ~LabelSelectionItem();
         
@@ -60,6 +62,8 @@ namespace caret {
         
         virtual int type() const;
 
+        AString getOntologyID() const;
+        
         int32_t getLabelIndex() const;
         
         void setAllChildrenChecked(const bool checked);
@@ -77,6 +81,8 @@ namespace caret {
         const std::vector<const Cluster>& getClusters() const;
         
         void setClusters(const std::vector<const Cluster*>& clusters);
+        
+        void appendToToolTip(const QString& text);
         
         // ADD_NEW_METHODS_HERE
 
@@ -102,6 +108,8 @@ namespace caret {
         Cluster setCenterOfGravityFromChildren();
 
         const ItemType m_itemType;
+        
+        AString m_ontologyID;
         
         int32_t m_labelIndex;
         

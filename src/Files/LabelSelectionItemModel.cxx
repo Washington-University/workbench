@@ -221,12 +221,15 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
         /*
          * Add labels from label table that are not in the hierarchy to the hierarchy
          */
-        LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
+        const AString emptyOntologyID("");
+        LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only",
+                                                              emptyOntologyID));
         for (const AString& name : buildTreeMissingHierarchyNames) {
             const GiftiLabel* giftiLabel(m_giftiLabelTable->getLabel(name));
             if (giftiLabel != NULL) {
                 const int32_t labelKey(giftiLabel->getKey());
                 LabelSelectionItem* item(new LabelSelectionItem(name,
+                                                                emptyOntologyID,
                                                                 labelKey,
                                                                 getLabelRGBA(giftiLabel)));
                 if (clusterContainer != NULL) {
@@ -270,7 +273,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
         const int32_t key(keyItem.first);
         if (keysNotInClusters.find(key) != keysNotInClusters.end()) {
             LabelSelectionItem* labelItem(keyItem.second);
-            labelItem->setToolTip("This label is not used by any brainordinates");
+            labelItem->appendToToolTip("This label is not used by any brainordinates");
             if ( ! labelItem->hasChildren()) {
                 /*
                  * Will not do anything since not used by any brainordinates
@@ -324,6 +327,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     if (numChildren > 0) {
         if (label != NULL) {
             itemOut = new LabelSelectionItem(hierarchyItem->name,
+                                             hierarchyItem->id,
                                              labelKey,
                                              rgba);
             if (clusterContainer != NULL) {
@@ -331,7 +335,8 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
             }
         }
         else {
-            itemOut = new LabelSelectionItem(hierarchyItem->name);
+            itemOut = new LabelSelectionItem(hierarchyItem->name,
+                                             hierarchyItem->id);
         }
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(hierarchyItem->children, i);
@@ -347,6 +352,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     else {
         AString name(hierarchyItem->name);
         itemOut = new LabelSelectionItem(name,
+                                         hierarchyItem->id,
                                          labelKey,
                                          rgba);
         if (clusterContainer != NULL) {
@@ -358,7 +364,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
         }
         if (label == NULL) {
             m_buildTreeMissingLabelNames.insert(name);
-            itemOut->setToolTip("There is no label in the label table for this name");
+            itemOut->appendToToolTip("There is no label in the label table for this name");
             if ( ! itemOut->hasChildren()) {
                 /*
                  * Will not do anything since there is no label in the label table
