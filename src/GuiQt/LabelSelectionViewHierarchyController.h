@@ -29,6 +29,7 @@
 
 #include "SceneableInterface.h"
 
+class QLineEdit;
 class QModelIndex;
 class QStandardItem;
 class QStandardItemModel;
@@ -81,6 +82,12 @@ namespace caret {
         
         void allOffActionTriggered();
         
+        void findActionTriggered();
+        
+        void nextActionTriggered();
+        
+        void findTextLineEditTextChanged(const QString& text);
+        
     private:
         LabelSelectionViewHierarchyController(const LabelSelectionViewHierarchyController&);
 
@@ -90,6 +97,8 @@ namespace caret {
                                            const Qt::CheckState checkState);
         
         std::pair<CaretMappableDataFile*, int32_t> getSelectedFileAndMapIndex();
+        
+        void scrollTreeViewToFindItem();
         
         const QString m_objectNamePrefix;
         
@@ -107,9 +116,19 @@ namespace caret {
         
         QAction* m_allOffAction;
         
+        QAction* m_findAction;
+        
+        QAction* m_nextAction;
+        
+        QLineEdit* m_findTextLineEdit;
+        
         LabelSelectionItemModel* m_labelHierarchyModel = NULL;
         
         CaretMappableDataFileAndMapSelectorObject* m_labelFileAndMapSelector;
+        
+        QList<QStandardItem*> m_findItems;
+        
+        int32_t m_findItemsCurrentIndex = 0;
     };
     
 #ifdef __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER_DECLARE__

@@ -24,6 +24,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
+#include <QLineEdit>
 #include <QMenu>
 #include <QToolButton>
 #include <QTreeView>
@@ -131,14 +132,39 @@ m_objectNamePrefix(parentObjectName
     QToolButton* allOffToolButton(new QToolButton());
     allOffToolButton->setDefaultAction(m_allOffAction);
 
-    QHBoxLayout* collpaseExpandLayout(new QHBoxLayout());
-    collpaseExpandLayout->setContentsMargins(2, 2, 2, 2);
-    collpaseExpandLayout->addWidget(allLabel);
-    collpaseExpandLayout->addWidget(allOnToolButton);
-    collpaseExpandLayout->addWidget(allOffToolButton);
-    collpaseExpandLayout->addWidget(collapseAllToolButton);
-    collpaseExpandLayout->addWidget(expandAllToolButton);
-    collpaseExpandLayout->addStretch();
+    m_findAction = new QAction("Find");
+    m_findAction->setEnabled(false);
+    QObject::connect(m_findAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::findActionTriggered);
+    QToolButton* findToolButton(new QToolButton);
+    findToolButton->setDefaultAction(m_findAction);
+    
+    m_nextAction = new QAction("Next");
+    m_nextAction->setEnabled(false);
+    QObject::connect(m_nextAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::nextActionTriggered);
+    QToolButton* nextToolButton(new QToolButton);
+    nextToolButton->setDefaultAction(m_nextAction);
+
+    m_findTextLineEdit = new QLineEdit();
+    QObject::connect(m_findTextLineEdit, &QLineEdit::returnPressed,
+                     this, &LabelSelectionViewHierarchyController::findActionTriggered);
+    QObject::connect(m_findTextLineEdit, &QLineEdit::textChanged,
+                     this, &LabelSelectionViewHierarchyController::findTextLineEditTextChanged);
+
+    QHBoxLayout* buttonsLayout(new QHBoxLayout());
+    buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
+    buttonsLayout->setContentsMargins(2, 2, 2, 2);
+    buttonsLayout->addWidget(allLabel);
+    buttonsLayout->addWidget(allOnToolButton);
+    buttonsLayout->addWidget(allOffToolButton);
+    buttonsLayout->addWidget(collapseAllToolButton);
+    buttonsLayout->addWidget(expandAllToolButton);
+    buttonsLayout->addSpacing(4);
+    buttonsLayout->addWidget(findToolButton);
+    buttonsLayout->addWidget(nextToolButton);
+    buttonsLayout->addWidget(m_findTextLineEdit,
+                             100); /* stretch factor */
     
     m_treeView = new QTreeView();
     m_treeView->setEditTriggers(QTreeView::NoEditTriggers); /* prevent editing text if double-clicked */
@@ -167,7 +193,7 @@ m_objectNamePrefix(parentObjectName
     layout->addWidget(mapIndexSpinBox, row, 1);
     layout->addWidget(mapNameComboBox, row, 2);
     ++row;
-    layout->addLayout(collpaseExpandLayout, row, 0, 1, 3);
+    layout->addLayout(buttonsLayout, row, 0, 1, 3);
     ++row;
     layout->addWidget(m_treeView, row, 0, 1, 3);
     layout->setRowStretch(row, 100);
@@ -398,6 +424,10 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                             }
                             m_treeView->adjustSize();
                             
+                            m_findItems.clear();
+                            m_findItemsCurrentIndex = 0;
+                            findTextLineEditTextChanged(m_findTextLineEdit->text());
+                            
                             enableTreeViewFlag = true;
                         }
                     }
@@ -413,6 +443,10 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
         m_labelHierarchyModel = NULL;
         m_treeView->setModel(NULL);
         m_treeView->setEnabled(false);
+        
+        m_findItems.clear();
+        m_findItemsCurrentIndex = 0;
+        findTextLineEditTextChanged(m_findTextLineEdit->text());
     }
     
     m_treeView->adjustSize();
@@ -493,6 +527,85 @@ LabelSelectionViewHierarchyController::allOffActionTriggered()
         processSelectionChanges();
     }
 }
+
+/**
+ * Called when find button is clicked or return is pressed in the find line edit
+ */
+void
+LabelSelectionViewHierarchyController::findActionTriggered()
+{
+    m_findItems.clear();
+    m_findItemsCurrentIndex = 0;
+    
+    if (m_labelHierarchyModel != NULL) {
+        const QString findText(m_findTextLineEdit->text().trimmed());
+        
+        const int modelColumn(0);
+        m_findItems = m_labelHierarchyModel->findItems(findText,
+                                                       (Qt::MatchContains
+                                                        | Qt::MatchRecursive),
+                                                       modelColumn);
+        if (m_findItems.isEmpty()) {
+            GuiManager::get()->beep();
+        }
+        scrollTreeViewToFindItem();
+    }
+}
+
+/**
+ * Called when next button is clicked
+ */
+void
+LabelSelectionViewHierarchyController::nextActionTriggered()
+{
+    scrollTreeViewToFindItem();
+}
+
+/**
+ * Scroll the tree view to the next find item
+ */
+void
+LabelSelectionViewHierarchyController::scrollTreeViewToFindItem()
+{
+    const int32_t numFindItems(m_findItems.size());
+    if (numFindItems > 0) {
+        if ((m_findItemsCurrentIndex < 0)
+            || (m_findItemsCurrentIndex >= numFindItems)) {
+            m_findItemsCurrentIndex = 0;
+        }
+        CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
+        const QStandardItem* item(m_findItems[m_findItemsCurrentIndex]);
+        const QModelIndex modelIndex(m_labelHierarchyModel->indexFromItem(item));
+        if (modelIndex.isValid()) {
+            m_treeView->setCurrentIndex(modelIndex);
+            m_treeView->scrollTo(modelIndex,
+                                 QTreeView::PositionAtCenter);
+        }
+        
+        /*
+         * For 'next'
+         */
+        ++m_findItemsCurrentIndex;
+    }
+    
+    m_nextAction->setEnabled(numFindItems > 1);
+}
+
+
+/**
+ * Called when next button is clicked
+ * @param text
+ *    Text in the line edit
+ */
+void
+LabelSelectionViewHierarchyController::findTextLineEditTextChanged(const QString& text)
+{
+    m_findAction->setEnabled( ! text.trimmed().isEmpty());
+    m_nextAction->setEnabled(false);
+    m_findItems.clear();
+    m_findItemsCurrentIndex = 0;
+}
+
 
 /**
  * @return A pair containing the selected file and map index
