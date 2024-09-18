@@ -33,16 +33,20 @@ namespace caret {
     class Cluster : public CaretObject {
         
     public:
-        Cluster(const AString& name,
-                             const int32_t key,
-                             const Vector3D& centerOfGravityXYZ,
-                             const int64_t numberOfBrainordinates);
+        Cluster();
         
+        Cluster(const AString& name,
+                const int32_t key,
+                const Vector3D& centerOfGravityXYZ,
+                const int64_t numberOfBrainordinates);
+
         virtual ~Cluster();
         
         Cluster(const Cluster& obj);
 
         Cluster& operator=(const Cluster& obj);
+        
+        bool isValid() const;
         
         AString getName() const;
         
@@ -59,13 +63,13 @@ namespace caret {
     private:
         void copyHelperCluster(const Cluster& obj);
 
-        AString m_name;
+        AString m_name = "";
         
-        int32_t m_key;
+        int32_t m_key = -1;
         
         Vector3D m_centerOfGravityXYZ;
         
-        int64_t m_numberOfBrainordinates;
+        int64_t m_numberOfBrainordinates = 0;
 
         // ADD_NEW_MEMBERS_HERE
 

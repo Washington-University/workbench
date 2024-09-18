@@ -38,27 +38,6 @@ namespace caret {
     class LabelSelectionItem : public QStandardItem, public SceneableInterface {
         
     public:
-        /**
-         * Contains info on children center of gravity
-         */
-        class ChildCogInfo {
-        public:
-            ChildCogInfo(const Vector3D& centerOfGravity,
-                         const float numberOfBrainordinates,
-                         const bool validFlag)
-            : m_centerOfGravity(centerOfGravity),
-            m_numberOfBrainordinates(numberOfBrainordinates),
-            m_validFlag(validFlag) { }
-            
-            Vector3D getCenterOfGravity() const { return m_centerOfGravity; }
-            float getNumberOfBrainordinates() const { return m_numberOfBrainordinates; }
-            bool isValid() const { return m_validFlag; }
-        private:
-            Vector3D m_centerOfGravity;
-            float m_numberOfBrainordinates;
-            bool m_validFlag;
-        };
-        
         /*
          * Type of item returned by override type() method
          */
@@ -87,7 +66,7 @@ namespace caret {
 
         Qt::CheckState setCheckStateFromChildren();
         
-        std::pair<bool, Vector3D> getCenterOfGravityFromChildren() const;
+        const Cluster& getCenterOfGravityCluster() const;
 
         std::vector<LabelSelectionItem*> getThisAndAllDescendantsOfType(const LabelSelectionItem::ItemType itemType);
         
@@ -120,7 +99,7 @@ namespace caret {
         void setCheckedStatusOfAllChildren(QStandardItem* item,
                                            const Qt::CheckState checkState);
         
-        ChildCogInfo setCenterOfGravityFromChildren();
+        Cluster setCenterOfGravityFromChildren();
 
         const ItemType m_itemType;
         
@@ -130,9 +109,7 @@ namespace caret {
 
         std::vector<const Cluster> m_clusters;
         
-        bool m_centerOfGravityValidFlag = false;
-        
-        Vector3D m_centerOfGravity;
+        Cluster m_centerOfGravityCluster;
         
         friend class LabelSelectionItemModel;
         

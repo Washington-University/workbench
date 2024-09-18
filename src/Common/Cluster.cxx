@@ -35,6 +35,18 @@ using namespace caret;
  */
 
 /**
+ * Default constructor creates an invalid cluster.
+ */
+Cluster::Cluster()
+: CaretObject(),
+m_name(""),
+m_key(-1),
+m_numberOfBrainordinates(0)
+{
+    
+}
+
+/**
  * Constructor.
  * @param name
  *    Name of cluster
@@ -46,9 +58,9 @@ using namespace caret;
  *    Number of brainordinates in the cluster
  */
 Cluster::Cluster(const AString& name,
-                                           const int32_t key,
-                                           const Vector3D& centerOfGravityXYZ,
-                                           const int64_t numberOfBrainordinates)
+                 const int32_t key,
+                 const Vector3D& centerOfGravityXYZ,
+                 const int64_t numberOfBrainordinates)
 : CaretObject(),
 m_name(name),
 m_key(key),
@@ -91,6 +103,15 @@ Cluster::operator=(const Cluster& obj)
         this->copyHelperCluster(obj);
     }
     return *this;    
+}
+
+/**
+ * @return True if this instance is valid (valid is one or more brainordinates)
+ */
+bool
+Cluster::isValid() const
+{
+    return (m_numberOfBrainordinates > 0);
 }
 
 /**

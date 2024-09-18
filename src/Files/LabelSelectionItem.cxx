@@ -331,25 +331,24 @@ LabelSelectionItem::setCheckStateFromChildren()
 }
 
 /**
- * @return  A pair with a boolean indicating the validity of the Vector3D containing the COG for this item
+ * @return the center-of-gravity cluster (may be invalid)
  */
-std::pair<bool, Vector3D>
-LabelSelectionItem::getCenterOfGravityFromChildren() const
+const Cluster&
+LabelSelectionItem::getCenterOfGravityCluster() const
 {
-    return std::make_pair(m_centerOfGravityValidFlag, m_centerOfGravity);
+    return m_centerOfGravityCluster;
 }
 
 /**
  * Set the center of gravity from its children
- * @retrurn A pair with a boolean indicating the validity of the Vector3D containing the COG for this item
+ * @retrurn A cluster containing the center of gravity info.
  */
-LabelSelectionItem::ChildCogInfo
+Cluster
 LabelSelectionItem::setCenterOfGravityFromChildren()
 {
     const int32_t numChildren(rowCount());
 
-    m_centerOfGravity.fill(0.0);
-    m_centerOfGravityValidFlag = false;
+    m_centerOfGravityCluster = Cluster();
 
     /*
      * WEIGHTED COG of my clusters
@@ -375,14 +374,16 @@ LabelSelectionItem::setCenterOfGravityFromChildren()
      * and keep self's COG invalid
      */
     if (numChildren == 0) {
-        return ChildCogInfo(myClustersCenterOfGravity,
-                            myClustersNumberOfBrainordinates,
-                            myClustersCenterOfGravityValidFlag);
+        return Cluster("COG of all clusters",
+                       -1,
+                       myClustersCenterOfGravity,
+                       myClustersNumberOfBrainordinates);
     }
         
     /*
      * Find COG of children
      */
+    Vector3D m_centerOfGravity;
     float centerOfGravityNumberOfBrainordinates(0.0);
     for (int32_t iRow = 0; iRow < numChildren; iRow++) {
         QStandardItem* myChild(child(iRow));
@@ -392,11 +393,11 @@ LabelSelectionItem::setCenterOfGravityFromChildren()
         LabelSelectionItem* labelChild(dynamic_cast<LabelSelectionItem*>(myChild));
         CaretAssert(labelChild);
         
-        ChildCogInfo childCogInfo(labelChild->setCenterOfGravityFromChildren());
-        if (childCogInfo.isValid()) {
-            m_centerOfGravity += (childCogInfo.getCenterOfGravity()
-                                  * childCogInfo.getNumberOfBrainordinates());
-            centerOfGravityNumberOfBrainordinates += childCogInfo.getNumberOfBrainordinates();
+        const Cluster childCluster(labelChild->setCenterOfGravityFromChildren());
+        if (childCluster.isValid()) {
+            m_centerOfGravity += (childCluster.getCenterOfGravityXYZ()
+                                  * childCluster.getNumberOfBrainordinates());
+            centerOfGravityNumberOfBrainordinates += childCluster.getNumberOfBrainordinates();
         }
     }
     
@@ -411,12 +412,17 @@ LabelSelectionItem::setCenterOfGravityFromChildren()
     
     if (centerOfGravityNumberOfBrainordinates >= 1.0) {
         m_centerOfGravity /= centerOfGravityNumberOfBrainordinates;
-        m_centerOfGravityValidFlag = true;
     }
     
-    return ChildCogInfo(m_centerOfGravity, 
-                        centerOfGravityNumberOfBrainordinates,
-                        m_centerOfGravityValidFlag);
+    AString clusterName("All Children");
+    if (myClustersNumberOfBrainordinates >= 1) {
+        clusterName = "Self and All Children";
+    }
+    m_centerOfGravityCluster = Cluster(clusterName,
+                                       -1,
+                                       m_centerOfGravity,
+                                       centerOfGravityNumberOfBrainordinates);
+    return m_centerOfGravityCluster;
 }
 
 /**

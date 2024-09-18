@@ -247,17 +247,24 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
         const QString name(labelItem->text());
         
         QMenu menu(this);
-        
-        const std::pair<bool, Vector3D> labelCOG(labelItem->getCenterOfGravityFromChildren());
-        QAction* labelCogAction(NULL);
-        if (labelCOG.first) {
-            labelCogAction = menu.addAction("COG (children) "
-                                            + labelCOG.second.toString());
+        QAction* centerOfGravityAction(NULL);
+
+        const Cluster& centerOfGravityCluster(labelItem->getCenterOfGravityCluster());
+        if (centerOfGravityCluster.isValid()) {
+            centerOfGravityAction = menu.addAction(centerOfGravityCluster.getName()
+                                                   + "; "
+                                                   + AString::number(centerOfGravityCluster.getNumberOfBrainordinates())
+                                                   + " Brainordinates; "
+                                                   + " COG: "
+                                                   + centerOfGravityCluster.getCenterOfGravityXYZ().toString());
         }
 
         std::vector<QAction*> clusterActions;
         const std::vector<const Cluster> clusters(labelItem->getClusters());
         if ( ! clusters.empty()) {
+            if (centerOfGravityAction) {
+                menu.addSeparator();
+            }
             for (const Cluster& c : clusters) {
                 QAction* a(menu.addAction(AString::number(c.getNumberOfBrainordinates())
                                           + " Brainordinates; "
@@ -284,10 +291,10 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
                     }
                 }
                 
-                if (selectedAction == labelCogAction) {
+                if (selectedAction == centerOfGravityAction) {
                     EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
-                                                                           labelCOG.second,
-                                                                           labelCOG.second,
+                                                                           centerOfGravityCluster.getCenterOfGravityXYZ(),
+                                                                           centerOfGravityCluster.getCenterOfGravityXYZ(),
                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
                     EventManager::get()->sendEvent(highlightLocation.getPointer());
                 }

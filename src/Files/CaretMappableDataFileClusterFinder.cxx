@@ -180,7 +180,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     
     std::set<int32_t> labelKeysWithClusters;
     
-    const int32_t debugKey(183);
+    const int32_t debugKey(-1);
     
     /*
      * Loop through all voxels
@@ -211,7 +211,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     volumeSpace.indexToSpace(voxelIJK, voxelXYZ);
                     
                     if (debugKey == labelKey) {
-                        std::cout << "Starting search for key=" << labelKey
+                        std::cout << "Debug: Starting search for key=" << labelKey
                         << " Name=" << labelTable->getLabelName(labelKey)
                         << " Voxel=(" << i << ", " << j << ", " << k << ")"
                         << " XYZ=" << voxelXYZ.toString() << std::endl;
@@ -278,8 +278,10 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     std::set<AString> labelNames;
     for (const int32_t key : allKeys) {
         if (labelKeysWithClusters.find(key) == labelKeysWithClusters.end()) {
-            m_clusterContainer->addKeyThatIsNotInAnyCluster(key);
-            labelNames.insert(labelTable->getLabelName(key));
+            if (key != unassignedLabelKey) {
+                m_clusterContainer->addKeyThatIsNotInAnyCluster(key);
+                labelNames.insert(labelTable->getLabelName(key));
+            }
         }
     }
     if ( ! labelNames.empty()) {
