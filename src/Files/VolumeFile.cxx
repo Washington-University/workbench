@@ -3246,7 +3246,7 @@ VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
     for (int64_t i = -1; i <= 1; i++) {
         for (int64_t j = -1; j <= 1; j++) {
             for (int64_t k = -1; k <= 1; k++) {
-                if ((i != 0) || (j != 0) || (k != 0)) {
+                if ((i != 0) || (j != 0) || (k != 0)) { /* ignore self */
                     const int64_t vi(voxelIJK.m_ijk[0] + i);
                     const int64_t vj(voxelIJK.m_ijk[1] + j);
                     const int64_t vk(voxelIJK.m_ijk[2] + k);
@@ -3254,7 +3254,6 @@ VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
                         const int64_t offset(vs.getIndex(vi, vj, vk));
                         CaretAssertVectorIndex(voxelHasBeenSearchedFlags, offset);
                         if ( ! voxelHasBeenSearchedFlags[offset]) {
-                            voxelHasBeenSearchedFlags[offset] = 1;
                             const float v(voxelValues[offset]);
                             if ((v >= minimumValue)
                                 && (v <= maximumValue)) {
@@ -3262,6 +3261,7 @@ VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
                                 CaretAssert((vj >= 0) && (vj < dims[1]));
                                 CaretAssert((vk >= 0) && (vk < dims[2]));
                                 neighborIJKs.emplace_back(vi, vj, vk);
+                                voxelHasBeenSearchedFlags[offset] = 1;
                             }
                         }
                     }
