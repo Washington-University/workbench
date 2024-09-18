@@ -180,6 +180,8 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     
     std::set<int32_t> labelKeysWithClusters;
     
+    const int32_t debugKey(183);
+    
     /*
      * Loop through all voxels
      */
@@ -207,6 +209,13 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     const VoxelIJK voxelIJK(i, j, k);
                     Vector3D voxelXYZ;
                     volumeSpace.indexToSpace(voxelIJK, voxelXYZ);
+                    
+                    if (debugKey == labelKey) {
+                        std::cout << "Starting search for key=" << labelKey
+                        << " Name=" << labelTable->getLabelName(labelKey)
+                        << " Voxel=(" << i << ", " << j << ", " << k << ")"
+                        << " XYZ=" << voxelXYZ.toString() << std::endl;
+                    }
                     
                     /*
                      * Sum is used to compute cluster's center of gravity
@@ -256,6 +265,10 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                                                    clusterCogXYZ,
                                                    static_cast<int64_t>(numVoxelsInCluster));
                     m_clusterContainer->addCluster(cluster);
+                    
+                    if (debugKey == labelKey) {
+                        std::cout << "   Cluster: " << cluster->toString() << std::endl << std::flush;
+                    }
                 }
             }
         }

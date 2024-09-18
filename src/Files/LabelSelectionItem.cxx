@@ -331,6 +331,95 @@ LabelSelectionItem::setCheckStateFromChildren()
 }
 
 /**
+ * @return  A pair with a boolean indicating the validity of the Vector3D containing the COG for this item
+ */
+std::pair<bool, Vector3D>
+LabelSelectionItem::getCenterOfGravityFromChildren() const
+{
+    return std::make_pair(m_centerOfGravityValidFlag, m_centerOfGravity);
+}
+
+/**
+ * Set the center of gravity from its children
+ * @retrurn A pair with a boolean indicating the validity of the Vector3D containing the COG for this item
+ */
+LabelSelectionItem::ChildCogInfo
+LabelSelectionItem::setCenterOfGravityFromChildren()
+{
+    const int32_t numChildren(rowCount());
+
+    m_centerOfGravity.fill(0.0);
+    m_centerOfGravityValidFlag = false;
+
+    /*
+     * WEIGHTED COG of my clusters
+     */
+    Vector3D myClustersCenterOfGravity(0.0, 0.0, 0.0);
+    bool myClustersCenterOfGravityValidFlag(false);
+    float myClustersNumberOfBrainordinates(0.0);
+    if ( ! m_clusters.empty()) {
+        for (const Cluster& cluster : m_clusters) {
+            const float numBrainordinates(cluster.getNumberOfBrainordinates());
+            CaretAssert(numBrainordinates >= 1.0);
+            myClustersCenterOfGravity += (cluster.getCenterOfGravityXYZ()
+                                          * numBrainordinates);
+            myClustersNumberOfBrainordinates += numBrainordinates;
+        }
+        CaretAssert(myClustersNumberOfBrainordinates >= 1.0);
+        myClustersCenterOfGravity /= static_cast<float>(myClustersNumberOfBrainordinates);
+        myClustersCenterOfGravityValidFlag = true;
+    }
+
+    /*
+     * If no children use COG of this item's clusters
+     * and keep self's COG invalid
+     */
+    if (numChildren == 0) {
+        return ChildCogInfo(myClustersCenterOfGravity,
+                            myClustersNumberOfBrainordinates,
+                            myClustersCenterOfGravityValidFlag);
+    }
+        
+    /*
+     * Find COG of children
+     */
+    float centerOfGravityNumberOfBrainordinates(0.0);
+    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
+        QStandardItem* myChild(child(iRow));
+        CaretAssert(myChild);
+        CaretAssert(myChild != this); /* should never happen and would cause infinite loop */
+        
+        LabelSelectionItem* labelChild(dynamic_cast<LabelSelectionItem*>(myChild));
+        CaretAssert(labelChild);
+        
+        ChildCogInfo childCogInfo(labelChild->setCenterOfGravityFromChildren());
+        if (childCogInfo.isValid()) {
+            m_centerOfGravity += (childCogInfo.getCenterOfGravity()
+                                  * childCogInfo.getNumberOfBrainordinates());
+            centerOfGravityNumberOfBrainordinates += childCogInfo.getNumberOfBrainordinates();
+        }
+    }
+    
+    /*
+     * Add my center of gravity
+     */
+    if (myClustersCenterOfGravityValidFlag) {
+        m_centerOfGravity += (myClustersCenterOfGravity
+                              * myClustersNumberOfBrainordinates);
+        centerOfGravityNumberOfBrainordinates += myClustersNumberOfBrainordinates;
+    }
+    
+    if (centerOfGravityNumberOfBrainordinates >= 1.0) {
+        m_centerOfGravity /= centerOfGravityNumberOfBrainordinates;
+        m_centerOfGravityValidFlag = true;
+    }
+    
+    return ChildCogInfo(m_centerOfGravity, 
+                        centerOfGravityNumberOfBrainordinates,
+                        m_centerOfGravityValidFlag);
+}
+
+/**
  * @return All descendants and this item that are of the given type
  * @param itemType
  *    Type for matching to QStandardItem::type()

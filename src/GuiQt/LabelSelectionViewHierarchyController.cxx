@@ -246,35 +246,53 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
     if (labelItem != NULL) {
         const QString name(labelItem->text());
         
+        QMenu menu(this);
+        
+        const std::pair<bool, Vector3D> labelCOG(labelItem->getCenterOfGravityFromChildren());
+        QAction* labelCogAction(NULL);
+        if (labelCOG.first) {
+            labelCogAction = menu.addAction("COG (children) "
+                                            + labelCOG.second.toString());
+        }
+
+        std::vector<QAction*> clusterActions;
         const std::vector<const Cluster> clusters(labelItem->getClusters());
         if ( ! clusters.empty()) {
-            QMenu menu(this);
-
-            std::vector<QAction*> actions;
             for (const Cluster& c : clusters) {
                 QAction* a(menu.addAction(AString::number(c.getNumberOfBrainordinates())
                                           + " Brainordinates; "
                                           + "COG: "
                                           + c.getCenterOfGravityXYZ().toString()));
-                actions.push_back(a);
+                clusterActions.push_back(a);
             }
-            CaretAssert(actions.size() == clusters.size());
-            
+            CaretAssert(clusterActions.size() == clusters.size());
+        }
+        
+        if ( ! menu.actions().isEmpty()) {
             QAction* selectedAction(menu.exec(m_treeView->mapToGlobal(pos)));
-            for (int32_t i = 0; i < static_cast<int32_t>(clusters.size()); i++) {
-                if (selectedAction == actions[i]) {
-                    CaretAssertVectorIndex(clusters, i);
-                    const Vector3D cogXYZ(clusters[i].getCenterOfGravityXYZ());
-                    
+            if (selectedAction != NULL) {
+                for (int32_t i = 0; i < static_cast<int32_t>(clusters.size()); i++) {
+                    if (selectedAction == clusterActions[i]) {
+                        CaretAssertVectorIndex(clusters, i);
+                        const Vector3D cogXYZ(clusters[i].getCenterOfGravityXYZ());
+                        EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
+                                                                               cogXYZ,
+                                                                               cogXYZ,
+                                                                               EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
+                        EventManager::get()->sendEvent(highlightLocation.getPointer());
+                        break;
+                    }
+                }
+                
+                if (selectedAction == labelCogAction) {
                     EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
-                                                                           cogXYZ,
-                                                                           cogXYZ,
+                                                                           labelCOG.second,
+                                                                           labelCOG.second,
                                                                            EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
                     EventManager::get()->sendEvent(highlightLocation.getPointer());
-                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-                    break;
                 }
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             }
         }
     }

@@ -285,6 +285,13 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
     
     updateCheckedStateOfAllItems();
     
+    {
+        std::vector<LabelSelectionItem*> topLevelItems(getTopLevelItems());
+        for (auto& item : topLevelItems) {
+            (void)item->setCenterOfGravityFromChildren();
+        }
+    }
+    
     m_validFlag = true;
 }
 
