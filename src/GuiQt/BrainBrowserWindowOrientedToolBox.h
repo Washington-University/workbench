@@ -91,6 +91,9 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
+        int addToScrolledAreaInTabWidget(QWidget* page,
+                                         const QString& label);
+        
         int addToTabWidget(QWidget* page,
                            const QString& label);
         

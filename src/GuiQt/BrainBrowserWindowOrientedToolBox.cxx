@@ -204,7 +204,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                   browserWindowIndex,
                                                                   objectNamePrefix,
                                                                   this);  
-        m_overlayTabIndex = addToTabWidget(m_overlaySetViewController,
+        m_overlayTabIndex = addToScrolledAreaInTabWidget(m_overlaySetViewController,
                        "Layers");
     }
     if (isOverlayToolBox) {
@@ -212,7 +212,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                browserWindowIndex,
                                                                                objectNamePrefix,
                                                                                this);
-        m_chartOverlayTabIndex = addToTabWidget(m_chartOverlaySetViewController,
+        m_chartOverlayTabIndex = addToScrolledAreaInTabWidget(m_chartOverlaySetViewController,
                                                 "Chart Layers");
     }
     if (isOverlayToolBox) {
@@ -220,13 +220,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                       browserWindowIndex,
                                                                       objectNamePrefix,
                                                                       this);
-        m_chartTabIndex = addToTabWidget(m_chartToolBoxViewController,
+        m_chartTabIndex = addToScrolledAreaInTabWidget(m_chartToolBoxViewController,
                                          "Charting");
     }
     if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(objectNamePrefix,
                                                                                        this);
-        m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
+        m_connectivityTabIndex = addToScrolledAreaInTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
     if (isFeaturesToolBox) {
@@ -246,7 +246,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                          "Features ToolBox Annotation Tab",
                                                          "");
         
-        m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
+        m_annotationTabIndex = addToScrolledAreaInTabWidget(m_annotationTabWidget,
                                               "Annot");
         m_annotationTabWidget->setCurrentIndex(0);
     }
@@ -254,14 +254,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             objectNamePrefix,
                                                                             this);
-        m_borderTabIndex = addToTabWidget(m_borderSelectionViewController,
+        m_borderTabIndex = addToScrolledAreaInTabWidget(m_borderSelectionViewController,
                              "Borders");
     }
     
     if (isFeaturesToolBox) {
         m_fiberOrientationViewController = new FiberOrientationSelectionViewController(browserWindowIndex,
                                                                                        this);
-        m_fiberOrientationTabIndex = addToTabWidget(m_fiberOrientationViewController,
+        m_fiberOrientationTabIndex = addToScrolledAreaInTabWidget(m_fiberOrientationViewController,
                        "Fibers");
     }
     
@@ -269,7 +269,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                         objectNamePrefix,
                                                                                 this);
-        m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
+        m_fociTabIndex = addToScrolledAreaInTabWidget(m_fociSelectionViewController,
                              "Foci");
     }
     
@@ -278,7 +278,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                     browserWindowIndex,
                                                                                     objectNamePrefix,
                                                                                     this);
-        m_histologyTabIndex = addToTabWidget(m_histologyOverlaySetViewController,
+        m_histologyTabIndex = addToScrolledAreaInTabWidget(m_histologyOverlaySetViewController,
                                              "Histology");
     }
     
@@ -286,7 +286,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_imageSelectionViewController = new ImageSelectionViewController(browserWindowIndex,
                                                                           objectNamePrefix,
                                                                           this);
-        m_imageTabIndex = addToTabWidget(m_imageSelectionViewController,
+        m_imageTabIndex = addToScrolledAreaInTabWidget(m_imageSelectionViewController,
                                          "Images");
     }
     
@@ -303,7 +303,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                            browserWindowIndex,
                                                                            objectNamePrefix,
                                                                            this);
-        m_mediaTabIndex = addToTabWidget(m_mediaSelectionViewController,
+        m_mediaTabIndex = addToScrolledAreaInTabWidget(m_mediaSelectionViewController,
                                          "Media");
     }
     
@@ -311,7 +311,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_samplesSelectionViewController = new SamplesSelectionViewController(browserWindowIndex,
                                                                               objectNamePrefix,
                                                                               this);
-        m_samplesTabIndex = addToTabWidget(m_samplesSelectionViewController,
+        m_samplesTabIndex = addToScrolledAreaInTabWidget(m_samplesSelectionViewController,
                                            "Samples");
     }
     
@@ -320,14 +320,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                             m_browserWindowIndex,
                                                                                             objectNamePrefix,
                                                                                             "toolbox");
-        m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
+        m_volumeSurfaceOutlineTabIndex = addToScrolledAreaInTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }
     
     if (isOverlayToolBox) {
 #ifdef __SHOW_DYNCONN_PROTOTYPE__
         DynConnViewController* dynConn = new DynConnViewController();
-        addToTabWidget(dynConn, "DynConn");
+        addToScrolledAreaInTabWidget(dynConn, "DynConn");
 #endif // __SHOW_DYNCONN_PROTOTYPE__
     }
     
@@ -434,7 +434,7 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
  *    Name corresponding to widget's tab.
  */
 int 
-BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
+BrainBrowserWindowOrientedToolBox::addToScrolledAreaInTabWidget(QWidget* page,
                                                   const QString& label)
 {
     QScrollArea* scrollArea = new QScrollArea();
@@ -447,6 +447,21 @@ BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
     return indx;
 }
 
+/**
+ * Place widget into the tab widget.
+ * @param page
+ *    Widget that is added.
+ * @param label
+ *    Name corresponding to widget's tab.
+ */
+int
+BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
+                                                  const QString& label)
+{
+    int indx = m_tabWidget->addTab(page,
+                                   label);
+    return indx;
+}
 
 /**
  * Called when floating status changes.
