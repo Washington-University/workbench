@@ -97,6 +97,7 @@ m_labelIndex(-1)
  */
 LabelSelectionItem::LabelSelectionItem(const LabelSelectionItem& other)
 : QStandardItem(other),
+SceneableInterface(other),
 m_itemType(other.m_itemType)
 {
     initializeInstance();

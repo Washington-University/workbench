@@ -3235,7 +3235,7 @@ VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
                           std::vector<VoxelIJK>& neighborIJKs) const
 {
     const VolumeSpace vs(getVolumeSpace());
-    const int64_t* dims(vs.getDims());
+    CaretUsedInDebugCompileOnly(const int64_t* dims(vs.getDims()));
     CaretAssert(static_cast<int64_t>(voxelHasBeenSearchedFlags.size())
                 == (dims[0] * dims[1] * dims[2]));
     
