@@ -78,7 +78,7 @@ namespace caret {
         
         AString toFormattedString(const AString& indentation) const;
         
-        const std::vector<const Cluster>& getClusters() const;
+        const std::vector<Cluster>& getClusters() const;
         
         void setClusters(const std::vector<const Cluster*>& clusters);
         
@@ -115,7 +115,7 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::vector<const Cluster> m_clusters;
+        std::vector<Cluster> m_clusters;
         
         Cluster m_centerOfGravityCluster;
         

@@ -290,7 +290,7 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
         }
 
         std::vector<QAction*> clusterActions;
-        const std::vector<const Cluster> clusters(labelItem->getClusters());
+        const std::vector<Cluster> clusters(labelItem->getClusters());
         if ( ! clusters.empty()) {
             if (centerOfGravityAction) {
                 menu.addSeparator();

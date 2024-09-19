@@ -530,7 +530,7 @@ LabelSelectionItem::toFormattedString(const AString& indentation) const
 /**
  * @return Reference to the clusters
  */
-const std::vector<const Cluster>&
+const std::vector<Cluster>&
 LabelSelectionItem::getClusters() const
 {
     return m_clusters;
