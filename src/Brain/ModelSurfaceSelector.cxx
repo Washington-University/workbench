@@ -173,6 +173,8 @@ ModelSurfaceSelector::updateSelector()
     bool haveCortexLeft = false;
     bool haveCortexRight = false;
     bool haveCerebellum = false;
+    bool haveHippcampusLeft = false;
+    bool haveHippocampusRight = false;
     
     /*
      * Find the ALL surface models and structures
@@ -194,6 +196,12 @@ ModelSurfaceSelector::updateSelector()
             case StructureEnum::CORTEX_RIGHT:
                 haveCortexRight = true;
                 break;
+            case StructureEnum::HIPPOCAMPUS_LEFT:
+                haveHippcampusLeft = true;
+                break;
+            case StructureEnum::HIPPOCAMPUS_RIGHT:
+                haveHippocampusRight = true;
+                break;
             default:
                 break;
         }
@@ -213,7 +221,13 @@ ModelSurfaceSelector::updateSelector()
     if (haveCortexRight) {
         m_availableStructures.push_back(StructureEnum::CORTEX_RIGHT);    
     }
-    
+    if (haveHippcampusLeft) {
+        m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
+    }
+    if (haveHippocampusRight) {
+        m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_RIGHT);
+    }
+
     /*
      * Update the structure selection.
      */
