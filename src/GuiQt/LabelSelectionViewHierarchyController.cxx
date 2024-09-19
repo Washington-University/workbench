@@ -106,33 +106,36 @@ m_objectNamePrefix(parentObjectName
                                                            mapIndexSpinBox,
                                                            mapNameComboBox);
     
-    QLabel* allLabel(new QLabel("All: "));
-    
     m_collapseAllAction = new QAction("Collpase");
+    m_collapseAllAction->setToolTip("Collapse all items");
     QObject::connect(m_collapseAllAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::collapseAllActionTriggered);
     QToolButton* collapseAllToolButton(new QToolButton());
     collapseAllToolButton->setDefaultAction(m_collapseAllAction);
     
     m_expandAllAction = new QAction("Expand");
+    m_expandAllAction->setToolTip("Expand all items");
     QObject::connect(m_expandAllAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::expandAllActionTriggered);
     QToolButton* expandAllToolButton(new QToolButton());
     expandAllToolButton->setDefaultAction(m_expandAllAction);
 
     m_allOnAction = new QAction("On");
+    m_allOnAction->setToolTip("Turn all items on (check all)");
     QObject::connect(m_allOnAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::allOnActionTriggered);
     QToolButton* allOnToolButton(new QToolButton());
     allOnToolButton->setDefaultAction(m_allOnAction);
     
     m_allOffAction = new QAction("Off");
+    m_allOffAction->setToolTip("Turn all items off (uncheck all)");
     QObject::connect(m_allOffAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::allOffActionTriggered);
     QToolButton* allOffToolButton(new QToolButton());
     allOffToolButton->setDefaultAction(m_allOffAction);
 
     m_findAction = new QAction("Find");
+    m_findAction->setToolTip("Find the first item containing the text");
     m_findAction->setEnabled(false);
     QObject::connect(m_findAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::findActionTriggered);
@@ -140,6 +143,7 @@ m_objectNamePrefix(parentObjectName
     findToolButton->setDefaultAction(m_findAction);
     
     m_nextAction = new QAction("Next");
+    m_nextAction->setToolTip("Move to the next item containing the text (will wrap)");
     m_nextAction->setEnabled(false);
     QObject::connect(m_nextAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::nextActionTriggered);
@@ -147,6 +151,7 @@ m_objectNamePrefix(parentObjectName
     nextToolButton->setDefaultAction(m_nextAction);
 
     m_findTextLineEdit = new QLineEdit();
+    m_findTextLineEdit->setToolTip("Enter find text here");
     QObject::connect(m_findTextLineEdit, &QLineEdit::returnPressed,
                      this, &LabelSelectionViewHierarchyController::findActionTriggered);
     QObject::connect(m_findTextLineEdit, &QLineEdit::textChanged,
@@ -155,7 +160,6 @@ m_objectNamePrefix(parentObjectName
     QHBoxLayout* buttonsLayout(new QHBoxLayout());
     buttonsLayout->setSpacing(buttonsLayout->spacing() / 2);
     buttonsLayout->setContentsMargins(2, 2, 2, 2);
-    buttonsLayout->addWidget(allLabel);
     buttonsLayout->addWidget(allOnToolButton);
     buttonsLayout->addWidget(allOffToolButton);
     buttonsLayout->addWidget(collapseAllToolButton);
