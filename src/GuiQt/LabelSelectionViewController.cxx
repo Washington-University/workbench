@@ -22,6 +22,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
+#include <QScrollArea>
 
 #define __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
 #include "LabelSelectionViewController.h"
@@ -78,7 +79,7 @@ m_objectNamePrefix(parentObjectName
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->addWidget(selectionWidget, 0, Qt::AlignLeft);
+    layout->addWidget(selectionWidget);
     
     LabelSelectionViewController::allLabelSelectionViewControllers.insert(this);
 }
@@ -101,7 +102,12 @@ LabelSelectionViewController::createSelectionWidget()
                                                                                       "labels",
                                                                                       this);
     
-    return m_labelClassNameHierarchyViewController;
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(m_labelClassNameHierarchyViewController);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    
+    return scrollArea;
 }
 
 /**
