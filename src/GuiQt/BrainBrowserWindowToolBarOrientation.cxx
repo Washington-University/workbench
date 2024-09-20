@@ -510,6 +510,9 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
                     break;
                 case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
                     break;
+                case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+                    enableDualViewOrientationButtons = true;
+                    break;
             }
             
             this->orientationLateralMedialToolButtonAction->setText(latMedLeftRightText);

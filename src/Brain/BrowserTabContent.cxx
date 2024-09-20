@@ -110,6 +110,7 @@
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"
 #include "SurfaceMontageConfigurationFlatMaps.h"
+#include "SurfaceMontageConfigurationHippocampus.h"
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
 #include "TileTabsBrowserTabGeometry.h"
@@ -2661,6 +2662,27 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     }
                     if (smcfm->isCerebellumEnabled()) {
                         displayedDataFiles.insert(smcfm->getCerebellumSurfaceSelectionModel()->getSurface());
+                    }
+                }
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+                {
+                    SurfaceMontageConfigurationHippocampus* smhc = msm->getHippocampusConfiguration(tabIndex);
+                    if (smhc->isFirstSurfaceEnabled()) {
+                        if (smhc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smhc->getLeftFirstSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smhc->isRightEnabled()) {
+                            displayedDataFiles.insert(smhc->getRightFirstSurfaceSelectionModel()->getSurface());
+                        }
+                    }
+                    if (smhc->isSecondSurfaceEnabled()) {
+                        if (smhc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smhc->getLeftSecondSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smhc->isRightEnabled()) {
+                            displayedDataFiles.insert(smhc->getRightSecondSurfaceSelectionModel()->getSurface());
+                        }
                     }
                 }
                     break;
