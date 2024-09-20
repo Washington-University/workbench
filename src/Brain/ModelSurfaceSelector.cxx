@@ -179,6 +179,7 @@ ModelSurfaceSelector::updateSelector()
     /*
      * Find the ALL surface models and structures
      */
+    std::set<StructureEnum::Enum> otherStructures;
     for (std::vector<ModelSurface*>::const_iterator iter = m_allSurfaceModels.begin();
          iter != m_allSurfaceModels.end();
          iter++) {
@@ -203,6 +204,7 @@ ModelSurfaceSelector::updateSelector()
                 haveHippocampusRight = true;
                 break;
             default:
+                otherStructures.insert(structure);
                 break;
         }
     }
@@ -212,14 +214,14 @@ ModelSurfaceSelector::updateSelector()
      */
     m_availableStructures.clear();
     m_availableStructures.push_back(StructureEnum::ALL);
-    if (haveCerebellum) {
-        m_availableStructures.push_back(StructureEnum::CEREBELLUM);    
-    }
     if (haveCortexLeft) {
         m_availableStructures.push_back(StructureEnum::CORTEX_LEFT);    
     }
     if (haveCortexRight) {
         m_availableStructures.push_back(StructureEnum::CORTEX_RIGHT);    
+    }
+    if (haveCerebellum) {
+        m_availableStructures.push_back(StructureEnum::CEREBELLUM);
     }
     if (haveHippcampusLeft) {
         m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
@@ -228,6 +230,10 @@ ModelSurfaceSelector::updateSelector()
         m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_RIGHT);
     }
 
+    m_availableStructures.insert(m_availableStructures.end(),
+                                 otherStructures.begin(),
+                                 otherStructures.end());
+    
     /*
      * Update the structure selection.
      */
