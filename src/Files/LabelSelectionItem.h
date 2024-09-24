@@ -70,17 +70,23 @@ namespace caret {
 
         Qt::CheckState setCheckStateFromChildren();
         
-        const Cluster& getCenterOfGravityCluster() const;
-
         std::vector<LabelSelectionItem*> getThisAndAllDescendantsOfType(const LabelSelectionItem::ItemType itemType);
         
         std::vector<LabelSelectionItem*> getThisAndAllDescendants();
         
         AString toFormattedString(const AString& indentation) const;
         
-        const std::vector<Cluster>& getClusters() const;
+        const std::vector<Cluster>& getRawClusters() const;
         
-        void setClusters(const std::vector<const Cluster*>& clusters);
+        const std::vector<Cluster>& getMergedClusters() const;
+        
+        std::vector<const Cluster*> getMergedClusterPointers() const;
+        
+        const std::vector<Cluster>& getMyAndChildrenMergedClusters() const;
+        
+        std::vector<const Cluster*> getMyAndChildrenMergedClusterPointers() const;
+        
+        void setRawClusters(const std::vector<const Cluster*>& rawClusters);
         
         void appendToToolTip(const QString& text);
         
@@ -105,7 +111,7 @@ namespace caret {
         void setCheckedStatusOfAllChildren(QStandardItem* item,
                                            const Qt::CheckState checkState);
         
-        Cluster setCenterOfGravityFromChildren();
+        void setMyAndChildrenMergedClusters();
 
         const ItemType m_itemType;
         
@@ -115,9 +121,11 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::vector<Cluster> m_clusters;
+        std::vector<Cluster> m_rawClusters;
         
-        Cluster m_centerOfGravityCluster;
+        std::vector<Cluster> m_mergedClusters;
+        
+        std::vector<Cluster> m_myAndChildrenMergedClusters;
         
         friend class LabelSelectionItemModel;
         

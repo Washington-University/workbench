@@ -24,6 +24,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 #include "CaretObject.h"
 #include "Vector3D.h"
@@ -33,6 +34,29 @@ namespace caret {
     class Cluster : public CaretObject {
         
     public:
+        /**
+         * Type of the cluster
+         */
+        enum class Type {
+            /** no particular type */
+            NONE,
+            /** accumulation of left and right */
+            ALL,
+            /** left side accumulation */
+            LEFT,
+            /** right side accumulation */
+            RIGHT
+        };
+        
+        static AString typeToTypeName(const Type type);
+        
+        static std::vector<Cluster> mergeClustersByCogSignOfX(const std::vector<const Cluster*>& clusters);
+        
+        static std::vector<Cluster> mergeClustersByClusterType(const AString& name,
+                                                               const int32_t key,
+                                                               const std::vector<const Cluster*>& clusters,
+                                                               const bool allowNoneTypeFlag);
+        
         Cluster();
         
         Cluster(const AString& name,
@@ -40,6 +64,12 @@ namespace caret {
                 const Vector3D& centerOfGravityXYZ,
                 const int64_t numberOfBrainordinates);
 
+        Cluster(const Type type,
+                const AString& name,
+                const int32_t key,
+                const Vector3D& centerOfGravityXYZ,
+                const int64_t numberOfBrainordinates);
+        
         virtual ~Cluster();
         
         Cluster(const Cluster& obj);
@@ -49,6 +79,10 @@ namespace caret {
         bool isValid() const;
         
         AString getName() const;
+        
+        Type getType() const;
+        
+        AString getTypeName() const;
         
         int32_t getKey() const;
         
@@ -63,7 +97,11 @@ namespace caret {
     private:
         void copyHelperCluster(const Cluster& obj);
 
+        Type m_type = Type::NONE;
+        
         AString m_name = "";
+        
+        AString m_mergedName = "";
         
         int32_t m_key = -1;
         

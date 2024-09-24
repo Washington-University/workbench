@@ -233,7 +233,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
                                                                 labelKey,
                                                                 getLabelRGBA(giftiLabel)));
                 if (clusterContainer != NULL) {
-                    item->setClusters(clusterContainer->getClustersWithKey(labelKey));
+                    item->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
                 }
                 parentItem->appendRow(item);
                 m_labelKeyToLabelSelectionItem[labelKey] = item;
@@ -291,7 +291,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
     {
         std::vector<LabelSelectionItem*> topLevelItems(getTopLevelItems());
         for (auto& item : topLevelItems) {
-            (void)item->setCenterOfGravityFromChildren();
+            (void)item->setMyAndChildrenMergedClusters();
         }
     }
     
@@ -331,7 +331,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
                                              labelKey,
                                              rgba);
             if (clusterContainer != NULL) {
-                itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
+                itemOut->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
             }
         }
         else {
@@ -356,7 +356,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
                                          labelKey,
                                          rgba);
         if (clusterContainer != NULL) {
-            itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
+            itemOut->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
         }
 
         if (labelKey >= 0) {

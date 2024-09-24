@@ -54,6 +54,8 @@ namespace caret {
         
         std::vector<const Cluster*> getClustersWithName(const AString& name) const;
         
+        std::vector<int32_t> getAllClusterKeys() const;
+        
         void addKeyThatIsNotInAnyCluster(const int32_t key);
         
         std::set<int32_t> getKeysThatAreNotInAnyClusters() const;
@@ -103,6 +105,11 @@ namespace caret {
         typedef std::multimap<int32_t, const Cluster*> MultimapSortedByKey;
         typedef MultimapSortedByKey::const_iterator MultimapSortedByKeyIterator;
         mutable MultimapSortedByKey m_mapWithClustersSortedByKey;
+        
+        /**
+         * Lazily initilaized keys sorted
+         */
+        mutable std::vector<int32_t> m_keysSorted;
         
         /**
          * Keys that do not map to any cluster

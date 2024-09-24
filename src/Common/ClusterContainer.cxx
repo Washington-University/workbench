@@ -87,6 +87,7 @@ ClusterContainer::clearSortedContainers()
     m_mapWithClustersSortedByName.clear();
     m_vectorClustersSortedByKey.clear();
     m_vectorClustersSortedByName.clear();
+    m_keysSorted.clear();
 }
 
 /**
@@ -254,5 +255,23 @@ ClusterContainer::getClustersInFormattedString() const
     }
     
     return stm.getInString();
+}
+
+/**
+ * Unique keys of all clusters sorted.
+ */
+std::vector<int32_t>
+ClusterContainer::getAllClusterKeys() const
+{
+    if (m_keysSorted.empty()) {
+        std::set<int32_t> keys;
+        for (const auto& c : m_clusters) {
+            keys.insert(c->getKey());
+        }
+        m_keysSorted.clear();
+        m_keysSorted.insert(m_keysSorted.end(),
+                            keys.begin(), keys.end());
+    }
+    return m_keysSorted;
 }
 
