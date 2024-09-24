@@ -28,7 +28,7 @@
 #include "CiftiMappableDataFile.h"
 
 namespace caret {
-    class CiftiConnectivityMatrixParcelDynamicFile;
+    class CiftiMappableConnectivityMatrixDataFile;
     class CiftiParcelReorderingModel;
     class SceneClassAssistant;
     
@@ -38,9 +38,9 @@ namespace caret {
     public ChartableMatrixParcelInterface {
     
     public:
-        static CiftiParcelScalarFile* newInstanceFromRowInCiftiParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile* sourceParcelDynamicFile,
-                                                                                 const AString& destinationDirectory,
-                                                                                 AString& errorMessageOut);
+        static CiftiParcelScalarFile* newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* sourceCiftiMatrixFile,
+                                                                                      const AString& destinationDirectory,
+                                                                                      AString& errorMessageOut);
 
         CiftiParcelScalarFile();
         
