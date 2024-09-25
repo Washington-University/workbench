@@ -31,6 +31,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesLabels.h"
 #include "EnumComboBoxTemplate.h"
@@ -297,8 +298,19 @@ LabelSelectionViewWidget::restoreFromScene(const SceneAttributes* sceneAttribute
         return;
     }
     
-    m_labelViewController->restoreFromScene(sceneAttributes,
-                                            sceneClass->getClass("m_labelViewController"));
-    m_labelViewHierarchyController->restoreFromScene(sceneAttributes,
-                                                     sceneClass->getClass("m_labelViewHierarchyController"));
+    const AString className(sceneClass->getName());
+    if (className == "m_labelSelectionWidget") {
+        m_labelViewController->restoreFromScene(sceneAttributes,
+                                                sceneClass->getClass("m_labelViewController"));
+        m_labelViewHierarchyController->restoreFromScene(sceneAttributes,
+                                                         sceneClass->getClass("m_labelViewHierarchyController"));
+    }
+    else if (className == "m_labelSelectionViewController") {
+        m_labelViewController->restoreFromScene(sceneAttributes,
+                                                sceneClass);
+    }
+    else {
+        CaretLogWarning("Restoring LabelSelectionViewWidget with invalid scene class named: "
+                        + className);
+    }
 }

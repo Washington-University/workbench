@@ -732,6 +732,18 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_samplesSelectionViewController->restoreFromScene(sceneAttributes,
                                                            sceneClass->getClass("m_samplesSelectionViewController"));
     }
+    
+    /*
+     * Restore older scene when m_labelSelectionViewController was a child of this widget.
+     * It is now a child of m_labelSelectionWidget
+     */
+    const SceneClass* labelControllerScene(sceneClass->getClass("m_labelSelectionViewController"));
+    if (labelControllerScene) {
+        if (m_labelSelectionWidget != NULL) {
+            m_labelSelectionWidget->restoreFromScene(sceneAttributes,
+                                                     labelControllerScene);
+        }
+    }
     /*
      * Restore current widget size
      */

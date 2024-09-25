@@ -63,7 +63,6 @@ namespace caret {
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-
         // ADD_NEW_METHODS_HERE
 
     private slots:
