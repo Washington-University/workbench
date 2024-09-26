@@ -28,6 +28,7 @@
 
 #include <QStandardItem>
 
+#include "CaretObject.h"
 #include "Cluster.h"
 #include "SceneableInterface.h"
 
@@ -38,7 +39,7 @@ namespace caret {
     class LabelSelectionItem : public QStandardItem, public SceneableInterface {
         
     public:
-        class COG {
+        class COG : public CaretObject {
         public:
             COG(const AString& title,
                 const Vector3D& xyz,
@@ -82,7 +83,7 @@ namespace caret {
             int64_t m_numberOfBrainordinates;
         };
         
-        class CogSet {
+        class CogSet : public CaretObject {
         public:
             CogSet() { }
             
