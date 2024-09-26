@@ -35,40 +35,26 @@ namespace caret {
         
     public:
         /**
-         * Type of the cluster
+         * Location type of the cluster
          */
-        enum class Type {
-            /** no particular type */
-            NONE,
-            /** accumulation of left and right */
-            ALL,
+        enum class LocationType {
+            /** unknown - default */
+            UNKNOWN,
+            /** neither left nor right */
+            CENTRAL,
             /** left side accumulation */
             LEFT,
             /** right side accumulation */
             RIGHT
         };
         
-        static AString typeToTypeName(const Type type);
-        
-        static std::vector<Cluster> mergeClustersByCogSignOfX(const std::vector<const Cluster*>& clusters);
-        
-        static std::vector<Cluster> mergeClustersByClusterType(const AString& name,
-                                                               const int32_t key,
-                                                               const std::vector<const Cluster*>& clusters,
-                                                               const bool allowNoneTypeFlag);
+        static AString locationTypeToName(const LocationType type);
         
         Cluster();
         
         Cluster(const AString& name,
                 const int32_t key,
-                const Vector3D& centerOfGravityXYZ,
-                const int64_t numberOfBrainordinates);
-
-        Cluster(const Type type,
-                const AString& name,
-                const int32_t key,
-                const Vector3D& centerOfGravityXYZ,
-                const int64_t numberOfBrainordinates);
+                const std::vector<Vector3D>& coordinatesXYZ);
         
         virtual ~Cluster();
         
@@ -80,9 +66,9 @@ namespace caret {
         
         AString getName() const;
         
-        Type getType() const;
+        LocationType getLocationType() const;
         
-        AString getTypeName() const;
+        AString getLocationTypeName() const;
         
         int32_t getKey() const;
         
@@ -90,6 +76,12 @@ namespace caret {
         
         int64_t getNumberOfBrainordinates() const;
 
+        void addCoordinate(const Vector3D& coordinateXYZ);
+        
+        const Vector3D& getCoordinate(const int32_t index) const;
+        
+        void mergeCoordinates(const Cluster& cluster);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -97,18 +89,22 @@ namespace caret {
     private:
         void copyHelperCluster(const Cluster& obj);
 
-        Type m_type = Type::NONE;
+        void computeCenterOfGravityAndLocation() const;
+        
+        void invalidateCenterOfGravityAndLocation();
+        
+        mutable LocationType m_location = LocationType::UNKNOWN;
         
         AString m_name = "";
         
-        AString m_mergedName = "";
-        
         int32_t m_key = -1;
         
-        Vector3D m_centerOfGravityXYZ;
+        std::vector<Vector3D> m_coordinateXYZ;
         
-        int64_t m_numberOfBrainordinates = 0;
-
+        mutable Vector3D m_centerOfGravityXYZ;
+        
+        mutable bool m_centerOfGravityAndLocationValidFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
         friend class ClusterContainer;

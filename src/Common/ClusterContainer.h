@@ -64,6 +64,8 @@ namespace caret {
 
         AString getClustersInFormattedString() const;
         
+        std::unique_ptr<ClusterContainer> mergeDisjointRightLeftClusters() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

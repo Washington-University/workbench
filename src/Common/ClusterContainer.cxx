@@ -214,7 +214,6 @@ ClusterContainer::getKeysThatAreNotInAnyClusters() const
     return m_keysThatAreNotInAnyClusters;
 }
 
-
 /**
  * @return The clusters in a formatted text string
  */
@@ -228,7 +227,12 @@ ClusterContainer::getClustersInFormattedString() const
         return "No clusters were found.";
     }
     
-    StringTableModel stm(numClusters + 1, 6);
+    const AString numClustersString("  ("
+                                    + AString::number(numClusters)
+                                    + " total clusters)");
+    const int32_t rowCount(numClusters + 1);
+    const int32_t columnCount(7);
+    StringTableModel stm(rowCount, columnCount);
     stm.setColumnAlignment(0, StringTableModel::ALIGN_RIGHT);
     stm.setElement(0, 0, "Key");
     stm.setColumnAlignment(1, StringTableModel::ALIGN_RIGHT);
@@ -240,7 +244,9 @@ ClusterContainer::getClustersInFormattedString() const
     stm.setColumnAlignment(4, StringTableModel::ALIGN_RIGHT);
     stm.setElement(0, 4, "Z");
     stm.setColumnAlignment(5, StringTableModel::ALIGN_LEFT);
-    stm.setElement(0, 5, "Cluster Name");
+    stm.setElement(0, 5, "Location");
+    stm.setColumnAlignment(6, StringTableModel::ALIGN_LEFT);
+    stm.setElement(0, 6, ("Cluster Name" + numClustersString));
     for (int32_t i = 0; i < numClusters; i++) {
         const Cluster* c = clusters[i];
         CaretAssert(c);
@@ -251,7 +257,8 @@ ClusterContainer::getClustersInFormattedString() const
         stm.setElement(row, 2, cog[0]);
         stm.setElement(row, 3, cog[1]);
         stm.setElement(row, 4, cog[2]);
-        stm.setElement(row, 5, c->getName());
+        stm.setElement(row, 5, c->getLocationTypeName());
+        stm.setElement(row, 6, c->getName());
     }
     
     return stm.getInString();
@@ -273,5 +280,77 @@ ClusterContainer::getAllClusterKeys() const
                             keys.begin(), keys.end());
     }
     return m_keysSorted;
+}
+
+/**
+ * Merge disjoint clusters with same key based upon sign of x-coordinate from the center-of-gravity.
+ * @return A container containing the merged clusters.
+ */
+std::unique_ptr<ClusterContainer>
+ClusterContainer::mergeDisjointRightLeftClusters() const
+{
+    std::unique_ptr<ClusterContainer> clustersOut(new ClusterContainer());
+    
+    const std::vector<int32_t> allKeys(getAllClusterKeys());
+    for (int32_t key : allKeys) {
+        std::vector<const Cluster*> keyClusters(getClustersWithKey(key));
+        
+        Cluster* unknownCluster(NULL);
+        Cluster* centralCluster(NULL);
+        Cluster* leftCluster(NULL);
+        Cluster* rightCluster(NULL);
+        
+        for (const Cluster* cluster : keyClusters) {
+            switch (cluster->getLocationType()) {
+                case Cluster::LocationType::UNKNOWN:
+                    if (unknownCluster != NULL) {
+                        unknownCluster->mergeCoordinates(*cluster);
+                    }
+                    else {
+                        unknownCluster = new Cluster(*cluster);
+                    }
+                    break;
+                case Cluster::LocationType::CENTRAL:
+                    if (centralCluster != NULL) {
+                        centralCluster->mergeCoordinates(*cluster);
+                    }
+                    else {
+                        centralCluster = new Cluster(*cluster);
+                    }
+                    break;
+                case Cluster::LocationType::LEFT:
+                    if (leftCluster != NULL) {
+                        leftCluster->mergeCoordinates(*cluster);
+                    }
+                    else {
+                        leftCluster = new Cluster(*cluster);
+                    }
+                    break;
+                case Cluster::LocationType::RIGHT:
+                    if (rightCluster != NULL) {
+                        rightCluster->mergeCoordinates(*cluster);
+                    }
+                    else {
+                        rightCluster = new Cluster(*cluster);
+                    }
+                    break;
+            }
+        }
+        
+        if (unknownCluster != NULL) {
+            clustersOut->addCluster(unknownCluster);
+        }
+        if (centralCluster != NULL) {
+            clustersOut->addCluster(centralCluster);
+        }
+        if (leftCluster != NULL) {
+            clustersOut->addCluster(leftCluster);
+        }
+        if (rightCluster != NULL) {
+            clustersOut->addCluster(rightCluster);
+        }
+    }
+    
+    return clustersOut;
 }
 

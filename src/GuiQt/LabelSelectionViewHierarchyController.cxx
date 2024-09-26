@@ -277,66 +277,43 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
         const QString name(labelItem->text());
         
         QMenu menu(this);
-        
-        /*
-         * My and chilren accumulated clusters
-         */
-        std::vector<QAction*> myAndChildrenClusterActions;
-        const std::vector<Cluster> myAndChildrenClusters(labelItem->getMyAndChildrenMergedClusters());
-        if ( ! myAndChildrenClusters.empty()) {
-            for (const Cluster& c : myAndChildrenClusters) {
-                QAction* a(menu.addAction("My and children "
-                                          + c.getTypeName()
-                                          + ": "
-                                          + AString::number(c.getNumberOfBrainordinates())
-                                          + " Brainordinates; "
-                                          + "COG "
-                                          + c.getCenterOfGravityXYZ().toString()));
-                myAndChildrenClusterActions.push_back(a);
-            }
-            CaretAssert(myAndChildrenClusterActions.size() == myAndChildrenClusters.size());
-        }
-
+                
         /*
          * My clusters
          */
-        std::vector<QAction*> mergedClusterActions;
-        const std::vector<Cluster> mergedClusters(labelItem->getMergedClusters());
-        if ( ! mergedClusters.empty()) {
-            if ( ! myAndChildrenClusterActions.empty()) {
+        std::vector<QAction*> clusterActions;
+        std::vector<Vector3D> clusterXYZs;
+        const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
+        if (allCogSet != NULL) {
+            const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
+            for (const LabelSelectionItem::COG* c : cogs) {
+                QAction* a(menu.addAction(c->getTitle()));
+                clusterActions.push_back(a);
+                clusterXYZs.push_back(c->getXYZ());
+            }
+            CaretAssert(clusterActions.size() == clusterXYZs.size());
+        }
+        const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
+        if (cogSet != NULL) {
+            if ( ! clusterActions.empty()) {
                 menu.addSeparator();
             }
-            for (const Cluster& c : mergedClusters) {
-                QAction* a(menu.addAction(c.getTypeName()
-                                          + ": "
-                                          + AString::number(c.getNumberOfBrainordinates())
-                                          + " Brainordinates; "
-                                          + "COG "
-                                          + c.getCenterOfGravityXYZ().toString()));
-                mergedClusterActions.push_back(a);
+            const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
+            for (const LabelSelectionItem::COG* c : cogs) {
+                QAction* a(menu.addAction(c->getTitle()));
+                clusterActions.push_back(a);
+                clusterXYZs.push_back(c->getXYZ());
             }
-            CaretAssert(mergedClusterActions.size() == mergedClusters.size());
+            CaretAssert(clusterActions.size() == clusterXYZs.size());
         }
         
         if ( ! menu.actions().isEmpty()) {
             QAction* selectedAction(menu.exec(m_treeView->mapToGlobal(pos)));
             if (selectedAction != NULL) {
-                for (int32_t i = 0; i < static_cast<int32_t>(myAndChildrenClusters.size()); i++) {
-                    if (selectedAction == myAndChildrenClusterActions[i]) {
-                        CaretAssertVectorIndex(myAndChildrenClusters, i);
-                        const Vector3D cogXYZ(myAndChildrenClusters[i].getCenterOfGravityXYZ());
-                        EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
-                                                                               cogXYZ,
-                                                                               cogXYZ,
-                                                                               EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
-                        EventManager::get()->sendEvent(highlightLocation.getPointer());
-                        break;
-                    }
-                }
-                for (int32_t i = 0; i < static_cast<int32_t>(mergedClusters.size()); i++) {
-                    if (selectedAction == mergedClusterActions[i]) {
-                        CaretAssertVectorIndex(mergedClusters, i);
-                        const Vector3D cogXYZ(mergedClusters[i].getCenterOfGravityXYZ());
+                for (int32_t i = 0; i < static_cast<int32_t>(clusterActions.size()); i++) {
+                    if (selectedAction == clusterActions[i]) {
+                        CaretAssertVectorIndex(clusterXYZs, i);
+                        const Vector3D cogXYZ(clusterXYZs[i]);
                         EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
                                                                                cogXYZ,
                                                                                cogXYZ,

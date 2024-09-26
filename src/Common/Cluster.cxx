@@ -39,20 +39,20 @@ using namespace caret;
  *    The type
  */
 AString 
-Cluster::typeToTypeName(const Type type)
+Cluster::locationTypeToName(const LocationType type)
 {
     AString name("invalid");
     switch (type) {
-        case Type::NONE:
-            name = "None";
+        case LocationType::UNKNOWN:
+            name = "Unknown";
             break;
-        case Type::ALL:
-            name = "All";
+        case LocationType::CENTRAL:
+            name = "Central";
             break;
-        case Type::LEFT:
+        case LocationType::LEFT:
             name = "Left";
             break;
-        case Type::RIGHT:
+        case LocationType::RIGHT:
             name = "Right";
             break;
     }
@@ -64,11 +64,9 @@ Cluster::typeToTypeName(const Type type)
  */
 Cluster::Cluster()
 : CaretObject(),
-m_type(Type::NONE),
+m_location(LocationType::UNKNOWN),
 m_name(""),
-m_mergedName(""),
-m_key(-1),
-m_numberOfBrainordinates(0)
+m_key(-1)
 {
     
 }
@@ -79,53 +77,21 @@ m_numberOfBrainordinates(0)
  *    Name of cluster
  * @param key
  *    Index of cluster (such as a label index)
- * @param centerOfGravityXYZ
- *    Center of gravity of the cluster
- * @param numberOfBrainordinates
- *    Number of brainordinates in the cluster
+ * @param coordinatesXYZ
+ *    Coordinates in the cluster.
  */
 Cluster::Cluster(const AString& name,
                  const int32_t key,
-                 const Vector3D& centerOfGravityXYZ,
-                 const int64_t numberOfBrainordinates)
+                 const std::vector<Vector3D>& coordinatesXYZ)
 : CaretObject(),
-m_type(Type::NONE),
+m_location(LocationType::UNKNOWN),
 m_name(name),
-m_mergedName(""),
 m_key(key),
-m_centerOfGravityXYZ(centerOfGravityXYZ),
-m_numberOfBrainordinates(numberOfBrainordinates)
+m_coordinateXYZ(coordinatesXYZ)
 {
     
 }
 
-/**
- * Constructor for a merged cluster
- * @param type
- *    Type of the cluster
- * @param name
- *    Name of cluster
- * @param key
- *    Index of cluster (such as a label index)
- * @param centerOfGravityXYZ
- *    Center of gravity of the cluster
- * @param numberOfBrainordinates
- *    Number of brainordinates in the cluster
- */
-Cluster::Cluster(const Type type,
-                 const AString& name,
-                 const int32_t key,
-                 const Vector3D& centerOfGravityXYZ,
-                 const int64_t numberOfBrainordinates)
-: CaretObject(),
-m_type(type),
-m_name(name),
-m_key(key),
-m_centerOfGravityXYZ(centerOfGravityXYZ),
-m_numberOfBrainordinates(numberOfBrainordinates)
-{
-    
-}
 /**
  * Destructor.
  */
@@ -167,7 +133,7 @@ Cluster::operator=(const Cluster& obj)
 bool
 Cluster::isValid() const
 {
-    return (m_numberOfBrainordinates > 0);
+    return ( ! m_coordinateXYZ.empty());
 }
 
 /**
@@ -178,11 +144,11 @@ Cluster::isValid() const
 void 
 Cluster::copyHelperCluster(const Cluster& obj)
 {
-    m_type                   = obj.m_type;
+    m_location               = obj.m_location;
     m_name                   = obj.m_name;
     m_key                    = obj.m_key;
+    m_coordinateXYZ          = obj.m_coordinateXYZ;
     m_centerOfGravityXYZ     = obj.m_centerOfGravityXYZ;
-    m_numberOfBrainordinates = obj.m_numberOfBrainordinates;
 }
 
 /**
@@ -195,21 +161,22 @@ Cluster::getName() const
 }
 
 /**
- * @return Type of the cluster
+ * @return Location of the cluster
  */
-Cluster::Type
-Cluster::getType() const
+Cluster::LocationType
+Cluster::getLocationType() const
 {
-    return m_type;
+    computeCenterOfGravityAndLocation();
+    return m_location;
 }
 
 /**
- * @return Name of type of the cluster
+ * @return Name of location type of the cluster
  */
 AString
-Cluster::getTypeName() const
+Cluster::getLocationTypeName() const
 {
-    return Cluster::typeToTypeName(m_type);
+    return Cluster::locationTypeToName(m_location);
 }
 
 /**
@@ -227,6 +194,7 @@ Cluster::getKey() const
 Vector3D
 Cluster::getCenterOfGravityXYZ() const
 {
+    computeCenterOfGravityAndLocation();
     return m_centerOfGravityXYZ;
 }
 
@@ -236,8 +204,139 @@ Cluster::getCenterOfGravityXYZ() const
 int64_t
 Cluster::getNumberOfBrainordinates() const
 {
-    return m_numberOfBrainordinates;
+    return m_coordinateXYZ.size();
 }
+
+/**
+ * Add a coordinate to this cluster.
+ * @param coordinateXYZ
+ *    Coordinate added to this cluster
+ */
+void
+Cluster::addCoordinate(const Vector3D& coordinateXYZ)
+{
+    m_coordinateXYZ.push_back(coordinateXYZ);
+    invalidateCenterOfGravityAndLocation();
+}
+
+/**
+ * @return Number of coordinates in this cluster
+ */
+const Vector3D&
+Cluster::getCoordinate(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_coordinateXYZ, index);
+    return m_coordinateXYZ[index];
+}
+
+/**
+ * Merge the coordinates from the given cluster with this cluster's coordinates
+ */
+void
+Cluster::mergeCoordinates(const Cluster& cluster)
+{
+    m_coordinateXYZ.insert(m_coordinateXYZ.end(),
+                           cluster.m_coordinateXYZ.begin(), cluster.m_coordinateXYZ.end());
+}
+
+
+/**
+ * Invalidate center-of-gravity and location of cluster.
+ */
+void
+Cluster::invalidateCenterOfGravityAndLocation()
+{
+    m_centerOfGravityAndLocationValidFlag = false;
+}
+
+/**
+ * Compute center-of-gravity and location of cluster.
+ */
+void
+Cluster::computeCenterOfGravityAndLocation() const
+{
+    if (m_centerOfGravityAndLocationValidFlag) {
+        return;
+    }
+    
+    m_centerOfGravityXYZ.fill(0.0);
+    m_location = LocationType::UNKNOWN;
+    const float numCoords(m_coordinateXYZ.size());
+    if (numCoords < 1.0) {
+        return;
+    }
+    
+    float numLeft(0.0);
+    float numRight(0.0);
+    float numZero(0.0);
+    
+    Vector3D sumXYZ;
+    for (const Vector3D& xyz : m_coordinateXYZ) {
+        sumXYZ += xyz;
+        
+        /*
+         * At 0.0 is neither left nor right
+         */
+        if (xyz[0] > 0.0) {
+            numRight += 1.0;
+        }
+        else if (xyz[0] < 0.0){
+            numLeft += 1.0;
+        }
+        else {
+            numZero += 1.0;
+        }
+    }
+    
+    CaretAssert(numCoords >= 1.0);
+    m_centerOfGravityXYZ = (sumXYZ / numCoords);
+    
+    /*
+     * Estimate if cluster is left, right, central
+     * using percentage of nodes with negative and
+     * postive X-coordinate
+     */
+    const float numLeftRight(numLeft + numRight);
+    if (numLeftRight >= 1.0) {
+        const float leftPercent((numLeft / numLeftRight) * 100.0);
+        const float rightPercent((numRight / numLeftRight) * 100.0);
+        
+        const float centralPercentMinimim(40.0);
+        const float centralPercentMaximum(60.0);
+        if ((leftPercent >= centralPercentMinimim)
+            && (leftPercent <= centralPercentMaximum)
+            && (rightPercent >= centralPercentMinimim)
+            && (rightPercent <= centralPercentMaximum)) {
+            m_location = LocationType::CENTRAL;
+        }
+        else if (leftPercent > rightPercent) {
+            m_location = LocationType::LEFT;
+        }
+        else {
+            m_location = LocationType::RIGHT;
+        }
+
+        if (m_location == LocationType::UNKNOWN) {
+            const AString msg("Cluster \""
+                              + getName()
+                              + "\" " + AString::number(m_coordinateXYZ.size()) + " brainordinates"
+                              " COG: " + m_centerOfGravityXYZ.toString()
+                              + " location is UNKNOWN "
+                              + " Percent Left=" + AString::number(leftPercent)
+                              + " Percent Right=" + AString::number(rightPercent));
+            CaretLogWarning(msg);
+        }
+    }
+    else if (numZero >= 1.0) {
+        /*
+         * Cluster has all coordinates at x==0.0
+         */
+        m_location = LocationType::CENTRAL;
+    }
+    
+    m_centerOfGravityAndLocationValidFlag = true;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -246,192 +345,14 @@ Cluster::getNumberOfBrainordinates() const
 AString 
 Cluster::toString() const
 {
+    computeCenterOfGravityAndLocation(); /* ensure cog and type have been calculated */
+    
     AString text;
     text.append("Name=" + m_name);
-    text.append(" Type=" + typeToTypeName(m_type));
+    text.append(" LocationType=" + getLocationTypeName());
     text.append(" Key=" + AString::number(m_key));
     text.append(" COG=" + m_centerOfGravityXYZ.toString());
-    text.append(" Number of Brainordinates=" + AString::number(m_numberOfBrainordinates));
+    text.append(" Number of Brainordinates=" + AString::number(getNumberOfBrainordinates()));
     return text;
 }
 
-/**
- * Merge the given clusters by sign of X-coordinate from COG into
- * All, Left, and Right clusters.
- * @param clusters
- *    Clusters to merge.
- * @return
- *   Vector containing, in order, all left, right, merged clusters (not all may be present)
- */
-std::vector<Cluster>
-Cluster::mergeClustersByCogSignOfX(const std::vector<const Cluster*>& clusters)
-{
-    std::vector<Cluster> clustersOut;
-    
-    const int32_t numClusters(clusters.size());
-    if (numClusters == 0) {
-        return clustersOut;
-    }
-
-    Vector3D allCog, leftCog, rightCog;
-    float    allCount(0.0), leftCount(0.0), rightCount(0.0);
-    for (const auto* c : clusters) {
-        const Vector3D cog(c->getCenterOfGravityXYZ());
-        const float count(c->getNumberOfBrainordinates());
-        if (cog[0] > 0.0) {
-            rightCog += (cog * count);
-            rightCount += count;
-        }
-        else {
-            leftCog += (cog * count);
-            leftCount += count;
-        }
-    }
-    
-    CaretAssertVectorIndex(clusters, 0);
-    const AString name(clusters[0]->getName());
-    const int32_t key(clusters[0]->getKey());
-    
-    if (leftCount >= 1.0) {
-        allCog   += leftCog;
-        allCount += leftCount;
-        clustersOut.emplace_back(Type::LEFT,
-                                 name,
-                                 key,
-                                 (leftCog / leftCount),
-                                 static_cast<int64_t>(leftCount));
-    }
-    
-    if (rightCount >= 1.0) {
-        allCog   += rightCog;
-        allCount += rightCount;
-        clustersOut.emplace_back(Type::RIGHT,
-                                 name,
-                                 key,
-                                 (rightCog / rightCount),
-                                 static_cast<int64_t>(rightCount));
-    }
-    
-    if (allCount>= 1.0) {
-        clustersOut.emplace(clustersOut.begin(),
-                            Type::ALL,
-                            name,
-                            key,
-                            (allCog / allCount),
-                            static_cast<int64_t>(allCount));
-    }
-    
-    return clustersOut;
-}
-
-/**
- * Merge the given clusters for the given merge type
- * @param name
- *    Name for all output clusters
- * @param key
- *    Key for output clusters
- * @param clusters
- *    Clusters to merge.
- * @return
- *   Vector containing, in order, all left, right, merged clusters (not all may be present)
- */
-std::vector<Cluster>
-Cluster::mergeClustersByClusterType(const AString& name,
-                                    const int32_t key,
-                                    const std::vector<const Cluster*>& clusters,
-                                    const bool allowNoneTypeFlag)
-{
-    std::vector<Cluster> clustersOut;
-    
-    
-    const int32_t numClusters(clusters.size());
-    if (numClusters == 0) {
-        return clustersOut;
-    }
-    
-    Vector3D noneCog, allCog, leftCog, rightCog;
-    float    noneCount(0), allCount(0.0), leftCount(0.0), rightCount(0.0);
-    
-    /*
-     * Temporary until a better classification for cluster bilateral can
-     * be added.  If there is one cluster that is bilateral such as
-     * the superior colliculus.
-     */
-    const bool allOnlyFlag(true);
-    
-    for (const auto* c : clusters) {
-        const Vector3D cog(c->getCenterOfGravityXYZ());
-        const float count(c->getNumberOfBrainordinates());
-        if (allOnlyFlag) {
-            /*
-             * ALL includes left and right so don't use ALL
-             */
-            if (c->getType() != Type::ALL) {
-                allCog   += (cog * count);
-                allCount += count;
-            }
-        }
-        else {
-            switch (c->getType()) {
-                case Type::NONE:
-                    noneCog   += (cog * count);
-                    noneCount += count;
-                    break;
-                case Type::ALL:
-                    //                allCog   += (cog * count);
-                    //                allCount += count;
-                    break;
-                case Type::LEFT:
-                    allCog   += (cog * count);
-                    allCount += count;
-                    
-                    leftCog   += (cog * count);
-                    leftCount += count;
-                    break;
-                case Type::RIGHT:
-                    allCog   += (cog * count);
-                    allCount += count;
-                    
-                    rightCog   += (cog * count);
-                    rightCount += count;
-                    break;
-            }
-        }
-    }
-
-    if (noneCount >= 1.0) {
-        if (allowNoneTypeFlag) {
-            clustersOut.emplace_back(Type::NONE,
-                                     name,
-                                     key,
-                                     (noneCog / noneCount),
-                                     static_cast<int64_t>(noneCount));
-        }
-    }
-    
-    if (allCount >= 1.0) {
-        clustersOut.emplace_back(Type::ALL,
-                                 name,
-                                 key,
-                                 (allCog / allCount),
-                                 static_cast<int64_t>(allCount));
-    }
-    
-    if (leftCount >= 1.0) {
-        clustersOut.emplace_back(Type::LEFT,
-                                 name,
-                                 key,
-                                 (leftCog / leftCount),
-                                 static_cast<int64_t>(leftCount));
-    }
-    
-    if (rightCount >= 1.0) {
-        clustersOut.emplace_back(Type::RIGHT,
-                                 name,
-                                 key,
-                                 (rightCog / rightCount),
-                                 static_cast<int64_t>(rightCount));
-    }
-    
-    return clustersOut;
-}

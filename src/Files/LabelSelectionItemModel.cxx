@@ -233,7 +233,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
                                                                 labelKey,
                                                                 getLabelRGBA(giftiLabel)));
                 if (clusterContainer != NULL) {
-                    item->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
+                    item->setClusters(clusterContainer->getClustersWithKey(labelKey));
                 }
                 parentItem->appendRow(item);
                 m_labelKeyToLabelSelectionItem[labelKey] = item;
@@ -331,7 +331,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
                                              labelKey,
                                              rgba);
             if (clusterContainer != NULL) {
-                itemOut->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
+                itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
             }
         }
         else {
@@ -356,7 +356,7 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
                                          labelKey,
                                          rgba);
         if (clusterContainer != NULL) {
-            itemOut->setRawClusters(clusterContainer->getClustersWithKey(labelKey));
+            itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
         }
 
         if (labelKey >= 0) {

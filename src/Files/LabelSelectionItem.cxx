@@ -25,6 +25,7 @@
 
 #include "ApplicationInformation.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "Cluster.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -357,20 +358,16 @@ LabelSelectionItem::setCheckStateFromChildren()
 void
 LabelSelectionItem::setMyAndChildrenMergedClusters()
 {
-    m_myAndChildrenMergedClusters.clear();
+    m_myAndChildrenCentersOfGravity.reset(new CogSet());
+    
+    /*
+     * May not have centers of gravity if a parent label
+     */
+    if (m_centersOfGravity) {
+        m_myAndChildrenCentersOfGravity->merge(m_centersOfGravity.get());
+    }
+    
     const int32_t numChildren(rowCount());
-    if (numChildren <= 0) {
-        return;
-    }
-    
-    std::vector<const Cluster*> allClusters;
-    
-    const int32_t numMyClusters(m_mergedClusters.size());
-    for (int32_t i = 0; i < numMyClusters; i++) {
-        CaretAssertVectorIndex(m_mergedClusters, i);
-        allClusters.push_back(&m_mergedClusters[i]);
-    }
-
     for (int32_t iRow = 0; iRow < numChildren; iRow++) {
         QStandardItem* myChild(child(iRow));
         CaretAssert(myChild);
@@ -383,22 +380,10 @@ LabelSelectionItem::setMyAndChildrenMergedClusters()
          * Set merged clusters in child and all of its children
          */
         labelChild->setMyAndChildrenMergedClusters();
-        
-        /*
-         * Now use merged clusters from child
-         */
-        const std::vector<const Cluster*> childClusters(labelChild->getMergedClusterPointers());
-        //const std::vector<const Cluster*> childClusters(labelChild->getMyAndChildrenMergedClusterPointers());
-        for (const Cluster* c : childClusters) {
-            allClusters.push_back(c);
-        }
+        const CogSet* childCOG(labelChild->getMyAndChildrenCentersOfGravity());
+        CaretAssert(childCOG);
+        m_myAndChildrenCentersOfGravity->merge(childCOG);
     }
-    
-    const bool allowNoneTypeFlag(false);
-    m_myAndChildrenMergedClusters = Cluster::mergeClustersByClusterType(text(),
-                                                                        getLabelIndex(),
-                                                                        allClusters,
-                                                                        allowNoneTypeFlag);
 }
 
 /**
@@ -484,79 +469,93 @@ LabelSelectionItem::toFormattedString(const AString& indentation) const
     return text;
 }
 
-/**
- * @return Reference to the raw clusters (before any accumulation)
- * May contain multiple, disjoint clusters.
+/*
+ * @return Reference to centers of gravity for this item
  */
-const std::vector<Cluster>&
-LabelSelectionItem::getRawClusters() const
+const LabelSelectionItem::CogSet*
+LabelSelectionItem::getCentersOfGravity() const
 {
-    return m_rawClusters;
+    return m_centersOfGravity.get();
+}
+
+/*
+ * @return Reference to centers of gravity for this item and all children
+ */
+const LabelSelectionItem::CogSet*
+LabelSelectionItem::getMyAndChildrenCentersOfGravity() const
+{
+    return m_myAndChildrenCentersOfGravity.get();
 }
 
 /**
- * @return Reference to the merged All, left, and right, clusters (not all may be present)
- */
-const std::vector<Cluster>&
-LabelSelectionItem::getMergedClusters() const
-{
-    return m_mergedClusters;
-}
-
-/**
- * Pointers to the merged clusters
- */
-std::vector<const Cluster*>
-LabelSelectionItem::getMergedClusterPointers() const
-{
-    std::vector<const Cluster*> clustersOut;
-    const int32_t numMergedClusters(m_mergedClusters.size());
-    for (int32_t i = 0; i < numMergedClusters; i++) {
-        CaretAssertVectorIndex(m_mergedClusters, i);
-        clustersOut.push_back(&m_mergedClusters[i]);
-    }
-    return clustersOut;
-}
-
-/**
- * @return Reference to the merged All, left, and right, clusters accumulated
- * from my clusters and all children clusters
- */
-const std::vector<Cluster>&
-LabelSelectionItem::getMyAndChildrenMergedClusters() const
-{
-    return m_myAndChildrenMergedClusters;
-}
-
-/**
- * Pointers to the merged clusters
- */
-std::vector<const Cluster*>
-LabelSelectionItem::getMyAndChildrenMergedClusterPointers() const
-{
-    std::vector<const Cluster*> clustersOut;
-    const int32_t numMergedClusters(m_myAndChildrenMergedClusters.size());
-    for (int32_t i = 0; i < numMergedClusters; i++) {
-        CaretAssertVectorIndex(m_myAndChildrenMergedClusters, i);
-        clustersOut.push_back(&m_myAndChildrenMergedClusters[i]);
-    }
-    return clustersOut;
-}
-
-/**
- * Set the raw clusters (may contain multiple, disjoint clusters)
- * @param rawClusters
- *    Raw clusters that are copied to this instance
+ * Set the clusters (may contain multiple, disjoint clusters)
+ * @param clusters
+ *    Clusters for this item
  */
 void
-LabelSelectionItem::setRawClusters(const std::vector<const Cluster*>& rawClusters)
+LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
 {
-    m_rawClusters.clear();
-    for (const auto& c : rawClusters) {
-        m_rawClusters.push_back(Cluster(*c));
+    COG* allCOG(NULL);
+    COG* centralCOG(NULL);
+    COG* leftCOG(NULL);
+    COG* rightCOG(NULL);
+    
+    for (const auto& c : clusters) {
+        
+        const AString title(c->getLocationTypeName()
+                            + ": "
+                            + AString::number(c->getNumberOfBrainordinates())
+                            + " Brainordinates; "
+                            + "COG "
+                            + c->getCenterOfGravityXYZ().toString());
+        switch (c->getLocationType()) {
+            case Cluster::LocationType::UNKNOWN:
+                CaretLogWarning("Cluster is UNKNOWN "
+                                + c->toString());
+                break;
+            case Cluster::LocationType::CENTRAL:
+                centralCOG = new COG(title,
+                                     c->getCenterOfGravityXYZ(),
+                                     c->getNumberOfBrainordinates());
+                break;
+            case Cluster::LocationType::LEFT:
+                leftCOG = new COG(title,
+                                  c->getCenterOfGravityXYZ(),
+                                  c->getNumberOfBrainordinates());
+                break;
+            case Cluster::LocationType::RIGHT:
+                rightCOG = new COG(title,
+                                   c->getCenterOfGravityXYZ(),
+                                   c->getNumberOfBrainordinates());
+                break;
+        }
     }
     
-    m_mergedClusters = Cluster::mergeClustersByCogSignOfX(rawClusters);
+    /*
+     * Create ALL that is combination of the others
+     */
+    if ((centralCOG != NULL)
+        || (leftCOG != NULL)
+        || (rightCOG != NULL)) {
+        Vector3D zeros;
+        int64_t numBrainordinates(0);
+        allCOG = new COG("All", zeros, numBrainordinates);
+        if (centralCOG != NULL) {
+            allCOG->merge(*centralCOG);
+        }
+        if (leftCOG != NULL) {
+            allCOG->merge(*leftCOG);
+        }
+        if (rightCOG != NULL) {
+            allCOG->merge(*rightCOG);
+        }
+        allCOG->updateTitle("All");
+    }
+    
+    m_centersOfGravity.reset(new CogSet(allCOG,
+                                               centralCOG,
+                                               leftCOG,
+                                               rightCOG));
 }
 
 /**

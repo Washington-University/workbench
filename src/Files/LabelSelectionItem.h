@@ -38,6 +38,128 @@ namespace caret {
     class LabelSelectionItem : public QStandardItem, public SceneableInterface {
         
     public:
+        class COG {
+        public:
+            COG(const AString& title,
+                const Vector3D& xyz,
+                const int64_t numberOfBrainordinates)
+            : m_title(title),
+            m_xyz(xyz),
+            m_numberOfBrainordinates(numberOfBrainordinates) { }
+            
+            ~COG() { }
+            
+            AString getTitle() const { return m_title; }
+            
+            const Vector3D& getXYZ() const { return m_xyz; }
+            
+            int64_t getNumberOfBrainordinates() const { return m_numberOfBrainordinates; }
+
+            void merge(const COG& cog) {
+                const Vector3D sum((m_xyz * m_numberOfBrainordinates)
+                                   + (cog.m_xyz * cog.m_numberOfBrainordinates));
+                m_numberOfBrainordinates += cog.m_numberOfBrainordinates;
+                if (m_numberOfBrainordinates >= 1) {
+                    m_xyz = (sum / static_cast<float>(m_numberOfBrainordinates));
+                }
+                else {
+                    m_xyz.fill(0.0);
+                }
+            }
+            
+            void updateTitle(const AString& titlePrefix) {
+                m_title = (titlePrefix
+                           + ": "
+                           + AString::number(m_numberOfBrainordinates)
+                           + " Brainordinates; COG "
+                           + m_xyz.toString());
+            }
+        private:
+            AString m_title;
+            
+            Vector3D m_xyz;
+            
+            int64_t m_numberOfBrainordinates;
+        };
+        
+        class CogSet {
+        public:
+            CogSet() { }
+            
+            CogSet(COG* allCOG,
+                   COG* centralCOG,
+                   COG* leftCOG,
+                   COG* rightCOG)
+            : m_allCOG(allCOG),
+            m_centralCOG(centralCOG),
+            m_leftCOG(leftCOG),
+            m_rightCOG(rightCOG) { }
+
+            std::vector<const COG*> getCOGs() const {
+                std::vector<const COG*> cogsOut;
+                if (m_allCOG != NULL)     cogsOut.push_back(m_allCOG.get());
+                if (m_centralCOG != NULL) cogsOut.push_back(m_centralCOG.get());
+                if (m_leftCOG != NULL)    cogsOut.push_back(m_leftCOG.get());
+                if (m_rightCOG != NULL)   cogsOut.push_back(m_rightCOG.get());
+                return cogsOut;
+            }
+            
+            void merge(const CogSet* cogSet) {
+                if (cogSet->m_allCOG != NULL) {
+                    if (m_allCOG != NULL) {
+                        m_allCOG->merge(*cogSet->m_allCOG);
+                    }
+                    else {
+                        m_allCOG.reset(new COG("Sum All",
+                                               cogSet->m_allCOG->getXYZ(),
+                                               cogSet->m_allCOG->getNumberOfBrainordinates()));
+                    }
+                    m_allCOG->updateTitle("Sum All");
+                }
+
+                if (cogSet->m_centralCOG != NULL) {
+                    if (m_centralCOG != NULL) {
+                        m_centralCOG->merge(*cogSet->m_centralCOG);
+                    }
+                    else {
+                        m_centralCOG.reset(new COG("Sum Central",
+                                               cogSet->m_centralCOG->getXYZ(),
+                                               cogSet->m_centralCOG->getNumberOfBrainordinates()));
+                    }
+                    m_centralCOG->updateTitle("Sum Central");
+                }
+                
+                if (cogSet->m_leftCOG != NULL) {
+                    if (m_leftCOG != NULL) {
+                        m_leftCOG->merge(*cogSet->m_leftCOG);
+                    }
+                    else {
+                        m_leftCOG.reset(new COG("Sum Left",
+                                               cogSet->m_leftCOG->getXYZ(),
+                                               cogSet->m_leftCOG->getNumberOfBrainordinates()));
+                    }
+                    m_leftCOG->updateTitle("Sum Left");
+                }
+                
+                if (cogSet->m_rightCOG != NULL) {
+                    if (m_rightCOG != NULL) {
+                        m_rightCOG->merge(*cogSet->m_rightCOG);
+                    }
+                    else {
+                        m_rightCOG.reset(new COG("Sum Right",
+                                               cogSet->m_rightCOG->getXYZ(),
+                                               cogSet->m_rightCOG->getNumberOfBrainordinates()));
+                    }
+                    m_rightCOG->updateTitle("Sum Right");
+                }
+            }
+        private:
+            std::unique_ptr<COG> m_allCOG;
+            std::unique_ptr<COG> m_centralCOG;
+            std::unique_ptr<COG> m_leftCOG;
+            std::unique_ptr<COG> m_rightCOG;
+        };
+        
         /*
          * Type of item returned by override type() method
          */
@@ -76,17 +198,11 @@ namespace caret {
         
         AString toFormattedString(const AString& indentation) const;
         
-        const std::vector<Cluster>& getRawClusters() const;
+        const CogSet* getCentersOfGravity() const;
         
-        const std::vector<Cluster>& getMergedClusters() const;
+        const CogSet* getMyAndChildrenCentersOfGravity() const;
         
-        std::vector<const Cluster*> getMergedClusterPointers() const;
-        
-        const std::vector<Cluster>& getMyAndChildrenMergedClusters() const;
-        
-        std::vector<const Cluster*> getMyAndChildrenMergedClusterPointers() const;
-        
-        void setRawClusters(const std::vector<const Cluster*>& rawClusters);
+        void setClusters(const std::vector<const Cluster*>& clusters);
         
         void appendToToolTip(const QString& text);
         
@@ -121,11 +237,9 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        std::vector<Cluster> m_rawClusters;
+        std::unique_ptr<CogSet> m_centersOfGravity;
         
-        std::vector<Cluster> m_mergedClusters;
-        
-        std::vector<Cluster> m_myAndChildrenMergedClusters;
+        std::unique_ptr<CogSet> m_myAndChildrenCentersOfGravity;
         
         friend class LabelSelectionItemModel;
         

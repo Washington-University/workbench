@@ -220,8 +220,8 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     /*
                      * Sum is used to compute cluster's center of gravity
                      */
-                    Vector3D voxelClusterSumXYZ(voxelXYZ);
-                    float numVoxelsInCluster(1.0);
+                    std::vector<Vector3D> clusterCoordsXYZ;
+                    clusterCoordsXYZ.push_back(voxelXYZ);
                     
                     std::vector<VoxelIJK> neighboringVoxelIJKsToSearch;
                     neighboringVoxelIJKsToSearch.reserve(500); /* avoid reallocations */
@@ -243,9 +243,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     for (int64_t index = 0; index < static_cast<int64_t>(neighboringVoxelIJKsToSearch.size()); index++) {
                         CaretAssertVectorIndex(neighboringVoxelIJKsToSearch, index);
                         const VoxelIJK& vijk(neighboringVoxelIJKsToSearch[index]);
-                        Vector3D xyz;
-                        voxelClusterSumXYZ += volumeSpace.indexToSpace(vijk);
-                        numVoxelsInCluster += 1.0;
+                        clusterCoordsXYZ.push_back(volumeSpace.indexToSpace(vijk));
                         
                         volumeFile->getNeigbors26(vijk,
                                                   voxelData,
@@ -258,12 +256,10 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     /*
                      * Save the cluster
                      */
-                    CaretAssert(numVoxelsInCluster >= 1.0);
-                    const Vector3D clusterCogXYZ(voxelClusterSumXYZ / numVoxelsInCluster);
-                    Cluster* cluster = new Cluster(labelTable->getLabelName(labelKey),
-                                                   labelKey,
-                                                   clusterCogXYZ,
-                                                   static_cast<int64_t>(numVoxelsInCluster));
+                    CaretAssert( ! clusterCoordsXYZ.empty());
+                    Cluster* cluster(new Cluster(labelTable->getLabelName(labelKey),
+                                                 labelKey,
+                                                 clusterCoordsXYZ));
                     m_clusterContainer->addCluster(cluster);
                     
                     if (debugKey == labelKey) {
@@ -296,6 +292,19 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
         CaretLogInfo(text);
     }
     
+    const bool printClustersFlag(false);
+    if (printClustersFlag) {
+        const AString txt(m_clusterContainer->getClustersInFormattedString());
+        std::cout << txt << std::endl;
+        auto mergedContainer(m_clusterContainer->mergeDisjointRightLeftClusters());
+        std::cout << std::endl << "MERGED" << std::endl;
+        std::cout << mergedContainer->getClustersInFormattedString() << std::endl;
+    }
+
+    /*
+     * Combine left (right) clusters with other left (right) clusters for each key
+     */
+    m_clusterContainer = m_clusterContainer->mergeDisjointRightLeftClusters();
     
     return CaretResult::newInstanceSuccess();
 }
