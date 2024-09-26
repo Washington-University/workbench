@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Cluster.h"
+#include "HtmlStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 
@@ -188,6 +189,19 @@ AString
 LabelSelectionItem::getOntologyID() const
 {
     return m_ontologyID;
+}
+
+/**
+ * @return Information about label for display in GUI
+ */
+AString
+LabelSelectionItem::getTextForInfoDisplay() const
+{
+    HtmlStringBuilder html;
+    html.addBold(text());
+    html.addLineBreak();
+    html.add("ID: " + getOntologyID());
+    return html.toStringWithHtmlBodyForToolTip();
 }
 
 /**

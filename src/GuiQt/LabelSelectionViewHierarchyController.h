@@ -34,6 +34,7 @@ class QModelIndex;
 class QStandardItem;
 class QStandardItemModel;
 class QTreeView;
+class QToolButton;
 
 namespace caret {
 
@@ -82,6 +83,8 @@ namespace caret {
         
         void allOffActionTriggered();
         
+        void infoActionTriggered();
+        
         void findActionTriggered();
         
         void nextActionTriggered();
@@ -100,6 +103,10 @@ namespace caret {
         
         void scrollTreeViewToFindItem();
         
+        void showSelectedItemMenu(const LabelSelectionItem* labelItem,
+                                  const QPoint& pos,
+                                  const bool infoButtonFlag);
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
@@ -115,6 +122,10 @@ namespace caret {
         QAction* m_allOnAction;
         
         QAction* m_allOffAction;
+        
+        QToolButton* m_infoToolButton;
+        
+        QAction* m_infoAction;
         
         QAction* m_findAction;
         

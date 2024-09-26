@@ -187,6 +187,8 @@ namespace caret {
 
         AString getOntologyID() const;
         
+        AString getTextForInfoDisplay() const;
+        
         int32_t getLabelIndex() const;
         
         void setAllChildrenChecked(const bool checked);

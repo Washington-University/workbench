@@ -134,6 +134,14 @@ m_objectNamePrefix(parentObjectName
     QToolButton* allOffToolButton(new QToolButton());
     allOffToolButton->setDefaultAction(m_allOffAction);
 
+    m_infoAction = new QAction("Info");
+    m_infoAction->setToolTip("Show information about selected label");
+    m_infoAction->setEnabled(false);
+    QObject::connect(m_infoAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::infoActionTriggered);
+    m_infoToolButton = new QToolButton;
+    m_infoToolButton->setDefaultAction(m_infoAction);
+    
     m_findAction = new QAction("Find");
     m_findAction->setToolTip("Find the first item containing the text");
     m_findAction->setEnabled(false);
@@ -164,6 +172,8 @@ m_objectNamePrefix(parentObjectName
     buttonsLayout->addWidget(allOffToolButton);
     buttonsLayout->addWidget(collapseAllToolButton);
     buttonsLayout->addWidget(expandAllToolButton);
+    buttonsLayout->addSpacing(4);
+    buttonsLayout->addWidget(m_infoToolButton);
     buttonsLayout->addSpacing(4);
     buttonsLayout->addWidget(findToolButton);
     buttonsLayout->addWidget(nextToolButton);
@@ -258,6 +268,8 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
     if (labelItem != NULL) {
         const auto checkState(labelItem->checkState());
         labelItem->setAllChildrenChecked(checkState == Qt::Checked);
+        
+        m_infoAction->setEnabled(true);
     }
     
     processSelectionChanges();
@@ -274,42 +286,76 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
     const QModelIndex modelIndex(m_treeView->indexAt(pos));
     LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(modelIndex));
     if (labelItem != NULL) {
-        const QString name(labelItem->text());
-        
-        QMenu menu(this);
-                
-        /*
-         * My clusters
-         */
-        std::vector<QAction*> clusterActions;
-        std::vector<Vector3D> clusterXYZs;
-        const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
-        if (allCogSet != NULL) {
-            const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
-            for (const LabelSelectionItem::COG* c : cogs) {
-                QAction* a(menu.addAction(c->getTitle()));
-                clusterActions.push_back(a);
-                clusterXYZs.push_back(c->getXYZ());
-            }
-            CaretAssert(clusterActions.size() == clusterXYZs.size());
+        const bool infoButtonFlag(false);
+        showSelectedItemMenu(labelItem,
+                             m_treeView->mapToGlobal(pos),
+                             infoButtonFlag);
+    }
+}
+
+/**
+ * Show a menu for the selected label
+ * @param labelItem
+ *    The label item that is selected
+ * @param pos
+ *    Position for the menu
+ * @param infoButtonFlag
+ *    If true, menu is for the Info button, else right-click menu on label
+ */
+void
+LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelectionItem* labelItem,
+                                                            const QPoint& pos,
+                                                            const bool infoButtonFlag)
+{
+    CaretAssert(labelItem);
+    const QString name(labelItem->text());
+    
+    QMenu menu(this);
+    
+    QAction* infoAction(NULL);
+    if (infoButtonFlag) {
+        infoAction = menu.addAction("Info...");
+        menu.addSeparator();
+    }
+
+    /*
+     * My clusters
+     */
+    std::vector<QAction*> clusterActions;
+    std::vector<Vector3D> clusterXYZs;
+    const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
+    if (allCogSet != NULL) {
+        const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
+        for (const LabelSelectionItem::COG* c : cogs) {
+            QAction* a(menu.addAction(c->getTitle()));
+            clusterActions.push_back(a);
+            clusterXYZs.push_back(c->getXYZ());
         }
-        const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
-        if (cogSet != NULL) {
-            if ( ! clusterActions.empty()) {
-                menu.addSeparator();
-            }
-            const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
-            for (const LabelSelectionItem::COG* c : cogs) {
-                QAction* a(menu.addAction(c->getTitle()));
-                clusterActions.push_back(a);
-                clusterXYZs.push_back(c->getXYZ());
-            }
-            CaretAssert(clusterActions.size() == clusterXYZs.size());
+        CaretAssert(clusterActions.size() == clusterXYZs.size());
+    }
+    const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
+    if (cogSet != NULL) {
+        if ( ! clusterActions.empty()) {
+            menu.addSeparator();
         }
-        
-        if ( ! menu.actions().isEmpty()) {
-            QAction* selectedAction(menu.exec(m_treeView->mapToGlobal(pos)));
-            if (selectedAction != NULL) {
+        const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
+        for (const LabelSelectionItem::COG* c : cogs) {
+            QAction* a(menu.addAction(c->getTitle()));
+            clusterActions.push_back(a);
+            clusterXYZs.push_back(c->getXYZ());
+        }
+        CaretAssert(clusterActions.size() == clusterXYZs.size());
+    }
+    
+    if ( ! menu.actions().isEmpty()) {
+        QAction* selectedAction(menu.exec(pos));
+        if (selectedAction != NULL) {
+            if (selectedAction == infoAction) {
+                WuQMessageBoxTwo::information(this, 
+                                              "Info",
+                                              labelItem->getTextForInfoDisplay());
+            }
+            else {
                 for (int32_t i = 0; i < static_cast<int32_t>(clusterActions.size()); i++) {
                     if (selectedAction == clusterActions[i]) {
                         CaretAssertVectorIndex(clusterXYZs, i);
@@ -322,10 +368,10 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
                         break;
                     }
                 }
-                
-                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-                EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
             }
+            
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
     }
 }
@@ -524,6 +570,29 @@ LabelSelectionViewHierarchyController::allOffActionTriggered()
     if (m_labelHierarchyModel != NULL) {
         m_labelHierarchyModel->setCheckedStatusOfAllItems(false);
         processSelectionChanges();
+    }
+}
+
+/**
+ * Called when Info button is clicked
+ */
+void
+LabelSelectionViewHierarchyController::infoActionTriggered()
+{
+    const QModelIndex selectedIndex(m_treeView->currentIndex());
+    if (selectedIndex.isValid()) {
+        if (m_labelHierarchyModel != NULL) {
+            QStandardItem* item(m_labelHierarchyModel->itemFromIndex(selectedIndex));
+            if (item != NULL) {
+                const LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(item));
+                if (labelItem != NULL) {
+                    const bool infoButtonFlag(true);
+                    showSelectedItemMenu(labelItem,
+                                         mapToGlobal(m_infoToolButton->pos()),
+                                         infoButtonFlag);
+                }
+            }
+        }
     }
 }
 
