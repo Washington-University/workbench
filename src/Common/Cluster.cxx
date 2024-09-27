@@ -268,7 +268,6 @@ Cluster::computeCenterOfGravityAndLocation() const
     
     float numLeft(0.0);
     float numRight(0.0);
-    float numZero(0.0);
     
     Vector3D sumXYZ;
     for (const Vector3D& xyz : m_coordinateXYZ) {
@@ -277,14 +276,11 @@ Cluster::computeCenterOfGravityAndLocation() const
         /*
          * At 0.0 is neither left nor right
          */
-        if (xyz[0] > 0.0) {
+        if (xyz[0] >= 0.0) {
             numRight += 1.0;
         }
-        else if (xyz[0] < 0.0){
-            numLeft += 1.0;
-        }
         else {
-            numZero += 1.0;
+            numLeft += 1.0;
         }
     }
     
@@ -325,18 +321,60 @@ Cluster::computeCenterOfGravityAndLocation() const
                               + " Percent Left=" + AString::number(leftPercent)
                               + " Percent Right=" + AString::number(rightPercent));
             CaretLogWarning(msg);
+            CaretAssertMessage(0, msg);
         }
-    }
-    else if (numZero >= 1.0) {
-        /*
-         * Cluster has all coordinates at x==0.0
-         */
-        m_location = LocationType::CENTRAL;
     }
     
     m_centerOfGravityAndLocationValidFlag = true;
 }
 
+/**
+ * @return True if this cluster was split into other clusters (typically Central is
+ * split into left and right).
+ */
+bool
+Cluster::isSplitClusterFlag() const
+{
+    return m_splitClusterFlag;
+}
+
+
+/**
+ * Split a cluster into new right and left clusters.
+ * @return Vector containing the new clusters.
+ */
+std::vector<Cluster*>
+Cluster::splitClusterIntoRightAndLeft() const
+{
+    std::vector<Vector3D> leftXYZ;
+    std::vector<Vector3D> rightXYZ;
+    
+    for (const Vector3D& xyz : m_coordinateXYZ) {
+        if (xyz[0] < 0.0) {
+            leftXYZ.push_back(xyz);
+        }
+        else if (xyz[0] >= 0.0) {
+            rightXYZ.push_back(xyz); 
+        }
+    }
+    
+    std::vector<Cluster*> clustersOut;
+    
+    if ( ! leftXYZ.empty()) {
+        Cluster* leftCluster(new Cluster(getName(), getKey(), leftXYZ));
+        leftCluster->computeCenterOfGravityAndLocation();
+        clustersOut.push_back(leftCluster);
+    }
+    if ( ! rightXYZ.empty()) {
+        Cluster* rightCluster(new Cluster(getName(), getKey(), rightXYZ));
+        rightCluster->computeCenterOfGravityAndLocation();
+        clustersOut.push_back(rightCluster);
+    }
+    
+    m_splitClusterFlag = ( ! clustersOut.empty());
+    
+    return clustersOut;
+}
 
 /**
  * Get a description of this object's content.

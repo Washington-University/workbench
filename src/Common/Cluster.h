@@ -82,6 +82,10 @@ namespace caret {
         
         void mergeCoordinates(const Cluster& cluster);
         
+        std::vector<Cluster*> splitClusterIntoRightAndLeft() const;
+        
+        bool isSplitClusterFlag() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -104,6 +108,12 @@ namespace caret {
         mutable Vector3D m_centerOfGravityXYZ;
         
         mutable bool m_centerOfGravityAndLocationValidFlag = false;
+        
+        /**
+         * True if this cluster was split into other clusters (typically Central is
+         * split into left and right).
+         */
+        mutable bool m_splitClusterFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -292,6 +292,36 @@ ClusterContainer::mergeDisjointRightLeftClusters() const
     std::unique_ptr<ClusterContainer> clustersOut(new ClusterContainer());
     
     const std::vector<int32_t> allKeys(getAllClusterKeys());
+    
+    /*
+     * Need to split any central clusters into left and right before merging
+     */
+    for (int32_t key : allKeys) {
+        std::vector<const Cluster*> keyClusters(getClustersWithKey(key));
+        
+        for (const Cluster* cluster : keyClusters) {
+            switch (cluster->getLocationType()) {
+                case Cluster::LocationType::UNKNOWN:
+                    break;
+                case Cluster::LocationType::CENTRAL:
+                {
+                    std::vector<Cluster*> newClusters(cluster->splitClusterIntoRightAndLeft());
+                    for (Cluster* c : newClusters) {
+                        clustersOut->addCluster(c);
+                    }
+                }
+                    break;
+                case Cluster::LocationType::LEFT:
+                    break;
+                case Cluster::LocationType::RIGHT:
+                    break;
+            }
+        }
+    }
+
+    /*
+     * Merge clusters for each key
+     */
     for (int32_t key : allKeys) {
         std::vector<const Cluster*> keyClusters(getClustersWithKey(key));
         

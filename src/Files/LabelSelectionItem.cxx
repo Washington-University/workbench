@@ -514,6 +514,9 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
     COG* leftCOG(NULL);
     COG* rightCOG(NULL);
     
+    bool centralSplitFlag(false);
+    
+    const AString moreThanOneMsg("There is more than cluster of the same type (should only be one) type=");
     for (const auto& c : clusters) {
         
         const AString title(c->getLocationTypeName()
@@ -528,19 +531,44 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                                 + c->toString());
                 break;
             case Cluster::LocationType::CENTRAL:
-                centralCOG = new COG(title,
-                                     c->getCenterOfGravityXYZ(),
-                                     c->getNumberOfBrainordinates());
+                if (centralCOG != NULL) {
+                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
+                                      + " name=" + c->getName());
+                    CaretLogWarning(msg);
+                    CaretAssertMessage(0, msg);
+                }
+                else {
+                    centralCOG = new COG(title,
+                                         c->getCenterOfGravityXYZ(),
+                                         c->getNumberOfBrainordinates());
+                    centralSplitFlag = c->isSplitClusterFlag();
+                }
                 break;
             case Cluster::LocationType::LEFT:
-                leftCOG = new COG(title,
-                                  c->getCenterOfGravityXYZ(),
-                                  c->getNumberOfBrainordinates());
+                if (leftCOG != NULL) {
+                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
+                                      + " name=" + c->getName());
+                    CaretLogWarning(msg);
+                    CaretAssertMessage(0, msg);
+                }
+                else {
+                    leftCOG = new COG(title,
+                                      c->getCenterOfGravityXYZ(),
+                                      c->getNumberOfBrainordinates());
+                }
                 break;
             case Cluster::LocationType::RIGHT:
-                rightCOG = new COG(title,
-                                   c->getCenterOfGravityXYZ(),
-                                   c->getNumberOfBrainordinates());
+                if (rightCOG != NULL) {
+                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
+                                      + " name=" + c->getName());
+                    CaretLogWarning(msg);
+                    CaretAssertMessage(0, msg);
+                }
+                else {
+                    rightCOG = new COG(title,
+                                       c->getCenterOfGravityXYZ(),
+                                       c->getNumberOfBrainordinates());
+                }
                 break;
         }
     }
@@ -555,7 +583,13 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
         int64_t numBrainordinates(0);
         allCOG = new COG("All", zeros, numBrainordinates);
         if (centralCOG != NULL) {
-            allCOG->merge(*centralCOG);
+            /*
+             * Central is split into right and left clusters.
+             * Adding this would add the brainordinates two times.
+             */
+            if ( ! centralSplitFlag) {
+                allCOG->merge(*allCOG);
+            }
         }
         if (leftCOG != NULL) {
             allCOG->merge(*leftCOG);

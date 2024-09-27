@@ -266,6 +266,7 @@ VolumeFile::clear()
     m_maxScalingVal = 1.0;
     
     m_graphicsPrimitiveManager->clear();
+    m_mapLabelClusterContainers.clear();
 }
 
 void VolumeFile::readFile(const AString& filename)
