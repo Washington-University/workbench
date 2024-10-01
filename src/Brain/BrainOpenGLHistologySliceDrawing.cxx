@@ -315,6 +315,8 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         return;
     }
 
+    setupScaleBars(orthographicProjection);
+    
     if (s_debugFlag) {
         std::cout << orthographicProjection.toString() << std::endl;
     }
@@ -1074,3 +1076,35 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     glPopAttrib();
 }
 
+/**
+ * Setup the scale bars for histology slice drawing
+ * @param orthographicProjection
+ *    The orthographic projection
+ */
+void
+BrainOpenGLHistologySliceDrawing::setupScaleBars(const GraphicsOrthographicProjection& orthographicProjection)
+{
+    /*
+     * Must have histology slice to set the stereotaxic coordinates at the left and right sides
+     * of the viewport
+     */
+    for (const HistologyOverlay::DrawingData& dd : m_mediaFilesAndDataToDraw) {
+        const HistologySlice* slice(dd.m_histologySlice);
+        if (slice != NULL) {
+            const Vector3D pLeft(orthographicProjection.getLeft(), 0.0, 0.0);
+            const Vector3D pRight(orthographicProjection.getRight(), 0.0, 0.0);
+            Vector3D xyzLeft;
+            Vector3D xyzRight;
+            if (slice->planeXyzToStereotaxicXyz(pLeft, xyzLeft)
+                && slice->planeXyzToStereotaxicXyz(pRight, xyzRight)) {
+                /*
+                 * Needed for scale bar drawing
+                 */
+                m_fixedPipelineDrawing->setupScaleBarDrawingInformation(m_browserTabContent,
+                                                                        xyzLeft[0],
+                                                                        xyzRight[0]);
+                return;
+            }
+        }
+    }
+}

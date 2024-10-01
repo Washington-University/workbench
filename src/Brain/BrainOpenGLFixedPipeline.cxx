@@ -1611,10 +1611,10 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
-        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             drawScaleBarsFlag = false;
             break;
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:

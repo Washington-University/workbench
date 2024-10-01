@@ -6162,6 +6162,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
     
+    /*
+     * Tab number may change when 'm_sceneClassAssistant->restoreMembers' restores the tab number
+     * so need to update the tab number in the scroll bar
+     */
+    m_scaleBar->setTabIndex(m_tabNumber);
     
     /*
      * Need to recreate clipping plane group since tab is passed
