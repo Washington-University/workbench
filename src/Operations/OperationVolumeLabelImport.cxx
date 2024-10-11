@@ -102,16 +102,45 @@ namespace
         for (auto iter = elements.constBegin(); iter != elements.constEnd(); ++iter)
         {
             QJsonObject thisobj = iter->toObject();
+            CaretHierarchy::Item toAdd;
             AString name = thisobj.value("name").toString();
             if (addAbbrev)
             {
-                name = thisobj.value("acronym").toString() + " - " + name;
+                AString abbrev = thisobj.value("acronym").toString();
+                toAdd.extraInfo.set("BareName", name); //currently, may be overridden by a literal BareName key
+                name = abbrev + " - " + name;
             }
-            AString id = AString::number(thisobj.value("id").toInt());
-            hierarchyOut.addItem(name, parent, id);
+            toAdd.name = name;
+            auto keys = thisobj.keys();
+            for (auto iter = keys.begin(); iter != keys.end(); ++iter)
+            {
+                AString key = *iter;
+                if (key == "name") continue; //don't put name into extraInfo, it is already handled
+                auto valueobj = thisobj.value(key);
+                AString value;
+                switch (valueobj.type())
+                {
+                    case QJsonValue::Bool:
+                        if (valueobj.toBool()) { value = "True"; } else { value = "False"; }
+                        break;
+                    case QJsonValue::Double:
+                        value = AString::number(valueobj.toDouble(), 'g', 16); //handle stupidly large integers with g16, since json numbers are always implicitly double
+                        break;
+                    case QJsonValue::String:
+                        value = valueobj.toString();
+                        break;
+                    default:
+                        break;
+                }
+                if (value != "")
+                {
+                    toAdd.extraInfo.set(key, value);
+                }
+            }
+            hierarchyOut.addItem(toAdd, parent);
             if (thisobj.contains("children"))
             {
-                recurseJson(hierarchyOut, thisobj.value("children").toArray(), addAbbrev, name);
+                recurseJson(hierarchyOut, thisobj.value("children").toArray(), addAbbrev, toAdd.name);
             }
         }
     }

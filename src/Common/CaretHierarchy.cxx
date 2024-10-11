@@ -40,7 +40,7 @@ void CaretHierarchy::clear()
 }
 
 //backwards recursive depth-first, for some efficiency when reading from file
-bool CaretHierarchy::Item::add(const CaretHierarchy::Item toAdd, const AString parent)
+bool CaretHierarchy::Item::add(const CaretHierarchy::Item& toAdd, const AString parent)
 {
     if (name == parent)
     {
@@ -54,13 +54,13 @@ bool CaretHierarchy::Item::add(const CaretHierarchy::Item toAdd, const AString p
     return false;
 }
 
-bool CaretHierarchy::addItem(const AString name, const AString parent, const AString id)
+bool CaretHierarchy::addItem(const Item& toAdd, const AString parent)
 {
-    if (m_usedNames.find(name) != m_usedNames.end()) return false;
+    if (m_usedNames.find(toAdd.name) != m_usedNames.end()) return false;
     if (m_usedNames.find(parent) == m_usedNames.end()) return false; //we can predict when it would fail, so return early
-    if (m_root.add(Item(name, id), parent))
+    if (m_root.add(toAdd, parent))
     {
-        m_usedNames.insert(name);
+        m_usedNames.insert(toAdd.name);
         return true;
     }
     return false;
@@ -77,7 +77,19 @@ void CaretHierarchy::Item::XMLWriteHelper(QXmlStreamWriter& xml) const
     } else {
         xml.writeStartElement("Item"); //TODO: better name?
         xml.writeAttribute("Name", name);
-        xml.writeAttribute("Identifier", id);
+        auto kvdata = extraInfo.getAllData();
+        if (!kvdata.empty())
+        {
+            xml.writeStartElement("Info");
+            for (auto iter : kvdata)
+            {
+                xml.writeStartElement("InfoItem");
+                xml.writeAttribute("Key", iter.first);
+                xml.writeAttribute("Value", iter.second);
+                xml.writeEndElement();
+            }
+            xml.writeEndElement();
+        }
         for (auto iter : children)
         {
             iter.XMLWriteHelper(xml);
@@ -109,6 +121,7 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
 {
     clear(); //leaves us with just the root element and "" used
     vector<QString> parents; //can use add() for sanity checking rather than recursive parsing, just need to track the XML parent name
+    vector<Item> toAdd;
     parents.push_back(""); //trick for handling the root case without special code
     try
     {
@@ -130,10 +143,12 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
                     if (!haveRoot) throw CaretException("hierarchy XML is missing root element");
                     if (rootEnded) throw CaretException("found Item tag after closing root tag in hierarchy XML");
                     QXmlStreamAttributes attributes = xml.attributes();
-                    AString name = attributes.value("Name").toString();
-                    AString id = attributes.value("Identifier").toString();
-                    if (!addItem(name, parents.back(), id)) throw CaretException("failed to add item '" + name + "' to hierarchy, check for a duplicate, empty, or missing Name attribute");
-                    parents.push_back(name);
+                    AString itemName = attributes.value("Name").toString();
+                    toAdd.push_back(Item(itemName));
+                    parents.push_back(itemName);
+                } else if (name == QLatin1String("Info")) {
+                    if (toAdd.empty()) throw CaretException("Info element not allowed at root level");
+                    toAdd.back().extraInfo.readXML(xml); //leaves xml on end element of Info, which readNext() should eat so the endElement section never sees it
                 } else {
                     throw CaretException("unexpected element '" + name.toString() + "' in hierarchy XML");
                 }
@@ -141,6 +156,8 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
                 auto name = xml.name();
                 if (name == QLatin1String("Item"))
                 {
+                    if (!addItem(toAdd.back(), parents.back())) throw CaretException("failed to add item '" + name.toString() + "' to hierarchy, check for a duplicate, empty, or missing Name attribute");
+                    toAdd.pop_back();
                     parents.pop_back();
                 } else {
                     CaretAssert(name == QLatin1String("CaretHierarchy"));
@@ -157,12 +174,28 @@ void CaretHierarchy::readXML(QXmlStreamReader& xml)
     }
 }
 
+void CaretHierarchy::OrderedKVStore::readXML(QXmlStreamReader& xml)
+{
+    clear(); //forget prior stuff
+    for (xml.readNext(); !xml.atEnd(); xml.readNext())
+    {
+        if (xml.isStartElement())
+        {
+            auto name = xml.name();
+            if (name != QLatin1String("InfoItem")) throw CaretException("found unexpected element in Info context: " + name.toString());
+            QXmlStreamAttributes attributes = xml.attributes();
+            set(attributes.value("Key").toString(), attributes.value("Value").toString());
+        } else if (xml.isEndElement()) {
+            if (xml.name() != QLatin1String("InfoItem")) return;
+        }
+    }
+}
+
 void CaretHierarchy::readXML(const QString& text)
 {
     QXmlStreamReader xml(text);
     readXML(xml);
 }
-
 
 void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
 {

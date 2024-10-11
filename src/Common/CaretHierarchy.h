@@ -21,7 +21,9 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <set>
+#include <utility>
 #include <vector>
 
 #include <QStandardItem>
@@ -40,7 +42,7 @@ namespace caret
         struct Item;
         
         CaretHierarchy();
-        bool addItem(const AString name, const AString parent = "", const AString id = ""); //defaults to making the root element the parent
+        bool addItem(const Item& toAdd, const AString parent = ""); //defaults to making the root element the parent
         void clear();
         bool isEmpty() const { return (m_root.children.size() == 0); }
         std::set<AString> getAllNames() const { auto ret = m_usedNames; ret.erase(""); return ret; } //hide the implicit root element
@@ -54,15 +56,55 @@ namespace caret
         
         QStandardItemModel* buildQSIModel() const; //NOTE: allocates a new, unowned object
         
+        class OrderedKVStore
+        {
+            std::map<AString, size_t> m_nameLookup;
+            std::vector<std::pair<AString, AString> > m_store;
+        public:
+            const std::vector<std::pair<AString, AString> >& getAllData() const { return m_store; }
+            AString get(const AString& name) const
+            {
+                auto iter = m_nameLookup.find(name);
+                if (iter == m_nameLookup.end()) return "";
+                return m_store[iter->second].second;
+            }
+            void set(const AString& name, const AString& value)
+            {
+                auto iter = m_nameLookup.find(name);
+                if (iter == m_nameLookup.end())
+                {
+                    m_nameLookup[name] = m_store.size();
+                    m_store.push_back(std::make_pair(name, value));
+                } else {
+                    m_store[iter->second].second = value;
+                }
+            }
+            void erase(const AString& name)
+            {
+                auto iter = m_nameLookup.find(name);
+                if (iter == m_nameLookup.end()) return;
+                for (size_t i = iter->second + 1; i < m_store.size(); ++i)
+                {
+                    m_nameLookup[m_store[i].first] -= 1;
+                }
+                m_store.erase(m_store.begin() + iter->second);
+                m_nameLookup.erase(iter);//now iter is invalid, but we are done
+            }
+            void clear() { m_nameLookup.clear(); m_store.clear(); }
+            
+            void readXML(QXmlStreamReader& xml);
+        };
+        
         struct Item
         {
-            bool add(const Item toAdd, const AString parent); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
+            bool add(const Item& toAdd, const AString parent); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
             
             AString name;
-            AString id;
+            AString id; //NOTE: defunct
+            OrderedKVStore extraInfo;
             std::vector<Item> children;
             
-            Item(const AString nameIn, const AString idIn) : name(nameIn), id(idIn) {}
+            Item(const AString nameIn) : name(nameIn) {}
             Item() {}
 
             void XMLWriteHelper(QXmlStreamWriter& xml) const;
