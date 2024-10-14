@@ -56,6 +56,10 @@ set (WORKBENCH_APPLE_WB_COMMAND_BUNDLE_FLAG TRUE CACHE BOOL
            If TRUE, build wb_command as a MacOS Bundle (wb_command.app).
            If FALSE, build wb_command as a normal UNIX executable."
 )
+set (WORKBENCH_BUILD_CLI TRUE CACHE BOOL
+     "If TRUE, build wb_command.")
+set (WORKBENCH_BUILD_GUI TRUE CACHE BOOL
+     "If TRUE, build wb_view.")
 
 #
 # Use when FindOpenMP does not work such as on Macs
@@ -635,13 +639,17 @@ ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Operations )
 ADD_SUBDIRECTORY ( Brain )
 ADD_SUBDIRECTORY ( Graphics )
-IF (NOT Qwt_FOUND)
-    ADD_SUBDIRECTORY ( Qwt )
-ENDIF (NOT Qwt_FOUND)
-ADD_SUBDIRECTORY ( GuiQt )
 ADD_SUBDIRECTORY ( Commands )
-ADD_SUBDIRECTORY ( Desktop )
-ADD_SUBDIRECTORY ( CommandLine )
+IF (WORKBENCH_BUILD_CLI)
+  ADD_SUBDIRECTORY ( CommandLine )
+ENDIF (WORKBENCH_BUILD_CLI)
+IF (WORKBENCH_BUILD_GUI)
+  IF (NOT Qwt_FOUND)
+      ADD_SUBDIRECTORY ( Qwt )
+  ENDIF (NOT Qwt_FOUND)
+  ADD_SUBDIRECTORY ( GuiQt )
+  ADD_SUBDIRECTORY ( Desktop )
+ENDIF (WORKBENCH_BUILD_GUI)
 ADD_SUBDIRECTORY ( Tests )
 if (WORKBENCH_USE_SIMD AND CPUINFO_COMPILES)
     ADD_SUBDIRECTORY ( kloewe/cpuinfo )

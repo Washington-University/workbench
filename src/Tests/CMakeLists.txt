@@ -111,7 +111,6 @@ Tests
 Operations
 Algorithms
 OperationsBase
-GuiQt
 Brain
 Files
 Annotations
@@ -140,6 +139,12 @@ ${ZLIB_LIBRARIES}
 ${OPENMP_LIBRARY}
 #${LIBS}
 )
+
+IF (WORKBENCH_BUILD_GUI)
+    TARGET_LINK_LIBRARIES(test_driver
+    GuiQt
+    )
+ENDIF (WORKBENCH_BUILD_GUI)
 
 IF(WIN32)
     TARGET_LINK_LIBRARIES(test_driver
