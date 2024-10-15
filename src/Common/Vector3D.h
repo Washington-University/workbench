@@ -55,8 +55,6 @@ namespace caret {
         float& operator[](const int32_t& index);
         const float& operator[](const int32_t& index) const;
         Vector3D& operator=(const float* right);
-        // comparison operators
-        bool operator<(const Vector3D& rhs) const;
         //numerical operators
         Vector3D& operator+=(const Vector3D& right);
         Vector3D& operator-=(const Vector3D& right);

@@ -13,12 +13,10 @@ SET(QT_DONT_USE_QTGUI)
 #
 if(Qt6_FOUND)
     include_directories(${Qt6Core_INCLUDE_DIRS})
-    include_directories(${Qt6Gui_INCLUDE_DIRS})
     include_directories(${Qt6Core5Compat_INCLUDE_DIRS})
 endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
-    include_directories(${Qt5Gui_INCLUDE_DIRS})
 endif()
 
 #
@@ -27,11 +25,9 @@ endif()
 ADD_LIBRARY(FilesBase
 GiftiLabel.h
 GiftiLabelTable.h
-LabelViewModeEnum.h
 nifti1.h
 nifti2.h
 NiftiEnums.h
-TabDrawingInfo.h
 VolumeBase.h
 VolumeMappableInterface.h
 VolumeSliceViewPlaneEnum.h
@@ -41,9 +37,7 @@ VolumeToImageMappingModeEnum.h
 
 GiftiLabel.cxx
 GiftiLabelTable.cxx
-LabelViewModeEnum.cxx
 NiftiEnums.cxx
-TabDrawingInfo.cxx
 VolumeBase.cxx
 VolumeMappableInterface.cxx
 VolumeSliceViewPlaneEnum.cxx

@@ -878,7 +878,7 @@ Matrix4x4::rotateZ(const double degrees)
 void
 Matrix4x4::rotate(
         const double angle,
-        const double vector[3])
+        const double vector[4])
 {
     this->rotate(angle, vector[0], vector[1], vector[2]);
     this->setModified();

@@ -169,7 +169,6 @@
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 #include "SurfaceSelectionModel.h"
-#include "TabDrawingInfo.h"
 #include "TopologyHelper.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
@@ -1611,10 +1610,10 @@ BrainOpenGLFixedPipeline::drawTabAnnotations(const BrainOpenGLViewportContent* t
         case ModelTypeEnum::MODEL_TYPE_CHART:
         case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
         case ModelTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             drawScaleBarsFlag = false;
             break;
-        case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
         case ModelTypeEnum::MODEL_TYPE_SURFACE:
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
@@ -4585,7 +4584,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
 {
     volumeDrawInfoOut.clear();
     
-    const int32_t tabIndex(browserTabContent->getTabNumber());
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t iOver = (numberOfOverlays - 1); iOver >= 0; iOver--) {
@@ -4646,7 +4644,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                            statistics,
                                                            wholeBrainVoxelDrawingMode,
                                                            mapIndex,
-                                                           tabIndex,
                                                            opacity);
                                         volumeDrawInfoOut.push_back(vdi);
                                     }
@@ -4665,7 +4662,6 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                NULL,
                                                wholeBrainVoxelDrawingMode,
                                                mapIndex,
-                                               tabIndex,
                                                opacity);
                             volumeDrawInfoOut.push_back(vdi);
                         }
@@ -4873,7 +4869,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
-    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
     
     /*
      * For identification, five items per voxel
@@ -4944,12 +4939,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
             glDisable(GL_LIGHTING);
         }
         
-        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
-                                            volInfo.mapIndex,
-                                            displayGroup,
-                                            labelViewMode,
-                                            this->windowTabIndex);
-
         uint8_t rgba[4];
         for (int64_t iVoxel = 0; iVoxel < dimI; iVoxel++) {
             for (int64_t jVoxel = 0; jVoxel < dimJ; jVoxel++) {
@@ -4960,7 +4949,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                                        jVoxel,
                                                                        kVoxel,
                                                                        volInfo.mapIndex,
-                                                                       tabDrawingInfo,
+                                                                       displayGroup,
+                                                                       this->windowTabIndex,
                                                                        rgba);
                     }
                     else {
@@ -4968,7 +4958,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrain(std::vector<VolumeDr
                                                        jVoxel,
                                                        kVoxel,
                                                        volInfo.mapIndex,
-                                                       tabDrawingInfo,
+                                                       displayGroup,
+                                                       this->windowTabIndex,
                                                        rgba);
                     }
                     if (rgba[3] > 0) {
@@ -5181,7 +5172,7 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(this->windowTabIndex);
-    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(this->windowTabIndex));
+    
     /*
      * For identification, five items per voxel
      * 1) volume index
@@ -5325,12 +5316,6 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
         std::vector<uint8_t> axialSliceRGBA(numAxialSizeRGBA);
         std::vector<uint8_t> volumeRGBA(numRGBA, 0);
 
-        const TabDrawingInfo tabDrawingInfo(volInfo.mapFile,
-                                            volInfo.mapIndex,
-                                            displayGroup,
-                                            labelViewMode,
-                                            this->windowTabIndex);
-
         /*
          * Get coloring for all voxels in volume
          */
@@ -5341,7 +5326,8 @@ BrainOpenGLFixedPipeline::drawVolumeVoxelsAsCubesWholeBrainOutsideFaces(std::vec
             volumeFile->getVoxelColorsForSliceInMap(volInfo.mapIndex,
                                                     VolumeSliceViewPlaneEnum::AXIAL,
                                                     kVoxel,
-                                                    tabDrawingInfo,
+                                                    displayGroup,
+                                                    this->windowTabIndex,
                                                     axialSliceRGBA.data());
             /*
              * Apply layer opacity
@@ -9487,8 +9473,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
                                                          const FastStatistics* statistics,
                                                          const WholeBrainVoxelDrawingMode::Enum wholeBrainVoxelDrawingMode,
                                                          const int32_t mapIndex,
-                                                         const int32_t tabIndex,
-                                                         const float opacity)
+                                                         const float opacity) 
 : statistics(statistics) {
     this->mapFile = mapFile;
     this->volumeFile = volumeFile;
@@ -9496,7 +9481,6 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(CaretMappableDataFile* 
     this->paletteColorMapping = paletteColorMapping;
     this->wholeBrainVoxelDrawingMode = wholeBrainVoxelDrawingMode;
     this->mapIndex = mapIndex;
-    this->tabIndex = tabIndex;
     this->opacity    = opacity;
     this->volumeType = SubvolumeAttributes::UNKNOWN;
     if (this->volumeFile != NULL) {

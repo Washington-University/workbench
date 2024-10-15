@@ -70,7 +70,6 @@
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
-#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VolumeTextureCoordinateMapper.h"
 
@@ -153,7 +152,7 @@ BrainOpenGLVolumeMprTwoDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDraw
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
-    m_labelViewMode = dsl->getLabelViewModeForTab(m_fixedPipelineDrawing->windowTabIndex);
+    
     m_tabIndex = m_browserTabContent->getTabNumber();
 
     /*
@@ -2392,8 +2391,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection2D(const SliceInfo& 
         CaretAssert(volumeFile);
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
-                                           volumeFile,
-                                           volumeFileAndMapIndex.second);
+                                           volumeFile);
             continue;
         }
         
@@ -2708,13 +2706,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceWithPrimitive(const SliceInfo& sliceInf
                     }
                 }
               
-                const TabDrawingInfo tabDrawingInfo(vdi.mapFile,
-                                                    vdi.mapIndex,
-                                                    m_displayGroup,
-                                                    m_labelViewMode,
-                                                    m_tabIndex);
                 GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTriangleStripPrimitive(vdi.mapIndex,
-                                                                                                           tabDrawingInfo));
+                                                                                              m_displayGroup,
+                                                                                              m_tabIndex));
                 
                 VolumeTextureCoordinateMapper mapper(volumeInterface);
                 
@@ -3475,8 +3469,7 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
         const SliceInfo sliceInfo(createSliceInfo3D());
         if (idModeFlag) {
             performIntensityIdentification(sliceInfo,
-                                           volumeFile,
-                                           mapIndex);
+                                           volumeFile);
             continue;
         }
         std::vector<Vector3D> allIntersections(getVolumeRayIntersections(volumeFile,
@@ -3528,13 +3521,9 @@ BrainOpenGLVolumeMprTwoDrawing::drawSliceIntensityProjection3D(const VolumeSlice
                 const Vector3D sliceCoords(p1 + stepVector * iStep);
                 const Vector3D sliceOffset(sliceCoords - sliceInfo.m_centerXYZ);
                 
-                const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volumeFile),
-                                                    mapIndex,
-                                                    m_displayGroup,
-                                                    m_labelViewMode,
-                                                    m_tabIndex);
                 GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTriangleStripPrimitive(mapIndex,
-                                                                                                      tabDrawingInfo));
+                                                                                               m_displayGroup,
+                                                                                               m_tabIndex));
                 
                 if (primitive != NULL) {
                     const Vector3D textureBottomLeft(mapper.mapXyzToStr(sliceInfo.m_bottomLeftXYZ + sliceOffset));
@@ -3646,13 +3635,10 @@ BrainOpenGLVolumeMprTwoDrawing::getVoxelSize(const VolumeMappableInterface* volu
  *    Info for drawing slices
  * @param volume
  *    Volume being drawn
- * @param mapIndex
- *    Index of the map
  */
 void
 BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& sliceInfo,
-                                                               VolumeMappableInterface* volume,
-                                                               const int32_t mapIndex)
+                                                               VolumeMappableInterface* volume)
 {
     GraphicsViewport viewport(GraphicsViewport::newInstanceCurrentViewport());
     const int32_t mouseVpX(m_fixedPipelineDrawing->mouseX - viewport.getX());
@@ -3710,11 +3696,6 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
         if (distance > 1.0) {
             float minMaxIntensity(idMaxIntensityFlag ? 0.0 : 256.0);
             
-            const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volume),
-                                                mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_tabIndex);
             int64_t minMaxIJK[3] { -1, -1, -1 };
             const Vector3D p1toP2Vector((p2 - p1).normal());
             const float stepDistance(voxelSize);
@@ -3728,7 +3709,7 @@ BrainOpenGLVolumeMprTwoDrawing::performIntensityIdentification(const SliceInfo& 
                     const int32_t brickIndex(0);
                     uint8_t rgba[4];
                     volume->getVoxelColorInMap(voxelI, voxelJ, voxelK, brickIndex,
-                                               tabDrawingInfo, rgba);
+                                               m_displayGroup, m_tabIndex, rgba);
                     if (rgba[3] > 0) {
                         const float intensity((rgba[0] * 0.30)
                                               + (rgba[1] * 0.59)

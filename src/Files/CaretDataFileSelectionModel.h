@@ -38,8 +38,6 @@ namespace caret {
     public:
         static CaretDataFileSelectionModel* newInstanceMapsToSameBrainordinates(const CaretMappableDataFile* mappableDataFile);
         
-        static CaretDataFileSelectionModel* newInstanceMapsToSameBrainordinatesExcludeSelf(const CaretMappableDataFile* mappableDataFile);
-        
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileType(const DataFileTypeEnum::Enum dataFileType);
         
         static CaretDataFileSelectionModel* newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes);
@@ -120,7 +118,6 @@ namespace caret {
             FILE_MODE_CHARTABLE_MATRIX_PARCEL_INTERFACE,
             FILE_MODE_DATA_FILE_TYPE_ENUM,
             FILE_MODE_MAPS_TO_SAME_BRAINORDINATES,
-            FILE_MODE_MAPS_TO_SAME_BRAINORDINATES_EXCLUDE_SELF,
             FILE_MODE_MULTI_STRUCTURE_BORDER_FILES
         };
         

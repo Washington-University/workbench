@@ -70,7 +70,6 @@
 #include "SelectionItemVoxelEditing.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
-#include "TabDrawingInfo.h"
 #include "VolumeVerticesEdgesFaces.h"
 #include "VolumeFile.h"
 #include "VolumeMprViewportSlice.h"
@@ -148,8 +147,8 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
 
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
+    
     m_tabIndex = m_browserTabContent->getTabNumber();
-    m_labelViewMode = dsl->getLabelViewModeForTab(m_tabIndex);
 
     m_mprViewMode = browserTabContent->getVolumeMprViewMode();
     m_orientationMode = browserTabContent->getVolumeMprOrientationMode();
@@ -2808,8 +2807,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection2D(const VolumeMpr
         CaretAssertToDoFatal(); /* should be using normal slice ID */
         performIntensityIdentification(mprSliceView,
                                        sliceViewPlane,
-                                       volumeFile,
-                                       mapIndex);
+                                       volumeFile);
         return;
     }
     
@@ -3132,12 +3130,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     setupMprBlending(BlendingMode::MPR_UNDERLAY_SLICE,
                                      s_INVALID_ALPHA_VALUE,
                                      s_INVALID_NUMBER_OF_SLICES);
-                    /*
-                     * May fix labels on/off when only one layer
-                     * setupMprBlending(BlendingMode::MPR_OVERLAY_SLICE, //JWH 27aug2024
-                     *                1.0,
-                     *                s_INVALID_NUMBER_OF_SLICES);
-                     */
                     firstFlag = false;
                 }
                 else {
@@ -3158,13 +3150,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     glPolygonOffset(-2.0, 2.0);
                 }
             }
-            const TabDrawingInfo tabDrawingInfo(vdi.mapFile,
-                                                vdi.mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_tabIndex);
             GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
-                                                                                                   tabDrawingInfo));
+                                                                                                   m_displayGroup,
+                                                                                                   m_tabIndex));
             if (primitive != NULL) {
                 const Vector3D sliceOffset(0.0, 0.0, 0.0);
 
@@ -4117,8 +4105,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
     if (idModeFlag) {
         performIntensityIdentification(mprSliceView,
                                        sliceViewPlane,
-                                       volumeFile,
-                                       mapIndex);
+                                       volumeFile);
         return;
     }
     
@@ -4187,13 +4174,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceIntensityProjection3D(const VolumeSli
         }
 
         for (int32_t iStep = 0; iStep < numSteps; iStep++) {
-            const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volumeFile),
-                                                mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_tabIndex);
             GraphicsPrimitiveV3fT3f* primitive(volumeFile->getVolumeDrawingTrianglesPrimitive(mapIndex,
-                                                                                              tabDrawingInfo));
+                                                                                              m_displayGroup,
+                                                                                              m_tabIndex));
             
             if (primitive != NULL) {
                 setPrimitiveCoordinates(mprSliceView,
@@ -4279,14 +4262,11 @@ BrainOpenGLVolumeMprThreeDrawing::getVoxelSize(const VolumeMappableInterface* vo
  *    Slice view plane being drawn
  * @param volume
  *    Volume being drawn
- * @param mapIndex
- *    Map file index
  */
 void
 BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMprVirtualSliceView& mprSliceView,
                                                                  const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
-                                                                 VolumeMappableInterface* volume,
-                                                                 const int32_t mapIndex)
+                                                                 VolumeMappableInterface* volume)
 {
     CaretAssertToDoFatal(); /* should be using normal slice ID for identification */
 
@@ -4380,11 +4360,6 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                 }
             }
             
-            const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(volume),
-                                                mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_tabIndex);
             int64_t minMaxIJK[3] { -1, -1, -1 };
             const Vector3D p1toP2Vector((p2 - p1).normal());
             const float stepDistance(voxelSize);
@@ -4398,7 +4373,7 @@ BrainOpenGLVolumeMprThreeDrawing::performIntensityIdentification(const VolumeMpr
                     const int32_t brickIndex(0);
                     uint8_t rgba[4];
                     volume->getVoxelColorInMap(voxelI, voxelJ, voxelK, brickIndex,
-                                               tabDrawingInfo, rgba);
+                                               m_displayGroup, m_tabIndex, rgba);
                     if (rgba[3] > 0) {
                         const float intensity((rgba[0] * 0.30)
                                               + (rgba[1] * 0.59)

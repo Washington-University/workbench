@@ -23,12 +23,12 @@
 
 
 #include "CaretObject.h"
+#include "DisplayGroupEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VoxelIJK.h"
 
 namespace caret {
 
-    class TabDrawingInfo;
     class VolumeFile;
     class VoxelColorUpdate;
     
@@ -47,13 +47,15 @@ namespace caret {
                                             const int64_t columnStepIJK[3],
                                             const int64_t numberOfRows,
                                             const int64_t numberOfColumns,
-                                            const TabDrawingInfo& tabDrawingInfo,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
                                             uint8_t* rgbaOut) const;
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                          const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                          const int64_t sliceIndex,
-                                            const TabDrawingInfo& tabDrawingInfo,
+                                         const DisplayGroupEnum::Enum displayGroup,
+                                         const int32_t tabIndex,
                                          uint8_t* rgbaOut) const;
         
         int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
@@ -62,7 +64,8 @@ namespace caret {
                                             const int64_t firstCornerVoxelIndex[3],
                                             const int64_t lastCornerVoxelIndex[3],
                                             const int64_t* voxelCountIJK,
-                                               const TabDrawingInfo& tabDrawingInfo,
+                                            const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex,
                                             uint8_t* rgbaOut) const;
         
         void getVoxelColorInMap(const int64_t i,
@@ -75,7 +78,8 @@ namespace caret {
                                 const int64_t j,
                                 const int64_t k,
                                 const int64_t mapIndex,
-                                const TabDrawingInfo& tabDrawingInfo,
+                                const DisplayGroupEnum::Enum displayGroup,
+                                const int32_t tabIndex,
                                 uint8_t rgbaOut[4]) const;
         
         void updateVoxelColorsInMap(const VoxelColorUpdate& voxelColorUpdate);
@@ -108,8 +112,6 @@ namespace caret {
                          + (ijk[1] * m_dimI)
                          + ((ijk[2] * m_dimI * m_dimJ))));
         }
-        
-        void applyColorModulation(const int32_t mapIndex) const;
         
         // ADD_NEW_MEMBERS_HERE
 

@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include "DisplayGroupEnum.h"
 #include "Vector3D.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSpace.h"
@@ -34,7 +35,6 @@ namespace caret {
     class MediaFile;
     class GraphicsPrimitive;
     class GraphicsPrimitiveV3fT3f;
-    class TabDrawingInfo;
 
     /**
      * \class caret::VolumeMappableInterface
@@ -354,8 +354,10 @@ namespace caret {
          *    The slice plane.
          * @param sliceIndex
          *    Index of the slice.
-         * @param tabDrawingInfo
-         *    Info for drawing the tab
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *    Output containing the rgba values (must have been allocated
          *    by caller to sufficient count of elements in the slice).
@@ -365,7 +367,8 @@ namespace caret {
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
-                                                    const TabDrawingInfo& tabDrawingInfo,
+                                                    const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex,
                                                     uint8_t* rgbaOut) const = 0;
         
         /**
@@ -383,8 +386,10 @@ namespace caret {
          *    Number of rows.
          * @param numberOfColumns
          *    Number of columns.
-         * @param tabDrawingInfo
-         *    Info for drawing the tab
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *    RGBA color components out.
          * @return
@@ -396,7 +401,8 @@ namespace caret {
                                                     const int64_t columnStepIJK[3],
                                                     const int64_t numberOfRows,
                                                     const int64_t numberOfColumns,
-                                                    const TabDrawingInfo& tabDrawingInfo,
+                                                    const DisplayGroupEnum::Enum displayGroup,
+                                                    const int32_t tabIndex,
                                                     uint8_t* rgbaOut) const = 0;
         
         /**
@@ -414,8 +420,10 @@ namespace caret {
          *    Indices of voxel for last corner of sub-slice (inclusive).
          * @param voxelCountIJK
          *    Voxel counts for each axis.
-         * @param tabDrawingInfo
-         *    Info for drawing the tab
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *    Output containing the rgba values (must have been allocated
          *    by caller to sufficient count of elements in the slice).
@@ -428,7 +436,8 @@ namespace caret {
                                                        const int64_t firstCornerVoxelIndex[3],
                                                        const int64_t lastCornerVoxelIndex[3],
                                                        const int64_t voxelCountIJK[3],
-                                                       const TabDrawingInfo& tabDrawingInfo,
+                                                       const DisplayGroupEnum::Enum displayGroup,
+                                                       const int32_t tabIndex,
                                                        uint8_t* rgbaOut) const = 0;
         
         /**
@@ -442,8 +451,10 @@ namespace caret {
          *     Third dimension (k).
          * @param brickIndex
          *     Time/map index.
-         * @param tabDrawingInfo
-         *    Info for drawing the tab
+         * @param displayGroup
+         *    The selected display group.
+         * @param tabIndex
+         *    Index of selected tab.
          * @param rgbaOut
          *     Output containing RGBA values for voxel at the given indices.
          */
@@ -451,7 +462,8 @@ namespace caret {
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t brickIndex,
-                                        const TabDrawingInfo& tabDrawingInfo,
+                                        const DisplayGroupEnum::Enum displayGroup,
+                                        const int32_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
         
         /**
@@ -475,23 +487,28 @@ namespace caret {
                                         uint8_t rgbaOut[4]) const = 0;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
-                                                                                const TabDrawingInfo& tabDrawingInfo) const = 0;
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex) const = 0;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
-                                                                              const TabDrawingInfo& tabDrawingInfo) const = 0;
+                                                                      const DisplayGroupEnum::Enum displayGroup,
+                                                                      const int32_t tabIndex) const = 0;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
-                                                                            const TabDrawingInfo& tabDrawingInfo) const = 0;
+                                                                            const DisplayGroupEnum::Enum displayGroup,
+                                                                            const int32_t tabIndex) const = 0;
 
         virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
-                                                                          const TabDrawingInfo& tabDrawingInfo,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
                                                                           const MediaFile* mediaFile,
                                                                           const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                           const float volumeSliceThickness,
                                                                           AString& errorMessageOut) const = 0;
         
         virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
-                                                                                       const TabDrawingInfo& tabDrawingInfo,
+                                                                                       const DisplayGroupEnum::Enum displayGroup,
+                                                                                       const int32_t tabIndex,
                                                                                        const HistologySlice* histologySlice,
                                                                                        const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                                        const float volumeSliceThickness,

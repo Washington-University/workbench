@@ -502,8 +502,8 @@ CaretColorEnum::getColorEnumsNoBlackOrWhite(std::vector<CaretColorEnum::Enum>& a
     
     getColorAndOptionalEnums(allColorEnums,
                              OPTION_NO_OPTIONS);
-    (void)std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::BLACK);
-    (void)std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::WHITE);
+    std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::BLACK);
+    std::remove(allColorEnums.begin(), allColorEnums.end(), CaretColorEnum::WHITE);
 }
 
 /**

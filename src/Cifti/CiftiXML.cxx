@@ -349,7 +349,7 @@ void CiftiXML::readXML(QXmlStreamReader& xml)
                         throw DataFileException("CIFTI element may only be specified once");
                     }
                     QXmlStreamAttributes attributes = xml.attributes();
-                    if (attributes.hasAttribute("Version"))
+                    if(attributes.hasAttribute("Version"))
                     {
                         m_parsedVersion = CiftiVersion(attributes.value("Version").toString());
                     } else {

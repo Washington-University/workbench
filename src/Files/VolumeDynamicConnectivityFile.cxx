@@ -497,13 +497,17 @@ VolumeDynamicConnectivityFile::getConnectivityForVoxelIndex(const int64_t ijk[3]
 {
     bool validFlag(false);
     
+    const int64_t numVoxelsInSlice(m_dimI * m_dimJ * m_dimK);
+
     const ConnectivityCorrelationTwo* connCorrelationTwo(getConnectivityCorrelationTwo());
     if (connCorrelationTwo != NULL) {
         if (indexValid(ijk)) {
             const int64_t brainordinateIndex(m_parentVolumeFile->getIndex(ijk));
             connCorrelationTwo->computeForDataSetIndex(brainordinateIndex,
                                                        voxelsOut);
-            CaretAssert((m_dimI * m_dimJ * m_dimK) == static_cast<int64_t>(voxelsOut.size()));
+#ifndef NDEBUG
+            CaretAssert(numVoxelsInSlice == static_cast<int64_t>(voxelsOut.size()));
+#endif
             validFlag = true;
         }
     }

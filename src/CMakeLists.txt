@@ -8,7 +8,7 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
 #
 PROJECT(Workbench)
 
-SET(WB_VERSION "2.0.0")
+SET(WB_VERSION "2.0.1")
 #
 # Set to true for verbose output when debugging this file
 #

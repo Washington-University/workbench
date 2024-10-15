@@ -322,7 +322,7 @@ VolumeMprSettings::restoreFromScene(const SceneAttributes* sceneAttributes,
         return;
     }
     
-    /*const int32_t sceneVersion(sceneClass->getVersionNumber());*/
+    const int32_t sceneVersion(sceneClass->getVersionNumber());
     
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);    

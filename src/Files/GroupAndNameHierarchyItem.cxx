@@ -32,7 +32,6 @@
 #include "SceneClass.h"
 #include "SceneClassArray.h"
 #include "SceneClassAssistant.h"
-#include "TabDrawingInfo.h"
 
 #include <algorithm>
 
@@ -429,18 +428,6 @@ GroupAndNameHierarchyItem::removeChild(GroupAndNameHierarchyItem* child)
 }
 
 /**
- * @return True if selected
- * @param tabDrawingInfo
- *    Info for drawing tab
- */
-bool
-GroupAndNameHierarchyItem::isSelected(const TabDrawingInfo& tabDrawingInfo) const
-{
-    return isSelected(tabDrawingInfo.getDisplayGroup(),
-                      tabDrawingInfo.getTabIndex());
-}
-
-/**
  * Is this item selected?
  *
  * @param displayGroup
@@ -466,23 +453,6 @@ GroupAndNameHierarchyItem::isSelected(const DisplayGroupEnum::Enum displayGroup,
     }
     
     return m_selectedInDisplayGroup[displayIndex];
-}
-
-/**
- * Get the "check state" of an item.
- * @param tabDrawingInfo
- *    Info for drawing tab
- * @return
- *    CHECKED if this item and ALL of its children are selected.
- *    PARTIALLY_CHECKED if this item is selected and any of its
- *       children, but not all of its children, are selected.
- *    UNCHECKED if this item is not selected.
- */
-GroupAndNameCheckStateEnum::Enum
-GroupAndNameHierarchyItem::getCheckState(const TabDrawingInfo& tabDrawingInfo) const
-{
-    return getCheckState(tabDrawingInfo.getDisplayGroup(),
-                         tabDrawingInfo.getTabIndex());
 }
 
 /**
@@ -541,24 +511,6 @@ GroupAndNameHierarchyItem::getCheckState(const DisplayGroupEnum::Enum displayGro
  * Set the selected status of this item only.  It does not alter
  * the status of ancestors and children.
  *
- * @param tabDrawingInfo
- *    Info for drawing tab
- * @param status
- *    True if item is selected, else false.
- */
-void
-GroupAndNameHierarchyItem::setSelected(const TabDrawingInfo& tabDrawingInfo,
-                                       const bool status)
-{
-    setSelected(tabDrawingInfo.getDisplayGroup(),
-                tabDrawingInfo.getTabIndex(),
-                status);
-}
-
-/**
- * Set the selected status of this item only.  It does not alter
- * the status of ancestors and children.
- *
  * @param displayGroup
  *    The display group in which the item is controlled/viewed.
  * @param tabIndex
@@ -593,23 +545,6 @@ GroupAndNameHierarchyItem::setSelected(const DisplayGroupEnum::Enum displayGroup
 /**
  * Set the selected status for all of this item's descendants.
  *
- * @param tabDrawingInfo
- *    Info for drawing tab
- * @param status
- *    True if item is selected, else false.
- */
-void
-GroupAndNameHierarchyItem::setDescendantsSelected(const TabDrawingInfo& tabDrawingInfo,
-                                                  const bool status)
-{
-    setDescendantsSelected(tabDrawingInfo.getDisplayGroup(),
-                           tabDrawingInfo.getTabIndex(),
-                           status);
-}
-
-/**
- * Set the selected status for all of this item's descendants.
- *
  * @param displayGroup
  *    The display group in which the item is controlled/viewed.
  * @param tabIndex
@@ -639,24 +574,6 @@ GroupAndNameHierarchyItem::setDescendantsSelected(const DisplayGroupEnum::Enum d
  * Set the selected status of this item's ancestor's (parent,
  * its parent, etc).
  *
- * @param tabDrawingInfo
- *    Info for drawing tab
- * @param status
- *    True if item is selected, else false.
- */
-void
-GroupAndNameHierarchyItem::setAncestorsSelected(const TabDrawingInfo& tabDrawingInfo,
-                                                const bool status)
-{
-    setAncestorsSelected(tabDrawingInfo.getDisplayGroup(),
-                         tabDrawingInfo.getTabIndex(),
-                         status);
-}
-
-/**
- * Set the selected status of this item's ancestor's (parent,
- * its parent, etc).
- *
  * @param displayGroup
  *    The display group in which the item is controlled/viewed.
  * @param tabIndex
@@ -677,24 +594,6 @@ GroupAndNameHierarchyItem::setAncestorsSelected(const DisplayGroupEnum::Enum dis
                                        tabIndex,
                                        status);
     }
-}
-
-/**
- * Set the selected status of this item, its ancestors, and all
- * of its children.
- *
- * @param tabDrawingInfo
- *    Info for drawing tab
- * @param status
- *    True if item is selected, else false.
- */
-void
-GroupAndNameHierarchyItem::setSelfAncestorsAndDescendantsSelected(const TabDrawingInfo& tabDrawingInfo,
-                                                                  const bool status)
-{
-    setSelfAncestorsAndDescendantsSelected(tabDrawingInfo.getDisplayGroup(),
-                                           tabDrawingInfo.getTabIndex(),
-                                           status);
 }
 
 /**

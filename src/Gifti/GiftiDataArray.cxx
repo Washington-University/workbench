@@ -267,7 +267,7 @@ GiftiDataArray::deleteRows(const std::vector<int32_t>& rowsToDeleteIn)
    //
    std::vector<int32_t> rowsToDelete = rowsToDeleteIn;
    std::sort(rowsToDelete.begin(), rowsToDelete.end());
-   (void)std::unique(rowsToDelete.begin(), rowsToDelete.end());
+   std::unique(rowsToDelete.begin(), rowsToDelete.end());
    std::reverse(rowsToDelete.begin(), rowsToDelete.end());
    
    //

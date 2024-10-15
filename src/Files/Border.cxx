@@ -268,7 +268,7 @@ Border::getClassRgba(float rgba[4]) const
  *     Red, green, blue, alpha ranging zero to one.
  */
 void 
-Border::setClassRgba(const float rgba[4])
+Border::setClassRgba(const float rgba[3])
 {
     m_classRgbaColor[0] = rgba[0];
     m_classRgbaColor[1] = rgba[1];

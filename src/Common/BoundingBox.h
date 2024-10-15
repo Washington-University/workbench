@@ -75,7 +75,7 @@ public:
              const float c[3],
              const float d[4]);
     
-    void update(const float xyz[3]);
+    void update(const float xyz[]);
 
     void update(const float x,
                 const float y,
@@ -83,7 +83,7 @@ public:
     
     void update(const std::array<float, 3>& xyz);
     
-    void updateExcludeNanInf(const float xyz[3]);
+    void updateExcludeNanInf(const float xyz[]);
     
     void updateExcludeNanInf(const float x,
                              const float y,

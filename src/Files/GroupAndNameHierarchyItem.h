@@ -32,7 +32,6 @@ namespace caret {
 
     class GroupAndNameHierarchyUserInterface;
     class SceneClassAssistant;
-    class TabDrawingInfo;
     
     class GroupAndNameHierarchyItem : public CaretObject, SceneableInterface {
         
@@ -86,43 +85,27 @@ namespace caret {
         
         void removeChild(GroupAndNameHierarchyItem* child);
         
-        bool isSelected(const TabDrawingInfo& tabDrawingInfo) const;
-        
         bool isSelected(const DisplayGroupEnum::Enum displayGroup,
                                 const int32_t tabIndex) const;
         
-        GroupAndNameCheckStateEnum::Enum getCheckState(const TabDrawingInfo& tabDrawingInfo) const;
-        
         GroupAndNameCheckStateEnum::Enum getCheckState(const DisplayGroupEnum::Enum displayGroup,
-                                                       const int32_t tabIndex) const;
-        
-        void setSelected(const TabDrawingInfo& tabDrawingInfo,
-                         const bool status);
+                                                               const int32_t tabIndex) const;
         
         void setSelected(const DisplayGroupEnum::Enum displayGroup,
-                         const int32_t tabIndex,
-                         const bool status);
-        
-        void setDescendantsSelected(const TabDrawingInfo& tabDrawingInf,
-                                         const bool status);
+                                 const int32_t tabIndex,
+                                 const bool status);
         
         void setDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
-                                    const int32_t tabIndex,
-                                    const bool status);
-        
-        void setAncestorsSelected(const TabDrawingInfo& tabDrawingInf,
-                                  const bool status);
+                                         const int32_t tabIndex,
+                                         const bool status);
         
         void setAncestorsSelected(const DisplayGroupEnum::Enum displayGroup,
-                                  const int32_t tabIndex,
-                                  const bool status);
-        
-        void setSelfAncestorsAndDescendantsSelected(const TabDrawingInfo& tabDrawingInf,
-                                                         const bool status);
+                                          const int32_t tabIndex,
+                                          const bool status);
         
         void setSelfAncestorsAndDescendantsSelected(const DisplayGroupEnum::Enum displayGroup,
-                                                    const int32_t tabIndex,
-                                                    const bool status);
+                                                         const int32_t tabIndex,
+                                                         const bool status);
         
         const float* getIconColorRGBA() const;
         

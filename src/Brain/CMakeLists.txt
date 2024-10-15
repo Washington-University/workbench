@@ -229,9 +229,8 @@ SurfaceDrawingTypeEnum.h
 SurfaceMontageConfigurationAbstract.h
 SurfaceMontageConfigurationCerebellar.h
 SurfaceMontageConfigurationCerebral.h
-SurfaceMontageConfigurationFlatMaps.h
-SurfaceMontageConfigurationHippocampus.h
 SurfaceMontageConfigurationTypeEnum.h
+SurfaceMontageConfigurationFlatMaps.h
 SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
 SurfaceNodeColoring.h
@@ -462,9 +461,8 @@ SurfaceDrawingTypeEnum.cxx
 SurfaceMontageConfigurationAbstract.cxx
 SurfaceMontageConfigurationCerebellar.cxx
 SurfaceMontageConfigurationCerebral.cxx
-SurfaceMontageConfigurationFlatMaps.cxx
-SurfaceMontageConfigurationHippocampus.cxx
 SurfaceMontageConfigurationTypeEnum.cxx
+SurfaceMontageConfigurationFlatMaps.cxx
 SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
 SurfaceNodeColoring.cxx

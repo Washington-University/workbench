@@ -56,7 +56,7 @@
 #include "HistologyOverlaySetViewController.h"
 #include "IdentificationDisplayWidget.h"
 #include "ImageSelectionViewController.h"
-#include "LabelSelectionViewWidget.h"
+#include "LabelSelectionViewController.h"
 #include "MediaOverlaySetViewController.h"
 #include "OverlaySetViewController.h"
 #include "SamplesSelectionViewController.h"
@@ -155,7 +155,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_fociSelectionViewController       = NULL;
     m_histologyOverlaySetViewController = NULL;
     m_imageSelectionViewController      = NULL;
-    m_labelSelectionWidget              = NULL;
+    m_labelSelectionViewController      = NULL;
     m_mediaSelectionViewController      = NULL;
     m_overlaySetViewController          = NULL;
     m_samplesSelectionViewController    = NULL;
@@ -204,7 +204,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                   browserWindowIndex,
                                                                   objectNamePrefix,
                                                                   this);  
-        m_overlayTabIndex = addToScrolledAreaInTabWidget(m_overlaySetViewController,
+        m_overlayTabIndex = addToTabWidget(m_overlaySetViewController,
                        "Layers");
     }
     if (isOverlayToolBox) {
@@ -212,7 +212,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                browserWindowIndex,
                                                                                objectNamePrefix,
                                                                                this);
-        m_chartOverlayTabIndex = addToScrolledAreaInTabWidget(m_chartOverlaySetViewController,
+        m_chartOverlayTabIndex = addToTabWidget(m_chartOverlaySetViewController,
                                                 "Chart Layers");
     }
     if (isOverlayToolBox) {
@@ -220,13 +220,13 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                       browserWindowIndex,
                                                                       objectNamePrefix,
                                                                       this);
-        m_chartTabIndex = addToScrolledAreaInTabWidget(m_chartToolBoxViewController,
+        m_chartTabIndex = addToTabWidget(m_chartToolBoxViewController,
                                          "Charting");
     }
     if (isOverlayToolBox) {
         m_connectivityMatrixViewController = new CiftiConnectivityMatrixViewController(objectNamePrefix,
                                                                                        this);
-        m_connectivityTabIndex = addToScrolledAreaInTabWidget(m_connectivityMatrixViewController,
+        m_connectivityTabIndex = addToTabWidget(m_connectivityMatrixViewController,
                              "Connectivity");
     }
     if (isFeaturesToolBox) {
@@ -246,7 +246,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                          "Features ToolBox Annotation Tab",
                                                          "");
         
-        m_annotationTabIndex = addToScrolledAreaInTabWidget(m_annotationTabWidget,
+        m_annotationTabIndex = addToTabWidget(m_annotationTabWidget,
                                               "Annot");
         m_annotationTabWidget->setCurrentIndex(0);
     }
@@ -254,14 +254,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             objectNamePrefix,
                                                                             this);
-        m_borderTabIndex = addToScrolledAreaInTabWidget(m_borderSelectionViewController,
+        m_borderTabIndex = addToTabWidget(m_borderSelectionViewController,
                              "Borders");
     }
     
     if (isFeaturesToolBox) {
         m_fiberOrientationViewController = new FiberOrientationSelectionViewController(browserWindowIndex,
                                                                                        this);
-        m_fiberOrientationTabIndex = addToScrolledAreaInTabWidget(m_fiberOrientationViewController,
+        m_fiberOrientationTabIndex = addToTabWidget(m_fiberOrientationViewController,
                        "Fibers");
     }
     
@@ -269,7 +269,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
                                                                         objectNamePrefix,
                                                                                 this);
-        m_fociTabIndex = addToScrolledAreaInTabWidget(m_fociSelectionViewController,
+        m_fociTabIndex = addToTabWidget(m_fociSelectionViewController,
                              "Foci");
     }
     
@@ -278,7 +278,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                     browserWindowIndex,
                                                                                     objectNamePrefix,
                                                                                     this);
-        m_histologyTabIndex = addToScrolledAreaInTabWidget(m_histologyOverlaySetViewController,
+        m_histologyTabIndex = addToTabWidget(m_histologyOverlaySetViewController,
                                              "Histology");
     }
     
@@ -286,16 +286,16 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_imageSelectionViewController = new ImageSelectionViewController(browserWindowIndex,
                                                                           objectNamePrefix,
                                                                           this);
-        m_imageTabIndex = addToScrolledAreaInTabWidget(m_imageSelectionViewController,
+        m_imageTabIndex = addToTabWidget(m_imageSelectionViewController,
                                          "Images");
     }
     
     if (isFeaturesToolBox) {
-        m_labelSelectionWidget = new LabelSelectionViewWidget(browserWindowIndex,
-                                                              objectNamePrefix,
-                                                              this);
-        m_labelTabIndex = addToTabWidget(m_labelSelectionWidget,
-                                         "Labels");
+        m_labelSelectionViewController = new LabelSelectionViewController(browserWindowIndex,
+                                                                          objectNamePrefix,
+                                                                          this);
+        m_labelTabIndex = addToTabWidget(m_labelSelectionViewController,
+                       "Labels");
     }
     
     if (isOverlayToolBox) {
@@ -303,7 +303,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                            browserWindowIndex,
                                                                            objectNamePrefix,
                                                                            this);
-        m_mediaTabIndex = addToScrolledAreaInTabWidget(m_mediaSelectionViewController,
+        m_mediaTabIndex = addToTabWidget(m_mediaSelectionViewController,
                                          "Media");
     }
     
@@ -311,7 +311,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_samplesSelectionViewController = new SamplesSelectionViewController(browserWindowIndex,
                                                                               objectNamePrefix,
                                                                               this);
-        m_samplesTabIndex = addToScrolledAreaInTabWidget(m_samplesSelectionViewController,
+        m_samplesTabIndex = addToTabWidget(m_samplesSelectionViewController,
                                            "Samples");
     }
     
@@ -320,14 +320,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                                             m_browserWindowIndex,
                                                                                             objectNamePrefix,
                                                                                             "toolbox");
-        m_volumeSurfaceOutlineTabIndex = addToScrolledAreaInTabWidget(m_volumeSurfaceOutlineSetViewController,
+        m_volumeSurfaceOutlineTabIndex = addToTabWidget(m_volumeSurfaceOutlineSetViewController,
                              "Vol/Surf Outline");
     }
     
     if (isOverlayToolBox) {
 #ifdef __SHOW_DYNCONN_PROTOTYPE__
         DynConnViewController* dynConn = new DynConnViewController();
-        addToScrolledAreaInTabWidget(dynConn, "DynConn");
+        addToTabWidget(dynConn, "DynConn");
 #endif // __SHOW_DYNCONN_PROTOTYPE__
     }
     
@@ -434,7 +434,7 @@ BrainBrowserWindowOrientedToolBox::createSplitterAndIdentificationWidget(const Q
  *    Name corresponding to widget's tab.
  */
 int 
-BrainBrowserWindowOrientedToolBox::addToScrolledAreaInTabWidget(QWidget* page,
+BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
                                                   const QString& label)
 {
     QScrollArea* scrollArea = new QScrollArea();
@@ -447,21 +447,6 @@ BrainBrowserWindowOrientedToolBox::addToScrolledAreaInTabWidget(QWidget* page,
     return indx;
 }
 
-/**
- * Place widget into the tab widget.
- * @param page
- *    Widget that is added.
- * @param label
- *    Name corresponding to widget's tab.
- */
-int
-BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
-                                                  const QString& label)
-{
-    int indx = m_tabWidget->addTab(page,
-                                   label);
-    return indx;
-}
 
 /**
  * Called when floating status changes.
@@ -611,9 +596,9 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_imageSelectionViewController->saveToScene(sceneAttributes,
                                                                          "m_imageSelectionViewController"));
     }
-    if (m_labelSelectionWidget != NULL) {
-        sceneClass->addClass(m_labelSelectionWidget->saveToScene(sceneAttributes,
-                                                     "m_labelSelectionWidget"));
+    if (m_labelSelectionViewController != NULL) {
+        sceneClass->addClass(m_labelSelectionViewController->saveToScene(sceneAttributes,
+                                                     "m_labelSelectionViewController"));
     }
     if (m_samplesSelectionViewController != NULL) {
         sceneClass->addClass(m_samplesSelectionViewController->saveToScene(sceneAttributes,
@@ -724,25 +709,13 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_imageSelectionViewController->restoreFromScene(sceneAttributes,
                                                          sceneClass->getClass("m_imageSelectionViewController"));
     }
-    if (m_labelSelectionWidget != NULL) {
-        m_labelSelectionWidget->restoreFromScene(sceneAttributes,
-                                                          sceneClass->getClass("m_labelSelectionWidget"));
+    if (m_labelSelectionViewController != NULL) {
+        m_labelSelectionViewController->restoreFromScene(sceneAttributes,
+                                                          sceneClass->getClass("m_labelSelectionViewController"));
     }
     if (m_samplesSelectionViewController != NULL) {
         m_samplesSelectionViewController->restoreFromScene(sceneAttributes,
                                                            sceneClass->getClass("m_samplesSelectionViewController"));
-    }
-    
-    /*
-     * Restore older scene when m_labelSelectionViewController was a child of this widget.
-     * It is now a child of m_labelSelectionWidget
-     */
-    const SceneClass* labelControllerScene(sceneClass->getClass("m_labelSelectionViewController"));
-    if (labelControllerScene) {
-        if (m_labelSelectionWidget != NULL) {
-            m_labelSelectionWidget->restoreFromScene(sceneAttributes,
-                                                     labelControllerScene);
-        }
     }
     /*
      * Restore current widget size

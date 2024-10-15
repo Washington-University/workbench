@@ -43,7 +43,6 @@
 #include "CaretPreferenceDataValue.h"
 #include "CaretPreferences.h"
 #include "CiftiMappableDataFile.h"
-#include "DataFileColorModulateSelector.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
 #include "ElapsedTimer.h"
@@ -74,7 +73,6 @@
 #include "SpacerTabIndex.h"
 #include "Surface.h"
 #include "SurfacePlaneIntersectionToContour.h"
-#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineModel.h"
@@ -198,7 +196,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipeli
     
     const DisplayPropertiesLabels* dsl = m_brain->getDisplayPropertiesLabels();
     m_displayGroup = dsl->getDisplayGroupForTab(m_fixedPipelineDrawing->windowTabIndex);
-    m_labelViewMode = dsl->getLabelViewModeForTab(m_fixedPipelineDrawing->windowTabIndex);
     
     m_tabIndex = m_browserTabContent->getTabNumber();
     
@@ -2666,7 +2663,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
         
         const int32_t browserTabIndex = m_browserTabContent->getTabNumber();
         const DisplayPropertiesLabels* displayPropertiesLabels = m_brain->getDisplayPropertiesLabels();
-//        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
+        const DisplayGroupEnum::Enum displayGroup = displayPropertiesLabels->getDisplayGroupForTab(browserTabIndex);
         
         bool haveAlphaBlendingFlag(false);
         std::vector<ObliqueSlice*> slices;
@@ -2690,8 +2687,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::drawObliqueSliceWithOutlines(const VolumeS
                                                    numberOfColumns,
                                                    browserTabIndex,
                                                    displayPropertiesLabels,
-                                                   m_displayGroup,
-                                                   m_labelViewMode,
+                                                   displayGroup,
                                                    bottomLeft,
                                                    leftToRightStepXYZ,
                                                    bottomToTopStepXYZ,
@@ -2798,7 +2794,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::ObliqueSlice(BrainOpenGLFixe
                                                                  const int32_t browserTabIndex,
                                                                  const DisplayPropertiesLabels* displayPropertiesLabels,
                                                                  const DisplayGroupEnum::Enum displayGroup,
-                                                                 const LabelViewModeEnum::Enum labelViewMode,
                                                                  const float originXYZ[3],
                                                                  const float leftToRightStepXYZ[3],
                                                                  const float bottomToTopStepXYZ[3],
@@ -2817,7 +2812,6 @@ m_numberOfColumns(numberOfColumns),
 m_browserTabIndex(browserTabIndex),
 m_displayPropertiesLabels(displayPropertiesLabels),
 m_displayGroup(displayGroup),
-m_labelViewMode(labelViewMode),
 m_identificationX(fixedPipelineDrawing->mouseX),
 m_identificationY(fixedPipelineDrawing->mouseY),
 m_identificationModeFlag(identificationModeFlag),
@@ -2849,31 +2843,8 @@ m_bottomLayerFlag(bottomLayerFlag)
     const CiftiMappableDataFile* ciftiMappableFileConst = dynamic_cast<const CiftiMappableDataFile*>(volumeInterface);
     m_ciftiMappableFile = const_cast<CiftiMappableDataFile*>(ciftiMappableFileConst);
     
-    if (m_volumeFile != NULL) {
-        const DataFileColorModulateSelector* modSel(m_volumeFile->getMapColorModulateFileSelector(m_mapIndex));
-        CaretAssert(modSel);
-        if (modSel->isEnabled()) {
-            m_modulationVolumeFile = modSel->getSelectedVolumeFile();
-            m_modulationMapIndex   = modSel->getSelectedMapIndex();
-        }
-    }
-    
-    /*
-     * Special case for detecting "Special-RGB-Volume" for
-     * displaying a 3 map volume file as RGB values
-     */
-    bool volumeSpecialRgbFlag(false);
-    if (m_volumeFile != NULL) {
-        if (m_volumeFile->getType() == SubvolumeAttributes::RGB_WORKBENCH) {
-            volumeSpecialRgbFlag = true;
-        }
-    }
     m_dataValueType = DataValueType::INVALID;
-
-    if (volumeSpecialRgbFlag) {
-        m_dataValueType = DataValueType::VOLUME_RGB_WORKBENCH;
-    }
-    else if (m_mapFile->isMappedWithPalette()) {
+    if (m_mapFile->isMappedWithPalette()) {
         if (m_volumeFile != NULL) {
             m_dataValueType = DataValueType::VOLUME_PALETTE;
         }
@@ -3131,18 +3102,14 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
         case DataValueType::CIFTI_LABEL:
         {
             CaretAssert(m_ciftiMappableFile);
-            const TabDrawingInfo tabDrawingInfo(m_ciftiMappableFile,
-                                                m_mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_browserTabIndex);
             const GiftiLabelTable* labelTable = m_ciftiMappableFile->getMapLabelTable(m_mapIndex);
             CaretAssert(labelTable);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(labelTable,
-                                                                             &m_data[0],
-                                                                             m_data.size(),
-                                                                             tabDrawingInfo,
-                                                                             &m_rgba[0]);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
+                                                                               &m_data[0],
+                                                                               m_data.size(),
+                                                                               m_displayGroup,
+                                                                               m_browserTabIndex,
+                                                                               &m_rgba[0]);
         }
             break;
         case DataValueType::CIFTI_PALETTE:
@@ -3171,16 +3138,12 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             CaretAssert(m_volumeFile);
             const GiftiLabelTable* labelTable = m_volumeFile->getMapLabelTable(m_mapIndex);
             CaretAssert(labelTable);
-            const TabDrawingInfo tabDrawingInfo(m_volumeFile,
-                                                m_mapIndex,
-                                                m_displayGroup,
-                                                m_labelViewMode,
-                                                m_browserTabIndex);
-            NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(labelTable,
-                                                                             &m_data[0],
-                                                                             m_data.size(),
-                                                                             tabDrawingInfo,
-                                                                             &m_rgba[0]);
+            NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTab(labelTable,
+                                                                               &m_data[0],
+                                                                               m_data.size(),
+                                                                               m_displayGroup,
+                                                                               m_browserTabIndex,
+                                                                               &m_rgba[0]);
         }
             break;
         case DataValueType::VOLUME_PALETTE:
@@ -3244,46 +3207,29 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             break;
         case DataValueType::VOLUME_RGB_WORKBENCH:
         {
+            const bool range255Flag(true);
             CaretAssert(m_data.size() == m_rgba.size());
-            const int64_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
-            std::vector<float> red(numVoxels);
-            std::vector<float> green(numVoxels);
-            std::vector<float> blue(numVoxels);
-            std::vector<float> alpha(numVoxels);
-            for (int64_t i = 0; i < numVoxels; i++) {
-                const int64_t i4(i * 4);
-                red[i] = m_data[i4];
-                green[i] = m_data[i4+1];
-                blue[i] = m_data[i4+2];
-                alpha[i] = m_data[i4+3];
+            const int32_t numVoxels = static_cast<int32_t>(m_data.size() / 4);
+            if (range255Flag) {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4]);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1]);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2]);
+                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3]);
+                }
             }
-            
-            uint8_t rgbThreshold[3] { 0, 0, 0};
-            NodeAndVoxelColoring::colorScalarsWithRGBA(&red[0],
-                                                       &green[0],
-                                                       &blue[0],
-                                                       &alpha[0],
-                                                       numVoxels,
-                                                       rgbThreshold,
-                                                       &m_rgba[0]);
+            else {
+                for (int32_t i = 0; i < numVoxels; i++) {
+                    const int32_t i4 = i * 4;
+                    m_rgba[i4]   = static_cast<uint8_t>(m_data[i4] * 255.0);
+                    m_rgba[i4+1] = static_cast<uint8_t>(m_data[i4+1] * 255.0);
+                    m_rgba[i4+2] = static_cast<uint8_t>(m_data[i4+2] * 255.0);
+                    m_rgba[i4+3] = static_cast<uint8_t>(m_data[i4+3] * 255.0);
+                }
+            }
         }
             break;
-    }
-    
-    if (m_modulationVolumeFile != NULL) {
-        CaretAssert((m_modulationData.size() * 4) == m_rgba.size());
-        const int64_t numData(m_modulationData.size());
-        for (int64_t i = 0; i < numData; i++) {
-            float modValue(m_modulationData[i]);
-            if (modValue > 1.0) modValue = 1.0;
-            if (modValue < 0.0) modValue = 0.0;
-            
-            const int64_t i4(i * 4);
-            for (int64_t j = 0; j < 3; j++) {
-                const float v(static_cast<float>(m_rgba[i4 + j]) * modValue);
-                m_rgba[i4 + j] = static_cast<uint8_t>(v);
-            }
-        }
     }
 }
 
@@ -3623,51 +3569,42 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
                     break;
             }
             
-            /*
-             * IJK is needed by identification and volume modulation
-             */
-            int64_t ijk[3] = { -1, -1, -1 };
-            if (valueValidFlag) {
-                if (m_volumeFile != NULL) {
-                    m_volumeFile->enclosingVoxel(voxelCenter, ijk);
-                    if ( ! m_volumeFile->indexValid(ijk)) {
-                        ijk[0] = -1;
-                        ijk[1] = -1;
-                        ijk[2] = -1;
-                        valueValidFlag = false;
-                    }
-                }
-                else if (m_ciftiMappableFile != NULL) {
-                    int64_t i(-1), j(-1), k(-1);
-                    m_ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
-                                                        i, j, k);
-                    if (m_ciftiMappableFile->indexValid(i, j, k)) {
-                        ijk[0] = i;
-                        ijk[1] = j;
-                        ijk[2] = k;
-                    }
-                    else {
-                        valueValidFlag = false;
-                    }
-                }
-            }
-            
             if (m_identificationModeFlag) {
+                /*
+                 * When identifying, need an IJK triplet
+                 * for each voxel
+                 */
+                int64_t ijk[3] = { -1, -1, -1 };
+                if (valueValidFlag) {
+                    if (m_volumeFile != NULL) {
+                        m_volumeFile->enclosingVoxel(voxelCenter, ijk);
+                        if ( ! m_volumeFile->indexValid(ijk)) {
+                            ijk[0] = -1;
+                            ijk[1] = -1;
+                            ijk[2] = -1;
+                            valueValidFlag = false;
+                        }
+                    }
+                    else if (m_ciftiMappableFile != NULL) {
+                        int64_t i(-1), j(-1), k(-1);
+                        m_ciftiMappableFile->enclosingVoxel(voxelCenter[0], voxelCenter[1], voxelCenter[2],
+                                                            i, j, k);
+                        if (m_ciftiMappableFile->indexValid(i, j, k)) {
+                            ijk[0] = i;
+                            ijk[1] = j;
+                            ijk[2] = k;
+                        }
+                        else {
+                            valueValidFlag = false;
+                        }
+                    }
+                }
                 m_identificationIJK.insert(m_identificationIJK.end(),
                                            ijk, ijk + 3);
             }
             
             if (valueValidFlag) {
-                if (m_modulationVolumeFile != NULL) {
-                    m_modulationData.push_back(m_modulationVolumeFile->getValue(ijk[0], ijk[1], ijk[2], m_modulationMapIndex));
-                }
-
                 m_validVoxelCount++;
-            }
-            else {
-                if (m_modulationVolumeFile != NULL) {
-                    m_modulationData.push_back(1.0);
-                }
             }
         }
     }
@@ -3675,10 +3612,6 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::loadData(const VolumeSliceIn
     CaretAssert((m_sliceNumberOfVoxels * m_voxelNumberOfComponents) == static_cast<int32_t>(m_data.size()));
     if (m_thresholdMapIndex >= 0) {
         CaretAssert(m_data.size() == m_thresholdData.size());
-    }
-    if ( ! m_modulationData.empty()) {
-        CaretAssert((m_data.size() == m_modulationData.size())
-                    || (m_data.size() == (m_modulationData.size() * 4)));
     }
 }
 

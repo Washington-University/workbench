@@ -43,7 +43,6 @@
 #include "CiftiFiberTrajectoryFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
-#include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiParcelScalarFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "ConnectivityCorrelationSettingsMenu.h"
@@ -723,17 +722,15 @@ CiftiConnectivityMatrixViewController::copyToolButtonClicked(int indx)
                    metricDynConnFile,
                    volDynConnFile);
     
-    CiftiConnectivityMatrixParcelFile* parcelMatrixFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(matrixFile);
     
     bool errorFlag = false;
     AString errorMessage;
     
     const AString directoryName = GuiManager::get()->getBrain()->getCurrentDirectory();
-    if ((ciftiParcelDynConnFile != NULL)
-        || (parcelMatrixFile != NULL)) {
-        CiftiParcelScalarFile* parcelScalarFile(CiftiParcelScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(matrixFile,
-                                                                                                                       directoryName,
-                                                                                                                       errorMessage));
+    if (ciftiParcelDynConnFile != NULL) {
+        CiftiParcelScalarFile* parcelScalarFile(CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(ciftiParcelDynConnFile,
+                                                                                                                  directoryName,
+                                                                                                                  errorMessage));
         if (parcelScalarFile != NULL) {
             EventDataFileAdd dataFileAdd(parcelScalarFile);
             EventManager::get()->sendEvent(dataFileAdd.getPointer());

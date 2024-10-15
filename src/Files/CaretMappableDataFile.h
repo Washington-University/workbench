@@ -28,7 +28,6 @@
 #include "ChartOneDataTypeEnum.h"
 #include "CaretPointer.h"
 #include "CiftiXML.h"
-#include "DisplayGroupEnum.h"
 #include "NiftiEnums.h"
 #include "PaletteModifiedStatusEnum.h"
 #include "PaletteNormalizationModeEnum.h"
@@ -37,15 +36,11 @@ namespace caret {
 
     class ChartDataCartesian;
     class ChartableTwoFileDelegate;
-    class ClusterContainer;
-    class DataFileColorModulateSelector;
-    class CaretMappableDataFileLabelSelectionDelegate;
     class FastStatistics;
     class GiftiMetaData;
     class GiftiLabelTable;
     class Histogram;
     class LabelDrawingProperties;
-    class LabelSelectionItemModel;
     class MapFileDataSelector;
     class PaletteColorMapping;
     
@@ -388,40 +383,7 @@ namespace caret {
          *    not mapped using a label table).
          */         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const = 0;
-
-        /**
-         * @return The clusters for the given map's label table (may be NULL)
-         * @param mapIndex
-         *    Index of the map
-         */
-        virtual const ClusterContainer* getMapLabelTableClusters(const int32_t mapIndex) const;
         
-        /*
-         * @return Label selection hierarchy for the map in the tab (may be NULL)
-         * @param mapIndex
-         *    Index of map
-         * @param displayGroup
-         *    The display group
-         * @param tabIndex
-         *    Index of the tab if displayGroup is TAB
-         */
-        LabelSelectionItemModel* getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
-                                                                        const DisplayGroupEnum::Enum displayGroup,
-                                                                        const int32_t tabIndex);
-        
-        /*
-         * @return Label selection delegate for the map in the tab (may be NULL)
-         * @param mapIndex
-         *    Index of map
-         * @param displayGroup
-         *    The display group
-         * @param tabIndex
-         *    Index of the tab if displayGroup is TAB
-         */
-        const LabelSelectionItemModel* getLabelSelectionHierarchyForMapAndTab(const int32_t mapIndex,
-                                                                              const DisplayGroupEnum::Enum displayGroup,
-                                                                              const int32_t tabIndex) const;
-
         bool isMedialWallLabelInMapLabelTable(const int32_t mapIndex) const;
         
         /**
@@ -530,10 +492,8 @@ namespace caret {
         
         CaretMappableDataFileAndMapSelectionModel* getMapThresholdFileSelectionModel(const int32_t mapIndex);
         
-        DataFileColorModulateSelector* getMapColorModulateFileSelector(const int32_t mapIndex);
-        
-        /*
-         * Are all brainordinates in this file also in the given file?
+        /**
+         * Are all brainordinates in this file also in the given file?  
          * That is, the brainordinates are equal to or a subset of the brainordinates
          * in the given file.
          *
@@ -595,11 +555,7 @@ namespace caret {
 
         mutable std::unique_ptr<ChartableTwoFileDelegate> m_chartingDelegate;
         
-        mutable std::vector<std::unique_ptr<CaretMappableDataFileLabelSelectionDelegate>> m_labelHierarchySelectionDelegate;
-        
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
-        
-        std::map<int32_t, std::unique_ptr<DataFileColorModulateSelector>> m_mapColorModulateFileSelectors;
         
         /**
          * Added by WB-781 Apply to All Maps for ColorBar.

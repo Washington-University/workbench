@@ -28,7 +28,6 @@
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "PaletteColorMapping.h"
 #include "VolumeFile.h"
 
 #include <iostream>
@@ -177,7 +176,7 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
     outXML.setMap(CiftiXML::ALONG_COLUMN, *(templateXML.getMap(CiftiXML::ALONG_COLUMN)));
     int labelMode = -1;//-1 not set, 0 set to false, 1 set to true
     int64_t numMaps = -1;
-    const CaretMappableDataFile* nameFile = NULL;//this is also used for palette
+    const CaretMappableDataFile* nameFile = NULL;
     const CiftiFile* ciftiNameFile = NULL;//cifti doesn't inherit from CaretMappableDataFile, it is too different
     const CiftiBrainModelsMap& templateMap = templateXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);
     vector<StructureEnum::Enum> surfStructures = templateMap.getSurfaceStructureList(), volStructures = templateMap.getVolumeStructureList();
@@ -498,27 +497,6 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
             if (!ok) throw OperationException("unrecognized unit string '" + unitString + "'");
             outMap.setUnit(myUnit);
         }
-        if (ciftiNameFile != NULL)
-        {//approximate logic for file versus map palette
-            switch (ciftiNameFile->getCiftiXML().getMappingType(CiftiXML::ALONG_ROW))
-            {
-                case CiftiMappingType::BRAIN_MODELS:
-                case CiftiMappingType::SERIES:
-                case CiftiMappingType::PARCELS:
-                    *(outXML.getFilePalette()) = *(ciftiNameFile->getCiftiXML().getFilePalette());
-                    break;
-                case CiftiMappingType::SCALARS:
-                    *(outXML.getFilePalette()) = *(ciftiNameFile->getCiftiXML().getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(0));
-                    break;
-                default:
-                    break;
-            }
-        } else {
-            if (nameFile != NULL && nameFile->getMapPaletteColorMapping(0) != NULL)
-            {
-                *(outXML.getFilePalette()) = *(nameFile->getMapPaletteColorMapping(0));
-            }
-        }
         outXML.setMap(CiftiXML::ALONG_ROW, outMap);
     } else {
         if (labelMode == 1)
@@ -551,19 +529,6 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                 for (int64_t i = 0; i < numMaps; ++i)
                 {
                     outMap.setMapName(i, nameMap.getIndexName(i));
-                    switch (ciftiNameFile->getCiftiXML().getMappingType(CiftiXML::ALONG_ROW))
-                    {
-                        case CiftiMappingType::BRAIN_MODELS:
-                        case CiftiMappingType::SERIES:
-                        case CiftiMappingType::PARCELS:
-                            *(outMap.getMapPalette(i)) = *(ciftiNameFile->getCiftiXML().getFilePalette());
-                            break;
-                        case CiftiMappingType::SCALARS:
-                            *(outMap.getMapPalette(i)) = *(ciftiNameFile->getCiftiXML().getScalarsMap(CiftiXML::ALONG_ROW).getMapPalette(i));
-                            break;
-                        default:
-                            break;
-                    }
                 }
             } else {
                 if (nameFile != NULL)
@@ -571,10 +536,6 @@ void OperationCiftiCreateDenseFromTemplate::useParameters(OperationParameters* m
                     for (int64_t i = 0; i < numMaps; ++i)
                     {
                         outMap.setMapName(i, nameFile->getMapName(i));
-                        if (nameFile->getMapPaletteColorMapping(i) != NULL)
-                        {
-                            *(outMap.getMapPalette(i)) = *(nameFile->getMapPaletteColorMapping(i));
-                        }
                     }
                 }
             }

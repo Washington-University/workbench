@@ -194,9 +194,9 @@ public:
                     const int32_t offsetCoord3);
 
     static float triangleAreaSigned2D(
-                    const float p1[2],
-                    const float p2[2],
-                    const float p3[2]);
+                    const float p1[3],
+                    const float p2[3],
+                    const float p3[3]);
 
     static float triangleAreaSigned3D(
                     const float referenceNormal[3],
@@ -206,17 +206,17 @@ public:
 
     static void vtkLinearSolve3x3(
                     const float A[3][3],
-                    const float x[3],
-                    float y[3]);
+                    const float x[],
+                    float y[]);
 
     static void vtkLUSolve3x3(
                     const float A[3][3],
-                    const int32_t index[3],
-                    float x[3]);
+                    const int32_t index[],
+                    float x[]);
 
     static void vtkLUFactor3x3(
                     float A[3][3],
-                    int32_t index[3]);
+                    int32_t index[]);
 
     static void vtkInvert3x3(const double A[3][3],
                              double AI[3][3]);
@@ -238,20 +238,20 @@ public:
     static double vtkDeterminant2x2(double a, double b, double c, double d);
 
     static bool lineIntersection2D(
-                    const float p1[2],
-                    const float p2[2],
-                    const float q1[2],
-                    const float q2[2],
+                    const float p1[3],
+                    const float p2[3],
+                    const float q1[3],
+                    const float q2[3],
                     const float tolerance,
-                    float intersectionOut[2]);
+                    float intersectionOut[3]);
 
     static bool vectorIntersection2D(
-                                     const float p1[2],
-                                     const float p2[2],
-                                     const float q1[2],
-                                     const float q2[2],
+                                     const float p1[3],
+                                     const float p2[3],
+                                     const float q1[3],
+                                     const float q2[3],
                                      const float tolerance,
-                                     float intersectionOut[2]);
+                                     float intersectionOut[3]);
     
     static bool rayIntersectPlane(
                     const float p1[3],
@@ -259,7 +259,7 @@ public:
                     const float p3[3],
                     const float rayOrigin[3],
                     const float rayVector[3],
-                    float intersectionXYZandDistance[4]);
+                    float intersectionXYZandDistance[3]);
 
     static void projectPoint(
                     const float pt[3],

@@ -222,19 +222,6 @@ Vector3D& Vector3D::operator=(const float* right)
     return *this;
 }
 
-bool Vector3D::operator<(const Vector3D& rhs) const
-{
-    for (int32_t i = 0; i < 3; i++) {
-        if (m_vec[i] < rhs.m_vec[i]) {
-            return true;
-        }
-        else if (m_vec[i] > rhs.m_vec[i]) {
-            return false;
-        }
-    }
-    return false;
-}
-
 void Vector3D::fill(const float value)
 {
     m_vec[0] = value;

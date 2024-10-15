@@ -31,7 +31,6 @@
 #include "GraphicsUtilitiesOpenGL.h"
 #include "HistologySlice.h"
 #include "ImageFile.h"
-#include "TabDrawingInfo.h"
 #include "VolumeMappableInterface.h"
 #include "VolumeToImageMapping.h"
 
@@ -106,18 +105,15 @@ VolumeGraphicsPrimitiveManager::clearIntersectionImagePrimitives()
 void
 VolumeGraphicsPrimitiveManager::invalidateAllColoring()
 {
-    m_mapGraphicsTrianglesPrimitives.clear();
-    m_mapGraphicsTriangleFanPrimitives.clear();
-    m_mapGraphicsTriangleStripPrimitives.clear();
-//    for (auto& p : m_mapGraphicsTriangleFanPrimitives) {
-//        p.reset();
-//    }
-//    for (auto& p : m_mapGraphicsTriangleStripPrimitives) {
-//        p.reset();
-//    }
-//    for (auto& p : m_mapGraphicsTrianglesPrimitives) {
-//        p.reset();
-//    }
+    for (auto& p : m_mapGraphicsTriangleFanPrimitives) {
+        p.reset();
+    }
+    for (auto& p : m_mapGraphicsTriangleStripPrimitives) {
+        p.reset();
+    }
+    for (auto& p : m_mapGraphicsTrianglesPrimitives) {
+        p.reset();
+    }
     clearIntersectionImagePrimitives();
 }
 
@@ -129,39 +125,19 @@ VolumeGraphicsPrimitiveManager::invalidateAllColoring()
 void
 VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
 {
-    {
-        std::vector<PrimitiveKey> removeKeys;
-        for (auto& m : m_mapGraphicsTriangleFanPrimitives) {
-            if (m.first.m_mapIndex == mapIndex)
-                removeKeys.push_back(m.first);
-        }
-        for (auto key : removeKeys) {
-            m_mapGraphicsTriangleFanPrimitives.erase(key);
-        }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size()))) {
+        m_mapGraphicsTriangleFanPrimitives[mapIndex].reset();
+    }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTriangleStripPrimitives.size()))) {
+        m_mapGraphicsTriangleStripPrimitives[mapIndex].reset();
+    }
+    if ((mapIndex >= 0)
+        && (mapIndex < static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size()))) {
+        m_mapGraphicsTrianglesPrimitives[mapIndex].reset();
     }
     
-    {
-        std::vector<PrimitiveKey> removeKeys;
-        for (auto& m : m_mapGraphicsTriangleStripPrimitives) {
-            if (m.first.m_mapIndex == mapIndex)
-                removeKeys.push_back(m.first);
-        }
-        for (auto key : removeKeys) {
-            m_mapGraphicsTriangleStripPrimitives.erase(key);
-        }
-    }
-    
-    {
-        std::vector<PrimitiveKey> removeKeys;
-        for (auto& m : m_mapGraphicsTrianglesPrimitives) {
-            if (m.first.m_mapIndex == mapIndex)
-                removeKeys.push_back(m.first);
-        }
-        for (auto key : removeKeys) {
-            m_mapGraphicsTrianglesPrimitives.erase(key);
-        }
-    }
-        
     /*
      * Remove any items with key that contains map index
      * (1) Get the key while avoiding invalidating the iterator
@@ -190,57 +166,42 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
  *    Shape for primitive drawing
  * @param mapIndex
  *    Index of the map.
- * @param tabDrawingInfo
- *    Info for drawing tab.
+ * @param displayGroup
+ *    The selected display group.
+ * @param tabIndex
+ *    Index of selected tab.
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveShape primitiveShape,
                                                                 const int32_t mapIndex,
-                                                                const TabDrawingInfo& tabDrawingInfo) const
+                                                                const DisplayGroupEnum::Enum displayGroup,
+                                                                const int32_t tabIndex) const
 {
-    /*
-     * Each map in a volume requires its own primitive since each map is
-     * colored differently.
-     *
-     * For label volume types: Display of particular labels is performed in each tab
-     * and may be unique for each tab.  Therefore if this is a label volume,
-     * we must also have a unique primitive for each tab.
-     *
-     * For all other volume types: Coloring is the same in all tabs so use
-     * 'tabZeroIndex' for this volume types.
-     */
-    const bool labelVolumeFlag(tabDrawingInfo.getMapFile()->isMappedWithLabelTable());
-    const int32_t tabZeroIndex(0);
-    PrimitiveKey key(tabDrawingInfo.getMapIndex(),
-                     (labelVolumeFlag ? tabDrawingInfo.getTabIndex() : tabZeroIndex));
-    
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleFanPrimitives.size())) {
+        m_mapGraphicsTriangleFanPrimitives.resize(mapIndex + 1);
+    }
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTriangleStripPrimitives.size())) {
+        m_mapGraphicsTriangleStripPrimitives.resize(mapIndex + 1);
+    }
+    if (m_mapDataFile->getNumberOfMaps() != static_cast<int32_t>(m_mapGraphicsTrianglesPrimitives.size())) {
+        m_mapGraphicsTrianglesPrimitives.resize(mapIndex + 1);
+    }
+
     GraphicsPrimitiveV3fT3f* primitiveOut(NULL);
     switch (primitiveShape) {
         case PrimitiveShape::TRIANGLE_FAN:
-        {
-            auto iter(m_mapGraphicsTriangleFanPrimitives.find(key));
-            if (iter != m_mapGraphicsTriangleFanPrimitives.end()) {
-                primitiveOut = iter->second.get();
-            }
-        }
+            CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTriangleFanPrimitives[mapIndex].get();
             break;
         case PrimitiveShape::TRIANGLE_STRIP:
-        {
-            auto iter(m_mapGraphicsTriangleStripPrimitives.find(key));
-            if (iter != m_mapGraphicsTriangleStripPrimitives.end()) {
-                primitiveOut = iter->second.get();
-            }
-        }
+            CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTriangleStripPrimitives[mapIndex].get();
             break;
         case PrimitiveShape::TRIANGLES:
-        {
-            auto iter(m_mapGraphicsTrianglesPrimitives.find(key));
-            if (iter != m_mapGraphicsTrianglesPrimitives.end()) {
-                primitiveOut = iter->second.get();
-            }
-        }
+            CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
+            primitiveOut = m_mapGraphicsTrianglesPrimitives[mapIndex].get();
             break;
     }
     
@@ -266,22 +227,22 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
         AString errorMessage;
         primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitive(primitiveShape,
                                                                        mapIndex,
-                                                                       tabDrawingInfo,
+                                                                       displayGroup,
+                                                                       tabIndex,
                                                                        errorMessage);
         if (primitiveOut != NULL) {
-            std::unique_ptr<GraphicsPrimitiveV3fT3f> ptr(primitiveOut);
             switch (primitiveShape) {
                 case PrimitiveShape::TRIANGLE_FAN:
-                    m_mapGraphicsTriangleFanPrimitives.insert(std::make_pair(key,
-                                                                             std::move(ptr)));
+                    CaretAssertVectorIndex(m_mapGraphicsTriangleFanPrimitives, mapIndex);
+                    m_mapGraphicsTriangleFanPrimitives[mapIndex].reset(primitiveOut);
                     break;
                 case PrimitiveShape::TRIANGLE_STRIP:
-                    m_mapGraphicsTriangleStripPrimitives.insert(std::make_pair(key,
-                                                                               std::move(ptr)));
+                    CaretAssertVectorIndex(m_mapGraphicsTriangleStripPrimitives, mapIndex);
+                    m_mapGraphicsTriangleStripPrimitives[mapIndex].reset(primitiveOut);
                     break;
                 case PrimitiveShape::TRIANGLES:
-                    m_mapGraphicsTrianglesPrimitives.insert(std::make_pair(key,
-                                                                           std::move(ptr)));
+                    CaretAssertVectorIndex(m_mapGraphicsTrianglesPrimitives, mapIndex);
+                    m_mapGraphicsTrianglesPrimitives[mapIndex].reset(primitiveOut);
                     break;
             }
         }
@@ -310,8 +271,10 @@ VolumeGraphicsPrimitiveManager::toString() const
  *    Shape for primitive drawing
  * @param mapIndex
  *    Map index for creating the primitive
- * @param tabDrawingInfo
- *    Info for drawing tab.
+ * @param displayGroup
+ *    Display gtroup selected
+ * @param tabIndex
+ *    Index of tab
  * @param errorMessageOut
  *    Contains information if error occurs
  * @return
@@ -320,7 +283,8 @@ VolumeGraphicsPrimitiveManager::toString() const
 GraphicsPrimitiveV3fT3f*
 VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveShape,
                                                 const int32_t mapIndex,
-                                                const TabDrawingInfo& tabDrawingInfo,
+                                                const DisplayGroupEnum::Enum displayGroup,
+                                                const int32_t tabIndex,
                                                 AString& errorMessageOut) const
 {
     CaretAssert(m_volumeInterface);
@@ -382,7 +346,8 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
                                                      columnStepIJK,
                                                      numberOfRows,
                                                      numberOfColumns,
-                                                     tabDrawingInfo,
+                                                     displayGroup,
+                                                     tabIndex,
                                                      &rgbaSlice[0]);
         
         for (int64_t j = 0; j < numberOfRows; j++) {
@@ -476,8 +441,10 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
  *    Media file for intersection
  * @param mapIndex
  *    Map index for creating the primitive
- * @param tabDrawingInfo
- *    Info for drawing tab.
+ * @param displayGroup
+ *    Display gtroup selected
+ * @param tabIndex
+ *    Index of tab
  * @param volumeMappingMode
  *    Mode for volume mapping
  * @param volumeSliceThickness
@@ -490,7 +457,8 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
 GraphicsPrimitiveV3fT2f*
 VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
                                                                            const int32_t mapIndex,
-                                                                           const TabDrawingInfo& tabDrawingInfo,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex,
                                                                            const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                            const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
@@ -504,7 +472,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)mediaFile,
                              mapIndex,
-                             tabDrawingInfo.getTabIndex(),
+                             tabIndex,
                              volumeMappingMode,
                              volumeSliceThickness);
     std::cout << "Slice thickness1: " << volumeSliceThickness << std::endl;
@@ -524,8 +492,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                     mapIndex,
                                     volumeMappingMode,
                                     volumeSliceThickness,
-                                    tabDrawingInfo.getDisplayGroup(),
-                                    tabDrawingInfo.getTabIndex(),
+                                    displayGroup,
+                                    tabIndex,
                                     mediaFile);
         if (mapper.runMapping(errorMessageOut)) {
             const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
@@ -542,7 +510,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     if ( ! allImageFiles.empty()) {
         for (auto& imageFile : allImageFiles) {
             int32_t invalidOverlayIndex(-1);
-            primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabDrawingInfo.getTabIndex(),
+            primitiveOut = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
                                                                              invalidOverlayIndex);
         }
     }
@@ -557,8 +525,10 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
  *    Histology slice for intersection
  * @param mapIndex
  *    Map index for creating the primitive
- * @param tabDrawingInfo
- *    Info for drawing tab.
+ * @param displayGroup
+ *    Display gtroup selected
+ * @param tabIndex
+ *    Index of tab
  * @param volumeMappingMode
  *    Mode for volume mapping
  * @param volumeSliceThickness
@@ -571,7 +541,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
 std::vector<GraphicsPrimitive*>
 VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
                                                                            const int32_t mapIndex,
-                                                                           const TabDrawingInfo& tabDrawingInfo,
+                                                                           const DisplayGroupEnum::Enum displayGroup,
+                                                                           const int32_t tabIndex,
                                                                            const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                            const float volumeSliceThickness,
                                                                            AString& errorMessageOut) const
@@ -582,7 +553,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     
     ImageIntersectionKey key((void*)histologySlice,
                              mapIndex,
-                             tabDrawingInfo.getTabIndex(),
+                             tabIndex,
                              volumeMappingMode,
                              volumeSliceThickness);
 
@@ -601,8 +572,8 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
                                     mapIndex,
                                     volumeMappingMode,
                                     volumeSliceThickness,
-                                    tabDrawingInfo.getDisplayGroup(),
-                                    tabDrawingInfo.getTabIndex(),
+                                    displayGroup,
+                                    tabIndex,
                                     histologySlice);
         if (mapper.runMapping(errorMessageOut)) {
             const int32_t numImageFiles(mapper.getNumberOfOutputImageFiles());
@@ -619,7 +590,7 @@ VolumeGraphicsPrimitiveManager::getImageIntersectionDrawingPrimitiveForMap(const
     if ( ! allImageFiles.empty()) {
         for (auto& imageFile : allImageFiles) {
             int32_t invalidOverlayIndex(-1);
-            GraphicsPrimitiveV3fT2f* primitive = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabDrawingInfo.getTabIndex(),
+            GraphicsPrimitiveV3fT2f* primitive = imageFile->getGraphicsPrimitiveForPlaneXyzDrawing(tabIndex,
                                                                                                    invalidOverlayIndex);
             if (primitive != NULL) {
                 primitivesOut.push_back(primitive);

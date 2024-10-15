@@ -127,7 +127,6 @@ BalsaDatabaseManager::login(const AString& databaseURL,
         std::cout << "Response Code: " << loginResponse.m_responseCode << std::endl;
     }
     
-    AString setCookieErrorMessage = "Did not find 'set-cookie' in response headers.";
     for (std::map<AString, AString>::iterator mapIter = loginResponse.m_headers.begin();
          mapIter != loginResponse.m_headers.end();
          mapIter++) {
@@ -143,11 +142,6 @@ BalsaDatabaseManager::login(const AString& databaseURL,
                 m_jSessionIdCookie = value.mid(offset,
                                                length);
             }
-            else {
-                setCookieErrorMessage = ("set-cookie invalid.  Value='"
-                                         + value
-                                         + "'.");
-            }
         }
         if (m_debugFlag) {
             std::cout << "   Response Header: " << qPrintable(mapIter->first)
@@ -161,8 +155,7 @@ BalsaDatabaseManager::login(const AString& databaseURL,
     
     if (loginResponse.m_responseCode == 200) {
         if (m_jSessionIdCookie.isEmpty()) {
-            errorMessageOut = ("Login was successful but BALSA failed to provide a Session ID.\n"
-                               + setCookieErrorMessage);
+            errorMessageOut = ("Login was successful but BALSA failed to provide a Session ID.");
             logout();
             return false;
         }

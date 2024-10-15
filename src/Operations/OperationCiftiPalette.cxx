@@ -21,12 +21,10 @@
 #include "OperationCiftiPalette.h"
 
 #include "CiftiFile.h"
-#include "GiftiMetaDataXmlElements.h"
 #include "OperationException.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
-#include "PaletteNormalizationModeEnum.h"
 
 #include <vector>
 
@@ -92,9 +90,6 @@ OperationParameters* OperationCiftiPalette::getParameters()
     OptionalParameter* inversionOpt = ret->createOptionalParameter(15, "-inversion", "specify palette inversion");
     inversionOpt->addStringParameter(1, "type", "the type of inversion");
     
-    OptionalParameter* normModeOpt = ret->createOptionalParameter(16, "-normalization", "specify normalization mode (NOTE: this is always a file-wide setting, NOT per-map)");
-    normModeOpt->addStringParameter(1, "type", "the normalization mode");
-    
     AString myText = AString("NOTE: The output file must be a different file than the input file.\n\n") +
         "For scalar maps, by default the palette is changed for every map, specify -column to change only one map.  Palette settings not specified will be taken from the first column " +
         "for scalar maps, and from the existing file palette for other mapping types.  " +
@@ -132,13 +127,6 @@ OperationParameters* OperationCiftiPalette::getParameters()
     for (int i = 0; i < (int)myEnums4.size(); ++i)
     {
         myText += PaletteInvertModeEnum::toName(myEnums4[i]) + "\n";
-    }
-    myText += "\nThe <type> argument to -normalization must be one of the following:\n\n";
-    vector<PaletteNormalizationModeEnum::Enum> myEnums5;
-    PaletteNormalizationModeEnum::getAllEnums(myEnums5);
-    for (int i = 0; i < (int)myEnums5.size(); ++i)
-    {
-        myText += PaletteNormalizationModeEnum::toName(myEnums5[i]) + "\n";
     }
     ret->setHelpText(myText);
     return ret;
@@ -276,15 +264,6 @@ void OperationCiftiPalette::useParameters(OperationParameters* myParams, Progres
         myMapping.setInvertedMode(inversionType);
     }
     ciftiOut->setCiftiXML(myOutXML); //use mutability of palette to get both provenance and file palette correct
-    //NOTE: need to modify metadata after setting xml, because the provenance-keeping code discards the new file metadata entirely
-    OptionalParameter* normModeOpt = myParams->getOptionalParameter(16);
-    if (normModeOpt->m_present)
-    {
-        bool ok = false;
-        PaletteNormalizationModeEnum::fromName(normModeOpt->getString(1), &ok); //don't actually need the enum, just sanity check the string
-        if (!ok) throw OperationException("unrecognized palette normalization mode: " + normModeOpt->getString(1));
-        ciftiOut->getCiftiXML().getFileMetaData()->set(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE, normModeOpt->getString(1)); //not actually part of the palette settings
-    }
     if (myOutXML.getMappingType(CiftiXML::ALONG_ROW) == CiftiMappingType::SCALARS)
     {
         if (myColumn == -1)

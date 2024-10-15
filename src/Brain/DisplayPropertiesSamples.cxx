@@ -77,8 +77,10 @@ DisplayPropertiesSamples::~DisplayPropertiesSamples()
  *     The new/updated sample.
  */
 void
-DisplayPropertiesSamples::updateForNewSample(const Annotation* /*sample*/)
+DisplayPropertiesSamples::updateForNewSample(const Annotation* sample)
 {
+    CaretAssert(sample);
+    
     setDisplaySamples(true);
 }
 

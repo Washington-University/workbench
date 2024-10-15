@@ -238,7 +238,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
 
     this->tabBar->setShape(QTabBar::RoundedNorth);
     this->tabBar->setMovable(true);
-#ifdef Q_OS_MACOS
+#ifdef Q_OS_MACX
     /*
      * Adding a parent to the style will result in it
      * being destroyed when this instance is destroyed.
@@ -256,7 +256,7 @@ m_parentBrainBrowserWindow(parentBrainBrowserWindow)
         fusionStyle->setParent(this);
         this->tabBar->setStyle(fusionStyle);
     }
-#endif // Q_OS_MACOS
+#endif // Q_OS_MACX
     QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
                      this, SLOT(selectedTabChanged(int)));
     QObject::connect(this->tabBar, SIGNAL(tabCloseRequested(int)),

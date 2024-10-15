@@ -27,7 +27,6 @@
 #include "BrainOpenGLVolumeSliceDrawing.h"
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
-#include "LabelViewModeEnum.h"
 #include "ModelTypeEnum.h"
 #include "Plane.h"
 #include "VolumeSliceInterpolationEdgeEffectsMaskingEnum.h"
@@ -104,7 +103,6 @@ namespace caret {
                          const int32_t browserTabIndex,
                          const DisplayPropertiesLabels* displayPropertiesLabels,
                          const DisplayGroupEnum::Enum displayGroup,
-                         const LabelViewModeEnum::Enum labelViewMode,
                          const float originXYZ[3],
                          const float leftToRightStepXYZ[3],
                          const float bottomToTopStepXYZ[3],
@@ -151,8 +149,6 @@ namespace caret {
             
             const DisplayGroupEnum::Enum m_displayGroup;
             
-            const LabelViewModeEnum::Enum m_labelViewMode;
-            
             const int32_t m_identificationX;
             
             const int32_t m_identificationY;
@@ -164,10 +160,6 @@ namespace caret {
             CiftiMappableDataFile* m_ciftiMappableFile = NULL;
             
             VolumeFile* m_volumeFile = NULL;
-            
-            const VolumeFile* m_modulationVolumeFile = NULL;
-            
-            int32_t m_modulationMapIndex = -1;
             
             uint8_t m_opacityByte = 255;
             
@@ -192,8 +184,6 @@ namespace caret {
             std::vector<float> m_thresholdData;
             
             std::vector<uint8_t> m_rgba;
-            
-            std::vector<float> m_modulationData;
             
             std::vector<int64_t> m_identificationIJK;
             
@@ -345,8 +335,6 @@ namespace caret {
         BrowserTabContent* m_browserTabContent;
         
         DisplayGroupEnum::Enum m_displayGroup;
-        
-        LabelViewModeEnum::Enum m_labelViewMode;
         
         int32_t m_tabIndex;
         

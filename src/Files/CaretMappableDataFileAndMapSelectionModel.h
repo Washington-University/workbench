@@ -36,8 +36,7 @@ namespace caret {
     class CaretMappableDataFileAndMapSelectionModel : public CaretObject, public SceneableInterface {
         
     public:
-        CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile,
-                                                  const bool excludeSelfFlag = false);
+        CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile);
         
         CaretMappableDataFileAndMapSelectionModel(const DataFileTypeEnum::Enum dataFileType);
         
@@ -110,7 +109,6 @@ namespace caret {
     private:
         enum class Mode {
             MAP_TO_SAME_BRAINORDINATES,
-            MAP_TO_SAME_BRAINORDINATES_EXCLUDE_SELF,
             MATCH_DATA_FILE_TYPES
         };
         

@@ -43,7 +43,7 @@ namespace caret {
     class HistologyOverlaySetViewController;
     class IdentificationDisplayWidget;
     class ImageSelectionViewController;
-    class LabelSelectionViewWidget;
+    class LabelSelectionViewController;
     class MediaOverlaySetViewController;
     class OverlaySetViewController;
     class SamplesSelectionViewController;
@@ -91,9 +91,6 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
-        int addToScrolledAreaInTabWidget(QWidget* page,
-                                         const QString& label);
-        
         int addToTabWidget(QWidget* page,
                            const QString& label);
         
@@ -121,7 +118,7 @@ namespace caret {
         
         ImageSelectionViewController* m_imageSelectionViewController;
         
-        LabelSelectionViewWidget* m_labelSelectionWidget;
+        LabelSelectionViewController* m_labelSelectionViewController;
         
         MediaOverlaySetViewController* m_mediaSelectionViewController;
         

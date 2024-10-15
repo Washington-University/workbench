@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <cstdint>
 #include "ImportExport.h"
 
 #include "priv_guiddef.h"

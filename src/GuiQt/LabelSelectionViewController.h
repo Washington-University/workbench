@@ -21,11 +21,13 @@
  */
 /*LICENSE_END*/
 
-#include <cstdint>
+#include <stdint.h>
 #include <set>
 
 #include <QWidget>
 
+#include "DisplayGroupEnum.h"
+#include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 class QCheckBox;
@@ -33,8 +35,9 @@ class QCheckBox;
 namespace caret {
 
     class GroupAndNameHierarchyViewController;
+    class DisplayGroupEnumComboBox;
     
-    class LabelSelectionViewController : public QWidget, public SceneableInterface {
+    class LabelSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
         
         Q_OBJECT
 
@@ -45,24 +48,28 @@ namespace caret {
         
         virtual ~LabelSelectionViewController();
         
+        void receiveEvent(Event* event);
+        
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
         
         virtual void restoreFromScene(const SceneAttributes* sceneAttributes,
                                       const SceneClass* sceneClass);
         
-        void updateLabelViewController();
-        
     private slots:
         void processLabelSelectionChanges();
         
         void processSelectionChanges();
+        
+        void labelDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
     private:
         LabelSelectionViewController(const LabelSelectionViewController&);
 
         LabelSelectionViewController& operator=(const LabelSelectionViewController&);
 
+        void updateLabelViewController();
+        
         void updateOtherLabelViewControllers();
         
         QWidget* createSelectionWidget();
@@ -76,6 +83,8 @@ namespace caret {
         QCheckBox* m_labelsDisplayCheckBox;
         
         QCheckBox* m_labelsContralateralCheckBox;
+        
+        DisplayGroupEnumComboBox* m_labelsDisplayGroupComboBox;
         
         static std::set<LabelSelectionViewController*> allLabelSelectionViewControllers;
     };

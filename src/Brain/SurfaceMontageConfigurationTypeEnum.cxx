@@ -31,7 +31,9 @@ using namespace caret;
     
 /**
  * \class caret::SurfaceMontageConfigurationTypeEnum 
- * \brief Type for montage configuration
+ * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ *
+ * <REPLACE-WITH-THOROUGH DESCRIPTION>
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -118,9 +120,6 @@ SurfaceMontageConfigurationTypeEnum::initialize()
                                     "FLAT_CONFIGURATION", 
                                     "Flat Maps"));
     
-    enumData.push_back(SurfaceMontageConfigurationTypeEnum(HIPPOCAMPUS_CONFIGURATION,
-                                                           "HIPPOCAMPUS_CONFIGURATION",
-                                                           "Hippocampus"));
 }
 
 /**
