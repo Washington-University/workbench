@@ -31,9 +31,12 @@
 #include "ApplicationInformation.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFileClusterFinder.h"
+#include "CaretResult.h"
 #include "CaretTemporaryFile.h"
 #include "ChartDataCartesian.h"
 #include "ChartDataSource.h"
+#include "ClusterContainer.h"
 #include "DataFileContentInformation.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
@@ -263,6 +266,7 @@ VolumeFile::clear()
     m_maxScalingVal = 1.0;
     
     m_graphicsPrimitiveManager->clear();
+    m_mapLabelClusterContainers.clear();
 }
 
 void VolumeFile::readFile(const AString& filename)
@@ -502,7 +506,8 @@ VolumeFile::interpolateValue(const float* coordIn,
                              const VoxelInterpolationTypeEnum::Enum interpType,
                              bool* validOut,
                              const int64_t brickIndex,
-                             const int64_t component) const
+                             const int64_t component,
+                             const float backgroundVal) const
 {
     InterpType interp = CUBIC;
     switch (interpType) {
@@ -521,15 +526,16 @@ VolumeFile::interpolateValue(const float* coordIn,
                             interp,
                             validOut,
                             brickIndex,
-                            component);
+                            component,
+                            backgroundVal);
 }
 
-float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
+float VolumeFile::interpolateValue(const float* coordIn, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component, const float backgroundVal) const
 {
-    return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component);
+    return interpolateValue(coordIn[0], coordIn[1], coordIn[2], interp, validOut, brickIndex, component, backgroundVal);
 }
 
-float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component) const
+float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp, bool* validOut, const int64_t brickIndex, const int64_t component, const float backgroundVal) const
 {
     /*
      * If the volume is a single slice, CUBIC and TRILINEAR will fail they
@@ -559,7 +565,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 {
                     return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                 } else {
-                    return INVALID_INTERP_VALUE;
+                    return backgroundVal;
                 }
             }
             int64_t whichFrame = component * dimensions[3] + brickIndex;
@@ -585,7 +591,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                     {
                         return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                     } else {
-                        return INVALID_INTERP_VALUE;
+                        return backgroundVal;
                     }
                 }
             }
@@ -629,7 +635,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
                 {
                     return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
                 } else {
-                    return INVALID_INTERP_VALUE;
+                    return backgroundVal;
                 }
             }
         }
@@ -640,7 +646,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     {
         return getMapLabelTable(brickIndex)->getUnassignedLabelKey();
     } else {
-        return INVALID_INTERP_VALUE;
+        return backgroundVal;
     }
 }
 
@@ -1534,6 +1540,43 @@ VolumeFile::getMapLabelTable(const int32_t mapIndex) const
 }
 
 /**
+ * @return The clusters for the given map's label table (may be NULL)
+ * @param mapIndex
+ *    Index of the map
+ */
+const ClusterContainer*
+VolumeFile::getMapLabelTableClusters(const int32_t mapIndex) const
+{
+    if (isMappedWithLabelTable()) {
+        /*
+         * If it does not exist, no attempt has been made to create it
+         */
+        if (m_mapLabelClusterContainers.find(mapIndex) == m_mapLabelClusterContainers.end()) {
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::VOLUME_LABEL,
+                                                      this,
+                                                      mapIndex);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(finder.takeClusterContainer());
+            }
+            else {
+                CaretLogWarning(result->getErrorDescription());
+                ClusterContainer* nullPointer(NULL);
+                /*
+                 * Putting a NULL in here, prevents running find clusters again
+                 */
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(nullPointer);
+                CaretAssertToDoFatal();
+            }
+        }
+
+        return m_mapLabelClusterContainers[mapIndex].get();
+    }
+    
+    return NULL;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * Red, Green, Blue, Alpha values.
  */
@@ -1768,10 +1811,8 @@ VolumeFile::updateScalarColoringForMap(const int32_t mapIndex)
  *    Plane for which colors are requested.
  * @param sliceIndex
  *    Index of the slice.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    Contains colors upon exit.
  * @return
@@ -1781,8 +1822,7 @@ int64_t
 VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                         const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                         const int64_t sliceIndex,
-                                        const DisplayGroupEnum::Enum displayGroup,
-                                        const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                         uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1794,8 +1834,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
     return m_voxelColorizer->getVoxelColorsForSliceInMap(mapIndex,
                                                   slicePlane,
                                                   sliceIndex,
-                                                  displayGroup,
-                                                  tabIndex,
+                                                  tabDrawingInfo,
                                                   rgbaOut);
 }
 
@@ -1814,10 +1853,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Number of rows.
  * @param numberOfColumns
  *    Number of columns.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    RGBA color components out.
  * @return
@@ -1830,8 +1867,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                 const int64_t columnStepIJK[3],
                                 const int64_t numberOfRows,
                                 const int64_t numberOfColumns,
-                                const DisplayGroupEnum::Enum displayGroup,
-                                const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                 uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1846,8 +1882,7 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                  columnStepIJK,
                                                  numberOfRows,
                                                  numberOfColumns,
-                                                 displayGroup,
-                                                 tabIndex,
+                                                 tabDrawingInfo,
                                                  rgbaOut);
 }
 
@@ -1866,10 +1901,8 @@ VolumeFile::getVoxelColorsForSliceInMap(const int32_t mapIndex,
   *    Indices of voxel for last corner of sub-slice (inclusive).
   * @param voxelCountIJK
   *    Voxel counts for each axis.
-  * @param displayGroup
-  *    The selected display group.
-  * @param tabIndex
-  *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
   * @param rgbaOut
   *    Output containing the rgba values (must have been allocated
   *    by caller to sufficient count of elements in the slice).
@@ -1883,8 +1916,7 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                            const int64_t firstCornerVoxelIndex[3],
                                            const int64_t lastCornerVoxelIndex[3],
                                            const int64_t voxelCountIJK[3],
-                                           const DisplayGroupEnum::Enum displayGroup,
-                                           const int32_t tabIndex,
+                                           const TabDrawingInfo& tabDrawingInfo,
                                            uint8_t* rgbaOut) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -1899,8 +1931,7 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                      firstCornerVoxelIndex,
                                                      lastCornerVoxelIndex,
                                                      voxelCountIJK,
-                                                     displayGroup,
-                                                     tabIndex,
+                                                     tabDrawingInfo,
                                                      rgbaOut);
 }
 
@@ -1909,25 +1940,18 @@ VolumeFile::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
-                                              const DisplayGroupEnum::Enum displayGroup,
-                                              const int32_t tabIndex) const
+                                                   const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_STRIP,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
@@ -1935,25 +1959,18 @@ VolumeFile::getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
-                                      const DisplayGroupEnum::Enum displayGroup,
-                                      const int32_t tabIndex) const
+                                                 const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLE_FAN,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
@@ -1961,35 +1978,26 @@ VolumeFile::getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
  *
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
- * @param rgbaOut
- *    Output containing the rgba values (must have been allocated
- *    by caller to sufficient count of elements in the slice).
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @return
  *    Graphics primitive or NULL if unable to draw
  */
 GraphicsPrimitiveV3fT3f*
 VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
-                                               const DisplayGroupEnum::Enum displayGroup,
-                                               const int32_t tabIndex) const
+                                               const TabDrawingInfo& tabDrawingInfo) const
 {
     return m_graphicsPrimitiveManager->getVolumeDrawingPrimitiveForMap(VolumeGraphicsPrimitiveManager::PrimitiveShape::TRIANGLES,
                                                                        mapIndex,
-                                                                       displayGroup,
-                                                                       tabIndex);
+                                                                       tabDrawingInfo);
 }
 
 /**
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param mediaFile
  *    The medial file for drawing histology
  * @param volumeMappingMode
@@ -2003,8 +2011,7 @@ VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
  */
 GraphicsPrimitive*
 VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
-                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                   const int32_t tabIndex,
+                                                   const TabDrawingInfo& tabDrawingInfo,
                                                    const MediaFile* mediaFile,
                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                    const float volumeSliceThickness,
@@ -2012,8 +2019,7 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(mediaFile,
                                                                                   mapIndex,
-                                                                                  displayGroup,
-                                                                                  tabIndex,
+                                                                                  tabDrawingInfo,
                                                                                   volumeMappingMode,
                                                                                   volumeSliceThickness,
                                                                                   errorMessageOut);
@@ -2023,10 +2029,8 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex
  *    Index of the map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param histologySlice
  *    The histology slice being drawn
  * @param errorMessageOut
@@ -2036,8 +2040,7 @@ VolumeFile::getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
  */
 std::vector<GraphicsPrimitive*>
 VolumeFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
-                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                   const int32_t tabIndex,
+                                                   const TabDrawingInfo& tabDrawingInfo,
                                                    const HistologySlice* histologySlice,
                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                    const float volumeSliceThickness,
@@ -2045,8 +2048,7 @@ VolumeFile::getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
 {
     return m_graphicsPrimitiveManager->getImageIntersectionDrawingPrimitiveForMap(histologySlice,
                                                                                   mapIndex,
-                                                                                  displayGroup,
-                                                                                  tabIndex,
+                                                                                  tabDrawingInfo,
                                                                                   volumeMappingMode,
                                                                                   volumeSliceThickness,
                                                                                   errorMessageOut);
@@ -2172,10 +2174,8 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
  *    Axial index
  * @param mapIndex
  *    Index of map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    Contains voxel coloring on exit.
  */
@@ -2184,8 +2184,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                                const int64_t j,
                                const int64_t k,
                                const int64_t mapIndex,
-                               const DisplayGroupEnum::Enum displayGroup,
-                               const int32_t tabIndex,
+                               const TabDrawingInfo& tabDrawingInfo,
                                uint8_t rgbaOut[4]) const
 {
     if (s_voxelColoringEnabled == false) {
@@ -2198,8 +2197,7 @@ VolumeFile::getVoxelColorInMap(const int64_t i,
                                          j,
                                          k,
                                          mapIndex,
-                                         displayGroup,
-                                         tabIndex,
+                                         tabDrawingInfo,
                                          rgbaOut);
 }
 
@@ -2609,6 +2607,25 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
     dataFileInformation.addNameAndValue("Spacing",
                                         AString::fromNumbers(spacing, 3, ", "));
     
+    if (isMappedWithLabelTable()) {
+        for (int32_t i = 0; i < getNumberOfMaps(); i++) {
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::VOLUME_LABEL,
+                                                      this,
+                                                      i);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                const AString mapName(getMapName(i).isEmpty()
+                                      ? AString::number(i + 1)
+                                      : getMapName(i));
+                dataFileInformation.addText("Clusters for map: " + mapName + "\n");
+                dataFileInformation.addText(finder.getClustersInFormattedString());                
+            }
+            else {
+                CaretLogWarning("Finding clusters error: "
+                                + result->getErrorDescription());
+            }
+        }
+    }
 }
 
 /**
@@ -3187,6 +3204,69 @@ VolumeFile::setValuesForVoxelEditing(const int32_t mapIndex,
                  * texture gets reloaded with the new RGBA coloring.
                  */
                 m_graphicsPrimitiveManager->invalidateColoringForMap(mapIndex);
+            }
+        }
+    }
+}
+
+/**
+ * Get the 26 connected neighbors for a voxel.l
+ * @param voxelIJK
+ *    Indices of voxel
+ *  @param voxelValues
+ *    Pointer to first value in the slice (must contain I * J * K values) also known as 'frame'
+ * @param minValue
+ *    Minimum data value for neighbor (inclusive)
+ * @param maxValue
+ *    Maximum data value for neighbor (inclusive)
+ * @param voxelHasBeenSearchedFlags
+ *    A vector that indicates a voxel has been searched and is not added to the neighbors.
+ *    These flags are updated for any voxel that is added to the neighbors.
+ * @param neighborIJKs
+ *    Voxels that are neighbors with a value in the range and have not been searched
+ *    are APPENDED to this vector (any values in thie vector on entry remain in the
+ *    vector on exit)..
+ */
+void
+VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
+                          const float* voxelValues,
+                          const float minimumValue,
+                          const float maximumValue,
+                          std::vector<char>& voxelHasBeenSearchedFlags,
+                          std::vector<VoxelIJK>& neighborIJKs) const
+{
+    const VolumeSpace vs(getVolumeSpace());
+    CaretUsedInDebugCompileOnly(const int64_t* dims(vs.getDims()));
+    CaretAssert(static_cast<int64_t>(voxelHasBeenSearchedFlags.size())
+                == (dims[0] * dims[1] * dims[2]));
+    
+    CaretAssert((voxelIJK.m_ijk[0] >= 0) && (voxelIJK.m_ijk[0] < dims[0]));
+    CaretAssert((voxelIJK.m_ijk[1] >= 0) && (voxelIJK.m_ijk[1] < dims[1]));
+    CaretAssert((voxelIJK.m_ijk[2] >= 0) && (voxelIJK.m_ijk[2] < dims[2]));
+
+    for (int64_t i = -1; i <= 1; i++) {
+        for (int64_t j = -1; j <= 1; j++) {
+            for (int64_t k = -1; k <= 1; k++) {
+                if ((i != 0) || (j != 0) || (k != 0)) { /* ignore self */
+                    const int64_t vi(voxelIJK.m_ijk[0] + i);
+                    const int64_t vj(voxelIJK.m_ijk[1] + j);
+                    const int64_t vk(voxelIJK.m_ijk[2] + k);
+                    if (vs.indexValid(vi, vj, vk)) {
+                        const int64_t offset(vs.getIndex(vi, vj, vk));
+                        CaretAssertVectorIndex(voxelHasBeenSearchedFlags, offset);
+                        if ( ! voxelHasBeenSearchedFlags[offset]) {
+                            const float v(voxelValues[offset]);
+                            if ((v >= minimumValue)
+                                && (v <= maximumValue)) {
+                                CaretAssert((vi >= 0) && (vi < dims[0]));
+                                CaretAssert((vj >= 0) && (vj < dims[1]));
+                                CaretAssert((vk >= 0) && (vk < dims[2]));
+                                neighborIJKs.emplace_back(vi, vj, vk);
+                                voxelHasBeenSearchedFlags[offset] = 1;
+                            }
+                        }
+                    }
+                }
             }
         }
     }

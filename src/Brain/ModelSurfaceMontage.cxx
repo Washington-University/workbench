@@ -40,6 +40,7 @@
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"
 #include "SurfaceMontageConfigurationFlatMaps.h"
+#include "SurfaceMontageConfigurationHippocampus.h"
 #include "SurfaceSelectionModel.h"
 
 using namespace caret;
@@ -65,6 +66,7 @@ ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
         m_cerebellarConfiguration[i] = new SurfaceMontageConfigurationCerebellar(i);
         m_cerebralConfiguration[i] = new SurfaceMontageConfigurationCerebral(i);
         m_flatMapsConfiguration[i] = new SurfaceMontageConfigurationFlatMaps(i);
+        m_hippocampusConfiguration[i] = new SurfaceMontageConfigurationHippocampus(i);
     }
     
     std::vector<StructureEnum::Enum> overlaySurfaceStructures;
@@ -83,6 +85,7 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
         delete m_cerebellarConfiguration[i];
         delete m_cerebralConfiguration[i];
         delete m_flatMapsConfiguration[i];
+        delete m_hippocampusConfiguration[i];
     }
 }
 
@@ -107,6 +110,7 @@ ModelSurfaceMontage::initializeSelectedSurfaces()
         m_cerebellarConfiguration[i]->initializeSelectedSurfaces();
         m_cerebralConfiguration[i]->initializeSelectedSurfaces();
         m_flatMapsConfiguration[i]->initializeSelectedSurfaces();
+        m_hippocampusConfiguration[i]->initializeSelectedSurfaces();
     }
 }
 
@@ -174,6 +178,7 @@ ModelSurfaceMontage::initializeOverlays()
         m_cerebellarConfiguration[i]->getOverlaySet()->initializeOverlays();
         m_cerebralConfiguration[i]->getOverlaySet()->initializeOverlays();
         m_flatMapsConfiguration[i]->getOverlaySet()->initializeOverlays();
+        m_hippocampusConfiguration[i]->getOverlaySet()->initializeOverlays();
     }
 }
 
@@ -241,6 +246,23 @@ ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
             }
         }
             break;
+        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+        {
+            SurfaceMontageConfigurationHippocampus* smcc = getHippocampusConfiguration(windowTabNumber);
+            switch (structure) {
+                case StructureEnum::CORTEX_LEFT:
+                    selectionModels.push_back(smcc->getLeftFirstSurfaceSelectionModel());
+                    selectionModels.push_back(smcc->getLeftSecondSurfaceSelectionModel());
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    selectionModels.push_back(smcc->getRightFirstSurfaceSelectionModel());
+                    selectionModels.push_back(smcc->getRightSecondSurfaceSelectionModel());
+                    break;
+                default:
+                    break;
+            }
+        }
+            break;
     }
     
     Surface* surfaceOut = NULL;
@@ -286,6 +308,12 @@ ModelSurfaceMontage::getSelectedConfiguration(const int32_t tabIndex)
                                   tabIndex);
             return m_flatMapsConfiguration[tabIndex];
             break;
+        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+            CaretAssertArrayIndex(m_hippocampusConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            return m_hippocampusConfiguration[tabIndex];
+            break;
     }
 
     return NULL;
@@ -327,6 +355,9 @@ ModelSurfaceMontage::getSelectedConfigurationType(const int32_t tabIndex) const
     if (m_flatMapsConfiguration[tabIndex]->isValid()) {
         validTypes.push_back(SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION);
     }
+    if (m_hippocampusConfiguration[tabIndex]->isValid()) {
+        validTypes.push_back(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION);
+    }
 
     /*
      * Verify selected type is valid
@@ -354,6 +385,14 @@ ModelSurfaceMontage::getSelectedConfigurationType(const int32_t tabIndex) const
                                   BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                                   tabIndex);
             if (m_flatMapsConfiguration[tabIndex]->isValid()) {
+                validTypeSelected = true;
+            }
+            break;
+        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+            CaretAssertArrayIndex(m_hippocampusConfiguration,
+                                  BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                  tabIndex);
+            if (m_hippocampusConfiguration[tabIndex]->isValid()) {
                 validTypeSelected = true;
             }
             break;
@@ -489,6 +528,39 @@ ModelSurfaceMontage::getFlatMapsConfiguration(const int32_t tabIndex) const
     return m_flatMapsConfiguration[tabIndex];
 }
 
+/**
+ * Get the hippocampus configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    hippocampus configuration.
+ */
+SurfaceMontageConfigurationHippocampus* 
+ModelSurfaceMontage::getHippocampusConfiguration(const int32_t tabIndex)
+{
+    CaretAssertArrayIndex(m_hippocampusConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_hippocampusConfiguration[tabIndex];
+}
+
+/**
+ * Get the hippocampus configuration in the given tab.
+ *
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    hippocampus configuration.
+ */
+const SurfaceMontageConfigurationHippocampus*
+ModelSurfaceMontage::getHippocampusConfiguration(const int32_t tabIndex) const
+{
+    CaretAssertArrayIndex(m_hippocampusConfiguration,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          tabIndex);
+    return m_hippocampusConfiguration[tabIndex];
+}
 
 /**
  * Save information specific to this type of model to the scene.
@@ -513,7 +585,9 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
                                                                                   SceneObjectDataTypeEnum::SCENE_CLASS);
     SceneObjectMapIntegerKey* flatConfigurationMap = new SceneObjectMapIntegerKey("m_flatMapsConfiguration",
                                                                              SceneObjectDataTypeEnum::SCENE_CLASS);
-    
+    SceneObjectMapIntegerKey* hippoConfigurationMap = new SceneObjectMapIntegerKey("m_hippocampusConfiguration",
+                                                                                  SceneObjectDataTypeEnum::SCENE_CLASS);
+
 
     /*
      * Get indices of tabs that are to be saved to scene.
@@ -539,11 +613,15 @@ ModelSurfaceMontage::saveModelSpecificInformationToScene(const SceneAttributes* 
         flatConfigurationMap->addClass(tabIndex,
                                            m_flatMapsConfiguration[tabIndex]->saveToScene(sceneAttributes,
                                                                                           "m_flatMapsConfiguration" + tabString));
+        hippoConfigurationMap->addClass(tabIndex,
+                                       m_hippocampusConfiguration[tabIndex]->saveToScene(sceneAttributes,
+                                                                                      "m_hippocampusConfiguration" + tabString));
     }
     
     sceneClass->addChild(cerebellarConfigurationMap);
     sceneClass->addChild(cerebralConfigurationMap);
     sceneClass->addChild(flatConfigurationMap);
+    sceneClass->addChild(hippoConfigurationMap);
     
     
 //    /*
@@ -648,7 +726,7 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
         }
 
         /*
-         * Restore Cortext
+         * Restore Cortex
          */
         const SceneObjectMapIntegerKey* cerebralMap = sceneClass->getMapIntegerKey("m_cerebralConfiguration");
         if (cerebellumMap != NULL) {
@@ -690,6 +768,27 @@ ModelSurfaceMontage::restoreModelSpecificInformationFromScene(const SceneAttribu
             }
         }
         
+        /*
+         * Restore Hippocampus
+         */
+        const SceneObjectMapIntegerKey* hippoMap = sceneClass->getMapIntegerKey("m_hippocampusConfiguration");
+        if (hippoMap != NULL) {
+            const std::map<int32_t, SceneObject*>& structureMap = hippoMap->getMap();
+            for (std::map<int32_t, SceneObject*>::const_iterator iter = structureMap.begin();
+                 iter != structureMap.end();
+                 iter++) {
+                const int32_t key = iter->first;
+                const SceneClass* hippoSceneClass = dynamic_cast<const SceneClass*>(iter->second);
+                hippoSceneClass->setRestored(true);// prevents "failed to restore"
+                CaretAssertArrayIndex(m_hippocampusConfiguration,
+                                      BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                      key);
+                
+                m_hippocampusConfiguration[key]->restoreFromScene(sceneAttributes,
+                                                                  hippoSceneClass);
+            }
+        }
+
         sceneClass->getEnumerateTypeArrayForTabIndices<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>("m_selectedConfigurationType",
                                                                                                                                       m_selectedConfigurationType);
     }
@@ -1052,6 +1151,7 @@ ModelSurfaceMontage::copyTabContent(const int32_t sourceTabIndex,
     m_cerebellarConfiguration[destinationTabIndex]->copyConfiguration(m_cerebellarConfiguration[sourceTabIndex]);
     m_cerebralConfiguration[destinationTabIndex]->copyConfiguration(m_cerebralConfiguration[sourceTabIndex]);
     m_flatMapsConfiguration[destinationTabIndex]->copyConfiguration(m_flatMapsConfiguration[sourceTabIndex]);
+    m_hippocampusConfiguration[destinationTabIndex]->copyConfiguration(m_hippocampusConfiguration[sourceTabIndex]);
     m_selectedConfigurationType[destinationTabIndex] = m_selectedConfigurationType[sourceTabIndex];
 }
 

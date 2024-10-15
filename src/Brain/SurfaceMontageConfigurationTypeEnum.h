@@ -35,12 +35,14 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** */
+        /** L/R Cerebellum */
         CEREBELLAR_CORTEX_CONFIGURATION,
-        /** */
+        /** Cortex */
         CEREBRAL_CORTEX_CONFIGURATION,
-        /** */
-        FLAT_CONFIGURATION
+        /** flat maps */
+        FLAT_CONFIGURATION,
+        /** L/R Hippocampus **/
+        HIPPOCAMPUS_CONFIGURATION
     };
 
 

@@ -1283,6 +1283,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
     /*
      * Annotation being drawn by the user.
      */
+    Annotation* temporaryBoxAnnotation(NULL);
     m_brainOpenGLFixedPipeline->checkForOpenGLError(NULL,
                                                     "Start of annotation drawn by user model space.");
     if (m_annotationBeingDrawn != NULL) {
@@ -1295,6 +1296,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
             AnnotationBox box(AnnotationAttributesDefaultTypeEnum::NORMAL);
             box.applyCoordinatesSizeAndRotationFromOther(textAnn);
             box.applyColoringFromOther(textAnn);
+            temporaryBoxAnnotation = &box;
             
             drawAnnotation(m_dummyAnnotationFile,
                            &box,
@@ -1392,6 +1394,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                          * Selection of the annotation being drawn may be disabled
                          */
                         if ( ! m_annotationBeingDrawnIsSelectableFlag) {
+                            selectFlag = false;
+                        }
+                    }
+                    
+                    /*
+                     * When drawing a new text annotation by dragging the mouse to
+                     * select a region, a box annotation is drawn (above) to show
+                     * the region for the text.  We DO NOT want to allow selection
+                     * of this box because it will block selection of the text
+                     * annotation and, since the box annotation is drawn on the
+                     * stack (above), selection of the box will cause a crash.
+                     */
+                    if (temporaryBoxAnnotation != NULL) {
+                        if (selectionInfo.m_annotation == temporaryBoxAnnotation) {
                             selectFlag = false;
                         }
                     }

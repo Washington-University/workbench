@@ -21,10 +21,12 @@
  */
 /*LICENSE_END*/
 
+#include <array>
 
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
+#include "LabelViewModeEnum.h"
 
 namespace caret {
 
@@ -53,6 +55,11 @@ namespace caret {
         void setDisplayGroupForTab(const int32_t browserTabIndex,
                                    const DisplayGroupEnum::Enum  displayGroup);
         
+        LabelViewModeEnum::Enum getLabelViewModeForTab(const int32_t browserTabIndex) const;
+        
+        void setLabelViewModeForTab(const int32_t browserTabIndex,
+                                    const LabelViewModeEnum::Enum labelViewMode);
+        
     private:
         DisplayPropertiesLabels(const DisplayPropertiesLabels&);
 
@@ -66,8 +73,10 @@ namespace caret {
 
         // ADD_NEW_MEMBERS_HERE
         
-        DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        std::array<DisplayGroupEnum::Enum, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_displayGroup;
         
+        std::array<LabelViewModeEnum::Enum, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_labelViewMode;
+
     };
     
 #ifdef __DISPLAY_PROPERTIES_LABELS_DECLARE__

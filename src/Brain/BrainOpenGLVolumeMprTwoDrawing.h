@@ -27,6 +27,7 @@
 
 #include "BrainOpenGLFixedPipeline.h"
 #include "CaretObject.h"
+#include "LabelViewModeEnum.h"
 #include "Plane.h"
 #include "SelectionItemVolumeMprCrosshair.h"
 #include "Vector3D.h"
@@ -255,7 +256,8 @@ namespace caret {
         std::vector<std::pair<VolumeMappableInterface*,int32_t>> getIntensityVolumeFilesAndMapIndices() const;
         
         void performIntensityIdentification(const SliceInfo& sliceInfo,
-                                            VolumeMappableInterface* volume);
+                                            VolumeMappableInterface* volume,
+                                            const int32_t mapIndex);
         
         float getVoxelSize(const VolumeMappableInterface* volume) const;
         
@@ -276,6 +278,8 @@ namespace caret {
         BrainModelMode m_brainModelMode = BrainModelMode::INVALID;
         
         DisplayGroupEnum::Enum m_displayGroup;
+        
+        LabelViewModeEnum::Enum m_labelViewMode;
         
         int32_t m_tabIndex = -1;
         

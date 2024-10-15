@@ -41,12 +41,14 @@ using namespace caret;
 DisplayPropertiesLabels::DisplayPropertiesLabels()
 : DisplayProperties()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayGroup[i] = DisplayGroupEnum::getDefaultValue();
-    }
-    
+    m_displayGroup.fill(DisplayGroupEnum::getDefaultValue());
+    m_labelViewMode.fill(LabelViewModeEnum::LIST);
+
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
-                                                                                                m_displayGroup);    
+                                                                                                m_displayGroup.data());
+    m_sceneAssistant->addTabIndexedEnumeratedTypeArray<LabelViewModeEnum, LabelViewModeEnum::Enum>("m_labelViewMode",
+                                                                                                m_labelViewMode.data());
+    
 }
 
 /**
@@ -70,6 +72,8 @@ DisplayPropertiesLabels::copyDisplayProperties(const int32_t sourceTabIndex,
 {
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
     this->setDisplayGroupForTab(targetTabIndex, displayGroup);
+    this->setLabelViewModeForTab(targetTabIndex, 
+                                 this->getLabelViewModeForTab(sourceTabIndex));
 }
 
 /**
@@ -79,6 +83,8 @@ DisplayPropertiesLabels::copyDisplayProperties(const int32_t sourceTabIndex,
 void
 DisplayPropertiesLabels::reset()
 {
+    m_displayGroup.fill(DisplayGroupEnum::getDefaultValue());
+    m_labelViewMode.fill(LabelViewModeEnum::LIST);
 }
 
 /**
@@ -119,6 +125,33 @@ DisplayPropertiesLabels::setDisplayGroupForTab(const int32_t browserTabIndex,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           browserTabIndex);
     m_displayGroup[browserTabIndex] = displayGroup;
+}
+
+/**
+ * @return The label view mode for the given tab
+ * @param browserTabIndex
+ *    Index of browser tab.
+ */
+LabelViewModeEnum::Enum
+DisplayPropertiesLabels::getLabelViewModeForTab(const int32_t browserTabIndex) const
+{
+    CaretAssertVectorIndex(m_labelViewMode, browserTabIndex);
+    return m_labelViewMode[browserTabIndex];
+}
+
+/**
+ * Set the label view mode for the given tab
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param labelViewMode
+ *    New label view mode
+ */
+void
+DisplayPropertiesLabels::setLabelViewModeForTab(const int32_t browserTabIndex,
+                                                const LabelViewModeEnum::Enum labelViewMode)
+{
+    CaretAssertVectorIndex(m_labelViewMode, browserTabIndex);
+    m_labelViewMode[browserTabIndex] = labelViewMode;
 }
 
 /**

@@ -36,12 +36,14 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventDataFileAdd.h"
 #include "EventManager.h"
 #include "EventUpdateVolumeEditingToolBar.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventBrowserWindowDrawingContent.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
@@ -54,6 +56,7 @@
 #include "WuQFactory.h"
 #include "WuQHyperlinkToolTip.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQSpinBoxOddValue.h"
 #include "WuQtUtilities.h"
 
@@ -853,6 +856,13 @@ UserInputModeVolumeEditWidget::labelValueActionTriggered()
             if (lte.exec() == GiftiLabelTableEditor::Accepted) {
                 const AString selectedName = lte.getLastSelectedLabelName();
                 m_voxelLabelValueAction->setText(selectedName);
+                
+                const AString msg("If a new label was added, the Hierarchy view in "
+                                  "Label's tab of the Features Toolbox will NOT update "
+                                  "(The List view will update).  After editing, saving and reloading "
+                                  "the volume label file will update the Hierarchy view.  "
+                                  "If you are NOT using the Hierarchy view, no action is needed.");
+                WuQMessageBoxTwo::information(this, "Information", msg);
             }
         }
     }

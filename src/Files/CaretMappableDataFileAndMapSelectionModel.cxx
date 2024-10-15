@@ -45,10 +45,15 @@ using namespace caret;
  *
  * @param caretMappableDataFile
  *    Mappable data file.
+ * @param excludeSelfFlag
+ *    If true exclude self from file selection
  */
-CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile)
+CaretMappableDataFileAndMapSelectionModel::CaretMappableDataFileAndMapSelectionModel(const CaretMappableDataFile* caretMappableDataFile,
+                                                                                     const bool excludeSelfFlag)
 : CaretObject(),
-m_mode(Mode::MAP_TO_SAME_BRAINORDINATES),
+m_mode(excludeSelfFlag
+       ? Mode::MAP_TO_SAME_BRAINORDINATES_EXCLUDE_SELF
+       : Mode::MAP_TO_SAME_BRAINORDINATES),
 m_mappableDataFile(caretMappableDataFile)
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesVector;
@@ -262,6 +267,10 @@ CaretMappableDataFileAndMapSelectionModel::performConstruction(const std::vector
             CaretAssert(m_mappableDataFile);
             m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinates(m_mappableDataFile);
             break;
+        case Mode::MAP_TO_SAME_BRAINORDINATES_EXCLUDE_SELF:
+            CaretAssert(m_mappableDataFile);
+            m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinatesExcludeSelf(m_mappableDataFile);
+            break;
         case Mode::MATCH_DATA_FILE_TYPES:
             validateDataFileTypes();
             m_caretDataFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(dataFileTypes,
@@ -388,6 +397,8 @@ CaretMappableDataFileAndMapSelectionModel::getAvailableFiles() const
     switch (m_mode) {
         case Mode::MAP_TO_SAME_BRAINORDINATES:
             break;
+        case Mode::MAP_TO_SAME_BRAINORDINATES_EXCLUDE_SELF:
+            break;
         case Mode::MATCH_DATA_FILE_TYPES:
             break;
     }
@@ -435,6 +446,8 @@ CaretMappableDataFileAndMapSelectionModel::setSelectedFile(CaretMappableDataFile
     if (selectedFile != NULL) {
         switch (m_mode) {
             case Mode::MAP_TO_SAME_BRAINORDINATES:
+                break;
+            case Mode::MAP_TO_SAME_BRAINORDINATES_EXCLUDE_SELF:
                 break;
             case Mode::MATCH_DATA_FILE_TYPES:
             {

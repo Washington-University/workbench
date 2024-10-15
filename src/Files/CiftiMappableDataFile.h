@@ -353,8 +353,7 @@ namespace caret {
         virtual int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                  const int64_t sliceIndex,
-                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                 const int32_t tabIndex,
+                                                 const TabDrawingInfo& tabDrawingInfo,
                                                     uint8_t* rgbaOut) const override;
         
         int64_t getVoxelColorsForSliceInMap(const int32_t mapIndex,
@@ -363,8 +362,7 @@ namespace caret {
                                             const int64_t columnStepIJK[3],
                                             const int64_t numberOfRows,
                                             const int64_t numberOfColumns,
-                                            const DisplayGroupEnum::Enum displayGroup,
-                                            const int32_t tabIndex,
+                                            const TabDrawingInfo& tabDrawingInfo,
                                             uint8_t* rgbaOut) const override;
         
         virtual int64_t getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
@@ -373,16 +371,14 @@ namespace caret {
                                                     const int64_t firstCornerVoxelIndex[3],
                                                     const int64_t lastCornerVoxelIndex[3],
                                                     const int64_t voxelCountIJK[3],
-                                                    const DisplayGroupEnum::Enum displayGroup,
-                                                    const int32_t tabIndex,
+                                                       const TabDrawingInfo& tabDrawingInfo,
                                                     uint8_t* rgbaOut) const override;
         
         virtual void getVoxelColorInMap(const int64_t indexIn1,
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t mapIndex,
-                                        const DisplayGroupEnum::Enum displayGroup,
-                                        const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                         uint8_t rgbaOut[4]) const override;
         
         virtual void getVoxelColorInMap(const int64_t indexIn1,
@@ -396,33 +392,27 @@ namespace caret {
                                         const int64_t indexIn2,
                                         const int64_t indexIn3,
                                         const int64_t mapIndex,
-                                        const DisplayGroupEnum::Enum displayGroup,
-                                        const int32_t tabIndex,
+                                        const TabDrawingInfo& tabDrawingInfo,
                                         uint8_t rgbaOut[4]) const;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
-                                                                           const DisplayGroupEnum::Enum displayGroup,
-                                                                           const int32_t tabIndex) const override;
+                                                                                const TabDrawingInfo& tabDrawingInfo) const override;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleFanPrimitive(const int32_t mapIndex,
-                                                                      const DisplayGroupEnum::Enum displayGroup,
-                                                                      const int32_t tabIndex) const override;
+                                                                              const TabDrawingInfo& tabDrawingInfo) const override;
         
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
-                                                                            const DisplayGroupEnum::Enum displayGroup,
-                                                                            const int32_t tabIndex) const override;
+                                                                            const TabDrawingInfo& tabDrawingInfo) const override;
 
         virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
-                                                                          const DisplayGroupEnum::Enum displayGroup,
-                                                                          const int32_t tabIndex,
+                                                                          const TabDrawingInfo& tabDrawingInfo,
                                                                           const MediaFile* mediaFile,
                                                                           const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                           const float volumeSliceThickness,
                                                                           AString& errorMessageOut) const override;
         
         virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
-                                                                                       const DisplayGroupEnum::Enum displayGroup,
-                                                                                       const int32_t tabIndex,
+                                                                                       const TabDrawingInfo& tabDrawingInfo,
                                                                                        const HistologySlice* histologySlice,
                                                                                        const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                                        const float volumeSliceThickness,

@@ -25,6 +25,7 @@
 #include "DataFileTypeEnum.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "SurfaceFile.h"
 #include "VolumeFile.h"
 #include "FileInformation.h"
 
@@ -89,7 +90,7 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
             for (int32_t map = 0; map < numMaps; ++map)
             {
                 replaceInMetaData(myMetric.getMapMetaData(map), findString, replString, myCS);
-                AString mapName = myMetric.getMapName(map);
+                AString mapName = myMetric.getMapName(map); //because QString.replace modifies *this rather than constructing a new string, so it can't be called on const&
                 myMetric.setMapName(map, mapName.replace(findString, replString, myCS));
             }
             myMetric.writeFile(outFileName);
@@ -108,6 +109,14 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
                 myLabel.setMapName(map, mapName.replace(findString, replString, myCS));
             }
             myLabel.writeFile(outFileName);
+            break;
+        }
+        case DataFileTypeEnum::SURFACE:
+        {
+            SurfaceFile mySurf;
+            mySurf.readFile(inFileName);
+            replaceInMetaData(mySurf.getFileMetaData(), findString, replString, myCS);
+            mySurf.writeFile(outFileName);
             break;
         }
         case DataFileTypeEnum::VOLUME:
@@ -131,7 +140,11 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
         case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+        case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+        case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
         {
             CiftiFile myCifti;
             FileInformation myInfo1(inFileName), myInfo2(outFileName);
@@ -140,35 +153,47 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
             {
                 myCifti.convertToInMemory();
             }
-            CiftiXMLOld myXML = myCifti.getCiftiXMLOld();
+            CiftiXML myXML = myCifti.getCiftiXML();
             CiftiFile myOutCifti;
             myOutCifti.setWritingFile(outFileName);
-            int numRows = myXML.getNumberOfRows(), rowSize = myXML.getNumberOfColumns();
             replaceInMetaData(myXML.getFileMetaData(), findString, replString, myCS);
-            if (myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXMLOld::ALONG_ROW) == CIFTI_INDEX_TYPE_LABELS)
+            for (int i = 0; i < myXML.getNumberOfDimensions(); ++i)
             {
-                for (int row = 0; row < numRows; ++row)
+                switch (myXML.getMappingType(i))
                 {
-                    AString mapName = myXML.getMapName(CiftiXMLOld::ALONG_ROW, row);
-                    myXML.setMapNameForIndex(CiftiXMLOld::ALONG_ROW, row, mapName.replace(findString, replString, myCS));
-                    replaceInMetaData(myXML.getMapMetadata(CiftiXMLOld::ALONG_ROW, row), findString, replString, myCS);
+                    case CiftiMappingType::SCALARS:
+                    {
+                        CiftiScalarsMap& myMapping = myXML.getScalarsMap(i);
+                        for (int64_t map = 0; map < myMapping.getLength(); ++map)
+                        {
+                            AString mapName = myMapping.getMapName(map);
+                            myMapping.setMapName(map, mapName.replace(findString, replString, myCS));
+                            replaceInMetaData(myMapping.getMapMetadata(map), findString, replString, myCS);
+                        }
+                        break;
+                    }
+                    case CiftiMappingType::LABELS:
+                    {
+                        CiftiLabelsMap& myMapping = myXML.getLabelsMap(i);
+                        for (int64_t map = 0; map < myMapping.getLength(); ++map)
+                        {
+                            AString mapName = myMapping.getMapName(map);
+                            myMapping.setMapName(map, mapName.replace(findString, replString, myCS));
+                            replaceInMetaData(myMapping.getMapMetadata(map), findString, replString, myCS);
+                        }
+                        break;
+                    }
+                    default:
+                        break;//no map-level metadata or names for other types (assume parcel names are sacred)
                 }
             }
-            if (myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) == CIFTI_INDEX_TYPE_SCALARS || myXML.getMappingType(CiftiXMLOld::ALONG_COLUMN) == CIFTI_INDEX_TYPE_LABELS)
-            {
-                for (int col = 0; col < rowSize; ++col)
-                {
-                    AString mapName = myXML.getMapName(CiftiXMLOld::ALONG_COLUMN, col);
-                    myXML.setMapNameForIndex(CiftiXMLOld::ALONG_COLUMN, col, mapName.replace(findString, replString, myCS));
-                    replaceInMetaData(myXML.getMapMetadata(CiftiXMLOld::ALONG_COLUMN, col), findString, replString, myCS);
-                }
-            }
+            vector<int64_t> dims = myCifti.getDimensions();
             myOutCifti.setCiftiXML(myXML, false);
-            vector<float> scratchRow(rowSize);
-            for (int i = 0; i < numRows; ++i)
+            vector<float> scratchRow(dims[0]);
+            for (MultiDimIterator<int64_t> iter = myCifti.getIteratorOverRows(); !iter.atEnd(); ++iter)
             {
-                myCifti.getRow(scratchRow.data(), i);
-                myOutCifti.setRow(scratchRow.data(), i);
+                myCifti.getRow(scratchRow.data(), *iter);
+                myOutCifti.setRow(scratchRow.data(), *iter);
             }
             myOutCifti.writeFile(outFileName);
             break;

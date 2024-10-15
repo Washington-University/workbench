@@ -29,6 +29,55 @@
 
 namespace caret
 {
+    //implement copy semantics with a forward-declared pointer type, as long as copy, destructor, =, etc are implemented in the cxx
+    //use -> and * for access to members, but =, destruct, copy construct behaves like it was a non-pointer member
+    template<typename T>
+    class CaretForwardHelper
+    {
+        mutable T* m_pointer;
+    public:
+        //can be done with only forward declaration
+        CaretForwardHelper() { m_pointer = NULL; }
+        
+        //below need to have the real header for the type
+        CaretForwardHelper(const CaretForwardHelper& rhs) { m_pointer = new T(*rhs); } //rhs template can't replace default copy
+        //copy from another forward declare of arbitrary type, as long as it is compatible
+        template<typename R>
+        CaretForwardHelper(const CaretForwardHelper<R>& rhs) { m_pointer = new T(*rhs); }
+        //copy from some arbitrary other type
+        template<typename R>
+        CaretForwardHelper(const R& rhs) { m_pointer = new T(rhs); }
+        //implement dereference as the way to instantiate m_pointer, useful for implementing the rest of the logic
+        const T& operator*() const
+        {
+            if (m_pointer == NULL)
+            {
+                m_pointer = new T();
+            }
+            return *m_pointer;
+        }
+        T& operator*()
+        {
+            if (m_pointer == NULL)
+            {
+                m_pointer = new T();
+            }
+            return *m_pointer;
+        }
+        //default assignment implementation isn't what we want, fix it
+        T& operator=(const CaretForwardHelper& rhs) { return **this = *rhs; } //similar to copy, rhs template can't replace default
+        template<typename R>
+        T& operator=(const CaretForwardHelper<R>& rhs) { return **this = *rhs; } //could check for rhs.m_pointer == NULL, but this is cleaner
+        template<typename R>
+        T& operator=(const R& rhs) { return **this = rhs; }
+        //arrow, conversion
+        const T *const& operator->() const { return &**this; } //deref this to get template, deref again to call custom operator, then address-of to get real pointer
+        T * operator->() { return &**this; } //we do want const on the template to return a pointer to const
+        operator const T& () const { return **this; }
+        operator T& () { return **this; }
+        ~CaretForwardHelper() { if (m_pointer != NULL) delete m_pointer; }
+    };
+    
 
     namespace _caret_pointer_impl
     {//namespace to hide things that shouldn't be used outside the header

@@ -66,6 +66,7 @@
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "SessionManager.h"
+#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VolumeMappableInterface.h"
 
@@ -314,6 +315,8 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         return;
     }
 
+    setupScaleBars(orthographicProjection);
+    
     if (s_debugFlag) {
         std::cout << orthographicProjection.toString() << std::endl;
     }
@@ -982,6 +985,7 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     const DisplayPropertiesLabels* dsl = m_fixedPipelineDrawing->m_brain->getDisplayPropertiesLabels();
     const int32_t tabIndex(m_browserTabContent->getTabNumber());
     const DisplayGroupEnum::Enum displayGroup = dsl->getDisplayGroupForTab(tabIndex);
+    const LabelViewModeEnum::Enum labelViewMode(dsl->getLabelViewModeForTab(tabIndex));
     
     glPushAttrib(GL_DEPTH_BUFFER_BIT
                  | GL_COLOR_BUFFER_BIT);
@@ -1002,9 +1006,13 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
         CaretAssert(vmi);
         CaretAssert(mapIndex >= 0);
         AString errorMessage;
+        const TabDrawingInfo tabDrawingInfo(dynamic_cast<CaretMappableDataFile*>(vmi),
+                                            mapIndex,
+                                            displayGroup,
+                                            labelViewMode,
+                                            tabIndex);
         std::vector<GraphicsPrimitive*> primitives(vmi->getHistologySliceIntersectionPrimitive(mapIndex,
-                                                                                               displayGroup,
-                                                                                               tabIndex,
+                                                                                               tabDrawingInfo,
                                                                                                histologySlice,
                                                                                                overlay->getVolumeToImageMappingMode(),
                                                                                                overlay->getVolumeToImageMappingThickness(),
@@ -1068,3 +1076,35 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlaysOnCziImageFile(std::vector<V
     glPopAttrib();
 }
 
+/**
+ * Setup the scale bars for histology slice drawing
+ * @param orthographicProjection
+ *    The orthographic projection
+ */
+void
+BrainOpenGLHistologySliceDrawing::setupScaleBars(const GraphicsOrthographicProjection& orthographicProjection)
+{
+    /*
+     * Must have histology slice to set the stereotaxic coordinates at the left and right sides
+     * of the viewport
+     */
+    for (const HistologyOverlay::DrawingData& dd : m_mediaFilesAndDataToDraw) {
+        const HistologySlice* slice(dd.m_histologySlice);
+        if (slice != NULL) {
+            const Vector3D pLeft(orthographicProjection.getLeft(), 0.0, 0.0);
+            const Vector3D pRight(orthographicProjection.getRight(), 0.0, 0.0);
+            Vector3D xyzLeft;
+            Vector3D xyzRight;
+            if (slice->planeXyzToStereotaxicXyz(pLeft, xyzLeft)
+                && slice->planeXyzToStereotaxicXyz(pRight, xyzRight)) {
+                /*
+                 * Needed for scale bar drawing
+                 */
+                m_fixedPipelineDrawing->setupScaleBarDrawingInformation(m_browserTabContent,
+                                                                        xyzLeft[0],
+                                                                        xyzRight[0]);
+                return;
+            }
+        }
+    }
+}

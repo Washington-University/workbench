@@ -26,6 +26,7 @@
 #include "CiftiFile.h"
 #include "GiftiLabelTable.h"
 #include "MetricFile.h"
+#include "PaletteColorMapping.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
 
@@ -181,15 +182,18 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     myXML.setNumberOfDimensions(2);
     myXML.setMap(CiftiXML::ALONG_COLUMN, denseMap);
     int numMaps = -1;
+    const PaletteColorMapping* myPalette = NULL;
     if (leftData != NULL)
     {
         numMaps = leftData->getNumberOfMaps();
+        myPalette = leftData->getMapPaletteColorMapping(0);
     }
     if (rightData != NULL)
     {
         if (numMaps == -1)
         {
             numMaps = rightData->getNumberOfMaps();
+            myPalette = rightData->getMapPaletteColorMapping(0);
         } else {
             if (numMaps != rightData->getNumberOfMaps())
             {
@@ -202,6 +206,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         if (numMaps == -1)
         {
             numMaps = cerebData->getNumberOfMaps();
+            myPalette = cerebData->getMapPaletteColorMapping(0);
         } else {
             if (numMaps != cerebData->getNumberOfMaps())
             {
@@ -214,6 +219,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         if (numMaps == -1)
         {
             numMaps = myVol->getNumberOfMaps();
+            myPalette = myVol->getMapPaletteColorMapping(0);
         } else {
             if (numMaps != myVol->getNumberOfMaps())
             {
@@ -231,6 +237,10 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     seriesMap.setStep(timestep);
     seriesMap.setLength(numMaps);
     myXML.setMap(CiftiXML::ALONG_ROW, seriesMap);
+    if (myPalette != NULL)
+    {
+        *(myXML.getFilePalette()) = *myPalette;
+    }
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
     const CiftiBrainModelsMap& myDenseMap = myXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN);

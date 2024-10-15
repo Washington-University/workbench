@@ -128,10 +128,6 @@ namespace caret {
         
         AString getNameAndKeyForLabelEditor() const;
         
-        bool isSelected() const;
-        
-        void setSelected(const bool selected);
-        
         void getColor(float rgbaOut[4]) const;
         
         void setColor(const float rgba[4]);
@@ -204,8 +200,6 @@ namespace caret {
         AString name;
         
         int32_t key;
-        
-        bool selected;
         
         bool medialWallNameFlag;
         

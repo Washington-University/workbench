@@ -75,6 +75,9 @@ m_structure(structure)
         case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES:
             CaretAssert(m_mappableDataFile);
             break;
+        case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES_EXCLUDE_SELF:
+            CaretAssert(m_mappableDataFile);
+            break;
         case FILE_MODE_MULTI_STRUCTURE_BORDER_FILES:
             break;
     }
@@ -106,6 +109,22 @@ CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinates(const CaretMapp
     CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(mappableDataFile,
                                                                          StructureEnum::ALL,
                                                                          FILE_MODE_MAPS_TO_SAME_BRAINORDINATES);
+    return model;
+}
+
+/**
+ * Create a new instance of a Caret Data File Selection Model that
+ * matches a mappable data file's brainordinate mapping.
+ *
+ * @param dataFileType
+ *    Type of the data file.
+ */
+CaretDataFileSelectionModel*
+CaretDataFileSelectionModel::newInstanceMapsToSameBrainordinatesExcludeSelf(const CaretMappableDataFile* mappableDataFile)
+{
+    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(mappableDataFile,
+                                                                         StructureEnum::ALL,
+                                                                         FILE_MODE_MAPS_TO_SAME_BRAINORDINATES_EXCLUDE_SELF);
     return model;
 }
 
@@ -395,7 +414,9 @@ CaretDataFileSelectionModel::getAvailableFiles() const
         }
             break;
         case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES:
+        case FILE_MODE_MAPS_TO_SAME_BRAINORDINATES_EXCLUDE_SELF:
         {
+            const bool excludeSelfFlag(m_fileMode == FILE_MODE_MAPS_TO_SAME_BRAINORDINATES_EXCLUDE_SELF);
             CaretAssert(m_mappableDataFile);
             EventCaretMappableDataFilesGet mapFilesGetEvent;
             EventManager::get()->sendEvent(mapFilesGetEvent.getPointer());
@@ -408,15 +429,23 @@ CaretDataFileSelectionModel::getAvailableFiles() const
              * in the same file.
              */
             for (auto mf : mapFiles) {
-                switch (m_mappableDataFile->getBrainordinateMappingMatch(mf)) {
-                    case CaretMappableDataFile::BrainordinateMappingMatch::EQUAL:
-                        caretDataFiles.push_back(mf);
-                        break;
-                    case CaretMappableDataFile::BrainordinateMappingMatch::NO:
-                        break;
-                    case CaretMappableDataFile::BrainordinateMappingMatch::SUBSET:
-                        caretDataFiles.push_back(mf);
-                        break;
+                bool doFlag(true);
+                if (mf == m_mappableDataFile) {
+                    if (excludeSelfFlag) {
+                        doFlag = false;
+                    }
+                }
+                if (doFlag) {
+                    switch (m_mappableDataFile->getBrainordinateMappingMatch(mf)) {
+                        case CaretMappableDataFile::BrainordinateMappingMatch::EQUAL:
+                            caretDataFiles.push_back(mf);
+                            break;
+                        case CaretMappableDataFile::BrainordinateMappingMatch::NO:
+                            break;
+                        case CaretMappableDataFile::BrainordinateMappingMatch::SUBSET:
+                            caretDataFiles.push_back(mf);
+                            break;
+                    }
                 }
             }
         }

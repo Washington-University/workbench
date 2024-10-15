@@ -25,11 +25,14 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileColorModulateSelector.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabel.h"
 #include "GroupAndNameHierarchyItem.h"
+#include "LabelSelectionItemModel.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
+#include "TabDrawingInfo.h"
 #include "VolumeFile.h"
 #include "VoxelColorUpdate.h"
 
@@ -248,7 +251,7 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                  * Use first 3 maps as RGB components
                  */
                 const float* alphaComponents(NULL);
-                const uint8_t thresholdRGB[3] = { 5, 5, 5 };
+                const uint8_t thresholdRGB[3] = { 0, 0, 0 };
                 NodeAndVoxelColoring::colorScalarsWithRGBA(m_volumeFile->getFrame(0),
                                                            m_volumeFile->getFrame(1),
                                                            m_volumeFile->getFrame(2),
@@ -269,6 +272,10 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
             break;
     }
     
+    if (m_mapColoringValid[mapIndex]) {
+        applyColorModulation(mapIndex);
+    }
+    
     CaretLogFine("Time to color map named \""
                    + m_volumeFile->getMapName(mapIndex)
                    + " in volume file "
@@ -276,6 +283,56 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
                    + " was "
                    + AString::number(timer.getElapsedTimeMilliseconds())
                    + " milliseconds");
+}
+
+/**
+ * Apply color modulation with another volume file.
+ * Data in modulation file should range [0, 1] and be a single component map.
+ * @param mapIndex
+ *    Index of map in file being colorized
+ */
+void
+VolumeFileVoxelColorizer::applyColorModulation(const int32_t mapIndex) const
+{
+    const DataFileColorModulateSelector* modulateSelector(m_volumeFile->getMapColorModulateFileSelector(mapIndex));
+    CaretAssert(modulateSelector);
+    if (modulateSelector->isEnabled()) {
+        const VolumeFile* modulateVolumeFile(modulateSelector->getSelectedVolumeFile());
+        if (modulateVolumeFile != NULL) {
+            const int32_t modulateMapIndex(modulateSelector->getSelectedMapIndex());
+            if ((modulateMapIndex >= 0)
+                && (modulateMapIndex < modulateVolumeFile->getNumberOfMaps())) {
+                int64_t dimI, dimJ, dimK, mapCount, numComps;
+                modulateVolumeFile->getDimensions(dimI,
+                                                  dimJ,
+                                                  dimK,
+                                                  mapCount,
+                                                  numComps);
+                if ((dimI == m_dimI)
+                    && (dimJ == m_dimJ)
+                    && (dimK == m_dimK)) {
+                    const int64_t componentIndex(0);
+                    const float* modData(modulateVolumeFile->getFrame(modulateMapIndex,
+                                                                      componentIndex));
+                    
+                    CaretAssertVectorIndex(m_mapRGBA, mapIndex);
+                    uint8_t* rgba(m_mapRGBA[mapIndex]);
+                    
+                    for (int64_t i = 0; i < m_voxelCountPerMap; i++) {
+                        float modValue(modData[i]);
+                        if (modValue > 1.0) modValue = 1.0;
+                        if (modValue < 0.0) modValue = 0.0;
+
+                        const int64_t i4(i * 4);
+                        for (int64_t j = 0; j < 3; j++) {
+                            const float v(static_cast<float>(rgba[i4 + j]) * modValue);
+                            rgba[i4 + j] = static_cast<uint8_t>(v);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -300,10 +357,8 @@ VolumeFileVoxelColorizer::invalidateColoring()
  *    Plane of the slice.
  * @param sliceIndex
  *    Index of the slice.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    RGBA color components out.
  * @return
@@ -313,8 +368,7 @@ int64_t
 VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                       const int64_t sliceIndex,
-                                                      const DisplayGroupEnum::Enum displayGroup,
-                                                      const int32_t tabIndex,
+                                                      const TabDrawingInfo& tabDrawingInfo,
                                                       uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
@@ -362,6 +416,9 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         CaretAssert(labelTable);
     }
     
+    const LabelSelectionItemModel* labelSelectionItemModel(m_volumeFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                                tabDrawingInfo.getDisplayGroup(),
+                                                                                                                tabDrawingInfo.getTabIndex()));
     int64_t validVoxelCount = 0;
     
     /*
@@ -391,11 +448,22 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                                                               mapIndex));
                         const GiftiLabel* label = labelTable->getLabel(dataValue);
                         if (label != NULL) {
-                            const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                            if (item != NULL) {
-                                if (item->isSelected(displayGroup, tabIndex) == false) {
-                                    alpha = 0;
+                            switch (tabDrawingInfo.getLabelViewMode()) {
+                                case LabelViewModeEnum::HIERARCHY:
+                                    if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                        alpha = 0;
+                                    }
+                                    break;
+                                case LabelViewModeEnum::LIST:
+                                {
+                                    const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                    if (item != NULL) {
+                                        if ( ! item->isSelected(tabDrawingInfo)) {
+                                            alpha = 0;
+                                        }
+                                    }
                                 }
+                                    break;
                             }
                         }
                     }
@@ -428,10 +496,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Number of rows.
  * @param numberOfColumns
  *    Number of columns.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    RGBA color components out.
  * @return
@@ -444,8 +510,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                     const int64_t columnStepIJK[3],
                                     const int64_t numberOfRows,
                                     const int64_t numberOfColumns,
-                                    const DisplayGroupEnum::Enum displayGroup,
-                                    const int32_t tabIndex,
+                                                      const TabDrawingInfo& tabDrawingInfo,
                                     uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
@@ -465,6 +530,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
         CaretAssert(labelTable);
     }
     
+    const LabelSelectionItemModel* labelSelectionItemModel(m_volumeFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                                tabDrawingInfo.getDisplayGroup(),
+                                                                                                                tabDrawingInfo.getTabIndex()));
+
     int64_t validVoxelCount = 0;
     int64_t rgbaOutIndex = 0;
     
@@ -492,10 +561,21 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                                                                                           mapIndex));
                     const GiftiLabel* label = labelTable->getLabel(dataValue);
                     if (label != NULL) {
-                        const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                        if (item != NULL) {
-                            if (item->isSelected(displayGroup, tabIndex) == false) {
-                                alpha = 0;
+                        switch (tabDrawingInfo.getLabelViewMode()) {
+                            case LabelViewModeEnum::HIERARCHY:
+                                if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                    alpha = 0;
+                                }
+                                break;
+                            case LabelViewModeEnum::LIST:
+                            {
+                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                if (item != NULL) {
+                                    if ( ! item->isSelected(tabDrawingInfo.getDisplayGroup(),
+                                                         tabDrawingInfo.getTabIndex())) {
+                                        alpha = 0;
+                                    }
+                                }
                             }
                         }
                     }
@@ -504,6 +584,11 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
             
             if (alpha > 0.0) {
                 ++validVoxelCount;
+            }
+            if (alpha == 0) { /* Fixes labels on/off in MPR */
+                rgbaOut[rgbaOutIndex] = 0;
+                rgbaOut[rgbaOutIndex+1] = 0;
+                rgbaOut[rgbaOutIndex+2] = 0;
             }
             rgbaOut[rgbaOutIndex+3] = alpha;
             rgbaOutIndex += 4;
@@ -538,10 +623,8 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
  *    Indices of voxel for last corner of sub-slice (inclusive).
  * @param voxelCountIJK
  *    Voxel counts for each axis.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    RGBA color components out.
  * @return
@@ -554,8 +637,7 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                                                          const int64_t firstCornerVoxelIndex[3],
                                                          const int64_t lastCornerVoxelIndex[3],
                                                          const int64_t* CaretParameterUsedInDebugCompileOnly(voxelCountIJK),
-                                                         const DisplayGroupEnum::Enum displayGroup,
-                                                         const int32_t tabIndex,
+                                                         const TabDrawingInfo& tabDrawingInfo,
                                                          uint8_t* rgbaOut) const
 {
     CaretAssertVectorIndex(m_mapRGBA, mapIndex);
@@ -566,6 +648,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
     if ( ! m_mapColoringValid[mapIndex]) {
         assignVoxelColorsForMap(mapIndex);
     }
+
+    const LabelSelectionItemModel* labelSelectionItemModel(m_volumeFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                                tabDrawingInfo.getDisplayGroup(),
+                                                                                                                tabDrawingInfo.getTabIndex()));
 
     VolumeSpace::OrientTypes orient[3];
     m_volumeFile->getOrientation(orient);
@@ -668,12 +754,23 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                     const GiftiLabel* label = labelTable->getLabel(dataValue);
                     if (label != NULL)
                     {
-                        const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                        if (item != NULL)
-                        {
-                            if (item->isSelected(displayGroup, tabIndex) == false)
+                        switch (tabDrawingInfo.getLabelViewMode()) {
+                            case LabelViewModeEnum::HIERARCHY:
+                                if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                    alpha = 0;
+                                }
+                                break;
+                            case LabelViewModeEnum::LIST:
                             {
-                                alpha = 0;
+                                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                                if (item != NULL)
+                                {
+                                    if ( ! item->isSelected(tabDrawingInfo.getDisplayGroup(),
+                                                         tabDrawingInfo.getTabIndex()))
+                                    {
+                                        alpha = 0;
+                                    }
+                                }
                             }
                         }
                     }
@@ -742,10 +839,8 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
  *    Axial index
  * @param mapIndex
  *    Index of map.
- * @param displayGroup
- *    The selected display group.
- * @param tabIndex
- *    Index of selected tab.
+ * @param tabDrawingInfo
+ *    Info for drawing the tab
  * @param rgbaOut
  *    Contains voxel coloring on exit.
  */
@@ -754,8 +849,7 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
                                              const int64_t j,
                                              const int64_t k,
                                              const int64_t mapIndex,
-                                             const DisplayGroupEnum::Enum displayGroup,
-                                             const int32_t tabIndex,
+                                             const TabDrawingInfo& tabDrawingInfo,
                                              uint8_t rgbaOut[4]) const
 {
 //    CaretAssertVectorIndex(m_mapColoringValid, mapIndex);
@@ -775,6 +869,9 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
 //    rgbaOut[2] = mapRGBA[rgbaOffset+2];
 //    uint8_t alpha = mapRGBA[rgbaOffset+3];
 
+    const LabelSelectionItemModel* labelSelectionItemModel(m_volumeFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                                tabDrawingInfo.getDisplayGroup(),
+                                                                                                                tabDrawingInfo.getTabIndex()));
     getVoxelColorInMap(i, j, k,
                        mapIndex,
                        rgbaOut);
@@ -795,10 +892,21 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
                                                                                   mapIndex));
             const GiftiLabel* label = labelTable->getLabel(dataValue);
             if (label != NULL) {
-                const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
-                if (item != NULL) {
-                    if (item->isSelected(displayGroup, tabIndex) == false) {
-                        alpha = 0;
+                switch (tabDrawingInfo.getLabelViewMode()) {
+                    case LabelViewModeEnum::HIERARCHY:
+                        if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                            alpha = 0;
+                        }
+                        break;
+                    case LabelViewModeEnum::LIST:
+                    {
+                        const GroupAndNameHierarchyItem* item = label->getGroupNameSelectionItem();
+                        if (item != NULL) {
+                            if ( ! item->isSelected(tabDrawingInfo.getDisplayGroup(),
+                                                 tabDrawingInfo.getTabIndex())) {
+                                alpha = 0;
+                            }
+                        }
                     }
                 }
             }

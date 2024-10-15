@@ -53,6 +53,9 @@ OperationParameters* AlgorithmVolumeResample::getParameters()
 
     ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
 
+    OptionalParameter* backgroundOpt = ret->createOptionalParameter(8, "-background", "use a specified value for locations outside the FoV of the input image or warpfield(s)");
+    backgroundOpt->addDoubleParameter(1, "value", "the value to use (default 0)");
+
     ParameterComponent* affineOpt = ret->createRepeatableParameter(5, "-affine", "add an affine transform");
     affineOpt->addStringParameter(1, "affine", "the affine file to use");
     OptionalParameter* flirtOpt = affineOpt->createOptionalParameter(2, "-flirt", "MUST be used if affine is a flirt affine");
@@ -91,6 +94,12 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
     auto& affInstances = myParams->getRepeatableParameterInstances(5);
     auto& affSeriesInstances = myParams->getRepeatableParameterInstances(6);
     auto& warpInstances = myParams->getRepeatableParameterInstances(7);
+    float backgroundVal = 0.0f;//the help info says zero, don't use the VolumeFile constant
+    OptionalParameter* backgroundOpt = myParams->getOptionalParameter(8);
+    if (backgroundOpt->m_present)
+    {
+        backgroundVal = backgroundOpt->getDouble(1);
+    }
     VolumeSpace refSpace;
     {
         NiftiIO myIO;
@@ -106,7 +115,7 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
     } else if (methodStr == "ENCLOSING_VOXEL") {
         myMethod = VolumeFile::ENCLOSING_VOXEL;
     } else {
-        throw AlgorithmException("unrecognized interpolation method");
+        throw AlgorithmException("unrecognized interpolation method '" + methodStr + "'");
     }
     XfmStack myStack;
     auto xfmOrder = myParams->getRepeatableOrder();//helper for some ugly code to resolve relative order of repeatable options
@@ -163,11 +172,11 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
                 throw AlgorithmException("internal error, tell the developers what you just tried to do");
         }
     }
-    AlgorithmVolumeResample(myProgObj, inVol, myStack, refSpace, myMethod, outVol);
+    AlgorithmVolumeResample(myProgObj, inVol, myStack, refSpace, myMethod, outVol, backgroundVal);
 }
 
 AlgorithmVolumeResample::AlgorithmVolumeResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                                 const VolumeFile::InterpType& myMethod, VolumeFile* outVol) : AbstractAlgorithm(myProgObj)
+                                                 const VolumeFile::InterpType& myMethod, VolumeFile* outVol, const float backgroundVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> outDims = inVol->getOriginalDimensions();
@@ -215,10 +224,9 @@ AlgorithmVolumeResample::AlgorithmVolumeResample(ProgressObject* myProgObj, cons
                         Vector3D inCoord = myStack.xfmPoint(outCoord, b, &validCoord);//put it through the inverse transforms that are in reverse order
                         if (validCoord)
                         {
-                            float interpVal = inVol->interpolateValue(inCoord, myMethod, NULL, b, c);
-                            scratchFrame[outVol->getIndex(i, j, k)] = interpVal;
+                            scratchFrame[outVol->getIndex(i, j, k)] = inVol->interpolateValue(inCoord, myMethod, NULL, b, c, backgroundVal);
                         } else {
-                            scratchFrame[outVol->getIndex(i, j, k)] = VolumeFile::INVALID_INTERP_VALUE;
+                            scratchFrame[outVol->getIndex(i, j, k)] = backgroundVal;
                         }
                     }
                 }

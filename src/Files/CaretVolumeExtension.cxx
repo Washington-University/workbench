@@ -28,6 +28,7 @@
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
 #include "PaletteNormalizationModeEnum.h"
+#include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "XmlUnexpectedElementSaxParser.h"
 #include <ctime>
@@ -115,7 +116,18 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
     xmlWriter.writeStartElement(CARET_VOL_EXT_VOL_INFO, myattrs);
     if (!m_comment.isEmpty()) xmlWriter.writeElementCData(CARET_VOL_EXT_VI_COMMENT, m_comment);
     if (!m_guiLabel.isEmpty()) xmlWriter.writeElementCData(CARET_VOL_EXT_VI_GUI_LABEL, m_guiLabel);
-    if (m_labelTable != NULL) m_labelTable->writeAsXML(xmlWriter);//expect the extension to not have stuff it doesn't need, so just write everything it has
+    GiftiMetaData tempMD = m_metadata;
+    if (m_labelTable != NULL)
+    {
+        const CaretHierarchy& myHier = m_labelTable->getHierarchy();
+        if (!myHier.isEmpty())
+        {
+            tempMD.set("CaretHierarchy", myHier.writeXMLToString());
+        } else {
+            tempMD.remove("CaretHierarchy");
+        }
+        m_labelTable->writeAsXML(xmlWriter); //expect the extension to not have stuff it doesn't need, so just write everything it has
+    }
     m_studyMetadata.writeAsXML(xmlWriter);
     if (m_palette != NULL) m_palette->writeAsXML(xmlWriter);
     AString typeString;
@@ -146,8 +158,8 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
             typeString = "Unknown";
     }
     xmlWriter.writeElementCData(CARET_VOL_EXT_VI_TYPE, typeString);
-    if ( ! m_metadata.isEmpty()) {
-        m_metadata.writeAsXML(xmlWriter);
+    if ( ! tempMD.isEmpty()) {
+        tempMD.writeAsXML(xmlWriter);
     }
     xmlWriter.writeEndElement();
 }
@@ -260,8 +272,23 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
             m_toFill->m_date = elemCharData;
             break;
         case VOLUME_INFORMATION:
+        {
+            CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
+            auto thisAttr = m_toFill->m_attributes[m_viIndex];
+            try
+            {
+                if (thisAttr->m_type == SubvolumeAttributes::LABEL && thisAttr->m_labelTable != NULL && thisAttr->m_metadata.exists("CaretHierarchy"))
+                {
+                    CaretHierarchy myHier;
+                    myHier.readXML(thisAttr->m_metadata.get("CaretHierarchy"));
+                    thisAttr->m_labelTable->setHierarchy(myHier);
+                }
+            } catch (CaretException& e) {
+                CaretLogWarning("failed to parse hierarchy XML, discarding hierarchy: " + e.whatString());
+            }
             m_viIndex = -1;
             break;
+        }
         case VI_COMMENT:
             CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
             m_toFill->m_attributes[m_viIndex]->m_comment = elemCharData;

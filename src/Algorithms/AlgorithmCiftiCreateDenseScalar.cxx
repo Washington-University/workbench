@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "GiftiLabelTable.h"
 #include "MetricFile.h"
+#include "PaletteColorMapping.h"
 #include "StructureEnum.h"
 #include "VolumeFile.h"
 
@@ -167,6 +168,7 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
     myXML.setNumberOfDimensions(2);
     myXML.setMap(CiftiXML::ALONG_COLUMN, denseMap);
     int numMaps = -1;
+    //Always choose a dominant input, to try to copy palette settings from, even if we have a name list
     const CaretMappableDataFile* nameFile = NULL;
     if (leftData != NULL)
     {
@@ -241,6 +243,11 @@ AlgorithmCiftiCreateDenseScalar::AlgorithmCiftiCreateDenseScalar(ProgressObject*
             scalarMap.setMapName(i, namePtr->at(i));
         } else {
             scalarMap.setMapName(i, nameFile->getMapName(i));//copy map names
+        }
+        const PaletteColorMapping* thisPalette = nameFile->getMapPaletteColorMapping(i);
+        if (thisPalette != NULL)
+        {
+            *(scalarMap.getMapPalette(i)) = *thisPalette;
         }
     }
     myXML.setMap(CiftiXML::ALONG_ROW, scalarMap);

@@ -19,27 +19,20 @@
  */
 /*LICENSE_END*/
 
-#include <QAction>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
-//#include <QTabWidget>
-#include <QToolButton>
+#include <QScrollArea>
 
 #define __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
 #include "LabelSelectionViewController.h"
 #undef __LABEL_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 #include "Brain.h"
-#include "BrainOpenGL.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "GroupAndNameHierarchyViewController.h"
-#include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
@@ -48,10 +41,7 @@
 #include "GuiManager.h"
 #include "SceneClass.h"
 #include "VolumeFile.h"
-#include "WuQDataEntryDialog.h"
 #include "WuQMacroManager.h"
-#include "WuQTabWidget.h"
-#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -85,27 +75,11 @@ m_objectNamePrefix(parentObjectName
 {
     m_browserWindowIndex = browserWindowIndex;
     
-    QLabel* groupLabel = new QLabel("Group");
-    m_labelsDisplayGroupComboBox = new DisplayGroupEnumComboBox(this,
-                                                                (m_objectNamePrefix
-                                                                 + ":DisplayGroup"),
-                                                                "labels");
-    QObject::connect(m_labelsDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
-                     this, SLOT(labelDisplayGroupSelected(const DisplayGroupEnum::Enum)));
-    
-    QHBoxLayout* groupLayout = new QHBoxLayout();
-    groupLayout->addWidget(groupLabel);
-    groupLayout->addWidget(m_labelsDisplayGroupComboBox->getWidget());
-    groupLayout->addStretch(); 
-    
     QWidget* selectionWidget = this->createSelectionWidget();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(groupLayout);
-    layout->addWidget(selectionWidget, 0, Qt::AlignLeft);
-    layout->addStretch();
-    
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->addWidget(selectionWidget);
     
     LabelSelectionViewController::allLabelSelectionViewControllers.insert(this);
 }
@@ -115,8 +89,6 @@ m_objectNamePrefix(parentObjectName
  */
 LabelSelectionViewController::~LabelSelectionViewController()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-    
     LabelSelectionViewController::allLabelSelectionViewControllers.erase(this);
 }
 
@@ -130,39 +102,12 @@ LabelSelectionViewController::createSelectionWidget()
                                                                                       "labels",
                                                                                       this);
     
-    return m_labelClassNameHierarchyViewController;
-}
-
-/**
- * Called when the label display group combo box is changed.
- */
-void 
-LabelSelectionViewController::labelDisplayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
-{
-    /*
-     * Update selected display group in model.
-     */
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    if (browserTabContent == NULL) {
-        return;
-    }
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(m_labelClassNameHierarchyViewController);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesLabels* dsb = brain->getDisplayPropertiesLabels();
-    dsb->setDisplayGroupForTab(browserTabIndex,
-                         displayGroup);
-    
-    /*
-     * Since display group has changed, need to update controls
-     */
-    updateLabelViewController();
-    
-    /*
-     * Apply the changes.
-     */
-    processLabelSelectionChanges();
+    return scrollArea;
 }
 
 /**
@@ -183,8 +128,6 @@ LabelSelectionViewController::updateLabelViewController()
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesLabels* dpb = brain->getDisplayPropertiesLabels();
     const DisplayGroupEnum::Enum displayGroup = dpb->getDisplayGroupForTab(browserTabIndex);
-    
-    m_labelsDisplayGroupComboBox->setSelectedDisplayGroup(dpb->getDisplayGroupForTab(browserTabIndex));
     
     /*
      * Get all of label files.
@@ -251,16 +194,6 @@ LabelSelectionViewController::updateOtherLabelViewControllers()
 void 
 LabelSelectionViewController::processLabelSelectionChanges()
 {
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, false);
-    CaretAssert(browserTabContent);
-    const int32_t browserTabIndex = browserTabContent->getTabNumber();
-    Brain* brain = GuiManager::get()->getBrain();
-    DisplayPropertiesLabels* dsb = brain->getDisplayPropertiesLabels();
-    dsb->setDisplayGroupForTab(browserTabIndex, 
-                         m_labelsDisplayGroupComboBox->getSelectedDisplayGroup());
-    
-    
     processSelectionChanges();
 }
 
@@ -273,34 +206,6 @@ LabelSelectionViewController::processSelectionChanges()
     updateOtherLabelViewControllers();
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-}
-
-/**
- * Receive events from the event manager.
- * 
- * @param event
- *   Event sent by event manager.
- */
-void 
-LabelSelectionViewController::receiveEvent(Event* event)
-{
-    bool doUpdate = false;
-    
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        if (uiEvent->isUpdateForWindow(m_browserWindowIndex)) {
-            if (uiEvent->isToolBoxUpdate()) {
-                doUpdate = true;
-                uiEvent->setEventProcessed();
-            }
-        }
-    }
-
-    if (doUpdate) {
-        updateLabelViewController();
-    }
 }
 
 /**

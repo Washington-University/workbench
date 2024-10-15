@@ -44,6 +44,7 @@ EventUserInterfaceUpdate::EventUserInterfaceUpdate()
 : Event(EventTypeEnum::EVENT_USER_INTERFACE_UPDATE)
 {
     m_windowIndex = -1;
+    m_isFirstUpdateType = true;
     this->setAll(true);
 }
 

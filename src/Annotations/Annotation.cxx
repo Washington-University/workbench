@@ -730,6 +730,9 @@ Annotation::initializeAnnotationMembers()
                                                                     &m_colorLine);
         m_sceneAssistant->addArray("m_customColorLine", m_customColorLine, 4, 0.0);
         
+        m_sceneAssistant->add("m_lineWidthPercentage",
+                              &m_lineWidthPercentage);
+        
         m_sceneAssistant->add("m_stackingOrder",
                               &m_stackingOrder);
     }

@@ -171,6 +171,8 @@ ELSE()
 	LabelSelectionDialog.h
 	LabelSelectionWidget.h
         LabelSelectionViewController.h
+	LabelSelectionViewHierarchyController.h
+	LabelSelectionViewWidget.h
     	LockAspectWarningDialog.h
         MacApplication.h
         MacDockMenu.h
@@ -180,6 +182,7 @@ ELSE()
         MapSettingsFiberTrajectoryWidget.h
         MapSettingsLabelsWidget.h
         MapSettingsLayerWidget.h
+	MapSettingsModulateWidget.h
         MapSettingsPaletteColorMappingWidget.h
         MapSettingsParcelsWidget.h
         MapYokingGroupComboBox.h
@@ -495,6 +498,8 @@ KeyEvent.h
 LabelSelectionDialog.h
 LabelSelectionWidget.h
 LabelSelectionViewController.h
+LabelSelectionViewHierarchyController.h
+LabelSelectionViewWidget.h
 LockAspectWarningDialog.h
 MacApplication.h
 MacDockMenu.h
@@ -504,6 +509,7 @@ MapSettingsColorBarWidget.h
 MapSettingsFiberTrajectoryWidget.h
 MapSettingsLabelsWidget.h
 MapSettingsLayerWidget.h
+MapSettingsModulateWidget.h
 MapSettingsPaletteColorMappingWidget.h
 MapSettingsParcelsWidget.h
 MapYokingGroupComboBox.h
@@ -841,6 +847,8 @@ KeyEvent.cxx
 LabelSelectionDialog.cxx
 LabelSelectionWidget.cxx
 LabelSelectionViewController.cxx
+LabelSelectionViewHierarchyController.cxx
+LabelSelectionViewWidget.cxx
 LockAspectWarningDialog.cxx
 MacApplication.cxx
 MacDockMenu.cxx
@@ -850,6 +858,7 @@ MapSettingsColorBarWidget.cxx
 MapSettingsFiberTrajectoryWidget.cxx
 MapSettingsLabelsWidget.cxx
 MapSettingsLayerWidget.cxx
+MapSettingsModulateWidget.cxx
 MapSettingsPaletteColorMappingWidget.cxx
 MapSettingsParcelsWidget.cxx
 MapYokingGroupComboBox.cxx

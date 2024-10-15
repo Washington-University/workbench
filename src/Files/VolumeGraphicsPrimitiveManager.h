@@ -26,6 +26,7 @@
 
 #include "CaretObject.h"
 #include "DisplayGroupEnum.h"
+#include "LabelViewModeEnum.h"
 #include "VolumeToImageMappingModeEnum.h"
 #include "VoxelColorUpdate.h"
 #include "VoxelIJK.h"
@@ -39,6 +40,7 @@ namespace caret {
     class HistologySlice;
     class ImageFile;
     class MediaFile;
+    class TabDrawingInfo;
     class VolumeMappableInterface;
 
     class VolumeGraphicsPrimitiveManager : public CaretObject {
@@ -68,22 +70,19 @@ namespace caret {
         
         GraphicsPrimitiveV3fT3f* getVolumeDrawingPrimitiveForMap(const PrimitiveShape drawingType,
                                                                  const int32_t mapIndex,
-                                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                                 const int32_t tabIndex) const;
+                                                                 const TabDrawingInfo& tabDrawingInfo) const;
 
 
         GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
                                                                             const int32_t mapIndex,
-                                                                            const DisplayGroupEnum::Enum displayGroup,
-                                                                            const int32_t tabIndex,
+                                                                            const TabDrawingInfo& tabDrawingInfo,
                                                                             const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                             const float volumeSliceThickness,
                                                                             AString& errorMessageOut) const;
         
         std::vector<GraphicsPrimitive*> getImageIntersectionDrawingPrimitiveForMap(const HistologySlice* histologySlice,
                                                                                    const int32_t mapIndex,
-                                                                                   const DisplayGroupEnum::Enum displayGroup,
-                                                                                   const int32_t tabIndex,
+                                                                                   const TabDrawingInfo& tabDrawingInfo,
                                                                                    const VolumeToImageMappingModeEnum::Enum volumeMappingMode,
                                                                                    const float volumeSliceThickness,
                                                                                    AString& errorMessageOut) const;
@@ -99,6 +98,24 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        class PrimitiveKey {
+        public:
+            PrimitiveKey(const int32_t mapIndex,
+                         const int32_t tabIndex)
+            : m_mapIndex(mapIndex),
+            m_tabIndex(tabIndex)
+            { }
+            
+            bool operator<(const PrimitiveKey& rhs) const {
+                if (m_mapIndex == rhs.m_mapIndex) {
+                    return (m_tabIndex < rhs.m_tabIndex);
+                }
+                return (m_mapIndex < rhs.m_mapIndex);
+            }
+            int32_t m_mapIndex;
+            int32_t m_tabIndex;
+        };
+        
         class ImageIntersectionKey {
         public:
             ImageIntersectionKey(void* dataPtr,
@@ -146,8 +163,7 @@ namespace caret {
         
         GraphicsPrimitiveV3fT3f* createPrimitive(const PrimitiveShape drawingType,
                                                  const int32_t mapIndex,
-                                                 const DisplayGroupEnum::Enum displayGroup,
-                                                 const int32_t tabIndex,
+                                                 const TabDrawingInfo& tabDrawingInfo,
                                                  AString& errorMessageOut) const;
 
         void updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const;
@@ -158,11 +174,11 @@ namespace caret {
         
         VolumeMappableInterface* m_volumeInterface;
         
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleFanPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleFanPrimitives;
 
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
         
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
         
         mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         

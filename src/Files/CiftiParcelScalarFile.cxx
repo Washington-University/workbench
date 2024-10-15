@@ -27,6 +27,7 @@
 #include "ChartDataCartesian.h"
 #include "ChartMatrixDisplayProperties.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelReorderingModel.h"
@@ -53,11 +54,10 @@ using namespace caret;
  */
 
 /**
- * Create a Cifti Parcel Scalar File using the currently loaded row in a Cifti
- * connectivity parcel dynamic file
+ * Create a Cifti Parcel Scalar File using the currently loaded row in a Cifti matrix file
  *
- * @param sourceParcelDynamicFile
- *    The parcel dynamic file.
+ * @param sourceCiftiMatrixFile
+ *    The connectivity matrix file.
  * @param destinationDirectory
  *    Directory in which file is placed if the input matrix file is not
  *    in a valid local (user's file system) directory.
@@ -69,22 +69,34 @@ using namespace caret;
  */
 
 CiftiParcelScalarFile*
-CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiConnectivityMatrixParcelDynamicFile* sourceParcelDynamicFile,
-                                                                  const AString& destinationDirectory,
-                                                                  AString& errorMessageOut)
+CiftiParcelScalarFile::newInstanceFromRowInCiftiConnectivityMatrixFile(const CiftiMappableConnectivityMatrixDataFile* sourceCiftiMatrixFile,
+                                                                       const AString& destinationDirectory,
+                                                                       AString& errorMessageOut)
 {
-    CaretAssert(sourceParcelDynamicFile);
+    CaretAssert(sourceCiftiMatrixFile);
     errorMessageOut.clear();
     
-    const CiftiFile* sourceCiftiFile = sourceParcelDynamicFile->m_ciftiFile;
+    const CiftiConnectivityMatrixParcelDynamicFile* parcelDynamicFile =
+        dynamic_cast<const CiftiConnectivityMatrixParcelDynamicFile*>(sourceCiftiMatrixFile);
+    const CiftiConnectivityMatrixParcelFile* parcelMatrixFile =
+       dynamic_cast<const CiftiConnectivityMatrixParcelFile*>(sourceCiftiMatrixFile);
+    if ((parcelDynamicFile != NULL)
+        || (parcelMatrixFile != NULL)) {
+        /* ok, acceptable file type */
+    }
+    else {
+        errorMessageOut = "Only Cifti Parcel Matrix and Parcel Dynamic Files are supported for conversion to Cifti Scalar Files.";
+        return NULL;
+    }
+    const CiftiFile* sourceCiftiFile = sourceCiftiMatrixFile->m_ciftiFile;
     
-    if (sourceParcelDynamicFile->getNumberOfMaps() <= 0) {
+    if (sourceCiftiMatrixFile->getNumberOfMaps() <= 0) {
         errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (No Maps).";
         return NULL;
     }
     
     std::vector<float> data;
-    sourceParcelDynamicFile->getMapData(0, data);
+    sourceCiftiMatrixFile->getMapData(0, data);
     if (data.empty()) {
         errorMessageOut = "No data appears to be loaded in the Cifti Matrix File (mapData empty).";
         return NULL;
@@ -108,7 +120,7 @@ CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiCon
         CiftiScalarsMap scalarsMap;
         scalarsMap.setLength(1);
         scalarsMap.setMapName(0,
-                              sourceParcelDynamicFile->getMapName(0));
+                              sourceCiftiMatrixFile->getMapName(0));
         ciftiScalarXML.setMap(CiftiXML::ALONG_ROW,
                               scalarsMap);
         ciftiScalarXML.setMap(CiftiXML::ALONG_COLUMN,
@@ -132,7 +144,7 @@ CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiCon
         /*
          * May need to convert a remote path to a local path
          */
-        FileInformation initialFileNameInfo(sourceParcelDynamicFile->getFileName());
+        FileInformation initialFileNameInfo(sourceCiftiMatrixFile->getFileName());
         const AString scalarFileName = initialFileNameInfo.getAsLocalAbsoluteFilePath(destinationDirectory,
                                                                                       parcelScalarFile->getDataFileType());
         
@@ -144,7 +156,7 @@ CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiCon
         scalarFileInfo.getFileComponents(thePath,
                                          theName,
                                          theExtension);
-        theName.append("_" + sourceParcelDynamicFile->getRowLoadedText());
+        theName.append("_" + sourceCiftiMatrixFile->getRowLoadedText());
         const AString newFileName = FileInformation::assembleFileComponents(thePath,
                                                                             theName,
                                                                             theExtension);
@@ -157,7 +169,7 @@ CiftiParcelScalarFile::newInstanceFromRowInCiftiParcelDynamicFile(const CiftiCon
          */
         PaletteColorMapping* scalarPalette = parcelScalarFile->getMapPaletteColorMapping(0);
         CaretAssert(scalarPalette);
-        const PaletteColorMapping* densePalette = sourceParcelDynamicFile->getMapPaletteColorMapping(0);
+        const PaletteColorMapping* densePalette = sourceCiftiMatrixFile->getMapPaletteColorMapping(0);
         CaretAssert(densePalette);
         scalarPalette->copy(*densePalette,
                             true);

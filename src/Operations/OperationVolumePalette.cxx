@@ -22,9 +22,11 @@
 #include "OperationException.h"
 
 #include "CaretLogger.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "PaletteNormalizationModeEnum.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -88,6 +90,9 @@ OperationParameters* OperationVolumePalette::getParameters()
     OptionalParameter* inversionOpt = ret->createOptionalParameter(15, "-inversion", "specify palette inversion");
     inversionOpt->addStringParameter(1, "type", "the type of inversion");
     
+    OptionalParameter* normModeOpt = ret->createOptionalParameter(16, "-normalization", "specify normalization mode (NOTE: this is always a file-wide setting, NOT per-map)");
+    normModeOpt->addStringParameter(1, "type", "the normalization mode");
+    
     AString myText = AString("The original volume file is overwritten with the modified version.  By default, all columns of the volume file are adjusted ") +
             "to the new settings, use the -subvolume option to change only one subvolume.  Mapping settings not specified in options will be taken from the first subvolume.  " +
             "The <mode> argument must be one of the following:\n\n";
@@ -124,6 +129,13 @@ OperationParameters* OperationVolumePalette::getParameters()
     for (int i = 0; i < (int)myEnums4.size(); ++i)
     {
         myText += PaletteInvertModeEnum::toName(myEnums4[i]) + "\n";
+    }
+    myText += "\nThe <type> argument to -normalization must be one of the following:\n\n";
+    vector<PaletteNormalizationModeEnum::Enum> myEnums5;
+    PaletteNormalizationModeEnum::getAllEnums(myEnums5);
+    for (int i = 0; i < (int)myEnums5.size(); ++i)
+    {
+        myText += PaletteNormalizationModeEnum::toName(myEnums5[i]) + "\n";
     }
     ret->setHelpText(myText);
     return ret;
@@ -230,6 +242,14 @@ void OperationVolumePalette::useParameters(OperationParameters* myParams, Progre
         PaletteInvertModeEnum::Enum inversionType = PaletteInvertModeEnum::fromName(inversionOpt->getString(1), &ok);
         if (!ok) throw OperationException("unrecognized palette inversion type: " + inversionOpt->getString(1));
         myMapping.setInvertedMode(inversionType);
+    }
+    OptionalParameter* normModeOpt = myParams->getOptionalParameter(16);
+    if (normModeOpt->m_present)
+    {
+        bool ok = false;
+        PaletteNormalizationModeEnum::fromName(normModeOpt->getString(1), &ok); //don't actually need the enum, just sanity check the string
+        if (!ok) throw OperationException("unrecognized palette normalization mode: " + normModeOpt->getString(1));
+        myVolume.getFileMetaData()->set(GiftiMetaDataXmlElements::METADATA_PALETTE_NORMALIZATION_MODE, normModeOpt->getString(1)); //not actually part of the palette settings
     }
     if (mySubvolume == -1)
     {

@@ -110,6 +110,7 @@
 #include "SurfaceMontageConfigurationCerebellar.h"
 #include "SurfaceMontageConfigurationCerebral.h"
 #include "SurfaceMontageConfigurationFlatMaps.h"
+#include "SurfaceMontageConfigurationHippocampus.h"
 #include "SurfaceSelectionModel.h"
 #include "StructureEnum.h"
 #include "TileTabsBrowserTabGeometry.h"
@@ -1892,24 +1893,11 @@ BrowserTabContent::receiveEvent(Event* event)
                 Vector3D volumeSliceXYZ(idLocationEvent->getStereotaxicXYZ());
                 
                 /*
-                 * If othogonal/montage viewing, do not alter the slice
+                 * If montage viewing, do not alter the slice
                  * coordinate in the axis being viewed
                  */
                 if (getDisplayedVolumeModel() != NULL) {
                     bool keepSliceCoordinateForSelectedAxis = false;
-                    switch (m_volumeSliceSettings->getSliceProjectionType()) {
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_ORTHOGONAL:
-                            if (getVolumeSliceViewPlane() != VolumeSliceViewPlaneEnum::ALL) {
-                                keepSliceCoordinateForSelectedAxis = true;
-                            }
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_OBLIQUE:
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR:
-                            break;
-                        case VolumeSliceProjectionTypeEnum::VOLUME_SLICE_PROJECTION_MPR_THREE:
-                            break;
-                    }
                     switch (m_volumeSliceSettings->getSliceDrawingType()) {
                         case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
                             keepSliceCoordinateForSelectedAxis = true;
@@ -2674,6 +2662,27 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     }
                     if (smcfm->isCerebellumEnabled()) {
                         displayedDataFiles.insert(smcfm->getCerebellumSurfaceSelectionModel()->getSurface());
+                    }
+                }
+                    break;
+                case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+                {
+                    SurfaceMontageConfigurationHippocampus* smhc = msm->getHippocampusConfiguration(tabIndex);
+                    if (smhc->isFirstSurfaceEnabled()) {
+                        if (smhc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smhc->getLeftFirstSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smhc->isRightEnabled()) {
+                            displayedDataFiles.insert(smhc->getRightFirstSurfaceSelectionModel()->getSurface());
+                        }
+                    }
+                    if (smhc->isSecondSurfaceEnabled()) {
+                        if (smhc->isLeftEnabled()) {
+                            displayedDataFiles.insert(smhc->getLeftSecondSurfaceSelectionModel()->getSurface());
+                        }
+                        if (smhc->isRightEnabled()) {
+                            displayedDataFiles.insert(smhc->getRightSecondSurfaceSelectionModel()->getSurface());
+                        }
                     }
                 }
                     break;
@@ -6153,6 +6162,11 @@ BrowserTabContent::restoreFromScene(const SceneAttributes* sceneAttributes,
     m_sceneClassAssistant->restoreMembers(sceneAttributes,
                                           sceneClass);
     
+    /*
+     * Tab number may change when 'm_sceneClassAssistant->restoreMembers' restores the tab number
+     * so need to update the tab number in the scroll bar
+     */
+    m_scaleBar->setTabIndex(m_tabNumber);
     
     /*
      * Need to recreate clipping plane group since tab is passed
