@@ -4171,6 +4171,15 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     
     const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(displayGroup,
                                                                                         this->windowTabIndex);
+
+    bool flatBumpUpFlag(false);
+    glPushAttrib(GL_DEPTH_BUFFER_BIT);
+    if (isPasteOntoSurface
+        && (surface->getSurfaceType() == SurfaceTypeEnum::FLAT)) {
+        /* Prevents part of sphere cut off by surface */
+        glDisable(GL_DEPTH_TEST);
+        flatBumpUpFlag = true;
+    }
     const int32_t numFociFiles = m_brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
         FociFile* fociFile = m_brain->getFociFile(i);
@@ -4302,12 +4311,16 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                             static_cast<uint8_t>(rgbaFloat[2] * 255),
                             static_cast<uint8_t>(rgbaFloat[3] * 255)
                         };
+                        if (flatBumpUpFlag) {
+                            xyz[2] = 1.0;
+                        }
                         fociPrimitive->addVertex(xyz, rgbaByte);
                     }
                 }
             }
         }
     }
+    glPopAttrib();
     
     glPushAttrib(GL_ENABLE_BIT);
     if (lightingOnFlag) {
