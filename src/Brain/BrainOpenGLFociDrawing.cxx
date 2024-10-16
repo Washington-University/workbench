@@ -462,7 +462,6 @@ BrainOpenGLFociDrawing::drawAllFoci(const DrawType drawType,
                                                                              distanceToSlice,
                                                                              planeOnSliceXYZ)) {
                                 float distanceToHistologySliceTolerance = halfSliceThickness;
-                                distanceToHistologySliceTolerance = 500.0;
                                 if (distanceToSlice < distanceToHistologySliceTolerance) {
                                     xyz[0] = planeOnSliceXYZ[0];
                                     xyz[1] = planeOnSliceXYZ[1];
