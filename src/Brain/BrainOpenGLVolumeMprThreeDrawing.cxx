@@ -3918,15 +3918,6 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
         glEnable(GL_POLYGON_OFFSET_FILL);
         glPolygonOffset(0.0, 2.0);
         
-        if (drawFociFlag) {
-            BrainOpenGLFociDrawing fociDrawing;
-            fociDrawing.drawVolumeOrthogonalFoci(m_brain,
-                                                 m_fixedPipelineDrawing,
-                                                 const_cast<VolumeMappableInterface*>(underlayVolume),
-                                                 slicePlane,
-                                                 sliceViewPlane,
-                                                 sliceThickness);
-        }
         if (drawOutlineFlag) {
             Matrix4x4 displayTransformMatrix;
             bool displayTransformMatrixValidFlag(false);
@@ -3957,6 +3948,16 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
                                                           StructureEnum::ALL);
             m_fixedPipelineDrawing->drawFiberTrajectories(&slicePlane,
                                                           StructureEnum::ALL);
+        }
+        
+        if (drawFociFlag) {
+            BrainOpenGLFociDrawing fociDrawing;
+            fociDrawing.drawVolumeOrthogonalFoci(m_brain,
+                                                 m_fixedPipelineDrawing,
+                                                 const_cast<VolumeMappableInterface*>(underlayVolume),
+                                                 slicePlane,
+                                                 sliceViewPlane,
+                                                 sliceThickness);
         }
         
         glDisable(GL_POLYGON_OFFSET_FILL);
