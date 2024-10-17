@@ -457,6 +457,11 @@ GraphicsPrimitive::isValid() const
         }
         
         switch (m_primitiveType) {
+            case PrimitiveType::DISKS:
+                if (numXYZ < 1) {
+                    CaretLogWarning("Spheres must have at least 1 vertices.");
+                }
+                break;
             case PrimitiveType::OPENGL_LINE_LOOP:
             case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
             case PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
@@ -553,6 +558,9 @@ GraphicsPrimitive::getPrimitiveTypeAsText() const
     AString s;
     
     switch (m_primitiveType) {
+        case PrimitiveType::DISKS:
+            s = "Disks";
+            break;
         case PrimitiveType::OPENGL_LINE_LOOP:
             s = "OpenGL Line Loop";
             break;
@@ -733,11 +741,15 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
             break;
     }
     
+    bool addDiskSizeFlag   = false;
     bool addLineWidthFlag  = false;
     bool addPointSizeFlag  = false;
     bool addSphereSizeFlag = false;
     
     switch (m_primitiveType) {
+        case PrimitiveType::DISKS:
+            addDiskSizeFlag = true;
+            break;
         case PrimitiveType::OPENGL_LINE_LOOP:
             addLineWidthFlag = true;
             break;
@@ -806,6 +818,12 @@ GraphicsPrimitive::toStringPrivate(const bool includeAllDataFlag) const
                             + AString::number(m_pointDiameterValue, 'f', 3));
     }
     
+    if (addDiskSizeFlag) {
+        s.appendWithNewLine("Disk Diameter Type: "
+                            + getSphereSizeTypeAsText(m_sphereSizeType)
+                            + "; Value: "
+                            + AString::number(m_sphereDiameterValue, 'f', 3));
+    }
     if (addSphereSizeFlag) {
         s.appendWithNewLine("Sphere Diameter Type: "
                             + getSphereSizeTypeAsText(m_sphereSizeType)
@@ -1578,6 +1596,8 @@ GraphicsPrimitive::addPrimitiveRestart()
     bool triangleStripFlag = false;
     
     switch (m_primitiveType) {
+        case PrimitiveType::DISKS:
+            break;
         case PrimitiveType::OPENGL_LINE_LOOP:
             break;
         case PrimitiveType::OPENGL_LINE_STRIP:
@@ -1924,6 +1944,8 @@ GraphicsPrimitive::simplfyLines(const int32_t skipVertexCount)
     
     bool lineTypeFlag(false);
     switch (m_primitiveType) {
+        case PrimitiveType::DISKS:
+            break;
         case PrimitiveType::OPENGL_LINE_LOOP:
             lineTypeFlag = true;
             break;

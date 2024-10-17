@@ -35,6 +35,8 @@ public:
      * Enumerated values for foci drawing type.
      */
     enum Enum {
+        /** Draw as disks */
+        DRAW_AS_DISKS,
         /** Draw as spheres */
         DRAW_AS_SPHERES,
         /** Draw as squares*/

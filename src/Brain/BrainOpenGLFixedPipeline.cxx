@@ -4146,6 +4146,11 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     std::unique_ptr<GraphicsPrimitiveV3fC4ub> fociPrimitive;
     switch (fociDisplayProperties->getDrawingType(displayGroup,
                                                   this->windowTabIndex)) {
+        case FociDrawingTypeEnum::DRAW_AS_DISKS:
+            fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::DISKS));
+            fociPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, focusDiameter);
+            lightingOnFlag = false;
+            break;
         case FociDrawingTypeEnum::DRAW_AS_SPHERES:
             fociPrimitive.reset(GraphicsPrimitive::newPrimitiveV3fC4ub(GraphicsPrimitive::PrimitiveType::SPHERES));
             fociPrimitive->setSphereDiameter(GraphicsPrimitive::SphereSizeType::MILLIMETERS, focusDiameter);

@@ -74,14 +74,17 @@ FociDrawingTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(FociDrawingTypeEnum(DRAW_AS_SPHERES, 
-                                    "DRAW_AS_SPHERES", 
-                                    "Spheres"));
+    enumData.push_back(FociDrawingTypeEnum(DRAW_AS_DISKS,
+                                           "DRAW_AS_DISKS",
+                                           "Disks"));
     
-    enumData.push_back(FociDrawingTypeEnum(DRAW_AS_SQUARES, 
-                                    "DRAW_AS_SQUARES", 
-                                    "Squares"));
+    enumData.push_back(FociDrawingTypeEnum(DRAW_AS_SPHERES,
+                                           "DRAW_AS_SPHERES",
+                                           "Spheres"));
     
+    enumData.push_back(FociDrawingTypeEnum(DRAW_AS_SQUARES,
+                                           "DRAW_AS_SQUARES",
+                                           "Squares"));
 }
 
 /**

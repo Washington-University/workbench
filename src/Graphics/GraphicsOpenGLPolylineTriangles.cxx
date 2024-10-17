@@ -196,6 +196,9 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
     LineType lineType = LineType::LINES;
     JoinType joinType = JoinType::NONE;
     switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::DISKS:
+            errorMessageOut = "Input type is DISK but must be one of the POLYGONAL_LINE* types";
+            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             errorMessageOut = "Input type is OPENGL_LINE_LOOP but must be one of the POLYGONAL_LINE* types";
             break;
@@ -261,7 +264,7 @@ GraphicsOpenGLPolylineTriangles::convertWorkbenchLinePrimitiveTypeToOpenGL(const
             lineType = LineType::LINES;
             break;
         case GraphicsPrimitive::PrimitiveType::SPHERES:
-            errorMessageOut = "Input type is OPENGL_TRIANGLES but must be one of the POLYGONAL_LINE* types";
+            errorMessageOut = "Input type is SPHERES but must be one of the POLYGONAL_LINE* types";
             break;
     }
     

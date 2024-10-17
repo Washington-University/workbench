@@ -116,6 +116,11 @@ namespace caret {
                                      const uint8_t rgba[4],
                                      const float diameter);
         
+        static void drawCirclesFilled(const float xyz[3],
+                                      const int32_t numberOfSpheres,
+                                      const uint8_t rgba[4],
+                                      const float diameter);
+        
         static void drawCircleFilledPercentViewportHeight(const float xyz[3],
                                                           const uint8_t rgba[4],
                                                           const float diameterPercentageOfViewportHeight,

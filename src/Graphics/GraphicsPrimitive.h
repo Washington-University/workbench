@@ -100,6 +100,10 @@ namespace caret {
          */
         enum class PrimitiveType {
             /**
+             * Draws as a disk (flat, filled circle)
+             */
+            DISKS,
+            /**
              * Draws a connected group of line segments from the first vertex to the last.  
              * Vertices n and n+1 define line n.  n-1 lines are drawn. 
              * Note: OpenGL supports a limited range of line widths, usually [0.5, 10] pixels

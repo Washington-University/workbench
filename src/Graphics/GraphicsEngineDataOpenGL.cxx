@@ -986,11 +986,15 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
     /* Conversion to window space creates a new primitive that must be deleted */
     std::unique_ptr<GraphicsPrimitive> lineConversionPrimitive;
     
-    bool modelSpaceLineFlag = false;
-    bool windowSpaceLineFlag = false;
+    bool disksFlag            = false;
+    bool modelSpaceLineFlag   = false;
+    bool windowSpaceLineFlag  = false;
     bool millimeterPointsFlag = false;
-    bool spheresFlag = false;
+    bool spheresFlag          = false;
     switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::DISKS:
+            disksFlag = true;
+            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
@@ -1088,6 +1092,9 @@ GraphicsEngineDataOpenGL::draw(GraphicsPrimitive* primitive)
          * Special case for points in millimeters 
          */
         drawPointsPrimitiveMillimeters(primitive);
+    }
+    else if (disksFlag) {
+        drawDisksPrimitive(primitive);
     }
     else if (spheresFlag) {
         drawSpheresPrimitive(primitive);
@@ -1272,6 +1279,103 @@ GraphicsEngineDataOpenGL::drawPointsPrimitiveMillimeters(const GraphicsPrimitive
             break;
     }
 }
+
+/**
+ * Draw a disks primitive type.
+ *
+ * @param primitive
+ *     The disks primitive type.
+ */
+void
+GraphicsEngineDataOpenGL::drawDisksPrimitive(const GraphicsPrimitive* primitive)
+{
+    CaretAssert(primitive);
+    CaretAssert(primitive->getPrimitiveType() == GraphicsPrimitive::PrimitiveType::DISKS);
+    
+    GraphicsPrimitive::SphereSizeType sizeType;
+    float sizeValue = 0.0f;
+    primitive->getSphereDiameter(sizeType,
+                                 sizeValue);
+    
+    switch (primitive->m_vertexColorType) {
+        case GraphicsPrimitive::VertexColorType::NONE:
+            CaretAssert(0);
+            CaretLogSevere("NONE vertex color type, should never occur when drawing disks");
+            return;
+            break;
+        case GraphicsPrimitive::VertexColorType::PER_VERTEX_RGBA:
+        {
+            const int32_t numberOfVertices = primitive->getNumberOfVertices();
+            for (int32_t i = 0; i < numberOfVertices; i++) {
+                const int32_t i3 = i * 3;
+                CaretAssertVectorIndex(primitive->m_xyz, i3 + 2);
+                const int32_t i4 = i * 4;
+                
+                switch (primitive->m_colorDataType) {
+                    case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                    {
+                        CaretAssertVectorIndex(primitive->m_floatRGBA, i4 + 3);
+                        uint8_t rgba[4] = {
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+1] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+2] * 255.0),
+                            static_cast<uint8_t>(primitive->m_floatRGBA[i4+3] * 255.0)
+                        };
+                        GraphicsShape::drawCircleFilled(&primitive->m_xyz[i3],
+                                                        rgba,
+                                                        sizeValue);
+                    }
+                        break;
+                    case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                        CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, i4 + 3);
+                        GraphicsShape::drawCircleFilled(&primitive->m_xyz[i3],
+                                                        &primitive->m_unsignedByteRGBA[i4],
+                                                        sizeValue);
+                        break;
+                    case GraphicsPrimitive::ColorDataType::NONE:
+                        CaretAssert(0);
+                        break;
+                }
+            }
+        }
+            break;
+        case GraphicsPrimitive::VertexColorType::SOLID_RGBA:
+        {
+            const int32_t numberOfVertices = primitive->getNumberOfVertices();
+            CaretAssertVectorIndex(primitive->m_xyz, (numberOfVertices - 1) * 3 + 1);
+            
+            switch (primitive->m_colorDataType) {
+                case GraphicsPrimitive::ColorDataType::FLOAT_RGBA:
+                {
+                    CaretAssertVectorIndex(primitive->m_floatRGBA, ((numberOfVertices * 4) - 1));
+                    const uint8_t rgba[4] = {
+                        static_cast<uint8_t>(primitive->m_floatRGBA[0] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[1] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[2] * 255.0),
+                        static_cast<uint8_t>(primitive->m_floatRGBA[3] * 255.0)
+                    };
+                    GraphicsShape::drawCirclesFilled(&primitive->m_xyz[0],
+                                                     numberOfVertices,
+                                                     rgba,
+                                                     sizeValue);
+                }
+                    break;
+                case GraphicsPrimitive::ColorDataType::UNSIGNED_BYTE_RGBA:
+                    CaretAssertVectorIndex(primitive->m_unsignedByteRGBA, ((numberOfVertices * 4) - 1));
+                    GraphicsShape::drawCirclesFilled(&primitive->m_xyz[0],
+                                                     numberOfVertices,
+                                                     &primitive->m_unsignedByteRGBA[0],
+                                                     sizeValue);
+                    break;
+                case GraphicsPrimitive::ColorDataType::NONE:
+                    CaretAssert(0);
+                    break;
+            }
+        }
+            break;
+    }
+}
+
 
 /**
  * Draw a sphere primitive type.
@@ -1462,6 +1566,9 @@ GraphicsEngineDataOpenGL::drawWithSelection(GraphicsPrimitive* primitive,
     bool modelSpaceLineFlag = false;
     bool windowSpaceLineFlag = false;
     switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::DISKS:
+            CaretAssertMessage(0, "Not yet implemented");
+            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
             break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP:
@@ -1993,6 +2100,9 @@ GraphicsEngineDataOpenGL::drawPrivate(const PrivateDrawMode drawMode,
      */
     GLenum openGLPrimitiveType = GL_INVALID_ENUM;
     switch (primitive->m_primitiveType) {
+        case GraphicsPrimitive::PrimitiveType::DISKS:
+            CaretAssertMessage(0, "DISKS are not drawn with this method");
+            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:

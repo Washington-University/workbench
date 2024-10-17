@@ -73,6 +73,9 @@ GraphicsPrimitiveSelectionHelper::setupSelectionBeforeDrawing()
     m_vertexOffsetForPrimitive     = 0;
     
     switch (m_parentGraphicsPrimitive->getPrimitiveType()) {
+        case GraphicsPrimitive::PrimitiveType::DISKS:
+            m_numberOfVerticesPerPrimitive = numberOfVertices;
+            break;
         case GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_BEVEL_JOIN:
         case GraphicsPrimitive::PrimitiveType::MODEL_SPACE_POLYGONAL_LINE_LOOP_MITER_JOIN:
