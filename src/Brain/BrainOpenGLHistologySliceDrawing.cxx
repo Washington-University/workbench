@@ -183,8 +183,11 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
         CaretAssert(orthoTopOut > orthoBottomOut);
     }
     
-    const double nearValue(-1.0);
-    const double farValue(1.0);
+    /*
+     * Note that too small will clip foci drawn as spheres
+     */
+    const double nearValue(-100.0);
+    const double farValue(100.0);
     
     orthographicsProjectionOut.set(orthoLeftOut,
                                    orthoRightOut,
