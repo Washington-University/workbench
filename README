@@ -1,4 +1,4 @@
-Connectome Workbench requires QT5 to compile.  Recommended is version 5.6 or later (due to an issue with the toolbar size on earlier versions).
+Connectome Workbench requires QT5 or later to compile.  It is not recommended to use a version earlier than 5.6 (due to an issue with the toolbar size).
 
 It is highly recommended to compile with OSMesa, which allow the -show-scene command and the "render pixmap" image capture method to work.  Use it by setting the *cmake* variable WORKBENCH_MESA_DIR, such that ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h exists.
 
