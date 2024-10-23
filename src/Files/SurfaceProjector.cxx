@@ -870,14 +870,9 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
     
     int32_t nearestNode = -1;
     float maxWeight = -1;
-    std::vector<int32_t> nodes;
-    std::vector<float> weights;
     for (int32_t i = 0; i < 3; i++) {
-        if (baryInfo.baryWeights[i] > 0.0) {
-            nodes.push_back(baryInfo.nodes[i]);
-            
+        if (baryInfo.baryWeights[i] >= 0.0) {
             const float w = baryInfo.baryWeights[i];
-            weights.push_back(w);
             if (w > maxWeight) {
                 nearestNode = baryInfo.nodes[i];
                 maxWeight = w;
@@ -893,57 +888,39 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
     switch (baryInfo.type) {
         case BarycentricInfo::NODE:
         {
-            if (nodes.size() != 1) {
-                throw SurfaceProjectorException("ERROR: project to node number of weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                const float* nodeNormal = surfaceFile->getNormalVector(nodes[0]);
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                const float aboveBelowPlane =
-                MathFunctions::signedDistanceFromPlane(nodeNormal, c1, xyz);
-                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
-                signedDistance = (MathFunctions::distance3D(xyz, c1) * signValue);
-            }
+            const float* nodeNormal = surfaceFile->getNormalVector(baryInfo.nodes[0]);
+            const float* c1 = surfaceFile->getCoordinate(baryInfo.nodes[0]);
+            const float aboveBelowPlane =
+            MathFunctions::signedDistanceFromPlane(nodeNormal, c1, xyz);
+            const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
+            signedDistance = (MathFunctions::distance3D(xyz, c1) * signValue);
         }
             break;
         case BarycentricInfo::EDGE:
         {
-            if (nodes.size() != 2) {
-                throw SurfaceProjectorException("ERROR: project to edge number weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                const float* n1 = surfaceFile->getNormalVector(nodes[0]);
-                const float* n2 = surfaceFile->getNormalVector(nodes[1]);
-                float avgNormal[3];
-                MathFunctions::addVectors(n1, n2, avgNormal);
-                MathFunctions::normalizeVector(avgNormal);
-                
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                const float* c2 = surfaceFile->getCoordinate(nodes[1]);
-                MathFunctions::distanceToLine3D(c1, c2, xyz);
-                
-                const float aboveBelowPlane =
-                MathFunctions::signedDistanceFromPlane(avgNormal, baryInfo.point, xyz);
-                const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
-                signedDistance = (MathFunctions::distance3D(xyz, baryInfo.point) * signValue);
-            }
+            const float* n1 = surfaceFile->getNormalVector(baryInfo.nodes[0]);
+            const float* n2 = surfaceFile->getNormalVector(baryInfo.nodes[1]);
+            float avgNormal[3];
+            MathFunctions::addVectors(n1, n2, avgNormal);
+            MathFunctions::normalizeVector(avgNormal);
+            
+            const float* c1 = surfaceFile->getCoordinate(baryInfo.nodes[0]);
+            const float* c2 = surfaceFile->getCoordinate(baryInfo.nodes[1]);
+            MathFunctions::distanceToLine3D(c1, c2, xyz);
+            
+            const float aboveBelowPlane =
+            MathFunctions::signedDistanceFromPlane(avgNormal, baryInfo.point, xyz);
+            const float signValue = ((aboveBelowPlane > 0.0) ? 1.0 : -1.0);
+            signedDistance = (MathFunctions::distance3D(xyz, baryInfo.point) * signValue);
         }
             break;
         case BarycentricInfo::TRIANGLE:
         {
-            if (nodes.size() != 3) {
-                throw SurfaceProjectorException("ERROR: project to triangle number of weights incorrect="
-                              + AString::number(nodes.size()));
-            }
-            else {
-                float triangleNormal[3];
-                surfaceFile->getTriangleNormalVector(baryInfo.triangle, triangleNormal);
-                const float* c1 = surfaceFile->getCoordinate(nodes[0]);
-                signedDistance =
-                MathFunctions::signedDistanceFromPlane(triangleNormal, c1, xyz);
-            }
+            float triangleNormal[3];
+            surfaceFile->getTriangleNormalVector(baryInfo.triangle, triangleNormal);
+            const float* c1 = surfaceFile->getCoordinate(baryInfo.nodes[0]);
+            signedDistance =
+            MathFunctions::signedDistanceFromPlane(triangleNormal, c1, xyz);
         }
             break;
     }
@@ -967,7 +944,7 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
         {
             projectionLocation.m_type = ProjectionLocation::NODE;
             int32_t numTriangles = 0;
-            const int32_t* nodesTriangles = topologyHelper->getNodeTiles(nodes[0],
+            const int32_t* nodesTriangles = topologyHelper->getNodeTiles(baryInfo.nodes[0],
                                                                         numTriangles);
             
             /*
@@ -995,8 +972,8 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
         case BarycentricInfo::EDGE:
         {
             projectionLocation.m_type = ProjectionLocation::EDGE;
-            const int32_t oppositeTriangle = surfaceFile->getTriangleThatSharesEdge(nodes[0],
-                                                                                    nodes[1],
+            const int32_t oppositeTriangle = surfaceFile->getTriangleThatSharesEdge(baryInfo.nodes[0],
+                                                                                    baryInfo.nodes[1],
                                                                                     baryInfo.triangle);
             nearbyTriangles.push_back(baryInfo.triangle);
             nearbyTriangles.push_back(oppositeTriangle);
@@ -1011,14 +988,8 @@ SurfaceProjector::getProjectionLocation(const SurfaceFile* surfaceFile,
     for (int32_t i = 0; i < 3; i++) {
         projectionLocation.m_pointXYZ[i] = xyz[i];
         projectionLocation.m_surfaceXYZ[i] = baryInfo.point[i];
-        if (i < static_cast<int32_t>(nodes.size())) {
-            projectionLocation.m_nodes[i] = nodes[i];
-            projectionLocation.m_weights[i] = weights[i];
-        }
-        else {
-            projectionLocation.m_nodes[i] = -1;
-            projectionLocation.m_weights[i] = 0.0;
-        }
+        projectionLocation.m_nodes[i] = baryInfo.nodes[i];
+        projectionLocation.m_weights[i] = baryInfo.baryWeights[i];
     }
 
     projectionLocation.m_numberOfTriangles = static_cast<int32_t>(nearbyTriangles.size());
