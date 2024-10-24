@@ -92,6 +92,8 @@ namespace caret {
         
         void setVolumeXYZ(const float volumeXYZ[3]);
         
+        void setStereotaxicXYZWhileMovingWithMouse(const float stereotaxicXYZ[3]);
+        
         StructureEnum::Enum getStructure() const;
         
         void setStructure(const StructureEnum::Enum structure);

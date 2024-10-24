@@ -29,6 +29,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrainOpenGLWidget;
+    class Focus;
     class MouseEvent;
     class Surface;
     class UserInputModeFociWidget;
@@ -39,26 +40,35 @@ namespace caret {
         enum Mode {
             MODE_CREATE_AT_ID,
             MODE_DELETE,
-            MODE_EDIT
+            MODE_EDIT,
+            MODE_MOVE
         };
         
         UserInputModeFoci(const int32_t browserIndexIndex);
         
         virtual ~UserInputModeFoci();
         
-        virtual void initialize();
+        virtual void initialize() override;
         
-        virtual void finish();
+        virtual void finish() override;
         
-        virtual void update();
+        virtual void update() override;
         
         virtual CursorEnum::Enum getCursor() const;
         
-        virtual void mouseLeftClick(const MouseEvent& mouseEvent);
+        virtual void mouseLeftClick(const MouseEvent& mouseEvent) override;
         
+        virtual void mouseMove(const MouseEvent& mouseEvent) override;
+        
+        virtual void mouseLeftDrag(const MouseEvent& mouseEvent) override;
+                
+        virtual void mouseLeftPress(const MouseEvent& mouseEvent) override;
+        
+        virtual void mouseLeftRelease(const MouseEvent& mouseEvent) override;
+
         virtual void showContextMenu(const MouseEvent& mouseEvent,
                                      const QPoint& menuPosition,
-                                     BrainOpenGLWidget* openGLWidget);
+                                     BrainOpenGLWidget* openGLWidget) override;
         
     private:
         /*
@@ -85,6 +95,10 @@ namespace caret {
         UserInputModeFociWidget* m_inputModeFociWidget;
         
         Mode m_mode;
+        
+        Focus* m_focusBeingMovedWithMouse = NULL;
+        
+        Focus* m_focusInMoveModeUnderMouse = NULL;
     };
     
 #ifdef __USER_INPUT_MODE_FOCI_DECLARE__

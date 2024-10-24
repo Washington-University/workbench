@@ -77,6 +77,8 @@ namespace caret {
         
         QRadioButton* m_modePropertiesRadioButton;
         
+        QRadioButton* m_modeMoveRadioButton;
+        
         QString m_transformToolTipText;
         
         friend class UserInputModeFoci;

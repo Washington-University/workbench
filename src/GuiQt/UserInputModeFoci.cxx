@@ -29,6 +29,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventGraphicsPaintSoonOneWindow.h"
 #include "EventManager.h"
@@ -45,6 +46,7 @@
 #include "SelectionManager.h"
 #include "MouseEvent.h"
 #include "Surface.h"
+#include "SurfaceProjector.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeView.h"
 #include "VolumeFile.h"
@@ -112,6 +114,7 @@ UserInputModeFoci::setMode(const Mode mode)
 void
 UserInputModeFoci::initialize()
 {
+    m_focusBeingMovedWithMouse = NULL;
     m_inputModeFociWidget->updateWidget();
 }
 
@@ -122,6 +125,7 @@ UserInputModeFoci::initialize()
 void 
 UserInputModeFoci::finish()
 {
+    m_focusBeingMovedWithMouse = NULL;
 }
 
 /**
@@ -150,6 +154,14 @@ UserInputModeFoci::getCursor() const
             break;
         case MODE_EDIT:
             cursor = CursorEnum::CURSOR_WHATS_THIS;
+            break;
+        case MODE_MOVE:
+            if (m_focusBeingMovedWithMouse != NULL) {
+                cursor = CursorEnum::CURSOR_CROSS;
+            }
+            else if (m_focusInMoveModeUnderMouse != NULL) {
+                cursor = CursorEnum::CURSOR_CROSS;
+            }
             break;
     }
     
@@ -276,7 +288,8 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                                                             m_inputModeFociWidget);
                 }
             }
-        }            break;
+        }            
+            break;
         case MODE_DELETE:
         case MODE_EDIT:
         {
@@ -317,11 +330,220 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                                                               openGLWidget);
                     }
                         break;
+                    case MODE_MOVE:
+                        break;
                 }
             }
         }
             break;
+        case MODE_MOVE:
+            CaretAssertToDoWarning();
+            break;
     }
+}
+
+/**
+ * Process a mouse move event
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeFoci::mouseMove(const MouseEvent& mouseEvent)
+{
+    m_focusInMoveModeUnderMouse = NULL;
+    
+    bool moveFlag(false);
+    switch (m_mode) {
+        case MODE_CREATE_AT_ID:
+            break;
+        case MODE_DELETE:
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_MOVE:
+            moveFlag = true;
+            break;
+    }
+    if ( ! moveFlag) {
+        UserInputModeView::mouseMove(mouseEvent);
+        return;
+    }
+    if (m_focusBeingMovedWithMouse == NULL) {
+        BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+        if (viewportContent == NULL) {
+            return;
+        }
+        
+        BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+        SelectionManager* idManager =
+        openGLWidget->performIdentificationAll(mouseEvent.getX(),
+                                               mouseEvent.getY(),
+                                               true);
+        
+        m_focusBeingMovedWithMouse = NULL;
+        SelectionItemFocus* idVolFocus = idManager->getFocusIdentification();
+        if (idVolFocus->isValid()) {
+            m_focusInMoveModeUnderMouse = idVolFocus->getFocus();
+        }
+        SelectionItemFocusSurface* idFocusSurface = idManager->getSurfaceFocusIdentification();
+        if (idFocusSurface->isValid()) {
+            m_focusInMoveModeUnderMouse = idFocusSurface->getFocus();
+        }
+    }
+}
+
+/**
+ * Process a mouse left drag with no keys down event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void
+UserInputModeFoci::mouseLeftDrag(const MouseEvent& mouseEvent)
+{
+    bool moveFlag(false);
+    switch (m_mode) {
+        case MODE_CREATE_AT_ID:
+            break;
+        case MODE_DELETE:
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_MOVE:
+            moveFlag = true;
+            break;
+    }
+    if ( ! moveFlag) {
+        UserInputModeView::mouseLeftDrag(mouseEvent);
+        return;
+    }
+    
+    if (m_focusBeingMovedWithMouse == NULL) {
+        return;
+    }
+    
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    SelectionManager* idManager =
+    openGLWidget->performIdentificationAll(mouseEvent.getX(),
+                                           mouseEvent.getY(),
+                                           true);
+    SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+    SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
+    SelectionItemHistologyCoordinate* idHistology(idManager->getHistologyPlaneCoordinateIdentification());
+    if (idNode->isValid()) {
+        Surface* surfaceViewed = idNode->getSurface();
+        CaretAssert(surfaceViewed);
+        const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+        const int32_t nodeIndex = idNode->getNodeNumber();
+        const float* xyz = anatSurface->getCoordinate(nodeIndex);
+        m_focusBeingMovedWithMouse->getProjection(0)->setStereotaxicXYZWhileMovingWithMouse(xyz);
+        try {
+            SurfaceProjector projector(anatSurface);
+            projector.projectFocus(0, m_focusBeingMovedWithMouse);
+        }
+        catch (const SurfaceProjectorException& spe) {
+            CaretLogWarning(spe.whatString());
+        }
+    }
+    else if (idVoxel->isValid()) {
+        const Vector3D xyz(idVoxel->getVoxelXYZ());
+        m_focusBeingMovedWithMouse->getProjection(0)->setStereotaxicXYZWhileMovingWithMouse(xyz);
+    }
+    else if (idHistology->isValid()) {
+        const HistologyCoordinate histCoord(idHistology->getCoordinate());
+        if (histCoord.isStereotaxicXYZValid()) {
+            const Vector3D xyz(histCoord.getStereotaxicXYZ());
+            m_focusBeingMovedWithMouse->getProjection(0)->setStereotaxicXYZWhileMovingWithMouse(xyz);
+        }
+    }
+    
+    updateAfterFociChanged();
+}
+
+/**
+ * Process a mouse left press event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void 
+UserInputModeFoci::mouseLeftPress(const MouseEvent& mouseEvent)
+{
+    m_focusInMoveModeUnderMouse = NULL;
+    
+    bool moveFlag(false);
+    switch (m_mode) {
+        case MODE_CREATE_AT_ID:
+            break;
+        case MODE_DELETE:
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_MOVE:
+            moveFlag = true;
+            break;
+    }
+    if ( ! moveFlag) {
+        UserInputModeView::mouseLeftPress(mouseEvent);
+        return;
+    }
+    
+    BrainOpenGLViewportContent* viewportContent = mouseEvent.getViewportContent();
+    if (viewportContent == NULL) {
+        return;
+    }
+    
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    SelectionManager* idManager =
+    openGLWidget->performIdentificationAll(mouseEvent.getX(),
+                                           mouseEvent.getY(),
+                                           true);
+
+    m_focusBeingMovedWithMouse = NULL;
+    SelectionItemFocus* idVolFocus = idManager->getFocusIdentification();
+    if (idVolFocus->isValid()) {
+        m_focusBeingMovedWithMouse = idVolFocus->getFocus();
+    }
+    SelectionItemFocusSurface* idFocusSurface = idManager->getSurfaceFocusIdentification();
+    if (idFocusSurface->isValid()) {
+        m_focusBeingMovedWithMouse = idFocusSurface->getFocus();
+    }
+}
+
+/**
+ * Process a mouse left release event.
+ *
+ * @param mouseEvent
+ *     Mouse event information.
+ */
+void 
+UserInputModeFoci::mouseLeftRelease(const MouseEvent& mouseEvent)
+{
+    bool moveFlag(false);
+    switch (m_mode) {
+        case MODE_CREATE_AT_ID:
+            break;
+        case MODE_DELETE:
+            break;
+        case MODE_EDIT:
+            break;
+        case MODE_MOVE:
+            moveFlag = true;
+            break;
+    }
+    if ( ! moveFlag) {
+        m_focusBeingMovedWithMouse = NULL;
+        UserInputModeView::mouseLeftRelease(mouseEvent);
+        return;
+    }
+    
+    m_focusBeingMovedWithMouse = NULL;
 }
 
 /**

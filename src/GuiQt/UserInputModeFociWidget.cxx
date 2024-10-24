@@ -123,6 +123,10 @@ UserInputModeFociWidget::updateWidget()
         case UserInputModeFoci::MODE_EDIT:
             m_modePropertiesRadioButton->setChecked(true);
             break;
+        case UserInputModeFoci::MODE_MOVE:
+            m_modeMoveRadioButton->setChecked(true);
+            break;
+            
     }
 }
 
@@ -161,10 +165,21 @@ UserInputModeFociWidget::createModeWidget()
     m_modePropertiesRadioButton   = new QRadioButton("Edit Properties");
     m_modePropertiesRadioButton->setToolTip(propertiesToolTipText);
     
+    const AString moveToolTip("<html>Move focus by:"
+                              "<ol>"
+                              "<li> holding down the mouse button over the focus"
+                              "<li> drag the mouse to move the focus"
+                              "<li> release the mouse button when done"
+                              "</ol>"
+                              "<html>");
+    m_modeMoveRadioButton = new QRadioButton("Move");
+    m_modeMoveRadioButton->setToolTip(moveToolTip);
+    
     QButtonGroup* buttonGroup = new QButtonGroup(this);
     buttonGroup->addButton(m_modeCreateLastIdRadioButton);
     buttonGroup->addButton(m_modeDeleteRadioButton);
     buttonGroup->addButton(m_modePropertiesRadioButton);
+    buttonGroup->addButton(m_modeMoveRadioButton);
     QObject::connect(buttonGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked),
                      this, &UserInputModeFociWidget::modeRadioButtonClicked);
     
@@ -176,9 +191,10 @@ UserInputModeFociWidget::createModeWidget()
     layout->addWidget(m_modeCreateLastIdRadioButton);
     layout->addWidget(m_modeDeleteRadioButton);
     layout->addWidget(m_modePropertiesRadioButton);
-    layout->addSpacing(8);
+    layout->addWidget(m_modeMoveRadioButton);
+    layout->addSpacing(4);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addSpacing(8);
+    layout->addSpacing(4);
     layout->addWidget(newFocusToolButton);
 
     widget->setFixedWidth(widget->sizeHint().width());
@@ -202,6 +218,9 @@ UserInputModeFociWidget::modeRadioButtonClicked(QAbstractButton* button)
     }
     else if (button == m_modePropertiesRadioButton) {
         m_inputModeFoci->setMode(UserInputModeFoci::MODE_EDIT);
+    }
+    else if (button == m_modeMoveRadioButton) {
+        m_inputModeFoci->setMode(UserInputModeFoci::MODE_MOVE);
     }
     else {
         CaretAssert(0);

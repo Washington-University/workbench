@@ -455,6 +455,21 @@ SurfaceProjectedItem::setVolumeXYZ(const float volumeXYZ[3])
 }
 
 /**
+ * Set the stereotaxic coordinate and override any previous projection
+ * @param stereotaxicXYZ
+ *    New coordinate
+ */
+void
+SurfaceProjectedItem::setStereotaxicXYZWhileMovingWithMouse(const float stereotaxicXYZ[3])
+{
+    setStereotaxicXYZ(stereotaxicXYZ);
+    setVolumeXYZ(stereotaxicXYZ);
+    setStructure(StructureEnum::INVALID);
+    getBarycentricProjection()->reset();
+    getVanEssenProjection()->reset();
+}
+
+/**
  * Get the structure of this projected item.
  * @return The structure.
  *
