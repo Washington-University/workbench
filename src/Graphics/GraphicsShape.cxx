@@ -632,6 +632,9 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
                              const uint8_t rgba[4],
                              const float diameter)
 {
+    glPushAttrib(GL_ENABLE_BIT);
+    glDisable(GL_LIGHTING);
+    
     const int32_t numberOfDivisions = 20;
     
     GraphicsPrimitive* circlePrimitive = NULL;
@@ -663,6 +666,8 @@ GraphicsShape::drawCircleFilled(const float xyz[3],
     glScalef(diameter, diameter, 1.0f);
     GraphicsEngineDataOpenGL::draw(circlePrimitive);
     glPopMatrix();
+    
+    glPopAttrib();
 }
 
 /**
