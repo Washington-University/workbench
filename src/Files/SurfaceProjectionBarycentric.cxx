@@ -350,6 +350,93 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
 }
 
 /**
+ * Unproject to surface
+ * @param surfaceFile
+ *    Unproject to this surface
+ * @param barycentricAreas
+ *    The barycentric areas
+ * @param barycentricVertices
+ *    The vertices
+ * @param xyzOut
+ *    Output with unprojected to XYZ coordinates
+ * @return True if valid
+ */
+bool
+SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile* surfaceFile,
+                                                 const float barycentricAreas[3],
+                                                 const int32_t barycentricVertices[3],
+                                                 float xyzOut[3])
+{
+    CaretAssert(surfaceFile);
+
+    xyzOut[0] = 0.0;
+    xyzOut[1] = 0.0;
+    xyzOut[2] = 0.0;
+    const int32_t n1(barycentricVertices[0]);
+    const int32_t n2(barycentricVertices[1]);
+    const int32_t n3(barycentricVertices[2]);
+    
+    if ((n1>= 0) && (n1 < surfaceFile->getNumberOfNodes())
+        && (n2 >= 0) && (n2 < surfaceFile->getNumberOfNodes())
+        && (n3 >= 0) && (n3 < surfaceFile->getNumberOfNodes())) {
+        /*
+         * All nodes MUST have neighbors (connected)
+         */
+        const TopologyHelper* topologyHelper = surfaceFile->getTopologyHelper().getPointer();
+        if ((topologyHelper->getNodeHasNeighbors(n1) == false)
+            || (topologyHelper->getNodeHasNeighbors(n2) == false)
+            || (topologyHelper->getNodeHasNeighbors(n3) == false)) {
+            return false;
+        }
+        
+        const float* xyz1 = surfaceFile->getCoordinate(n1);
+        const float* xyz2 = surfaceFile->getCoordinate(n2);
+        const float* xyz3 = surfaceFile->getCoordinate(n3);
+
+        /*
+         * If all the nodes are the same (object projects to a single node, not triangle)
+         */
+        if ((n1 == n2) &&
+            (n2 == n3)) {
+            /*
+             * Use node's normal vector and position
+             */
+            xyzOut[0] = xyz1[0];
+            xyzOut[1] = xyz1[1];
+            xyzOut[2] = xyz1[2];
+        }
+        else {
+            /*
+             * Compute position using barycentric coordinates
+             */
+            float t1[3];
+            float t2[3];
+            float t3[3];
+            for (int i = 0; i < 3; i++) {
+                t1[i] = barycentricAreas[0] * xyz1[i];
+                t2[i] = barycentricAreas[1] * xyz2[i];
+                t3[i] = barycentricAreas[2] * xyz3[i];
+            }
+            float area = (barycentricAreas[0]
+                          + barycentricAreas[1]
+                          + barycentricAreas[2]);
+            if (area != 0) {
+                for (int i = 0; i < 3; i++) {
+                    xyzOut[i] = (t1[i] + t2[i] + t3[i]) / area;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    return false;
+}
+
+/**
  * Unproject to the surface using 'this' projection.
  * 
  * @param surfaceFile

@@ -3145,7 +3145,6 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                          triangleIndex,
                                          depth);
         
-        
         if (triangleIndex >= 0) {
             bool isTriangleIdAccepted = false;
             if (triangleID != NULL) {
@@ -3265,7 +3264,8 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                     /*
                      * Getting projected position?
                      */
-                    if (isProjection) {
+                    if (isSelect
+                        || isProjection) {
                         /*
                          * Place window coordinates of triangle's nodes
                          * onto the screen by setting Z-coordinate to zero
@@ -3340,19 +3340,27 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                     n3
                                 };
                             
-                                this->setProjectionModeData(depth, 
-                                                            projectedXYZ, 
-                                                            surface->getStructure(), 
-                                                            barycentricAreas, 
-                                                            barycentricNodes, 
-                                                            surface->getNumberOfNodes());
+                                if (isSelect) {
+                                    if (triangleID != NULL) {
+                                        triangleID->setBarycentricAreas(barycentricAreas);
+                                        triangleID->setBarycentricVertices(barycentricNodes);
+                                        triangleID->setBarycentricProjectionValid(true);
+                                    }
+                                }
+                                if (isProjection) {
+                                    this->setProjectionModeData(depth,
+                                                                projectedXYZ,
+                                                                surface->getStructure(),
+                                                                barycentricAreas,
+                                                                barycentricNodes,
+                                                                surface->getNumberOfNodes());
+                                }
                             }
                         }
                     }
             }
             CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
         }
-        
     }
 }
 

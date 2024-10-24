@@ -51,6 +51,13 @@ SelectionItemSurfaceTriangle::SelectionItemSurfaceTriangle()
     this->nearestNodeModelXYZ[0] = 0.0;
     this->nearestNodeModelXYZ[1] = 0.0;
     this->nearestNodeModelXYZ[2] = 0.0;
+    m_barycentricAreas[0] = 0.0;
+    m_barycentricAreas[1] = 0.0;
+    m_barycentricAreas[2] = 0.0;
+    m_barycentricVertices[0] = -1;
+    m_barycentricVertices[1] = -1;
+    m_barycentricVertices[2] = -1;
+    m_barycentricProjectionValidFlag = false;
 }
 
 /**
@@ -77,6 +84,13 @@ SelectionItemSurfaceTriangle::reset()
     this->nearestNodeModelXYZ[0] = 0.0;
     this->nearestNodeModelXYZ[1] = 0.0;
     this->nearestNodeModelXYZ[2] = 0.0;
+    m_barycentricAreas[0] = 0.0;
+    m_barycentricAreas[1] = 0.0;
+    m_barycentricAreas[2] = 0.0;
+    m_barycentricVertices[0] = -1;
+    m_barycentricVertices[1] = -1;
+    m_barycentricVertices[2] = -1;
+    m_barycentricProjectionValidFlag = false;
 }
 
 /**
@@ -219,6 +233,78 @@ SelectionItemSurfaceTriangle::setNearestNodeModelXYZ(const double nearestNodeMod
     this->nearestNodeModelXYZ[0] = nearestNodeModelXYZ[0];
     this->nearestNodeModelXYZ[1] = nearestNodeModelXYZ[1];
     this->nearestNodeModelXYZ[2] = nearestNodeModelXYZ[2];
+}
+
+/**
+ * @return True if the barycentric projection is valid
+ */
+bool
+SelectionItemSurfaceTriangle::isBarycentricProjectionValid() const
+{
+    return m_barycentricProjectionValidFlag;
+}
+
+/**
+ * Set the barycentric projection valid
+ * @param validFlag
+ *    New status
+ */
+void
+SelectionItemSurfaceTriangle::setBarycentricProjectionValid(const bool validFlag)
+{
+    m_barycentricProjectionValidFlag = validFlag;
+}
+
+/**
+ * Get the barycentric areas
+ * @param areasOut
+ *    Output with areas
+ */
+void
+SelectionItemSurfaceTriangle::getBarycentricAreas(float areasOut[3]) const
+{
+    areasOut[0] = m_barycentricAreas[0];
+    areasOut[1] = m_barycentricAreas[1];
+    areasOut[2] = m_barycentricAreas[2];
+}
+
+/**
+ * Get the barycentric vertices
+ * @param verticesOut
+ *    Vertices out
+ */
+void
+SelectionItemSurfaceTriangle::getBarycentricVertices(int32_t verticesOut[3]) const
+{
+    verticesOut[0] = m_barycentricVertices[0];
+    verticesOut[1] = m_barycentricVertices[1];
+    verticesOut[2] = m_barycentricVertices[2];
+}
+
+/**
+ * Set the barycentric areas
+ * @param areas
+ *    The areas
+ */
+void
+SelectionItemSurfaceTriangle::setBarycentricAreas(const float areas[3])
+{
+    m_barycentricAreas[0] = areas[0];
+    m_barycentricAreas[1] = areas[1];
+    m_barycentricAreas[2] = areas[2];
+}
+
+/**
+ * Set the barycentric vertices
+ * @param vertices
+ *    The vertices
+ */
+void
+SelectionItemSurfaceTriangle::setBarycentricVertices(const int32_t vertices[3])
+{
+    m_barycentricVertices[0] = vertices[0];
+    m_barycentricVertices[1] = vertices[1];
+    m_barycentricVertices[2] = vertices[2];
 }
 
 

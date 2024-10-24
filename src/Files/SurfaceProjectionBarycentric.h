@@ -60,6 +60,11 @@ namespace caret {
         
         int32_t getNodeWithLargestWeight() const;
                 
+        static bool unprojectToSurface(const SurfaceFile* surfaceFile,
+                                       const float barycentricAreas[3],
+                                       const int32_t barycentricVertices[3],
+                                       float xyzOut[3]);
+
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],
                                 const float offsetFromSurface,

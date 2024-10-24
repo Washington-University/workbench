@@ -57,6 +57,18 @@ namespace caret {
         
         void setNearestNodeModelXYZ(const double modelXYZ[3]);
         
+        bool isBarycentricProjectionValid() const;
+        
+        void setBarycentricProjectionValid(const bool validFlag);
+        
+        void getBarycentricAreas(float areasOut[3]) const;
+        
+        void getBarycentricVertices(int32_t verticesOut[3]) const;
+        
+        void setBarycentricAreas(const float areas[3]);
+        
+        void setBarycentricVertices(const int32_t vertices[3]);
+
         virtual void reset();
         
         virtual AString toString() const;
@@ -76,6 +88,11 @@ namespace caret {
         
         double nearestNodeModelXYZ[3];
         
+        int32_t m_barycentricVertices[3];
+        
+        float m_barycentricAreas[3];
+        
+        bool m_barycentricProjectionValidFlag = false;
     };
     
 #ifdef __SELECTION_ITEM_SURFACE_TRIANGLE_DECLARE__

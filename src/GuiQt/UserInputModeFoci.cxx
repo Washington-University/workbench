@@ -42,10 +42,12 @@
 #include "SelectionItemFocus.h"
 #include "SelectionItemHistologyCoordinate.h"
 #include "SelectionItemSurfaceNode.h"
+#include "SelectionItemSurfaceTriangle.h"
 #include "SelectionItemVoxel.h"
 #include "SelectionManager.h"
 #include "MouseEvent.h"
 #include "Surface.h"
+#include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjector.h"
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeView.h"
@@ -429,14 +431,43 @@ UserInputModeFoci::mouseLeftDrag(const MouseEvent& mouseEvent)
     }
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    SelectionManager* idManager =
-    openGLWidget->performIdentificationAll(mouseEvent.getX(),
-                                           mouseEvent.getY(),
-                                           true);
+    SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
     SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+    SelectionItemSurfaceTriangle* idTriangle(idManager->getSurfaceTriangleIdentification());
     SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
     SelectionItemHistologyCoordinate* idHistology(idManager->getHistologyPlaneCoordinateIdentification());
-    if (idNode->isValid()) {
+    idManager->setAllSelectionsEnabled(false);
+    idNode->setEnabledForSelection(true);
+    idTriangle->setEnabledForSelection(true);
+    idVoxel->setEnabledForSelection(true);
+    idHistology->setEnabledForSelection(true);
+    openGLWidget->performIdentificationSome(mouseEvent.getX(), mouseEvent.getY());
+    if (idTriangle->isValid()
+        && idTriangle->isBarycentricProjectionValid()) {
+        int32_t vertices[3];
+        idTriangle->getBarycentricVertices(vertices);
+        float areas[3];
+        idTriangle->getBarycentricAreas(areas);
+        Surface* surfaceViewed(idTriangle->getSurface());
+        CaretAssert(surfaceViewed);
+        const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+        float xyz[3];
+        if (SurfaceProjectionBarycentric::unprojectToSurface(anatSurface, areas, vertices, xyz)) {
+            m_focusBeingMovedWithMouse->getProjection(0)->setStereotaxicXYZWhileMovingWithMouse(xyz);
+            try {
+                SurfaceProjector projector(anatSurface);
+                projector.projectFocus(0, m_focusBeingMovedWithMouse);
+            }
+            catch (const SurfaceProjectorException& spe) {
+                CaretLogWarning(spe.whatString());
+            }
+        }
+        else {
+            CaretLogWarning("Failed to unproject barycentric data to "
+                            + anatSurface->getFileName());
+        }
+    }
+    else if (idNode->isValid()) {
         Surface* surfaceViewed = idNode->getSurface();
         CaretAssert(surfaceViewed);
         const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
