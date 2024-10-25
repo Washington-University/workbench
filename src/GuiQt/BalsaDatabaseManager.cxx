@@ -26,6 +26,7 @@
 #include "BalsaDatabaseManager.h"
 #undef __BALSA_DATABASE_MANAGER_DECLARE__
 
+#include <QDateTime>
 #include <QJsonDocument>
 
 #include "ApplicationInformation.h"
@@ -1791,14 +1792,14 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
     
-    progressUpdate.setProgress(PROGRESS_CHECK_SCENE_IDS, "Checking Scene IDs");
+    progressUpdate.setProgress(PROGRESS_CHECK_SCENE_IDS, addToUploadProgressMessage("Checking Scene IDs"));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     if ( ! checkSceneIDs(sceneFile,
                          errorMessageOut)) {
         return false;
     }
     
-    progressUpdate.setProgress(PROGRESS_ZIPPING, "Zipping Scene and Data Files");
+    progressUpdate.setProgress(PROGRESS_ZIPPING, addToUploadProgressMessage("Zipping Scene and Data Files"));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
     /*
@@ -1813,7 +1814,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
     
     if (m_debugFlag) std::cout << "Zip file " << zipFileName << " has been created " << std::endl;
     
-    progressUpdate.setProgress(PROGRESS_UPLOAD, "Uploading zip file");
+    progressUpdate.setProgress(PROGRESS_UPLOAD, addToUploadProgressMessage("Uploading zip file"));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
     /*
@@ -1840,7 +1841,8 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         /*
          * Process the uploaded file
          */
-        progressUpdate.setProgress(PROGRESS_PROCESS_UPLOAD, "Processing uploaded zip file (this step may take a long time)");
+        progressUpdate.setProgress(PROGRESS_PROCESS_UPLOAD, 
+                                   addToUploadProgressMessage("Processing uploaded zip file (this step may take a long time)"));
         EventManager::get()->sendEvent(progressUpdate.getPointer());
         
         const AString processUploadURL(m_databaseURL
@@ -1868,7 +1870,7 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         }
     }
     
-    progressUpdate.setProgress(PROGRESS_DONE, "Finished.");
+    progressUpdate.setProgress(PROGRESS_DONE, addToUploadProgressMessage("Finished."));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
     return true;
@@ -1983,6 +1985,38 @@ BalsaDatabaseManager::SceneFileIdentifiers::SceneFileIdentifiers(const bool debu
 }
 
 /**
+ * @return The upload progress message containing a summary of the upload progress
+ */
+AString
+BalsaDatabaseManager::getUploadSummaryMessage() const
+{
+    return m_uploadProgressMessage;
+}
+
+/**
+ * Add a message to the progress message which gets followed by the current time
+ * @param message
+ *    New message appended to progress message
+ * @return
+ *    Updated progress message
+ */
+AString
+BalsaDatabaseManager::addToUploadProgressMessage(const AString& message)
+{
+    if ( ! message.isEmpty()) {
+        /*
+         * Time followed by timezone
+         */
+        const AString timeString(QDateTime::currentDateTime().toString("HH:mm:ss t"));
+        m_uploadProgressMessage.appendWithNewLine(message
+                                                  + " "
+                                                  + timeString);
+    }
+    
+    return m_uploadProgressMessage;
+}
+
+/**
  * @return True if parsing was valid.
  */
 bool
@@ -2008,3 +2042,4 @@ BalsaDatabaseManager::getInfoMessages() const
 {
     return m_infoMessages;
 }
+

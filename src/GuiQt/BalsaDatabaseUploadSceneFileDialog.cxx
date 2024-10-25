@@ -1008,6 +1008,7 @@ BalsaDatabaseUploadSceneFileDialog::okButtonClicked()
     if (successFlag) {
         AString msg("Upload was successful");
         msg.appendWithNewLine(m_balsaDatabaseManager->getInfoMessages());
+        msg.appendWithNewLine(m_balsaDatabaseManager->getUploadSummaryMessage());
         WuQMessageBox::informationOk(this, msg);
     }
     else {
