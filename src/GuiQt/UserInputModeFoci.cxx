@@ -52,6 +52,7 @@
 #include "UserInputModeFociWidget.h"
 #include "UserInputModeView.h"
 #include "VolumeFile.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -215,18 +216,55 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
-    SelectionManager* idManager =
-    openGLWidget->performIdentificationAll(mouseEvent.getX(),
-                                           mouseEvent.getY(),
-                                           true);
     
     switch (m_mode) {
         case MODE_CREATE_AT_ID:
         {
+            SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+            SelectionItemSurfaceTriangle* idTriangle = idManager->getSurfaceTriangleIdentification();
             SelectionItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
             SelectionItemVoxel* idVoxel = idManager->getVoxelIdentification();
             SelectionItemHistologyCoordinate* idHistology(idManager->getHistologyPlaneCoordinateIdentification());
-            if (idNode->isValid()) {
+            idManager->setAllSelectionsEnabled(false);
+            idNode->setEnabledForSelection(true);
+            idTriangle->setEnabledForSelection(true);
+            idVoxel->setEnabledForSelection(true);
+            idHistology->setEnabledForSelection(true);
+            openGLWidget->performIdentificationSome(mouseEvent.getX(), mouseEvent.getY());
+            
+            if (idTriangle->isValid()
+                && (idTriangle->isBarycentricProjectionValid())) {
+                Surface* surfaceViewed = idTriangle->getSurface();
+                CaretAssert(surfaceViewed);
+                const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+                int32_t vertices[3];
+                idTriangle->getBarycentricVertices(vertices);
+                float areas[3];
+                idTriangle->getBarycentricAreas(areas);
+                float xyz[3];
+                if (SurfaceProjectionBarycentric::unprojectToSurface(anatSurface, areas, vertices, xyz)) {
+                    const StructureEnum::Enum anatStructure = anatSurface->getStructure();
+                    
+                    const AString focusName = (StructureEnum::toGuiName(anatStructure)
+                                               + " Triangle "
+                                               + AString::number(idTriangle->getTriangleNumber()));
+                    
+                    const AString comment = ("Created from "
+                                             + focusName);
+                    
+                    Focus* focus = new Focus();
+                    focus->setName(focusName);
+                    focus->getProjection(0)->setStereotaxicXYZ(xyz);
+                    focus->setComment(comment);
+                    FociPropertiesEditorDialog::createFocus(focus,
+                                                            browserTabContent,
+                                                            m_inputModeFociWidget);
+                }
+                else {
+                    WuQMessageBox::errorOk(m_inputModeFociWidget, "Failed to unproject focus to anatomial surface");
+                }
+            }
+            else if (idNode->isValid()) {
                 Surface* surfaceViewed = idNode->getSurface();
                 CaretAssert(surfaceViewed);
                 const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
@@ -295,17 +333,23 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
         case MODE_DELETE:
         case MODE_EDIT:
         {
+            SelectionManager* idManager = GuiManager::get()->getBrain()->getSelectionManager();
+            SelectionItemFocus* idVolFocus = idManager->getFocusIdentification();
+            SelectionItemFocusSurface* idFocusSurface = idManager->getSurfaceFocusIdentification();
+            idManager->setAllSelectionsEnabled(false);
+            idVolFocus->setEnabledForSelection(true);
+            idFocusSurface->setEnabledForSelection(true);
+            openGLWidget->performIdentificationSome(mouseEvent.getX(), mouseEvent.getY());
+
             FociFile* fociFile = NULL;
             Focus*    focus = NULL;
             
-            SelectionItemFocus* idVolFocus = idManager->getFocusIdentification();
             if (idVolFocus->isValid()) {
                 fociFile = idVolFocus->getFociFile();
                 CaretAssert(fociFile);
                 focus    = idVolFocus->getFocus();
                 CaretAssert(focus);
             }
-            SelectionItemFocusSurface* idFocusSurface = idManager->getSurfaceFocusIdentification();
             if (idFocusSurface->isValid()) {
                 fociFile = idFocusSurface->getFociFile();
                 CaretAssert(fociFile);
