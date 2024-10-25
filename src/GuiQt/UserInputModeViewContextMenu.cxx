@@ -101,6 +101,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param userInputMode
+ *    The user input mode
  * @param mouseEvent
  *    The mouse event
  * @param viewportContent
@@ -110,7 +112,8 @@ using namespace caret;
  * @param parentOpenGLWidget
  *    Parent OpenGL Widget on which the menu is displayed.
  */
-UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mouseEvent,
+UserInputModeViewContextMenu::UserInputModeViewContextMenu(const UserInputModeEnum::Enum userInputMode,
+                                                           const MouseEvent& mouseEvent,
                                                            BrainOpenGLViewportContent* viewportContent,
                                                            SelectionManager* selectionManager,
                                                            BrainOpenGLWidget* parentOpenGLWidget)
@@ -123,6 +126,30 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mou
     this->browserTabContent = viewportContent->getBrowserTabContent();
     CaretAssert(this->browserTabContent);
     
+    bool bordersModeFlag(false);
+    bool fociModeFlag(false);
+    switch (userInputMode) {
+        case UserInputModeEnum::Enum::INVALID:
+            break;
+        case UserInputModeEnum::Enum::ANNOTATIONS:
+            break;
+        case UserInputModeEnum::Enum::BORDERS:
+            bordersModeFlag = true;
+            break;
+        case UserInputModeEnum::Enum::SAMPLES_EDITING:
+            break;
+        case UserInputModeEnum::Enum::FOCI:
+            fociModeFlag = true;
+            break;
+        case UserInputModeEnum::Enum::IMAGE:
+            break;
+        case UserInputModeEnum::Enum::TILE_TABS_LAYOUT_EDITING:
+            break;
+        case UserInputModeEnum::Enum::VIEW:
+            break;
+        case UserInputModeEnum::Enum::VOLUME_EDIT:
+            break;
+    }
     UserInputModeViewContextTileTabsSubMenu* tabMenu = new UserInputModeViewContextTileTabsSubMenu(mouseEvent,
                                                                                                    this->parentOpenGLWidget,
                                                                                                    this->viewportContent);
@@ -144,9 +171,11 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mou
     /*
      * Add the border options.
      */
-    QMenu* borderMenu = createBorderRegionOfInterestMenu();
-    if (borderMenu != NULL) {
-        addMenu(borderMenu);
+    if ( ! fociModeFlag) {
+        QMenu* borderMenu = createBorderRegionOfInterestMenu();
+        if (borderMenu != NULL) {
+            addMenu(borderMenu);
+        }
     }
     
     /*
@@ -160,9 +189,12 @@ UserInputModeViewContextMenu::UserInputModeViewContextMenu(const MouseEvent& mou
     /*
      * Add the foci actions.
      */
-    QMenu* fociMenu = createFociMenu();
-    if (fociMenu != NULL) {
-        addMenu(fociMenu);
+    if ( ( ! bordersModeFlag)
+        && ( ! fociModeFlag)) {
+        QMenu* fociMenu = createFociMenu();
+        if (fociMenu != NULL) {
+            addMenu(fociMenu);
+        }
     }
     
     /*

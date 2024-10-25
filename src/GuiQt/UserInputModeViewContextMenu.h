@@ -27,6 +27,7 @@
 #include <QMenu>
 
 #include "StructureEnum.h"
+#include "UserInputModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VoxelIJK.h"
 
@@ -53,7 +54,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        UserInputModeViewContextMenu(const MouseEvent& mouseEvent,
+        UserInputModeViewContextMenu(const UserInputModeEnum::Enum userInputMode,
+                                     const MouseEvent& mouseEvent,
                                      BrainOpenGLViewportContent* viewportContent,
                                      SelectionManager* selectionManager,
                                      BrainOpenGLWidget* parentOpenGLWidget);

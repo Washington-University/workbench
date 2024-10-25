@@ -1191,7 +1191,8 @@ UserInputModeView::showContextMenu(const MouseEvent& mouseEvent,
                                                                          mouseY,
                                                                          false);
     
-    UserInputModeViewContextMenu contextMenu(mouseEvent,
+    UserInputModeViewContextMenu contextMenu(getUserInputMode(),
+                                             mouseEvent,
                                              viewportContent,
                                              idManager,
                                              openGLWidget);

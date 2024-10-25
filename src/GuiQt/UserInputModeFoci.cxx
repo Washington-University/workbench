@@ -656,11 +656,13 @@ UserInputModeFoci::mouseLeftRelease(const MouseEvent& mouseEvent)
  *     OpenGL widget in which context menu is requested
  */
 void
-UserInputModeFoci::showContextMenu(const MouseEvent& /*mouseEvent*/,
-                                         const QPoint& /*menuPosition*/,
-                                         BrainOpenGLWidget* /*openGLWidget*/)
+UserInputModeFoci::showContextMenu(const MouseEvent& mouseEvent,
+                                         const QPoint& menuPosition,
+                                         BrainOpenGLWidget* openGLWidget)
 {
-    /* no context menu */
+    UserInputModeView::showContextMenu(mouseEvent,
+                                       menuPosition,
+                                       openGLWidget);
 }
 
 
