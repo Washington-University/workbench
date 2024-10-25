@@ -90,6 +90,8 @@ namespace caret {
         
         Surface* getAnatomicalSurfaceForSurface(Surface* surface);
         
+        void noAnatomicalSurfaceWarningDialog(const Surface* surface) const;
+        
         // ADD_NEW_MEMBERS_HERE
         
         UserInputModeFociWidget* m_inputModeFociWidget;

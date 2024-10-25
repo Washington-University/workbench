@@ -237,6 +237,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                 Surface* surfaceViewed = idTriangle->getSurface();
                 CaretAssert(surfaceViewed);
                 const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+                noAnatomicalSurfaceWarningDialog(anatSurface);
                 int32_t vertices[3];
                 idTriangle->getBarycentricVertices(vertices);
                 float areas[3];
@@ -268,6 +269,7 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
                 Surface* surfaceViewed = idNode->getSurface();
                 CaretAssert(surfaceViewed);
                 const Surface* anatSurface = getAnatomicalSurfaceForSurface(surfaceViewed);
+                noAnatomicalSurfaceWarningDialog(anatSurface);
                 const StructureEnum::Enum anatStructure = anatSurface->getStructure();
                 const int32_t nodeIndex = idNode->getNodeNumber();
                 
@@ -385,6 +387,28 @@ UserInputModeFoci::mouseLeftClick(const MouseEvent& mouseEvent)
         case MODE_MOVE:
             CaretAssertToDoWarning();
             break;
+    }
+}
+
+/**
+ *  Warn the user if there is no anatomical surface for projecting the focus.
+ *  @param surface
+ *     Surface that should be an anatomical surface.
+ *  @return True if we should continue creating the focus.
+ */
+void
+UserInputModeFoci::noAnatomicalSurfaceWarningDialog(const Surface* surface) const
+{
+    if ((surface->getSurfaceType() != SurfaceTypeEnum::RECONSTRUCTION)
+        && (surface->getSurfaceType() != SurfaceTypeEnum::ANATOMICAL)) {
+        if ((surface->getStructure() == StructureEnum::CORTEX_LEFT)
+            || (surface->getStructure() == StructureEnum::CORTEX_RIGHT)) {
+            const AString msg("No Anatomical surface was found for this hemisphere.  "
+                              "Focus will be created but it may be at an incorrect stereotaxic coordinate.");
+            WuQMessageBox::warningOkWithDoNotShowAgain(m_inputModeFociWidget,
+                                                       "FocusProjectDialogAnatomicalWarning",
+                                                       msg);
+        }
     }
 }
 
