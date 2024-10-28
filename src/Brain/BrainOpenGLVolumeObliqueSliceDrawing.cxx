@@ -3125,6 +3125,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
         return;
     }
     
+    bool showZerosFlag(true);
     switch (m_dataValueType) {
         case DataValueType::INVALID:
             break;
@@ -3202,6 +3203,7 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
                                                           &m_thresholdData[0],
                                                           m_data.size(),
                                                           &m_rgba[0]);
+            showZerosFlag = pcm->isDisplayZeroDataFlag();
         }
             break;
         case DataValueType::VOLUME_RGB:
@@ -3282,6 +3284,11 @@ BrainOpenGLVolumeObliqueSliceDrawing::ObliqueSlice::assignRgba(const bool volume
             for (int64_t j = 0; j < 3; j++) {
                 const float v(static_cast<float>(m_rgba[i4 + j]) * modValue);
                 m_rgba[i4 + j] = static_cast<uint8_t>(v);
+            }
+            if ( ! showZerosFlag) {
+                if (modValue <= 0) {
+                    m_rgba[i4 + 3] = 0;
+                }
             }
         }
     }

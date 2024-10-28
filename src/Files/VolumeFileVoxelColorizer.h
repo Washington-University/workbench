@@ -109,7 +109,8 @@ namespace caret {
                          + ((ijk[2] * m_dimI * m_dimJ))));
         }
         
-        void applyColorModulation(const int32_t mapIndex) const;
+        void applyColorModulation(const int32_t mapIndex,
+                                  const bool showZerosFlag) const;
         
         // ADD_NEW_MEMBERS_HERE
 

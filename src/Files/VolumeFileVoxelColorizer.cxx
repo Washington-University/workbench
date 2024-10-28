@@ -114,7 +114,9 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
     VolumeFile* thresholdVolume = NULL;
     int32_t thresholdVolumeMapIndex   = -1;
     
+    bool showZerosFlag(true);
     if (m_volumeFile->isMappedWithPalette()) {
+        showZerosFlag = m_volumeFile->getMapPaletteColorMapping(mapIndex)->isDisplayZeroDataFlag();
         switch (m_volumeFile->getMapPaletteColorMapping(mapIndex)->getThresholdType()) {
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
             {
@@ -273,7 +275,8 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
     }
     
     if (m_mapColoringValid[mapIndex]) {
-        applyColorModulation(mapIndex);
+        applyColorModulation(mapIndex,
+                             showZerosFlag);
     }
     
     CaretLogFine("Time to color map named \""
@@ -290,9 +293,12 @@ VolumeFileVoxelColorizer::assignVoxelColorsForMap(const int32_t mapIndex) const
  * Data in modulation file should range [0, 1] and be a single component map.
  * @param mapIndex
  *    Index of map in file being colorized
+ * @param showZerosFlag
+ *    If true, show data with a modulate zero value
  */
 void
-VolumeFileVoxelColorizer::applyColorModulation(const int32_t mapIndex) const
+VolumeFileVoxelColorizer::applyColorModulation(const int32_t mapIndex,
+                                               const bool showZerosFlag) const
 {
     const DataFileColorModulateSelector* modulateSelector(m_volumeFile->getMapColorModulateFileSelector(mapIndex));
     CaretAssert(modulateSelector);
@@ -327,6 +333,12 @@ VolumeFileVoxelColorizer::applyColorModulation(const int32_t mapIndex) const
                         for (int64_t j = 0; j < 3; j++) {
                             const float v(static_cast<float>(rgba[i4 + j]) * modValue);
                             rgba[i4 + j] = static_cast<uint8_t>(v);
+                        }
+                        
+                        if ( ! showZerosFlag) {
+                            if (modValue <= 0) {
+                                rgba[i4 + 3] = 0;
+                            }
                         }
                     }
                 }
