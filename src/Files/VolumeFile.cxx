@@ -2607,7 +2607,8 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
     dataFileInformation.addNameAndValue("Spacing",
                                         AString::fromNumbers(spacing, 3, ", "));
     
-    if (isMappedWithLabelTable()) {
+    //TSC: disable cluster finding in -file-information due to large memory use on strange label files
+    /*if (isMappedWithLabelTable()) {
         for (int32_t i = 0; i < getNumberOfMaps(); i++) {
             CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::VOLUME_LABEL,
                                                       this,
@@ -2625,7 +2626,7 @@ VolumeFile::addToDataFileContentInformation(DataFileContentInformation& dataFile
                                 + result->getErrorDescription());
             }
         }
-    }
+    }//*/
 }
 
 /**

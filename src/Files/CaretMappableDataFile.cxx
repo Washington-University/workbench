@@ -1119,7 +1119,8 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                             + getMapLabelTable(mapIndex)->toFormattedString("    ")
                                             + "\n");
                 
-                const int32_t tabZero(0);
+                //TSC: disable cluster finding in -file-information due to large memory use on strange label files
+                /*const int32_t tabZero(0);
                 const LabelSelectionItemModel* labelModel(getLabelSelectionHierarchyForMapAndTab(mapIndex,
                                                                                                  DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                                                                                  tabZero));
@@ -1130,7 +1131,7 @@ CaretMappableDataFile::addToDataFileContentInformation(DataFileContentInformatio
                                                     + labelModelText
                                                     + "\n");
                     }
-                }
+                }//*/
                 
                 if ( ! haveLabelTableForEachMap) {
                     break;

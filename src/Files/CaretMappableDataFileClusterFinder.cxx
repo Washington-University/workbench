@@ -224,7 +224,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     clusterCoordsXYZ.push_back(voxelXYZ);
                     
                     std::vector<VoxelIJK> neighboringVoxelIJKsToSearch;
-                    neighboringVoxelIJKsToSearch.reserve(500); /* avoid reallocations */
+                    neighboringVoxelIJKsToSearch.reserve(500); /* avoid reallocations for small clusters */
                     
                     /*
                      * Get neighbors of current voxel
@@ -242,7 +242,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                      */
                     for (int64_t index = 0; index < static_cast<int64_t>(neighboringVoxelIJKsToSearch.size()); index++) {
                         CaretAssertVectorIndex(neighboringVoxelIJKsToSearch, index);
-                        const VoxelIJK& vijk(neighboringVoxelIJKsToSearch[index]);
+                        const VoxelIJK vijk(neighboringVoxelIJKsToSearch[index]); //TSC: needs to be a copy in case a large cluster reallocates and invalidates all references
                         clusterCoordsXYZ.push_back(volumeSpace.indexToSpace(vijk));
                         
                         volumeFile->getNeigbors26(vijk,
