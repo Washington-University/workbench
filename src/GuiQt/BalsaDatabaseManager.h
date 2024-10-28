@@ -129,6 +129,8 @@ namespace caret {
         
         AString addToUploadProgressMessage(const AString& message);
         
+        bool loginToAvoidTimeout(AString& errorMessageOut);
+        
         bool uploadFile(const AString& uploadURL,
                         const AString& fileName,
                         const AString& httpContentTypeName,

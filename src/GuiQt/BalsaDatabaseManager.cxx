@@ -196,6 +196,24 @@ BalsaDatabaseManager::login(const AString& databaseURL,
 }
 
 /**
+ * Login to the BALSA Database to avoid database logging user out after a long
+ * operation such as uploading or processing uploaded data.
+ * @param errorMessageOut
+ *     Contains error information if login failed.
+ * @return
+ *     True if login is successful, else false.
+ */
+bool
+BalsaDatabaseManager::loginToAvoidTimeout(AString& errorMessageOut)
+{
+    return login(m_databaseURL,
+                 m_username,
+                 m_password,
+                 errorMessageOut);
+}
+
+
+/**
  * Logout of the database
  */
 void
@@ -1780,17 +1798,32 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
         PROGRESS_LOGIN,
         PROGRESS_CHECK_SCENE_IDS,
         PROGRESS_ZIPPING,
+        PROGRESS_LOGIN_IN_BEFORE_UPLOAD,
         PROGRESS_UPLOAD,
+        PROGRESS_LOGIN_IN_BEFORE_PROCESS_UPLOAD,
         PROGRESS_PROCESS_UPLOAD,
         PROGRESS_DONE
     };
+    
+    /*
+     * Uploading a data set may take a long time and BALSA might
+     * logout a user if a step takes a long time.
+     */
+    const bool loginToAvoidTimeoutFlag(true);
     
     EventProgressUpdate progressUpdate(PROGRESS_NONE,
                                        PROGRESS_DONE,
                                        PROGRESS_LOGIN,
                                        "Logging in...");
     EventManager::get()->sendEvent(progressUpdate.getPointer());
-    
+
+    if (loginToAvoidTimeoutFlag) {
+        progressUpdate.setProgress(PROGRESS_LOGIN, addToUploadProgressMessage("Logging in..."));
+        EventManager::get()->sendEvent(progressUpdate.getPointer());
+        if ( ! loginToAvoidTimeout(errorMessageOut)) {
+            return false;
+        }
+    }
     
     progressUpdate.setProgress(PROGRESS_CHECK_SCENE_IDS, addToUploadProgressMessage("Checking Scene IDs"));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
@@ -1814,6 +1847,14 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
     
     if (m_debugFlag) std::cout << "Zip file " << zipFileName << " has been created " << std::endl;
     
+    if (loginToAvoidTimeoutFlag) {
+        progressUpdate.setProgress(PROGRESS_LOGIN_IN_BEFORE_UPLOAD, addToUploadProgressMessage("Re-login in before upload..."));
+        EventManager::get()->sendEvent(progressUpdate.getPointer());
+        if ( ! loginToAvoidTimeout(errorMessageOut)) {
+            return false;
+        }
+    }
+
     progressUpdate.setProgress(PROGRESS_UPLOAD, addToUploadProgressMessage("Uploading zip file"));
     EventManager::get()->sendEvent(progressUpdate.getPointer());
     
@@ -1838,6 +1879,15 @@ BalsaDatabaseManager::uploadZippedSceneFile(SceneFile* sceneFile,
     
     const bool doProcessUploadFlag = true;
     if (doProcessUploadFlag) {
+        if (loginToAvoidTimeoutFlag) {
+            progressUpdate.setProgress(PROGRESS_LOGIN_IN_BEFORE_PROCESS_UPLOAD,
+                                       addToUploadProgressMessage("Re-login in before process upload..."));
+            EventManager::get()->sendEvent(progressUpdate.getPointer());
+            if ( ! loginToAvoidTimeout(errorMessageOut)) {
+                return false;
+            }
+        }
+        
         /*
          * Process the uploaded file
          */
