@@ -87,7 +87,11 @@ namespace caret {
 
         std::vector<std::unique_ptr<LabelSelectionItemModel>> m_tabSelectionModels;
         
+        std::vector<bool> m_triedToCreateTabSelectionModelFlags;
+        
         std::vector<std::unique_ptr<LabelSelectionItemModel>> m_displayGroupSelectionModels;
+        
+        std::vector<bool> m_triedToCreateDisplayGroupSelectionModelFlags;
         
         bool m_modelHasBeenCreatedFlag = false;
         

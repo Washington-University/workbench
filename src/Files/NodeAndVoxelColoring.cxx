@@ -694,8 +694,10 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(const GiftiLabe
             bool colorDataFlag = false;
             switch (labelViewMode) {
                 case LabelViewModeEnum::HIERARCHY:
-                    if (labelModel->isLabelChecked(labelKey)) {
-                        colorDataFlag = true;
+                    if (labelModel != NULL) {
+                        if (labelModel->isLabelChecked(labelKey)) {
+                            colorDataFlag = true;
+                        }
                     }
                     break;
                 case LabelViewModeEnum::LIST:

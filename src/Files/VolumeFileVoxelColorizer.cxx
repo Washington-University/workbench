@@ -462,8 +462,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                         if (label != NULL) {
                             switch (tabDrawingInfo.getLabelViewMode()) {
                                 case LabelViewModeEnum::HIERARCHY:
-                                    if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
-                                        alpha = 0;
+                                    if (labelSelectionItemModel != NULL) {
+                                        if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                            alpha = 0;
+                                        }
                                     }
                                     break;
                                 case LabelViewModeEnum::LIST:
@@ -575,8 +577,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSliceInMap(const int32_t mapIndex,
                     if (label != NULL) {
                         switch (tabDrawingInfo.getLabelViewMode()) {
                             case LabelViewModeEnum::HIERARCHY:
-                                if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
-                                    alpha = 0;
+                                if (labelSelectionItemModel != NULL) {
+                                    if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                        alpha = 0;
+                                    }
                                 }
                                 break;
                             case LabelViewModeEnum::LIST:
@@ -768,8 +772,10 @@ VolumeFileVoxelColorizer::getVoxelColorsForSubSliceInMap(const int32_t mapIndex,
                     {
                         switch (tabDrawingInfo.getLabelViewMode()) {
                             case LabelViewModeEnum::HIERARCHY:
-                                if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
-                                    alpha = 0;
+                                if (labelSelectionItemModel != NULL) {
+                                    if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                        alpha = 0;
+                                    }
                                 }
                                 break;
                             case LabelViewModeEnum::LIST:
@@ -906,8 +912,10 @@ VolumeFileVoxelColorizer::getVoxelColorInMap(const int64_t i,
             if (label != NULL) {
                 switch (tabDrawingInfo.getLabelViewMode()) {
                     case LabelViewModeEnum::HIERARCHY:
-                        if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
-                            alpha = 0;
+                        if (labelSelectionItemModel != NULL) {
+                            if ( ! labelSelectionItemModel->isLabelChecked(dataValue)) {
+                                alpha = 0;
+                            }
                         }
                         break;
                     case LabelViewModeEnum::LIST:

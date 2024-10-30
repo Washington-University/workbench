@@ -60,7 +60,12 @@ m_mapIndex(mapIndex)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     
     m_tabSelectionModels.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    m_triedToCreateTabSelectionModelFlags.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                                                 false);
+    
     m_displayGroupSelectionModels.resize(DisplayGroupEnum::NUMBER_OF_GROUPS);
+    m_triedToCreateDisplayGroupSelectionModelFlags.resize(DisplayGroupEnum::NUMBER_OF_GROUPS,
+                                                          false);
     
     if ( ! mapFile->isMappedWithLabelTable()) {
         const AString txt ("Attempting to create LabelSelectionModel for non-label file: "
@@ -89,7 +94,10 @@ CaretMappableDataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const
                                                               const int32_t tabIndex)
 {
     if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
-        if ( ! m_tabSelectionModels[tabIndex]) {
+        CaretAssertVectorIndex(m_triedToCreateTabSelectionModelFlags, tabIndex);
+        CaretAssertVectorIndex(m_tabSelectionModels, tabIndex);
+        if ( ! m_triedToCreateTabSelectionModelFlags[tabIndex]) {
+            m_triedToCreateTabSelectionModelFlags[tabIndex] = true;
             m_tabSelectionModels[tabIndex].reset(createModel(displayGroup,
                                                                       tabIndex));
         }
@@ -97,7 +105,10 @@ CaretMappableDataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const
     }
     else {
         const int32_t displayGroupIndex(DisplayGroupEnum::toIntegerCode(displayGroup));
-        if ( ! m_displayGroupSelectionModels[displayGroupIndex]) {
+        CaretAssertVectorIndex(m_triedToCreateDisplayGroupSelectionModelFlags, displayGroupIndex);
+        CaretAssertVectorIndex(m_displayGroupSelectionModels, displayGroupIndex);
+        if ( ! m_triedToCreateDisplayGroupSelectionModelFlags[displayGroupIndex]) {
+            m_triedToCreateDisplayGroupSelectionModelFlags[displayGroupIndex] = true;
             m_displayGroupSelectionModels[displayGroupIndex].reset(createModel(displayGroup,
                                                                                tabIndex));
         }
@@ -110,6 +121,7 @@ CaretMappableDataFileLabelSelectionDelegate::getSelectionModelForMapAndTab(const
 
 /**
  * @return A label selection model for the given map, display group, and tab
+ *         Note: NULL is returned if there is no label hierarchy available
  * @param displayGroup
  *    Display group selected in the tab
  * @param tabIndex
@@ -129,6 +141,14 @@ CaretMappableDataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum:
                                  + mapName);
     GiftiLabelTable* labelTable(m_mapFile->getMapLabelTable(m_mapIndex));
     CaretAssert(labelTable);
+    
+    /*
+     * Hierarchy is required to build model
+     */
+    const CaretHierarchy& caretHierarchy(labelTable->getHierarchy());
+    if (caretHierarchy.isEmpty()) {
+        return NULL;
+    }
     
     /*
      * One LabelSelectionItemModel is created for each tab and display group.
@@ -260,9 +280,10 @@ CaretMappableDataFileLabelSelectionDelegate::restoreFromScene(const SceneAttribu
             for (const int32_t tabIndex : tabIndices) {
                 LabelSelectionItemModel* model(getSelectionModelForMapAndTab(DisplayGroupEnum::DISPLAY_GROUP_TAB,
                                                                              tabIndex));
-                CaretAssert(model);
-                model->restoreFromScene(sceneAttributes,
-                                        tabSceneMap->classValue(tabIndex));
+                if (model != NULL) {
+                    model->restoreFromScene(sceneAttributes,
+                                            tabSceneMap->classValue(tabIndex));
+                }
             }
         }
     }
@@ -278,8 +299,9 @@ CaretMappableDataFileLabelSelectionDelegate::restoreFromScene(const SceneAttribu
                 const int32_t invalidTabIndex(-1);
                 LabelSelectionItemModel* model(getSelectionModelForMapAndTab(displayGroup,
                                                                              invalidTabIndex));
-                CaretAssert(model);
-                model->restoreFromScene(sceneAttributes, dgSceneMap->classValue(dgIndex));
+                if (model != NULL) {
+                    model->restoreFromScene(sceneAttributes, dgSceneMap->classValue(dgIndex));
+                }
             }
         }
     }
