@@ -63,8 +63,7 @@ Cluster::locationTypeToName(const LocationType type)
  * Default constructor creates an invalid cluster.
  */
 Cluster::Cluster()
-: CaretObject(),
-m_location(LocationType::UNKNOWN),
+: m_location(LocationType::UNKNOWN),
 m_name(""),
 m_key(-1)
 {
@@ -83,8 +82,7 @@ m_key(-1)
 Cluster::Cluster(const AString& name,
                  const int32_t key,
                  const std::vector<Vector3D>& coordinatesXYZ)
-: CaretObject(),
-m_location(LocationType::UNKNOWN),
+: m_location(LocationType::UNKNOWN),
 m_name(name),
 m_key(key),
 m_coordinateXYZ(coordinatesXYZ)
@@ -105,7 +103,6 @@ Cluster::~Cluster()
  *    Object that is copied.
  */
 Cluster::Cluster(const Cluster& obj)
-: CaretObject(obj)
 {
     this->copyHelperCluster(obj);
 }
@@ -121,7 +118,6 @@ Cluster&
 Cluster::operator=(const Cluster& obj)
 {
     if (this != &obj) {
-        CaretObject::operator=(obj);
         this->copyHelperCluster(obj);
     }
     return *this;    

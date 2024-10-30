@@ -26,12 +26,12 @@
 #include <memory>
 #include <vector>
 
-#include "CaretObject.h"
+#include "AString.h"
 #include "Vector3D.h"
 
 namespace caret {
 
-    class Cluster : public CaretObject {
+    class Cluster {
         
     public:
         /**
