@@ -114,11 +114,12 @@ OperationParameters* OperationCiftiConvert::getParameters()
     
     AString myText = AString("This command is used to convert a full CIFTI matrix to/from formats that can be used by programs that don't understand CIFTI.  ") +
         "You must specify exactly one of -to-gifti-ext, -from-gifti-ext, -to-nifti, -from-nifti, -to-text, or -from-text.\n\n" +
+        "This command cannot map surface-based parts of the cifti file to a spatially-correct volume file, or map volume-based data to the surface, see -volume-to-surface-mapping and -metric-to-volume-mapping instead (other commands such as -cifti-separate are also required).\n\n" +
         "If you want to write an existing CIFTI file with a different CIFTI version, see -file-convert, and its -cifti-version-convert option.\n\n" +
         "If you want part of the CIFTI file as a metric, label, or volume file, see -cifti-separate.  " +
         "If you want to create a CIFTI file from metric and/or volume files, see the -cifti-create-* commands.\n\n" +
-        "If you want to import a matrix that is restricted to an ROI, first create a template CIFTI file matching that ROI using a -cifti-create-* command.  " +
-        "After importing to CIFTI, you can then expand the file into a standard brainordinates space with -cifti-create-dense-from-template.  " +
+        "If you want to import a matrix in non-CIFTI format that is restricted to an ROI, first obtain a template CIFTI file matching that ROI (you can use -cifti-create-dense-scalar if you don't have such a file).  " +
+        "Use -cifti-convert to import it to CIFTI format, and you can then expand the file into a standard brainordinates space with -cifti-create-dense-from-template.  " +
         "If you want to export only part of a CIFTI file, first create an roi-restricted CIFTI file with -cifti-restrict-dense-mapping.\n\n" +
         "The -transpose option to -from-gifti-ext is needed if the replacement binary file is in column-major order.\n\n" +
         "The -unit options accept these values:\n";
@@ -449,6 +450,13 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             throw OperationException("input nifti is too small for column length (need at least " + AString::number(numRows) +
                                      ", product of first three nifti dimensions is " + AString::number(myDims[0] * myDims[1] * myDims[2]) + ")");
+        }
+        if (2 * numRows < myDims[0] * myDims[1] * myDims[2])
+        {
+            CaretLogWarning(AString("Input nifti has more than twice as many 'spatial' voxels as the\n") +
+                            "template cifti column length, this is probably not a valid 'fake-nifti' file.\n\nnumber of cifti column elements: " + AString::number(numRows) + "\nproduct of first three nifti dimensions: " + AString::number(myDims[0] * myDims[1] * myDims[2]) + "\n\n" +
+                            "'-cifti-convert -from-nifti' is only intended to be used after '-cifti-convert\n" +
+                            "-to-nifti' (and spatially-naive processing of the produced 'fake-nifti' file).");
         }
         myCiftiOut->setCiftiXML(outXML);
         vector<float> rowscratch(numCols);
