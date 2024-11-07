@@ -191,7 +191,7 @@ namespace caret {
         
         CziImageResolutionChangeModeEnum::Enum m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
 
-        int32_t m_cziManualPyramidLayerIndex = 1;
+        int32_t m_cziManualPyramidLayerIndex = 0;
         
         MediaFile* m_previousSelectedFile = NULL;
         

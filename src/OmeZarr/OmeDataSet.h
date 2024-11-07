@@ -21,13 +21,18 @@
  */
 /*LICENSE_END*/
 
-
-
+#include <array>
 #include <memory>
+
+#include "xtensor/xarray.hpp"
 
 #include "CaretObject.h"
 #include "FunctionResult.h"
+#include "OmeCoordinateTransformations.h"
+#include "OmeDimensionIndices.h"
+#include "OmeImage.h"
 #include "ZarrDataTypeEnum.h"
+#include "ZarrDriverTypeEnum.h"
 
 namespace caret {
 
@@ -40,38 +45,25 @@ namespace caret {
         
         virtual ~OmeDataSet();
         
-        OmeDataSet(const OmeDataSet& obj);
+        OmeDataSet(const OmeDataSet& obj) = delete;
 
-        OmeDataSet& operator=(const OmeDataSet& obj);
-        
+        OmeDataSet& operator=(const OmeDataSet& obj) = delete;
 
-        AString getPath() const;
+        int32_t getNumberOfCoordinateTransformations() const;
         
-        void setPath(const AString& path);
+        void addCoordinateTransformation(const OmeCoordinateTransformations& oct);
         
-        std::vector<float> getScaling() const;
-        
-        void setScaling(const std::vector<float>& scaling);
-        
-        std::vector<float> getTranslation() const;
-        
-        void setTranslation(const std::vector<float>& translation);
+        OmeCoordinateTransformations getCoordinateTransfomation(const int32_t index) const;
 
+        AString getRelativePath() const;
+        
+        void setRelativePath(const AString& relativePath);
+        
         ZarrDataTypeEnum::Enum getZarrDataType() const;
-        
-        void setZarrDataType(const ZarrDataTypeEnum::Enum zarrDataType);
         
         std::vector<int64_t> getDimensions() const;
         
-        void setDimensions(const std::vector<int64_t>& dimensions);
-        
-        void setDimensionIndices(const int32_t dimensionIndexX,
-                                 const int32_t dimensionIndexY,
-                                 const int32_t dimensionIndexZ,
-                                 const int32_t dimensionIndexTime,
-                                 const int32_t dimensionIndexChannel);
-        
-        void setZarrImageReader(ZarrImageReader* zarrImageReader);
+        void setDimensionIndices(const OmeDimensionIndices& dimensionIndices);
         
         int64_t getWidth() const;
 
@@ -83,41 +75,34 @@ namespace caret {
         
         int64_t getNumberOfChannels() const;
         
-        FunctionResultValue<unsigned char*> readDataSet(const int64_t sliceIndex) const;
+        FunctionResult initializeForReading(const ZarrDriverTypeEnum::Enum driverType,
+                                            const AString& zarrPath);
         
-        FunctionResultValue<unsigned char*> readDataSetForImage(const int64_t sliceIndex) const;
+        FunctionResultValue<OmeImage*> readSlice(const int64_t sliceIndex) const;
+        
+        FunctionResultValue<std::array<uint8_t, 4>> readSlicePixel(const int64_t sliceIndex,
+                                                                   const int64_t pixelX,
+                                                                   const int64_t pixelY) const;
+
+        FunctionResultValue<uint8_t*> readDataSetForImage(const int64_t sliceIndex) const;
         
         // ADD_NEW_METHODS_HERE
         
         virtual AString toString() const;
 
     private:
-        void copyHelperOmeDataSet(const OmeDataSet& obj);
+        /** The subdirectory path*/
+        AString m_relativePath;
 
-    /** The subdirectory path*/
-    AString m_path;
-
-    /** scaling*/
-    std::vector<float> m_scaling;
-
-    /** translation*/
-    std::vector<float> m_translation;
-
+        std::vector<OmeCoordinateTransformations> m_coordinateTransformations;
+        
         ZarrDataTypeEnum::Enum m_zarrDataType = ZarrDataTypeEnum::UNKNOWN;
 
         std::vector<int64_t> m_dimensions;
         
         std::unique_ptr<ZarrImageReader> m_zarrImageReader;
         
-        int32_t m_dimensionIndexX = -1;
-        
-        int32_t m_dimensionIndexY = -1;
-        
-        int32_t m_dimensionIndexZ = -1;
-        
-        int32_t m_dimensionIndexTime = -1;
-         
-        int32_t m_dimensionIndexChannel = -1;
+        OmeDimensionIndices m_dimensionIndices;
         
         // ADD_NEW_MEMBERS_HERE
 

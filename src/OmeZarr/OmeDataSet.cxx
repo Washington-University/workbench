@@ -33,6 +33,14 @@ using namespace caret;
  * \class caret::OmeDataSet 
  * \brief Models an OME "datasets" element
  * \ingroup OmeZarr
+ *
+ * An OME-ZARR file may contain multiple datasets where
+ * each dataset is a different resolution (dimensions).  Each
+ * of these datasets is also in the .zattrs file in located in the
+ * top level directory.  Each of these datasets are in
+ * subdirectories 0, 1, 2, etc.
+ *
+ * https://ngff.openmicroscopy.org/0.4/index.html#multiscale-md
  */
 
 /**
@@ -52,49 +60,6 @@ OmeDataSet::~OmeDataSet()
 }
 
 /**
- * Copy constructor.
- * @param obj
- *    Object that is copied.
- */
-OmeDataSet::OmeDataSet(const OmeDataSet& obj)
-: CaretObject(obj)
-{
-    this->copyHelperOmeDataSet(obj);
-}
-
-/**
- * Assignment operator.
- * @param obj
- *    Data copied from obj to this.
- * @return 
- *    Reference to this object.
- */
-OmeDataSet&
-OmeDataSet::operator=(const OmeDataSet& obj)
-{
-    if (this != &obj) {
-        CaretObject::operator=(obj);
-        this->copyHelperOmeDataSet(obj);
-    }
-    return *this;    
-}
-
-/**
- * Helps with copying an object of this type.
- * @param obj
- *    Object that is copied.
- */
-void 
-OmeDataSet::copyHelperOmeDataSet(const OmeDataSet& obj)
-{
-    m_path         = obj.m_path;
-    m_scaling      = obj.m_scaling;
-    m_translation  = obj.m_translation;
-    m_zarrDataType = obj.m_zarrDataType;
-    m_dimensions   = obj.m_dimensions;
-}
-
-/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -102,76 +67,67 @@ AString
 OmeDataSet::toString() const
 {
     AString txt("OmeDataSet:");
-    txt.appendWithNewLine("   Path: " + m_path);
-    txt.appendWithNewLine("   Scaling: " + AString::fromNumbers(m_scaling));
-    txt.appendWithNewLine("   Translation: " + AString::fromNumbers(m_translation));
+    txt.appendWithNewLine("   Relative Path: " + m_relativePath);
     txt.appendWithNewLine("   ZARR data type: " + ZarrDataTypeEnum::toGuiName(m_zarrDataType));
     txt.appendWithNewLine("   Dimensions: " + AString::fromNumbers(m_dimensions));
+    txt.appendWithNewLine("   Indices: " + m_dimensionIndices.toString());
+    for (const auto& oct : m_coordinateTransformations) {
+        txt.appendWithNewLine("   Coord Transform: " + oct.toString());
+    }
     return txt;
 }
-
 
 /**
  * @return The subdirectory path
  */
 AString
-OmeDataSet::getPath() const
+OmeDataSet::getRelativePath() const
 {
-    return m_path;
+    return m_relativePath;
 }
 
 /**
  * Set The subdirectory path
  *
- * @param path
+ * @param relativePath
  *    New value for The subdirectory path
  */
 void
-OmeDataSet::setPath(const AString& path)
+OmeDataSet::setRelativePath(const AString& relativePath)
 {
-    m_path = path;
+    m_relativePath = relativePath;
 }
 
 /**
- * @return scaling
+ * Number of coordinate transformations
  */
-std::vector<float>
-OmeDataSet::getScaling() const
+int32_t
+OmeDataSet::getNumberOfCoordinateTransformations() const
 {
-    return m_scaling;
+    return m_coordinateTransformations.size();
 }
 
 /**
- * Set scaling
- *
- * @param scaling
- *    New value for scaling
- */
-void
-OmeDataSet::setScaling(const std::vector<float>& scaling)
-{
-    m_scaling = scaling;
-}
-
-/**
- * @return translation
- */
-std::vector<float>
-OmeDataSet::getTranslation() const
-{
-    return m_translation;
-}
-
-/**
- * Set translation
- *
- * @param translation
- *    New value for translation
+ * Add the coordinate transformation.
+ * @param oct
+ *    The coordinate transformation to add
  */
 void
-OmeDataSet::setTranslation(const std::vector<float>& translation)
+OmeDataSet::addCoordinateTransformation(const OmeCoordinateTransformations& oct)
 {
-    m_translation = translation;
+    m_coordinateTransformations.push_back(oct);
+}
+
+/**
+ * @return the coordinate transformation at the given index
+ * @param index
+ *    Index of coordinate transformation
+ */
+OmeCoordinateTransformations
+OmeDataSet::getCoordinateTransfomation(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_coordinateTransformations, index);
+    return m_coordinateTransformations[index];
 }
 
 /**
@@ -184,18 +140,6 @@ OmeDataSet::getZarrDataType() const
 }
 
 /**
- * Set the ZARR data type
- *
- * @param zarrDataType
- *    New value for the ZARR data type
- */
-void
-OmeDataSet::setZarrDataType(const ZarrDataTypeEnum::Enum zarrDataType)
-{
-    m_zarrDataType = zarrDataType;
-}
-
-/**
  * @return The dimensions
  */
 std::vector<int64_t>
@@ -205,53 +149,14 @@ OmeDataSet::getDimensions() const
 }
 
 /**
- * Set the dimensions
- *
- * @param dimensions
- *    New value for the dimensions
- */
-void
-OmeDataSet::setDimensions(const std::vector<int64_t>& dimensions)
-{
-    m_dimensions = dimensions;
-}
-
-/**
- * Set the ZARR image reader for reading this data set
- * @param zarrImageReader
- *    The ZARR image reader
- */
-void
-OmeDataSet::setZarrImageReader(ZarrImageReader* zarrImageReader)
-{
-    m_zarrImageReader.reset(zarrImageReader);
-}
-
-/**
  * Set the indices for each of the dimensions
- * @param dimensionIndexX
- *    Dimension of X (width)
- * @param dimensionIndexY
- *    Dimension of Y (height)
- * @param dimensionIndexZ
- *    Dimension of Z (number of slices)
- * @param dimensionIndexTime
- *    Dimension of time
- * @param dimensionIndexChannel
- *    Dimension of channels
+ * @param dimensionIndices
+ *    The dimension indices
  */
 void
-OmeDataSet::setDimensionIndices(const int32_t dimensionIndexX,
-                                const int32_t dimensionIndexY,
-                                const int32_t dimensionIndexZ,
-                                const int32_t dimensionIndexTime,
-                                const int32_t dimensionIndexChannel)
+OmeDataSet::setDimensionIndices(const OmeDimensionIndices& dimensionIndices)
 {
-    m_dimensionIndexX       = dimensionIndexX;
-    m_dimensionIndexY       = dimensionIndexY;
-    m_dimensionIndexZ       = dimensionIndexZ;
-    m_dimensionIndexTime    = dimensionIndexTime;
-    m_dimensionIndexChannel = dimensionIndexChannel;
+    m_dimensionIndices = dimensionIndices;
 }
 
 /**
@@ -260,9 +165,10 @@ OmeDataSet::setDimensionIndices(const int32_t dimensionIndexX,
 int64_t
 OmeDataSet::getWidth() const
 {
-    if ((m_dimensionIndexX >= 0)
-        && (m_dimensionIndexX < static_cast<int32_t>(m_dimensions.size()))) {
-        return m_dimensions[m_dimensionIndexX];
+    const int64_t index(m_dimensionIndices.getIndexForX());
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_dimensions.size()))) {
+        return m_dimensions[index];
     }
     return -1;
 }
@@ -273,9 +179,10 @@ OmeDataSet::getWidth() const
 int64_t
 OmeDataSet::getHeight() const
 {
-    if ((m_dimensionIndexY >= 0)
-        && (m_dimensionIndexY < static_cast<int32_t>(m_dimensions.size()))) {
-        return m_dimensions[m_dimensionIndexY];
+    const int64_t index(m_dimensionIndices.getIndexForY());
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_dimensions.size()))) {
+        return m_dimensions[index];
     }
     return -1;
 }
@@ -286,9 +193,10 @@ OmeDataSet::getHeight() const
 int64_t
 OmeDataSet::getNumberOfSlices() const
 {
-    if ((m_dimensionIndexZ >= 0)
-        && (m_dimensionIndexZ < static_cast<int32_t>(m_dimensions.size()))) {
-        return m_dimensions[m_dimensionIndexZ];
+    const int64_t index(m_dimensionIndices.getIndexForZ());
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_dimensions.size()))) {
+        return m_dimensions[index];
     }
     return -1;
 }
@@ -299,9 +207,10 @@ OmeDataSet::getNumberOfSlices() const
 int64_t
 OmeDataSet::getNumberOfTimePoints() const
 {
-    if ((m_dimensionIndexTime >= 0)
-        && (m_dimensionIndexX < static_cast<int32_t>(m_dimensions.size()))) {
-        return m_dimensions[m_dimensionIndexTime];
+    const int64_t index(m_dimensionIndices.getIndexForTime());
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_dimensions.size()))) {
+        return m_dimensions[index];
     }
     return -1;
 }
@@ -312,11 +221,40 @@ OmeDataSet::getNumberOfTimePoints() const
 int64_t
 OmeDataSet::getNumberOfChannels() const
 {
-    if ((m_dimensionIndexChannel >= 0)
-        && (m_dimensionIndexChannel < static_cast<int32_t>(m_dimensions.size()))) {
-        return m_dimensions[m_dimensionIndexChannel];
+    const int64_t index(m_dimensionIndices.getIndexForChannel());
+    if ((index >= 0)
+        && (index < static_cast<int32_t>(m_dimensions.size()))) {
+        return m_dimensions[index];
     }
     return -1;
+}
+
+/**
+ * Initialize this data set with a zarr image reader prior to reading data
+ * @param driverType
+ *    Type of ZARR driver
+ * @param zarrPath
+ *    Top level path (could be a directory, zip file, web address, etc.)
+ * @return
+ *    Result of initialization
+ */
+FunctionResult
+OmeDataSet::initializeForReading(const ZarrDriverTypeEnum::Enum driverType,
+                                 const AString& zarrPath)
+{
+    m_zarrImageReader.reset(new ZarrImageReader());
+    const FunctionResult initReaderResult(m_zarrImageReader->initialize(driverType,
+                                                                        zarrPath,
+                                                                        m_relativePath));
+    if (initReaderResult.isError()) {
+        m_zarrImageReader.reset();
+        return initReaderResult;
+    }
+    
+    m_dimensions = m_zarrImageReader->getShapeSizes();
+    m_zarrDataType = m_zarrImageReader->getDataType();
+    
+    return FunctionResult::ok();
 }
 
 /**
@@ -324,19 +262,22 @@ OmeDataSet::getNumberOfChannels() const
  * @param sliceIndex
  *    Index of the slice.
  */
-FunctionResultValue<unsigned char*>
+FunctionResultValue<uint8_t*>
 OmeDataSet::readDataSetForImage(const int64_t sliceIndex) const
 {
-    FunctionResultValue<unsigned char*> imageResult(readDataSet(sliceIndex));
-    if (imageResult.isError()) {
-        return imageResult;
+    FunctionResultValue<OmeImage*> dataResult(readSlice(sliceIndex));
+    if (dataResult.isError()) {
+        return FunctionResultValue<uint8_t*>(NULL,
+                                             dataResult.getErrorMessage(),
+                                             false);
     }
-    const unsigned char* data(imageResult.getValue());
-    CaretAssert(data);
+    
+    const std::unique_ptr<OmeImage> omeImage(dataResult.getValue());
+    CaretAssert(omeImage);
     
     const std::vector<int64_t> dims(getDimensions());
-    const int64_t numX(dims[m_dimensionIndexX]);
-    const int64_t numY(dims[m_dimensionIndexY]);
+    const int64_t numX(dims[m_dimensionIndices.getIndexForX()]);
+    const int64_t numY(dims[m_dimensionIndices.getIndexForY()]);
     const int64_t sizeXY(numX * numY);
     const int64_t numSlices(1);
     const int64_t sizeXYZ(sizeXY * numSlices);
@@ -344,6 +285,8 @@ OmeDataSet::readDataSetForImage(const int64_t sliceIndex) const
     const int64_t numData(sizeXYZ * getNumberOfChannels());
     
     unsigned char* rgba(new unsigned char[numData]);
+    
+    const int64_t timeIndex(0);
     
     const bool flipJFlag(true);
     const int64_t k(0);
@@ -362,14 +305,14 @@ OmeDataSet::readDataSetForImage(const int64_t sliceIndex) const
                                         : (numY - j - 1)));
                 const int64_t pixelIndex(((rowIndex * numX)
                                           + i) * 4);
-                rgba[pixelIndex + c] = data[offset];
+                rgba[pixelIndex + c] = omeImage->getElement(i, j, k, timeIndex, c);
             }
         }
     }
-
-    return FunctionResultValue<unsigned char*>(rgba,
-                                               "",
-                                               true);
+    
+    return FunctionResultValue<uint8_t*>(rgba,
+                                         "",
+                                         true);
 }
 
 /**
@@ -377,17 +320,17 @@ OmeDataSet::readDataSetForImage(const int64_t sliceIndex) const
  * @param sliceIndex
  *    Index of the slice.
  */
-FunctionResultValue<unsigned char*>
-OmeDataSet::readDataSet(const int64_t sliceIndex) const
+FunctionResultValue<OmeImage*>
+OmeDataSet::readSlice(const int64_t sliceIndex) const
 {
     if ((sliceIndex < 0)
         || (sliceIndex >= getNumberOfSlices())) {
-        return FunctionResultValue<unsigned char*>(NULL,
+        return FunctionResultValue<OmeImage*>(NULL,
                                                    ("Invalid slice index=" + QString::number(sliceIndex)),
                                                    false);
     }
     if ( ! m_zarrImageReader) {
-        return FunctionResultValue<unsigned char*>(NULL,
+        return FunctionResultValue<OmeImage*>(NULL,
                                                    ("ZarrImageReader in OmeDataSet is invalid."),
                                                    false);
     }
@@ -399,19 +342,90 @@ OmeDataSet::readDataSet(const int64_t sliceIndex) const
     const int32_t numDims(dims.size());
     std::vector<int64_t> dimOffset(numDims, 0);
     std::vector<int64_t> dimLengths(numDims, 0);
-    dimLengths[m_dimensionIndexX] = dims[m_dimensionIndexX];
-    dimLengths[m_dimensionIndexY] = dims[m_dimensionIndexY];
-    dimLengths[m_dimensionIndexZ] = dims[m_dimensionIndexZ];
-    dimLengths[m_dimensionIndexChannel] = dims[m_dimensionIndexChannel];
+    dimLengths[m_dimensionIndices.getIndexForX()] = dims[m_dimensionIndices.getIndexForX()];
+    dimLengths[m_dimensionIndices.getIndexForY()] = dims[m_dimensionIndices.getIndexForY()];
+    dimLengths[m_dimensionIndices.getIndexForZ()] = dims[m_dimensionIndices.getIndexForZ()];
+    dimLengths[m_dimensionIndices.getIndexForChannel()] = dims[m_dimensionIndices.getIndexForChannel()];
     
-    dimOffset[m_dimensionIndexZ]  = sliceIndex;
-    dimLengths[m_dimensionIndexZ] = 1;
+    dimOffset[m_dimensionIndices.getIndexForZ()]  = sliceIndex;
+    dimLengths[m_dimensionIndices.getIndexForZ()] = 1;
     
+    FunctionResultValue<xt::xarray<uint8_t>*> zarrDataResult(m_zarrImageReader->readData(dimOffset,
+                                                                                         dimLengths));
+    if (zarrDataResult.isOk()) {
+        return FunctionResultValue<OmeImage*>(new OmeImage(zarrDataResult.getValue(),
+                                                           m_dimensionIndices),
+                                              "",
+                                              true);
+    }
     
-    FunctionResultValue<unsigned char*> readResult(m_zarrImageReader->readData(dimOffset,
-                                                                               dimLengths,
-                                                                               ZarrDataTypeEnum::UINT_8));
-    return readResult;
+    return FunctionResultValue<OmeImage*>(NULL,
+                                          zarrDataResult.getErrorMessage(),
+                                          zarrDataResult.isOk());
+}
+
+/**
+ * Read the given pixel from the ZARR file.
+ * @param sliceIndex
+ *    Index of the slice.
+ */
+FunctionResultValue<std::array<uint8_t, 4>>
+OmeDataSet::readSlicePixel(const int64_t sliceIndex,
+                           const int64_t pixelX,
+                           const int64_t pixelY) const
+{
+    std::array<uint8_t, 4> rgba { 0, 0, 0, 0 };
+    
+    if ((sliceIndex < 0)
+        || (sliceIndex >= getNumberOfSlices())) {
+        return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
+                                              ("Invalid slice index=" + QString::number(sliceIndex)),
+                                              false);
+    }
+    if ( ! m_zarrImageReader) {
+        return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
+                                              ("ZarrImageReader in OmeDataSet is invalid."),
+                                              false);
+    }
+    
+    /*
+     * Loads one Z-Slice
+     */
+    const std::vector<int64_t> dims(getDimensions());
+    const int32_t numDims(dims.size());
+    std::vector<int64_t> dimOffset(numDims, 0);
+    std::vector<int64_t> dimLengths(numDims, 0);
+    dimLengths[m_dimensionIndices.getIndexForX()] = dims[m_dimensionIndices.getIndexForX()];
+    dimLengths[m_dimensionIndices.getIndexForY()] = dims[m_dimensionIndices.getIndexForY()];
+    dimLengths[m_dimensionIndices.getIndexForZ()] = dims[m_dimensionIndices.getIndexForZ()];
+    dimLengths[m_dimensionIndices.getIndexForChannel()] = dims[m_dimensionIndices.getIndexForChannel()];
+    
+    dimOffset[m_dimensionIndices.getIndexForX()] = pixelX;
+    dimOffset[m_dimensionIndices.getIndexForY()] = pixelY;
+    dimOffset[m_dimensionIndices.getIndexForZ()]  = sliceIndex;
+    dimLengths[m_dimensionIndices.getIndexForX()] = 1;
+    dimLengths[m_dimensionIndices.getIndexForY()] = 1;
+    dimLengths[m_dimensionIndices.getIndexForZ()] = 1;
+    
+    FunctionResultValue<xt::xarray<uint8_t>*> zarrDataResult(m_zarrImageReader->readData(dimOffset,
+                                                                                         dimLengths));
+    if (zarrDataResult.isOk()) {
+        xt::xarray<uint8_t>* dataRead(zarrDataResult.getValue());
+        rgba[0] = (*dataRead)(0);
+        rgba[1] = (*dataRead)(1);
+        rgba[2] = (*dataRead)(2);
+        rgba[3] = (*dataRead)(3);
+        delete dataRead;
+
+        return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
+                                               "",
+                                               true);
+    }
+    
+    return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
+                                           zarrDataResult.getErrorMessage(),
+                                           zarrDataResult.isOk());
+
 }
 
 

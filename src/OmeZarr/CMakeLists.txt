@@ -45,25 +45,55 @@ ENDIF()
 # Create a library
 #
 ADD_LIBRARY(OmeZarr
+OmeAttrsV0p4JsonFile.h
 OmeAxis.h
 OmeAxisTypeEnum.h
+OmeCoordinateTransformationTypeEnum.h
+OmeCoordinateTransformations.h
 OmeDataSet.h
+OmeDimensionIndices.h
+OmeDimensionSizes.h
+OmeFileReader.h
+OmeImage.h
 OmeSpaceUnitEnum.h
 OmeTimeUnitEnum.h
 OmeVersionEnum.h
-OmeZarrReader.h
+ZarrCompressorTypeEnum.h
+ZarrDataTypeByteOrderEnum.h
 ZarrDataTypeEnum.h
+ZarrDimensionSeparatorEnum.h
+ZarrDriverTypeEnum.h
+ZarrHelper.h
 ZarrImageReader.h
+ZarrJsonFileBase.h
+ZarrRowColumnMajorOrderTypeEnum.h
+ZarrV2ArrayJsonFile.h
+ZarrV2GroupJsonFile.h
 
+OmeAttrsV0p4JsonFile.cxx
 OmeAxis.cxx
 OmeAxisTypeEnum.cxx
+OmeCoordinateTransformationTypeEnum.cxx
+OmeCoordinateTransformations.cxx
 OmeDataSet.cxx
+OmeDimensionIndices.cxx
+OmeDimensionSizes.cxx
+OmeFileReader.cxx
+OmeImage.cxx
 OmeSpaceUnitEnum.cxx
 OmeTimeUnitEnum.cxx
 OmeVersionEnum.cxx
-OmeZarrReader.cxx
+ZarrCompressorTypeEnum.cxx
+ZarrDataTypeByteOrderEnum.cxx
 ZarrDataTypeEnum.cxx
+ZarrDimensionSeparatorEnum.cxx
+ZarrDriverTypeEnum.cxx
+ZarrHelper.cxx
 ZarrImageReader.cxx
+ZarrJsonFileBase.cxx
+ZarrRowColumnMajorOrderTypeEnum.cxx
+ZarrV2ArrayJsonFile.cxx
+ZarrV2GroupJsonFile.cxx
 )
 
 #
@@ -74,3 +104,4 @@ ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/OmeZarr
 )
 
+ADD_DEFINITIONS(-DWITH_BLOSC)

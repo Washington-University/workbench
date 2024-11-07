@@ -27,17 +27,19 @@
 #include <memory>
 #include <vector>
 
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
-#include "tensorstore/context.h"
-#include "tensorstore/open.h"
-#endif
+#include <xtensor/xarray.hpp>
 
 #include "CaretObject.h"
 #include "FunctionResult.h"
 #include "ZarrDataTypeEnum.h"
+#include "ZarrDriverTypeEnum.h"
 
 namespace caret {
 
+    class OmeAttrsV0p4JsonFile;
+    class ZarrV2ArrayJsonFile;
+    class ZarrV2GroupJsonFile;
+    
     class ZarrImageReader : public CaretObject {
         
     public:
@@ -45,56 +47,56 @@ namespace caret {
         
         virtual ~ZarrImageReader();
         
-        ZarrImageReader(const ZarrImageReader& obj);
+        ZarrImageReader(const ZarrImageReader& obj) = delete;
 
-        ZarrImageReader& operator=(const ZarrImageReader& obj);
+        ZarrImageReader& operator=(const ZarrImageReader& obj) = delete;
         
-        FunctionResult readZarrayFile(tensorstore::Context& context,
-                                      const AString& zarrayFilename,
-                                      const AString& driverName);
-
-        static FunctionResultString getDriverNameFromFilename(const AString& filename);
+        FunctionResult initialize(const ZarrDriverTypeEnum::Enum driverType,
+                                  const AString& zarrPath,
+                                  const AString& relativePath);
         
-        static FunctionResultInt32 readZgroupFileZarrFormat(tensorstore::Context& context,
-                                                            const AString& driverName,
-                                                            const AString& zarrFilename);
-        
-        static FunctionResultValue<nlohmann::json> readJson(tensorstore::Context& context,
-                                                            const AString& driverName,
-                                                            const AString& zarrFilename,
-                                                            const AString& fileInZarrFilename);
-        
-        static FunctionResultValue<nlohmann::json> readZattrsFileJson(tensorstore::Context& context,
-                                                                      const AString& driverName,
-                                                                      const AString& zarrFilename);
-        
-        std::vector<int64_t> getDimensions() const;
-        
-        void setDimensions(const std::vector<int64_t> dimensions);
+        std::vector<int64_t> getShapeSizes() const;
         
         ZarrDataTypeEnum::Enum getDataType() const;
         
-        void setDataType(const ZarrDataTypeEnum::Enum dataType);
-
-        FunctionResultValue<unsigned char*> readData(const std::vector<int64_t>& dimOffsets,
-                                                     const std::vector<int64_t>& dimLengths,
-                                                     const ZarrDataTypeEnum::Enum dataTypeToRead);
+        FunctionResultValue<xt::xarray<uint8_t>*> readData(const std::vector<int64_t>& dimOffsets,
+                                                           const std::vector<int64_t>& dimLengths);
         
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
         
     private:
+        enum class Status {
+            INITIALIZATION_FAILED,
+            INITIALIZATION_SUCCESSFUL,
+            UNINITIALIZED
+        };
+        
         void copyHelperZarrImageReader(const ZarrImageReader& obj);
 
+        FunctionResultValue<xt::xarray<uint8_t>*> readLocalFile(const AString& zarrPath,
+                                                                const AString& relativePath,
+                                                                const std::vector<int64_t>& dimOffsets,
+                                                                const std::vector<int64_t>& dimLengths);
+
+        FunctionResultValue<xt::xarray<uint8_t>*> readDataErrorResult(const AString& errorMessage);
+        
+        ZarrDriverTypeEnum::Enum m_driverType = ZarrDriverTypeEnum::INVALID;
+        
+        AString m_zarrPath;
+        
+        AString m_relativePath;
+        
+        Status m_status = Status::UNINITIALIZED;
+        
+        std::unique_ptr<ZarrV2ArrayJsonFile> m_zarrayFile;
+        
         /** file dimensions*/
-        std::vector<int64_t> m_dimensions;
+        std::vector<int64_t> m_shapeSizes;
         
         /** data type*/
         ZarrDataTypeEnum::Enum m_dataType;
-        
-        /** The 'store' for reading the tensorstore file */
-        tensorstore::TensorStore<> m_store;
 
         // ADD_NEW_MEMBERS_HERE
 

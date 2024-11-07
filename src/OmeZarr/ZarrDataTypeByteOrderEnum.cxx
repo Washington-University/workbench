@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __OME_AXIS_TYPE_ENUM_DECLARE__
-#include "OmeAxisTypeEnum.h"
-#undef __OME_AXIS_TYPE_ENUM_DECLARE__
+#define __ZARR_DATA_TYPE_BYTE_ORDER_ENUM_DECLARE__
+#include "ZarrDataTypeByteOrderEnum.h"
+#undef __ZARR_DATA_TYPE_BYTE_ORDER_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,11 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::OmeAxisTypeEnum 
- * \brief Enum for type of an OME Axis
+ * \class caret::ZarrDataTypeByteOrderEnum 
+ * \brief 
  *
- * Type of data associated with an axis in the .zattrs file
- *  https://ngff.openmicroscopy.org/0.4/index.html#axes-md
+ * https://zarr-specs.readthedocs.io/en/latest/v2/v2.0.html
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -43,42 +42,42 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_ngffAxisTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_zarrDataTypeByteOrderEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void ngffAxisTypeEnumComboBoxItemActivated();
+ *             void zarrDataTypeByteOrderEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "OmeAxisTypeEnum.h"
+ *         #include "ZarrDataTypeByteOrderEnum.h"
  * 
  *     Instatiate:
- *         m_ngffAxisTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_ngffAxisTypeEnumComboBox->setup<OmeAxisTypeEnum,OmeAxisTypeEnum::Enum>();
+ *         m_zarrDataTypeByteOrderEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_zarrDataTypeByteOrderEnumComboBox->setup<ZarrDataTypeByteOrderEnum,ZarrDataTypeByteOrderEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_ngffAxisTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(ngffAxisTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_zarrDataTypeByteOrderEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(zarrDataTypeByteOrderEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_ngffAxisTypeEnumComboBox->setSelectedItem<OmeAxisTypeEnum,OmeAxisTypeEnum::Enum>(NEW_VALUE);
+ *         m_zarrDataTypeByteOrderEnumComboBox->setSelectedItem<ZarrDataTypeByteOrderEnum,ZarrDataTypeByteOrderEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const OmeAxisTypeEnum::Enum VARIABLE = m_ngffAxisTypeEnumComboBox->getSelectedItem<OmeAxisTypeEnum,OmeAxisTypeEnum::Enum>();
+ *         const ZarrDataTypeByteOrderEnum::Enum VARIABLE = m_zarrDataTypeByteOrderEnumComboBox->getSelectedItem<ZarrDataTypeByteOrderEnum,ZarrDataTypeByteOrderEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case OmeAxisTypeEnum::UNKNOWN:
+    case ZarrDataTypeByteOrderEnum::UNKNOWN:
         break;
-    case OmeAxisTypeEnum::CHANNEL:
+    case ZarrDataTypeByteOrderEnum::ENDIAN_BIG:
         break;
-    case OmeAxisTypeEnum::SPACE:
+    case ZarrDataTypeByteOrderEnum::ENDIAN_LITTLE:
         break;
-    case OmeAxisTypeEnum::TIME:
+    case ZarrDataTypeByteOrderEnum::NOT_RELEVANT:
         break;
 }
 */
@@ -90,24 +89,27 @@ switch (value) {
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
+ * @param encoding
+ *    Encoding used in ZARR file
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-OmeAxisTypeEnum::OmeAxisTypeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+ZarrDataTypeByteOrderEnum::ZarrDataTypeByteOrderEnum(const Enum enumValue,
+                                                     const AString& name,
+                                                     const AString& encoding,
+                                                     const AString& guiName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
+    this->encoding = encoding;
     this->guiName = guiName;
 }
 
 /**
  * Destructor.
  */
-OmeAxisTypeEnum::~OmeAxisTypeEnum()
+ZarrDataTypeByteOrderEnum::~ZarrDataTypeByteOrderEnum()
 {
 }
 
@@ -115,29 +117,33 @@ OmeAxisTypeEnum::~OmeAxisTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-OmeAxisTypeEnum::initialize()
+ZarrDataTypeByteOrderEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(OmeAxisTypeEnum(UNKNOWN, 
-                                    "UNKNOWN", 
-                                    "Unknown"));
+    enumData.push_back(ZarrDataTypeByteOrderEnum(UNKNOWN, 
+                                                 "UNKNOWN",
+                                                 "",
+                                                 "Unknown"));
+
+    enumData.push_back(ZarrDataTypeByteOrderEnum(ENDIAN_BIG,
+                                                 "ENDIAN_BIG",
+                                                 ">",
+                                                 "Endian Big"));
     
-    enumData.push_back(OmeAxisTypeEnum(CHANNEL, 
-                                    "CHANNEL", 
-                                    "Channel"));
+    enumData.push_back(ZarrDataTypeByteOrderEnum(ENDIAN_LITTLE,
+                                                 "ENDIAN_LITTLE",
+                                                 "<",
+                                                 "Endian Little"));
     
-    enumData.push_back(OmeAxisTypeEnum(SPACE, 
-                                    "SPACE", 
-                                    "Space"));
-    
-    enumData.push_back(OmeAxisTypeEnum(TIME, 
-                                    "TIME", 
-                                    "Time"));
-    
+    enumData.push_back(ZarrDataTypeByteOrderEnum(NOT_RELEVANT,
+                                                 "NOT_RELEVANT",
+                                                 "|",
+                                                 "Not Relevant"));
+
 }
 
 /**
@@ -147,14 +153,14 @@ OmeAxisTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const OmeAxisTypeEnum*
-OmeAxisTypeEnum::findData(const Enum enumValue)
+const ZarrDataTypeByteOrderEnum*
+ZarrDataTypeByteOrderEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const OmeAxisTypeEnum* d = &enumData[i];
+        const ZarrDataTypeByteOrderEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -171,10 +177,10 @@ OmeAxisTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-OmeAxisTypeEnum::toName(Enum enumValue) {
+ZarrDataTypeByteOrderEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeAxisTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDataTypeByteOrderEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -188,18 +194,18 @@ OmeAxisTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-OmeAxisTypeEnum::Enum 
-OmeAxisTypeEnum::fromName(const AString& name, bool* isValidOut)
+ZarrDataTypeByteOrderEnum::Enum 
+ZarrDataTypeByteOrderEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeAxisTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDataTypeByteOrderEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeAxisTypeEnum& d = *iter;
+        const ZarrDataTypeByteOrderEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -211,7 +217,60 @@ OmeAxisTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type OmeAxisTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type ZarrDataTypeByteOrderEnum"));
+    }
+    return enumValue;
+}
+
+/**
+ * Get a data type encoding of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     Encoding representing enumerated value.
+ */
+AString
+ZarrDataTypeByteOrderEnum::toEncoding(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const ZarrDataTypeByteOrderEnum* enumInstance = findData(enumValue);
+    return enumInstance->encoding;
+}
+
+/**
+ * Get an enumerated value corresponding to its encoding.
+ * @param encoding
+ *     Encoding of enumerated value.
+ * @param isValidOut
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return
+ *     Enumerated value.
+ */
+ZarrDataTypeByteOrderEnum::Enum
+ZarrDataTypeByteOrderEnum::fromEncoding(const AString& encoding, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue = ZarrDataTypeByteOrderEnum::enumData[0].enumValue;
+    
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const ZarrDataTypeByteOrderEnum& d = *iter;
+        if (d.encoding == encoding) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("Encoding " + encoding + " failed to match enumerated value for type ZarrDataTypeByteOrderEnum"));
     }
     return enumValue;
 }
@@ -224,10 +283,10 @@ OmeAxisTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-OmeAxisTypeEnum::toGuiName(Enum enumValue) {
+ZarrDataTypeByteOrderEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeAxisTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDataTypeByteOrderEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -241,18 +300,18 @@ OmeAxisTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-OmeAxisTypeEnum::Enum 
-OmeAxisTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ZarrDataTypeByteOrderEnum::Enum 
+ZarrDataTypeByteOrderEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeAxisTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDataTypeByteOrderEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeAxisTypeEnum& d = *iter;
+        const ZarrDataTypeByteOrderEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -264,60 +323,7 @@ OmeAxisTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type OmeAxisTypeEnum"));
-    }
-    return enumValue;
-}
-
-/**
- * Get a lowercase string representation of the enumerated type.
- * @param enumValue
- *     Enumerated value.
- * @return
- *     String representing enumerated value.
- */
-AString
-OmeAxisTypeEnum::toLowerCaseName(Enum enumValue) {
-    if (initializedFlag == false) initialize();
-    
-    const OmeAxisTypeEnum* enumInstance = findData(enumValue);
-    return enumInstance->guiName.toLower();
-}
-
-/**
- * Get an enumerated value corresponding to its lowercase name.
- * @param lowerCaseName
- *     Name of enumerated value.
- * @param isValidOut
- *     If not NULL, it is set indicating that a
- *     enum value exists for the input name.
- * @return
- *     Enumerated value.
- */
-OmeAxisTypeEnum::Enum
-OmeAxisTypeEnum::fromLowerCaseName(const AString& lowerCaseName, bool* isValidOut)
-{
-    if (initializedFlag == false) initialize();
-    
-    bool validFlag = false;
-    Enum enumValue = OmeAxisTypeEnum::enumData[0].enumValue;
-    
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const OmeAxisTypeEnum& d = *iter;
-        if (d.guiName.toLower() == lowerCaseName) {
-            enumValue = d.enumValue;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + lowerCaseName + " failed to match enumerated value for type OmeAxisTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type ZarrDataTypeByteOrderEnum"));
     }
     return enumValue;
 }
@@ -329,10 +335,10 @@ OmeAxisTypeEnum::fromLowerCaseName(const AString& lowerCaseName, bool* isValidOu
  *    Integer code for data type.
  */
 int32_t
-OmeAxisTypeEnum::toIntegerCode(Enum enumValue)
+ZarrDataTypeByteOrderEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const OmeAxisTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDataTypeByteOrderEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -347,18 +353,18 @@ OmeAxisTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-OmeAxisTypeEnum::Enum
-OmeAxisTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ZarrDataTypeByteOrderEnum::Enum
+ZarrDataTypeByteOrderEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeAxisTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDataTypeByteOrderEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeAxisTypeEnum& enumInstance = *iter;
+        const ZarrDataTypeByteOrderEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -370,7 +376,7 @@ OmeAxisTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type OmeAxisTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type ZarrDataTypeByteOrderEnum"));
     }
     return enumValue;
 }
@@ -383,13 +389,13 @@ OmeAxisTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-OmeAxisTypeEnum::getAllEnums(std::vector<OmeAxisTypeEnum::Enum>& allEnums)
+ZarrDataTypeByteOrderEnum::getAllEnums(std::vector<ZarrDataTypeByteOrderEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -405,16 +411,16 @@ OmeAxisTypeEnum::getAllEnums(std::vector<OmeAxisTypeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeAxisTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ZarrDataTypeByteOrderEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(OmeAxisTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ZarrDataTypeByteOrderEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -431,16 +437,16 @@ OmeAxisTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeAxisTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ZarrDataTypeByteOrderEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<OmeAxisTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDataTypeByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(OmeAxisTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ZarrDataTypeByteOrderEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

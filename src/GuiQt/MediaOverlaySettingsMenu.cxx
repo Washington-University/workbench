@@ -239,8 +239,8 @@ void
 MediaOverlaySettingsMenu::reloadActionTriggered()
 {
     const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
-    if (selectionData.m_selectedCziImageFile != NULL) {
-        selectionData.m_selectedCziImageFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
+    if (selectionData.m_selectedMediaFile != NULL) {
+        selectionData.m_selectedMediaFile->reloadPyramidLayerInTabOverlay(m_mediaOverlay->m_tabIndex,
                                                                              m_mediaOverlay->m_overlayIndex);
         EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
         updateContent();

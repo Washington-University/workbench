@@ -1705,4 +1705,36 @@ MediaFile::setMediaFileTransforms(const MediaFileTransforms& mediaFileTransforms
     m_mediaFileTransforms = mediaFileTransforms;
 }
 
+/**
+ * Get the range of available pyramid layers.  If range is invalid, layer indices will be -1.
+ * @param frameIndex
+ *    Index of frame
+ * @param allFramesFlag
+ *    If true, image contains all frames (for CZI this is all scenes)
+ * @param lowestPyramidLayerIndexOut
+ *    Output with lowest resolution layer index (
+ * @param highestPyramidLayerIndexOut
+ *    Output with highest resolution layer index
+ */
+void
+MediaFile::getPyramidLayerRangeForFrame(const int32_t /*frameIndex*/,
+                                           const bool /*allFramesFlag*/,
+                                           int32_t& lowestPyramidLayerIndexOut,
+                                           int32_t& highestPyramidLayerIndexOut) const
+{
+    lowestPyramidLayerIndexOut  = 0;
+    highestPyramidLayerIndexOut = 0;
+}
 
+/**
+ * Reload the pyramid layer in the given tab.
+ * @param tabIndex
+ *    Index of the tab.
+ * @param overlayIndex
+ * Index of overlasy
+ */
+void
+MediaFile::reloadPyramidLayerInTabOverlay(const int32_t /*tabIndex*/,
+                                          const int32_t /*overlayIndex*/)
+{
+}

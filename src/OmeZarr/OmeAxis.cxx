@@ -32,6 +32,9 @@ using namespace caret;
  * \class caret::OmeAxis 
  * \brief Model an NGFF Axis
  * \ingroup OmeZarr
+ *
+ * Describes an Axis in the .zattrs file 
+ *  https://ngff.openmicroscopy.org/0.4/index.html#axes-md
  */
 
 /**

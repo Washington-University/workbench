@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __OME_VERSION_ENUM_DECLARE__
-#include "OmeVersionEnum.h"
-#undef __OME_VERSION_ENUM_DECLARE__
+#define __ZARR_COMPRESSOR_TYPE_ENUM_DECLARE__
+#include "ZarrCompressorTypeEnum.h"
+#undef __ZARR_COMPRESSOR_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,10 @@ using namespace caret;
 
     
 /**
- * \class caret::OmeVersionEnum 
- * \brief Enum for OME Version
+ * \class caret::ZarrCompressorTypeEnum 
+ * \brief 
  *
- * https://ngff.openmicroscopy.org/0.4/index.html#multiscale-md
+ * https://zarr-specs.readthedocs.io/en/latest/v2/v2.0.html
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -42,44 +42,44 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_omeVersionEnumComboBox;
+ *         EnumComboBoxTemplate* m_zarrCompressorTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void omeVersionEnumComboBoxItemActivated();
+ *             void zarrCompressorTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "OmeVersionEnum.h"
+ *         #include "ZarrCompressorTypeEnum.h"
  * 
  *     Instatiate:
- *         m_omeVersionEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_omeVersionEnumComboBox->setup<OmeVersionEnum,OmeVersionEnum::Enum>();
+ *         m_zarrCompressorTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_zarrCompressorTypeEnumComboBox->setup<ZarrCompressorTypeEnum,ZarrCompressorTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_omeVersionEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(omeVersionEnumComboBoxItemActivated()));
+ *         QObject::connect(m_zarrCompressorTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(zarrCompressorTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_omeVersionEnumComboBox->setSelectedItem<OmeVersionEnum,OmeVersionEnum::Enum>(NEW_VALUE);
+ *         m_zarrCompressorTypeEnumComboBox->setSelectedItem<ZarrCompressorTypeEnum,ZarrCompressorTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const OmeVersionEnum::Enum VARIABLE = m_omeVersionEnumComboBox->getSelectedItem<OmeVersionEnum,OmeVersionEnum::Enum>();
+ *         const ZarrCompressorTypeEnum::Enum VARIABLE = m_zarrCompressorTypeEnumComboBox->getSelectedItem<ZarrCompressorTypeEnum,ZarrCompressorTypeEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case OmeVersionEnum::UNKNOWN:
+    case ZarrCompressorTypeEnum::NO_COMPRESSOR:
         break;
-    case OmeVersionEnum::V0_1:
+    case ZarrCompressorTypeEnum::BLOSC:
         break;
-    case OmeVersionEnum::V0_2:
+    case ZarrCompressorTypeEnum::BYTES:
         break;
-    case OmeVersionEnum::V0_3:
+    case ZarrCompressorTypeEnum::CRC32C:
         break;
-    case OmeVersionEnum::V0_4:
+    case ZarrCompressorTypeEnum::GZIP:
         break;
 }
 */
@@ -92,23 +92,23 @@ switch (value) {
  * @param name
  *    Name of enumerated value.
  *
- * @param guiName
- *    User-friendly name for use in user-interface.
+ * @param encodingName
+ *    Name of encoding
  */
-OmeVersionEnum::OmeVersionEnum(const Enum enumValue,
+ZarrCompressorTypeEnum::ZarrCompressorTypeEnum(const Enum enumValue,
                            const AString& name,
-                           const AString& guiName)
+                           const AString& encodingName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
-    this->guiName = guiName;
+    this->encodingName = encodingName;
 }
 
 /**
  * Destructor.
  */
-OmeVersionEnum::~OmeVersionEnum()
+ZarrCompressorTypeEnum::~ZarrCompressorTypeEnum()
 {
 }
 
@@ -116,32 +116,32 @@ OmeVersionEnum::~OmeVersionEnum()
  * Initialize the enumerated metadata.
  */
 void
-OmeVersionEnum::initialize()
+ZarrCompressorTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(OmeVersionEnum(UNKNOWN, 
-                                    "UNKNOWN", 
-                                    "Unknown"));
+    enumData.push_back(ZarrCompressorTypeEnum(NO_COMPRESSOR, 
+                                    "NO_COMPRESSOR", 
+                                    "No Compressor"));
     
-    enumData.push_back(OmeVersionEnum(V0_1, 
-                                    "V0_1", 
-                                    "0.1"));
+    enumData.push_back(ZarrCompressorTypeEnum(BLOSC, 
+                                    "BLOSC", 
+                                    "blosc"));
     
-    enumData.push_back(OmeVersionEnum(V0_2, 
-                                    "V0_2", 
-                                    "0.2"));
+    enumData.push_back(ZarrCompressorTypeEnum(BYTES, 
+                                    "BYTES", 
+                                    "bytes"));
     
-    enumData.push_back(OmeVersionEnum(V0_3, 
-                                    "V0_3", 
-                                    "0.3"));
+    enumData.push_back(ZarrCompressorTypeEnum(CRC32C, 
+                                    "CRC32C", 
+                                    "crc32c"));
     
-    enumData.push_back(OmeVersionEnum(V0_4, 
-                                    "V0_4", 
-                                    "0.4"));
+    enumData.push_back(ZarrCompressorTypeEnum(GZIP, 
+                                    "GZIP", 
+                                    "gzip"));
     
 }
 
@@ -152,14 +152,14 @@ OmeVersionEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const OmeVersionEnum*
-OmeVersionEnum::findData(const Enum enumValue)
+const ZarrCompressorTypeEnum*
+ZarrCompressorTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const OmeVersionEnum* d = &enumData[i];
+        const ZarrCompressorTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -176,10 +176,10 @@ OmeVersionEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-OmeVersionEnum::toName(Enum enumValue) {
+ZarrCompressorTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeVersionEnum* enumInstance = findData(enumValue);
+    const ZarrCompressorTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -193,18 +193,18 @@ OmeVersionEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-OmeVersionEnum::Enum 
-OmeVersionEnum::fromName(const AString& name, bool* isValidOut)
+ZarrCompressorTypeEnum::Enum 
+ZarrCompressorTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrCompressorTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& d = *iter;
+        const ZarrCompressorTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -216,49 +216,49 @@ OmeVersionEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type ZarrCompressorTypeEnum"));
     }
     return enumValue;
 }
 
 /**
- * Get a GUI string representation of the enumerated type.
- * @param enumValue 
+ * Get the encoding name of the enumerated type.
+ * @param enumValue
  *     Enumerated value.
  * @return 
- *     String representing enumerated value.
+ *     String representing encoding.
  */
 AString 
-OmeVersionEnum::toGuiName(Enum enumValue) {
+ZarrCompressorTypeEnum::toEncodingName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeVersionEnum* enumInstance = findData(enumValue);
-    return enumInstance->guiName;
+    const ZarrCompressorTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->encodingName;
 }
 
 /**
- * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * Get an enumerated value corresponding to its encoding name
+ * @param s
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
- *     enum value exists for the input name.
+ *     enum value exists for the encoding name.
  * @return 
  *     Enumerated value.
  */
-OmeVersionEnum::Enum 
-OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ZarrCompressorTypeEnum::Enum 
+ZarrCompressorTypeEnum::fromEncodingName(const AString& encodingName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrCompressorTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& d = *iter;
-        if (d.guiName == guiName) {
+        const ZarrCompressorTypeEnum& d = *iter;
+        if (d.encodingName == encodingName) {
             enumValue = d.enumValue;
             validFlag = true;
             break;
@@ -269,7 +269,7 @@ OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("encoding name " + encodingName + " failed to match enumerated value for type ZarrCompressorTypeEnum"));
     }
     return enumValue;
 }
@@ -281,10 +281,10 @@ OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-OmeVersionEnum::toIntegerCode(Enum enumValue)
+ZarrCompressorTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const OmeVersionEnum* enumInstance = findData(enumValue);
+    const ZarrCompressorTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -299,18 +299,18 @@ OmeVersionEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-OmeVersionEnum::Enum
-OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ZarrCompressorTypeEnum::Enum
+ZarrCompressorTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrCompressorTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& enumInstance = *iter;
+        const ZarrCompressorTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -322,7 +322,7 @@ OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type ZarrCompressorTypeEnum"));
     }
     return enumValue;
 }
@@ -335,13 +335,13 @@ OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-OmeVersionEnum::getAllEnums(std::vector<OmeVersionEnum::Enum>& allEnums)
+ZarrCompressorTypeEnum::getAllEnums(std::vector<ZarrCompressorTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -357,16 +357,16 @@ OmeVersionEnum::getAllEnums(std::vector<OmeVersionEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeVersionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ZarrCompressorTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(OmeVersionEnum::toName(iter->enumValue));
+        allNames.push_back(ZarrCompressorTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -375,28 +375,28 @@ OmeVersionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 }
 
 /**
- * Get all of the GUI names of the enumerated type values.
+ * Get all of the encoding names of the enumerated type values.
  *
- * @param allNames
- *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.
+ * @param allEncodingNames
+ *     A vector that is OUTPUT containing all of the encoding names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeVersionEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ZarrCompressorTypeEnum::getAllEncodingNames(std::vector<AString>& allEncodingNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
-    allGuiNames.clear();
+    allEncodingNames.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrCompressorTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(OmeVersionEnum::toGuiName(iter->enumValue));
+        allEncodingNames.push_back(ZarrCompressorTypeEnum::toEncodingName(iter->enumValue));
     }
     
     if (isSorted) {
-        std::sort(allGuiNames.begin(), allGuiNames.end());
+        std::sort(allEncodingNames.begin(), allEncodingNames.end());
     }
 }
 

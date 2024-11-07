@@ -33,6 +33,7 @@ using namespace caret;
  * \class caret::OmeSpaceUnitEnum 
  * \brief Units when type is space
  *
+ * https://ngff.openmicroscopy.org/0.4/index.html#multiscale-md
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 

@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __ZARR_DATA_TYPE_ENUM_DECLARE__
-#include "ZarrDataTypeEnum.h"
-#undef __ZARR_DATA_TYPE_ENUM_DECLARE__
+#define __ZARR_DIMENSION_SEPARATOR_ENUM_DECLARE__
+#include "ZarrDimensionSeparatorEnum.h"
+#undef __ZARR_DIMENSION_SEPARATOR_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,8 +30,8 @@ using namespace caret;
 
     
 /**
- * \class caret::ZarrDataTypeEnum 
- * \brief Data type for ZARR data
+ * \class caret::ZarrDimensionSeparatorEnum 
+ * \brief 
  *
  * https://zarr-specs.readthedocs.io/en/latest/v2/v2.0.html
  *
@@ -42,56 +42,40 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_zarrDataTypeEnumComboBox;
+ *         EnumComboBoxTemplate* m_zarrDimensionSeparatorEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void zarrDataTypeEnumComboBoxItemActivated();
+ *             void zarrDimensionSeparatorEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "ZarrDataTypeEnum.h"
+ *         #include "ZarrDimensionSeparatorEnum.h"
  * 
  *     Instatiate:
- *         m_zarrDataTypeEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_zarrDataTypeEnumComboBox->setup<ZarrDataTypeEnum,ZarrDataTypeEnum::Enum>();
+ *         m_zarrDimensionSeparatorEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_zarrDimensionSeparatorEnumComboBox->setup<ZarrDimensionSeparatorEnum,ZarrDimensionSeparatorEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_zarrDataTypeEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(zarrDataTypeEnumComboBoxItemActivated()));
+ *         QObject::connect(m_zarrDimensionSeparatorEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(zarrDimensionSeparatorEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_zarrDataTypeEnumComboBox->setSelectedItem<ZarrDataTypeEnum,ZarrDataTypeEnum::Enum>(NEW_VALUE);
+ *         m_zarrDimensionSeparatorEnumComboBox->setSelectedItem<ZarrDimensionSeparatorEnum,ZarrDimensionSeparatorEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const ZarrDataTypeEnum::Enum VARIABLE = m_zarrDataTypeEnumComboBox->getSelectedItem<ZarrDataTypeEnum,ZarrDataTypeEnum::Enum>();
+ *         const ZarrDimensionSeparatorEnum::Enum VARIABLE = m_zarrDimensionSeparatorEnumComboBox->getSelectedItem<ZarrDimensionSeparatorEnum,ZarrDimensionSeparatorEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case ZarrDataTypeEnum::UNKNOWN:
+    case ZarrDimensionSeparatorEnum::UNKNOWN:
         break;
-    case ZarrDataTypeEnum::INT_8:
+    case ZarrDimensionSeparatorEnum::DOT:
         break;
-    case ZarrDataTypeEnum::UINT_8:
-        break;
-    case ZarrDataTypeEnum::INT_16:
-        break;
-    case ZarrDataTypeEnum::UINT_16:
-        break;
-    case ZarrDataTypeEnum::INT_32:
-        break;
-    case ZarrDataTypeEnum::UINT_32:
-        break;
-    case ZarrDataTypeEnum::INT_64:
-        break;
-    case ZarrDataTypeEnum::UINT_64:
-        break;
-    case ZarrDataTypeEnum::FLOAT_32:
-        break;
-    case ZarrDataTypeEnum::FLOAT_64:
+    case ZarrDimensionSeparatorEnum::FORWARD_SLASH:
         break;
 }
 */
@@ -103,24 +87,27 @@ switch (value) {
  *    An enumerated value.
  * @param name
  *    Name of enumerated value.
- *
+ * @param encoding
+ *    Encoding used in ZARR file
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ZarrDataTypeEnum::ZarrDataTypeEnum(const Enum enumValue,
-                           const AString& name,
-                           const AString& guiName)
+ZarrDimensionSeparatorEnum::ZarrDimensionSeparatorEnum(const Enum enumValue,
+                                                       const AString& name,
+                                                       const AString& encoding,
+                                                       const AString& guiName)
 {
     this->enumValue = enumValue;
     this->integerCode = integerCodeCounter++;
     this->name = name;
+    this->encoding = encoding;
     this->guiName = guiName;
 }
 
 /**
  * Destructor.
  */
-ZarrDataTypeEnum::~ZarrDataTypeEnum()
+ZarrDimensionSeparatorEnum::~ZarrDimensionSeparatorEnum()
 {
 }
 
@@ -128,57 +115,28 @@ ZarrDataTypeEnum::~ZarrDataTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ZarrDataTypeEnum::initialize()
+ZarrDimensionSeparatorEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ZarrDataTypeEnum(UNKNOWN, 
-                                    "UNKNOWN", 
-                                    "Unknown"));
+    enumData.push_back(ZarrDimensionSeparatorEnum(UNKNOWN,
+                                                  "UNKNOWN",
+                                                  "",
+                                                  "Unknown"));
     
-    enumData.push_back(ZarrDataTypeEnum(INT_8, 
-                                    "INT_8", 
-                                    "Int 8"));
+    enumData.push_back(ZarrDimensionSeparatorEnum(DOT,
+                                                  "DOT",
+                                                  ".",
+                                                  "Dot"));
     
-    enumData.push_back(ZarrDataTypeEnum(UINT_8, 
-                                    "UINT_8", 
-                                    "Uint 8"));
-    
-    enumData.push_back(ZarrDataTypeEnum(INT_16, 
-                                    "INT_16", 
-                                    "Int 16"));
-    
-    enumData.push_back(ZarrDataTypeEnum(UINT_16, 
-                                    "UINT_16", 
-                                    "Uint 16"));
-    
-    enumData.push_back(ZarrDataTypeEnum(INT_32, 
-                                    "INT_32", 
-                                    "Int 32"));
-    
-    enumData.push_back(ZarrDataTypeEnum(UINT_32, 
-                                    "UINT_32", 
-                                    "Uint 32"));
-    
-    enumData.push_back(ZarrDataTypeEnum(INT_64, 
-                                    "INT_64", 
-                                    "Int 64"));
-    
-    enumData.push_back(ZarrDataTypeEnum(UINT_64, 
-                                    "UINT_64", 
-                                    "Uint 64"));
-    
-    enumData.push_back(ZarrDataTypeEnum(FLOAT_32, 
-                                    "FLOAT_32", 
-                                    "Float 32"));
-    
-    enumData.push_back(ZarrDataTypeEnum(FLOAT_64, 
-                                    "FLOAT_64", 
-                                    "Float 64"));
-    
+    enumData.push_back(ZarrDimensionSeparatorEnum(FORWARD_SLASH,
+                                                  "FORWARD_SLASH",
+                                                  "/",
+                                                  "Forward Slash"));
+
 }
 
 /**
@@ -188,14 +146,14 @@ ZarrDataTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ZarrDataTypeEnum*
-ZarrDataTypeEnum::findData(const Enum enumValue)
+const ZarrDimensionSeparatorEnum*
+ZarrDimensionSeparatorEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ZarrDataTypeEnum* d = &enumData[i];
+        const ZarrDimensionSeparatorEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -212,10 +170,10 @@ ZarrDataTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ZarrDataTypeEnum::toName(Enum enumValue) {
+ZarrDimensionSeparatorEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ZarrDataTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDimensionSeparatorEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -229,18 +187,18 @@ ZarrDataTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ZarrDataTypeEnum::Enum 
-ZarrDataTypeEnum::fromName(const AString& name, bool* isValidOut)
+ZarrDimensionSeparatorEnum::Enum 
+ZarrDimensionSeparatorEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ZarrDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDimensionSeparatorEnum::enumData[0].enumValue;
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ZarrDataTypeEnum& d = *iter;
+        const ZarrDimensionSeparatorEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -252,7 +210,60 @@ ZarrDataTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type ZarrDataTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type ZarrDimensionSeparatorEnum"));
+    }
+    return enumValue;
+}
+
+/**
+ * Get a data type encoding of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     Encoding representing enumerated value.
+ */
+AString
+ZarrDimensionSeparatorEnum::toEncoding(Enum enumValue) {
+    if (initializedFlag == false) initialize();
+    
+    const ZarrDimensionSeparatorEnum* enumInstance = findData(enumValue);
+    return enumInstance->encoding;
+}
+
+/**
+ * Get an enumerated value corresponding to its encoding.
+ * @param encoding
+ *     Encoding of enumerated value.
+ * @param isValidOut
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return
+ *     Enumerated value.
+ */
+ZarrDimensionSeparatorEnum::Enum
+ZarrDimensionSeparatorEnum::fromEncoding(const AString& encoding, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue = ZarrDimensionSeparatorEnum::enumData[0].enumValue;
+    
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const ZarrDimensionSeparatorEnum& d = *iter;
+        if (d.encoding == encoding) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("Encoding " + encoding + " failed to match enumerated value for type ZarrDimensionSeparatorEnum"));
     }
     return enumValue;
 }
@@ -265,10 +276,10 @@ ZarrDataTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ZarrDataTypeEnum::toGuiName(Enum enumValue) {
+ZarrDimensionSeparatorEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ZarrDataTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDimensionSeparatorEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -282,18 +293,18 @@ ZarrDataTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ZarrDataTypeEnum::Enum 
-ZarrDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ZarrDimensionSeparatorEnum::Enum 
+ZarrDimensionSeparatorEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ZarrDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDimensionSeparatorEnum::enumData[0].enumValue;
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ZarrDataTypeEnum& d = *iter;
+        const ZarrDimensionSeparatorEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -305,7 +316,7 @@ ZarrDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type ZarrDataTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type ZarrDimensionSeparatorEnum"));
     }
     return enumValue;
 }
@@ -317,10 +328,10 @@ ZarrDataTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-ZarrDataTypeEnum::toIntegerCode(Enum enumValue)
+ZarrDimensionSeparatorEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ZarrDataTypeEnum* enumInstance = findData(enumValue);
+    const ZarrDimensionSeparatorEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -335,18 +346,18 @@ ZarrDataTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ZarrDataTypeEnum::Enum
-ZarrDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ZarrDimensionSeparatorEnum::Enum
+ZarrDimensionSeparatorEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = ZarrDataTypeEnum::enumData[0].enumValue;
+    Enum enumValue = ZarrDimensionSeparatorEnum::enumData[0].enumValue;
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ZarrDataTypeEnum& enumInstance = *iter;
+        const ZarrDimensionSeparatorEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -358,7 +369,7 @@ ZarrDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type ZarrDataTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type ZarrDimensionSeparatorEnum"));
     }
     return enumValue;
 }
@@ -371,13 +382,13 @@ ZarrDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ZarrDataTypeEnum::getAllEnums(std::vector<ZarrDataTypeEnum::Enum>& allEnums)
+ZarrDimensionSeparatorEnum::getAllEnums(std::vector<ZarrDimensionSeparatorEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -393,16 +404,16 @@ ZarrDataTypeEnum::getAllEnums(std::vector<ZarrDataTypeEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ZarrDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+ZarrDimensionSeparatorEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(ZarrDataTypeEnum::toName(iter->enumValue));
+        allNames.push_back(ZarrDimensionSeparatorEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -419,16 +430,16 @@ ZarrDataTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorte
  *     If true, the names are sorted in alphabetical order.
  */
 void
-ZarrDataTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+ZarrDimensionSeparatorEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<ZarrDataTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ZarrDimensionSeparatorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(ZarrDataTypeEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(ZarrDimensionSeparatorEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

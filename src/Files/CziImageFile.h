@@ -138,13 +138,13 @@ namespace caret {
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const override;
         
-        void getPyramidLayerRangeForFrame(const int32_t frameIndex,
-                                          const bool allFramesFlag,
-                                          int32_t& lowestPyramidLayerIndexOut,
-                                          int32_t& highestPyramidLayerIndexOut) const;
+        virtual void getPyramidLayerRangeForFrame(const int32_t frameIndex,
+                                                  const bool allFramesFlag,
+                                                  int32_t& lowestPyramidLayerIndexOut,
+                                                  int32_t& highestPyramidLayerIndexOut) const override;
 
-        void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
-                                            const int32_t overlayIndex);
+        virtual void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                                    const int32_t overlayIndex) override;
         
         virtual void receiveEvent(Event* event) override;
         

@@ -65,7 +65,7 @@ m_overlayIndex(overlayIndex)
     m_allFramesSelectedFlag = true;
     m_selectedChannelIndex = s_ALL_CHANNELS_INDEX;
     m_cziResolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
-    m_cziManualPyramidLayerIndex = 1;
+    m_cziManualPyramidLayerIndex = 0;
     m_name = "Overlay ";
     
     /* Note file and frame index saved in 'saveScene' */
@@ -413,11 +413,11 @@ MediaOverlay::getSelectionData()
     
     int32_t cziManualPyramidLayerMinimumValue(0);
     int32_t cziManualPyramidLayerMaximumValue(0);
-    if (cziImageFile != NULL) {
-        cziImageFile->getPyramidLayerRangeForFrame(m_selectedFrameIndex,
-                                                   m_allFramesSelectedFlag,
-                                                   cziManualPyramidLayerMinimumValue,
-                                                   cziManualPyramidLayerMaximumValue);
+    if (m_selectedFile != NULL) {
+        m_selectedFile->getPyramidLayerRangeForFrame(m_selectedFrameIndex,
+                                                     m_allFramesSelectedFlag,
+                                                     cziManualPyramidLayerMinimumValue,
+                                                     cziManualPyramidLayerMaximumValue);
     }
     
     int32_t selectedChannelIndex(s_ALL_CHANNELS_INDEX);

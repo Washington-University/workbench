@@ -20,9 +20,9 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#define __OME_VERSION_ENUM_DECLARE__
-#include "OmeVersionEnum.h"
-#undef __OME_VERSION_ENUM_DECLARE__
+#define __OME_COORDINATE_TRANSFORMATION_TYPE_ENUM_DECLARE__
+#include "OmeCoordinateTransformationTypeEnum.h"
+#undef __OME_COORDINATE_TRANSFORMATION_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
 
@@ -30,10 +30,11 @@ using namespace caret;
 
     
 /**
- * \class caret::OmeVersionEnum 
- * \brief Enum for OME Version
+ * \class caret::OmeCoordinateTransformationTypeEnum 
+ * \brief Type for OME coordinateTransformations element
  *
- * https://ngff.openmicroscopy.org/0.4/index.html#multiscale-md
+ * Describes the type of coordinate transformation in the .zattrs file
+ *  https://ngff.openmicroscopy.org/0.4/index.html#trafo-md
  *
  * Using this enumerated type in the GUI with an EnumComboBoxTemplate
  * 
@@ -42,44 +43,38 @@ using namespace caret;
  *         class EnumComboBoxTemplate;
  * 
  *     Declare the member:
- *         EnumComboBoxTemplate* m_omeVersionEnumComboBox;
+ *         EnumComboBoxTemplate* m_omeCoordinateTransformationTypeEnumComboBox;
  * 
  *     Declare a slot that is called when user changes selection
  *         private slots:
- *             void omeVersionEnumComboBoxItemActivated();
+ *             void omeCoordinateTransformationTypeEnumComboBoxItemActivated();
  * 
  * Implementation File (.cxx)
  *     Include the header files
  *         #include "EnumComboBoxTemplate.h"
- *         #include "OmeVersionEnum.h"
+ *         #include "OmeCoordinateTransformationTypeEnum.h"
  * 
  *     Instatiate:
- *         m_omeVersionEnumComboBox = new EnumComboBoxTemplate(this);
- *         m_omeVersionEnumComboBox->setup<OmeVersionEnum,OmeVersionEnum::Enum>();
+ *         m_omeCoordinateTransformationTypeEnumComboBox = new EnumComboBoxTemplate(this);
+ *         m_omeCoordinateTransformationTypeEnumComboBox->setup<OmeCoordinateTransformationTypeEnum,OmeCoordinateTransformationTypeEnum::Enum>();
  * 
  *     Get notified when the user changes the selection: 
- *         QObject::connect(m_omeVersionEnumComboBox, SIGNAL(itemActivated()),
- *                          this, SLOT(omeVersionEnumComboBoxItemActivated()));
+ *         QObject::connect(m_omeCoordinateTransformationTypeEnumComboBox, SIGNAL(itemActivated()),
+ *                          this, SLOT(omeCoordinateTransformationTypeEnumComboBoxItemActivated()));
  * 
  *     Update the selection:
- *         m_omeVersionEnumComboBox->setSelectedItem<OmeVersionEnum,OmeVersionEnum::Enum>(NEW_VALUE);
+ *         m_omeCoordinateTransformationTypeEnumComboBox->setSelectedItem<OmeCoordinateTransformationTypeEnum,OmeCoordinateTransformationTypeEnum::Enum>(NEW_VALUE);
  * 
  *     Read the selection:
- *         const OmeVersionEnum::Enum VARIABLE = m_omeVersionEnumComboBox->getSelectedItem<OmeVersionEnum,OmeVersionEnum::Enum>();
+ *         const OmeCoordinateTransformationTypeEnum::Enum VARIABLE = m_omeCoordinateTransformationTypeEnumComboBox->getSelectedItem<OmeCoordinateTransformationTypeEnum,OmeCoordinateTransformationTypeEnum::Enum>();
  * 
  */
 
 /*
 switch (value) {
-    case OmeVersionEnum::UNKNOWN:
+    case OmeCoordinateTransformationTypeEnum::SCALE:
         break;
-    case OmeVersionEnum::V0_1:
-        break;
-    case OmeVersionEnum::V0_2:
-        break;
-    case OmeVersionEnum::V0_3:
-        break;
-    case OmeVersionEnum::V0_4:
+    case OmeCoordinateTransformationTypeEnum::TRANSLATE:
         break;
 }
 */
@@ -95,7 +90,7 @@ switch (value) {
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-OmeVersionEnum::OmeVersionEnum(const Enum enumValue,
+OmeCoordinateTransformationTypeEnum::OmeCoordinateTransformationTypeEnum(const Enum enumValue,
                            const AString& name,
                            const AString& guiName)
 {
@@ -108,7 +103,7 @@ OmeVersionEnum::OmeVersionEnum(const Enum enumValue,
 /**
  * Destructor.
  */
-OmeVersionEnum::~OmeVersionEnum()
+OmeCoordinateTransformationTypeEnum::~OmeCoordinateTransformationTypeEnum()
 {
 }
 
@@ -116,32 +111,24 @@ OmeVersionEnum::~OmeVersionEnum()
  * Initialize the enumerated metadata.
  */
 void
-OmeVersionEnum::initialize()
+OmeCoordinateTransformationTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(OmeVersionEnum(UNKNOWN, 
-                                    "UNKNOWN", 
-                                    "Unknown"));
+    enumData.push_back(OmeCoordinateTransformationTypeEnum(INVALID,
+                                                           "INVALID",
+                                                           "Invalid"));
     
-    enumData.push_back(OmeVersionEnum(V0_1, 
-                                    "V0_1", 
-                                    "0.1"));
+    enumData.push_back(OmeCoordinateTransformationTypeEnum(SCALE,
+                                    "SCALE", 
+                                    "Scale"));
     
-    enumData.push_back(OmeVersionEnum(V0_2, 
-                                    "V0_2", 
-                                    "0.2"));
-    
-    enumData.push_back(OmeVersionEnum(V0_3, 
-                                    "V0_3", 
-                                    "0.3"));
-    
-    enumData.push_back(OmeVersionEnum(V0_4, 
-                                    "V0_4", 
-                                    "0.4"));
+    enumData.push_back(OmeCoordinateTransformationTypeEnum(TRANSLATE, 
+                                    "TRANSLATE", 
+                                    "Translate"));
     
 }
 
@@ -152,14 +139,14 @@ OmeVersionEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const OmeVersionEnum*
-OmeVersionEnum::findData(const Enum enumValue)
+const OmeCoordinateTransformationTypeEnum*
+OmeCoordinateTransformationTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const OmeVersionEnum* d = &enumData[i];
+        const OmeCoordinateTransformationTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -176,10 +163,10 @@ OmeVersionEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-OmeVersionEnum::toName(Enum enumValue) {
+OmeCoordinateTransformationTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeVersionEnum* enumInstance = findData(enumValue);
+    const OmeCoordinateTransformationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -193,18 +180,18 @@ OmeVersionEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-OmeVersionEnum::Enum 
-OmeVersionEnum::fromName(const AString& name, bool* isValidOut)
+OmeCoordinateTransformationTypeEnum::Enum 
+OmeCoordinateTransformationTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = OmeCoordinateTransformationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& d = *iter;
+        const OmeCoordinateTransformationTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -216,7 +203,7 @@ OmeVersionEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("Name " + name + " failed to match enumerated value for type OmeCoordinateTransformationTypeEnum"));
     }
     return enumValue;
 }
@@ -229,10 +216,10 @@ OmeVersionEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-OmeVersionEnum::toGuiName(Enum enumValue) {
+OmeCoordinateTransformationTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const OmeVersionEnum* enumInstance = findData(enumValue);
+    const OmeCoordinateTransformationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -246,18 +233,18 @@ OmeVersionEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-OmeVersionEnum::Enum 
-OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+OmeCoordinateTransformationTypeEnum::Enum 
+OmeCoordinateTransformationTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = OmeCoordinateTransformationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& d = *iter;
+        const OmeCoordinateTransformationTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -269,7 +256,7 @@ OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + " failed to match enumerated value for type OmeCoordinateTransformationTypeEnum"));
     }
     return enumValue;
 }
@@ -281,10 +268,10 @@ OmeVersionEnum::fromGuiName(const AString& guiName, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-OmeVersionEnum::toIntegerCode(Enum enumValue)
+OmeCoordinateTransformationTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const OmeVersionEnum* enumInstance = findData(enumValue);
+    const OmeCoordinateTransformationTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -299,18 +286,18 @@ OmeVersionEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-OmeVersionEnum::Enum
-OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+OmeCoordinateTransformationTypeEnum::Enum
+OmeCoordinateTransformationTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = OmeVersionEnum::enumData[0].enumValue;
+    Enum enumValue = OmeCoordinateTransformationTypeEnum::enumData[0].enumValue;
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const OmeVersionEnum& enumInstance = *iter;
+        const OmeCoordinateTransformationTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -322,7 +309,7 @@ OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type OmeVersionEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + " failed to match enumerated value for type OmeCoordinateTransformationTypeEnum"));
     }
     return enumValue;
 }
@@ -335,13 +322,13 @@ OmeVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-OmeVersionEnum::getAllEnums(std::vector<OmeVersionEnum::Enum>& allEnums)
+OmeCoordinateTransformationTypeEnum::getAllEnums(std::vector<OmeCoordinateTransformationTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);
@@ -357,16 +344,16 @@ OmeVersionEnum::getAllEnums(std::vector<OmeVersionEnum::Enum>& allEnums)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeVersionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
+OmeCoordinateTransformationTypeEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allNames.push_back(OmeVersionEnum::toName(iter->enumValue));
+        allNames.push_back(OmeCoordinateTransformationTypeEnum::toName(iter->enumValue));
     }
     
     if (isSorted) {
@@ -383,16 +370,16 @@ OmeVersionEnum::getAllNames(std::vector<AString>& allNames, const bool isSorted)
  *     If true, the names are sorted in alphabetical order.
  */
 void
-OmeVersionEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
+OmeCoordinateTransformationTypeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<OmeVersionEnum>::iterator iter = enumData.begin();
+    for (std::vector<OmeCoordinateTransformationTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allGuiNames.push_back(OmeVersionEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(OmeCoordinateTransformationTypeEnum::toGuiName(iter->enumValue));
     }
     
     if (isSorted) {

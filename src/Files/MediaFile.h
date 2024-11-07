@@ -288,6 +288,14 @@ namespace caret {
         
         void addPlaneCoordsToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
+        virtual void getPyramidLayerRangeForFrame(const int32_t frameIndex,
+                                                  const bool allFramesFlag,
+                                                  int32_t& lowestPyramidLayerIndexOut,
+                                                  int32_t& highestPyramidLayerIndexOut) const;
+        
+        virtual void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                                    const int32_t overlayIndex);
+        
         // ADD_NEW_METHODS_HERE
           
     protected: 

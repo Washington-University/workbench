@@ -54,7 +54,8 @@ namespace caret {
     class GraphicsObjectToWindowTransform;
     class GraphicsPrimitiveV3fT2f;
     class Matrix4x4;
-    class OmeZarrReader;
+    class OmeFileReader;
+    class OmeImage;
     class RectangleTransform;
     class VolumeSpace;
     
@@ -134,13 +135,13 @@ namespace caret {
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const override;
         
-        void getPyramidLayerRangeForFrame(const int32_t frameIndex,
-                                          const bool allFramesFlag,
-                                          int32_t& lowestPyramidLayerIndexOut,
-                                          int32_t& highestPyramidLayerIndexOut) const;
+        virtual void getPyramidLayerRangeForFrame(const int32_t frameIndex,
+                                                  const bool allFramesFlag,
+                                                  int32_t& lowestPyramidLayerIndexOut,
+                                                  int32_t& highestPyramidLayerIndexOut) const override;
 
-        void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
-                                            const int32_t overlayIndex);
+        virtual void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                                    const int32_t overlayIndex) override;
         
         virtual void receiveEvent(Event* event) override;
         
@@ -197,13 +198,15 @@ namespace caret {
             m_pixelHeight(pixelHeight),
             m_pixelSlices(pixelSlices),
             m_spatialOriginXYZ(spatialOriginXYZ),
-            m_spatialSizeXYZ(spatialSizeXYZ) { }
+            m_spatialSizeXYZ(spatialSizeXYZ),
+            m_logicalRectangle(0, 0, pixelWidth, pixelHeight) { }
             
             const int64_t m_pixelWidth;
             const int64_t m_pixelHeight;
             const int64_t m_pixelSlices;
             const Vector3D m_spatialOriginXYZ;
             const Vector3D m_spatialSizeXYZ;
+            const QRectF m_logicalRectangle;
         };
         
     class TestTransformResult {
@@ -255,11 +258,11 @@ namespace caret {
             int32_t m_pyramidLevel = 0;
             
             CziImageResolutionChangeModeEnum::Enum m_resolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+            
+            std::unique_ptr<GraphicsPrimitiveV3fT2f> m_graphicsPrimitive;
         };
         
-        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const unsigned char* imageData,
-                                                         const int64_t width,
-                                                         const int64_t height) const;
+        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const OmeImage* omeImage) const;
         
         PixelCoordinate getPixelSizeInMillimeters() const;
         
@@ -292,8 +295,8 @@ namespace caret {
         
         AString m_errorMessage;
         
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
-        std::unique_ptr<OmeZarrReader> m_omeZarrReader;
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+        std::unique_ptr<OmeFileReader> m_omeFileReader;
 #endif
         
         float m_pixelSizeMmX = 1.0f;
@@ -304,10 +307,8 @@ namespace caret {
         
         mutable std::unique_ptr<GiftiMetaData> m_fileMetaData;
         
-        std::unique_ptr<TabOverlayInfo> m_tabOverlayInfo[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
-                                                        [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
-        
-        mutable std::vector<std::unique_ptr<GraphicsPrimitiveV3fT2f>> m_temporaryPrimitive;
+        mutable std::unique_ptr<TabOverlayInfo> m_tabOverlayInfo[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS]
+                                                                [BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         /*
          * Logical rectangle of full-resolution image

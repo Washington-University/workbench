@@ -73,8 +73,9 @@
 #include "ImageFile.h"
 #include "MathFunctions.h"
 #include "MediaFileChannelInfo.h"
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
-#include "OmeZarrReader.h"
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+#include "OmeAttrsV0p4JsonFile.h"
+#include "OmeFileReader.h"
 #endif
 #include "Plane.h"
 #include "RectangleTransform.h"
@@ -162,8 +163,8 @@ OmeZarrImageFile::resetPrivate()
     
     resetMatrices();
     
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
-    m_omeZarrReader.reset();
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+    m_omeFileReader.reset();
 #endif
 }
 
@@ -348,40 +349,40 @@ OmeZarrImageFile::readFile(const AString& filename)
             break;
     }
 
-    /*
-     * Code adapted from https://github.com/InsightSoftwareConsortium/ITKIOOMEZarrNGFF/blob/main/src/itkOMEZarrNGFFImageIO.cxx
-     */
-
     resetPrivate();
     
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
     /*
      * Initialize the ZARR file for reading data
      */
-    OmeZarrReader* omeZarrReader(new OmeZarrReader());
-    const FunctionResult result(omeZarrReader->initialize(filename));
+    OmeFileReader* omeFileReader(new OmeFileReader());
+    const FunctionResult result(omeFileReader->initialize(filename));
     if (result.isError()) {
         m_status = Status::ERRORED;
         throw DataFileException(result.getErrorMessage());
     }
     
-    m_omeZarrReader.reset(omeZarrReader);
+    m_omeFileReader.reset(omeFileReader);
     
     setFileName(filename);
             
-    const int32_t numLevels(m_omeZarrReader->getNumberOfDataSets());
+    const OmeAttrsV0p4JsonFile* zattrs(m_omeFileReader->getZAttrs());
+    if (zattrs == NULL) {
+        throw DataFileException("Failed to get ZAttrs (is NULL) from OmeFileReader");
+    }
+    const int32_t numLevels(zattrs->getNumberOfDataSets());
     if (numLevels <= 0) {
         throw DataFileException("No images were read from OME ZARR file");
     }
     for (int32_t i = 0; i < numLevels; i++) {
-        const OmeDataSet& dataSet(m_omeZarrReader->getDataSet(i));
-        PyramidLevelInfo pli(dataSet.getWidth(),
-                             dataSet.getHeight(),
-                             dataSet.getNumberOfSlices(),
+        const OmeDataSet* dataSet(zattrs->getDataSet(i));
+        PyramidLevelInfo pli(dataSet->getWidth(),
+                             dataSet->getHeight(),
+                             dataSet->getNumberOfSlices(),
                              Vector3D(0, 0, 0),
-                             Vector3D(dataSet.getWidth(),
-                                      dataSet.getHeight(),
-                                      dataSet.getNumberOfSlices()));
+                             Vector3D(dataSet->getWidth(),
+                                      dataSet->getHeight(),
+                                      dataSet->getNumberOfSlices()));
         m_pyramidLevels.push_back(pli);
     }
 
@@ -389,19 +390,15 @@ OmeZarrImageFile::readFile(const AString& filename)
         throw DataFileException("No image pyramids were read from file");
     }
 
-    const int32_t highResIndex(0);
     CaretAssertVectorIndex(m_pyramidLevels, 0);
     m_fullResolutionLogicalRect = QRectF(0, 0,
                                          m_pyramidLevels[0].m_pixelWidth,
                                          m_pyramidLevels[0].m_pixelHeight);
     m_status = Status::OPEN;
-
-    std::cout << "Content of " << getFileName() << std::endl;
-    std::cout << toString() << std::endl;
-#else /* WORKBENCH_HAVE_TENSOR_STORE */
+#else /* WORKBENCH_HAVE_OME_ZARR_Z5 */
     m_status = Status::ERRORED;
-    throw DataFileException("Workbench has been compiled without TensorStore library");
-#endif /* WORKBENCH_HAVE_TENSOR_STORE */
+    throw DataFileException("Workbench has been compiled without OME-ZARR Z5");
+#endif /* WORKBENCH_HAVE_OME_ZARR_Z5 */
 }
 
 /**
@@ -559,8 +556,28 @@ OmeZarrImageFile::getPyramidLayerRangeForFrame(const int32_t frameIndex,
                                            int32_t& lowestPyramidLayerIndexOut,
                                            int32_t& highestPyramidLayerIndexOut) const
 {
-    lowestPyramidLayerIndexOut  = -1;
-    highestPyramidLayerIndexOut = -1;
+    lowestPyramidLayerIndexOut  = 0;
+    highestPyramidLayerIndexOut = (m_pyramidLevels.size() - 1);
+}
+
+/**
+ * Reload the pyramid layer in the given tab.
+ * @param tabIndex
+ *    Index of the tab.
+ * @param overlayIndex
+ * Index of overlasy
+ */
+void
+OmeZarrImageFile::reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
+                                             const int32_t overlayIndex)
+{
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
+    m_tabOverlayInfo[tabIndex][overlayIndex]->m_graphicsPrimitive.reset();
+//
+//    CziImageLoaderBase* imageLoader(getImageLoaderForTabOverlay(tabIndex,
+//                                                                overlayIndex));
+//    imageLoader->forceImageReloading();
 }
 
 /**
@@ -1111,6 +1128,7 @@ OmeZarrImageFile::updateImageForDrawingInTab(const int32_t tabIndex,
     m_tabOverlayInfo[tabIndex][overlayIndex]->m_frameIndex = frameIndex;
     m_tabOverlayInfo[tabIndex][overlayIndex]->m_pyramidLevel = pyramidLevel;
     m_tabOverlayInfo[tabIndex][overlayIndex]->m_resolutionChangeMode = resolutionChangeMode;
+    m_tabOverlayInfo[tabIndex][overlayIndex]->m_graphicsPrimitive.reset();
 }
 
 /**
@@ -1124,50 +1142,57 @@ GraphicsPrimitiveV3fT2f*
 OmeZarrImageFile::getGraphicsPrimitiveForMediaDrawing(const int32_t tabIndex,
                                                       const int32_t overlayIndex) const
 {
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
     const int64_t sliceIndex(m_tabOverlayInfo[tabIndex][overlayIndex]->m_frameIndex);
     
-    if (getNumberOfFrames() > static_cast<int64_t>(m_temporaryPrimitive.size())) {
-        m_temporaryPrimitive.resize(getNumberOfFrames());
-    }
-    
-    CaretAssertVectorIndex(m_temporaryPrimitive, sliceIndex);
-    if (m_temporaryPrimitive[sliceIndex]) {
-        return m_temporaryPrimitive[sliceIndex].get();
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
+    CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
+    TabOverlayInfo* tabOverlayInfo(m_tabOverlayInfo[tabIndex][overlayIndex].get());
+    CaretAssert(tabOverlayInfo);
+    if (tabOverlayInfo->m_graphicsPrimitive) {
+        return tabOverlayInfo->m_graphicsPrimitive.get();
     }
     
     if ( ! m_pyramidLevels.empty()) {
-        if (m_omeZarrReader) {
-            if (m_omeZarrReader->getNumberOfDataSets() > 0) {
-                const int32_t dataSetIndex(0);
-                const OmeDataSet& dataSet(m_omeZarrReader->getDataSet(dataSetIndex));
-                if (dataSet.getNumberOfSlices() > 0) {
-                    const int64_t width(dataSet.getWidth());
-                    const int64_t height(dataSet.getHeight());
-                    const int64_t numPixels(width * height * 4);
-                    if (numPixels > 0) {
-                        FunctionResultValue<unsigned char*> result(dataSet.readDataSetForImage(sliceIndex));
-                        if (result.isOk()) {
-                            
-                            GraphicsTextureSettings textureSettings;
-                            
-                            GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(result.getValue(),
-                                                                                       width,
-                                                                                       height));
-                            CaretAssertVectorIndex(m_temporaryPrimitive, sliceIndex);
-                            m_temporaryPrimitive[sliceIndex].reset(primitive);
-                        }
-                        else {
-                            CaretLogSevere("Loading from ZARR file: "
-                                           + result.getErrorMessage());
+        if (m_omeFileReader) {
+            const OmeAttrsV0p4JsonFile* zattrs(m_omeFileReader->getZAttrs());
+            if (zattrs == NULL) {
+                throw DataFileException("Failed to get ZAttrs (is NULL) from OmeFileReader");
+            }
+            if (zattrs->getNumberOfDataSets() > 0) {
+                const int32_t dataSetIndex(tabOverlayInfo->m_pyramidLevel);
+                if ((dataSetIndex >= 0)
+                    && (dataSetIndex < zattrs->getNumberOfDataSets())) {
+                    const OmeDataSet* dataSet(zattrs->getDataSet(dataSetIndex));
+                    if (dataSet->getNumberOfSlices() > 0) {
+                        const int64_t width(dataSet->getWidth());
+                        const int64_t height(dataSet->getHeight());
+                        const int64_t numPixels(width * height * 4);
+                        if (numPixels > 0) {
+                            FunctionResultValue<OmeImage*> resultImage(dataSet->readSlice(sliceIndex));
+                            if (resultImage.isOk()) {
+                                std::unique_ptr<OmeImage> omeImage(resultImage.getValue());
+                                CaretAssert(omeImage);
+                                GraphicsPrimitiveV3fT2f* primitive(createGraphicsPrimitive(omeImage.get()));
+                                tabOverlayInfo->m_graphicsPrimitive.reset(primitive);
+                            }
+                            else {
+                                CaretLogSevere("Reading slices from ZARR file: "
+                                               + resultImage.getErrorMessage());
+                            }
                         }
                     }
+                }
+                else {
+                    CaretLogSevere("Invalid data set index="
+                                   + AString::number(dataSetIndex)
+                                   + " for "
+                                   + getFileName());
                 }
             }
         }
     }
-    CaretAssertVectorIndex(m_temporaryPrimitive, sliceIndex);
-    return m_temporaryPrimitive[sliceIndex].get();
+    return tabOverlayInfo->m_graphicsPrimitive.get();
 #else
     return NULL;
 #endif
@@ -1188,18 +1213,29 @@ OmeZarrImageFile::getGraphicsPrimitiveForPlaneXyzDrawing(const int32_t tabIndex,
                                                overlayIndex);
 }
 
+/**
+ * Create a graphics primitive with data from the OME image
+ * @param omeImage
+ *    The OME image
+ * @return
+ *    Pointer to graphics primitive or NULL if failure.
+ */
 GraphicsPrimitiveV3fT2f*
-OmeZarrImageFile::createGraphicsPrimitive(const unsigned char* imageData,
-                                          const int64_t width,
-                                          const int64_t height) const
+OmeZarrImageFile::createGraphicsPrimitive(const OmeImage* omeImage) const
 {
+    CaretAssert(omeImage);
+    const OmeDimensionSizes dimSizes(omeImage->getDimensionSizes());
+    const int64_t numX(dimSizes.getSizeX());
+    const int64_t numY(dimSizes.getSizeY());
+    const int64_t numZ(dimSizes.getSizeZ());
+
     /*
      * If image is too big for OpenGL texture limits, scale image to acceptable size
      */
     const int32_t maxTextureWidthHeight = GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension();
     if (maxTextureWidthHeight > 0) {
-        const int32_t excessWidth(width - maxTextureWidthHeight);
-        const int32_t excessHeight(height - maxTextureWidthHeight);
+        const int32_t excessWidth(numX - maxTextureWidthHeight);
+        const int32_t excessHeight(numY - maxTextureWidthHeight);
         if ((excessWidth > 0)
             || (excessHeight > 0)) {
             if (excessWidth > excessHeight) {
@@ -1207,12 +1243,19 @@ OmeZarrImageFile::createGraphicsPrimitive(const unsigned char* imageData,
                                 + " is too big for texture.  Maximum width/height is: "
                                 + AString::number(maxTextureWidthHeight)
                                 + " Image Width: "
-                                + AString::number(width)
+                                + AString::number(numX)
                                 + " Image Height: "
-                                + AString::number(height));
+                                + AString::number(numY));
             }
         }
     }
+    
+    FunctionResultValue<uint8_t*> textureResult(omeImage->getDataForOpenGLTexture());
+    if (textureResult.isError()) {
+        CaretLogSevere("Failure to get texture for OpenGL drawing of OmeZarr");
+        return NULL;
+    }
+    const uint8_t* textureRGBA(textureResult.getValue());
     
     const std::array<float, 4> textureBorderColorRGBA { 0.0, 0.0, 0.0, 0.0 };
     
@@ -1241,10 +1284,11 @@ OmeZarrImageFile::createGraphicsPrimitive(const unsigned char* imageData,
     const GraphicsTextureSettings::CompressionType textureCompressionType(allowTextureCompressionFlag
                                                                           ? GraphicsTextureSettings::CompressionType::ENABLED
                                                                           : GraphicsTextureSettings::CompressionType::DISABLED);
-    GraphicsTextureSettings textureSettings(imageData,
-                                            width,
-                                            height,
-                                            1, /* slices */
+    GraphicsTextureSettings textureSettings(textureRGBA, //&rgba[0],
+                                            numX,
+                                            numY,
+                                            numZ,
+                                            //1, /* slices */
                                             GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
                                             pixelFormat,
                                             GraphicsTextureSettings::PixelOrigin::TOP_LEFT,
@@ -1263,9 +1307,9 @@ OmeZarrImageFile::createGraphicsPrimitive(const unsigned char* imageData,
      * Coordinates at EDGE of the pixels
      */
     const float minX = 0;
-    const float maxX = width;
+    const float maxX = numX;
     const float minY = 0;
-    const float maxY = height;
+    const float maxY = numY;
     
     /*
      * A Triangle Strip (consisting of two triangles) is used
@@ -1280,34 +1324,34 @@ OmeZarrImageFile::createGraphicsPrimitive(const unsigned char* imageData,
     primitive->addVertex(minX, maxY, minTextureST, maxTextureST);  /* Bottom Left */
     primitive->addVertex(maxX, minY, maxTextureST, minTextureST);  /* Top Right */
     primitive->addVertex(maxX, maxY, maxTextureST, maxTextureST);  /* Bottom Right */
-//    m_pixelPrimitiveVertexCount = (primitive->getNumberOfVertices()
-//                                   - m_pixelPrimitiveVertexStartIndex);
+    //    m_pixelPrimitiveVertexCount = (primitive->getNumberOfVertices()
+    //                                   - m_pixelPrimitiveVertexStartIndex);
     
-//    /*
-//     * Create a primitive for plane coordinates if available
-//     */
-//    if (isPlaneXyzSupported()) {
-//        /*
-//         * A Triangle Strip (consisting of two triangles) is used
-//         * for drawing the image.
-//         * The order of the vertices in the triangle strip is
-//         * Top Left, Bottom Left, Top Right, Bottom Right.
-//         * ORIGIN IS AT TOP LEFT
-//         */
-//        const float minTextureST(0.0);
-//        const float maxTextureST(1.0);
-//        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
-//        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
-//        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
-//        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
-//        m_planePrimitiveVertexStartIndex = primitive->getNumberOfVertices();
-//        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
-//        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
-//        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
-//        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
-//        m_planePrimitiveVertexCount = (primitive->getNumberOfVertices()
-//                                       - m_planePrimitiveVertexStartIndex);
-//    }
+    //    /*
+    //     * Create a primitive for plane coordinates if available
+    //     */
+    //    if (isPlaneXyzSupported()) {
+    //        /*
+    //         * A Triangle Strip (consisting of two triangles) is used
+    //         * for drawing the image.
+    //         * The order of the vertices in the triangle strip is
+    //         * Top Left, Bottom Left, Top Right, Bottom Right.
+    //         * ORIGIN IS AT TOP LEFT
+    //         */
+    //        const float minTextureST(0.0);
+    //        const float maxTextureST(1.0);
+    //        const Vector3D coordinateTopLeft(getPlaneXyzTopLeft());
+    //        const Vector3D coordinateTopRight(getPlaneXyzTopRight());
+    //        const Vector3D coordinateBottomLeft(getPlaneXyzBottomLeft());
+    //        const Vector3D coordinateBottomRight(getPlaneXyzBottomRight());
+    //        m_planePrimitiveVertexStartIndex = primitive->getNumberOfVertices();
+    //        primitive->addVertex(coordinateTopLeft[0],     coordinateTopLeft[1],     minTextureST, minTextureST);  /* Top Left */
+    //        primitive->addVertex(coordinateBottomLeft[0],  coordinateBottomLeft[1],  minTextureST, maxTextureST);  /* Bottom Left */
+    //        primitive->addVertex(coordinateTopRight[0],    coordinateTopRight[1],    maxTextureST, minTextureST);  /* Top Right */
+    //        primitive->addVertex(coordinateBottomRight[0], coordinateBottomRight[1], maxTextureST, maxTextureST);  /* Bottom Right */
+    //        m_planePrimitiveVertexCount = (primitive->getNumberOfVertices()
+    //                                       - m_planePrimitiveVertexStartIndex);
+    //    }
     
     return primitive;
 }
@@ -1338,19 +1382,12 @@ bool
 OmeZarrImageFile::isPixelIndexInFrameValid(const int32_t frameIndex,
                                            const PixelLogicalIndex& pixelLogicalIndex) const
 {
-//    CaretAssertVectorIndex(m_cziScenePyramidInfos, frameIndex);
-//    const QRectF frameLogicalRect(m_cziScenePyramidInfos[frameIndex].m_logicalRectangle);
-//    const float i(pixelLogicalIndex.getI());
-//    const float j(pixelLogicalIndex.getJ());
-//    
-//    if ((i >= frameLogicalRect.left())
-//        && (i < frameLogicalRect.right())
-//        && (j >= frameLogicalRect.top())
-//        && (j < frameLogicalRect.bottom())) {
-//        return true;
-//    }
+    CaretAssertVectorIndex(m_pyramidLevels, frameIndex);
+    const QRectF& frameLogicalRect(m_pyramidLevels[frameIndex].m_logicalRectangle);
+    const float i(pixelLogicalIndex.getI());
+    const float j(pixelLogicalIndex.getJ());
     
-    return false;
+    return frameLogicalRect.contains(i, j);
 }
 
 /**
@@ -1410,6 +1447,27 @@ OmeZarrImageFile::getPixelRGBA(const int32_t tabIndex,
     pixelRGBAOut[2] = 0;
     pixelRGBAOut[3] = 0;
     
+    const TabOverlayInfo* tabOverlayInfo(m_tabOverlayInfo[tabIndex][overlayIndex].get());
+    CaretAssert(tabOverlayInfo);
+    if (tabOverlayInfo->m_graphicsPrimitive) {
+        const int32_t pyramidLevel(tabOverlayInfo->m_pyramidLevel);
+        if ((pyramidLevel >= 0)
+            && (pyramidLevel < static_cast<int32_t>(m_pyramidLevels.size()))) {
+            const int64_t pixelI(pixelLogicalIndex.getI());
+            const int64_t pixelJ(pixelLogicalIndex.getJ());
+            const OmeDataSet* dataSet(m_omeFileReader->getZAttrs()->getDataSet(pyramidLevel));
+            CaretAssert(dataSet);
+            FunctionResultValue<std::array<uint8_t, 4>> result(dataSet->readSlicePixel(tabOverlayInfo->m_sliceIndex, pixelI, pixelJ));
+            if (result.isOk()) {
+                const std::array<uint8_t, 4>& rgba(result.getValue());
+                pixelRGBAOut[0] = rgba[0];
+                pixelRGBAOut[1] = rgba[1];
+                pixelRGBAOut[2] = rgba[2];
+                pixelRGBAOut[3] = rgba[3];
+                return true;
+            }
+        }
+    }
 //    const libCZI::PixelType pixelType(libCZI::PixelType::Bgr24);
 //    libCZI::IntRect pixelRect;
 //    pixelRect.x = pixelLogicalIndex.getI();
@@ -1770,9 +1828,9 @@ OmeZarrImageFile::toString() const
 {
     AString s(MediaFile::toString());
     
-#ifdef WORKBENCH_HAVE_TENSOR_STORE
-    if (m_omeZarrReader) {
-        s.append(m_omeZarrReader->toString());
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+    if (m_omeFileReader) {
+        s.append(m_omeFileReader->toString());
     }
 #endif
     
@@ -1823,6 +1881,7 @@ OmeZarrImageFile::TabOverlayInfo::cloneFromOtherTabOverlayInfo(TabOverlayInfo* o
     m_frameIndex = otherTabOverlayInfo->m_frameIndex;
     m_pyramidLevel = otherTabOverlayInfo->m_pyramidLevel;
     m_resolutionChangeMode = otherTabOverlayInfo->m_resolutionChangeMode;
+    m_graphicsPrimitive.reset();
 }
 
 /**
@@ -1835,5 +1894,6 @@ OmeZarrImageFile::TabOverlayInfo::resetContent()
     m_frameIndex = 0;
     m_pyramidLevel = 0;
     m_resolutionChangeMode = CziImageResolutionChangeModeEnum::AUTO2;
+    m_graphicsPrimitive.reset();
 }
 

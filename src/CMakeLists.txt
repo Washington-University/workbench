@@ -68,12 +68,10 @@ set (WORKBENCH_OPENMP_LIBRARY        "" CACHE STRING
     "OpenMP library path (path and lib) for when FindOpenMP does not work")
 
 #
-# TensorStore Configuration
+# OME ZARR LIB
 #
-set (WORKBENCH_USE_TENSORSTORE FALSE CACHE BOOL
-     "If TRUE, get the TensorStore library and all of its dependencies.
-      TensorStore and all its dependencies will be put in the a 
-      directory named '_deps' in the 'build' directory.")
+set (WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH "" CACHE PATH
+     "Path to OME ZARR Z5 include and lib directories")
 
 ##########################################################################################
 #
@@ -599,77 +597,58 @@ IF (EXISTS ${WORKBENCH_MESA_DIR})
     ENDIF (EXISTS ${WORKBENCH_MESA_DIR}/include/GL/osmesa.h)
 ENDIF (EXISTS ${WORKBENCH_MESA_DIR})
 
-
 ##########################################################################################
 #
-# TensorStore
+# OME ZARR Z5 LIB
 #
-IF (WORKBENCH_USE_TENSORSTORE)
-   # Tell TensorStore to NOT get these libraries as we already have them
-   # These could also be set on the command line when running cmake
-   #     -DTENSORSTORE_USE_SYSTEM_ZLIB=ON
-   #SET(TENSORSTORE_USE_SYSTEM_JPEG ON)
-   SET(TENSORSTORE_USE_SYSTEM_OPENSSL ON)
-   SET(TENSORSTORE_USE_SYSTEM_PNG ON)
-   #SET(TENSORSTORE_USE_SYSTEM_TIFF ON)
-   SET(TENSORSTORE_USE_SYSTEM_ZLIB ON)
+IF (EXISTS ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH})
+    LIST(APPEND CMAKE_PREFIX_PATH ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH})
+    
+    MESSAGE("WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH: ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH}")
+    MESSAGE("Looking for OME ZARR LIBRARY dependencies")
+    
+    # nlohmann_json is header files only, no library
+    FIND_PACKAGE(nlohmann_json REQUIRED)
+    include_directories(${nlohmann_json_INCLUDE_DIRS})
 
-   include(FetchContent)
-
-   FetchContent_Declare(
-      tensorstore
-      GIT_REPOSITORY "https://github.com/google/tensorstore"
-      GIT_TAG       "v0.1.63"
-   )
-
-   FetchContent_MakeAvailable(tensorstore)
-ENDIF (WORKBENCH_USE_TENSORSTORE)
-
-#
-# TensorStore Definitions and Headers
-#
-IF (${WORKBENCH_USE_TENSORSTORE})
-    ADD_DEFINITIONS(-DWORKBENCH_HAVE_TENSOR_STORE)
-
-    SET (OME_ZARR_LIB OmeZarr)
-    SET (TENSOR_STORE_DIR ${CMAKE_BINARY_DIR}/_deps)
-    INCLUDE_DIRECTORIES(
-        ${TENSOR_STORE_DIR}/absl-src
-        ${TENSOR_STORE_DIR}/aom-src/
-        ${TENSOR_STORE_DIR}/avif-src/
-        ${TENSOR_STORE_DIR}/benchmark-src/
-        ${TENSOR_STORE_DIR}/blake3-src/
-        ${TENSOR_STORE_DIR}/blosc-src/
-        ${TENSOR_STORE_DIR}/brotli-src/
-        ${TENSOR_STORE_DIR}/bzip2-src/
-        ${TENSOR_STORE_DIR}/c-ares-src/
-        ${TENSOR_STORE_DIR}/curl-src/
-        ${TENSOR_STORE_DIR}/dav1d-src/
-        ${TENSOR_STORE_DIR}/envoy-src/
-        ${TENSOR_STORE_DIR}/googleapis-src/
-        ${TENSOR_STORE_DIR}/grpc-src/
-        ${TENSOR_STORE_DIR}/gtest-src/
-        ${TENSOR_STORE_DIR}/half-src/include
-        ${TENSOR_STORE_DIR}/jpeg-src/
-        ${TENSOR_STORE_DIR}/liblzma-src/
-        ${TENSOR_STORE_DIR}/libyuv-src/
-        ${TENSOR_STORE_DIR}/lz4-src/
-        ${TENSOR_STORE_DIR}/nghttp2-src/
-        ${TENSOR_STORE_DIR}/nlohmann_json-src/single_include
-        ${TENSOR_STORE_DIR}/protobuf-src/
-        ${TENSOR_STORE_DIR}/re2-src/
-        ${TENSOR_STORE_DIR}/riegeli-src/
-        ${TENSOR_STORE_DIR}/snappy-src/
-        ${TENSOR_STORE_DIR}/tensorstore-src/
-        ${TENSOR_STORE_DIR}/tiff-src/
-        ${TENSOR_STORE_DIR}/tinyxml2-src/
-        ${TENSOR_STORE_DIR}/udpa-src/
-        ${TENSOR_STORE_DIR}/webp-src/
-        ${TENSOR_STORE_DIR}/zstd-src/
-    )
+    # xtl is header files only, no library
+    FIND_PACKAGE(xtl REQUIRED)
+    include_directories(xtl_INCLUDE_DIRS)
+    
+    # xtensor is header files only, no library
+    FIND_PACKAGE(xtensor REQUIRED)
+    include_directories(xtensor_INCLUDE_DIRS)
+    
+    # BLOSC is headers and library
+    FIND_PACKAGE(BLOSC QUIET)
+    IF (NOT BLOSC_FOUND)
+        FIND_PATH(BLOSC_INCLUDE_DIR blosc.h)
+        FIND_LIBRARY(BLOSC_LIBRARY NAMES blosc)
+        IF (BLOSC_INCLUDE_DIR)
+            IF (BLOSC_LIBRARY)
+                MESSAGE("BLOCK INCLUDE ${BLOSC_INCLUDE_DIR}")
+                MESSAGE("BLOSC LIBRARY ${BLOSC_LIBRARY}")
+            ELSE()
+                MESSAGE(FATAL_ERROR "Unable to find BLOSC library")
+            ENDIF()
+        ELSE()
+            MESSAGE(FATAL_ERROR "Unable to find BLOSC include directory")
+        ENDIF()
+    ENDIF()
+    include_directories(${BLOSC_INCLUDE_DIR})
+    LIST(APPEND WORKBENCH_OME_ZARR_COMPRESSION_LIBRARIES "${BLOSC_LIBRARY}")
+    
+    # Z5 is header files only, no library
+    FIND_PACKAGE(Z5 REQUIRED)
+    include_directories(${Z5_INCLUDE_DIR})
+    
+    SET(WORKBENCH_OME_ZARR_Z5_MODULE OmeZarr)
+    SET(HAVE_OME_ZARR_Z5_FLAG TRUE)
+    ADD_DEFINITIONS(-DWORKBENCH_HAVE_OME_ZARR_Z5)
 ELSE()
-    SET (OME_ZARR_LIB "")
-ENDIF()
+    SET(WORKBENCH_OME_ZARR_Z5_MODULE "")
+    SET(HAVE_OME_ZARR_Z5_FLAG FALSE)
+ENDIF ()
 
 ##########################################################################################
 #
@@ -694,9 +673,9 @@ IF (NOT QUAZIP_FOUND)
   ADD_SUBDIRECTORY ( Quazip )
 ENDIF (NOT QUAZIP_FOUND)
 ADD_SUBDIRECTORY ( Common )
-IF (WORKBENCH_USE_TENSORSTORE) 
-    ADD_SUBDIRECTORY ( OmeZarr )
-ENDIF ()
+IF (HAVE_OME_ZARR_Z5_FLAG)
+   ADD_SUBDIRECTORY( OmeZarr)
+ENDIF()
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Scenes )
 ADD_SUBDIRECTORY ( OSMesaDummy )
