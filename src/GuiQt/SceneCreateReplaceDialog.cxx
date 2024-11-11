@@ -40,8 +40,10 @@
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DataFileException.h"
+#include "ElapsedTimer.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAllViewed.h"
 #include "EventImageCapture.h"
@@ -795,6 +797,9 @@ SceneCreateReplaceDialog::okButtonClicked()
         }
     }
     
+    ElapsedTimer timer;
+    timer.start();
+    
     Scene* newScene = new Scene(SceneTypeEnum::SCENE_TYPE_FULL);
     Scene::setSceneBeingCreated(newScene);
     newScene->setName(newSceneName);
@@ -872,6 +877,12 @@ SceneCreateReplaceDialog::okButtonClicked()
     m_sceneThatWasCreated = newScene;
     
     Scene::setSceneBeingCreated(NULL);
+    
+    CaretLogInfo("Time to create scene "
+                 + newSceneName
+                 + ": "
+                 + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds.");
     
     WuQDialogModal::okButtonClicked();
 }
