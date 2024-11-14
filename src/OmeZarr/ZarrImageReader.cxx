@@ -305,59 +305,65 @@ ZarrImageReader::readLocalFile(const AString& zarrPath,
                                const std::vector<int64_t>& dimOffsets,
                                const std::vector<int64_t>& dimLengths)
 {
-    /*
-     * Path to file
-     */
-    const std::string filePath(zarrPath.toStdString()
-                               + "/"
-                               + relativePath.toStdString());
-    z5::filesystem::handle::File file(zarrPath.toStdString());
-    
-    /*
-     * Open the data set
-     */
-    std::unique_ptr<z5::Dataset> dataSet;
     try {
-        dataSet = z5::openDataset(file,
-                                  relativePath.toStdString());
+        /*
+         * Path to file
+         */
+        const std::string filePath(zarrPath.toStdString()
+                                   + "/"
+                                   + relativePath.toStdString());
+        z5::filesystem::handle::File file(zarrPath.toStdString());
+        
+        /*
+         * Open the data set
+         */
+        std::unique_ptr<z5::Dataset> dataSet;
+        try {
+            dataSet = z5::openDataset(file,
+                                      relativePath.toStdString());
+        }
+        catch (const std::exception& re) {
+            const AString msg("Opening dataset failed (z5::openDataset execption), path="
+                              + AString(filePath)
+                              + AString("  error: ")
+                              + AString(re.what()));
+            return readDataErrorResult(msg);
+        }
+        
+        if ( ! dataSet) {
+            return readDataErrorResult("Opening data set failed " + filePath);
+        }
+        
+        /*
+         * Read all data from the file
+         */
+        z5::types::ShapeType offset;
+        for (const int64_t dimO : dimOffsets) {
+            offset.push_back(dimO);
+        }
+        
+        xt::xarray<int64_t>::shape_type shape;
+        for (const int64_t dl : dimLengths) {
+            shape.push_back(dl);
+        }
+        try {
+            std::unique_ptr<xt::xarray<uint8_t>> arrayStorage(new xt::xarray<uint8_t>(shape));
+            z5::multiarray::readSubarray<uint8_t>(dataSet,
+                                                  *arrayStorage.get(),
+                                                  offset.begin());
+            return FunctionResultValue<xt::xarray<uint8_t>*>(arrayStorage.release(),
+                                                             "",
+                                                             true);
+        }
+        catch(const std::exception& re) {
+            const AString msg("Z5::readSubarray exeception: "
+                              + AString(re.what()));
+            return readDataErrorResult(msg);
+        }
     }
-    catch (const std::runtime_error& re) {
-        const AString msg("Opening dataset failed (z5::openDataset execption), path="
-                          + AString(filePath)
-                          + AString("  error: ")
-                          + AString(re.what()));
-        return readDataErrorResult(msg);
-    }
-
-    if ( ! dataSet) {
-        return readDataErrorResult("Opening data set failed " + filePath);
-    }
-    
-    /*
-     * Read all data from the file
-     */
-    z5::types::ShapeType offset;
-    for (const int64_t dimO : dimOffsets) {
-        offset.push_back(dimO);
-    }
-    
-    xt::xarray<int64_t>::shape_type shape;
-    for (const int64_t dl : dimLengths) {
-        shape.push_back(dl);
-    }
-    try {
-        std::unique_ptr<xt::xarray<uint8_t>> arrayStorage(new xt::xarray<uint8_t>(shape));
-        z5::multiarray::readSubarray<uint8_t>(dataSet,
-                                              *arrayStorage.get(),
-                                              offset.begin());
-        return FunctionResultValue<xt::xarray<uint8_t>*>(arrayStorage.release(),
-                                                         "",
-                                                         true);
-    }
-    catch(const std::runtime_error& re) {
-        const AString msg("Z5::readSubarray execption: "
-                          + AString(re.what()));
-        return readDataErrorResult(msg);
+    catch (const std::exception& e) {
+        return readDataErrorResult("Exception was thrown by Z5: "
+                                   + AString(e.what()));
     }
 
     CaretAssert(0);

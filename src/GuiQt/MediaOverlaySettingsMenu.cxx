@@ -128,11 +128,14 @@ m_mediaOverlay(mediaOverlay)
     reloadToolButton->setDefaultAction(m_reloadAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(reloadToolButton);
     
+    m_pyramidLayerDimensionsLabel = new QLabel();
+    
     QWidget* pyramidLayerWidget(new QWidget());
     QVBoxLayout* pyramidLayerLayout = new QVBoxLayout(pyramidLayerWidget);
     pyramidLayerLayout->addWidget(pyramidLayerLabel);
     pyramidLayerLayout->addWidget(m_cziResolutionChangeModeComboBox->getWidget());
     pyramidLayerLayout->addWidget(m_cziPyramidLayerIndexSpinBox);
+    pyramidLayerLayout->addWidget(m_pyramidLayerDimensionsLabel, Qt::AlignLeft);
     pyramidLayerLayout->addWidget(reloadToolButton);
 
     QLabel* channelLabel = new QLabel("Channel");
@@ -191,6 +194,9 @@ MediaOverlaySettingsMenu::updateContent()
     
     m_channelWidget->setEnabled(false);
     m_selectedChannelSpinBox->setEnabled(false);
+    
+    updateDimensionsLabel();
+    
     if (selectionData.m_selectedMediaFile != NULL) {
         const MediaFileChannelInfo* channelInfo(selectionData.m_constSelectedMediaFile->getMediaFileChannelInfo());
         CaretAssert(channelInfo);
@@ -219,6 +225,33 @@ MediaOverlaySettingsMenu::updateContent()
     }
 }
 
+/**
+ * Update the dimensions label
+ */
+void
+MediaOverlaySettingsMenu::updateDimensionsLabel()
+{
+    m_pyramidLayerDimensionsLabel->setText("");
+
+    CaretAssert(m_mediaOverlay);
+    const MediaOverlay::SelectionData selectionData(m_mediaOverlay->getSelectionData());
+
+    if (selectionData.m_selectedMediaFile != NULL) {
+        std::vector<int64_t> dims;
+        if (selectionData.m_selectedMediaFile->getPyrimidLevelDimensions(selectionData.m_cziManualPyramidLayerIndex,
+                                                                         dims)) {
+            std::vector<AString> dimString;
+            for (const auto& d : dims) {
+                dimString.push_back(AString::number(d));
+            }
+            m_pyramidLayerDimensionsLabel->setText("X x Y: ("
+                                                   + AString::join(dimString, ", ")
+                                                   + ")");
+        }
+    }
+}
+
+
 
 /**
  * Called when pyramid layer spin box is changed
@@ -229,6 +262,7 @@ void
 MediaOverlaySettingsMenu::pyramidLayerChanged(int value)
 {
     m_mediaOverlay->setCziPyramidLayerIndex(value);
+    updateDimensionsLabel();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 

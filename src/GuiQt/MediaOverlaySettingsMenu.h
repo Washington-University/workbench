@@ -28,6 +28,7 @@
 #include <QMenu>
 
 class QCheckBox;
+class QLabel;
 class QSpinBox;
 class QWidget;
 
@@ -63,6 +64,8 @@ namespace caret {
         void selectedChannelSpinBoxValueChanged(int value);
         
     private:
+        void updateDimensionsLabel();
+        
         void updateContent();
         
         MediaOverlay* m_mediaOverlay;
@@ -70,6 +73,8 @@ namespace caret {
         EnumComboBoxTemplate* m_cziResolutionChangeModeComboBox;
         
         QSpinBox* m_cziPyramidLayerIndexSpinBox;
+        
+        QLabel* m_pyramidLayerDimensionsLabel;
         
         QAction* m_reloadAction;
         

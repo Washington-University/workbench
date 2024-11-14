@@ -1143,6 +1143,23 @@ CziImageFile::getPyramidLayerRangeForFrame(const int32_t frameIndex,
 }
 
 /**
+ * Get the dimensions for the given pyramid level
+ * @param pyramidLevel
+ *    The pyramid level
+ * @param dimensionsOut
+ *    Output with dimensions
+ * @return True if valid, else false.
+ */
+bool
+CziImageFile::getPyrimidLevelDimensions(const int32_t /*pyramidLevel*/,
+                                        std::vector<int64_t>& dimensionsOut) const
+{
+    dimensionsOut.clear();
+    
+    return false;
+}
+
+/**
  * Read a pyramid layer from CZI file
  * @param imageName
  *    Name of image that may be used when debugging

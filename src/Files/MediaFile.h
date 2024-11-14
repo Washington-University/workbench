@@ -293,6 +293,9 @@ namespace caret {
                                                   int32_t& lowestPyramidLayerIndexOut,
                                                   int32_t& highestPyramidLayerIndexOut) const;
         
+        virtual bool getPyrimidLevelDimensions(const int32_t pyramidLevel,
+                                               std::vector<int64_t>& dimensionsOut) const;
+        
         virtual void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
                                                     const int32_t overlayIndex);
         

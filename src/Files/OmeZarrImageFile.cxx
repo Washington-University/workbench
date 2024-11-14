@@ -60,6 +60,7 @@
 #include "DataFileException.h"
 #include "DescriptiveStatistics.h"
 #include "EventCaretPreferencesGet.h"
+#include "EventAlertUser.h"
 #include "EventBrowserTabClose.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNewClone.h"
@@ -577,6 +578,31 @@ OmeZarrImageFile::reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
     CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabIndex);
     CaretAssertArrayIndex(m_tabOverlayInfo, BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, overlayIndex);
     m_tabOverlayInfo[tabIndex][overlayIndex]->m_graphicsPrimitive.reset();
+}
+
+/**
+ * Get the dimensions for the given pyramid level
+ * @param pyramidLevel
+ *    The pyramid level
+ * @param dimensionsOut
+ *    Output with dimensions
+ * @return True if valid, else false.
+ */
+bool
+OmeZarrImageFile::getPyrimidLevelDimensions(const int32_t pyramidLevel,
+                                            std::vector<int64_t>& dimensionsOut) const
+{
+    dimensionsOut.clear();
+    
+    if ((pyramidLevel >= 0)
+        && (pyramidLevel < static_cast<int32_t>(m_pyramidLevels.size()))) {
+        CaretAssertVectorIndex(m_pyramidLevels, pyramidLevel);
+        dimensionsOut.push_back(m_pyramidLevels[pyramidLevel].m_pixelWidth);
+        dimensionsOut.push_back(m_pyramidLevels[pyramidLevel].m_pixelHeight);
+        return true;
+    }
+    
+    return false;
 }
 
 /**
@@ -1267,6 +1293,19 @@ OmeZarrImageFile::createGraphicsPrimitive(const OmeDataSet* dataSet,
     GraphicsPrimitiveV3fT2f* primitive(NULL);
     
 #if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+    switch (m_status) {
+        case Status::CLOSED:
+            CaretLogSevere("Attempting to create graphics primitive but file is closed "
+                           + getFileName());
+            return NULL;
+            break;
+        case Status::ERRORED:
+            return NULL;
+            break;
+        case Status::OPEN:
+            break;
+    }
+
     CaretAssert(dataSet);
     if (dataSet->getNumberOfSlices() > 0) {
         const int64_t width(dataSet->getWidth());
@@ -1395,6 +1434,10 @@ OmeZarrImageFile::createGraphicsPrimitive(const OmeDataSet* dataSet,
                 }
             }
             else {
+                m_status = Status::ERRORED;
+                EventAlertUser event("Reading slices from ZARR file: "
+                                     + resultImage.getErrorMessage());
+                EventManager::get()->sendEvent(event.getPointer());
                 CaretLogSevere("Reading slices from ZARR file: "
                                + resultImage.getErrorMessage());
             }

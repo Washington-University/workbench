@@ -1738,3 +1738,19 @@ MediaFile::reloadPyramidLayerInTabOverlay(const int32_t /*tabIndex*/,
                                           const int32_t /*overlayIndex*/)
 {
 }
+
+/**
+ * Get the dimensions for the given pyramid level
+ * @param pyramidLevel
+ *    The pyramid level
+ * @param dimensionsOut
+ *    Output with dimensions
+ * @return True if valid, else false.
+ */
+bool
+MediaFile::getPyrimidLevelDimensions(const int32_t pyramidLevel,
+                                     std::vector<int64_t>& dimensionsOut) const
+{
+    return false;
+}
+

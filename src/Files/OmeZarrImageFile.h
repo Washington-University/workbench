@@ -137,6 +137,9 @@ namespace caret {
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const override;
         
+        virtual bool getPyrimidLevelDimensions(const int32_t pyramidLevel,
+                                               std::vector<int64_t>& dimensionsOut) const override;
+        
         virtual void getPyramidLayerRangeForFrame(const int32_t frameIndex,
                                                   const bool allFramesFlag,
                                                   int32_t& lowestPyramidLayerIndexOut,
@@ -299,7 +302,7 @@ namespace caret {
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        Status m_status = Status::CLOSED;
+        mutable Status m_status = Status::CLOSED;
         
         AString m_errorMessage;
         
