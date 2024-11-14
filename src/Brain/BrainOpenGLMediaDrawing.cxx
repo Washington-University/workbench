@@ -371,6 +371,11 @@ BrainOpenGLMediaDrawing::drawModelLayers(const BrainOpenGLViewportContent* viewp
                                                                  selectionData.m_cziResolutionChangeMode);
                     primitive = omeZarrImageFile->getGraphicsPrimitiveForMediaDrawing(tabIndex,
                                                                                       iOverlay);
+                    const Vector3D modelScale(omeZarrImageFile->getModelviewScaling(tabIndex, iOverlay));
+                    glScalef(modelScale[0],
+                             modelScale[1],
+                             1.0);
+                    
                     mediaHeight = omeZarrImageFile->getHeight();
                 }
                 else {

@@ -14,11 +14,9 @@ PROJECT(OmeZarr)
 if(Qt6_FOUND)
     include_directories(${Qt6Core_INCLUDE_DIRS})
     include_directories(${Qt6Gui_INCLUDE_DIRS})
-#    include_directories(${Qt6Network_INCLUDE_DIRS})
 endif()
 if(Qt5_FOUND)
     include_directories(${Qt5Core_INCLUDE_DIRS})
-#    include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
 #message("QT VERSION: " ${QT_VERSION_MAJOR} ${QT_VERSION_MINOR} ${QT_VERSION_PATCH})
 
@@ -103,5 +101,3 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/OmeZarr
 )
-
-ADD_DEFINITIONS(-DWITH_BLOSC)

@@ -31,6 +31,7 @@
 #include "OmeCoordinateTransformations.h"
 #include "OmeDimensionIndices.h"
 #include "OmeImage.h"
+#include "Vector3D.h"
 #include "ZarrDataTypeEnum.h"
 #include "ZarrDriverTypeEnum.h"
 
@@ -75,14 +76,18 @@ namespace caret {
         
         int64_t getNumberOfChannels() const;
         
+        Vector3D getPixelCoordinate(const int64_t pixelI,
+                                    const int64_t pixelJ,
+                                    const int64_t pixelK) const;
+        
         FunctionResult initializeForReading(const ZarrDriverTypeEnum::Enum driverType,
                                             const AString& zarrPath);
         
         FunctionResultValue<OmeImage*> readSlice(const int64_t sliceIndex) const;
         
         FunctionResultValue<std::array<uint8_t, 4>> readSlicePixel(const int64_t sliceIndex,
-                                                                   const int64_t pixelX,
-                                                                   const int64_t pixelY) const;
+                                                                   const int64_t pixelI,
+                                                                   const int64_t pixelJ) const;
 
         FunctionResultValue<uint8_t*> readDataSetForImage(const int64_t sliceIndex) const;
         

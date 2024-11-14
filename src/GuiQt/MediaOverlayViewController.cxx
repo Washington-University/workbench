@@ -360,12 +360,6 @@ MediaOverlayViewController::updateOverlaySettingsEditor()
     
     if ((selectionData.m_selectedMediaFile != NULL)
         && (selectionData.m_selectedFrameIndex >= 0)) {
-//        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_OVERLAY_MAP_CHANGED,
-//                                                     m_browserWindowIndex,
-//                                                     m_mediaOverlay,
-//                                                     mediaFile,
-//                                                     frameIndex);
-//        EventManager::get()->sendEvent(pcme.getPointer());
     }
 }
 
@@ -596,13 +590,7 @@ MediaOverlayViewController::settingsActionTriggered()
     if (selectionData.m_selectedMediaFile != NULL) {
         MediaOverlaySettingsMenu menu(m_mediaOverlay,
                                       m_parentObjectName);
-        menu.exec(m_settingsToolButton->mapToGlobal(QPoint(0,0)));
-//        EventOverlaySettingsEditorDialogRequest pcme(EventOverlaySettingsEditorDialogRequest::MODE_SHOW_EDITOR,
-//                                                     m_browserWindowIndex,
-//                                                     m_mediaOverlay,
-//                                                     mediaFile,
-//                                                     frameIndex);
-//        EventManager::get()->sendEvent(pcme.getPointer());
+        menu.exec(m_settingsToolButton->mapToGlobal(m_settingsToolButton->pos()));
     }
 }
 

@@ -368,11 +368,15 @@ OmeDataSet::readSlice(const int64_t sliceIndex) const
  * Read the given pixel from the ZARR file.
  * @param sliceIndex
  *    Index of the slice.
+ * @param pixelI
+ *    Pixel index I
+ * @param pixelJ
+ *    Pixel index J
  */
 FunctionResultValue<std::array<uint8_t, 4>>
 OmeDataSet::readSlicePixel(const int64_t sliceIndex,
-                           const int64_t pixelX,
-                           const int64_t pixelY) const
+                           const int64_t pixelI,
+                           const int64_t pixelJ) const
 {
     std::array<uint8_t, 4> rgba { 0, 0, 0, 0 };
     
@@ -400,8 +404,8 @@ OmeDataSet::readSlicePixel(const int64_t sliceIndex,
     dimLengths[m_dimensionIndices.getIndexForZ()] = dims[m_dimensionIndices.getIndexForZ()];
     dimLengths[m_dimensionIndices.getIndexForChannel()] = dims[m_dimensionIndices.getIndexForChannel()];
     
-    dimOffset[m_dimensionIndices.getIndexForX()] = pixelX;
-    dimOffset[m_dimensionIndices.getIndexForY()] = pixelY;
+    dimOffset[m_dimensionIndices.getIndexForX()] = pixelI;
+    dimOffset[m_dimensionIndices.getIndexForY()] = pixelJ;
     dimOffset[m_dimensionIndices.getIndexForZ()]  = sliceIndex;
     dimLengths[m_dimensionIndices.getIndexForX()] = 1;
     dimLengths[m_dimensionIndices.getIndexForY()] = 1;
@@ -428,6 +432,78 @@ OmeDataSet::readSlicePixel(const int64_t sliceIndex,
 
 }
 
+/**
+ * @return The coordinate at the given pixel index
+ * @param pixelI
+ *    Pixel index I
+ * @param pixelJ
+ *    Pixel index J
+ * @param pixelK
+ *    Pixel index K
+ */
+Vector3D 
+OmeDataSet::getPixelCoordinate(const int64_t pixelI,
+                               const int64_t pixelJ,
+                               const int64_t pixelK) const
+{
+    Vector3D xyz(pixelI, pixelJ, pixelK);
+    
+    const int64_t indexX(m_dimensionIndices.getIndexForX());
+    const int64_t indexY(m_dimensionIndices.getIndexForY());
+    const int64_t indexZ(m_dimensionIndices.getIndexForZ());
+    
+    for (const OmeCoordinateTransformations& oct : m_coordinateTransformations) {
+        const std::vector<float> t(oct.getTransformValues());
+        const int64_t numT(t.size());
+        
+        if ((indexX >= 0)
+            && (indexX < numT)) {
+            switch (oct.getType()) {
+                case OmeCoordinateTransformationTypeEnum::INVALID:
+                    break;
+                case OmeCoordinateTransformationTypeEnum::SCALE:
+                    CaretAssertVectorIndex(t, indexX);
+                    xyz[0] *= t[indexX];
+                    break;
+                case OmeCoordinateTransformationTypeEnum::TRANSLATE:
+                    CaretAssertVectorIndex(t, indexX);
+                    xyz[0] += t[indexX];
+                    break;
+            }
+        }
+        if ((indexY >= 0)
+            && (indexY < numT)) {
+            switch (oct.getType()) {
+                case OmeCoordinateTransformationTypeEnum::INVALID:
+                    break;
+                case OmeCoordinateTransformationTypeEnum::SCALE:
+                    CaretAssertVectorIndex(t, indexY);
+                    xyz[1] *= t[indexY];
+                    break;
+                case OmeCoordinateTransformationTypeEnum::TRANSLATE:
+                    CaretAssertVectorIndex(t, indexY);
+                    xyz[1] += t[indexY];
+                    break;
+            }
+        }
+        if ((indexZ >= 0)
+            && (indexZ < numT)) {
+            switch (oct.getType()) {
+                case OmeCoordinateTransformationTypeEnum::INVALID:
+                    break;
+                case OmeCoordinateTransformationTypeEnum::SCALE:
+                    CaretAssertVectorIndex(t, indexZ);
+                    xyz[2] *= t[indexZ];
+                    break;
+                case OmeCoordinateTransformationTypeEnum::TRANSLATE:
+                    CaretAssertVectorIndex(t, indexZ);
+                    xyz[2] += t[indexZ];
+                    break;
+            }
+        }
+    }
+    return xyz;
+}
 
 
 

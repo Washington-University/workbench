@@ -28,6 +28,7 @@
 #include <QRectF>
 
 #include "BrainConstants.h"
+#include "FunctionResult.h"
 #include "CziImageResolutionChangeModeEnum.h"
 #include "EventListenerInterface.h"
 #include "FunctionResult.h"
@@ -37,7 +38,6 @@
 
 #include "PixelIndex.h"
 #include "Plane.h"
-#include "VolumeFile.h"
 
 class QImage;
 
@@ -55,8 +55,10 @@ namespace caret {
     class GraphicsPrimitiveV3fT2f;
     class Matrix4x4;
     class OmeFileReader;
+    class OmeDataSet;
     class OmeImage;
     class RectangleTransform;
+    class VolumeFile;
     class VolumeSpace;
     
     class OmeZarrImageFile : public MediaFile, public EventListenerInterface {
@@ -161,10 +163,13 @@ namespace caret {
         
         virtual QRectF getLogicalBoundsRect() const override;
         
+        Vector3D getModelviewScaling(const int32_t tabIndex,
+                                     const int32_t overlayIndex) const;
+
+        FunctionResultValue<VolumeFile*> exportToVolumeFile(const int32_t pyramidLevel) const;
+        
         bool exportToImageFile(const QString& imageFileName,
                                const int32_t maximumWidthHeight,
-                               const bool addPlaneMatrixTransformsFlag,
-                               const bool includeAlphaFlag,
                                AString& errorMessageOut);
         
         virtual AString toString() const override;
@@ -263,6 +268,9 @@ namespace caret {
         };
         
         GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const OmeImage* omeImage) const;
+        
+        GraphicsPrimitiveV3fT2f* createGraphicsPrimitive(const OmeDataSet* dataSet,
+                                                         const int64_t sliceIndex) const;
         
         PixelCoordinate getPixelSizeInMillimeters() const;
         

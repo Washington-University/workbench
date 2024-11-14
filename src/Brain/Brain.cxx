@@ -2279,7 +2279,26 @@ Brain::addReadOrReloadOmeZarrImageFile(const FileModeAddReadReload fileMode,
         m_omeZarrImageFiles.push_back(omeZarrImageFile);
     }
     
-    
+    if (readFlag) {
+        const int32_t pyramidLevel(0);
+        FunctionResultValue<VolumeFile*> volumeResult(omeZarrImageFile->exportToVolumeFile(pyramidLevel));
+        if (volumeResult.isOk()) {
+            VolumeFile* vf(volumeResult.getValue());
+            const bool modifiedFlag(false);
+            addReadOrReloadDataFile(FILE_MODE_ADD,
+                                    vf,
+                                    vf->getDataFileType(),
+                                    vf->getStructure(),
+                                    vf->getFileName(),
+                                    modifiedFlag);
+        }
+        else {
+            CaretLogSevere("Converting "
+                           + omeZarrImageFile->getFileName()
+                           + " to volume: "
+                           + volumeResult.getErrorMessage());
+        }
+    }
     return omeZarrImageFile;
 }
 
@@ -6708,16 +6727,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     }
     m_paletteFile->setFileName(convertFilePathNameToAbsolutePathName(m_paletteFile->getFileNameNoPath()));
     m_paletteFile->clearModified();
-    
-
-    
-    
-//    CaretLogSevere("Adding an annotation file for testing to the Brain."
-//                   "NOTE: THIS WILL CAUSE A PRINTOUT OF UNDELETED OBJECTS since this file is "
-//                   "added inside of resetBrain() which does all file deletion.");
-//    AnnotationFile* testingAnnFile = new AnnotationFile();
-//    testingAnnFile->setFileName("Testing." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::ANNOTATION));
-//    addDataFile(testingAnnFile);
     
     sortDataFilesByFileNameNoPath();
 

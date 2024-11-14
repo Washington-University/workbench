@@ -326,7 +326,6 @@ OmeImage::writeAsQImage(const AString& filename) const
         return FunctionResult::error("writeAsQImage: Image is less than two dimensions.");
     }
     const int64_t numChannels(m_dimensionSizes.getSizeChannels());
-    const int64_t numTime(m_dimensionSizes.getSizeTime());
     const int64_t numX(m_dimensionSizes.getSizeX());
     const int64_t numY(m_dimensionSizes.getSizeY());
     const int64_t numZ(m_dimensionSizes.getSizeZ());

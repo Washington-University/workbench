@@ -1951,7 +1951,7 @@ BrainBrowserWindow::createActions()
                                 "Test CZI File Transformation IJK -> XYZ -> IJK",
                                 this,
                                 this,
-                                SLOT(processOm()));
+                                SLOT(processDevelopCziFileTransformTesting()));
     
     m_developerOmeZarrOpenAction =
     WuQtUtilities::createAction("OME-ZARR Open...",

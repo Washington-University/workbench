@@ -70,8 +70,10 @@ set (WORKBENCH_OPENMP_LIBRARY        "" CACHE STRING
 #
 # OME ZARR LIB
 #
-set (WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH "" CACHE PATH
-     "Path to OME ZARR Z5 include and lib directories")
+set (WORKBENCH_USE_Z5 FALSE CACHE BOOL
+     "If TRUE, compile with support for Z5 and related packages for reading OME-ZARR files")
+set (WORKBENCH_Z5_PATH "" CACHE PATH
+     "Optional path for finding Z5 and related packages (gets appended to CMAKE_PREFIX_PATH)")
 
 ##########################################################################################
 #
@@ -601,11 +603,12 @@ ENDIF (EXISTS ${WORKBENCH_MESA_DIR})
 #
 # OME ZARR Z5 LIB
 #
-IF (EXISTS ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH})
-    LIST(APPEND CMAKE_PREFIX_PATH ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH})
+IF (${WORKBENCH_USE_Z5})
+    IF (EXISTS ${WORKBENCH_Z5_PATH})
+        LIST(APPEND CMAKE_PREFIX_PATH ${WORKBENCH_Z5_PATH})
+    ENDIF()
     
-    MESSAGE("WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH: ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH}")
-    MESSAGE("Looking for OME ZARR LIBRARY dependencies")
+    MESSAGE("Finding Z5 and related packages...")
     
     # nlohmann_json is header files only, no library
     FIND_PACKAGE(nlohmann_json REQUIRED)
@@ -636,18 +639,27 @@ IF (EXISTS ${WORKBENCH_OME_ZARR_Z5_LIBRARY_PATH})
         ENDIF()
     ENDIF()
     include_directories(${BLOSC_INCLUDE_DIR})
-    LIST(APPEND WORKBENCH_OME_ZARR_COMPRESSION_LIBRARIES "${BLOSC_LIBRARY}")
+    LIST(APPEND Z5_COMPRESSION_LIBRARIES "${BLOSC_LIBRARY}")
     
     # Z5 is header files only, no library
     FIND_PACKAGE(Z5 REQUIRED)
     include_directories(${Z5_INCLUDE_DIR})
     
-    SET(WORKBENCH_OME_ZARR_Z5_MODULE OmeZarr)
     SET(HAVE_OME_ZARR_Z5_FLAG TRUE)
     ADD_DEFINITIONS(-DWORKBENCH_HAVE_OME_ZARR_Z5)
+    
+    SET(OME_ZARR_LIBRARY_FOR_LINKING OmeZarr)
+    
+    #
+    # Z5 is all headers and these definition(s)
+    # enable use of the compression libraries by Z5.
+    # Without this, there will be a runtime error
+    # stating that the compression library is not available.
+    #
+    ADD_DEFINITIONS(-DWITH_BLOSC)
 ELSE()
-    SET(WORKBENCH_OME_ZARR_Z5_MODULE "")
     SET(HAVE_OME_ZARR_Z5_FLAG FALSE)
+    SET(OME_ZARR_LIBRARY_FOR_LINKING "")
 ENDIF ()
 
 ##########################################################################################
