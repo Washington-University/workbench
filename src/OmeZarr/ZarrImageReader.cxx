@@ -47,6 +47,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "xtensor/xarray.hpp"
 
@@ -347,10 +348,12 @@ ZarrImageReader::readLocalFile(const AString& zarrPath,
             shape.push_back(dl);
         }
         try {
+            const int32_t numThreads(std::thread::hardware_concurrency());
             std::unique_ptr<xt::xarray<uint8_t>> arrayStorage(new xt::xarray<uint8_t>(shape));
             z5::multiarray::readSubarray<uint8_t>(dataSet,
                                                   *arrayStorage.get(),
-                                                  offset.begin());
+                                                  offset.begin(),
+                                                  numThreads);
             return FunctionResultValue<xt::xarray<uint8_t>*>(arrayStorage.release(),
                                                              "",
                                                              true);
