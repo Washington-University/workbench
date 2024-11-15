@@ -162,6 +162,9 @@ OmeZarrImageFile::resetPrivate()
         }
     }
     
+    m_imagesAsVolumeFile.reset();
+    m_triedToCreateImagesAsVolumeFileFlag = false;
+    
     resetMatrices();
     
 #if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
@@ -403,6 +406,8 @@ OmeZarrImageFile::readFile(const AString& filename)
     m_status = Status::ERRORED;
     throw DataFileException("Workbench has been compiled without OME-ZARR Z5");
 #endif /* WORKBENCH_HAVE_OME_ZARR_Z5 */
+    
+    clearModified();
 }
 
 /**
@@ -1770,7 +1775,8 @@ OmeZarrImageFile::restoreFileDataFromScene(const SceneAttributes* sceneAttribute
 }
 
 /**
- * Export all slices for the given pyramid level to a volume file
+ * Export all slices for the given pyramid level to a volume file.
+ * Caller is responsible for deleting the returned volume file.
  * @param pyramidLevel
  *    The pyramid level
  * @return Result of exporting to volume file
@@ -1870,6 +1876,7 @@ OmeZarrImageFile::exportToVolumeFile(const int32_t pyramidLevel) const
     volumeFilePtr->setFileName(getFileName()
                                + "."
                                + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::VOLUME));
+    volumeFilePtr->clearModified();
     return FunctionResultValue<VolumeFile*>(volumeFilePtr.release(),
                                             "",
                                             true);
@@ -1880,6 +1887,30 @@ OmeZarrImageFile::exportToVolumeFile(const int32_t pyramidLevel) const
 #endif
 }
 
+/**
+ * @return The images converted to a volume file (may be NULL).
+ * Caller MUST NOT delete the returned volume file.
+ */
+VolumeFile*
+OmeZarrImageFile::getImagesAsRgbaVolumeFile() const
+{
+    if ( ! m_triedToCreateImagesAsVolumeFileFlag) {
+        m_triedToCreateImagesAsVolumeFileFlag = true;
+        
+        const int32_t pyramidLevel(0);
+        FunctionResultValue<VolumeFile*> volumeResult(exportToVolumeFile(pyramidLevel));
+        if (volumeResult.isOk()) {
+            m_imagesAsVolumeFile.reset(volumeResult.getValue());
+        }
+        else {
+            CaretLogWarning("Failed to convert OME-ZARR file to a volume file "
+                            + getFileName()
+                            + " error: "
+                            + volumeResult.getErrorMessage());
+        }
+    }
+    return m_imagesAsVolumeFile.get();
+}
 
 /**
  * Export a full resolution image to an image file with the maximum width/height

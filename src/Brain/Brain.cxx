@@ -2278,27 +2278,7 @@ Brain::addReadOrReloadOmeZarrImageFile(const FileModeAddReadReload fileMode,
                                       omeZarrImageFile);
         m_omeZarrImageFiles.push_back(omeZarrImageFile);
     }
-    
-    if (readFlag) {
-        const int32_t pyramidLevel(0);
-        FunctionResultValue<VolumeFile*> volumeResult(omeZarrImageFile->exportToVolumeFile(pyramidLevel));
-        if (volumeResult.isOk()) {
-            VolumeFile* vf(volumeResult.getValue());
-            const bool modifiedFlag(false);
-            addReadOrReloadDataFile(FILE_MODE_ADD,
-                                    vf,
-                                    vf->getDataFileType(),
-                                    vf->getStructure(),
-                                    vf->getFileName(),
-                                    modifiedFlag);
-        }
-        else {
-            CaretLogSevere("Converting "
-                           + omeZarrImageFile->getFileName()
-                           + " to volume: "
-                           + volumeResult.getErrorMessage());
-        }
-    }
+
     return omeZarrImageFile;
 }
 
@@ -7876,11 +7856,18 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                               m_sceneFiles.begin(),
                               m_sceneFiles.end());
     
-    for (auto vf : m_volumeFiles) {
+    for (auto& vf : m_volumeFiles) {
         allDataFilesOut.push_back(vf);
         VolumeDynamicConnectivityFile* volDynConnFile = vf->getVolumeDynamicConnectivityFile();
         if (volDynConnFile != NULL) {
             allDataFilesOut.push_back(volDynConnFile);
+        }
+    }
+    
+    for (auto& ome : m_omeZarrImageFiles) {
+        VolumeFile* vf(ome->getImagesAsRgbaVolumeFile());
+        if (vf != NULL) {
+            allDataFilesOut.push_back(vf);
         }
     }
 }

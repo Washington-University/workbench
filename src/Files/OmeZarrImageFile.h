@@ -169,6 +169,8 @@ namespace caret {
         Vector3D getModelviewScaling(const int32_t tabIndex,
                                      const int32_t overlayIndex) const;
 
+        VolumeFile* getImagesAsRgbaVolumeFile() const;
+        
         FunctionResultValue<VolumeFile*> exportToVolumeFile(const int32_t pyramidLevel) const;
         
         bool exportToImageFile(const QString& imageFileName,
@@ -331,6 +333,10 @@ namespace caret {
         mutable bool m_imagePlaneInvalid = false;
         
         int32_t m_maximumImageDimension = 2048;
+        
+        mutable std::unique_ptr<VolumeFile> m_imagesAsVolumeFile;
+        
+        mutable bool m_triedToCreateImagesAsVolumeFileFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
