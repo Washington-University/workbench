@@ -6028,7 +6028,7 @@ Brain::getReloadableDataFiles() const
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
-                reloadFlag = true;
+                reloadFlag = false;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
                 break;
