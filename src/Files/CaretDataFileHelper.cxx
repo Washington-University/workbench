@@ -50,6 +50,7 @@
 #include "ImageFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "OmeZarrImageFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
 #include "SamplesFile.h"
@@ -384,7 +385,7 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             CaretAssertMessage(0, "Never create a metric dynamic file");
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
-            CaretAssertToDoFatal();
+            caretDataFile = new OmeZarrImageFile();
             break;
         case DataFileTypeEnum::PALETTE:
             caretDataFile = new PaletteFile();

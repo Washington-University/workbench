@@ -4994,7 +4994,6 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             OmeZarrImageFile* file(dynamic_cast<OmeZarrImageFile*>(caretDataFile));
             CaretAssert(file);
             m_omeZarrImageFiles.push_back(file);
-            CaretAssertToDoFatal();
         }
             break;
         case DataFileTypeEnum::PALETTE:
@@ -6054,7 +6053,6 @@ Brain::getReloadableDataFiles() const
                 reloadFlag = false;
                 break;
             case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
-                CaretAssertToDoFatal();
                 break;
             case DataFileTypeEnum::PALETTE:
                 reloadFlag = false;
@@ -8035,7 +8033,6 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
         case DataFileTypeEnum::METRIC_DYNAMIC:
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::PALETTE:
             break;
@@ -8141,7 +8138,6 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
             canBeRemovedFlag = false;
             break;
         case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
-            CaretAssertToDoFatal();
             break;
         case DataFileTypeEnum::PALETTE:
             break;

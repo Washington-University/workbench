@@ -1566,7 +1566,6 @@ VolumeFile::getMapLabelTableClusters(const int32_t mapIndex) const
                  * Putting a NULL in here, prevents running find clusters again
                  */
                 m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(nullPointer);
-                CaretAssertToDoFatal();
             }
         }
 
