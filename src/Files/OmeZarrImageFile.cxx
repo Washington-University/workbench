@@ -586,11 +586,20 @@ OmeZarrImageFile::reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
 }
 
 /**
+ * @return Number of pyramid levels
+ */
+int32_t
+OmeZarrImageFile::getNumberOfPyramidLevels() const
+{
+    return m_pyramidLevels.size();
+}
+
+/**
  * Get the dimensions for the given pyramid level
  * @param pyramidLevel
  *    The pyramid level
  * @param dimensionsOut
- *    Output with dimensions
+ *    Output with X and Y and Z dimensions
  * @return True if valid, else false.
  */
 bool
@@ -604,6 +613,7 @@ OmeZarrImageFile::getPyrimidLevelDimensions(const int32_t pyramidLevel,
         CaretAssertVectorIndex(m_pyramidLevels, pyramidLevel);
         dimensionsOut.push_back(m_pyramidLevels[pyramidLevel].m_pixelWidth);
         dimensionsOut.push_back(m_pyramidLevels[pyramidLevel].m_pixelHeight);
+        dimensionsOut.push_back(m_pyramidLevels[pyramidLevel].m_pixelSlices);
         return true;
     }
     
@@ -1904,8 +1914,6 @@ OmeZarrImageFile::exportToVolumeFile(const int32_t pyramidLevel) const
     const FunctionResultValue<Matrix4x4> matrixResult(getPyramidLevelTransformationMatrix(pyramidLevel));
     if (matrixResult.isOk()) {
         const Matrix4x4 m(matrixResult.getValue());
-        std::cout << "OME MATRIX" << std::endl;
-        std::cout << m.toFormattedString("   ") << std::endl;
         for (int32_t iRow = 0; iRow < 3; iRow++) {
             for (int32_t jCol = 0; jCol < 4; jCol++) {
                 indexToSpace[iRow][jCol] = m.getMatrixElement(iRow, jCol);
@@ -1975,9 +1983,30 @@ OmeZarrImageFile::getImagesAsRgbaVolumeFile() const
 {
     if ( ! m_triedToCreateImagesAsVolumeFileFlag) {
         m_triedToCreateImagesAsVolumeFileFlag = true;
+                
+        /*
+         * Find highest resolution pyramid level that can be drawn using OpenGL
+         */
+        int32_t exportPyramidLevel(0);
+        const int32_t maxDimXY(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+        const int32_t maxDimZ(GraphicsUtilitiesOpenGL::getTextureDepthMaximumDimension());
+        if ((maxDimXY > 0)
+            && (maxDimZ > 0)) {
+            const int32_t numberOfPyramidLevels(getNumberOfPyramidLevels());
+            for (int32_t ipl = 0; ipl < numberOfPyramidLevels; ipl++) {
+                std::vector<int64_t> dimensions;
+                getPyrimidLevelDimensions(ipl, dimensions);
+                CaretAssert(dimensions.size() >= 3);
+                if ((dimensions[0] <= maxDimXY)
+                    && (dimensions[1] <= maxDimXY)
+                    && (dimensions[2] <= maxDimZ)) {
+                    exportPyramidLevel = ipl;
+                    break;
+                }
+            }
+        }
         
-        const int32_t pyramidLevel(0);
-        FunctionResultValue<VolumeFile*> volumeResult(exportToVolumeFile(pyramidLevel));
+        FunctionResultValue<VolumeFile*> volumeResult(exportToVolumeFile(exportPyramidLevel));
         if (volumeResult.isOk()) {
             m_imagesAsVolumeFile.reset(volumeResult.getValue());
         }

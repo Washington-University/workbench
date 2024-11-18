@@ -137,6 +137,8 @@ namespace caret {
                                   const PixelLogicalIndex& pixelLogicalIndex,
                                   uint8_t pixelRGBAOut[4]) const override;
         
+        int32_t getNumberOfPyramidLevels() const;
+        
         virtual bool getPyrimidLevelDimensions(const int32_t pyramidLevel,
                                                std::vector<int64_t>& dimensionsOut) const override;
         
