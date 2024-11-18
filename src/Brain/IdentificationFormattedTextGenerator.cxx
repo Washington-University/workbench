@@ -159,6 +159,8 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     labelHtmlTableBuilder->setTitlePlain("Labels");
     std::unique_ptr<HtmlTableBuilder> layersHtmlTableBuilder = createHtmlTableBuilder(3);
     layersHtmlTableBuilder->setTitlePlain("Layers");
+    std::unique_ptr<HtmlTableBuilder> rgbaHtmlTableBuilder = createHtmlTableBuilder(3);
+    rgbaHtmlTableBuilder->setTitlePlain("RGBA");
     std::unique_ptr<HtmlTableBuilder> scalarHtmlTableBuilder = createHtmlTableBuilder(3);
     scalarHtmlTableBuilder->setTitlePlain("Scalars");
 
@@ -199,6 +201,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
         if (selectionManager->getVoxelIdentification()->isValid()) {
             if (cmdf->isVolumeMappable()) {
                 this->generateVolumeDataIdentificationText(*labelHtmlTableBuilder,
+                                                           *rgbaHtmlTableBuilder,
                                                            *scalarHtmlTableBuilder,
                                                            cmdf,
                                                            mfi.m_mapIndices,
@@ -303,6 +306,7 @@ IdentificationFormattedTextGenerator::createIdentificationText(const SelectionMa
     AString textOut;
     textOut.append(geometryHtmlTableBuilder->getAsHtmlTable());
     textOut.append(labelHtmlTableBuilder->getAsHtmlTable());
+    textOut.append(rgbaHtmlTableBuilder->getAsHtmlTable());
     textOut.append(scalarHtmlTableBuilder->getAsHtmlTable());
     textOut.append(layersHtmlTableBuilder->getAsHtmlTable());
     textOut.append(chartHtmlTableBuilder->getAsHtmlTable());
@@ -679,6 +683,8 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
  *
  * @param labelHtmlTableBuilder
  *     HTML table builder for label identification text.
+ * @param rgbaHtmlTableBuilder
+ *     HTML table builder for RGBA identification text.
  * @param scalarHtmlTableBuilder
  *     HTML table builder for scalar identification text.
  * @param mapFile
@@ -692,6 +698,7 @@ IdentificationFormattedTextGenerator::generateVolumeVoxelIdentificationText(Html
  */
 void
 IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                                           HtmlTableBuilder& rgbaHtmlTableBuilder,
                                                                            HtmlTableBuilder& scalarHtmlTableBuilder,
                                                                            CaretMappableDataFile* mapFile,
                                                                            const std::set<int32_t>& mapIndicesSet,
@@ -796,22 +803,22 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                             else if (volumeFile->getType() == SubvolumeAttributes::RGB) {
                                 if (volumeFile->getNumberOfComponents() == 4) {
                                     text += ("RGBA("
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
                                              + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
                                              + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
                                              + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 3))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 3) * 255.0, 'f', 0)
                                              + ")");
                                 }
                                 else if (volumeFile->getNumberOfComponents() == 3) {
                                     text += ("RGB("
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
                                              + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
                                              + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2))
+                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
                                              + ")");
                                 }
                             }
@@ -837,6 +844,11 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                         scalarHtmlTableBuilder.addRow(text,
                                                       filename,
                                                       "");
+                    }
+                    else if (volumeFile->isMappedWithRGBA()) {
+                        rgbaHtmlTableBuilder.addRow(text,
+                                                    filename,
+                                                    "");
                     }
                 }
                 else if (ciftiFile != NULL) {
@@ -936,6 +948,10 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                 if (mapFile->isMappedWithLabelTable()) {
                     labelHtmlTableBuilder.addRow(m_noDataText,
                                                  mapFile->getFileNameNoPath());
+                }
+                if (mapFile->isMappedWithRGBA()) {
+                    rgbaHtmlTableBuilder.addRow(m_noDataText,
+                                                mapFile->getFileNameNoPath());
                 }
                 if (mapFile->isMappedWithPalette()) {
                     scalarHtmlTableBuilder.addRow(m_noDataText,

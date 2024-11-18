@@ -145,6 +145,8 @@ namespace caret {
                                                   int32_t& lowestPyramidLayerIndexOut,
                                                   int32_t& highestPyramidLayerIndexOut) const override;
 
+        FunctionResultValue<Matrix4x4> getPyramidLevelTransformationMatrix(const int32_t pyramidLevel) const;
+        
         virtual void reloadPyramidLayerInTabOverlay(const int32_t tabIndex,
                                                     const int32_t overlayIndex) override;
         

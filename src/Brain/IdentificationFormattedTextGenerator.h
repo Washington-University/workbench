@@ -197,6 +197,7 @@ namespace caret {
                                               const SelectionItemVoxel* idVolumeVoxel) const;
 
         void generateVolumeDataIdentificationText(HtmlTableBuilder& labelHtmlTableBuilder,
+                                                  HtmlTableBuilder& rgbaHtmlTableBuilder,
                                                   HtmlTableBuilder& scalarHtmlTableBuilder,
                                                   CaretMappableDataFile* mapFile,
                                                   const std::set<int32_t>& mapIndices,

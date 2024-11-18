@@ -611,6 +611,68 @@ OmeZarrImageFile::getPyrimidLevelDimensions(const int32_t pyramidLevel,
 }
 
 /**
+ * @return The transformation matrix for the given pyramid level (OmeDataSet)
+ * @param pyramidLevel
+ *    The pyramid level
+ */
+FunctionResultValue<Matrix4x4>
+OmeZarrImageFile::getPyramidLevelTransformationMatrix(const int32_t pyramidLevel) const
+{
+    Matrix4x4 matrixOut;
+    
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+    AString errorMessage;
+    const OmeAttrsV0p4JsonFile* zattrs(m_omeFileReader->getZAttrs());
+    if (zattrs == NULL) {
+        errorMessage = "Failed to get ZAttrs (is NULL) from OmeFileReader";
+    }
+    else {
+        const int32_t numLevels(zattrs->getNumberOfDataSets());
+        if (numLevels <= 0) {
+            errorMessage = "No images were read from OME ZARR file";
+        }
+        else {
+            if ((pyramidLevel < 0)
+                || pyramidLevel >= zattrs->getNumberOfDataSets()) {
+                errorMessage = "Pyramid level is invalid";
+            }
+        }
+    }
+    if ( ! errorMessage.isEmpty()) {
+        return FunctionResultValue<Matrix4x4>(matrixOut, errorMessage, false);
+    }
+    
+    const OmeDataSet* dataSet(zattrs->getDataSet(pyramidLevel));
+    CaretAssert(dataSet);
+    if ((pyramidLevel >= 0)
+        && (pyramidLevel < static_cast<int32_t>(m_pyramidLevels.size()))) {
+        const OmeDataSet* dataSet(zattrs->getDataSet(pyramidLevel));
+        const int32_t numTransforms(dataSet->getNumberOfCoordinateTransformations());
+        for (int32_t i = 0; i < numTransforms; i++) {
+            const OmeCoordinateTransformations transform(dataSet->getCoordinateTransfomation(i));
+            const std::vector<float> v(transform.getTransformValues());
+            Matrix4x4 mt;
+            if (v.size() >= 3) {
+                switch (transform.getType()) {
+                    case OmeCoordinateTransformationTypeEnum::INVALID:
+                        break;
+                    case OmeCoordinateTransformationTypeEnum::SCALE:
+                        mt.scale(v[0], v[1], v[2]);
+                        break;
+                    case OmeCoordinateTransformationTypeEnum::TRANSLATE:
+                        mt.translate(v[0], v[1], v[2]);
+                        break;
+                }
+                matrixOut.postmultiply(mt);
+            }
+        }
+    }
+#endif
+    return FunctionResultValue<Matrix4x4>(matrixOut, "", true);
+}
+
+
+/**
  * Write the data file.
  *
  * @param filename
@@ -1838,6 +1900,22 @@ OmeZarrImageFile::exportToVolumeFile(const int32_t pyramidLevel) const
     indexToSpace.push_back(row1);
     indexToSpace.push_back(row2);
     indexToSpace.push_back(row3);
+
+    const FunctionResultValue<Matrix4x4> matrixResult(getPyramidLevelTransformationMatrix(pyramidLevel));
+    if (matrixResult.isOk()) {
+        const Matrix4x4 m(matrixResult.getValue());
+        std::cout << "OME MATRIX" << std::endl;
+        std::cout << m.toFormattedString("   ") << std::endl;
+        for (int32_t iRow = 0; iRow < 3; iRow++) {
+            for (int32_t jCol = 0; jCol < 4; jCol++) {
+                indexToSpace[iRow][jCol] = m.getMatrixElement(iRow, jCol);
+            }
+        }
+    }
+    else {
+        CaretLogWarning("Invalid OmeDataSet transform: "
+                        + matrixResult.getErrorMessage());
+    }
 
     std::unique_ptr<VolumeFile> volumeFilePtr(new VolumeFile(dimensions,
                                                              indexToSpace,
