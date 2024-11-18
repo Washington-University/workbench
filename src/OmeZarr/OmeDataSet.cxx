@@ -415,10 +415,11 @@ OmeDataSet::readSlicePixel(const int64_t sliceIndex,
                                                                                          dimLengths));
     if (zarrDataResult.isOk()) {
         xt::xarray<uint8_t>* dataRead(zarrDataResult.getValue());
-        rgba[0] = (*dataRead)(0);
-        rgba[1] = (*dataRead)(1);
-        rgba[2] = (*dataRead)(2);
-        rgba[3] = (*dataRead)(3);
+        auto iter(dataRead->begin());
+        rgba[0] = *iter++;
+        rgba[1] = *iter++;
+        rgba[2] = *iter++;
+        rgba[3] = *iter++;
         delete dataRead;
 
         return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
