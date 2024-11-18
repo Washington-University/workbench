@@ -525,7 +525,7 @@ BrainOpenGLMediaDrawing::processMediaFileSelection(const int32_t tabIndex,
                                                         pixelLogicalIndex)) {
                     uint8_t rgba[4];
                     validPixelFlag = mediaFile->getPixelRGBA(tabIndex,
-                                                             frameIndex,
+                                                             overlayIndex,
                                                              pixelLogicalIndex,
                                                              rgba);
                     if (validPixelFlag) {

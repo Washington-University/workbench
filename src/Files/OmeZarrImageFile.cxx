@@ -1595,11 +1595,12 @@ OmeZarrImageFile::isPixelIndexInFrameValid(const int32_t frameIndex,
  *    Pixel logical index
  */
 bool
-OmeZarrImageFile::isPixelIndexInFrameValid(const int32_t frameIndex,
+OmeZarrImageFile::isPixelIndexInFrameValid(const int32_t /*frameIndex*/,
                                            const PixelLogicalIndex& pixelLogicalIndex) const
 {
-    CaretAssertVectorIndex(m_pyramidLevels, frameIndex);
-    const QRectF& frameLogicalRect(m_pyramidLevels[frameIndex].m_logicalRectangle);
+    const int32_t pyramidLevel(0);
+    CaretAssertVectorIndex(m_pyramidLevels, pyramidLevel);
+    const QRectF& frameLogicalRect(m_pyramidLevels[pyramidLevel].m_logicalRectangle);
     const float i(pixelLogicalIndex.getI());
     const float j(pixelLogicalIndex.getJ());
     
