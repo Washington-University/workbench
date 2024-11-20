@@ -74,6 +74,8 @@ namespace caret {
         
         void setLeftRightAxisTitle(const AString& title);
         
+        std::vector<AString> getDataFileMapNames() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const override;

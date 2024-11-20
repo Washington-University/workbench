@@ -662,6 +662,8 @@ ChartTwoCartesianOrientedAxes::getAutoRangeMinimumAndMaximum(const float minimum
  *     Maximum data value
  * @param axisLength
  *     Length of axis (no specific unit type is assumed)
+ * @param mapNames
+ *     Names of maps for map names mode
  * @param minimumOut
  *     Output minimum value for autoranging.
  * @param maximumOut
@@ -678,6 +680,7 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
                                                         const float minimumDataValue,
                                                         const float maximumDataValue,
                                                         const float axisLength,
+                                                        const std::vector<AString>& mapNames,
                                                         float& minimumOut,
                                                         float& maximumOut,
                                                         std::vector<float>& scaleValuesOffsetInPixelsOut,
@@ -831,6 +834,12 @@ ChartTwoCartesianOrientedAxes::getScaleValuesAndOffsets(const ChartTwoCartesianA
                                                           labelsStep,
                                                           scaleValuesOffsetInPixelsOut,
                                                           scaleValuesOut);
+            break;
+        case ChartTwoCartesianSubdivisionsModeEnum::MAP_NAMES:
+            result = getMapNamesScalesOffsets(axisLength,
+                                              mapNames,
+                                              scaleValuesOffsetInPixelsOut,
+                                              scaleValuesOut);
             break;
     }
     
@@ -1059,6 +1068,50 @@ ChartTwoCartesianOrientedAxes::getCustomSubdivisionsScalesOffsets(const ChartTwo
             const float pixelValue = (normalizedValue * axisLength);
             scaleValuesOffsetInPixelsOut.push_back(pixelValue);
             scaleValuesOut.push_back(subdivisions->getLabelText(i));
+        }
+    }
+    
+    CaretAssert(scaleValuesOut.size() == scaleValuesOffsetInPixelsOut.size());
+    if ( ! scaleValuesOut.empty()) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Compute placement of numerics for map names in an axis.
+ *
+ * @param axisLength
+ *    Length of the axis in pixels
+ * @param mapNames
+ *    Names of maps
+ * @param scaleValuesOffsetInPixelsOut
+ *     Output containing offset in pixels for the scale values.
+ * @param scaleValuesOut
+ *     Output containing text for scale values.
+ * @return
+ *     True if output data is valid, else false.
+ */
+bool
+ChartTwoCartesianOrientedAxes::getMapNamesScalesOffsets(const float axisLength,
+                                                        const std::vector<AString>& mapNames,
+                                                        std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                                        std::vector<AString>& scaleValuesOut) const
+{
+    const int32_t numLabels(static_cast<int32_t>(mapNames.size()));
+    for (int32_t i = 0; i < numLabels; i++) {
+        const float normalizedValue = static_cast<float>(i) / static_cast<float>(numLabels);
+        if ((normalizedValue >= 0.0)
+            && (normalizedValue <= 1.0)) {
+            const float pixelValue = (normalizedValue * axisLength);
+            scaleValuesOffsetInPixelsOut.push_back(pixelValue);
+            CaretAssertVectorIndex(mapNames, i);
+            AString name(mapNames[i]);
+            if (name.isEmpty()) {
+                /* When map name empty, use map number */
+                name = AString::number(i + 1);
+            }
+            scaleValuesOut.push_back(name);
         }
     }
     

@@ -403,6 +403,25 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
     m_chartOverlaySet->getVerticalAxes()->getUserScaleMinimumMaximumValues(yMinLeftRight,
                                                                            yMaxLeftRight);
     
+    bool mapNamesDisplayedFlag(false);
+    std::vector<ChartTwoCartesianAxis*> displayedAxes;
+    m_chartOverlaySet->getDisplayedChartAxes(displayedAxes);
+    for (auto axis : displayedAxes) {
+        CaretAssert(axis);
+        switch (axis->getSubdivisionsMode()) {
+            case ChartTwoCartesianSubdivisionsModeEnum::CUSTOM:
+                break;
+            case ChartTwoCartesianSubdivisionsModeEnum::STANDARD:
+                break;
+            case ChartTwoCartesianSubdivisionsModeEnum::MAP_NAMES:
+                mapNamesDisplayedFlag = true;
+                break;
+
+        }
+    }
+    
+    std::vector<AString> dataFileMapNames;
+    
     /*
      * Find histograms or line-series charts for drawing
      * and also find min/max coordinates on axes
@@ -429,6 +448,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
             ChartableTwoFileHistogramChart* histogramChart = chartDelegate->getHistogramCharting();
             
             if (histogramChart->isValid()) {
+                if (mapNamesDisplayedFlag) {
+                    dataFileMapNames = histogramChart->getDataFileMapNames();
+                }
                 CaretAssert(selectedIndexType == ChartTwoOverlay::SelectedIndexType::MAP);
                 AString errorMessage;
                 histogramDrawingInfo.push_back(std::unique_ptr<HistogramChartDrawingInfo>(new HistogramChartDrawingInfo(histogramChart,
@@ -447,6 +469,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         
         if (drawLineSeriesFlag) {
             const ChartableTwoFileLineSeriesChart* lineSeriesChart = chartDelegate->getLineSeriesCharting();
+            if (mapNamesDisplayedFlag) {
+                dataFileMapNames = lineSeriesChart->getDataFileMapNames();
+            }
             const ChartTwoLineSeriesHistory* lineSeriesHistory = lineSeriesChart->getHistory();
             const int32_t numHistory = lineSeriesHistory->getHistoryCount();
             for (int32_t iHistory = (numHistory - 1); iHistory >= 0; iHistory--) {
@@ -465,6 +490,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         if (drawLineLayerFlag) {
             ChartableTwoFileLineLayerChart* lineLayerChart = chartDelegate->getLineLayerCharting();
             if (lineLayerChart->isValid()) {
+                if (mapNamesDisplayedFlag) {
+                    dataFileMapNames = lineLayerChart->getDataFileMapNames();
+                }
                 ChartTwoDataCartesian* data = chartOverlay->getLineLayerChartDisplayedCartesianData();
                 CaretAssert(data);
                 if (data->isSelected()) {
@@ -483,6 +511,9 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         if (drawMatrixFlag) {
             ChartableTwoFileMatrixChart* matrixChart = chartDelegate->getMatrixCharting();
             if (matrixChart->isValid()) {
+                if (mapNamesDisplayedFlag) {
+                    dataFileMapNames = matrixChart->getDataFileMapNames();
+                }
                 ChartTwoMatrixTriangularViewingModeEnum::Enum triangleMode = chartOverlay->getMatrixTriangularViewingMode();
                 GraphicsPrimitive* primitive = matrixChart->getMatrixChartingGraphicsPrimitive(triangleMode,
                                                                                                CiftiMappableDataFile::MatrixGridMode::FILLED_TEXTURE,
@@ -529,8 +560,6 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
         ChartTwoCartesianAxis* bottomAxis = NULL;
         ChartTwoCartesianAxis* topAxis    = NULL;
         
-        std::vector<ChartTwoCartesianAxis*> displayedAxes;
-        m_chartOverlaySet->getDisplayedChartAxes(displayedAxes);
         for (auto axis : displayedAxes) {
             CaretAssert(axis);
             switch (axis->getAxisLocation()) {
@@ -589,6 +618,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                      m_chartOverlaySet->getVerticalAxes(),
                                      leftAxis,
                                      m_chartOverlaySet->getAxisLabel(leftAxis),
+                                     dataFileMapNames,
                                      lineWidthPercentage);
         AxisDrawingInfo rightAxisInfo(m_textRenderer,
                                       m_viewport,
@@ -600,6 +630,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                       m_chartOverlaySet->getVerticalAxes(),
                                       rightAxis,
                                       m_chartOverlaySet->getAxisLabel(rightAxis),
+                                      dataFileMapNames,
                                       lineWidthPercentage);
         AxisDrawingInfo bottomAxisInfo(m_textRenderer,
                                        m_viewport,
@@ -611,6 +642,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                        m_chartOverlaySet->getHorizontalAxes(),
                                        bottomAxis,
                                        m_chartOverlaySet->getAxisLabel(bottomAxis),
+                                       dataFileMapNames,
                                        lineWidthPercentage);
         AxisDrawingInfo topAxisInfo(m_textRenderer,
                                     m_viewport,
@@ -622,6 +654,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::drawHistogramOrLineChart(const ChartTwo
                                     m_chartOverlaySet->getHorizontalAxes(),
                                     topAxis,
                                     m_chartOverlaySet->getAxisLabel(topAxis),
+                                    dataFileMapNames,
                                     lineWidthPercentage);
         
         float topTitleHeight   = titleInfo.m_titleHeight;
@@ -2000,6 +2033,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::AxisDrawingInfo(BrainO
                                                                           const ChartTwoCartesianOrientedAxes* orientedAxes,
                                                                           const ChartTwoCartesianAxis* axis,
                                                                           const AString& labelText,
+                                                                          const std::vector<AString>& mapNames,
                                                                           const float lineWidthPercentage)
 : m_axisLocation(axisLocation),
 m_orientedAxes(orientedAxes),
@@ -2008,6 +2042,8 @@ m_textRenderer(textRenderer),
 m_tabViewportWidth(tabViewport[2]),
 m_tabViewportHeight(tabViewport[3])
 {
+    m_mapNames = mapNames;
+    
     m_axisValid  = false;
     m_axisWidth  = 0.0f;
     m_axisHeight = 0.0f;
@@ -2063,6 +2099,7 @@ m_tabViewportHeight(tabViewport[3])
                                                      dataMinimumValue,
                                                      dataMaximumValue,
                                                      1.0,
+                                                     m_mapNames,
                                                      m_axisMinimumValue,
                                                      m_axisMaximumValue,
                                                      scaleValuePositions,
@@ -2261,6 +2298,7 @@ BrainOpenGLChartTwoDrawingFixedPipeline::AxisDrawingInfo::initializeNumericText(
                                              dataMinimumDataValue,
                                              dataMaximumDataValue,
                                              axisLength,
+                                             m_mapNames,
                                              m_axisMinimumValue,
                                              m_axisMaximumValue,
                                              scaleValuePositions,

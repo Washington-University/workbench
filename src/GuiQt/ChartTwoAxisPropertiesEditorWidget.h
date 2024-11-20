@@ -124,6 +124,8 @@ namespace caret {
         
         int32_t m_numericsStackedWidgetCustomSubdivsionsIndex = -1;
 
+        int32_t m_numericsStackedWidgetMapNamesIndex = -1;
+        
         DisplayGroupEnumComboBox* m_displayGroupComboBox;
         
         ChartTwoCartesianCustomSubdivisionsEditorWidget* m_customSubdivisionsEditorWidget;

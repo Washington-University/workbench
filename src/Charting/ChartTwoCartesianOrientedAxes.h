@@ -101,10 +101,16 @@ namespace caret {
                                                   std::vector<float>& scaleValuesOffsetInPixelsOut,
                                                   std::vector<AString>& scaleValuesOut) const;
         
+        bool getMapNamesScalesOffsets(const float axisLength,
+                                      const std::vector<AString>& mapNames,
+                                      std::vector<float>& scaleValuesOffsetInPixelsOut,
+                                      std::vector<AString>& scaleValuesOut) const;
+
         bool getScaleValuesAndOffsets(const ChartTwoCartesianAxis* cartesianAxis,
                                       const float minimumDataValue,
                                       const float maximumDataValue,
                                       const float axisLength,
+                                      const std::vector<AString>& mapNames,
                                       float& minimumOut,
                                       float& maximumOut,
                                       std::vector<float>& scaleValuesOffsetInPixelsOut,

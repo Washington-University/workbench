@@ -352,8 +352,9 @@ m_axisLocation(axisLocation)
      */
     m_numericsStackedWidget = new QStackedWidget();
     m_numericsStackedWidgetStandardSubdivsionsIndex = m_numericsStackedWidget->addWidget(stdNumericsWidget);
-    m_numericsStackedWidgetCustomSubdivsionsIndex = m_numericsStackedWidget->addWidget(m_customSubdivisionsEditorWidget);
-
+    m_numericsStackedWidgetCustomSubdivsionsIndex   = m_numericsStackedWidget->addWidget(m_customSubdivisionsEditorWidget);
+    m_numericsStackedWidgetMapNamesIndex            = m_numericsStackedWidget->addWidget(new QWidget()); /* no special controls */
+    
     QWidget* numericsWidget = new QWidget();
     QGridLayout* numericsLayout = new QGridLayout(numericsWidget);
     WuQtUtilities::setLayoutSpacingAndMargins(numericsLayout, 0, 0);
@@ -448,6 +449,9 @@ ChartTwoAxisPropertiesEditorWidget::updateControls(ChartTwoOverlaySet* chartOver
                 break;
             case ChartTwoCartesianSubdivisionsModeEnum::STANDARD:
                 m_numericsStackedWidget->setCurrentIndex(m_numericsStackedWidgetStandardSubdivsionsIndex);
+                break;
+            case ChartTwoCartesianSubdivisionsModeEnum::MAP_NAMES:
+                m_numericsStackedWidget->setCurrentIndex(m_numericsStackedWidgetMapNamesIndex);
                 break;
         }
 

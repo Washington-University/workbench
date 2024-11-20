@@ -114,6 +114,10 @@ ChartTwoCartesianSubdivisionsModeEnum::initialize()
                                     "CUSTOM", 
                                     "Custom"));
     
+    enumData.push_back(ChartTwoCartesianSubdivisionsModeEnum(MAP_NAMES,
+                                                             "MAP_NAMES",
+                                                             "Map Names"));
+    
 }
 
 /**

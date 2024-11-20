@@ -188,6 +188,7 @@ namespace caret {
                             const ChartTwoCartesianOrientedAxes* orientedAxes,
                             const ChartTwoCartesianAxis* axis,
                             const AString& labelText,
+                            const std::vector<AString>& mapNames,
                             const float lineWidthPercentage);
             
             void setAxisViewport(const float titleHeight,
@@ -206,6 +207,8 @@ namespace caret {
                           const float foregroundFloatRGBA[4]);
             
             std::unique_ptr<AnnotationPercentSizeText> m_labelText;
+            
+            std::vector<AString> m_mapNames;
             
             std::vector<std::unique_ptr<AnnotationPercentSizeText>> m_numericsText;
 

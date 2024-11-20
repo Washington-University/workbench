@@ -38,7 +38,9 @@ public:
         /** Standard subdivisions */
         STANDARD,
         /** Custom subdivisions*/
-        CUSTOM
+        CUSTOM,
+        /** Names of maps */
+        MAP_NAMES
     };
 
 

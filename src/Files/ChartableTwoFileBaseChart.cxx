@@ -352,6 +352,23 @@ ChartableTwoFileBaseChart::setLeftRightAxisTitle(const AString& title)
     }
 }
 
+/**
+ * @return Names of maps for the data file
+ */
+std::vector<AString>
+ChartableTwoFileBaseChart::getDataFileMapNames() const
+{
+    std::vector<AString> mapNames;
+    
+    if (m_parentCaretMappableDataFile != NULL) {
+        const int32_t numMaps(m_parentCaretMappableDataFile->getNumberOfMaps());
+        for (int32_t i = 0; i < numMaps; i++) {
+            mapNames.push_back(m_parentCaretMappableDataFile->getMapName(i));
+        }
+    }
+    
+    return mapNames;
+}
 
 /**
  * Save information specific to this type of model to the scene.
