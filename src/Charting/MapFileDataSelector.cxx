@@ -172,10 +172,12 @@ MapFileDataSelector::operator==(const MapFileDataSelector& obj) const
             if ((m_surfaceNumberOfVertices == obj.m_surfaceNumberOfVertices)
                 && (m_surfaceStructure == obj.m_surfaceStructure)) {
                 if ( ! m_surfaceVertexAverageIndices.empty()) {
-                    if (std::equal(m_surfaceVertexAverageIndices.begin(),
-                                   m_surfaceVertexAverageIndices.end(),
-                                   obj.m_surfaceVertexAverageIndices.begin())) {
-                        return true;
+                    if (m_surfaceVertexAverageIndices.size() == obj.m_surfaceVertexAverageIndices.size()) {
+                        if (std::equal(m_surfaceVertexAverageIndices.begin(),
+                                       m_surfaceVertexAverageIndices.end(),
+                                       obj.m_surfaceVertexAverageIndices.begin())) {
+                            return true;
+                        }
                     }
                 }
             }
