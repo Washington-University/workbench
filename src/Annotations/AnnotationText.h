@@ -21,6 +21,8 @@
  */
 /*LICENSE_END*/
 
+#include <set>
+
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationTextFontPointSizeEnum.h"
 #include "AnnotationTextAlignHorizontalEnum.h"
@@ -33,6 +35,8 @@
 
 namespace caret {
 
+    class AnnotationTextSubstitution;
+    
     class AnnotationText : public AnnotationOneCoordinateShape, public AnnotationFontAttributesInterface {
         
     public:
@@ -50,6 +54,10 @@ namespace caret {
 
         AnnotationText& operator=(const AnnotationText& obj);
         
+        virtual const AnnotationText* castToTextAnnotation() const override;
+        
+        std::set<AString> getTextSubstitutionGroupIDs() const;
+
         AString getFontRenderingEncodedName(const float drawingViewportWidth,
                                             const float drawingViewportHeight) const;
         
@@ -159,12 +167,7 @@ namespace caret {
         
         // ADD_NEW_METHODS_HERE
 
-          
-          
-          
-          
-          
-    protected: 
+    protected:
         AnnotationText(const AnnotationAttributesDefaultTypeEnum::Enum attributeDefaultType,
                        const AnnotationTextFontSizeTypeEnum::Enum fontSizeType);
         
@@ -196,6 +199,8 @@ namespace caret {
 
         void initializeAnnotationTextMembers();
         
+        std::vector<std::unique_ptr<AnnotationTextSubstitution>> findSubstitutions() const;
+        
         /* Not saved to scene since it is set by sub-class constructor. */
         const AnnotationTextFontSizeTypeEnum::Enum m_fontSizeType;
         
@@ -205,6 +210,9 @@ namespace caret {
         
         /* Not saved to scenes */
         mutable AString m_textWithSubstitutions;
+        
+        /* Not saved to scenes */
+        mutable std::set<AString> m_textSubstitutionGroupIDs;
         
         AnnotationTextAlignHorizontalEnum::Enum  m_alignmentHorizontal;
         

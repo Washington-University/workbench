@@ -31,13 +31,13 @@
 #include "AnnotationManager.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "AnnotationStackingOrderTypeEnum.h"
+#include "AnnotationTextSubstitutionLayerSet.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
 #include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventAnnotationGrouping.h"
 #include "EventBrowserWindowContent.h"
 #include "EventGetBrainOpenGLTextRenderer.h"
@@ -640,9 +640,10 @@ AnnotationMenuArrange::applyAlignment(const AnnotationAlignmentEnum::Enum alignm
         return;
     }
     
-    DisplayPropertiesAnnotationTextSubstitution* dpats = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotationTextSubstitution();
+    const AnnotationTextSubstitutionLayerSet* annSubsLayerSet(GuiManager::get()->getBrain()->getAnnotationTextSubstitutionLayerSet());
+    CaretAssert(annSubsLayerSet);
     BrainOpenGLTextRenderInterface::DrawingFlags drawingFlags;
-    drawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
+    drawingFlags.setDrawSubstitutedText(annSubsLayerSet->isSubstitutionsValid());
     AnnotationArrangerInputs alignMod(textRenderer,
                                       drawingFlags,
                                      m_browserWindowIndex);
@@ -678,9 +679,10 @@ AnnotationMenuArrange::applyDistribute(const AnnotationDistributeEnum::Enum dist
         return;
     }
     
-    DisplayPropertiesAnnotationTextSubstitution* dpats = GuiManager::get()->getBrain()->getDisplayPropertiesAnnotationTextSubstitution();
+    const AnnotationTextSubstitutionLayerSet* annSubsLayerSet(GuiManager::get()->getBrain()->getAnnotationTextSubstitutionLayerSet());
+    CaretAssert(annSubsLayerSet);
     BrainOpenGLTextRenderInterface::DrawingFlags drawingFlags;
-    drawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
+    drawingFlags.setDrawSubstitutedText(annSubsLayerSet->isSubstitutionsValid());
     AnnotationArrangerInputs distributeMod(textRenderer,
                                            drawingFlags,
                                            m_browserWindowIndex);

@@ -80,6 +80,7 @@ AnnotationTextFontNameEnum.h
 AnnotationTextFontPointSizeEnum.h
 AnnotationTextFontSizeTypeEnum.h
 AnnotationTextOrientationEnum.h
+AnnotationTextSubstitution.h
 AnnotationTwoCoordinateShape.h
 AnnotationTypeEnum.h
 EventAnnotationAddToRemoveFromFile.h
@@ -88,6 +89,7 @@ EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
 EventAnnotationTextGetBounds.h
 EventAnnotationTextSubstitutionGet.h
+EventAnnotationTextSubstitutionGetAllGroupIDs.h
 EventAnnotationTextSubstitutionInvalidate.h
 EventAnnotationValidate.h
 HistologySpaceKey.h
@@ -142,6 +144,7 @@ AnnotationTextFontNameEnum.cxx
 AnnotationTextFontPointSizeEnum.cxx
 AnnotationTextFontSizeTypeEnum.cxx
 AnnotationTextOrientationEnum.cxx
+AnnotationTextSubstitution.cxx
 AnnotationTwoCoordinateShape.cxx
 AnnotationTypeEnum.cxx
 EventAnnotationAddToRemoveFromFile.cxx
@@ -150,6 +153,7 @@ EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 EventAnnotationTextGetBounds.cxx
 EventAnnotationTextSubstitutionGet.cxx
+EventAnnotationTextSubstitutionGetAllGroupIDs.cxx
 EventAnnotationTextSubstitutionInvalidate.cxx
 EventAnnotationValidate.cxx
 HistologySpaceKey.cxx

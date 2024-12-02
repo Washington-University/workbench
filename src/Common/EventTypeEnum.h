@@ -66,6 +66,8 @@ public:
         EVENT_ANNOTATION_TEXT_GET_BOUNDS,
         /** Get annotation text substitutions */
         EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET,
+        /** Get all text substitution group IDs from all text annotations */
+        EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS,
         /** Invalid annotation text substitutions */
         EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE,
         /** Annotation toolbar update */

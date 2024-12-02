@@ -37,7 +37,6 @@
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretAssert.h"
 #include "CaretException.h"
-#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "EventGetViewportSize.h"
 #include "EventManager.h"
 

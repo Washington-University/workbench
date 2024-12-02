@@ -24,6 +24,7 @@
 #undef __MAP_YOKING_GROUP_COMBO_BOX_DECLARE__
 
 #include "AnnotationTextSubstitutionFile.h"
+#include "AnnotationTextSubstitutionLayer.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
@@ -159,10 +160,12 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
         
         if ((mapFile != NULL)
             && (mapIndex >= 0)) {
+            AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
             AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
             HistologySlicesFile* nullHistologySlicesFile(NULL);
             MediaFile* nullMediaFile(NULL);
-            const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+            const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                               nullAnnTextSubstitutionFile,
                                                                mapFile,
                                                                nullHistologySlicesFile,
                                                                nullMediaFile,
@@ -190,6 +193,49 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
 }
 
 /**
+ * Validate a change in yoking for a text subs layer.
+ *
+ * @param annTextSubsLayer
+ *    Annotation text substitution layer
+ */
+void
+MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionLayer* annTextSubsLayer)
+{
+    CaretAssert(annTextSubsLayer);
+    const MapYokingGroupEnum::Enum previousMapYokingGroup = annTextSubsLayer->getMapYokingGroup();
+    const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
+    int32_t mapIndex = annTextSubsLayer->getSubstitutionFileRowIndex();
+    bool selectionStatus = true;
+    
+    AnnotationTextSubstitutionFile* nullAnnTextSubsFile(NULL);
+    CaretMappableDataFile* nullMapFile(NULL);
+    HistologySlicesFile* nullHistologySlicesFile(NULL);
+    MediaFile* nullMediaFile(NULL);
+    const YokeValidationResult result = validateYoking(annTextSubsLayer,
+                                                       nullAnnTextSubsFile,
+                                                       nullMapFile,
+                                                       nullHistologySlicesFile,
+                                                       nullMediaFile,
+                                                       mapIndex,
+                                                       selectionStatus);
+    
+    switch (result) {
+        case YOKE_VALIDATE_RESULT_ACCEPT:
+            annTextSubsLayer->setSubstitutionFileRowIndex(mapIndex);
+            annTextSubsLayer->setMapYokingGroup(newYokingGroup);
+            break;
+        case YOKE_VALIDATE_RESULT_OFF:
+            annTextSubsLayer->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+            break;
+        case YOKE_VALIDATE_RESULT_PREVIOUS:
+            annTextSubsLayer->setMapYokingGroup(previousMapYokingGroup);
+            break;
+    }
+    
+    setMapYokingGroup(annTextSubsLayer->getMapYokingGroup());
+}
+
+/**
  * Validate a change in yoking for an overlay.
  *
  * @param annTextSubFile
@@ -198,16 +244,19 @@ MapYokingGroupComboBox::validateYokingChange(ChartableMatrixSeriesInterface* cha
 void
 MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionFile* annTextSubFile)
 {
+    CaretAssertToDoWarning();
     CaretAssert(annTextSubFile);
     const MapYokingGroupEnum::Enum previousMapYokingGroup = annTextSubFile->getMapYokingGroup();
     const MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
-    int32_t mapIndex = annTextSubFile->getSelectedValueIndex();
+    int32_t mapIndex = annTextSubFile->getSelectedMapIndex();
     bool selectionStatus = true;
     
+    AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
     CaretMappableDataFile* nullMapFile(NULL);
     HistologySlicesFile* nullHistologySlicesFile(NULL);
     MediaFile* nullMediaFile(NULL);
-        const YokeValidationResult result = validateYoking(annTextSubFile,
+        const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                           annTextSubFile,
                                                            nullMapFile,
                                                            nullHistologySlicesFile,
                                                            nullMediaFile,
@@ -216,7 +265,7 @@ MapYokingGroupComboBox::validateYokingChange(AnnotationTextSubstitutionFile* ann
         
         switch (result) {
             case YOKE_VALIDATE_RESULT_ACCEPT:
-                annTextSubFile->setSelectedValueIndex(mapIndex);
+                annTextSubFile->setSelectedMapIndex(mapIndex);
                 annTextSubFile->setMapYokingGroup(newYokingGroup);
                 break;
             case YOKE_VALIDATE_RESULT_OFF:
@@ -249,15 +298,17 @@ MapYokingGroupComboBox::validateYokingChange(Overlay* overlay)
     
     if ((mapFile != NULL)
         && (mapIndex >= 0)) {
+        AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
         HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
-        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+        const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                           nullAnnTextSubstitutionFile,
                                                            mapFile,
                                                            nullHistologySlicesFile,
                                                            nullMediaFile,
-                                                     mapIndex,
-                                                     selectionStatus);
+                                                           mapIndex,
+                                                           selectionStatus);
         
         switch (result) {
             case YOKE_VALIDATE_RESULT_ACCEPT:
@@ -304,15 +355,17 @@ MapYokingGroupComboBox::validateYokingChange(ChartTwoOverlay* chartOverlay)
                 selectedIndex = 0;
             }
         }
+        AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
         HistologySlicesFile* nullHistologySlicesFile(NULL);
         MediaFile* nullMediaFile(NULL);
-                const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
-                                                           mapFile,
+                const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                                   nullAnnTextSubstitutionFile,
+                                                                   mapFile,
                                                                    nullHistologySlicesFile,
-                                                           nullMediaFile,
-                                                           selectedIndex,
-                                                           selectionStatus);
+                                                                   nullMediaFile,
+                                                                   selectedIndex,
+                                                                   selectionStatus);
         
         switch (result) {
             case YOKE_VALIDATE_RESULT_ACCEPT:
@@ -358,10 +411,12 @@ MapYokingGroupComboBox::validateYokingChange(HistologyOverlay* histologyOverlay)
                 selectedIndex = 0;
             }
         }
+        AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
         CaretMappableDataFile* nullMapFile(NULL);
         MediaFile* nullMediaFile(NULL);
-        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+        const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                           nullAnnTextSubstitutionFile,
                                                            nullMapFile,
                                                            histologySlicesFile,
                                                            nullMediaFile,
@@ -412,10 +467,12 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
                 selectedIndex = 0;
             }
         }
+        AnnotationTextSubstitutionLayer* nullAnnTextSubsLayer(NULL);
         AnnotationTextSubstitutionFile* nullAnnTextSubstitutionFile(NULL);
         CaretMappableDataFile* nullMapFile(NULL);
         HistologySlicesFile* nullHistologySlicesFile(NULL);
-        const YokeValidationResult result = validateYoking(nullAnnTextSubstitutionFile,
+        const YokeValidationResult result = validateYoking(nullAnnTextSubsLayer,
+                                                           nullAnnTextSubstitutionFile,
                                                            nullMapFile,
                                                            nullHistologySlicesFile,
                                                            mediaFile,
@@ -444,6 +501,8 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
 /**
  * Validate yoking when a new file is added to a yoking group.
  *
+ * @param annTextSubsLayer
+ *     The selected annontation text substitution layer
  * @param selectedAnnTextSubFile
  *     The annotation text substitution file.
  * @param selectedHistologySlicesFile
@@ -460,7 +519,8 @@ MapYokingGroupComboBox::validateYokingChange(MediaOverlay* mediaOverlay)
  *     if yoking is selected (turned on or changed).
  */
 MapYokingGroupComboBox::YokeValidationResult
-MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
+MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionLayer* selectedAnnTextSubsLayer,
+                                       AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
                                        CaretMappableDataFile* selectedMapFile,
                                        HistologySlicesFile* selectedHistologySlicesFile,
                                        MediaFile* selectedMediaFile,
@@ -469,7 +529,8 @@ MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedA
 {
     YokeValidationResult yokeResult = YOKE_VALIDATE_RESULT_OFF; //YOKE_VALIDATE_RESULT_PREVIOUS;
     
-    const bool validFileFlag = ((selectedAnnTextSubFile != NULL)
+    const bool validFileFlag = ( (selectedAnnTextSubsLayer != NULL)
+                                || (selectedAnnTextSubFile != NULL)
                                 || (selectedMapFile != NULL)
                                 || (selectedMediaFile != NULL));
     MapYokingGroupEnum::Enum newYokingGroup = getMapYokingGroup();
@@ -488,7 +549,10 @@ MapYokingGroupComboBox::validateYoking(AnnotationTextSubstitutionFile* selectedA
              */
             int32_t numberOfYokedFiles = 0;
             AString message;
-            if (validateEvent.validateCompatibility(selectedAnnTextSubFile,
+            AnnotationTextSubstitutionFile* textSubsFile( (selectedAnnTextSubsLayer != NULL)
+                                                         ? selectedAnnTextSubsLayer->getSelectedSubstitutionFile()
+                                                         : NULL);
+            if (validateEvent.validateCompatibility(textSubsFile,
                                                     selectedMapFile,
                                                     selectedHistologySlicesFile,
                                                     selectedMediaFile,

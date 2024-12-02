@@ -46,6 +46,7 @@
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
+#include "AnnotationTextSubstitutionLayerSet.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLTextRenderInterface.h"
@@ -55,7 +56,6 @@
 #include "CaretLogger.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesAnnotation.h"
-#include "DisplayPropertiesAnnotationTextSubstitution.h"
 #include "DisplayPropertiesSamples.h"
 #include "DrawingViewportContent.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
@@ -832,8 +832,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
 
     bool drawAnnotationsFromFilesFlag = true;
     
-    const DisplayPropertiesAnnotationTextSubstitution* dpats = m_inputs->m_brain->getDisplayPropertiesAnnotationTextSubstitution();
-    m_textDrawingFlags.setDrawSubstitutedText(dpats->isEnableSubstitutions());
+    const AnnotationTextSubstitutionLayerSet* annSubsLayerSet(m_inputs->m_brain->getAnnotationTextSubstitutionLayerSet());
+    CaretAssert(annSubsLayerSet);
+    m_textDrawingFlags.setDrawSubstitutedText(annSubsLayerSet->isSubstitutionsValid());
     
     bool haveDisplayGroupFlag = true;
     switch (drawingCoordinateSpace) {

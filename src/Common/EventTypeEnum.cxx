@@ -122,6 +122,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET",
                                      "Get an annotation text substitution"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS,
+                                     "EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS",
+                                     "Get all annotation text substitution group identifiers"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE,
                                      "EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE",
                                      "Invalidate text substitutions in text annotations"));

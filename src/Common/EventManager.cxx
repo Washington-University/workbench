@@ -405,6 +405,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_GET_BOUNDS:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET:
+        case EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE:
         case EventTypeEnum::EVENT_ANNOTATION_VALIDATE:
         case EventTypeEnum::EVENT_BRAIN_RESET:

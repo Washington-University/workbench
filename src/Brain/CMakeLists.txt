@@ -31,6 +31,8 @@ AnnotationArrangerExecutor.h
 AnnotationArrangerInputs.h
 AnnotationClipboard.h
 AnnotationManager.h
+AnnotationTextSubstitutionLayer.h
+AnnotationTextSubstitutionLayerSet.h
 BorderDrawingTypeEnum.h
 Brain.h
 BrainOpenGL.h
@@ -268,6 +270,8 @@ AnnotationArrangerExecutor.cxx
 AnnotationArrangerInputs.cxx
 AnnotationClipboard.cxx
 AnnotationManager.cxx
+AnnotationTextSubstitutionLayer.cxx
+AnnotationTextSubstitutionLayerSet.cxx
 BorderDrawingTypeEnum.cxx
 Brain.cxx
 BrainOpenGL.cxx

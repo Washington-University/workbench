@@ -25,6 +25,7 @@
 
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationSpatialModification.h"
+#include "AnnotationTextSubstitution.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventAnnotationTextSubstitutionGet.h"
@@ -34,8 +35,6 @@
 #include "SceneClassAssistant.h"
 
 using namespace caret;
-
-
     
 /**
  * \class caret::AnnotationText 
@@ -198,6 +197,25 @@ AnnotationText::initializeAnnotationTextMembers()
 }
 
 /**
+ * @return Cast to text annotation (NULL if NOT text annotation)
+ */
+const AnnotationText*
+AnnotationText::castToTextAnnotation() const 
+{
+    return this;
+}
+
+/**
+ * @return This text annotation subtitution's group identifer (empty if none)
+ */
+std::set<AString>
+AnnotationText::getTextSubstitutionGroupIDs() const
+{
+    getTextWithSubstitutionsApplied(); /* generates group IDs */
+    return m_textSubstitutionGroupIDs;
+}
+
+/**
  * Get an encoded name that contains the
  * name of the font, the font height, and the
  * font style used by font rendering to provide
@@ -291,6 +309,7 @@ void
 AnnotationText::invalidateTextSubstitution()
 {
     m_textWithSubstitutions.clear();
+    m_textSubstitutionGroupIDs.clear();
 }
 
 /**
@@ -301,74 +320,156 @@ AnnotationText::getTextWithSubstitutionsApplied() const
 {
     if (m_textWithSubstitutions.isEmpty()) {
         if ( ! m_text.isEmpty()) {
-            std::vector<int32_t> indices;
-            const QChar substituteChar('$');
-            int32_t index = m_text.indexOf(substituteChar);
-            while (index >= 0) {
-                indices.push_back(index);
-                index = m_text.indexOf(substituteChar, index + 1);
-            }
+            const std::vector<std::unique_ptr<AnnotationTextSubstitution>> subs(findSubstitutions());
             
-            if (indices.size() < 2) {
-                if (indices.size() == 1) {
-                    CaretLogWarning("Text annotation \""
-                                    + m_text
-                                    + "\" is missing substitution delimeters");
+            const bool testFlag(false);
+            if (testFlag) {
+                if ( ! subs.empty()) {
+                    std::cout << m_text << std::endl;
+                    for (const auto& s : subs) {
+                        std::cout << s->toString() << std::endl;
+                    }
                 }
+                return m_text;
+            }
+
+            m_textWithSubstitutions = m_text;
+            
+            const int32_t numSubs(subs.size());
+            for (int32_t i = (numSubs - 1); i >= 0; --i) {
+                CaretAssertVectorIndex(subs, i);
+                const AnnotationTextSubstitution* s = subs[i].get();
+                CaretAssert(s);
                 
-                m_textWithSubstitutions = m_text;
-            }
-            else {
-                int32_t lastPos = 0;
-                const int32_t numSubsitutions = static_cast<int32_t>(indices.size() / 2);
-                for (int32_t i = 0; i < numSubsitutions; i++) {
-                    const int32_t i2 = i * 2;
-                    CaretAssertVectorIndex(indices, i2+1);
-                    const int32_t indexOne = indices[i2];
-                    const int32_t indexTwo = indices[i2+1];
-                    if (indexTwo > (indexOne + 1)) {
-                        const int32_t nameLen  = indexTwo - indexOne - 1;
-                        AString name = m_text.mid(indexOne + 1, nameLen);
-                        
-                        EventAnnotationTextSubstitutionGet subEvent;
-                        subEvent.addSubstitutionName(name);
-                        EventManager::get()->sendEvent(subEvent.getPointer());
-                        const AString subValue = subEvent.getSubstitutionValueForName(name);
-                        
-                        if (subValue.isEmpty()) {
-                            CaretLogWarning("Unable to find substitution value for name \""
-                                            + name
-                                            + "\"");
-                        }
-                        
-                        const AString txt = m_text.mid(lastPos, indexOne - lastPos);
-                        m_textWithSubstitutions.append(txt);
-                        if (subValue.isEmpty()) {
-                            m_textWithSubstitutions.append("$" + name + "$");
-                        }
-                        else {
-                            m_textWithSubstitutions.append(subValue);
-                        }
-                    }
-                    else {
-                        const AString txt = m_text.mid(lastPos, indexOne - lastPos);
-                        m_textWithSubstitutions.append(txt + "$$");
-                        CaretLogWarning("Text annotation \""
-                                        + m_text
-                                        + "\" contains empty text substitution delimeters ("
-                                        + substituteChar
-                                        + ")");
-                    }
-                    lastPos = indexTwo + 1;
+                EventAnnotationTextSubstitutionGet subEvent;
+                subEvent.addSubstitutionID(*s);
+                EventManager::get()->sendEvent(subEvent.getPointer());
+                const int32_t subsIndex(0);
+                if (subEvent.getNumberOfSubstitutionIDs() > subsIndex) {
+                    const AString subTextValue(subEvent.getSubstitutionTextValue(subsIndex));
+                    
+                    m_textWithSubstitutions.remove(s->getStartIndex(),
+                                                   s->getLength());
+                    m_textWithSubstitutions.insert(s->getStartIndex(),
+                                                   subEvent.getSubstitutionTextValue(subsIndex));
                 }
-                const AString lastTxt = m_text.mid(lastPos);
-                m_textWithSubstitutions.append(lastTxt);
             }
-            
         }
     }
     
     return m_textWithSubstitutions;
+}
+
+/**
+ * @return All substitutions in this text annotation
+ */
+std::vector<std::unique_ptr<AnnotationTextSubstitution>>
+AnnotationText::findSubstitutions() const
+{
+    m_textSubstitutionGroupIDs.clear();
+
+    std::vector<std::unique_ptr<AnnotationTextSubstitution>> subs;
+    
+    /*
+     * A text with substitution is contained within a pair of "$" characters.
+     * The substitution starts with an optional "file ID" that is separated
+     * by a "@" characters from the required "column ID".
+     *     "text$face@A$string"    - "face" is the "file ID" and "A" is the "column ID"
+     *     "text$C$string"         - "C" is the "column ID" and the "file ID" is optional and not in this example
+     *     "text$face@A$str$nose@C$ing" - Contains two
+     */
+    if ( ! m_text.isEmpty()) {
+        std::set<AString> groupIDs;
+
+        /*
+         * Find all of the substitution characters in the text string.
+         * They should be in pairs with one substitution character
+         * starting the substitution text and one ending it.
+         */
+        const QChar substituteChar('$'); /* starts and ends a substitution */
+        std::vector<int32_t> indicesOfAllSubsChars;
+        int32_t index = m_text.indexOf(substituteChar);
+        while (index >= 0) {
+            indicesOfAllSubsChars.push_back(index);
+            index = m_text.indexOf(substituteChar, index + 1);
+        }
+        
+        if (indicesOfAllSubsChars.size() < 2) {
+            if (indicesOfAllSubsChars.size() == 1) {
+                CaretLogWarning("Text annotation \""
+                                + m_text
+                                + "\" is missing substitution delimeters");
+            }
+        }
+        else {
+            /* separates group ID and column number in the substitution */
+            const QChar groupIdChar('@');
+            
+            const int32_t numSubsitutionCharPairs = static_cast<int32_t>(indicesOfAllSubsChars.size() / 2);
+            for (int32_t i = 0; i < numSubsitutionCharPairs; i++) {
+                AString errorMessage;
+                const int32_t i2 = i * 2;
+                CaretAssertVectorIndex(indicesOfAllSubsChars, i2+1);
+                const int32_t indexOfFirstSubsChar(indicesOfAllSubsChars[i2]);
+                const int32_t indexOfSecondSubsChar(indicesOfAllSubsChars[i2+1]);
+                if (indexOfSecondSubsChar > (indexOfFirstSubsChar + 1)) {
+                    /*
+                     * Strip "$" characters from the ends
+                     */
+                    const int32_t nameLen  = indexOfSecondSubsChar - indexOfFirstSubsChar - 1;
+                    AString subsText(m_text.mid(indexOfFirstSubsChar + 1, nameLen));
+                    
+                    /*
+                     * Group ID is optional
+                     */
+                    AString groupID;
+                    AString columnID;
+                    const int32_t groupIdSplitIndex(subsText.indexOf(groupIdChar));
+                    if (groupIdSplitIndex >= 0) {
+                        groupID = subsText.left(groupIdSplitIndex);
+                        if (groupID.isEmpty()) {
+                            errorMessage.appendWithNewLine("   has empty group ID before "
+                                                           + AString(groupIdChar)
+                                                           + " character");
+                        }
+                        else {
+                            m_textSubstitutionGroupIDs.insert(groupID);
+                        }
+                        columnID = subsText.mid(groupIdSplitIndex + 1);
+                    }
+                    else {
+                        columnID = subsText;
+                    }
+
+                    if (columnID.isEmpty()) {
+                        errorMessage.appendWithNewLine("   has empty column ID");
+                    }
+                    
+                    if (errorMessage.isEmpty()) {
+                        const int32_t nameAndSubsCharLength(nameLen + 2); /* Name and 2 "$" chars */
+                        subs.emplace_back(new AnnotationTextSubstitution(groupID,
+                                                                         columnID,
+                                                                         indexOfFirstSubsChar,
+                                                                         nameAndSubsCharLength));
+                    }
+                }
+                else {
+                    errorMessage.appendWithNewLine("   contains empty text substitution delimeters ("
+                                                   + AString(substituteChar)
+                                                   + ")");
+                }
+                
+                if ( ! errorMessage.isEmpty()) {
+                    CaretLogWarning("Text annotation \""
+                                    + m_text
+                                    + "\" has substitution errors:\n"
+                                    + errorMessage);
+                }
+            }
+        }
+    }
+    
+    return subs;
 }
 
 /**

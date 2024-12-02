@@ -27,6 +27,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationTextSubstitutionLayerSet.h"
 #include "AnnotationTextSubstitutionFile.h"
 #include "Border.h"
 #include "BorderFile.h"
@@ -243,6 +244,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_displayPropertiesVolume = new DisplayPropertiesVolume();
     m_displayProperties.push_back(m_displayPropertiesVolume);
     
+    m_annotationTextSubstitutionLayerSet.reset(new AnnotationTextSubstitutionLayerSet(this));
+    
     m_surfaceMatchingToAnatomicalFlag = false;
     
     EventManager::get()->addEventListener(this,
@@ -289,11 +292,7 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("displayPropertiesAnnotation",
                           "DisplayPropertiesAnnotation",
                           m_displayPropertiesAnnotation);
-    
-    m_sceneAssistant->add("displayPropertiesAnnotationTextSubstitution",
-                          "DisplayPropertiesAnnotationTextSubstitution",
-                          m_displayPropertiesAnnotationTextSubstitution);
-    
+        
     m_sceneAssistant->add("displayPropertiesBorders", 
                           "DisplayPropertiesBorders", 
                           m_displayPropertiesBorders);
@@ -337,6 +336,10 @@ Brain::Brain(CaretPreferences* caretPreferences)
     m_sceneAssistant->add("m_chartTwoCartesianAxesYokingManager",
                           "ChartTwoCartesianOrientedAxesYokingManager",
                           m_chartTwoCartesianAxesYokingManager.get());
+    
+    m_sceneAssistant->add("m_annotationTextSubstitutionLayerSet",
+                          "AnnotationTextSubstitutionLayerSet",
+                          m_annotationTextSubstitutionLayerSet.get());
     
     m_selectionManager = new SelectionManager();
 
@@ -812,6 +815,8 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
         (*iter)->reset();
     }
     
+    m_annotationTextSubstitutionLayerSet->reset();
+    
     m_identificationManager->removeAllIdentifiedItems();
     m_selectionManager->reset();
     m_selectionManager->setLastSelectedItem(NULL);
@@ -1052,6 +1057,24 @@ Brain::copyFilePropertiesToTab(const int32_t sourceTabIndex,
         vf->getGroupAndNameHierarchyModel()->copySelections(sourceTabIndex,
                                                             targetTabIndex);
     }
+}
+
+/**
+ * @return Pointer the annotation subtitution layer set
+ */
+AnnotationTextSubstitutionLayerSet*
+Brain::getAnnotationTextSubstitutionLayerSet()
+{
+    return m_annotationTextSubstitutionLayerSet.get();
+}
+
+/**
+ * @return Pointer the annotation subtitution layer set
+ */
+const AnnotationTextSubstitutionLayerSet*
+Brain::getAnnotationTextSubstitutionLayerSet() const
+{
+    return m_annotationTextSubstitutionLayerSet.get();
 }
 
 /**
@@ -1996,9 +2019,7 @@ Brain::addReadOrReloadAnnotationTextSubstitutionFile(const FileModeAddReadReload
         m_annotationSubstitutionFiles.push_back(af);
     }
     
-    if (fileMode == FILE_MODE_RELOAD) {
-        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
-    }
+    EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
     
     return af;
 }
@@ -6413,6 +6434,8 @@ Brain::updateAfterFilesAddedOrRemoved()
     updateMediaModel();
     
     updateFiberTrajectoryMatchingFiberOrientationFiles();
+    
+    m_annotationTextSubstitutionLayerSet->updateContent();
 }
 
 /**
@@ -8049,6 +8072,7 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                 caretDataFile);
     if (annSubIter != m_annotationSubstitutionFiles.end()) {
         m_annotationSubstitutionFiles.erase(annSubIter);
+        EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
         return true;
     }
     
@@ -8278,24 +8302,6 @@ const DisplayPropertiesAnnotation*
 Brain::getDisplayPropertiesAnnotation() const
 {
     return m_displayPropertiesAnnotation;
-}
-
-/**
- * @return The annotation text substitution display properties.
- */
-DisplayPropertiesAnnotationTextSubstitution*
-Brain::getDisplayPropertiesAnnotationTextSubstitution()
-{
-    return m_displayPropertiesAnnotationTextSubstitution;
-}
-
-/**
- * @return The annotation text substitution display properties.
- */
-const DisplayPropertiesAnnotationTextSubstitution*
-Brain::getDisplayPropertiesAnnotationTextSubstitution() const
-{
-    return m_displayPropertiesAnnotationTextSubstitution;
 }
 
 /**
@@ -8926,7 +8932,17 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAnnotationFile->clearModified();
 
+    const SceneClass* dispPropsAnnSubsSceneClass(sceneClass->getClass("displayPropertiesAnnotationTextSubstitution"));
+    if (dispPropsAnnSubsSceneClass != NULL) {
+        DisplayPropertiesAnnotationTextSubstitution dispProbsAnnSubs(this);
+        dispProbsAnnSubs.restoreFromScene(sceneAttributes, dispPropsAnnSubsSceneClass);
+        dispProbsAnnSubs.update();
+        
+        m_annotationTextSubstitutionLayerSet->restoreFromOldScene(&dispProbsAnnSubs);
+    }
+    
     EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    m_annotationTextSubstitutionLayerSet->updateContent();
     
     setSurfaceMatchingToAnatomical(m_surfaceMatchingToAnatomicalFlag);
     

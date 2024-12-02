@@ -108,10 +108,10 @@ AnnotationTextSubstitutionFile::copyHelperAnnotationTextSubstitutionFile(const A
     *m_metadata = *obj.m_metadata;
     m_dataValues = obj.m_dataValues;
     m_numberOfSubstitutions = obj.m_numberOfSubstitutions;
-    m_numberOfValues = obj.m_numberOfValues;
+    m_numberOfRows = obj.m_numberOfRows;
     m_substitutionNameToIndexMap = obj.m_substitutionNameToIndexMap;
     m_mapYokingGroup = obj.m_mapYokingGroup;
-    setSelectedValueIndexPrivate(obj.m_selectedValueIndex);
+    setSelectedRowIndexPrivate(obj.m_selectedRowIndex);
 }
 
 /**
@@ -128,7 +128,7 @@ AnnotationTextSubstitutionFile::receiveEvent(Event* event)
         CaretAssert(mapEvent);
         
         if (mapEvent->getMapYokingGroup() == m_mapYokingGroup) {
-            setSelectedValueIndex(mapEvent->getMapIndex());
+            setSelectedMapIndex(mapEvent->getMapIndex());
         }
 
         event->setEventProcessed();
@@ -152,10 +152,6 @@ AnnotationTextSubstitutionFile::initializeAnnotationTextSubstitutionFile()
     clearPrivate();
     
     m_sceneAssistant.reset(new SceneClassAssistant());
-    m_sceneAssistant->add("m_selectedValueIndex",
-                          &m_selectedValueIndex);
-    m_sceneAssistant->add<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
-                                                                        &m_mapYokingGroup);
 }
 
 /**
@@ -228,9 +224,9 @@ AnnotationTextSubstitutionFile::clearPrivate()
     m_dataValues.clear();
     m_substitutionNameToIndexMap.clear();
     m_numberOfSubstitutions = 0;
-    m_numberOfValues = 0;
+    m_numberOfRows = 0;
     m_mapYokingGroup = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
-    m_selectedValueIndex = -1;  /* invalid so text substitutions get invalidated */
+    m_selectedRowIndex = -1;  /* invalid so text substitutions get invalidated */
 }
 
 /**
@@ -260,12 +256,12 @@ AnnotationTextSubstitutionFile::getNumberOfSubstitutions() const
 }
 
 /**
- * @return Number of values for each substitutions in the file.
+ * @return Number of maps for each substitutions in the file.
  */
 int32_t
-AnnotationTextSubstitutionFile::getNumberOfValues() const
+AnnotationTextSubstitutionFile::getNumberOfMaps() const
 {
-    return m_numberOfValues;
+    return m_numberOfRows;
 }
 
 /**
@@ -273,25 +269,30 @@ AnnotationTextSubstitutionFile::getNumberOfValues() const
  *
  * @param textSubstitutionIndex
  *    Index of the text substitution
- * @param valueIndex
- *    Index of the value in the text substitution
+ * @param mapIndex
+ *    Index of the map in the text substitution
  */
 AString
 AnnotationTextSubstitutionFile::getTextSubstitution(const int32_t textSubstitutionIndex,
-                                                    const int32_t valueIndex) const
+                                                    const int32_t mapIndex) const
 {
+    const int32_t rowIndex(mapIndex);
     CaretAssert((textSubstitutionIndex >=0)
                 && (textSubstitutionIndex < m_numberOfSubstitutions));
-    CaretAssert((valueIndex >= 0)
-                && (valueIndex < m_numberOfValues));
+    CaretAssert((rowIndex >= 0)
+                && (rowIndex < m_numberOfRows));
 
-    const int32_t substitutionOffset = (textSubstitutionIndex * m_numberOfValues);
-    const int32_t dataIndex = substitutionOffset + valueIndex;
+    AString textValueOut;
+    if ((rowIndex >= 0)
+        && (rowIndex < m_numberOfRows)) {
+        const int32_t substitutionOffset = (textSubstitutionIndex * m_numberOfRows);
+        const int32_t dataIndex = substitutionOffset + rowIndex;
+        
+        CaretAssertVectorIndex(m_dataValues, dataIndex);
+        textValueOut = m_dataValues[dataIndex];
+    }
     
-    CaretAssertVectorIndex(m_dataValues, dataIndex);
-    const AString value(m_dataValues[dataIndex]);
-    
-    return value;
+    return textValueOut;
 }
 
 /**
@@ -299,12 +300,12 @@ AnnotationTextSubstitutionFile::getTextSubstitution(const int32_t textSubstituti
  *
  * @param textSubstitutionName
  *    Name of the text substitution
- * @param valueIndex
- *    Index of the value in the text substitution
+ * @param mapIndex
+ *    Index of the map in the text substitution
  */
 AString
 AnnotationTextSubstitutionFile::getTextSubstitution(const AString& textSubstitutionName,
-                                                    const int32_t valueIndex) const
+                                                    const int32_t mapIndex) const
 {
     /*
      * Convert name to a substitution index
@@ -314,7 +315,7 @@ AnnotationTextSubstitutionFile::getTextSubstitution(const AString& textSubstitut
     AString text;
     if (textSubstitutionIndex >= 0) {
         text = getTextSubstitution(textSubstitutionIndex,
-                                   valueIndex);
+                                   mapIndex);
     }
     
     return text;
@@ -329,12 +330,14 @@ AnnotationTextSubstitutionFile::getTextSubstitution(const AString& textSubstitut
 void
 AnnotationTextSubstitutionFile::getSubstitutionValues(EventAnnotationTextSubstitutionGet* substituteEvent) const
 {
-    const std::vector<AString>& substitutionNames = substituteEvent->getSubstitutionNames();
-    for (const auto& name : substitutionNames) {
-        AString value = getTextSubstitution(name,
-                                            getSelectedValueIndex());
-        substituteEvent->setSubstitutionValueForName(name,
-                                                     value);
+    const int32_t numSubs(substituteEvent->getNumberOfSubstitutionIDs());
+    for (int32_t i = 0; i < numSubs; i++) {
+        const AnnotationTextSubstitution& subs(substituteEvent->getSubstitutionID(i));
+        const AString name(subs.getColumnID());
+        const AString value(getTextSubstitution(name,
+                                                getSelectedMapIndex()));
+        substituteEvent->setSubstitutionTextValue(i,
+                                                  value);
     }
 }
 
@@ -390,8 +393,40 @@ AnnotationTextSubstitutionFile::restoreFileDataFromScene(const SceneAttributes* 
 {
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+    
+    /*
+     * Try to restore values for older scenes
+     */
+    m_oldSceneValuesValidFlag = false;
+    m_selectedRowIndex = -1;
+    m_mapYokingGroup   = MapYokingGroupEnum::MAP_YOKING_GROUP_OFF;
+    const SceneObject* valueIndexObject(sceneClass->getObjectWithName("m_selectedValueIndex"));
+    const SceneObject* mapYokingObject(sceneClass->getObjectWithName("m_mapYokingGroup"));
+    if ((valueIndexObject != NULL)
+        && (mapYokingObject != NULL)) {
+        m_selectedRowIndex = sceneClass->getIntegerValue("m_selectedValueIndex");
+        m_mapYokingGroup   = sceneClass->getEnumeratedTypeValue<MapYokingGroupEnum, MapYokingGroupEnum::Enum>("m_mapYokingGroup",
+                                                                                                              MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+        m_oldSceneValuesValidFlag = true;
+    }
 }
 
+/**
+ * @return Are old scene values valid?
+ */
+bool
+AnnotationTextSubstitutionFile::isOldSceneValuesValid() const
+{
+    return m_oldSceneValuesValidFlag;
+}
+
+/**
+ * Clean up the CSV model
+ * @param csvModel
+ *    The CSV model
+ * @param filename
+ *    Name of the file
+ */
 void
 AnnotationTextSubstitutionFile::cleanCsvModel(QxtCsvModel* csvModel,
                                               const AString& filename)
@@ -401,7 +436,7 @@ AnnotationTextSubstitutionFile::cleanCsvModel(QxtCsvModel* csvModel,
      * So, find blank rows at end and reduce number of rows
      */
     int32_t lastValidRowIndex = -1;
-    for (int32_t iRow = 0; iRow < m_numberOfValues; iRow++) {
+    for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
         bool validRowFlag = false;
         for (int32_t iCol = 0; iCol < m_numberOfSubstitutions; iCol++) {
             const QModelIndex modelIndex = csvModel->index(iRow,
@@ -441,7 +476,7 @@ AnnotationTextSubstitutionFile::cleanCsvModel(QxtCsvModel* csvModel,
     
     if (lastValidRowIndex >= 0) {
         int32_t numberOfValidRows = lastValidRowIndex + 1;
-        m_numberOfValues = numberOfValidRows;
+        m_numberOfRows = numberOfValidRows;
     }
 }
 
@@ -491,16 +526,16 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
                            separator);
         
         m_numberOfSubstitutions = csvModel.columnCount();
-        m_numberOfValues        = csvModel.rowCount();
+        m_numberOfRows          = csvModel.rowCount();
         
         if ((m_numberOfSubstitutions > 0)
-            && (m_numberOfValues > 0)) {
+            && (m_numberOfRows > 0)) {
             cleanCsvModel(&csvModel,
                           filename);
         }
         
         const int32_t numberOfValues = (m_numberOfSubstitutions
-                                        * m_numberOfValues);
+                                        * m_numberOfRows);
         if (numberOfValues <= 0) {
             throw DataFileException(filename
                                     + " is empty or reading failed.");
@@ -514,7 +549,7 @@ AnnotationTextSubstitutionFile::readFile(const AString& filename)
          */
         m_dataValues.reserve(numberOfValues);
         for (int32_t iColumn = 0; iColumn < m_numberOfSubstitutions; iColumn++) {
-            for (int32_t iRow = 0; iRow < m_numberOfValues; iRow++) {
+            for (int32_t iRow = 0; iRow < m_numberOfRows; iRow++) {
                 const QModelIndex modelIndex = csvModel.index(iRow,
                                                               iColumn);
                 if ( ! modelIndex.isValid()) {
@@ -661,51 +696,51 @@ AnnotationTextSubstitutionFile::setMapYokingGroup(const MapYokingGroupEnum::Enum
 }
 
 /**
- * @return The selected value (map) index.
+ * @return The selected map index.
  */
 int32_t
-AnnotationTextSubstitutionFile::getSelectedValueIndex() const
+AnnotationTextSubstitutionFile::getSelectedMapIndex() const
 {
     /* validates index */
-    setSelectedValueIndexPrivate(m_selectedValueIndex);
+    setSelectedRowIndexPrivate(m_selectedRowIndex);
     
-    return m_selectedValueIndex;
+    return m_selectedRowIndex;
 }
 
 /**
- * Set the selected value index.
+ * Set the selected map index.
  *
- * @param valueIndex
+ * @param mapIndex
  *     New value for index.
  */
 void
-AnnotationTextSubstitutionFile::setSelectedValueIndex(const int32_t valueIndex)
+AnnotationTextSubstitutionFile::setSelectedMapIndex(const int32_t mapIndex)
 {
-    setSelectedValueIndexPrivate(valueIndex);
+    setSelectedRowIndexPrivate(mapIndex);
 }
 
 /**
- * Set the selected value index.  Private method that invalidates text substitutions
- * and ensures selected value index is valid.
+ * Set the selected row index.  Private method that invalidates text substitutions
+ * and ensures selected row index is valid.
  *
- * @param valueIndex
+ * @param rowIndex
  *     New value for index.
  */
 void
-AnnotationTextSubstitutionFile::setSelectedValueIndexPrivate(const int32_t valueIndex) const
+AnnotationTextSubstitutionFile::setSelectedRowIndexPrivate(const int32_t rowIndex) const
 {
-    int32_t previousValueIndex = m_selectedValueIndex;
+    const int32_t previousRowIndex = m_selectedRowIndex;
     
-    m_selectedValueIndex = valueIndex;
+    m_selectedRowIndex = rowIndex;
     
-    if (m_selectedValueIndex < 0) {
-        m_selectedValueIndex = 0;
+    if (m_selectedRowIndex < 0) {
+        m_selectedRowIndex = 0;
     }
-    else if (m_selectedValueIndex >= m_numberOfValues) {
-        m_selectedValueIndex = m_numberOfValues - 1;
+    else if (m_selectedRowIndex >= m_numberOfRows) {
+        m_selectedRowIndex = m_numberOfRows - 1;
     }
 
-    if (previousValueIndex != m_selectedValueIndex) {
+    if (previousRowIndex != m_selectedRowIndex) {
         EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
     }
 }

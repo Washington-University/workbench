@@ -320,7 +320,7 @@ EventMapYokingValidation::validateCompatibility(const AnnotationTextSubstitution
     AString message;
     if (annTextSubFile != NULL) {
         filename     = annTextSubFile->getFileNameNoPath();
-        numberOfMaps = annTextSubFile->getNumberOfValues();
+        numberOfMaps = annTextSubFile->getNumberOfMaps();
         message = (AString::number(numberOfMaps)
                    + " substitution values in ");
     }
@@ -396,7 +396,7 @@ m_mediaFile(mediaFile),
 m_tabIndex(tabIndex)
 {
     if (m_annTextSubFile != NULL) {
-        m_numberOfMaps = annTextSubFile->getNumberOfValues();
+        m_numberOfMaps = annTextSubFile->getNumberOfMaps();
         
         m_infoText = (AString::number(m_numberOfMaps)
                       + " substitution values in "

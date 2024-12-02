@@ -27,6 +27,7 @@
 namespace caret {
 
     class AnnotationTextSubstitutionFile;
+    class AnnotationTextSubstitutionLayer;
     class CaretMappableDataFile;
     class ChartTwoOverlay;
     class ChartableMatrixSeriesInterface;
@@ -66,6 +67,8 @@ namespace caret {
         
         void validateYokingChange(MediaOverlay* mediaOverlay);
         
+        void validateYokingChange(AnnotationTextSubstitutionLayer* annTextSubsLayer);
+        
         void validateYokingChange(AnnotationTextSubstitutionFile* annTextSubFile);
         
         // ADD_NEW_METHODS_HERE
@@ -86,7 +89,8 @@ namespace caret {
 
         MapYokingGroupComboBox& operator=(const MapYokingGroupComboBox&);
         
-        YokeValidationResult validateYoking(AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
+        YokeValidationResult validateYoking(AnnotationTextSubstitutionLayer* annTextSubsLayer,
+                                            AnnotationTextSubstitutionFile* selectedAnnTextSubFile,
                                             CaretMappableDataFile* selectedMapFile,
                                             HistologySlicesFile* selectedHistologySlicesFile,
                                             MediaFile* selectedMediaFile,

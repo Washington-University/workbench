@@ -76,21 +76,23 @@ namespace caret {
 
         int32_t getNumberOfSubstitutions() const;
         
-        int32_t getNumberOfValues() const;
+        int32_t getNumberOfMaps() const;
         
         AString getTextSubstitution(const int32_t textSubstitutionIndex,
-                                    const int32_t valueIndex) const;
+                                    const int32_t mapIndex) const;
         
         AString getTextSubstitution(const AString& textSubstitutionName,
-                                    const int32_t valueIndex) const;
+                                    const int32_t mapIndex) const;
         
         MapYokingGroupEnum::Enum getMapYokingGroup() const;
         
         void setMapYokingGroup(const MapYokingGroupEnum::Enum mapYokingGroup);
         
-        int32_t getSelectedValueIndex() const;
+        int32_t getSelectedMapIndex() const;
         
-        void setSelectedValueIndex(const int32_t valueIndex);
+        void setSelectedMapIndex(const int32_t mapIndex);
+        
+        bool isOldSceneValuesValid() const;
         
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
@@ -110,7 +112,7 @@ namespace caret {
         
         int32_t getColumnIndexForSubstitutionName(const AString substitutionName) const;
         
-        void setSelectedValueIndexPrivate(const int32_t valueIndex) const;
+        void setSelectedRowIndexPrivate(const int32_t rowIndex) const;
         
         void cleanCsvModel(QxtCsvModel* csvModel,
                            const AString& filename);
@@ -125,11 +127,13 @@ namespace caret {
         
         int32_t m_numberOfSubstitutions;
         
-        int32_t m_numberOfValues;
+        int32_t m_numberOfRows;
         
         MapYokingGroupEnum::Enum m_mapYokingGroup;
         
-        mutable int32_t m_selectedValueIndex;
+        mutable int32_t m_selectedRowIndex;
+        
+        bool m_oldSceneValuesValidFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 

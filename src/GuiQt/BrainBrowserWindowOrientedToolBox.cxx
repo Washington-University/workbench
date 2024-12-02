@@ -30,7 +30,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationSelectionViewController.h"
-#include "AnnotationTextSubstitutionViewController.h"
+#include "AnnotationTextSubstitutionLayerSetViewController.h"
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -146,7 +146,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     m_annotationTabWidget               = NULL;
     m_annotationViewController          = NULL;
-    m_annotationTextSubstitutionViewController = NULL;
+    m_annotationTextSubstitutionLayerSetViewController = NULL;
     m_borderSelectionViewController     = NULL;
     m_chartOverlaySetViewController     = NULL;
     m_chartToolBoxViewController        = NULL;
@@ -233,13 +233,11 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         m_annotationViewController = new AnnotationSelectionViewController(browserWindowIndex,
                                                                            objectNamePrefix,
                                                                            this);
-        m_annotationTextSubstitutionViewController = new AnnotationTextSubstitutionViewController(browserWindowIndex,
-                                                                                                  objectNamePrefix,
-                                                                                                  this);
-        
+        m_annotationTextSubstitutionLayerSetViewController = new AnnotationTextSubstitutionLayerSetViewController(objectNamePrefix,
+                                                                                                                  this);
         m_annotationTabWidget = new QTabWidget();
         m_annotationTabWidget->addTab(m_annotationViewController, "Annotations");
-        m_annotationTabWidget->addTab(m_annotationTextSubstitutionViewController, "Substitutions");
+        m_annotationTabWidget->addTab(m_annotationTextSubstitutionLayerSetViewController, "Substitutions");
         m_annotationTabWidget->setObjectName(objectNamePrefix
                                              + ":AnnotationTab");
         macroManager->addMacroSupportToObjectWithToolTip(m_annotationTabWidget,
@@ -591,9 +589,9 @@ BrainBrowserWindowOrientedToolBox::saveToScene(const SceneAttributes* sceneAttri
         sceneClass->addClass(m_annotationViewController->saveToScene(sceneAttributes,
                                                                      "m_annotationViewController"));
     }
-    if (m_annotationTextSubstitutionViewController != NULL) {
-        sceneClass->addClass(m_annotationTextSubstitutionViewController->saveToScene(sceneAttributes,
-                                                                                     "m_annotationTextSubstitutionViewController"));
+    if (m_annotationTextSubstitutionLayerSetViewController != NULL) {
+        sceneClass->addClass(m_annotationTextSubstitutionLayerSetViewController->saveToScene(sceneAttributes,
+                                                                                     "m_annotationTextSubstitutionLayerSetViewController"));
     }
     if (m_borderSelectionViewController != NULL) {
         sceneClass->addClass(m_borderSelectionViewController->saveToScene(sceneAttributes,
@@ -705,8 +703,8 @@ BrainBrowserWindowOrientedToolBox::restoreFromScene(const SceneAttributes* scene
         m_annotationViewController->restoreFromScene(sceneAttributes,
                                                      sceneClass->getClass("m_annotationViewController"));
     }
-    if (m_annotationTextSubstitutionViewController != NULL) {
-        m_annotationTextSubstitutionViewController->restoreFromScene(sceneAttributes, sceneClass->getClass("m_annotationTextSubstitutionViewController"));
+    if (m_annotationTextSubstitutionLayerSetViewController != NULL) {
+        m_annotationTextSubstitutionLayerSetViewController->restoreFromScene(sceneAttributes, sceneClass->getClass("m_annotationTextSubstitutionLayerSetViewController"));
     }
     if (m_borderSelectionViewController != NULL) {
         m_borderSelectionViewController->restoreFromScene(sceneAttributes,
@@ -1094,7 +1092,7 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 if (m_annotationTabWidget->widget(iTab) == m_annotationViewController) {
                     m_annotationTabWidget->setTabEnabled(iTab, haveAnnotation);
                 }
-                else if (m_annotationTabWidget->widget(iTab) == m_annotationTextSubstitutionViewController) {
+                else if (m_annotationTabWidget->widget(iTab) == m_annotationTextSubstitutionLayerSetViewController) {
                     m_annotationTabWidget->setTabEnabled(iTab, haveAnnSub);
                 }
                 else {

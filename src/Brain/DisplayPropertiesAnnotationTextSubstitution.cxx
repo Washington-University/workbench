@@ -125,19 +125,19 @@ DisplayPropertiesAnnotationTextSubstitution::update()
 void
 DisplayPropertiesAnnotationTextSubstitution::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET) {
-        if (m_enableSubstitutionsFlag) {
-            EventAnnotationTextSubstitutionGet* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionGet*>(event);
-            CaretAssert(textSubEvent);
-            
-            AnnotationTextSubstitutionFile* annTextSubFile = getSelectedFile();
-            if (annTextSubFile != NULL) {
-                annTextSubFile->getSubstitutionValues(textSubEvent);
-            }
-            
-            textSubEvent->setEventProcessed();
-        }
-    }
+//    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET) {
+//        if (m_enableSubstitutionsFlag) {
+//            EventAnnotationTextSubstitutionGet* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionGet*>(event);
+//            CaretAssert(textSubEvent);
+//            
+//            AnnotationTextSubstitutionFile* annTextSubFile = getSelectedFile();
+//            if (annTextSubFile != NULL) {
+//                annTextSubFile->getSubstitutionValues(textSubEvent);
+//            }
+//            
+//            textSubEvent->setEventProcessed();
+//        }
+//    }
 }
 
 /**

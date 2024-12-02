@@ -51,6 +51,7 @@ namespace caret {
     class AnnotationPolygon;
     class AnnotationPolyLine;
     class AnnotationSpatialModification;
+    class AnnotationText;
     class AnnotationTwoCoordinateShape;
     class DisplayGroupAndTabItemHelper;
     class GiftiMetaData;
@@ -186,6 +187,11 @@ namespace caret {
          * @return Cast to two-coordinate (NULL if NOT two-coordinate annotation)
         */
         virtual const AnnotationTwoCoordinateShape* castToTwoCoordinateShape() const  { return NULL; }
+        
+        /**
+         * @return Cast to text annotation (NULL if NOT text annotation)
+         */
+        virtual const AnnotationText* castToTextAnnotation() const { return NULL; }
         
         /**
          * @return Cast to polygon (NULL if NOT polygon)

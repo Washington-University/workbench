@@ -25,9 +25,8 @@
 #include <map>
 #include <memory>
 
+#include "AnnotationTextSubstitution.h"
 #include "Event.h"
-
-
 
 namespace caret {
 
@@ -36,16 +35,18 @@ namespace caret {
     public:
         EventAnnotationTextSubstitutionGet();
         
-        const std::vector<AString>& getSubstitutionNames() const;
-        
-        AString getSubstitutionValueForName(const AString& substitutionName) const;
-        
-        void addSubstitutionName(const AString& substitutionName);
-        
-        void setSubstitutionValueForName(const AString& substitutionName,
-                                         const AString& substitutionValue);
-        
         virtual ~EventAnnotationTextSubstitutionGet();
+        
+        void addSubstitutionID(const AnnotationTextSubstitution& substitutionID);
+        
+        int32_t getNumberOfSubstitutionIDs() const;
+        
+        const AnnotationTextSubstitution& getSubstitutionID(const int32_t index) const;
+        
+        void setSubstitutionTextValue(const int32_t index,
+                                      const AString textValue);
+        
+        AString getSubstitutionTextValue(const int32_t index) const;
         
         EventAnnotationTextSubstitutionGet(const EventAnnotationTextSubstitutionGet&) = delete;
 
@@ -55,9 +56,10 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
-        std::vector<AString> m_substitutionNames;
+        std::vector<AnnotationTextSubstitution> m_substitutionIDs;
         
-        std::map<AString, AString> m_substitutionNamesAndValues;
+        std::vector<AString> m_substitutionTexts;
+        
         
         // ADD_NEW_MEMBERS_HERE
 

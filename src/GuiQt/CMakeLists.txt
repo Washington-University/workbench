@@ -71,7 +71,8 @@ ELSE()
         AnnotationTextEditorDialog.h
         AnnotationTextEditorWidget.h
         AnnotationTextOrientationWidget.h
-        AnnotationTextSubstitutionViewController.h
+	AnnotationTextSubstitutionLayerViewController.h
+        AnnotationTextSubstitutionLayerSetViewController.h
         AnnotationWidthHeightWidget.h
         BalsaDatabaseUploadSceneFileDialog.h
         BalsaStudySelectionDialog.h
@@ -353,7 +354,8 @@ AnnotationTextAlignmentWidget.h
 AnnotationTextEditorDialog.h
 AnnotationTextEditorWidget.h
 AnnotationTextOrientationWidget.h
-AnnotationTextSubstitutionViewController.h
+AnnotationTextSubstitutionLayerViewController.h
+AnnotationTextSubstitutionLayerSetViewController.h
 AnnotationWidgetParentEnum.h
 AnnotationWidthHeightWidget.h
 BalsaDatabaseManager.h
@@ -703,7 +705,8 @@ AnnotationTextAlignmentWidget.cxx
 AnnotationTextEditorDialog.cxx
 AnnotationTextEditorWidget.cxx
 AnnotationTextOrientationWidget.cxx
-AnnotationTextSubstitutionViewController.cxx
+AnnotationTextSubstitutionLayerSetViewController.cxx
+AnnotationTextSubstitutionLayerViewController.cxx
 AnnotationWidgetParentEnum.cxx
 AnnotationWidthHeightWidget.cxx
 BalsaDatabaseManager.cxx

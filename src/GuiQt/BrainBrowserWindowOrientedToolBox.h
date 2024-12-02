@@ -33,7 +33,7 @@ class QTabWidget;
 
 namespace caret {
     class AnnotationSelectionViewController;
-    class AnnotationTextSubstitutionViewController;
+    class AnnotationTextSubstitutionLayerSetViewController;
     class BorderSelectionViewController;
     class ChartTwoOverlaySetViewController;
     class ChartToolBoxViewController;
@@ -103,7 +103,7 @@ namespace caret {
         
         AnnotationSelectionViewController* m_annotationViewController;
         
-        AnnotationTextSubstitutionViewController* m_annotationTextSubstitutionViewController;
+        AnnotationTextSubstitutionLayerSetViewController* m_annotationTextSubstitutionLayerSetViewController;
         
         BorderSelectionViewController* m_borderSelectionViewController;
 

@@ -46,6 +46,7 @@
 #include "EventAnnotationChartLabelGet.h"
 #include "EventAnnotationBarsGet.h"
 #include "EventAnnotationGroupGetWithKey.h"
+#include "EventAnnotationTextSubstitutionGetAllGroupIDs.h"
 #include "EventAnnotationValidate.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserWindowContent.h"
@@ -97,6 +98,7 @@ m_brain(brain)
 
     m_sceneAssistant = new SceneClassAssistant();
     
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_VALIDATE);
 }
 
@@ -1231,6 +1233,24 @@ AnnotationManager::receiveEvent(Event* event)
             if (ann == validateAnnotation) {
                 annEvent->setAnnotationValid();
                 annEvent->setEventProcessed();
+            }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS) {
+        EventAnnotationTextSubstitutionGetAllGroupIDs* idEvent(dynamic_cast<EventAnnotationTextSubstitutionGetAllGroupIDs*>(event));
+        CaretAssert(idEvent);
+        idEvent->setEventProcessed();
+        
+        std::vector<Annotation*> allAnns = getAllAnnotations();
+        for (const auto ann : allAnns) {
+            if (ann->getType() == AnnotationTypeEnum::TEXT) {
+                const AnnotationText* textAnn(ann->castToTextAnnotation());
+                if (textAnn != NULL) {
+                    const std::set<AString> groupIDs(textAnn->getTextSubstitutionGroupIDs());
+                    for (const auto& gid : groupIDs) {
+                        idEvent->addGroupID(gid);
+                    }
+                }
             }
         }
     }

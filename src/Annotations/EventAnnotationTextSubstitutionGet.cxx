@@ -54,68 +54,64 @@ EventAnnotationTextSubstitutionGet::~EventAnnotationTextSubstitutionGet()
 }
 
 /**
- * @return All substitution names for which values are requested.
- * This method is called by AnnotationTextSubstitutionFile's so 
- * that the file may provide substitution values.
+ * Add a substitution ID for gettting a substitution
+ * @param substitutionID
+ *    Substitution with file and column IDs
  */
-const std::vector<AString>&
-EventAnnotationTextSubstitutionGet::getSubstitutionNames() const
+void
+EventAnnotationTextSubstitutionGet::addSubstitutionID(const AnnotationTextSubstitution& substitutionID)
 {
-    return m_substitutionNames;
+    m_substitutionIDs.push_back(substitutionID);
+    m_substitutionTexts.resize(m_substitutionIDs.size());
 }
 
 /**
- * Get the substitution value for the given substitution name.
- * This method is called by the annotation drawing code to get
- * annotation text substitution values.
- *
- * @param substitutionValue
- *     The substitutionValue.
+ * @return The number of substitution idenfiers
+ */
+int32_t
+EventAnnotationTextSubstitutionGet::getNumberOfSubstitutionIDs() const
+{
+    return m_substitutionIDs.size();
+}
+
+/**
+ * @return The substitution identifier at the given index
+ * @param index
+ *    Index of the item
+ */
+const AnnotationTextSubstitution&
+EventAnnotationTextSubstitutionGet::getSubstitutionID(const int32_t index) const
+{
+    CaretAssertVectorIndex(m_substitutionIDs, index);
+    return m_substitutionIDs[index];
+}
+
+/**
+ * Set the text value for the substitution ID at the give index
+ * @param index
+ *    Index of the item
+ * @param textValue
+ *    Text that is substituted into an annotation
+ */
+void
+EventAnnotationTextSubstitutionGet::setSubstitutionTextValue(const int32_t index,
+                                                             const AString textValue)
+{
+    CaretAssertVectorIndex(m_substitutionTexts, index);
+    m_substitutionTexts[index] = textValue;
+}
+
+/**
+ * @return The substitution text for the substitution ID at the given index
+ * @param index
+ *    Index of the substitution ID
  */
 AString
-EventAnnotationTextSubstitutionGet::getSubstitutionValueForName(const AString& substitutionName) const
+EventAnnotationTextSubstitutionGet::getSubstitutionTextValue(const int32_t index) const
 {
-    AString value;
+    AString textOut;
+    CaretAssertVectorIndex(m_substitutionTexts, index);
+    textOut = m_substitutionTexts[index];
     
-    const auto iter = m_substitutionNamesAndValues.find(substitutionName);
-    if (iter != m_substitutionNamesAndValues.end()) {
-        value = iter->second;
-    }
-    
-    return value;
-}
-
-/**
- * Set the substitution value.
- * This method is called by AnnotationTextSubstitutionFile's so
- * that the file may provide substitution values.
- *
- * @param substitutionName
- *     The substitution name.
- * @param substitutionValue
- *     The substitution value.
- */
-void
-EventAnnotationTextSubstitutionGet::setSubstitutionValueForName(const AString& substitutionName,
-                                                                const AString& substitutionValue)
-{
-    auto iter = m_substitutionNamesAndValues.find(substitutionName);
-    if (iter != m_substitutionNamesAndValues.end()) {
-        iter->second = substitutionValue;
-    }
-}
-
-/**
- * Add a substitution name for which a substitution value is sought.
- * This method is called by the annotation drawing code to get
- * annotation text substitution values.
- *
- * @param substitutionName
- *     Name of the annotation substitution.
- */
-void
-EventAnnotationTextSubstitutionGet::addSubstitutionName(const AString& substitutionName)
-{
-    m_substitutionNames.push_back(substitutionName);
-    m_substitutionNamesAndValues.insert(std::make_pair(substitutionName, ""));
+    return textOut;
 }

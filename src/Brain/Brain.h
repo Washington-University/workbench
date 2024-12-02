@@ -42,6 +42,7 @@ namespace caret {
     class AnnotationFile;
     class AnnotationTextSubstitutionFile;
     class AnnotationManager;
+    class AnnotationTextSubstitutionLayerSet;
     class Border;
     class BorderFile;
     class BorderPointFromSearch;
@@ -434,10 +435,6 @@ namespace caret {
         
         const DisplayPropertiesAnnotation* getDisplayPropertiesAnnotation() const;
         
-        DisplayPropertiesAnnotationTextSubstitution* getDisplayPropertiesAnnotationTextSubstitution();
-        
-        const DisplayPropertiesAnnotationTextSubstitution* getDisplayPropertiesAnnotationTextSubstitution() const;
-        
         DisplayPropertiesBorders* getDisplayPropertiesBorders();
         
         const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
@@ -479,6 +476,10 @@ namespace caret {
         
         void copyFilePropertiesToTab(const int32_t sourceTabIndex,
                                      const int32_t targetTabIndex);
+        
+        AnnotationTextSubstitutionLayerSet* getAnnotationTextSubstitutionLayerSet();
+        
+        const AnnotationTextSubstitutionLayerSet* getAnnotationTextSubstitutionLayerSet() const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -992,6 +993,8 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesFoci* m_displayPropertiesFoci;
+        
+        std::unique_ptr<AnnotationTextSubstitutionLayerSet> m_annotationTextSubstitutionLayerSet;
         
         /** true when a spec file is being read */
         bool m_isSpecFileBeingRead;
