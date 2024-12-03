@@ -75,7 +75,6 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     
     OptionalParameter* hierOpt = ret->createOptionalParameter(8, "-hierarchy", "read label name hierarchy from a json file");
     hierOpt->addStringParameter(1, "file", "the input json file");
-    hierOpt->createOptionalParameter(2, "-add-abbreviation-to-name", "put the abbreviation specified in the json onto the front of each label/group name as '<abbrev> - <name>'");
     
     ret->setHelpText(
         AString("Creates a label volume from an integer-valued volume file.  ") +
@@ -97,20 +96,14 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
 
 namespace
 {
-    void recurseJson(CaretHierarchy& hierarchyOut, const QJsonArray& elements, const bool addAbbrev, const AString parent = "")
+    void recurseJson(CaretHierarchy& hierarchyOut, const QJsonArray& elements, const AString parent = "")
     {
         for (auto iter = elements.constBegin(); iter != elements.constEnd(); ++iter)
         {
             QJsonObject thisobj = iter->toObject();
             CaretHierarchy::Item toAdd;
-            AString name = thisobj.value("name").toString();
-            if (addAbbrev)
-            {
-                AString abbrev = thisobj.value("acronym").toString();
-                toAdd.extraInfo.set("BareName", name); //currently, may be overridden by a literal BareName key
-                name = abbrev + " - " + name;
-            }
-            toAdd.name = name;
+            toAdd.name = thisobj.value("name").toString();
+            if (toAdd.name == "") throw OperationException("empty or missing 'name' element in hierarchy json, in children of '" + parent + "'");
             auto keys = thisobj.keys();
             for (auto iter = keys.begin(); iter != keys.end(); ++iter)
             {
@@ -118,6 +111,7 @@ namespace
                 if (key == "name") continue; //don't put name into extraInfo, it is already handled
                 auto valueobj = thisobj.value(key);
                 AString value;
+                bool stringish = true;
                 switch (valueobj.type())
                 {
                     case QJsonValue::Bool:
@@ -130,17 +124,32 @@ namespace
                         value = valueobj.toString();
                         break;
                     default:
+                        stringish = false;
                         break;
                 }
-                if (value != "")
+                if (key == "children")
                 {
-                    toAdd.extraInfo.set(key, value);
+                    if (stringish)
+                    {
+                        CaretLogWarning("found non-array value for 'children' member in hierarchy item '" + toAdd.name + "'");
+                    }
+                    continue;//treat it as reserved, don't put it in extraInfo
+                } else {
+                    if (!stringish)
+                    {
+                        CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
+                    }
+                    continue;//ignore rather than put an empty string for the key?
                 }
+                toAdd.extraInfo.set(key, value);
             }
-            hierarchyOut.addItem(toAdd, parent);
+            if (!hierarchyOut.addItem(toAdd, parent))
+            {
+                throw OperationException("failed to add hierarchy item '" + toAdd.name + "', check whether all 'name's are unique");
+            }
             if (thisobj.contains("children"))
             {
-                recurseJson(hierarchyOut, thisobj.value("children").toArray(), addAbbrev, toAdd.name);
+                recurseJson(hierarchyOut, thisobj.value("children").toArray(), toAdd.name);
             }
         }
     }
@@ -279,15 +288,14 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
     if (hierOpt->m_present)
     {
         AString hierfileName = hierOpt->getString(1);
-        bool addAbbrev = hierOpt->getOptionalParameter(2)->m_present;
         QFile jsonfile(hierfileName);
         jsonfile.open(QIODevice::ReadOnly | QIODevice::Text);
         QJsonDocument myjson = QJsonDocument::fromJson(jsonfile.readAll());
         QJsonArray myarray = myjson.array();
         CaretHierarchy myHier;
-        recurseJson(myHier, myarray, addAbbrev);
+        recurseJson(myHier, myarray);
         auto hierNames = myHier.getAllNames();
-        map<int32_t, AString> tableMap; //not needed, but API requires it
+        map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes it as a map
         myTable.getKeysAndNames(tableMap);
         for (auto iter : tableMap)
         {
