@@ -295,7 +295,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         CaretHierarchy myHier;
         recurseJson(myHier, myarray);
         auto hierNames = myHier.getAllNames();
-        map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes it as a map
+        map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
         myTable.getKeysAndNames(tableMap);
         for (auto iter : tableMap)
         {
