@@ -103,7 +103,15 @@ namespace
             QJsonObject thisobj = iter->toObject();
             CaretHierarchy::Item toAdd;
             toAdd.name = thisobj.value("name").toString();
-            if (toAdd.name == "") throw OperationException("empty or missing 'name' element in hierarchy json, in children of '" + parent + "'");
+            if (toAdd.name == "")
+            {
+                if (parent == "")
+                {
+                    throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in a top-level item");
+                } else {
+                    throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in children of '" + parent + "'");
+                }
+            }
             auto keys = thisobj.keys();
             for (auto iter = keys.begin(); iter != keys.end(); ++iter)
             {
