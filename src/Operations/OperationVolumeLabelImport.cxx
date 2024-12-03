@@ -146,8 +146,8 @@ namespace
                     if (!stringish)
                     {
                         CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
+                        continue;//ignore rather than put an empty string for the key?
                     }
-                    continue;//ignore rather than put an empty string for the key?
                 }
                 toAdd.extraInfo.set(key, value);
             }
