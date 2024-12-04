@@ -201,17 +201,11 @@ AnnotationTextSubstitutionLayerSet::toString() const
 void
 AnnotationTextSubstitutionLayerSet::reset()
 {
-    setNumberOfLayers(s_MINIMUM_NUMBER_OF_LAYERS);
+    const int32_t fixedNumberOfLayers(10);
+    setNumberOfLayers(fixedNumberOfLayers);
     
-    bool firstFlag(true);
     for (auto& layer : m_layers) {
-        if (firstFlag) {
-            layer->setEnabled(true);
-            firstFlag = false;
-        }
-        else {
-            layer->setEnabled(false);
-        }
+        layer->setEnabled(false);
     }
 }
 

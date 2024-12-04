@@ -76,7 +76,7 @@ AnnotationTextSubstitutionLayerSetViewController::AnnotationTextSubstitutionLaye
     scrollArea->setWidgetResizable(true);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(scrollArea, 0);
+    layout->addWidget(scrollArea, 100);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);

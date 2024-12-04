@@ -72,6 +72,7 @@ AnnotationTextSubstitutionLayer::AnnotationTextSubstitutionLayer()
  */
 AnnotationTextSubstitutionLayer::~AnnotationTextSubstitutionLayer()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**

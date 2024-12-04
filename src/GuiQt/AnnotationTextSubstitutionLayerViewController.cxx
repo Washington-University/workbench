@@ -65,9 +65,14 @@ AnnotationTextSubstitutionLayerViewController::AnnotationTextSubstitutionLayerVi
 : QObject(parent),
 m_layerIndex(layerIndex)
 {
+    /*
+     * May hide construction button if layers are not editable
+     */
+    const bool showConstructionToolButtonFlag(false);
+    
     WuQMacroManager* macroManager = WuQMacroManager::instance();
-
     CaretAssert(macroManager);
+    
     QString objectNamePrefix = QString(parentObjectName
                                        + ":AnnTextSubsLayer%1"
                                        + ":").arg((int)(m_layerIndex + 1), 2, 10, QLatin1Char('0'));
@@ -102,6 +107,10 @@ m_layerIndex(layerIndex)
     m_constructionToolButton->setDefaultAction(m_constructionAction);
     m_constructionToolButton->setPopupMode(QToolButton::InstantPopup);
 
+    if ( ! showConstructionToolButtonFlag) {
+        m_constructionToolButton->setVisible(false);
+    }
+    
     m_groupIdComboBox = new QComboBox();
     m_groupIdComboBox->setObjectName(objectNamePrefix + "m_groupIdComboBox");
     macroManager->addMacroSupportToObject(m_groupIdComboBox, "Group ID Combo Box");
@@ -158,6 +167,10 @@ m_layerIndex(layerIndex)
             gridLayout->setVerticalSpacing(gridLayout->verticalSpacing() / 2);
             
             ++row;
+            
+            if ( ! showConstructionToolButtonFlag) {
+                modLabel->setVisible(false);
+            }
         }
         m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         m_gridLayoutGroup->addWidget(m_constructionToolButton, row, 1, 2, 1, Qt::AlignCenter);
@@ -184,6 +197,10 @@ m_layerIndex(layerIndex)
             m_gridLayoutGroup->addWidget(subsFileLabel, row, 5, Qt::AlignLeft);
             
             ++row;
+
+            if ( ! showConstructionToolButtonFlag) {
+                modLabel->setVisible(false);
+            }
         }
         m_gridLayoutGroup->addWidget(m_enabledCheckBox, row, 0, Qt::AlignHCenter);
         m_gridLayoutGroup->addWidget(m_constructionToolButton, row, 1, Qt::AlignHCenter);
