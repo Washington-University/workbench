@@ -96,69 +96,82 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
 
 namespace
 {
-    void recurseJson(CaretHierarchy& hierarchyOut, const QJsonArray& elements, const AString parent = "")
+    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent);
+    
+    void recurseJsonArrayish(CaretHierarchy& hierarchyOut, const QJsonValue& elements, const AString parent = "")
     {
-        for (auto iter = elements.constBegin(); iter != elements.constEnd(); ++iter)
+        if (elements.type() == QJsonValue::Array)
         {
-            QJsonObject thisobj = iter->toObject();
-            CaretHierarchy::Item toAdd;
-            toAdd.name = thisobj.value("name").toString();
-            if (toAdd.name == "")
+            QJsonArray myArray = elements.toArray();
+            for (auto iter = myArray.constBegin(); iter != myArray.constEnd(); ++iter)
             {
-                if (parent == "")
+                handleJsonChild(hierarchyOut, iter->toObject(), parent);
+            }
+        } else {
+            //when there is only one child, sometimes children isn't an array - also supports top level not being an array
+            handleJsonChild(hierarchyOut, elements.toObject(), parent);
+        }
+    }
+    
+    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent)
+    {
+        CaretHierarchy::Item toAdd;
+        toAdd.name = thisobj.value("name").toString();
+        if (toAdd.name == "")
+        {
+            if (parent == "")
+            {
+                throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in a top-level item");
+            } else {
+                throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in children of '" + parent + "'");
+            }
+        }
+        auto keys = thisobj.keys();
+        for (auto iter = keys.begin(); iter != keys.end(); ++iter)
+        {
+            AString key = *iter;
+            if (key == "name") continue; //don't put name into extraInfo, it is already handled
+            auto valueobj = thisobj.value(key);
+            AString value;
+            bool stringish = true;
+            switch (valueobj.type())
+            {
+                case QJsonValue::Bool:
+                    if (valueobj.toBool()) { value = "True"; } else { value = "False"; }
+                    break;
+                case QJsonValue::Double:
+                    value = AString::number(valueobj.toDouble(), 'g', 16); //handle stupidly large integers with g16, since json numbers are always implicitly double
+                    break;
+                case QJsonValue::String:
+                    value = valueobj.toString();
+                    break;
+                default:
+                    stringish = false;
+                    break;
+            }
+            if (key == "children")
+            {
+                if (stringish)
                 {
-                    throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in a top-level item");
-                } else {
-                    throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in children of '" + parent + "'");
+                    CaretLogWarning("found non-array value for 'children' member in hierarchy item '" + toAdd.name + "'");
+                }
+                continue;//treat it as reserved, don't put it in extraInfo
+            } else {
+                if (!stringish)
+                {
+                    CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
+                    continue;//ignore rather than put an empty string for the key?
                 }
             }
-            auto keys = thisobj.keys();
-            for (auto iter = keys.begin(); iter != keys.end(); ++iter)
-            {
-                AString key = *iter;
-                if (key == "name") continue; //don't put name into extraInfo, it is already handled
-                auto valueobj = thisobj.value(key);
-                AString value;
-                bool stringish = true;
-                switch (valueobj.type())
-                {
-                    case QJsonValue::Bool:
-                        if (valueobj.toBool()) { value = "True"; } else { value = "False"; }
-                        break;
-                    case QJsonValue::Double:
-                        value = AString::number(valueobj.toDouble(), 'g', 16); //handle stupidly large integers with g16, since json numbers are always implicitly double
-                        break;
-                    case QJsonValue::String:
-                        value = valueobj.toString();
-                        break;
-                    default:
-                        stringish = false;
-                        break;
-                }
-                if (key == "children")
-                {
-                    if (stringish)
-                    {
-                        CaretLogWarning("found non-array value for 'children' member in hierarchy item '" + toAdd.name + "'");
-                    }
-                    continue;//treat it as reserved, don't put it in extraInfo
-                } else {
-                    if (!stringish)
-                    {
-                        CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
-                        continue;//ignore rather than put an empty string for the key?
-                    }
-                }
-                toAdd.extraInfo.set(key, value);
-            }
-            if (!hierarchyOut.addItem(toAdd, parent))
-            {
-                throw OperationException("failed to add hierarchy item '" + toAdd.name + "', check whether all 'name's are unique");
-            }
-            if (thisobj.contains("children"))
-            {
-                recurseJson(hierarchyOut, thisobj.value("children").toArray(), toAdd.name);
-            }
+            toAdd.extraInfo.set(key, value);
+        }
+        if (!hierarchyOut.addItem(toAdd, parent))
+        {
+            throw OperationException("failed to add hierarchy item '" + toAdd.name + "', check whether all 'name's are unique");
+        }
+        if (thisobj.contains("children"))
+        {
+            recurseJsonArrayish(hierarchyOut, thisobj.value("children"), toAdd.name);
         }
     }
 }
@@ -301,7 +314,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         QJsonDocument myjson = QJsonDocument::fromJson(jsonfile.readAll());
         QJsonArray myarray = myjson.array();
         CaretHierarchy myHier;
-        recurseJson(myHier, myarray);
+        recurseJsonArrayish(myHier, myarray);
         auto hierNames = myHier.getAllNames();
         map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
         myTable.getKeysAndNames(tableMap);

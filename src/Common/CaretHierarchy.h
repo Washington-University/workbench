@@ -39,10 +39,11 @@ namespace caret
     class CaretHierarchy
     {
     public:
+        class OrderedKVStore;
         struct Item;
         
         CaretHierarchy();
-        bool addItem(const Item& toAdd, const AString parent = ""); //defaults to making the root element the parent
+        bool addItem(const Item& toAdd, const AString parent = "", OrderedKVStore** extraInfoOut = NULL); //defaults to making the root element the parent
         void clear();
         bool isEmpty() const { return (m_root.children.size() == 0); }
         std::set<AString> getAllNames() const { auto ret = m_usedNames; ret.erase(""); return ret; } //hide the implicit root element
@@ -97,7 +98,7 @@ namespace caret
         
         struct Item
         {
-            bool add(const Item& toAdd, const AString parent); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
+            bool add(const Item& toAdd, const AString parent, OrderedKVStore** extraInfoOut); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
             
             AString name;
             AString id; //NOTE: defunct
