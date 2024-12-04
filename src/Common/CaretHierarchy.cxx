@@ -213,7 +213,7 @@ void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
         auto node = new QStandardItem(child.name);
         qsiOut->setChild(index, node);
         //FIXME: "id" is defunct, figure out how best to stuff vector<pair<AString, AString> > into a QVariant
-        node->setData(QVariant(QString("defunct"));
+        node->setData(QVariant(QString("defunct")));
         child.QSIModelHelper(node);
     }
 }
