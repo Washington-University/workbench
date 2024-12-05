@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Cluster.h"
+#include "GiftiLabel.h"
 #include "HtmlStringBuilder.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -38,6 +39,47 @@ using namespace caret;
  * \brief Extends QStandardItem for label hierarchy
  * \ingroup Files
  */
+
+/**
+ * Constructor for a for hierarchy item and optional label
+ * @param hierarchyItem
+ *    The hierarchy item (MUST NOT BE NULL)
+ * @param giftiLabel
+ *    Optional GIFTI label (may be NULL)
+ */
+LabelSelectionItem::LabelSelectionItem(const CaretHierarchy::Item* hierarchyItem,
+                                       const GiftiLabel* giftiLabel)
+: QStandardItem(),
+m_itemType((giftiLabel != NULL)
+           ? ItemType::ITEM_LABEL
+           : ItemType::ITEM_HIERARCHY),
+m_ontologyID(hierarchyItem->id),
+m_labelIndex((giftiLabel != NULL)
+             ? giftiLabel->getKey()
+             : -1)
+{
+    initializeInstance();
+    setText(hierarchyItem->name);
+    
+    /*
+     * Only create pixmap when GUI is available (QApplication / wb_view) otherwise a crash
+     * will occur without a GUI (QCoreApplication / wb_command).
+     */
+    if (giftiLabel != NULL) {
+        if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+            QPixmap iconPixmap(24, 24);
+            const std::array<uint8_t, 4> rgba(getLabelRGBA(giftiLabel));
+            iconPixmap.fill(QColor(rgba[0],
+                                   rgba[1],
+                                   rgba[2],
+                                   rgba[3]));
+            setIcon(iconPixmap);
+        }
+    }
+    
+    m_primaryName         = hierarchyItem->name;
+    m_alternativeNamesMap = hierarchyItem->extraInfo.getAllData();
+}
 
 /**
  * Constructor for a label
@@ -74,6 +116,8 @@ m_labelIndex(labelIndex)
                                labelRGBA[3]));
         setIcon(iconPixmap);
     }
+    
+    m_primaryName = text;
 }
 
 /**
@@ -92,6 +136,7 @@ m_labelIndex(-1)
 {
     initializeInstance();
     setText(text);
+    m_primaryName = text;
 }
 
 /**
@@ -141,8 +186,13 @@ LabelSelectionItem::copyHelper(const LabelSelectionItem& other)
     m_ontologyID = other.m_ontologyID;
     m_labelIndex = other.m_labelIndex;
     if (m_labelIndex >= 0) {
-        setIcon(other.icon());
+        if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+            setIcon(other.icon());
+        }
     }
+    
+    m_primaryName         = other.m_primaryName;
+    m_alternativeNamesMap = other.m_alternativeNamesMap;
 }
 
 /**
@@ -185,7 +235,81 @@ LabelSelectionItem::type() const
     return static_cast<int>(m_itemType);
 }
 
-AString 
+/**
+ * @return The alternative names map
+ */
+std::vector<std::pair<AString, AString>>
+LabelSelectionItem::getAlternativeNamesMap() const
+{
+    return m_alternativeNamesMap;
+}
+
+/**
+ * @return The primary name (default name)
+ */
+AString
+LabelSelectionItem::getPrimaryName() const
+{
+    return m_primaryName;
+}
+
+/**
+ * Show the primary name as text
+ */
+void
+LabelSelectionItem::setShowPrimaryName()
+{
+    setText(m_primaryName);
+}
+
+/**
+ * Show the given alternative name as text
+ * @param alternativeName
+ *    Name to display
+ */
+void
+LabelSelectionItem::setShowAlternativeName(const AString& alternativeName)
+{
+    for (auto& nameMap : m_alternativeNamesMap) {
+        if (nameMap.first == alternativeName) {
+            setText(nameMap.second);
+            break;
+        }
+    }
+}
+
+/**
+ * @return The RGBA color for the label as four bytes.  If the label is NULL,
+ * white it returned.
+ * @param label
+ *    The GIFTI label
+ */
+std::array<uint8_t, 4>
+LabelSelectionItem::getLabelRGBA(const GiftiLabel* label)
+{
+    std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
+    if (label == NULL) {
+        return rgba;
+    }
+    
+    const std::array<float, 4> rgbaFloat {
+        label->getRed(),
+        label->getGreen(),
+        label->getBlue(),
+        label->getAlpha()
+    };
+    
+    for (int i = 0; i < 4; i++) {
+        int32_t c(static_cast<int32_t>(rgbaFloat[i] * 255.0));
+        if (c > 255) c = 255;
+        if (c < 0) c = 0;
+        rgba[i] = c;
+    }
+    
+    return rgba;
+}
+
+AString
 LabelSelectionItem::getOntologyID() const
 {
     return m_ontologyID;

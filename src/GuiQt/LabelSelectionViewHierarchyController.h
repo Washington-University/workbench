@@ -29,6 +29,7 @@
 
 #include "SceneableInterface.h"
 
+class QComboBox;
 class QLineEdit;
 class QModelIndex;
 class QStandardItem;
@@ -107,6 +108,8 @@ namespace caret {
                                   const QPoint& pos,
                                   const bool infoButtonFlag);
         
+        void showNameComboBoxActivated(const AString& text);
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
@@ -136,6 +139,8 @@ namespace caret {
         LabelSelectionItemModel* m_labelHierarchyModel = NULL;
         
         CaretMappableDataFileAndMapSelectorObject* m_labelFileAndMapSelector;
+        
+        QComboBox* m_showNameComboBox;
         
         QList<QStandardItem*> m_findItems;
         

@@ -20,6 +20,7 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QComboBox>
 #include <QContextMenuEvent>
 #include <QGridLayout>
 #include <QLabel>
@@ -105,6 +106,16 @@ m_objectNamePrefix(parentObjectName
     m_labelFileAndMapSelector->getWidgetsForAddingToLayout(mapFileComboBox,
                                                            mapIndexSpinBox,
                                                            mapNameComboBox);
+    
+    QLabel* showNameLabel(new QLabel("Show"));
+    m_showNameComboBox = new QComboBox();
+    QHBoxLayout* showNameLayout(new QHBoxLayout());
+    showNameLayout->setContentsMargins(0, 0, 0, 0);
+    showNameLayout->addWidget(showNameLabel, 0);
+    showNameLayout->addWidget(m_showNameComboBox, 100);
+    showNameLayout->addStretch();
+    QObject::connect(m_showNameComboBox, &QComboBox::textActivated,
+                     this, &LabelSelectionViewHierarchyController::showNameComboBoxActivated);
     
     m_collapseAllAction = new QAction("Collpase");
     m_collapseAllAction->setToolTip("Collapse all items");
@@ -206,6 +217,8 @@ m_objectNamePrefix(parentObjectName
     layout->addWidget(mapLabel, row, 0);
     layout->addWidget(mapIndexSpinBox, row, 1);
     layout->addWidget(mapNameComboBox, row, 2);
+    ++row;
+    layout->addLayout(showNameLayout, row, 0, 1, 3);
     ++row;
     layout->addLayout(buttonsLayout, row, 0, 1, 3);
     ++row;
@@ -423,6 +436,8 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
     bool enableTreeViewFlag(false);
     bool enableWidgetFlag(false);
     
+    m_showNameComboBox->clear();
+    
     BrowserTabContent* browserTabContent =
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     m_browserTabIndex = -1;
@@ -473,6 +488,21 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                             m_findItemsCurrentIndex = 0;
                             findTextLineEditTextChanged(m_findTextLineEdit->text());
                             
+                            const AString selectedName(selectionModel->getSelectedAlternativeName());
+                            int32_t showNameIndex(0);
+                            const std::vector<AString> altNamesList(selectionModel->getAllAlternativeNames());
+                            const int32_t numNames(altNamesList.size());
+                            for (int32_t i = 0; i < numNames; i++) {
+                                CaretAssertVectorIndex(altNamesList, i);
+                                m_showNameComboBox->addItem(altNamesList[i]);
+                                if (selectedName == altNamesList[i]) {
+                                    showNameIndex = i;
+                                }
+                            }
+                            if ((showNameIndex >= 0) &&
+                                (showNameIndex < numNames)) {
+                                m_showNameComboBox->setCurrentIndex(showNameIndex);
+                            }
                             enableTreeViewFlag = true;
                         }
                     }
@@ -529,6 +559,19 @@ LabelSelectionViewHierarchyController::processSelectionChanges()
     }
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
+/**
+ * Called when show name combo box has an item selected by user
+ * @param text
+ *    Text that was selected
+ */
+void
+LabelSelectionViewHierarchyController::showNameComboBoxActivated(const AString& text)
+{
+    if (m_labelHierarchyModel != NULL) {
+        m_labelHierarchyModel->setSelectedAlternativeName(text);
+    }
 }
 
 /**
@@ -684,6 +727,7 @@ LabelSelectionViewHierarchyController::getSelectedFileAndMapIndex()
     CaretAssert(m_labelFileAndMapSelector);
     CaretMappableDataFileAndMapSelectionModel* model = m_labelFileAndMapSelector->getModel();
     CaretAssert(model);
+    QSignalBlocker blocker(m_labelFileAndMapSelector);
     m_labelFileAndMapSelector->updateFileAndMapSelector(model);
     
     CaretMappableDataFile* mapFile  = model->getSelectedFile();
@@ -722,7 +766,7 @@ LabelSelectionViewHierarchyController::saveToScene(const SceneAttributes* /*scen
         std::vector<AString> expandedNames;
         for (const LabelSelectionItem* lsi : items) {
             if (m_treeView->isExpanded(lsi->index())) {
-                expandedNames.push_back(lsi->text());
+                expandedNames.push_back(lsi->getPrimaryName());
             }
         }
         
@@ -770,7 +814,7 @@ LabelSelectionViewHierarchyController::restoreFromScene(const SceneAttributes* /
             
             const std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
             for (LabelSelectionItem* lsi : items) {
-                if (expandedNames.find(lsi->text()) != expandedNames.end()) {
+                if (expandedNames.find(lsi->getPrimaryName()) != expandedNames.end()) {
                     m_treeView->expand(lsi->index());
                 }
             }

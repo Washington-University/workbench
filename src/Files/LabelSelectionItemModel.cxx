@@ -77,6 +77,8 @@ m_logMismatchedLabelsFlag(logMismatchedLabelsFlag)
     CaretAssert(m_giftiLabelTable);
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
+    m_selectedAlternativeName = s_defaultAlternativeName;
+    m_sceneAssistant->add("m_selectedAlternativeName", &m_selectedAlternativeName);
     
     buildModel(clusterContainer);
 }
@@ -231,7 +233,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
                 LabelSelectionItem* item(new LabelSelectionItem(name,
                                                                 emptyOntologyID,
                                                                 labelKey,
-                                                                getLabelRGBA(giftiLabel)));
+                                                                LabelSelectionItem::getLabelRGBA(giftiLabel)));
                 if (clusterContainer != NULL) {
                     item->setClusters(clusterContainer->getClustersWithKey(labelKey));
                 }
@@ -314,29 +316,21 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
 {
     LabelSelectionItem* itemOut(NULL);
     
-    std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
     int32_t labelKey(-1);
     const GiftiLabel* label(giftiLabelTable->getLabel(hierarchyItem->name));
     if (label != NULL) {
-        rgba = getLabelRGBA(label);
         labelKey = label->getKey();
     }
 
     CaretAssert(hierarchyItem);
     const int32_t numChildren(hierarchyItem->children.size());
     if (numChildren > 0) {
+        itemOut = new LabelSelectionItem(hierarchyItem,
+                                         label);
         if (label != NULL) {
-            itemOut = new LabelSelectionItem(hierarchyItem->name,
-                                             hierarchyItem->id,
-                                             labelKey,
-                                             rgba);
             if (clusterContainer != NULL) {
                 itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
             }
-        }
-        else {
-            itemOut = new LabelSelectionItem(hierarchyItem->name,
-                                             hierarchyItem->id);
         }
         for (int32_t i = 0; i < numChildren; i++) {
             CaretAssertVectorIndex(hierarchyItem->children, i);
@@ -351,10 +345,8 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     }
     else {
         AString name(hierarchyItem->name);
-        itemOut = new LabelSelectionItem(name,
-                                         hierarchyItem->id,
-                                         labelKey,
-                                         rgba);
+        itemOut = new LabelSelectionItem(hierarchyItem,
+                                         label);
         if (clusterContainer != NULL) {
             itemOut->setClusters(clusterContainer->getClustersWithKey(labelKey));
         }
@@ -376,37 +368,6 @@ LabelSelectionItemModel::buildTree(const CaretHierarchy::Item* hierarchyItem,
     }
     
     return itemOut;
-}
-
-/**
- * @return The RGBA color for the label as four bytes.  If the label is NULL,
- * white it returned.
- * @param label
- *    The GIFTI label
- */
-std::array<uint8_t, 4>
-LabelSelectionItemModel::getLabelRGBA(const GiftiLabel* label) const
-{
-    std::array<uint8_t, 4> rgba { 255, 255, 255, 255 };
-    if (label == NULL) {
-        return rgba;
-    }
-
-    const std::array<float, 4> rgbaFloat {
-        label->getRed(),
-        label->getGreen(),
-        label->getBlue(),
-        label->getAlpha()
-    };
-    
-    for (int i = 0; i < 4; i++) {
-        int32_t c(static_cast<int32_t>(rgbaFloat[i] * 255.0));
-        if (c > 255) c = 255;
-        if (c < 0) c = 0;
-        rgba[i] = c;
-    }
-    
-    return rgba;
 }
 
 /**
@@ -458,7 +419,7 @@ LabelSelectionItemModel::getTopLevelItems()
  * @return All descendants
  */
 std::vector<LabelSelectionItem*> 
-LabelSelectionItemModel::getAllDescendants()
+LabelSelectionItemModel::getAllDescendants() const
 {
     std::vector<LabelSelectionItem*> itemsOut;
     
@@ -535,6 +496,64 @@ LabelSelectionItemModel::synchronizeSelectionsWithLabelTable(const bool copyToLa
     }
 }
 
+/**
+ * @param All alternative names including the default 'Name'
+ */
+std::vector<AString>
+LabelSelectionItemModel::getAllAlternativeNames() const
+{
+    if ( ! m_allAlternativeNamesValidFlag) {
+        std::set<AString> uniqueNames;
+        const std::vector<LabelSelectionItem*> descendants(getAllDescendants());
+        for (const LabelSelectionItem* item : descendants) {
+            const std::vector<std::pair<AString, AString>>& altNamesMap(item->getAlternativeNamesMap());
+            for (const auto& anm : altNamesMap) {
+                uniqueNames.insert(anm.first);
+            }
+        }
+        
+        m_allAlternativeNames.clear();
+        m_allAlternativeNames.push_back(s_defaultAlternativeName);
+        m_allAlternativeNames.insert(m_allAlternativeNames.end(),
+                                     uniqueNames.begin(),
+                                     uniqueNames.end());
+        
+        m_allAlternativeNamesValidFlag = true;
+    }
+    
+    return m_allAlternativeNames;
+}
+
+AString 
+LabelSelectionItemModel::getSelectedAlternativeName() const
+{
+    return m_selectedAlternativeName;
+}
+
+void 
+LabelSelectionItemModel::setSelectedAlternativeName(const AString& name)
+{
+    m_selectedAlternativeName = name;
+    
+    const std::vector<AString> allAltNames(getAllAlternativeNames());
+    if (std::find(allAltNames.begin(),
+                  allAltNames.end(),
+                  m_selectedAlternativeName) == allAltNames.end()) {
+        m_selectedAlternativeName = s_defaultAlternativeName;
+    }
+    
+    std::vector<LabelSelectionItem*> allItems(getAllDescendants());
+    if (name == s_defaultAlternativeName) {
+        for (auto& item : allItems) {
+            item->setShowPrimaryName();
+        }
+    }
+    else {
+        for (auto& item : allItems) {
+            item->setShowAlternativeName(m_selectedAlternativeName);
+        }
+    }
+}
 
 /**
  * Save information specific to this type of model to the scene.
@@ -564,7 +583,7 @@ LabelSelectionItemModel::saveToScene(const SceneAttributes* sceneAttributes,
     const std::vector<LabelSelectionItem*> labelItems(getAllDescendantsOfType(LabelSelectionItem::ItemType::ITEM_LABEL));
     for (const LabelSelectionItem* lsi : labelItems) {
         if (lsi->checkState() == Qt::Checked) {
-            checkedLabelNames.push_back(lsi->text());
+            checkedLabelNames.push_back(lsi->getPrimaryName());
         }
     }
     
@@ -620,7 +639,7 @@ LabelSelectionItemModel::restoreFromScene(const SceneAttributes* sceneAttributes
             
             std::vector<LabelSelectionItem*> labelItems(getAllDescendantsOfType(LabelSelectionItem::ItemType::ITEM_LABEL));
             for (LabelSelectionItem* item : labelItems) {
-                if (checkedLabelNames.find(item->text()) != checkedLabelNames.end()) {                    item->setCheckState(Qt::Checked);
+                if (checkedLabelNames.find(item->getPrimaryName()) != checkedLabelNames.end()) {                    item->setCheckState(Qt::Checked);
                 }
                 else {
                     item->setCheckState(Qt::Unchecked);

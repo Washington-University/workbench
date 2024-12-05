@@ -28,12 +28,14 @@
 
 #include <QStandardItem>
 
+#include "CaretHierarchy.h"
 #include "CaretObject.h"
 #include "Cluster.h"
 #include "SceneableInterface.h"
 
 
 namespace caret {
+    class GiftiLabel;
     class SceneClassAssistant;
 
     class LabelSelectionItem : public QStandardItem, public SceneableInterface {
@@ -171,6 +173,9 @@ namespace caret {
             ITEM_HIERARCHY = QStandardItem::UserType + 2
         };
         
+        LabelSelectionItem(const CaretHierarchy::Item* hierarchyItem,
+                           const GiftiLabel* giftiLabel);
+        
         LabelSelectionItem(const AString& text,
                            const AString& ontologyID,
                            const int32_t labelIndex,
@@ -209,6 +214,16 @@ namespace caret {
         
         void appendToToolTip(const QString& text);
         
+        static std::array<uint8_t, 4> getLabelRGBA(const GiftiLabel* label);
+        
+        std::vector<std::pair<AString, AString>> getAlternativeNamesMap() const;
+        
+        AString getPrimaryName() const;
+        
+        void setShowPrimaryName();
+        
+        void setShowAlternativeName(const AString& alternativeName);
+
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -237,6 +252,10 @@ namespace caret {
         AString m_ontologyID;
         
         int32_t m_labelIndex;
+        
+        AString m_primaryName;
+        
+        std::vector<std::pair<AString, AString>> m_alternativeNamesMap;
         
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 

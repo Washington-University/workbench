@@ -67,7 +67,7 @@ namespace caret {
         
         void updateCheckedStateOfAllItems();
         
-        std::vector<LabelSelectionItem*> getAllDescendants();
+        std::vector<LabelSelectionItem*> getAllDescendants() const;
         
         std::vector<LabelSelectionItem*> getAllDescendantsOfType(const LabelSelectionItem::ItemType itemType);
         
@@ -76,6 +76,12 @@ namespace caret {
         AString toFormattedString(const AString& indentation) const;
         
         void synchronizeSelectionsWithLabelTable(const bool copyToLabelTableFlag);
+        
+        std::vector<AString> getAllAlternativeNames() const;
+        
+        AString getSelectedAlternativeName() const;
+        
+        void setSelectedAlternativeName(const AString& name);
         
         // ADD_NEW_METHODS_HERE
 
@@ -107,8 +113,6 @@ namespace caret {
                                       const GiftiLabelTable* giftiLabelTable,
                                       const ClusterContainer* clusterContainer);
         
-        std::array<uint8_t, 4> getLabelRGBA(const GiftiLabel* label) const;
-        
         const AString& m_fileAndMapName;
         
         GiftiLabelTable* m_giftiLabelTable;
@@ -127,6 +131,13 @@ namespace caret {
         
         std::set<AString> m_hierarchyParentNames;
         
+        mutable std::vector<AString> m_allAlternativeNames;
+        
+        mutable bool m_allAlternativeNamesValidFlag = false;
+        
+        AString m_selectedAlternativeName;
+        
+        static const AString s_defaultAlternativeName;
         bool m_validFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
@@ -134,7 +145,7 @@ namespace caret {
     };
     
 #ifdef __LABEL_SELECTION_ITEM_MODEL_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString LabelSelectionItemModel::s_defaultAlternativeName = "Name";
 #endif // __LABEL_SELECTION_ITEM_MODEL_DECLARE__
 
 } // namespace
