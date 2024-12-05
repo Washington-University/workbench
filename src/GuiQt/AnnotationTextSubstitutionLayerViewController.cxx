@@ -79,6 +79,7 @@ m_layerIndex(layerIndex)
     const QString descriptivePrefix = QString("layer %1").arg(m_layerIndex + 1);
 
     m_enabledCheckBox = new QCheckBox();
+    m_enabledCheckBox->setToolTip("Enable text substitutions using selected file");
     QObject::connect(m_enabledCheckBox, &QCheckBox::clicked,
                      this, &AnnotationTextSubstitutionLayerViewController::enabledCheckBoxClicked);
     m_enabledCheckBox->setObjectName(objectNamePrefix + ":m_enabledCheckBox");
@@ -112,6 +113,7 @@ m_layerIndex(layerIndex)
     }
     
     m_groupIdComboBox = new QComboBox();
+    m_groupIdComboBox->setToolTip("Select annotation text substitution Group ID");
     m_groupIdComboBox->setObjectName(objectNamePrefix + "m_groupIdComboBox");
     macroManager->addMacroSupportToObject(m_groupIdComboBox, "Group ID Combo Box");
     
@@ -125,6 +127,7 @@ m_layerIndex(layerIndex)
     macroManager->addMacroSupportToObject(m_yokingComboBox->getWidget(), "Map Yoking Group");
     
     m_rowIndexSpinBox = new QSpinBox();
+    m_rowIndexSpinBox->setToolTip("Select row index from annotation text substitution file");
     m_rowIndexSpinBox->setMinimumWidth(60);
     m_rowIndexSpinBox->setObjectName(objectNamePrefix + "m_rowIndexSpinBox");
     macroManager->addMacroSupportToObject(m_rowIndexSpinBox, "Row Index Spin Box");
@@ -137,8 +140,9 @@ m_layerIndex(layerIndex)
 #endif
 
     m_fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    m_fileSelectionComboBox->setObjectName(objectNamePrefix + "m_fileSelectionComboBox");
-    macroManager->addMacroSupportToObject(m_fileSelectionComboBox, "Substitution File Combo Box");
+    m_fileSelectionComboBox->getWidget()->setToolTip("Select annotation text substitution file");
+    m_fileSelectionComboBox->getWidget()->setObjectName(objectNamePrefix + "m_fileSelectionComboBox");
+    macroManager->addMacroSupportToObject(m_fileSelectionComboBox->getWidget(), "Substitution File Combo Box");
     QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &AnnotationTextSubstitutionLayerViewController::fileComboBoxSelected);
     
