@@ -312,9 +312,9 @@ AnnotationTextSubstitutionLayerViewController::updateUserInterface()
  *    Prefix for macros
  */
 QMenu*
-AnnotationTextSubstitutionLayerViewController::createConstructionMenu(QWidget* parent,
-                                                                      const AString& descriptivePrefix,
-                                                                      const AString& menuActionNamePrefix)
+AnnotationTextSubstitutionLayerViewController::createConstructionMenu(QWidget* /*parent*/,
+                                                                      const AString& /*descriptivePrefix*/,
+                                                                      const AString& /*menuActionNamePrefix*/)
 {
     QMenu* menu(new QMenu());
     return menu;
@@ -391,8 +391,6 @@ void
 AnnotationTextSubstitutionLayerViewController::yokingGroupComboBoxActivated()
 {
     if (m_layer != NULL) {
-        MapYokingGroupEnum::Enum yokingGroup = m_yokingComboBox->getMapYokingGroup();
-        
         AnnotationTextSubstitutionFile* atsf(m_layer->getSelectedSubstitutionFile());
         if (atsf != NULL) {
             m_yokingComboBox->validateYokingChange(m_layer);
@@ -408,7 +406,7 @@ AnnotationTextSubstitutionLayerViewController::yokingGroupComboBoxActivated()
  *    File that was selected
  */
 void
-AnnotationTextSubstitutionLayerViewController::fileComboBoxSelected(CaretDataFile* caretDataFile)
+AnnotationTextSubstitutionLayerViewController::fileComboBoxSelected(CaretDataFile* /*caretDataFile*/)
 {
     if (m_layer != NULL) {
         /*
