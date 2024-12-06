@@ -279,9 +279,11 @@ AnnotationTextSubstitutionFile::getTextSubstitution(const int32_t textSubstituti
     const int32_t rowIndex(mapIndex);
     CaretAssert((textSubstitutionIndex >=0)
                 && (textSubstitutionIndex < m_numberOfSubstitutions));
-    CaretAssert((rowIndex >= 0)
-                && (rowIndex < m_numberOfRows));
 
+    /*
+     * Row index may be out of range when yoked and the other
+     * file(s) have more rows
+     */
     AString textValueOut;
     if ((rowIndex >= 0)
         && (rowIndex < m_numberOfRows)) {
