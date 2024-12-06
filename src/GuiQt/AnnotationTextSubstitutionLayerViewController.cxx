@@ -117,7 +117,7 @@ m_layerIndex(layerIndex)
     m_groupIdComboBox->setObjectName(objectNamePrefix + "m_groupIdComboBox");
     macroManager->addMacroSupportToObject(m_groupIdComboBox, "Group ID Combo Box");
     
-    QObject::connect(m_groupIdComboBox, &QComboBox::activated,
+    QObject::connect(m_groupIdComboBox, QOverload<int>::of(&QComboBox::activated),
                      this, &AnnotationTextSubstitutionLayerViewController::groupIdComboBoxActivated);
     
     m_yokingComboBox = new MapYokingGroupComboBox(this);
