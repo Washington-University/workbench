@@ -21,10 +21,7 @@
 
 #include <cmath>
 #include <limits>
-
-//#include <QRunnable>
-//#include <QSemaphore>
-//#include <QThreadPool>
+#include <unordered_map>
 
 #define __NODE_AND_VOXEL_COLORING_DECLARE__
 #include "NodeAndVoxelColoring.h"
@@ -234,12 +231,12 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
         /*
          * Positive/Zero/Negative Test
          */
-        if (scalar > PaletteColorMapping::SMALL_POSITIVE) {   // JWH 24 April 2015    NodeAndVoxelColoring::SMALL_POSITIVE) {
+        if (scalar > PaletteColorMapping::SMALL_POSITIVE) {
             if (hidePositiveValues) {
                 continue;
             }
         }
-        else if (scalar < PaletteColorMapping::SMALL_NEGATIVE) {  // JWH 24 April 2015  NodeAndVoxelColoring::SMALL_NEGATIVE) {
+        else if (scalar < PaletteColorMapping::SMALL_NEGATIVE) {
             if (hideNegativeValues) {
                 continue;
             }
@@ -762,12 +759,12 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForObliqueVolume(const GiftiLabe
  */
 void
 NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const GiftiLabelTable* labelTable,
-                                                        const float* labelIndices,
-                                                        const int64_t numberOfIndices,
-                                                        const DisplayGroupEnum::Enum displayGroup,
-                                                        const int32_t tabIndex,
-                                                        const ColorDataType colorDataType,
-                                                        void* rgbaOutPointer)
+                                                                          const float* labelIndices,
+                                                                          const int64_t numberOfIndices,
+                                                                          const DisplayGroupEnum::Enum displayGroup,
+                                                                          const int32_t tabIndex,
+                                                                          const ColorDataType colorDataType,
+                                                                          void* rgbaOutPointer)
 {
     /*
      * Cast to data type for rgba coloring
@@ -789,23 +786,34 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const 
      */
     switch (colorDataType) {
         case COLOR_TYPE_FLOAT:
-            for (int64_t i = 0; i < numberOfIndices; i++) {
-                rgbaFloat[i*4+3] = 0.0;
-            }
+            std::fill(rgbaFloat, rgbaFloat + (numberOfIndices * 4), 0.0);
             break;
         case COLOR_TYPE_UNSIGNED_BTYE:
-            for (int64_t i = 0; i < numberOfIndices; i++) {
-                rgbaUnsignedByte[i*4+3] = 0;
-            }
+            std::fill(rgbaUnsignedByte, rgbaUnsignedByte + (numberOfIndices * 4), 0);
             break;
     }
     
     /*
-     * Assign colors from labels to nodes
+     * Get keys
      */
-    float labelRGBA[4];
-	for (int64_t i = 0; i < numberOfIndices; i++) {
-        const int64_t labelKey = static_cast<int64_t>(labelIndices[i]);
+    const std::set<int32_t> keySet(labelTable->getKeys());
+    if (keySet.empty()) {
+        return;
+    }
+    
+    /*
+     * Map from label key to RGBA colors
+     */
+    std::unordered_map<int32_t, std::array<uint8_t, 4>> labelRgbaByteMap;
+    std::unordered_map<int32_t, std::array<float, 4>> labelRgbaFloatMap;
+
+    /*
+     * Assign colors for each LABEL
+     */
+    for (const int32_t labelKey : keySet) {
+        std::array<float, 4> rgbaFloat { 0.0, 0.0, 0.0, 0.0 };
+        std::array<uint8_t, 4> rgbaByte { 0, 0, 0, 0 };
+        
         const GiftiLabel* gl = labelTable->getLabel(labelKey);
         if (gl != NULL) {
             const GroupAndNameHierarchyItem* item = gl->getGroupNameSelectionItem();
@@ -823,33 +831,63 @@ NodeAndVoxelColoring::colorIndicesWithLabelTableForDisplayGroupTabPrivate(const 
             }
             
             if (colorDataFlag) {
-                gl->getColor(labelRGBA);
-                if (labelRGBA[3] > 0.0) {
-                    const int64_t i4 = i * 4;
-                    
+                gl->getColor(rgbaFloat.data());
+                if (rgbaFloat[3] > 0.0) {
                     switch (colorDataType) {
                         case COLOR_TYPE_FLOAT:
-                            CaretAssertArrayIndex(rgbaFloat, numberOfIndices * 4, i*4+3);
-                            rgbaFloat[i*4] = labelRGBA[0];
-                            rgbaFloat[i*4+1] = labelRGBA[1];
-                            rgbaFloat[i*4+2] = labelRGBA[2];
-                            rgbaFloat[i*4+3] = labelRGBA[3];
                             break;
                         case COLOR_TYPE_UNSIGNED_BTYE:
-                            CaretAssertArrayIndex(rgbaUnsignedByte, numberOfIndices * 4, i*4+3);
-                            rgbaUnsignedByte[i4]   = labelRGBA[0] * 255.0;
-                            rgbaUnsignedByte[i4+1] = labelRGBA[1] * 255.0;
-                            rgbaUnsignedByte[i4+2] = labelRGBA[2] * 255.0;
-                            if (labelRGBA[3] > 0.0) {
-                                rgbaUnsignedByte[i4+3] = labelRGBA[3] * 255.0;
-                            }
-                            else {
-                                rgbaUnsignedByte[i4+3] = 0;
-                            }
+                            rgbaByte[0] = rgbaFloat[0] * 255.0;
+                            rgbaByte[1] = rgbaFloat[1] * 255.0;
+                            rgbaByte[2] = rgbaFloat[2] * 255.0;
+                            rgbaByte[3] = rgbaFloat[3] * 255.0;
                             break;
                     }
                 }
             }
+        }
+
+        switch (colorDataType) {
+            case COLOR_TYPE_FLOAT:
+                labelRgbaFloatMap[labelKey] = rgbaFloat;
+                break;
+            case COLOR_TYPE_UNSIGNED_BTYE:
+                labelRgbaByteMap[labelKey] = rgbaByte;
+                break;
+        }
+    }
+
+    /*
+     * Assign LABEL colors to brainordinates
+     */
+#pragma omp CARET_PARFOR
+    for (int64_t i = 0; i < numberOfIndices; i++) {
+        const int64_t labelKey = static_cast<int64_t>(labelIndices[i]);
+        switch (colorDataType) {
+            case COLOR_TYPE_FLOAT:
+            {
+                const auto iter(labelRgbaFloatMap.find(labelKey));
+                if (iter != labelRgbaFloatMap.end()) {
+                    const auto& labelRGBA(iter->second);
+                    rgbaFloat[i*4]   = labelRGBA[0];
+                    rgbaFloat[i*4+1] = labelRGBA[1];
+                    rgbaFloat[i*4+2] = labelRGBA[2];
+                    rgbaFloat[i*4+3] = labelRGBA[3];
+                }
+            }
+                break;
+            case COLOR_TYPE_UNSIGNED_BTYE:
+            {
+                const auto iter(labelRgbaByteMap.find(labelKey));
+                if (iter != labelRgbaByteMap.end()) {
+                    const auto& labelRGBA(iter->second);
+                    rgbaUnsignedByte[i*4]   = labelRGBA[0];
+                    rgbaUnsignedByte[i*4+1] = labelRGBA[1];
+                    rgbaUnsignedByte[i*4+2] = labelRGBA[2];
+                    rgbaUnsignedByte[i*4+3] = labelRGBA[3];
+                }
+            }
+                break;
         }
     }
 }
