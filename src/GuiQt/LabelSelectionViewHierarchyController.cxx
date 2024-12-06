@@ -114,7 +114,11 @@ m_objectNamePrefix(parentObjectName
     showNameLayout->addWidget(showNameLabel, 0);
     showNameLayout->addWidget(m_showNameComboBox, 100);
     showNameLayout->addStretch();
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     QObject::connect(m_showNameComboBox, &QComboBox::textActivated,
+#else
+    QObject::connect(m_showNameComboBox, QOverload<const QString&>::of(&QComboBox::activated),
+#endif
                      this, &LabelSelectionViewHierarchyController::showNameComboBoxActivated);
     
     m_collapseAllAction = new QAction("Collpase");
