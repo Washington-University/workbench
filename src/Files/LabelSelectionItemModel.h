@@ -138,6 +138,7 @@ namespace caret {
         AString m_selectedAlternativeName;
         
         static const AString s_defaultAlternativeName;
+        
         bool m_validFlag = false;
         
         // ADD_NEW_MEMBERS_HERE

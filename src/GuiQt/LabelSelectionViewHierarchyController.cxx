@@ -488,9 +488,9 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                             m_findItemsCurrentIndex = 0;
                             findTextLineEditTextChanged(m_findTextLineEdit->text());
                             
-                            const AString selectedName(selectionModel->getSelectedAlternativeName());
+                            const AString selectedName(m_labelHierarchyModel->getSelectedAlternativeName());
                             int32_t showNameIndex(0);
-                            const std::vector<AString> altNamesList(selectionModel->getAllAlternativeNames());
+                            const std::vector<AString> altNamesList(m_labelHierarchyModel->getAllAlternativeNames());
                             const int32_t numNames(altNamesList.size());
                             for (int32_t i = 0; i < numNames; i++) {
                                 CaretAssertVectorIndex(altNamesList, i);
@@ -770,9 +770,8 @@ LabelSelectionViewHierarchyController::saveToScene(const SceneAttributes* /*scen
             }
         }
         
-        if ( ! expandedNames.empty()) {
-            sceneClass->addStringArray("expandedNames", &expandedNames[0], expandedNames.size());
-        }
+        /* Always add, even if empty that occurs when all items are collapsed */
+        sceneClass->addStringArray("expandedNames", &expandedNames[0], expandedNames.size());
     }
     return sceneClass;
 }
@@ -803,20 +802,19 @@ LabelSelectionViewHierarchyController::restoreFromScene(const SceneAttributes* /
     
     const ScenePrimitiveArray* expandedNamesArray(sceneClass->getPrimitiveArray("expandedNames"));
     if (expandedNamesArray != NULL) {
+        /* Could be empty in which case all items are collapsed */
         std::set<AString> expandedNames;
         const int32_t numNames(expandedNamesArray->getNumberOfArrayElements());
         for (int32_t i = 0; i < numNames; i++) {
             expandedNames.insert(expandedNamesArray->stringValue(i));
         }
         
-        if ( ! expandedNames.empty()) {
-            m_treeView->collapseAll();
-            
-            const std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
-            for (LabelSelectionItem* lsi : items) {
-                if (expandedNames.find(lsi->getPrimaryName()) != expandedNames.end()) {
-                    m_treeView->expand(lsi->index());
-                }
+        m_treeView->collapseAll();
+        
+        const std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
+        for (LabelSelectionItem* lsi : items) {
+            if (expandedNames.find(lsi->getPrimaryName()) != expandedNames.end()) {
+                m_treeView->expand(lsi->index());
             }
         }
     }

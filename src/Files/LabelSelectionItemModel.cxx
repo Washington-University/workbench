@@ -652,6 +652,9 @@ LabelSelectionItemModel::restoreFromScene(const SceneAttributes* sceneAttributes
         setCheckedStatusOfAllItems(true);
     }
     
+    /* Updates names that are displayed in features toolbox */
+    setSelectedAlternativeName(m_selectedAlternativeName);
+    
     updateCheckedStateOfAllItems();
     
     //Uncomment if sub-classes must restore from scene
