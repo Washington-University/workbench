@@ -86,6 +86,10 @@ public:
         DIENCEPHALON_VENTRAL_LEFT,
         /** Right Ventral Diencephalon */
         DIENCEPHALON_VENTRAL_RIGHT,
+        /** Left Dentate Hippocampus */
+        HIPPOCAMPUS_DENTATE_LEFT,
+        /** Right Dentate Hippocampus */
+        HIPPOCAMPUS_DENTATE_RIGHT,
         /** Left Hippocampus */
         HIPPOCAMPUS_LEFT,
         /** Right Hippocampus */
