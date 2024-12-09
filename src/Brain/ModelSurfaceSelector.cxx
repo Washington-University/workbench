@@ -173,9 +173,11 @@ ModelSurfaceSelector::updateSelector()
     bool haveCortexLeft = false;
     bool haveCortexRight = false;
     bool haveCerebellum = false;
+    bool haveHippcampusDentateLeft = false;
+    bool haveHippocampusDentateRight = false;
     bool haveHippcampusLeft = false;
     bool haveHippocampusRight = false;
-    
+
     /*
      * Find the ALL surface models and structures
      */
@@ -196,6 +198,12 @@ ModelSurfaceSelector::updateSelector()
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 haveCortexRight = true;
+                break;
+            case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
+                haveHippcampusDentateLeft = true;
+                break;
+            case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
+                haveHippocampusDentateRight = true;
                 break;
             case StructureEnum::HIPPOCAMPUS_LEFT:
                 haveHippcampusLeft = true;
@@ -223,6 +231,12 @@ ModelSurfaceSelector::updateSelector()
     if (haveCerebellum) {
         m_availableStructures.push_back(StructureEnum::CEREBELLUM);
     }
+    if (haveHippcampusDentateLeft) {
+        m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT);
+    }
+    if (haveHippocampusDentateRight) {
+        m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT);
+    }
     if (haveHippcampusLeft) {
         m_availableStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
     }
@@ -240,7 +254,7 @@ ModelSurfaceSelector::updateSelector()
     if (std::find(m_availableStructures.begin(),
                   m_availableStructures.end(),
                   m_selectedStructure) == m_availableStructures.end()) {
-        if (m_availableStructures.empty() == false) {
+        if ( ! m_availableStructures.empty()) {
             m_selectedStructure = m_availableStructures[0];
         }
         else {

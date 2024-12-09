@@ -55,11 +55,11 @@ SurfaceMontageConfigurationHippocampus::SurfaceMontageConfigurationHippocampus(c
     
     m_leftFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
                                                                  validSurfaceTypes);
-    m_leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
+    m_leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
                                                                   validSurfaceTypes);
     m_rightFirstSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
                                                                   validSurfaceTypes);
-    m_rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
+    m_rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT,
                                                                    validSurfaceTypes);
     m_leftEnabled = true;
     m_rightEnabled = true;
@@ -97,6 +97,8 @@ SurfaceMontageConfigurationHippocampus::SurfaceMontageConfigurationHippocampus(c
                           &m_medialEnabled);
 
     std::vector<StructureEnum::Enum> supportedStructures;
+    supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT);
+    supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT);
     supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
     supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_RIGHT);
     setupOverlaySet("Cerebral Montage",
