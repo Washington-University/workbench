@@ -53,7 +53,7 @@ LabelSelectionItem::LabelSelectionItem(const CaretHierarchy::Item* hierarchyItem
 m_itemType((giftiLabel != NULL)
            ? ItemType::ITEM_LABEL
            : ItemType::ITEM_HIERARCHY),
-m_ontologyID(hierarchyItem->id),
+//m_ontologyID(hierarchyItem->id),
 m_labelIndex((giftiLabel != NULL)
              ? giftiLabel->getKey()
              : -1)
@@ -85,20 +85,16 @@ m_labelIndex((giftiLabel != NULL)
  * Constructor for a label
  * @param text
  *    Text displayed in the item
- * @param ontologyID
- *    The ID from the JSON
  * @param labelIndex
  *    Index of the label
  * @param labelRGBA
  *    Color for icon
  */
 LabelSelectionItem::LabelSelectionItem(const AString& text,
-                                       const AString& ontologyID,
                                        const int32_t labelIndex,
                                        const std::array<uint8_t, 4>& labelRGBA)
 : QStandardItem(),
 m_itemType(ItemType::ITEM_LABEL),
-m_ontologyID(ontologyID),
 m_labelIndex(labelIndex)
 {
     initializeInstance();
@@ -124,14 +120,10 @@ m_labelIndex(labelIndex)
  * Constructor for an item in the hierarchy that is above and not a label
  * @param text
  *    Text displayed in the item
- * @param ontologyID
- *    The ID from the JSON
  */
-LabelSelectionItem::LabelSelectionItem(const AString& text,
-                                       const AString& ontologyID)
+LabelSelectionItem::LabelSelectionItem(const AString& text)
 : QStandardItem(),
 m_itemType(ItemType::ITEM_HIERARCHY),
-m_ontologyID(ontologyID),
 m_labelIndex(-1)
 {
     initializeInstance();
@@ -183,7 +175,6 @@ void
 LabelSelectionItem::copyHelper(const LabelSelectionItem& other)
 {
     setText(other.text());
-    m_ontologyID = other.m_ontologyID;
     m_labelIndex = other.m_labelIndex;
     if (m_labelIndex >= 0) {
         if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
@@ -204,9 +195,6 @@ LabelSelectionItem::initializeInstance()
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     setCheckable(true);
     appendToToolTip("Right-click for menu to go to label's location");
-    if ( ! m_ontologyID.isEmpty()) {
-        appendToToolTip("Ontology ID=" + m_ontologyID);
-    }
 }
 
 /**
@@ -309,12 +297,6 @@ LabelSelectionItem::getLabelRGBA(const GiftiLabel* label)
     return rgba;
 }
 
-AString
-LabelSelectionItem::getOntologyID() const
-{
-    return m_ontologyID;
-}
-
 /**
  * @return Information about label for display in GUI
  */
@@ -324,7 +306,20 @@ LabelSelectionItem::getTextForInfoDisplay() const
     HtmlStringBuilder html;
     html.addBold(text());
     html.addLineBreak();
-    html.add("ID: " + getOntologyID());
+    
+    for (const auto& nmi : m_alternativeNamesMap) {
+        const AString name(nmi.first);
+        const AString value(nmi.second);
+        if (name.isEmpty()
+            && value.isEmpty()) {
+            /* Both empty */
+        }
+        else {
+            html.addLine(name
+                         + ": "
+                         + value);
+        }
+    }
     return html.toStringWithHtmlBodyForToolTip();
 }
 

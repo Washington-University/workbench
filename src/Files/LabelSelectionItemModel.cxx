@@ -224,14 +224,12 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
          * Add labels from label table that are not in the hierarchy to the hierarchy
          */
         const AString emptyOntologyID("");
-        LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only",
-                                                              emptyOntologyID));
+        LabelSelectionItem* parentItem(new LabelSelectionItem("Label Table Only"));
         for (const AString& name : buildTreeMissingHierarchyNames) {
             const GiftiLabel* giftiLabel(m_giftiLabelTable->getLabel(name));
             if (giftiLabel != NULL) {
                 const int32_t labelKey(giftiLabel->getKey());
                 LabelSelectionItem* item(new LabelSelectionItem(name,
-                                                                emptyOntologyID,
                                                                 labelKey,
                                                                 LabelSelectionItem::getLabelRGBA(giftiLabel)));
                 if (clusterContainer != NULL) {

@@ -177,12 +177,10 @@ namespace caret {
                            const GiftiLabel* giftiLabel);
         
         LabelSelectionItem(const AString& text,
-                           const AString& ontologyID,
                            const int32_t labelIndex,
                            const std::array<uint8_t, 4>& labelRGBA);
         
-        LabelSelectionItem(const AString& text,
-                           const AString& ontologyID);
+        LabelSelectionItem(const AString& text);
         
         virtual ~LabelSelectionItem();
         
@@ -190,8 +188,6 @@ namespace caret {
         
         virtual int type() const;
 
-        AString getOntologyID() const;
-        
         AString getTextForInfoDisplay() const;
         
         int32_t getLabelIndex() const;
@@ -248,8 +244,6 @@ namespace caret {
         void setMyAndChildrenMergedClusters();
 
         const ItemType m_itemType;
-        
-        AString m_ontologyID;
         
         int32_t m_labelIndex;
         
