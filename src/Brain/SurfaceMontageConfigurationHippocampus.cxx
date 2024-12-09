@@ -101,7 +101,7 @@ SurfaceMontageConfigurationHippocampus::SurfaceMontageConfigurationHippocampus(c
     supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT);
     supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
     supportedStructures.push_back(StructureEnum::HIPPOCAMPUS_RIGHT);
-    setupOverlaySet("Cerebral Montage",
+    setupOverlaySet("Hippocampus Montage",
                     tabIndex,
                     supportedStructures);
 }
