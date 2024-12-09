@@ -64,6 +64,7 @@ m_brain(brain)
     reset();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
 }
 
 /**
@@ -112,6 +113,9 @@ AnnotationTextSubstitutionLayerSet::receiveEvent(Event* event)
                 }
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE) {
+        updateContent();
     }
 }
 
@@ -215,9 +219,6 @@ AnnotationTextSubstitutionLayerSet::reset()
 void
 AnnotationTextSubstitutionLayerSet::updateContent()
 {
-//    std::vector<AnnotationFile*> annotationFiles;
-//    m_brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
-
     std::vector<AnnotationTextSubstitutionFile*> annTextSubFiles;
     m_brain->getAnnotationTextSubstitutionFiles(annTextSubFiles);
     
