@@ -159,14 +159,6 @@ StructureEnum::initialize()
                                      "DIENCEPHALON_VENTRAL_RIGHT", 
                                      "DiencephalonVentralRight"));
     
-    enumData.push_back(StructureEnum(HIPPOCAMPUS_DENTATE_LEFT,
-                                     "HIPPOCAMPUS_DENTATE_LEFT",
-                                     "HippocampusDentateLeft"));
-    
-    enumData.push_back(StructureEnum(HIPPOCAMPUS_DENTATE_RIGHT,
-                                     "HIPPOCAMPUS_DENTATE_RIGHT",
-                                     "HippocampusDentateRight"));
-    
     enumData.push_back(StructureEnum(HIPPOCAMPUS_LEFT,
                                      "HIPPOCAMPUS_LEFT", 
                                      "HippocampusLeft"));
@@ -174,6 +166,14 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(HIPPOCAMPUS_RIGHT, 
                                      "HIPPOCAMPUS_RIGHT", 
                                      "HippocampusRight"));
+    
+    enumData.push_back(StructureEnum(HIPPOCAMPUS_DENTATE_LEFT,
+                                     "HIPPOCAMPUS_DENTATE_LEFT",
+                                     "HippocampusDentateLeft"));
+    
+    enumData.push_back(StructureEnum(HIPPOCAMPUS_DENTATE_RIGHT,
+                                     "HIPPOCAMPUS_DENTATE_RIGHT",
+                                     "HippocampusDentateRight"));
     
     enumData.push_back(StructureEnum(INVALID,
                                      "INVALID",
