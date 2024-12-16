@@ -230,6 +230,9 @@ AnnotationTextSubstitutionLayerViewController::~AnnotationTextSubstitutionLayerV
 void
 AnnotationTextSubstitutionLayerViewController::updateViewController(AnnotationTextSubstitutionLayer* layer)
 {
+    /* Prevents QSpinBox::valueChanged() from emitting a signal*/
+    QSignalBlocker rowIndexBlocker(m_rowIndexSpinBox);
+    
     m_layer = layer;
     
     bool validLayerFlag(false);
@@ -259,6 +262,10 @@ AnnotationTextSubstitutionLayerViewController::updateViewController(AnnotationTe
             numRows = annSubsFile->getNumberOfMaps();
             validLayerFlag = (numRows > 0);
         }
+        
+        /* Prevents QSpinBox::setValue() from emitting a signal*/
+        QSignalBlocker rowIndexBlocker(m_rowIndexSpinBox);
+        
         m_rowIndexSpinBox->setRange(0, numRows - 1);
         m_yokingComboBox->setMapYokingGroup(m_layer->getMapYokingGroup());
         m_rowIndexSpinBox->setValue(m_layer->getSubstitutionFileRowIndex());
@@ -331,6 +338,7 @@ AnnotationTextSubstitutionLayerViewController::enabledCheckBoxClicked(bool check
     if (m_layer != NULL) {
         m_layer->setEnabled(checked);
         updateGraphics();
+        updateUserInterface();
     }
 }
 
@@ -348,6 +356,7 @@ AnnotationTextSubstitutionLayerViewController::groupIdComboBoxActivated(const in
             m_layer->setGroupIdentifer(m_groupIdComboBox->currentText());
         }
         updateGraphics();
+        updateUserInterface();
     }
 }
 
@@ -381,6 +390,7 @@ AnnotationTextSubstitutionLayerViewController::rowIndexSpinBoxValueChanged(const
             m_layer->setSubstitutionFileRowIndex(index);
         }
         updateGraphics();
+        updateUserInterface();
     }
 }
 
@@ -413,5 +423,6 @@ AnnotationTextSubstitutionLayerViewController::fileComboBoxSelected(CaretDataFil
          * The file selection model gets set by the combo box
          */
         updateGraphics();
+        updateUserInterface();
     }
 }

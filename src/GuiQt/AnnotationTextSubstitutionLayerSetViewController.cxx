@@ -68,8 +68,13 @@ AnnotationTextSubstitutionLayerSetViewController::AnnotationTextSubstitutionLaye
     m_objectName = (parentObjectName + ":AnnTextSubsLayerSetViewController");
     m_sceneAssistant = new SceneClassAssistant();
     
+    m_layersGridLayout = new QGridLayout();
+    
     QWidget* layersWidget(new QWidget());
-    m_layersGridLayout = new QGridLayout(layersWidget);
+    QVBoxLayout* layerLayout(new QVBoxLayout(layersWidget));
+    layerLayout->setContentsMargins(0, 0, 0, 0);
+    layerLayout->addLayout(m_layersGridLayout);
+    layerLayout->addStretch();
     
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidget(layersWidget);
