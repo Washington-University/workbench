@@ -264,6 +264,13 @@ LabelSelectionItem::setShowAlternativeName(const AString& alternativeName)
             break;
         }
     }
+    
+    /*
+     * Use the primary name if the alternative name is empty
+     */
+    if (text().isEmpty()) {
+        setShowPrimaryName();
+    }
 }
 
 /**
