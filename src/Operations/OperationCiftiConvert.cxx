@@ -143,7 +143,7 @@ namespace
         double converted = input.toDouble(&ok);
         if (!ok) throw OperationException("failed to convert text to number: '" + input + "'");
         float ret = float(converted);//this will turn some non-inf values into +/- inf, so let's fix that
-        if (!std::isinf(converted) && (abs(converted) > numeric_limits<float>::max() || abs(converted) < numeric_limits<float>::denorm_min()))
+        if (converted != 0.0 && !std::isinf(converted) && (abs(converted) > numeric_limits<float>::max() || abs(converted) < numeric_limits<float>::denorm_min()))
         {
             if (!haveWarned)
             {
