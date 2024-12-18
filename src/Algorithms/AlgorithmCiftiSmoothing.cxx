@@ -30,6 +30,7 @@
 #include "AlgorithmCiftiReplaceStructure.h"
 
 #include <cmath>
+#include <map>
 
 using namespace caret;
 using namespace std;
@@ -70,6 +71,12 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
     cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
+    ParameterComponent* genSurfOpt = ret->createRepeatableParameter(13, "-surface", "specify a surface by structure name");
+    genSurfOpt->addStringParameter(1, "structure", "the surface structure name");
+    genSurfOpt->addSurfaceParameter(2, "surface", "the surface file");
+    OptionalParameter* genCorrAreasOpt = genSurfOpt->createOptionalParameter(3, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    genCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+    
     OptionalParameter* roiOpt = ret->createOptionalParameter(9, "-cifti-roi", "smooth only within regions of interest");
     roiOpt->addCiftiParameter(1, "roi-cifti", "the regions to smooth within, as a cifti file");
     
@@ -79,7 +86,7 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     
     ret->createOptionalParameter(12, "-merged-volume", "smooth across subcortical structure boundaries");
     
-    ret->setHelpText(
+    AString helpText =
         AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and either for .dconn.  ") +
         "By default, data in different structures is smoothed independently (i.e., \"parcel constrained\" smoothing), so volume structures that touch do not smooth across this boundary.  " +
         "Specify -merged-volume to ignore these boundaries.  " +
@@ -88,8 +95,15 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
         "for the reduction of structure in a group average surface.  It is better to smooth the data on individuals before averaging, when feasible.\n\n" +
         "The -fix-zeros-* options will treat values of zero as lack of data, and not use that value when generating the smoothed values, but will fill zeros with extrapolated values.  " +
         "The ROI should have a brain models mapping along columns, exactly matching the mapping of the chosen direction in the input file.  " +
-        "Data outside the ROI is ignored."
-    );
+        "Data outside the ROI is ignored.\n\n" +
+        "The <structure> argument of -surface must be one of the following strings:\n";
+    vector<StructureEnum::Enum> myStructureEnums;
+    StructureEnum::getAllEnums(myStructureEnums);
+    for (int i = 0; i < (int)myStructureEnums.size(); ++i)
+    {
+        helpText += "\n" + StructureEnum::toName(myStructureEnums[i]);
+    }
+    ret->setHelpText(helpText);
     return ret;
 }
 
@@ -116,6 +130,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
     MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
+    map<StructureEnum::Enum, SurfParam> surfArgs;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(6);
     if (leftSurfOpt->m_present)
     {
@@ -125,6 +140,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         {
             myLeftAreas = leftCorrAreasOpt->getMetric(1);
         }
+        surfArgs[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(7);
     if (rightSurfOpt->m_present)
@@ -135,6 +151,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         {
             myRightAreas = rightCorrAreasOpt->getMetric(1);
         }
+        surfArgs[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(8);
     if (cerebSurfOpt->m_present)
@@ -144,6 +161,22 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         if (cerebCorrAreasOpt->m_present)
         {
             myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
+        surfArgs[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    }
+    auto genSurfArgs = myParams->getRepeatableParameterInstances(13);
+    for (auto instance : genSurfArgs)
+    {
+        bool ok = false;
+        StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
+        if (surfArgs.find(structure) != surfArgs.end()) throw AlgorithmException("more than one surface argument specified for structure '" + instance->getString(1) + "'");
+        auto areasOpt = instance->getOptionalParameter(3);
+        if (areasOpt->m_present)
+        {
+            surfArgs[structure] = SurfParam(instance->getSurface(2), areasOpt->getMetric(1));
+        } else {
+            surfArgs[structure] = SurfParam(instance->getSurface(2));
         }
     }
     CiftiFile* roiCifti = NULL;
@@ -156,15 +189,30 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     bool fixZerosSurf = myParams->getOptionalParameter(11)->m_present;
     bool mergedVolume = myParams->getOptionalParameter(12)->m_present;
     AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut,
-                            myLeftSurf, myRightSurf, myCerebSurf,
+                            surfArgs,
                             roiCifti, fixZerosVol, fixZerosSurf,
-                            myLeftAreas, myRightAreas, myCerebAreas, mergedVolume);
+                            mergedVolume);
 }
 
 AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
                                                  const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf,
                                                  const CiftiFile* roiCifti, bool fixZerosVol, bool fixZerosSurf,
-                                                 const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas, const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
+                                                 const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas, const bool& mergedVolume) : AbstractAlgorithm(NULL)
+{
+    map<StructureEnum::Enum, SurfParam> surfParams;
+    if (myLeftSurf != NULL) surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
+    if (myRightSurf != NULL) surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
+    if (myCerebSurf != NULL) surfParams[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut,
+                            surfParams,
+                            roiCifti, fixZerosVol, fixZerosSurf,
+                            mergedVolume);
+}
+
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
+                                                 const map<StructureEnum::Enum, AlgorithmCiftiSmoothing::SurfParam> surfParams,
+                                                 const CiftiFile* roiCifti, bool fixZerosVol, bool fixZerosSurf,
+                                                 const bool& mergedVolume) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (!(surfKern > 0.0f) && !(volKern > 0.0f)) throw AlgorithmException("zero smoothing kernels requested for both volume and surface");
@@ -189,30 +237,11 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
-        const SurfaceFile* mySurf = NULL;
-        const MetricFile* myAreas = NULL;
-        AString surfType;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myAreas = myLeftAreas;
-                surfType = "left";
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myAreas = myRightAreas;
-                surfType = "right";
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myAreas = myCerebAreas;
-                surfType = "cerebellum";
-                break;
-            default:
-                throw AlgorithmException("found surface model with incorrect type: " + StructureEnum::toName(surfaceList[whichStruct]));
-                break;
-        }
+        AString surfType = StructureEnum::toGuiName(surfaceList[whichStruct]);
+        auto result = surfParams.find(surfaceList[whichStruct]);
+        if (result == surfParams.end()) throw AlgorithmException(surfType + " surface required but not provided");
+        const SurfaceFile* mySurf = result->second.surface;
+        const MetricFile* myAreas = result->second.correctedAreas;
         if (mySurf == NULL)
         {
             throw AlgorithmException(surfType + " surface required but not provided");
@@ -237,25 +266,10 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
     myCiftiOut->setCiftiXML(myXML);
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
-        const SurfaceFile* mySurf = NULL;
-        const MetricFile* myAreas = NULL;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myAreas = myLeftAreas;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myAreas = myRightAreas;
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myAreas = myCerebAreas;
-                break;
-            default:
-                break;
-        }
+        auto result = surfParams.find(surfaceList[whichStruct]);
+        CaretAssert(result != surfParams.end()); //we already checked that these are all present, but assert anyway
+        const SurfaceFile* mySurf = result->second.surface;
+        const MetricFile* myAreas = result->second.correctedAreas;
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
         if (surfKern > 0.0f)
