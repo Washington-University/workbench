@@ -748,3 +748,77 @@ FociFile::groupAndNameHierarchyItemStatusChanged()
 {
     
 }
+
+/**
+ * @return Names (unique) of all foci
+ */
+std::vector<AString>
+FociFile::getAllFociNames() const
+{
+    std::set<AString> names;
+    for (const Focus* focus : m_foci) {
+        if ( ! focus->getName().isEmpty()) {
+            names.insert(focus->getName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * Names (unique) of all classes
+ */
+std::vector<AString>
+FociFile::getAllFociClasses() const
+{
+    std::set<AString> names;
+    for (const Focus* focus : m_foci) {
+        if ( ! focus->getClassName().isEmpty()) {
+            names.insert(focus->getClassName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * @return Names of all foci that use the given class name
+ * @param className
+ *    Name of class
+ */
+std::vector<AString>
+FociFile::getAllFociNamesThatUseClass(const AString& className)
+{
+    std::set<AString> names;
+    for (const Focus* focus : m_foci) {
+        if (focus->getClassName() == className) {
+            names.insert(focus->getName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * @return Classes for all foci with the given name (usually just one)
+ * @param focusName
+ *    Name of the focus
+ */
+std::vector<AString>
+FociFile::getAllClassesForFociWithName(const AString& focusName) const
+{
+    std::set<AString> names;
+    for (const Focus* focus : m_foci) {
+        if (focusName == focus->getName()) {
+            if ( ! focus->getClassName().isEmpty()) {
+                names.insert(focus->getClassName());
+            }
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}

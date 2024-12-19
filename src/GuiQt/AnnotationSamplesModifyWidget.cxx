@@ -31,6 +31,7 @@
 
 #include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLViewportContent.h"
@@ -39,7 +40,6 @@
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "MetaDataCustomEditorDialog.h"
 #include "UserInputModeAnnotationsContextMenu.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
@@ -205,8 +205,8 @@ AnnotationSamplesModifyWidget::moreActionTriggered()
     QAction* actionSelected(menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0))));
     
     if (actionSelected == editMetadataAction) {
-        MetaDataCustomEditorDialog dialog(m_polyhedronSelected,
-                                          m_moreToolButton);
+        AnnotationSamplesMetaDataDialog dialog(m_polyhedronSelected,
+                                               m_moreToolButton);
         dialog.exec();
     }
     else if (actionSelected == infoAction) {

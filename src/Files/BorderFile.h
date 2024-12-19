@@ -62,6 +62,14 @@ namespace caret {
         
         std::vector<StructureEnum::Enum> getAllBorderStructures() const;
         
+        std::vector<AString> getAllBorderNames() const;
+        
+        std::vector<AString> getAllBorderClasses() const;
+        
+        std::vector<AString> getAllBorderNamesThatUseClass(const AString& className);
+        
+        std::vector<AString> getAllClassesForBordersWithName(const AString& borderName) const;
+        
         bool splitIntoSingleStructureFiles(const std::map<StructureEnum::Enum, AString>& singleStructureFileNames,
                                            const std::map<StructureEnum::Enum, int32_t>& structureNumberOfNodes,
                                            std::vector<BorderFile*>& singleStructureBorderFilesOut,

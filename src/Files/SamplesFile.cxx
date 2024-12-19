@@ -24,9 +24,10 @@
 #undef __SAMPLES_FILE_DECLARE__
 
 #include "Annotation.h"
-#include "AnnotationMetaData.h"
-#include "AnnotationMetaDataNames.h"
+#include "AnnotationPolyhedron.h"
+#include "AnnotationSampleMetaData.h"
 #include "CaretAssert.h"
+
 using namespace caret;
 
 
@@ -109,7 +110,6 @@ SamplesFile::generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFil
         return "";
     }
     
-    
     /*
      * Get sample numbers used by a SlabID
      */
@@ -121,9 +121,18 @@ SamplesFile::generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFil
         for (const Annotation* ann : allAnnotations) {
             CaretAssert(ann);
             if (ann->getType() == AnnotationTypeEnum::POLYHEDRON) {
-                if (slabID == ann->getMetaData()->get(AnnotationMetaDataNames::SAMPLES_ALLEN_SLAB_NUMBER)) {
-                    const int32_t sampleNumber(ann->getMetaData()->getInt(AnnotationMetaDataNames::SAMPLES_SAMPLE_NUMBER));
-                    existingSampleNumbers.insert(sampleNumber);
+                const AnnotationPolyhedron* polyhedron(ann->castToPolyhedron());
+                CaretAssert(polyhedron);
+                const AnnotationSampleMetaData* sampleMetaData(polyhedron->getSampleMetaData());
+                if (slabID == sampleMetaData->getAllenSlabNumber()) {
+                    const AString sampleNumberText(sampleMetaData->getSampleNumber());
+                    if ( ! sampleNumberText.isEmpty()) {
+                        bool validFlag(false);
+                        const int32_t sampleNumber(sampleNumberText.toInt(&validFlag));
+                        if (validFlag) {
+                            existingSampleNumbers.insert(sampleNumber);
+                        }
+                    }
                 }
             }
         }

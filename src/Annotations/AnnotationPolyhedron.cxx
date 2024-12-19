@@ -29,6 +29,7 @@
 #include "AnnotationCoordinate.h"
 #include "AnnotationFontAttributes.h"
 #include "AnnotationMetaData.h"
+#include "AnnotationSampleMetaData.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -129,6 +130,8 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
     }
     resetProperty(Property::COPY_CUT_PASTE);
+    
+    m_sampleMetaData.reset(new AnnotationSampleMetaData(getMetaData()));
 }
 
 /**
@@ -147,6 +150,24 @@ const AnnotationPolyhedron*
 AnnotationPolyhedron::castToPolyhedron() const
 {
     return this;
+}
+
+/**
+ * @return Pointer to the sample metadata
+ */
+AnnotationSampleMetaData*
+AnnotationPolyhedron::getSampleMetaData()
+{
+    return m_sampleMetaData.get();
+}
+
+/**
+ * @return Pointer to the sample metadata (const method)
+ */
+const AnnotationSampleMetaData*
+AnnotationPolyhedron::getSampleMetaData() const
+{
+    return m_sampleMetaData.get();
 }
 
 /**

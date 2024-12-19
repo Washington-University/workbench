@@ -40,6 +40,7 @@
 #include "Annotation.h"
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
@@ -400,6 +401,7 @@ GuiManager::~GuiManager()
         /* delete this->connectomeDatabaseWebView; */
     }
     
+    AnnotationSamplesMetaDataDialog::deleteStaticMembers();
     FociPropertiesEditorDialog::deleteStaticMembers();
     
     /*

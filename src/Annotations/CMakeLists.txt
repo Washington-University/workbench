@@ -63,7 +63,6 @@ AnnotationPolyhedron.h
 AnnotationPolyLine.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
-AnnotationMetaDataValidator.h
 AnnotationSampleMetaData.h
 AnnotationScaleBar.h
 AnnotationScaleBarTextLocationEnum.h
@@ -128,7 +127,6 @@ AnnotationPolyhedron.cxx
 AnnotationPolyLine.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx
-AnnotationMetaDataValidator.cxx
 AnnotationSampleMetaData.cxx
 AnnotationScaleBar.cxx
 AnnotationScaleBarTextLocationEnum.cxx

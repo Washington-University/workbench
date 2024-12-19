@@ -30,6 +30,7 @@
 namespace caret {
 
     class AnnotationFontAttributes;
+    class AnnotationSampleMetaData;
     class Plane;
     
     class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape,
@@ -70,6 +71,10 @@ namespace caret {
         
         virtual const AnnotationPolyhedron* castToPolyhedron() const override;
         
+        AnnotationSampleMetaData* getSampleMetaData();
+               
+        const AnnotationSampleMetaData* getSampleMetaData() const;
+               
         void applyRedoUndoForResetRangeToPlane(const AnnotationPolyhedron* polyhedron);
 
         bool resetRangeToPlanes(const Plane& planeOne,
@@ -202,6 +207,8 @@ namespace caret {
         mutable std::vector<Triangle> m_tessellatedTriangles;
                
         mutable std::vector<Vector3D> m_tessellationPreviousXYZ;
+        
+        std::unique_ptr<AnnotationSampleMetaData> m_sampleMetaData;
                
         // ADD_NEW_MEMBERS_HERE
 

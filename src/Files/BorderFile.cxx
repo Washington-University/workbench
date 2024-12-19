@@ -2490,3 +2490,78 @@ BorderFile::groupAndNameHierarchyItemStatusChanged()
 {
     
 }
+
+/**
+ * @return Names (unique) of all borders
+ */
+std::vector<AString>
+BorderFile::getAllBorderNames() const
+{
+    std::set<AString> names;
+    for (const Border* border : m_borders) {
+        if ( ! border->getName().isEmpty()) {
+            names.insert(border->getName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * Names (unique) of all classes
+ */
+std::vector<AString>
+BorderFile::getAllBorderClasses() const
+{
+    std::set<AString> names;
+    for (const Border* border : m_borders) {
+        if ( ! border->getClassName().isEmpty()) {
+            names.insert(border->getClassName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * @return Names of all borders that use the given class name
+ * @param className
+ *    Name of class
+ */
+std::vector<AString>
+BorderFile::getAllBorderNamesThatUseClass(const AString& className)
+{
+    std::set<AString> names;
+    for (const Border* border : m_borders) {
+        if (border->getClassName() == className) {
+            names.insert(border->getName());
+        }
+    }
+    
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+
+/**
+ * @return Classes for all borders with the given name (usually just one)
+ * @param borderName
+ *    Name of the border
+ */
+std::vector<AString>
+BorderFile::getAllClassesForBordersWithName(const AString& borderName) const
+{
+    std::set<AString> names;
+    for (const Border* border : m_borders) {
+        if (borderName == border->getName()) {
+            if ( ! border->getClassName().isEmpty()) {
+                names.insert(border->getClassName());
+            }
+        }
+    }
+
+    std::vector<AString> namesOut(names.begin(), names.end());
+    return namesOut;
+}
+

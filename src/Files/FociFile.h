@@ -62,6 +62,14 @@ namespace caret {
         
         int32_t getNumberOfFoci() const;
         
+        std::vector<AString> getAllFociNames() const;
+        
+        std::vector<AString> getAllFociClasses() const;
+        
+        std::vector<AString> getAllFociNamesThatUseClass(const AString& className);
+        
+        std::vector<AString> getAllClassesForFociWithName(const AString& focusName) const;
+        
         void addFocus(Focus* focus);
         
         Focus* getFocus(const int32_t indx);

@@ -38,6 +38,7 @@
 #include "AnnotationPolyLine.h"
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
 #include "Brain.h"
@@ -54,7 +55,6 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "MathFunctions.h"
-#include "MetaDataCustomEditorDialog.h"
 #include "MetaDataEditorDialog.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
@@ -583,19 +583,6 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     
     if (samplesModeFlag) {
-//        EventAnnotationGetBeingDrawnInWindow annDrawEvent(m_userInputModeAnnotations->getUserInputMode(),
-//                                                          m_userInputModeAnnotations->getBrowserWindowIndex());
-//        EventManager::get()->sendEvent(annDrawEvent.getPointer());
-//        const bool drawingAnnotationFlag(annDrawEvent.isAnnotationDrawingInProgress());
-//
-//        if ( ! drawingAnnotationFlag) {
-//            if (polyhedron != NULL) {
-////                CaretAssertVectorIndex(annotations, 0);
-////                CaretAssert(annotations[0]);
-////                m_polyhedronSelected = annotations[0]->castToPolyhedron();
-//            }
-//        }
-        
         const Annotation* lockedAnnotation(Annotation::getSelectionLockedPolyhedronInWindow(m_userInputModeAnnotations->getBrowserWindowIndex()));
         addSeparator();
         
@@ -734,9 +721,17 @@ UserInputModeAnnotationsContextMenu::editMetaDataDialog()
 {
     if (m_userInputModeAnnotations->getUserInputMode() == UserInputModeEnum::Enum::SAMPLES_EDITING) {
         CaretAssert(m_annotation);
-        MetaDataCustomEditorDialog dialog(m_annotation,
-                                          this);
-        dialog.exec();
+        AnnotationPolyhedron* polyhedron(m_annotation->castToPolyhedron());
+        if (polyhedron != NULL) {
+            AnnotationSamplesMetaDataDialog dialog(polyhedron,
+                                                   this);
+            dialog.exec();
+        }
+        else {
+            MetaDataEditorDialog dialog(m_annotation,
+                                        this);
+            dialog.exec();
+        }
     }
     else {
         CaretAssert(m_annotation);

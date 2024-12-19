@@ -48,7 +48,7 @@
 #include "AnnotationPasteDialog.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationRedoUndoCommand.h"
-#include "AnnotationSamplesCreateDialog.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "AnnotationSpatialModification.h"
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
@@ -5150,15 +5150,15 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
          */
         CaretAssert(m_annotation);
         Annotation* clonedAnnotation(m_annotation->clone());
-        AnnotationSamplesCreateDialog dialog(m_userInputMode,
+        AnnotationSamplesMetaDataDialog dialog(m_userInputMode,
                                              m_browserWindowIndex,
                                              m_browserTabIndex,
                                              m_annotationFile,
-                                             clonedAnnotation, /* Dialog takes ownership of the annotation */
+                                             clonedAnnotation->castToPolyhedron(), /* Dialog takes ownership of the annotation */
                                              m_viewportHeight,
-                                             m_sliceThickness,
-                                             GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
-        if (dialog.exec() == AnnotationSamplesCreateDialog::Accepted) {
+                                               m_sliceThickness,
+                                               GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+        if (dialog.exec() == AnnotationSamplesMetaDataDialog::Accepted) {
             /*
              * Annotation must remain valid until after the dialog closes
              * to prevent it from disappearing from the graphics region.

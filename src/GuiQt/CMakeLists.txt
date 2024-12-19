@@ -63,8 +63,8 @@ ELSE()
 	AnnotationPolyTypeDrawEditWidget.h
         AnnotationRedoUndoWidget.h
         AnnotationRotationWidget.h
-	AnnotationSamplesCreateDialog.h
 	AnnotationSamplesInsertNewWidget.h
+	AnnotationSamplesMetaDataDialog.h
 	AnnotationSamplesModifyWidget.h
         AnnotationSelectionViewController.h
         AnnotationTextAlignmentWidget.h
@@ -130,6 +130,7 @@ ELSE()
 	ChartTwoTitleEditorWidget.h
         ChartSelectionViewController.h
         ChartToolBoxViewController.h
+	ChooseBorderFocusFromFileDialog.h
         CiftiConnectivityMatrixViewController.h
         CiftiParcelSelectionComboBox.h
 	ClippingPlanesWidget.h
@@ -190,8 +191,6 @@ ELSE()
 	MediaOverlaySettingsMenu.h
 	MediaOverlayViewController.h
 	MediaOverlaySetViewController.h
-	MetaDataCustomEditorDialog.h
-	MetaDataCustomEditorWidget.h
         MetaDataEditorDialog.h
         MetaDataEditorWidget.h
 	MovieRecordingDialog.h
@@ -346,8 +345,8 @@ AnnotationPastingInformation.h
 AnnotationPolyTypeDrawEditWidget.h
 AnnotationRedoUndoWidget.h
 AnnotationRotationWidget.h
-AnnotationSamplesCreateDialog.h
 AnnotationSamplesInsertNewWidget.h
+AnnotationSamplesMetaDataDialog.h
 AnnotationSamplesModifyWidget.h
 AnnotationSelectionViewController.h
 AnnotationTextAlignmentWidget.h
@@ -421,6 +420,7 @@ ChartTwoOverlayViewController.h
 ChartTwoTitleEditorWidget.h
 ChartSelectionViewController.h
 ChartToolBoxViewController.h
+ChooseBorderFocusFromFileDialog.h
 CiftiConnectivityMatrixViewController.h
 CiftiParcelSelectionComboBox.h
 ClippingPlanesWidget.h
@@ -518,8 +518,6 @@ MapYokingGroupComboBox.h
 MediaOverlaySettingsMenu.h
 MediaOverlayViewController.h
 MediaOverlaySetViewController.h
-MetaDataCustomEditorDialog.h
-MetaDataCustomEditorWidget.h
 MetaDataEditorDialog.h
 MetaDataEditorWidget.h
 MovieRecordingDialog.h
@@ -697,8 +695,8 @@ AnnotationPastingInformation.cxx
 AnnotationPolyTypeDrawEditWidget.cxx
 AnnotationRedoUndoWidget.cxx
 AnnotationRotationWidget.cxx
-AnnotationSamplesCreateDialog.cxx
 AnnotationSamplesInsertNewWidget.cxx
+AnnotationSamplesMetaDataDialog.cxx
 AnnotationSamplesModifyWidget.cxx
 AnnotationSelectionViewController.cxx
 AnnotationTextAlignmentWidget.cxx
@@ -772,6 +770,7 @@ ChartTwoOverlayViewController.cxx
 ChartTwoTitleEditorWidget.cxx
 ChartSelectionViewController.cxx
 ChartToolBoxViewController.cxx
+ChooseBorderFocusFromFileDialog.cxx
 CiftiConnectivityMatrixViewController.cxx
 CiftiParcelSelectionComboBox.cxx
 ClippingPlanesWidget.cxx
@@ -868,8 +867,6 @@ MapYokingGroupComboBox.cxx
 MediaOverlaySettingsMenu.cxx
 MediaOverlayViewController.cxx
 MediaOverlaySetViewController.cxx
-MetaDataCustomEditorDialog.cxx
-MetaDataCustomEditorWidget.cxx
 MetaDataEditorDialog.cxx
 MetaDataEditorWidget.cxx
 MovieRecordingDialog.cxx
