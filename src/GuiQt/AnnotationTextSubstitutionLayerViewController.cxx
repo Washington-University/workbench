@@ -303,6 +303,7 @@ AnnotationTextSubstitutionLayerViewController::updateGraphics()
 {
     /* Text substitutions may have changed so need to invalidate all substitutions */
     EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    
     if (m_layer != NULL) {
         if (m_layer->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
             EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

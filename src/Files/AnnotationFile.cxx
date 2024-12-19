@@ -48,6 +48,7 @@
 #include "EventBrowserTabNewClone.h"
 #include "EventBrowserTabReopenClosed.h"
 #include "EventManager.h"
+#include "EventMapYokingSelectMap.h"
 #include "EventTileTabsGridConfigurationModification.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -253,6 +254,9 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE);
+    
+    /* Map yoking may require update to substitutions */
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP);
     
     /* NEED THIS AFTER Tile Tabs have been modified */
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_TILE_TABS_MODIFICATION);
@@ -566,10 +570,8 @@ AnnotationFile::receiveEvent(Event* event)
             restoreAnnotationsInReopendTab(reopenTabEvent->getTabIndex());
         }
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE) {
-        EventAnnotationTextSubstitutionInvalidate* textSubEvent = dynamic_cast<EventAnnotationTextSubstitutionInvalidate*>(event);
-        CaretAssert(textSubEvent);
-        
+    else if ((event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE)
+             || (event->getEventType() == EventTypeEnum::EVENT_MAP_YOKING_SELECT_MAP)) {
         for (auto ag : m_annotationGroups) {
             std::vector<Annotation*> annotations;
             ag->getAllAnnotations(annotations);
@@ -579,7 +581,7 @@ AnnotationFile::receiveEvent(Event* event)
             }
         }
         
-        textSubEvent->setEventProcessed();
+        event->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_TILE_TABS_MODIFICATION) {
         EventTileTabsGridConfigurationModification* modEvent = dynamic_cast<EventTileTabsGridConfigurationModification*>(event);
