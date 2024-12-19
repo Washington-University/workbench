@@ -441,33 +441,33 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QGridLayout* gridLayout(new QGridLayout());
     gridLayout->setContentsMargins(0, 0, 0, 0);
 
-    m_subjectNameLineEdit = addLineEdit("Subject Name",
+    m_subjectNameLineEdit = addLineEdit(AnnotationSampleMetaData::getSubjectNameLabelText(),
                                         "",
                                         gridLayout);
     QObject::connect(m_subjectNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setSubjectName(text); });
     
-    m_allenLocalNameLineEdit = addLineEdit("Allen Local Name*",
+    m_allenLocalNameLineEdit = addLineEdit(AnnotationSampleMetaData::getAllenLocalNameLabelText() + "*",
                                            "Example: QM23.50.003",
                                            gridLayout);
     QObject::connect(m_allenLocalNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setAllenLocalName(text); loadLocalSlabID(); loadLocalSampleID(); });
 
-    m_hemisphereComboBox = addComboBox("Hemisphere*",
+    m_hemisphereComboBox = addComboBox(AnnotationSampleMetaData::getHemisphereLabelText() + "*",
                                        "",
                                        AnnotationSampleMetaData::getAllValidHemisphereValues(),
                                        gridLayout);
     QObject::connect(m_hemisphereComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setHemisphere(text); });
     
-    m_allenTissueTypeComboBox = addComboBox("Allen Tissue Type*",
+    m_allenTissueTypeComboBox = addComboBox(AnnotationSampleMetaData::getAllenTissueTypeLabelText() + "*",
                                             "",
                                             AnnotationSampleMetaData::getAllValidAllenTissueTypeValues(),
                                             gridLayout);
     QObject::connect(m_allenTissueTypeComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setAllenTissueType(text); loadLocalSlabID(); loadLocalSampleID(); });
 
-    m_allenSlabNumberLineEdit = addLineEdit("Allen Slab Number*",
+    m_allenSlabNumberLineEdit = addLineEdit(AnnotationSampleMetaData::getAllenSlabNumberLabelText() + "*",
                                             "<html>CB: Left Hemisphere=00-39, <br>"
                                             "Right Hemisphere=40-60+",
                                             gridLayout);
@@ -478,27 +478,27 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
         loadLocalSlabID();
         loadLocalSampleID(); });
 
-    m_localSlabIdLineEdit = addLineEdit("Local Slab ID",
+    m_localSlabIdLineEdit = addLineEdit(AnnotationSampleMetaData::getLocalSlabIdLabelText(),
                                         "",
                                         gridLayout);
     m_localSlabIdLineEdit->setReadOnly(true);
     
-    m_slabFaceComboBox = addComboBox("Slab Face",
+    m_slabFaceComboBox = addComboBox(AnnotationSampleMetaData::getSlabFaceLabelText(),
                                      "",
                                      AnnotationSampleMetaData::getAllValidSlabFaceValues(),
                                      gridLayout);
     QObject::connect(m_slabFaceComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setSlabFace(text); });
 
-    m_sampleTypeComboBox = addComboBox("Sample Type*",
+    m_sampleTypeComboBox = addComboBox(AnnotationSampleMetaData::getSampleTypeLabelText() + "*",
                                        "",
                                        AnnotationSampleMetaData::getAllValidSampleTypeValues(),
                                        gridLayout);
     QObject::connect(m_sampleTypeComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setSampleType(text); });
 
-    m_sampleLocationActualRadioButton  = new QRadioButton("Actual");
-    m_sampleLocationDesiredRadioButton = new QRadioButton("Desired");
+    m_sampleLocationActualRadioButton  = new QRadioButton(AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum::ACTUAL));
+    m_sampleLocationDesiredRadioButton = new QRadioButton(AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum::DESIRED));
     QButtonGroup* sampleLocationButtonGroup(new QButtonGroup(this));
     sampleLocationButtonGroup->addButton(m_sampleLocationActualRadioButton);
     sampleLocationButtonGroup->addButton(m_sampleLocationDesiredRadioButton);
@@ -518,7 +518,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     sampleLocationLayout->addWidget(m_sampleLocationDesiredRadioButton);
     addWidget("Location", "", gridLayout, sampleLocationWidget);
 
-    m_desiredSampleEntryDateEdit = addDateEdit("Desired Sample Edit Date",
+    m_desiredSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getDesiredSampleEditDateLabelText(),
                                                "Format is dd/mm/yyyy",
                                                gridLayout);
     QObject::connect(m_desiredSampleEntryDateEdit, &QDateEdit::dateChanged,
@@ -527,7 +527,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
         std::cout << "Date" << std::endl;
     });
     
-    m_actualSampleEntryDateEdit = addDateEdit("Actual Sample Edit Date",
+    m_actualSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getActualSampleEditDateLabelText(),
                                               "Format is dd/mm/yyyy",
                                               gridLayout);
     QObject::connect(m_actualSampleEntryDateEdit, &QDateEdit::dateChanged,
@@ -537,50 +537,50 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     });
 
     
-    m_hmbaParcelDingAbbreviationLineEdit = addLineEdit("Hmba Parcel Ding Abbreviation",
+    m_hmbaParcelDingAbbreviationLineEdit = addLineEdit(AnnotationSampleMetaData::getHmbaParcelDingAbbreviationLabelText(),
                                                        "",
                                                        ChooseButtonEnum::DING_ABBREVIATION,
                                                        gridLayout);
     QObject::connect(m_hmbaParcelDingAbbreviationLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setHmbaParcelDingAbbreviation(text); });
 
-    m_hmbaParcelDingFullNameLineEdit = addLineEdit("Hmba Parcel Ding Full Name",
+    m_hmbaParcelDingFullNameLineEdit = addLineEdit(AnnotationSampleMetaData::getHmbaParcelDingFullNameLabelText(),
                                                    "",
                                                    gridLayout);
     QObject::connect(m_hmbaParcelDingFullNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setHmbaParcelDingFullName(text); });
 
-    m_sampleNameLineEdit = addLineEdit("Sample Name",
+    m_sampleNameLineEdit = addLineEdit(AnnotationSampleMetaData::getSampleNameLabelText(),
                                        "",
                                        gridLayout);
     QObject::connect(m_sampleNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setSampleName(text); });
 
-    m_alternativeSampleNameLineEdit = addLineEdit("Alternative Sample Name",
+    m_alternativeSampleNameLineEdit = addLineEdit(AnnotationSampleMetaData::getAlternativeSampleNameLabelText(),
                                                   "",
                                                   gridLayout);
     QObject::connect(m_alternativeSampleNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setAlternateSampleName(text); });
 
-    m_sampleNumberLineEdit = addLineEdit("Sample Number*",
+    m_sampleNumberLineEdit = addLineEdit(AnnotationSampleMetaData::getSampleNumberLabelText() + "*",
                                          "",
                                          gridLayout);
     QObject::connect(m_sampleNumberLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setSampleNumber(text); loadLocalSampleID(); });
 
-    m_localSampleIdLineEdit = addLineEdit("Local Sample ID",
+    m_localSampleIdLineEdit = addLineEdit(AnnotationSampleMetaData::getLocalSampleIdLabelText(),
                                           "",
                                           gridLayout);
     m_localSampleIdLineEdit->setReadOnly(true);
     
-    m_primaryParcellationLineEdit = addLineEdit("Primary Parcellation",
+    m_primaryParcellationLineEdit = addLineEdit(AnnotationSampleMetaData::getPrimaryParcellationLabelText(),
                                                 "",
                                                 ChooseButtonEnum::PRIMARY_PARCELLATION,
                                                 gridLayout);
     QObject::connect(m_primaryParcellationLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setPrimaryParcellation(text); });
 
-    m_alternativeParcellationLineEdit = addLineEdit("Alternative Parcellation",
+    m_alternativeParcellationLineEdit = addLineEdit(AnnotationSampleMetaData::getAlternativeParcellationLabelText(),
                                                     "",
                                                     ChooseButtonEnum::ALTERNATE_PARCELLATION,
                                                     gridLayout);
@@ -588,7 +588,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
                      [=](const QString& text) { m_sampleMetaData->setAlternateParcellation(text); });
 
     m_commentTextEdit = new QTextEdit();
-    addWidget("Comment",
+    addWidget(AnnotationSampleMetaData::getCommentLabelText(),
               "",
               gridLayout,
               m_commentTextEdit);
@@ -608,9 +608,9 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
 QWidget*
 AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
 {
-    QLabel* borderFileLabel(new QLabel("Border File: "));
-    QLabel* borderClassLabel(new QLabel("Class: "));
-    QLabel* borderNameLabel(new QLabel("Border Name: "));
+    QLabel* borderFileLabel(new QLabel(AnnotationSampleMetaData::getBorderFileNameLabelText() + ":"));
+    QLabel* borderClassLabel(new QLabel(AnnotationSampleMetaData::getBorderClassLabelText() + ":"));
+    QLabel* borderNameLabel(new QLabel(AnnotationSampleMetaData::getBorderNameLabelText() + ":"));
 
     m_borderFileNameLineEdit = new QLineEdit();
     m_borderFileNameLineEdit->setReadOnly(true);
@@ -627,9 +627,9 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
     QToolButton* selectBorderToolButton(new QToolButton());
     selectBorderToolButton->setDefaultAction(selectBorderAction);
     
-    QLabel* focusFileLabel(new QLabel("Foci File: "));
-    QLabel* focusClassLabel(new QLabel("Class: "));
-    QLabel* focusNameLabel(new QLabel("Focus Name: "));
+    QLabel* focusFileLabel(new QLabel(AnnotationSampleMetaData::getFocusFileNameLabelText() + ":"));
+    QLabel* focusClassLabel(new QLabel(AnnotationSampleMetaData::getFocusClassLabelText() + ":"));
+    QLabel* focusNameLabel(new QLabel(AnnotationSampleMetaData::getFocusNameLabelText() + ":"));
     
     m_focusFileNameLineEdit = new QLineEdit();
     m_focusFileNameLineEdit->setReadOnly(true);
@@ -691,13 +691,13 @@ AnnotationSamplesMetaDataDialog::createSpecimenPortalTabWidget()
     QGridLayout* gridLayout(new QGridLayout());
     gridLayout->setContentsMargins(0, 0, 0, 0);
 
-    m_bicanDonorIdLineEdit = addLineEdit("BICAN Donor ID",
+    m_bicanDonorIdLineEdit = addLineEdit(AnnotationSampleMetaData::getBicanDonorIdLabelText(),
                                          "Example: DO-TWUW4075",
                                          gridLayout);
     QObject::connect(m_bicanDonorIdLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setBicanDonorID(text); });
 
-    m_nhashSlabIdLineEdit = addLineEdit("NHash Slab ID",
+    m_nhashSlabIdLineEdit = addLineEdit(AnnotationSampleMetaData::getNhashSlabIdLabelText(),
                                         "",
                                         gridLayout);
     QObject::connect(m_nhashSlabIdLineEdit, &QLineEdit::textEdited,

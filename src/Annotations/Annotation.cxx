@@ -30,7 +30,6 @@
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
-#include "AnnotationMetaData.h"
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
@@ -44,6 +43,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DisplayGroupAndTabItemHelper.h"
+#include "GiftiMetaData.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "SceneClass.h"
@@ -490,7 +490,7 @@ Annotation::initializeAnnotationMembers()
 
     m_displayGroupAndTabItemHelper = new DisplayGroupAndTabItemHelper();
     
-    m_metaData.reset(new AnnotationMetaData(getType()));
+    m_metaData.reset(new GiftiMetaData());
     
     /*
      * Default the unique identifier.
@@ -1769,7 +1769,7 @@ Annotation::setCustomBackgroundColor(const uint8_t rgba[4])
 /**
  * @return Pointer to the metadata
  */
-AnnotationMetaData*
+GiftiMetaData*
 Annotation::getMetaData()
 {
     return m_metaData.get();
@@ -1778,7 +1778,7 @@ Annotation::getMetaData()
 /**
  * @return Pointer to the metadata (const method)
  */
-const AnnotationMetaData*
+const GiftiMetaData*
 Annotation::getMetaData() const
 {
     return m_metaData.get();

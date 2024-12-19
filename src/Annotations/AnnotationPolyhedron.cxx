@@ -28,7 +28,6 @@
 
 #include "AnnotationCoordinate.h"
 #include "AnnotationFontAttributes.h"
-#include "AnnotationMetaData.h"
 #include "AnnotationSampleMetaData.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
@@ -1105,12 +1104,7 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
 AString
 AnnotationPolyhedron::getMetadataInformationHtml() const
 {
-    std::vector<AString> metaDataNames;
-    std::vector<AString> requiredMetaDataNames;
-    getMetaData()->getMetaDataNamesForEditor(metaDataNames,
-                                             requiredMetaDataNames);
-
-    return getMetaData()->toFormattedHtml(metaDataNames);
+    return getSampleMetaData()->toFormattedHtml();
 }
 
 /**

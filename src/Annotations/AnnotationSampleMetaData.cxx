@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "HemisphereEnum.h"
+#include "HtmlTableBuilder.h"
 
 using namespace caret;
 
@@ -281,7 +282,7 @@ AnnotationSampleMetaData::getAllValidSlabFaceValues()
 /**
  * @return Date format for use in GUI
  */
-QString
+AString
 AnnotationSampleMetaData::getDateFormat()
 {
     return SAMPLES_QT_DATE_FORMAT;
@@ -749,6 +750,29 @@ AnnotationSampleMetaData::setPrimaryParcellation(const AString& value)
 }
 
 /**
+ * @return The text name for the given sample location
+ * @param location
+ *   The location
+ */
+AString
+AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum location)
+{
+    AString text("Invalid");
+    switch (location) {
+        case LocationEnum::ACTUAL:
+            text = "Actual";
+            break;
+        case LocationEnum::DESIRED:
+            text = "Desired";
+            break;
+        case LocationEnum::UNKNOWN:
+            text = "Unknown";
+            break;
+    }
+    return text;
+}
+
+/**
  * @return sample location
  */
 AnnotationSampleMetaData::LocationEnum
@@ -1143,6 +1167,96 @@ AnnotationSampleMetaData::updateMetaDataWithNameChanges()
         }
     }
 }
+
+/**
+ * @return The metadata  in an HTML table format
+ */
+AString
+AnnotationSampleMetaData::toFormattedHtml() const
+{
+    const int32_t numberOfColumns(2);
+    HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
+                                  numberOfColumns);
+    tableBuilder.addRow("Metadata");
+    
+    
+    std::vector<std::pair<AString, AString>> namesAndValues;
+    getAllMetaDataNamesAndValues(namesAndValues);
+    
+    for (const auto& nv : namesAndValues) {
+        tableBuilder.addRow((nv.first + ": "), nv.second);
+    }
+
+    return tableBuilder.getAsHtmlTable();
+}
+
+/**
+ * Get all metadata names and values
+ * @param namesAndValuesOut
+ *    Pairs with names and values
+ */
+void
+AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<AString, AString>>& namesAndValuesOut) const
+{
+    namesAndValuesOut.clear();
+    
+    namesAndValuesOut.emplace_back(getSubjectNameLabelText(), getSubjectName());
+    
+    namesAndValuesOut.emplace_back(getAllenLocalNameLabelText(), getAllenLocalName());
+    
+    namesAndValuesOut.emplace_back(getHemisphereLabelText(), getHemisphere());
+    
+    namesAndValuesOut.emplace_back(getAllenTissueTypeLabelText(), getAllenTissueType());
+    
+    namesAndValuesOut.emplace_back(getAllenSlabNumberLabelText(), getAllenSlabNumber());
+    
+    namesAndValuesOut.emplace_back(getLocalSlabIdLabelText(), getLocalSlabID());
+    
+    namesAndValuesOut.emplace_back(getSlabFaceLabelText(), getSlabFace());
+    
+    namesAndValuesOut.emplace_back(getSampleTypeLabelText(), getSampleType());
+    
+    namesAndValuesOut.emplace_back(getLocationLabelText(), getSampleLocationText(getSampleLocation()));
+    
+    namesAndValuesOut.emplace_back(getDesiredSampleEditDateLabelText(), getDesiredSampleEditDate());
+    
+    namesAndValuesOut.emplace_back(getActualSampleEditDateLabelText(), getActualSampleEditDate());
+    
+    namesAndValuesOut.emplace_back(getHmbaParcelDingAbbreviationLabelText(), getHmbaParcelDingAbbreviation());
+    
+    namesAndValuesOut.emplace_back(getHmbaParcelDingFullNameLabelText(), getHmbaParcelDingFullName());
+    
+    namesAndValuesOut.emplace_back(getSampleNameLabelText(), getSampleName());
+    
+    namesAndValuesOut.emplace_back(getAlternativeSampleNameLabelText(), getAlternateSampleName());
+    
+    namesAndValuesOut.emplace_back(getSampleNumberLabelText(), getSampleNumber());
+    
+    namesAndValuesOut.emplace_back(getLocalSampleIdLabelText(), getLocalSampleID());
+    
+    namesAndValuesOut.emplace_back(getPrimaryParcellationLabelText(), getPrimaryParcellation());
+    
+    namesAndValuesOut.emplace_back(getAlternativeParcellationLabelText(), getAlternateParcellation());
+    
+    namesAndValuesOut.emplace_back(getCommentLabelText(), getComment());
+    
+    namesAndValuesOut.emplace_back(getBorderFileNameLabelText(), getBorderFileName());
+    
+    namesAndValuesOut.emplace_back(getBorderNameLabelText(), getBorderName());
+    
+    namesAndValuesOut.emplace_back(getBorderClassLabelText(), getBorderClass());
+    
+    namesAndValuesOut.emplace_back(getFocusFileNameLabelText(), getFocusFileName());
+    
+    namesAndValuesOut.emplace_back(getFocusNameLabelText(), getFocusName());
+    
+    namesAndValuesOut.emplace_back(getFocusClassLabelText(), getFocusClass());
+    
+    namesAndValuesOut.emplace_back(getBicanDonorIdLabelText(), getBicanDonorID());
+    
+    namesAndValuesOut.emplace_back(getNhashSlabIdLabelText(), getNHashSlabID());
+}
+
 
 /**
  * Get a description of this object's content.

@@ -43,7 +43,6 @@
 namespace caret {
     class AnnotationCoordinate;
     class AnnotationScaleBar;
-    class AnnotationMetaData;
     class AnnotationMultiCoordinateShape;
     class AnnotationMultiPairedCoordinateShape;
     class AnnotationOneCoordinateShape;
@@ -350,9 +349,9 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
-        AnnotationMetaData* getMetaData();
+        GiftiMetaData* getMetaData();
         
-        const AnnotationMetaData* getMetaData() const;
+        const GiftiMetaData* getMetaData() const;
         
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         
@@ -566,7 +565,7 @@ namespace caret {
         
         AString m_name;
         
-        std::unique_ptr<AnnotationMetaData> m_metaData;
+        std::unique_ptr<GiftiMetaData> m_metaData;
         
         int32_t m_uniqueKey;
         

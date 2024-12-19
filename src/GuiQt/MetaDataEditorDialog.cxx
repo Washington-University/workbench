@@ -29,7 +29,6 @@
 #include <QVBoxLayout>
 
 #include "Annotation.h"
-#include "AnnotationMetaData.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"

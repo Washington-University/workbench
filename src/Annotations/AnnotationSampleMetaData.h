@@ -67,16 +67,72 @@ namespace caret {
 
         static std::vector<AString> getAllValidSlabFaceValues();
         
-        static QString getDateFormat();
+        static AString getDateFormat();
         
-        void copyMetaData(const AnnotationSampleMetaData& obj);
+        static AString getSubjectNameLabelText() { return "Subject Name"; }
         
-        void copyMetaDataForNewAnnotation(const AnnotationSampleMetaData& obj);
+        static AString getAllenLocalNameLabelText() { return "Allen Local Name"; }
+        
+        static AString getHemisphereLabelText() { return "Hemisphere"; }
+        
+        static AString getAllenTissueTypeLabelText() { return "Allen Tissue Type"; }
+        
+        static AString getAllenSlabNumberLabelText() { return "Allen Slab Number"; }
+        
+        static AString getLocalSlabIdLabelText() { return "Local Slab ID"; }
+        
+        static AString getSlabFaceLabelText() { return "Slab Face"; }
+        
+        static AString getSampleTypeLabelText() { return "Sample Type"; }
+        
+        static AString getLocationLabelText() { return "Location"; }
+        
+        static AString getDesiredSampleEditDateLabelText() { return "Desired Sample Edit Date"; }
+        
+        static AString getActualSampleEditDateLabelText() { return "Actual Sample Edit Date"; }
+        
+        static AString getHmbaParcelDingAbbreviationLabelText() { return "Hmba Parcel Ding Abbreviation"; }
+        
+        static AString getHmbaParcelDingFullNameLabelText() { return "Hmba Parcel Ding Full Name"; }
+        
+        static AString getSampleNameLabelText() { return "Sample Name"; }
+        
+        static AString getAlternativeSampleNameLabelText() { return "Alternative Sample Name"; }
+        
+        static AString getSampleNumberLabelText() { return "Sample Number"; }
+        
+        static AString getLocalSampleIdLabelText() { return "Local Sample ID"; }
+        
+        static AString getPrimaryParcellationLabelText() { return "Primary Parcellation"; }
+        
+        static AString getAlternativeParcellationLabelText() { return "Alternative Parcellation"; }
+        
+        static AString getCommentLabelText() { return "Comment"; }
+        
+        static AString getBorderFileNameLabelText() { return "Border File"; }
+        
+        static AString getBorderNameLabelText() { return "Border Name"; }
+        
+        static AString getBorderClassLabelText() { return "Border Class"; }
+        
+        static AString getFocusFileNameLabelText() { return "Focus File"; }
+        
+        static AString getFocusNameLabelText() { return "Focus Name"; }
+        
+        static AString getFocusClassLabelText() { return "Focus Class"; }
+        
+        static AString getBicanDonorIdLabelText() { return "BICAN Donor ID"; }
+        
+        static AString getNhashSlabIdLabelText() { return "NHash Slab ID"; }
         
         AnnotationSampleMetaData(const AnnotationSampleMetaData& obj) = delete;
 
         AnnotationSampleMetaData& operator=(const AnnotationSampleMetaData& obj) = delete;
 
+        void copyMetaData(const AnnotationSampleMetaData& obj);
+        
+        void copyMetaDataForNewAnnotation(const AnnotationSampleMetaData& obj);
+        
         AString getActualSampleEditDate() const;
         
         void setActualSampleEditDate(const AString& value);
@@ -137,6 +193,8 @@ namespace caret {
         
         void setPrimaryParcellation(const AString& value);
         
+        static AString getSampleLocationText(AnnotationSampleMetaData::LocationEnum location);
+        
         LocationEnum getSampleLocation() const;
         
         void setSampleLocation(const LocationEnum value);
@@ -185,7 +243,11 @@ namespace caret {
         
         void setFocusName(const AString& value);
                 
+        AString toFormattedHtml() const;
+        
         void updateMetaDataWithNameChanges();
+        
+        void getAllMetaDataNamesAndValues(std::vector<std::pair<AString, AString>>& namesAndValuesOut) const;
         
         // ADD_NEW_METHODS_HERE
 

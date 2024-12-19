@@ -33,7 +33,6 @@
 #include "AnnotationGroup.h"
 #include "AnnotationImage.h"
 #include "AnnotationLine.h"
-#include "AnnotationMetaData.h"
 #include "AnnotationOval.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationPolygon.h"
