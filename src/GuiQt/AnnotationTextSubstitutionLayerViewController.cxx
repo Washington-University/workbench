@@ -37,6 +37,7 @@
 #include "CaretDataFileSelectionComboBox.h"
 #include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "EventMapYokingSelectMap.h"
 #include "EventUserInterfaceUpdate.h"
@@ -127,7 +128,8 @@ m_layerIndex(layerIndex)
     macroManager->addMacroSupportToObject(m_yokingComboBox->getWidget(), "Map Yoking Group");
     
     m_rowIndexSpinBox = new QSpinBox();
-    m_rowIndexSpinBox->setToolTip("Select row index from annotation text substitution file");
+    m_rowIndexSpinBox->setToolTip("Select row index from annotation text substitution file\n"
+                                  "Row indices start at one");
     m_rowIndexSpinBox->setMinimumWidth(60);
     m_rowIndexSpinBox->setObjectName(objectNamePrefix + "m_rowIndexSpinBox");
     macroManager->addMacroSupportToObject(m_rowIndexSpinBox, "Row Index Spin Box");
@@ -266,9 +268,13 @@ AnnotationTextSubstitutionLayerViewController::updateViewController(AnnotationTe
         /* Prevents QSpinBox::setValue() from emitting a signal*/
         QSignalBlocker rowIndexBlocker(m_rowIndexSpinBox);
         
-        m_rowIndexSpinBox->setRange(0, numRows - 1);
+        /**
+         * NOTE: Rows 1..N in GUI, 0..N-1 in model
+         */
+        m_rowIndexSpinBox->setRange(1, numRows);
         m_yokingComboBox->setMapYokingGroup(m_layer->getMapYokingGroup());
-        m_rowIndexSpinBox->setValue(m_layer->getSubstitutionFileRowIndex());
+        const int32_t guiRowIndex(m_layer->getSubstitutionFileRowIndex() + 1);
+        m_rowIndexSpinBox->setValue(guiRowIndex);
         m_fileSelectionComboBox->updateComboBox(m_layer->getSubstitutionFileSelectionModel());
     }
     
@@ -297,6 +303,11 @@ AnnotationTextSubstitutionLayerViewController::updateGraphics()
 {
     /* Text substitutions may have changed so need to invalidate all substitutions */
     EventManager::get()->sendEvent(EventAnnotationTextSubstitutionInvalidate().getPointer());
+    if (m_layer != NULL) {
+        if (m_layer->getMapYokingGroup() != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
+            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        }
+    }
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
 
@@ -369,6 +380,10 @@ void
 AnnotationTextSubstitutionLayerViewController::rowIndexSpinBoxValueChanged(const int index)
 {
     if (m_layer != NULL) {
+        /*
+         * Note: Rows are 1..N in GUI, 0..N-1 in model
+         */
+        const int32_t modelRowIndex(index - 1);
         MapYokingGroupEnum::Enum mapYoking = m_yokingComboBox->getMapYokingGroup();
         if (mapYoking != MapYokingGroupEnum::MAP_YOKING_GROUP_OFF) {
             CaretMappableDataFile* nullMapFile(NULL);
@@ -380,14 +395,14 @@ AnnotationTextSubstitutionLayerViewController::rowIndexSpinBoxValueChanged(const
                                                    nullTextSubFile,
                                                    nullHistologySlicesFile,
                                                    nullMediaFile,
-                                                   index,
+                                                   modelRowIndex,
                                                    MapYokingGroupEnum::MediaAllFramesStatus::ALL_FRAMES_OFF,
                                                    true);
             EventManager::get()->sendEvent(selectMapEvent.getPointer());
             updateUserInterface();
         }
         else {
-            m_layer->setSubstitutionFileRowIndex(index);
+            m_layer->setSubstitutionFileRowIndex(modelRowIndex);
         }
         updateGraphics();
         updateUserInterface();
