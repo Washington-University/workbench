@@ -25,6 +25,7 @@
 #include "CaretObject.h"
 #undef __CARET_OBJECT_DECLARE_H__
 
+#include "CaretOMP.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -58,7 +59,11 @@ CaretObject::~CaretObject()
      * Erase returns the number of objects deleted.
      * If zero, then the object has already been deleted.
      */
-    uint64_t numDeleted = CaretObject::allocatedObjects.erase(this);
+    uint64_t numDeleted;
+#pragma omp critical
+    {
+        numDeleted = CaretObject::allocatedObjects.erase(this);
+    }
     if (numDeleted <= 0) {
         std::cerr << "Destructor for a CaretObject called but the object is not allocated "
                   << "and this implies that the object has already been deleted.";
@@ -81,12 +86,15 @@ CaretObject::initializeMembersCaretObject()
 #ifndef NDEBUG
     SystemBacktrace myBacktrace;
     SystemUtilities::getBackTrace(myBacktrace);
-    CaretObject::allocatedObjects.insert(
-               std::make_pair(this,
-                              myBacktrace));
-    /*CaretObject::allocatedObjects.insert(
-           std::make_pair(this, 
-                          SystemUtilities::getBackTrace()));//*/
+#pragma omp critical
+    {
+        CaretObject::allocatedObjects.insert(
+                std::make_pair(this,
+                                myBacktrace));
+        /*CaretObject::allocatedObjects.insert(
+            std::make_pair(this, 
+                            SystemUtilities::getBackTrace()));//*/
+    }
 #endif
 }
 
