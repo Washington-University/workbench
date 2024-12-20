@@ -532,9 +532,17 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
     for (AnnotationPolyhedron* ap : polyhedrons) {
         const AnnotationSampleMetaData* asmd(ap->getSampleMetaData());
         CaretAssert(asmd);
-        const AString text(asmd->getSampleNumber()
+        AString sampleNumber(asmd->getSampleNumber());
+        if (sampleNumber.isEmpty()) {
+            sampleNumber = "No-Num";
+        }
+        AString sampleName(asmd->getSampleName());
+        if (sampleName.isEmpty()) {
+            sampleName = "No-Name";
+        }
+        const AString text(sampleNumber
                            + " "
-                           + asmd->getSampleName());
+                           + sampleName);
         
         menuActionSamples.emplace_back(menu.addAction(text),
                                        ap);
