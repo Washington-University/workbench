@@ -30,7 +30,6 @@
 #include "AlgorithmCiftiReplaceStructure.h"
 
 #include <cmath>
-#include <map>
 
 using namespace caret;
 using namespace std;
@@ -237,7 +236,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
-        AString surfType = StructureEnum::toGuiName(surfaceList[whichStruct]);
+        AString surfType = StructureEnum::toName(surfaceList[whichStruct]);
         auto result = surfParams.find(surfaceList[whichStruct]);
         if (result == surfParams.end()) throw AlgorithmException(surfType + " surface required but not provided");
         const SurfaceFile* mySurf = result->second.surface;

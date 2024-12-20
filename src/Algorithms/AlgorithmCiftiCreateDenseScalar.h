@@ -23,6 +23,8 @@
 
 #include "AbstractAlgorithm.h"
 
+#include "AlgorithmCiftiCreateDenseTimeseries.h"
+
 namespace caret {
     
     class AlgorithmCiftiCreateDenseScalar : public AbstractAlgorithm
@@ -32,10 +34,15 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCreateDenseScalar(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL,
-                                        const VolumeFile* myVolLabel = NULL, const MetricFile* leftData = NULL, const MetricFile* leftRoi = NULL,
-                                        const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL, const MetricFile* cerebData = NULL,
-                                        const MetricFile* cerebRoi = NULL, const std::vector<AString>* namePtr = NULL);
+        typedef AlgorithmCiftiCreateDenseTimeseries::SurfParam SurfParam; //the "make dense map" code is in that algorithm at the moment, so typedef this for convenience
+        AlgorithmCiftiCreateDenseScalar(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                        const MetricFile* leftData, const MetricFile* leftRoi = NULL,
+                                        const MetricFile* rightData = NULL, const MetricFile* rightRoi = NULL,
+                                        const MetricFile* cerebData = NULL, const MetricFile* cerebRoi = NULL,
+                                        const std::vector<AString>* namePtr = NULL);
+        AlgorithmCiftiCreateDenseScalar(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL, const VolumeFile* myVolLabel = NULL,
+                                        const std::map<StructureEnum::Enum, SurfParam> surfParams = std::map<StructureEnum::Enum, SurfParam>(),
+                                        const std::vector<AString>* namePtr = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

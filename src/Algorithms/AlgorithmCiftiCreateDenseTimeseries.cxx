@@ -71,6 +71,12 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     OptionalParameter* cerebRoiOpt = cerebMetricOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
+    ParameterComponent* genMetricOpt = ret->createRepeatableParameter(9, "-metric", "metric for a specified structure");
+    genMetricOpt->addStringParameter(1, "structure", "the structure name");
+    genMetricOpt->addMetricParameter(2, "metric", "the metric file");
+    OptionalParameter* genRoiopt = genMetricOpt->createOptionalParameter(3, "-roi", "roi of vertices to use from this structure");
+    genRoiopt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
+    
     OptionalParameter* timestepOpt = ret->createOptionalParameter(6, "-timestep", "set the timestep");
     timestepOpt->addDoubleParameter(1, "interval", "the timestep, in seconds (default 1.0)");
     
@@ -84,7 +90,8 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
         "Only the specified components will be in the output cifti.  " +
         "At least one component must be specified.\n\n" +
         "See -volume-label-import and -volume-help for format details of label volume files.  " +
-        "The structure-label-volume should have some of the label names from this list, all other label names will be ignored:\n";
+        "The -metric structure argument and labels in the structure-label-volume must use names from the below list " +
+        "(labels with other names are ignored, -metric arguments with other strings are an error):\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
@@ -112,6 +119,7 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
         myVolLabel = volumeOpt->getVolume(2);
     }
     MetricFile* leftData = NULL, *leftRoi = NULL, *rightData = NULL, *rightRoi = NULL, *cerebData = NULL, *cerebRoi = NULL;
+    map<StructureEnum::Enum, SurfParam> surfParams;
     OptionalParameter* leftMetricOpt = myParams->getOptionalParameter(3);
     if (leftMetricOpt->m_present)
     {
@@ -121,6 +129,7 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
         {
             leftRoi = leftRoiOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(leftData, leftRoi);
     }
     OptionalParameter* rightMetricOpt = myParams->getOptionalParameter(4);
     if (rightMetricOpt->m_present)
@@ -131,6 +140,7 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
         {
             rightRoi = rightRoiOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(rightData, rightRoi);
     }
     OptionalParameter* cerebMetricOpt = myParams->getOptionalParameter(5);
     if (cerebMetricOpt->m_present)
@@ -140,6 +150,22 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
         if (cerebRoiOpt->m_present)
         {
             cerebRoi = cerebRoiOpt->getMetric(1);
+        }
+        surfParams[StructureEnum::CEREBELLUM] = SurfParam(cerebData, cerebRoi);
+    }
+    auto genMetricOpts = myParams->getRepeatableParameterInstances(9);
+    for (auto instance : genMetricOpts)
+    {
+        bool ok = false;
+        StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
+        if (surfParams.find(structure) != surfParams.end()) throw AlgorithmException(instance->getString(1) + " structure specified more than once");
+        OptionalParameter* genRoiOpt = instance->getOptionalParameter(3);
+        if (genRoiOpt->m_present)
+        {
+            surfParams[structure] = SurfParam(instance->getMetric(2), genRoiOpt->getMetric(1));
+        } else {
+            surfParams[structure] = SurfParam(instance->getMetric(2));
         }
     }
     float timestep = 1.0f;
@@ -166,51 +192,46 @@ void AlgorithmCiftiCreateDenseTimeseries::useParameters(OperationParameters* myP
             throw AlgorithmException("unrecognized unit name: '" + unitName + "'");
         }
     }
-    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi, timestep, timestart, myUnit);
+    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, surfParams, timestep, timestart, myUnit);
 }
 
 AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
                                                                          const MetricFile* leftData, const MetricFile* leftRoi,
                                                                          const MetricFile* rightData, const MetricFile* rightRoi,
                                                                          const MetricFile* cerebData, const MetricFile* cerebRoi,
+                                                                         const float& timestep, const float& timestart, const CiftiSeriesMap::Unit& myUnit) : AbstractAlgorithm(NULL)
+{
+    map<StructureEnum::Enum, SurfParam> surfParams;
+    if (leftData != NULL) surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(leftData, leftRoi);
+    if (rightData != NULL) surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(rightData, rightRoi);
+    if (cerebData != NULL) surfParams[StructureEnum::CEREBELLUM] = SurfParam(cerebData, cerebRoi);
+    AlgorithmCiftiCreateDenseTimeseries(myProgObj, myCiftiOut, myVol, myVolLabel, surfParams, timestep, timestart, myUnit);
+}
+
+AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                                         const map<StructureEnum::Enum, SurfParam> surfParams,
                                                                          const float& timestep, const float& timestart, const CiftiSeriesMap::Unit& myUnit) : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
-    CiftiBrainModelsMap denseMap = makeDenseMapping(myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    CiftiBrainModelsMap denseMap = makeDenseMapping(myVol, myVolLabel, surfParams);
     CiftiXML myXML;
     myXML.setNumberOfDimensions(2);
     myXML.setMap(CiftiXML::ALONG_COLUMN, denseMap);
     int numMaps = -1;
     const PaletteColorMapping* myPalette = NULL;
-    if (leftData != NULL)
-    {
-        numMaps = leftData->getNumberOfMaps();
-        myPalette = leftData->getMapPaletteColorMapping(0);
-    }
-    if (rightData != NULL)
+    StructureEnum::Enum firstSurf = StructureEnum::INVALID;
+    for (auto param : surfParams)
     {
         if (numMaps == -1)
         {
-            numMaps = rightData->getNumberOfMaps();
-            myPalette = rightData->getMapPaletteColorMapping(0);
+            numMaps = param.second.data->getNumberOfMaps();
+            myPalette = param.second.data->getMapPaletteColorMapping(0);
+            firstSurf = param.first;
         } else {
-            if (numMaps != rightData->getNumberOfMaps())
+            if (numMaps != param.second.data->getNumberOfMaps())
             {
-                throw AlgorithmException("right and left surface data have a different number of maps");
-            }
-        }
-    }
-    if (cerebData != NULL)
-    {
-        if (numMaps == -1)
-        {
-            numMaps = cerebData->getNumberOfMaps();
-            myPalette = cerebData->getMapPaletteColorMapping(0);
-        } else {
-            if (numMaps != cerebData->getNumberOfMaps())
-            {
-                throw AlgorithmException("cerebellum surface data has a different number of maps");
+                throw AlgorithmException(StructureEnum::toName(firstSurf) + " and " + StructureEnum::toName(param.first) + " surface data have a different number of maps");
             }
         }
     }
@@ -248,21 +269,7 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     for (int whichStruct = 0; whichStruct < (int)surfStructs.size(); ++whichStruct)
     {
         vector<CiftiBrainModelsMap::SurfaceMap> surfMap = myDenseMap.getSurfaceMap(surfStructs[whichStruct]);
-        const MetricFile* dataMetric = NULL;
-        switch (surfStructs[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                dataMetric = leftData;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                dataMetric = rightData;
-                break;
-            case StructureEnum::CEREBELLUM:
-                dataMetric = cerebData;
-                break;
-            default:
-                CaretAssert(false);
-        }
+        const MetricFile* dataMetric = surfParams.find(surfStructs[whichStruct])->second.data; //we built the map from these inputs, so it should be in there
         for (int64_t i = 0; i < (int)surfMap.size(); ++i)
         {
             for (int t = 0; t < numMaps; ++t)
@@ -288,48 +295,33 @@ CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const 
                                                            const MetricFile* rightData, const MetricFile* rightRoi,
                                                            const MetricFile* cerebData, const MetricFile* cerebRoi)
 {
+    map<StructureEnum::Enum, SurfParam> surfParams;
+    if (leftData != NULL) surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(leftData, leftRoi);
+    if (rightData != NULL) surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(rightData, rightRoi);
+    if (cerebData != NULL) surfParams[StructureEnum::CEREBELLUM] = SurfParam(cerebData, cerebRoi);
+    return makeDenseMapping(myVol, myVolLabel, surfParams);
+}
+
+CiftiBrainModelsMap AlgorithmCiftiCreateDenseTimeseries::makeDenseMapping(const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                           const std::map<StructureEnum::Enum, SurfParam> surfParams)
+{
     bool noData = true;
     CiftiBrainModelsMap denseMap;
-    if (leftData != NULL)
+    for (auto param : surfParams)
     {
-        noData = false;
-        if (leftRoi == NULL)
-        {
-            denseMap.addSurfaceModel(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
-        } else {
-            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
+        if (param.second.data != NULL)
+        {//silently ignore NULL surface parameters, I guess?
+            noData = false;
+            if (param.second.roi == NULL)
             {
-                throw AlgorithmException("left surface ROI and data have different vertex counts");
+                denseMap.addSurfaceModel(param.second.data->getNumberOfNodes(), param.first);
+            } else {
+                if (param.second.data->getNumberOfNodes() != param.second.roi->getNumberOfNodes())
+                {
+                    throw AlgorithmException(StructureEnum::toName(param.first) + " surface ROI and data have different vertex counts");
+                }
+                denseMap.addSurfaceModel(param.second.data->getNumberOfNodes(), param.first, param.second.roi->getValuePointerForColumn(0));
             }
-            denseMap.addSurfaceModel(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (rightData != NULL)
-    {
-        noData = false;
-        if (rightRoi == NULL)
-        {
-            denseMap.addSurfaceModel(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
-        } else {
-            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
-            {
-                throw AlgorithmException("right surface ROI and data have different vertex counts");
-            }
-            denseMap.addSurfaceModel(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (cerebData != NULL)
-    {
-        noData = false;
-        if (cerebRoi == NULL)
-        {
-            denseMap.addSurfaceModel(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
-        } else {
-            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
-            {
-                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
-            }
-            denseMap.addSurfaceModel(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
         }
     }
     if (myVol != NULL)

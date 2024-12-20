@@ -39,19 +39,25 @@ public:
     /**
      * Enumerated values.
      */
+    //TSC: WARNING: the order of these determines the standard order of the structures in some -cifti-create-* commands, DO NOT reorder any *existing* entries
     enum Enum {
-        /** Invalid */
-        INVALID,
+        /** Left Cerebral Cortex */
+        CORTEX_LEFT,
+        /** Right Cerebral Cortex*/
+        CORTEX_RIGHT,
+        /** Cerebellum */
+        CEREBELLUM,
+        //matching accumbens to getAll order for consistency (getAll's effects were more visible in prior releases) - yes, it is a bit silly
+        /** Left Nucleus Accumbens */
+        ACCUMBENS_LEFT,
+        /** Right Nucleus Accumbens */
+        ACCUMBENS_RIGHT,
         /** All Strucures */
         ALL,
         /** All white matter */
         ALL_WHITE_MATTER,
         /** All grey matter */
         ALL_GREY_MATTER,
-        /** Left Nucleus Accumbens */
-        ACCUMBENS_LEFT,
-        /** Right Nucleus Accumbens */
-        ACCUMBENS_RIGHT,
         /** Left Amygdala */
         AMYGDALA_LEFT,
         /** Right Amygdala */
@@ -66,8 +72,6 @@ public:
         CEREBELLAR_WHITE_MATTER_LEFT,
         /** Cerebellar white matter right */
         CEREBELLAR_WHITE_MATTER_RIGHT,
-        /** Cerebellum */
-        CEREBELLUM,
         /** Left Cerebellum */
         CEREBELLUM_LEFT,
         /** Right Cerebellum */
@@ -78,10 +82,6 @@ public:
         CEREBRAL_WHITE_MATTER_RIGHT,
         /** Cortex not specified */
         CORTEX,
-        /** Left Cerebral Cortex */
-        CORTEX_LEFT,
-        /** Right Cerebral Cortex*/
-        CORTEX_RIGHT,
         /** Left Ventral Diencephalon */
         DIENCEPHALON_VENTRAL_LEFT,
         /** Right Ventral Diencephalon */
@@ -98,6 +98,8 @@ public:
         PALLIDUM_LEFT,
         /** Right Pallidum */
         PALLIDUM_RIGHT,
+        /** Invalid */
+        INVALID,
         /** Other structure not specified */
         OTHER,
         /** Other grey matter */

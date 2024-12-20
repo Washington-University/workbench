@@ -47,7 +47,7 @@ namespace caret {
                                 const CiftiFile* roiCifti = NULL, bool fixZerosVol = false, bool fixZerosSurf = false,
                                 const bool& mergedVolume = false);
         AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, const int& myDir, CiftiFile* myCiftiOut,
-                                const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
+                                const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL,
                                 const CiftiFile* roiCifti = NULL, bool fixZerosVol = false, bool fixZerosSurf = false,
                                 const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL, const bool& mergedVolume = false);
         static OperationParameters* getParameters();
