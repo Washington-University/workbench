@@ -134,7 +134,7 @@ ChooseBorderFocusFromFileDialog::createModeSelectionWidget()
     m_modeButtonGroup->setExclusive(true);
     m_modeButtonGroup->addButton(m_modeClassRadioButton);
     m_modeButtonGroup->addButton(m_modeNameRadioButton);
-    QObject::connect(m_modeButtonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(m_modeButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                      this, &ChooseBorderFocusFromFileDialog::modeButtonGroupButtonClicked);
     
     QGroupBox* groupBox(new QGroupBox("Mode"));
@@ -161,7 +161,7 @@ ChooseBorderFocusFromFileDialog::createClassAndNameSelectionWidget()
         QLabel* classLabel(new QLabel("Class: "));
         m_classWidgetClassSelectionComboBox = new QComboBox();
         setToolTipText(m_classWidgetClassSelectionComboBox, ToolTip::CLASS_SELECTION_CLASS_COMBO_BOX);
-        QObject::connect(m_classWidgetClassSelectionComboBox, &QComboBox::activated,
+        QObject::connect(m_classWidgetClassSelectionComboBox, QOverload<int>::of(&QComboBox::activated),
                          this, &ChooseBorderFocusFromFileDialog::classWidgetClassComboBoxActivated);
         
         QLabel* nameLabel(new QLabel("Name: "));
@@ -188,7 +188,7 @@ ChooseBorderFocusFromFileDialog::createClassAndNameSelectionWidget()
         QLabel* nameLabel(new QLabel("Name: "));
         m_nameWidgetNameSelectionComboBox  = new QComboBox();
         setToolTipText(m_nameWidgetNameSelectionComboBox, ToolTip::NAME_SELECTION_NAME_COMBO_BOX);
-        QObject::connect(m_nameWidgetNameSelectionComboBox, &QComboBox::activated,
+        QObject::connect(m_nameWidgetNameSelectionComboBox, QOverload<int>::of(&QComboBox::activated),
                          this, &ChooseBorderFocusFromFileDialog::nameWidgetNameComboBoxActivated);
 
         m_nameWidget = new QWidget();

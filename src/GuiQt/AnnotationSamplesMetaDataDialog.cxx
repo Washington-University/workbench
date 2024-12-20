@@ -502,7 +502,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QButtonGroup* sampleLocationButtonGroup(new QButtonGroup(this));
     sampleLocationButtonGroup->addButton(m_sampleLocationActualRadioButton);
     sampleLocationButtonGroup->addButton(m_sampleLocationDesiredRadioButton);
-    QObject::connect(sampleLocationButtonGroup, &QButtonGroup::buttonClicked,
+    QObject::connect(sampleLocationButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
                      [=](QAbstractButton* button) { 
         if (button == m_sampleLocationActualRadioButton) {
             m_sampleMetaData->setSampleLocation(AnnotationSampleMetaData::LocationEnum::ACTUAL);
