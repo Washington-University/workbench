@@ -1164,12 +1164,14 @@ AnnotationSamplesMetaDataDialog::finishCreatingNewSample()
 bool
 AnnotationSamplesMetaDataDialog::finishEditingExistingSample()
 {
-    AString metaDataErrorMessage;
-    if ( ! m_sampleMetaData->validateMetaData(metaDataErrorMessage)) {
-        WuQMessageBoxTwo::critical(this,
-                                   "Invalid Metadata",
-                                   metaDataErrorMessage);
-        return false;
+    if (m_requireMetaDataCheckBox->isChecked()) {
+        AString metaDataErrorMessage;
+        if ( ! m_sampleMetaData->validateMetaData(metaDataErrorMessage)) {
+            WuQMessageBoxTwo::critical(this,
+                                       "Invalid Metadata",
+                                       metaDataErrorMessage);
+            return false;
+        }
     }
 
     /*

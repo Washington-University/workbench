@@ -28,9 +28,13 @@
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMenu>
 #include <QToolButton>
 
+#include "AnnotationManager.h"
 #include "AnnotationPolyhedron.h"
+#include "AnnotationSampleMetaData.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindow.h"
@@ -176,18 +180,27 @@ m_browserWindowIndex(browserWindowIndex)
     WuQtUtilities::matchWidgetWidths(m_lowerSliceOffsetSpinBox,
                                      m_upperSliceOffsetSpinBox);
     
+    m_selectAction = new QAction("Metadata...");
+    m_selectAction->setToolTip("Display menu listing all Samples; \nselect to edit metadata");
+    QObject::connect(m_selectAction, &QAction::triggered,
+                     this, &AnnotationSamplesInsertNewWidget::selectActionTriggered);
+    m_selectToolButton = new QToolButton();
+    m_selectToolButton->setDefaultAction(m_selectAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_selectToolButton);
+    
     QWidget* samplesWidget(new QWidget());
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
     samplesLayout->addWidget(newSampleToolButton);
-    samplesLayout->addStretch();
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
     samplesLayout->addSpacing(4);
     samplesLayout->addWidget(m_upperSliceOffsetLabel);
     samplesLayout->addWidget(m_upperSliceOffsetSpinBox);
     samplesLayout->addWidget(m_lowerSliceOffsetLabel);
     samplesLayout->addWidget(m_lowerSliceOffsetSpinBox);
-    
+    samplesLayout->addStretch();
+    samplesLayout->addWidget(m_selectToolButton);
+
     QWidget* fileWidget(new QWidget());
     QHBoxLayout* fileLayout(new QHBoxLayout(fileWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(fileLayout, 2, 0);
@@ -299,6 +312,8 @@ AnnotationSamplesInsertNewWidget::updateContent()
         }
     }
     m_saveFileAction->setEnabled(saveEnabledFlag);
+    
+    m_selectAction->setEnabled( ! getAllPolyhedrons().empty());
 }
 
 /**
@@ -483,3 +498,57 @@ AnnotationSamplesInsertNewWidget::saveFileActionTriggered()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
+/**
+ * @return All polyhedrons in memory
+ */
+std::vector<AnnotationPolyhedron*>
+AnnotationSamplesInsertNewWidget::getAllPolyhedrons()
+{
+    std::vector<AnnotationPolyhedron*> polyhedrons;
+    
+    const AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING));
+    const std::vector<Annotation*> allAnnotations(annMan->getAllAnnotations());
+    for (const auto& ann : allAnnotations) {
+        AnnotationPolyhedron* ap(ann->castToPolyhedron());
+        if (ap != NULL) {
+            polyhedrons.push_back(ap);
+        }
+    }
+
+    return polyhedrons;
+}
+
+/**
+ * Called when select tool button action is triggered
+ */
+void
+AnnotationSamplesInsertNewWidget::selectActionTriggered()
+{
+    std::vector<std::pair<QAction*, AnnotationPolyhedron*>> menuActionSamples;
+    
+    QMenu menu(this);
+    
+    std::vector<AnnotationPolyhedron*> polyhedrons(getAllPolyhedrons());
+    for (AnnotationPolyhedron* ap : polyhedrons) {
+        const AnnotationSampleMetaData* asmd(ap->getSampleMetaData());
+        CaretAssert(asmd);
+        const AString text(asmd->getSampleNumber()
+                           + " "
+                           + asmd->getSampleName());
+        
+        menuActionSamples.emplace_back(menu.addAction(text),
+                                       ap);
+    }
+    
+    QAction* actionSelected(menu.exec(m_selectToolButton->mapToGlobal(QPoint(0, 0))));
+    if (actionSelected != NULL) {
+        for (const auto& ap : menuActionSamples) {
+            if (ap.first == actionSelected) {
+                AnnotationSamplesMetaDataDialog dialog(ap.second,
+                                                       m_selectToolButton);
+                dialog.exec();
+                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            }
+        }
+    }
+}

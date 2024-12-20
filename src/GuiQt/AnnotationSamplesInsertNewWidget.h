@@ -32,9 +32,13 @@
 
 class QComboBox;
 class QLabel;
+class QMenu;
 class QSpinBox;
+class QToolButton;
 
 namespace caret {
+    class AnnotationPolyhedron;
+    class AnnotationSampleMetaData;
     class SamplesFile;
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
@@ -76,9 +80,13 @@ namespace caret {
         
         void upperSliceOffsetSpinBoxValueChanged(int value);
         
+        void selectActionTriggered();
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        std::vector<AnnotationPolyhedron*> getAllPolyhedrons();
+
         std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox = NULL;
@@ -99,8 +107,12 @@ namespace caret {
         QLabel* m_upperSliceOffsetLabel = NULL;
         QSpinBox* m_upperSliceOffsetSpinBox = NULL;
         
+        QAction* m_selectAction = NULL;
+        
         QAction* m_saveFileAction = NULL;
 
+        QToolButton* m_selectToolButton;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
