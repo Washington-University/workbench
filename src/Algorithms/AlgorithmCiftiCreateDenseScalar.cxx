@@ -59,12 +59,12 @@ OperationParameters* AlgorithmCiftiCreateDenseScalar::getParameters()
     volumeOpt->addVolumeParameter(1, "volume-data", "volume file containing all voxel data for all volume structures");
     volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file containing labels for cifti structures");
     
-    OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for left surface");
+    OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for the left surface");
     leftMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* leftRoiOpt = leftMetricOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for right surface");
+    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for the right surface");
     rightMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* rightRoiOpt = rightMetricOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
@@ -74,7 +74,7 @@ OperationParameters* AlgorithmCiftiCreateDenseScalar::getParameters()
     OptionalParameter* cerebRoiOpt = cerebMetricOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    ParameterComponent* genMetricOpt = ret->createRepeatableParameter(7, "-metric", "metric for a specified structure");
+    ParameterComponent* genMetricOpt = ret->createRepeatableParameter(7, "-metric", "metric for a specified surface structure");
     genMetricOpt->addStringParameter(1, "structure", "the structure name");
     genMetricOpt->addMetricParameter(2, "metric", "the metric file");
     OptionalParameter* genRoiopt = genMetricOpt->createOptionalParameter(3, "-roi", "roi of vertices to use from this structure");

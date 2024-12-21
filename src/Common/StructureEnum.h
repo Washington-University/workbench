@@ -54,10 +54,10 @@ public:
         ACCUMBENS_RIGHT,
         /** All Strucures */
         ALL,
-        /** All white matter */
-        ALL_WHITE_MATTER,
         /** All grey matter */
         ALL_GREY_MATTER,
+        /** All white matter */
+        ALL_WHITE_MATTER,
         /** Left Amygdala */
         AMYGDALA_LEFT,
         /** Right Amygdala */

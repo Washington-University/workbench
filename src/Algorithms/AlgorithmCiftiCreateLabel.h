@@ -23,6 +23,10 @@
 
 #include "AbstractAlgorithm.h"
 
+#include "StructureEnum.h"
+
+#include <map>
+
 namespace caret {
     
     class AlgorithmCiftiCreateLabel : public AbstractAlgorithm
@@ -32,10 +36,19 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol,
-                                  const VolumeFile* myVolLabel, const LabelFile* leftData, const MetricFile* leftRoi,
-                                  const LabelFile* rightData, const MetricFile* rightRoi, const LabelFile* cerebData,
-                                  const MetricFile* cerebRoi);
+        struct SurfParam
+        {
+            const LabelFile* data;
+            const MetricFile* roi;
+            SurfParam() { data = NULL; roi = NULL; }
+            SurfParam(const LabelFile* dataIn, const MetricFile* roiIn = NULL) { data = dataIn; roi = roiIn; }
+        };
+        AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                  const LabelFile* leftData, const MetricFile* leftRoi = NULL,
+                                  const LabelFile* rightData = NULL, const MetricFile* rightRoi = NULL,
+                                  const LabelFile* cerebData = NULL, const MetricFile* cerebRoi = NULL);
+        AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol = NULL, const VolumeFile* myVolLabel = NULL,
+                                  const std::map<StructureEnum::Enum, SurfParam> surfParams = std::map<StructureEnum::Enum, AlgorithmCiftiCreateLabel::SurfParam>());
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

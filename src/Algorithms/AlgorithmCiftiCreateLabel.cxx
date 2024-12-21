@@ -27,9 +27,8 @@
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "StructureEnum.h"
 #include "VolumeFile.h"
-#include <map>
+
 #include <vector>
 #include <cmath>
 
@@ -55,20 +54,26 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     volumeOpt->addVolumeParameter(1, "label-volume", "label volume file containing the data to be copied");
     volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file that defines which voxels to use");
     
-    OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for left surface");
+    OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for the left surface");
     leftLabelOpt->addLabelParameter(1, "label", "the label file");
     OptionalParameter* leftRoiOpt = leftLabelOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* rightLabelOpt = ret->createOptionalParameter(4, "-right-label", "label for left surface");
+    OptionalParameter* rightLabelOpt = ret->createOptionalParameter(4, "-right-label", "label file for the right surface");
     rightLabelOpt->addLabelParameter(1, "label", "the label file");
     OptionalParameter* rightRoiOpt = rightLabelOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* cerebLabelOpt = ret->createOptionalParameter(5, "-cerebellum-label", "label for the cerebellum");
+    OptionalParameter* cerebLabelOpt = ret->createOptionalParameter(5, "-cerebellum-label", "label file for the cerebellum");
     cerebLabelOpt->addLabelParameter(1, "label", "the label file");
     OptionalParameter* cerebRoiOpt = cerebLabelOpt->createOptionalParameter(2, "-roi-cerebellum", "roi of vertices to use from right surface");
     cerebRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
+    
+    ParameterComponent* genLabelOpt = ret->createRepeatableParameter(6, "-label", "label for a specified surface structure");
+    genLabelOpt->addStringParameter(1, "structure", "the structure name");
+    genLabelOpt->addLabelParameter(2, "label", "the label file");
+    OptionalParameter* genRoiOpt = genLabelOpt->createOptionalParameter(3, "-roi", "roi of vertices to use from this structure");
+    genRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
     AString myText = AString("All input files must have the same number of columns/subvolumes.  Only the specified components will be in the output cifti.  ") +
         "At least one component must be specified.\n\n" +
@@ -100,6 +105,7 @@ void AlgorithmCiftiCreateLabel::useParameters(OperationParameters* myParams, Pro
     }
     LabelFile* leftData = NULL, *rightData = NULL, *cerebData = NULL;
     MetricFile* leftRoi = NULL, *rightRoi = NULL, *cerebRoi = NULL;
+    map<StructureEnum::Enum, SurfParam> surfParams;
     OptionalParameter* leftLabelOpt = myParams->getOptionalParameter(3);
     if (leftLabelOpt->m_present)
     {
@@ -109,6 +115,7 @@ void AlgorithmCiftiCreateLabel::useParameters(OperationParameters* myParams, Pro
         {
             leftRoi = leftRoiOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(leftData, leftRoi);
     }
     OptionalParameter* rightLabelOpt = myParams->getOptionalParameter(4);
     if (rightLabelOpt->m_present)
@@ -119,6 +126,7 @@ void AlgorithmCiftiCreateLabel::useParameters(OperationParameters* myParams, Pro
         {
             rightRoi = rightRoiOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(rightData, rightRoi);
     }
     OptionalParameter* cerebLabelOpt = myParams->getOptionalParameter(5);
     if (cerebLabelOpt->m_present)
@@ -129,76 +137,68 @@ void AlgorithmCiftiCreateLabel::useParameters(OperationParameters* myParams, Pro
         {
             cerebRoi = cerebRoiOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CEREBELLUM] = SurfParam(cerebData, cerebRoi);
     }
-    AlgorithmCiftiCreateLabel(myProgObj, myCiftiOut, myVol, myVolLabel, leftData, leftRoi, rightData, rightRoi, cerebData, cerebRoi);
+    auto genLabelOpts = myParams->getRepeatableParameterInstances(6);
+    for (auto instance : genLabelOpts)
+    {
+        bool ok = false;
+        StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
+        if (surfParams.find(structure) != surfParams.end()) throw AlgorithmException(instance->getString(1) + " structure specified more than once");
+        OptionalParameter* genRoiOpt = instance->getOptionalParameter(3);
+        if (genRoiOpt->m_present)
+        {
+            surfParams[structure] = SurfParam(instance->getLabel(2), genRoiOpt->getMetric(1));
+        } else {
+            surfParams[structure] = SurfParam(instance->getLabel(2));
+        }
+    }
+    AlgorithmCiftiCreateLabel(myProgObj, myCiftiOut, myVol, myVolLabel, surfParams);
 }
 
-AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol,
-                                                                         const VolumeFile* myVolLabel, const LabelFile* leftData, const MetricFile* leftRoi,
-                                                                         const LabelFile* rightData, const MetricFile* rightRoi, const LabelFile* cerebData,
-                                                                         const MetricFile* cerebRoi) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                     const LabelFile* leftData, const MetricFile* leftRoi,
+                                                     const LabelFile* rightData, const MetricFile* rightRoi,
+                                                     const LabelFile* cerebData, const MetricFile* cerebRoi) : AbstractAlgorithm(NULL)
+{
+    map<StructureEnum::Enum, SurfParam> surfParams;
+    if (leftData != NULL) surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(leftData, leftRoi);
+    if (rightData != NULL) surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(rightData, rightRoi);
+    if (cerebData != NULL) surfParams[StructureEnum::CEREBELLUM] = SurfParam(cerebData, cerebRoi);
+    AlgorithmCiftiCreateLabel(myProgObj, myCiftiOut, myVol, myVolLabel, surfParams);
+}
+
+AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, CiftiFile* myCiftiOut, const VolumeFile* myVol, const VolumeFile* myVolLabel,
+                                                     const map<StructureEnum::Enum, SurfParam> surfParams) : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(myCiftiOut != NULL);
     LevelProgress myProgress(myProgObj);
     CiftiXMLOld myXML;
     myXML.resetColumnsToBrainModels();
     int numMaps = -1;
-    if (leftData != NULL)
-    {
-        numMaps = leftData->getNumberOfMaps();
-        if (leftRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
-        } else {
-            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
-            {
-                throw AlgorithmException("left surface ROI and data have different vertex counts");
-            }
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (rightData != NULL)
+    StructureEnum::Enum firstSurf = StructureEnum::INVALID;
+    for (auto param : surfParams)
     {
         if (numMaps == -1)
         {
-            numMaps = rightData->getNumberOfMaps();
+            numMaps = param.second.data->getNumberOfMaps();
+            firstSurf = param.first;
         } else {
-            if (numMaps != rightData->getNumberOfMaps())
+            if (numMaps != param.second.data->getNumberOfMaps())
             {
-                throw AlgorithmException("right and left surface data have a different number of maps");
+                throw AlgorithmException(StructureEnum::toName(firstSurf) + " and " + StructureEnum::toName(param.first) + " surface data have a different number of maps");
             }
         }
-        if (rightRoi == NULL)
+        if (param.second.roi == NULL)
         {
-            myXML.addSurfaceModelToColumns(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
+            myXML.addSurfaceModelToColumns(param.second.data->getNumberOfNodes(), param.first);
         } else {
-            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
+            if (param.second.roi->getNumberOfNodes() != param.second.data->getNumberOfNodes())
             {
-                throw AlgorithmException("right surface ROI and data have different vertex counts");
+                throw AlgorithmException(StructureEnum::toName(param.first) + " surface ROI and data have different vertex counts");
             }
-            myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (cerebData != NULL)
-    {
-        if (numMaps == -1)
-        {
-            numMaps = cerebData->getNumberOfMaps();
-        } else {
-            if (numMaps != cerebData->getNumberOfMaps())
-            {
-                throw AlgorithmException("cerebellum surface data has a different number of maps");
-            }
-        }
-        if (cerebRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
-        } else {
-            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
-            {
-                throw AlgorithmException("cerebellum surface ROI and data have different vertex counts");
-            }
-            myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
+            myXML.addSurfaceModelToColumns(param.second.data->getNumberOfNodes(), param.first, param.second.roi->getValuePointerForColumn(0));
         }
     }
     if (myVol != NULL)
@@ -293,36 +293,19 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         throw AlgorithmException("no models specified");
     }
     myXML.resetRowsToLabels(numMaps);
-    vector<map<int32_t, int32_t> > surfLeftConvert(numMaps), surfRightConvert(numMaps), surfCerebConvert(numMaps), volConvert(numMaps);//surfLeftConvert could just be a set, but for consistency...
+    vector<map<int32_t, int32_t> > volConvert(numMaps);//surfLeftConvert could just be a set, but for consistency...
+    map<StructureEnum::Enum, vector<map<int32_t, int32_t> > > surfConversions;
     for (int i = 0; i < numMaps; ++i)
     {
         GiftiLabelTable mapTable;//NOTE: this relies on GiftiLabelTable::append doing the right thing
         bool first = true;
-        if (leftData != NULL)
+        for (auto param : surfParams)
         {
-            surfLeftConvert[i] = mapTable.append(*(leftData->getMapLabelTable(i)));//in case label files ever move to one table per map
+            surfConversions[param.first].push_back(mapTable.append(*(param.second.data->getMapLabelTable(i))));//in case label files ever move to one table per map
             if (first)
             {
                 first = false;
-                myXML.setMapNameForRowIndex(i, leftData->getColumnName(i));
-            }
-        }
-        if (rightData != NULL)
-        {
-            surfRightConvert[i] = mapTable.append(*(rightData->getMapLabelTable(i)));
-            if (first)
-            {
-                first = false;
-                myXML.setMapNameForRowIndex(i, rightData->getColumnName(i));
-            }
-        }
-        if (cerebData != NULL)
-        {
-            surfCerebConvert[i] = mapTable.append(*(cerebData->getMapLabelTable(i)));
-            if (first)
-            {
-                first = false;
-                myXML.setMapNameForRowIndex(i, cerebData->getColumnName(i));
+                myXML.setMapNameForRowIndex(i, param.second.data->getColumnName(i));
             }
         }
         if (myVol != NULL)
@@ -339,50 +322,18 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
     vector<CiftiSurfaceMap> surfMap;
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_LEFT))
+    for (auto param : surfParams)
     {
+        bool ok = myXML.getSurfaceMapForColumns(surfMap, param.first);
+        CaretAssert(ok);
         for (int64_t i = 0; i < (int)surfMap.size(); ++i)
         {
             for (int t = 0; t < numMaps; ++t)
             {
-                map<int32_t, int32_t>::iterator iter = surfLeftConvert[t].find(leftData->getLabelKey(surfMap[i].m_surfaceNode, t));
-                if (iter == surfLeftConvert[t].end())
-                {
-                    temprow[t] = 0;//NOTE: this relies on 0 being the unused label, from the default constructor of the label table, and not being overwritten by append
-                } else {
-                    temprow[t] = iter->second;
-                }
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
-        }
-    }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_RIGHT))
-    {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                map<int32_t, int32_t>::iterator iter = surfRightConvert[t].find(rightData->getLabelKey(surfMap[i].m_surfaceNode, t));
-                if (iter == surfRightConvert[t].end())
-                {
-                    temprow[t] = 0;
-                } else {
-                    temprow[t] = iter->second;
-                }
-            }
-            myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
-        }
-    }
-    if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CEREBELLUM))
-    {
-        for (int64_t i = 0; i < (int)surfMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                map<int32_t, int32_t>::iterator iter = surfCerebConvert[t].find(cerebData->getLabelKey(surfMap[i].m_surfaceNode, t));
-                if (iter == surfCerebConvert[t].end())
-                {
-                    temprow[t] = 0;
+                auto iter = surfConversions[param.first][t].find(param.second.data->getLabelKey(surfMap[i].m_surfaceNode, t));
+                if (iter == surfConversions[param.first][t].end())
+                {//the conversion map also contains the identity mapping of keys that were used as-is, so anything not in it is bogus
+                    temprow[t] = myXML.getLabelTableForRowIndex(t)->getUnassignedLabelKey();
                 } else {
                     temprow[t] = iter->second;
                 }
@@ -397,10 +348,10 @@ AlgorithmCiftiCreateLabel::AlgorithmCiftiCreateLabel(ProgressObject* myProgObj, 
         {
             for (int t = 0; t < numMaps; ++t)
             {
-                map<int32_t, int32_t>::iterator iter = volConvert[t].find(myVol->getValue(volMap[i].m_ijk, t));
+                auto iter = volConvert[t].find(myVol->getValue(volMap[i].m_ijk, t));
                 if (iter == volConvert[t].end())
                 {
-                    temprow[t] = 0;
+                    temprow[t] = myXML.getLabelTableForRowIndex(t)->getUnassignedLabelKey();
                 } else {
                     temprow[t] = iter->second;
                 }
