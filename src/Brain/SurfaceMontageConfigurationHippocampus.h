@@ -106,6 +106,9 @@ namespace caret {
                                              const SceneClass* sceneClass);
         
     private:
+        void initializeSelectionModel(const StructureEnum::Enum structure,
+                                      SurfaceSelectionModel* surfaceSelectionModel);
+        
         SceneClassAssistant* m_sceneAssistant;
 
         SurfaceSelectionModel* m_leftFirstSurfaceSelectionModel;

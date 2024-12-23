@@ -39,7 +39,7 @@ using namespace caret;
     
 /**
  * \class caret::SurfaceMontageConfigurationHippocampus 
- * \brief Surface montage cerebral cortext configuration.
+ * \brief Surface montage hippocampus configuration.
  * \ingroup Brain
  */
 
@@ -120,42 +120,40 @@ SurfaceMontageConfigurationHippocampus::~SurfaceMontageConfigurationHippocampus(
 }
 
 /**
+ * Initialize the given surface selection model to the anatomical surface in the given structure
+ */
+void
+SurfaceMontageConfigurationHippocampus::initializeSelectionModel(const StructureEnum::Enum structure,
+                                                                 SurfaceSelectionModel* surfaceSelectionModel)
+{
+    EventBrainStructureGetAll brainStructureEvent;
+    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
+    
+    Surface* anatSurface = NULL;
+    BrainStructure* brainStructure = brainStructureEvent.getBrainStructureByStructure(structure);
+    if (brainStructure != NULL) {
+        anatSurface = brainStructure->getPrimaryAnatomicalSurface();
+    }
+    
+    surfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
+    if (anatSurface != NULL) {
+        surfaceSelectionModel->setSurface(anatSurface);
+    }
+}
+/**
  * Initialize the selected surfaces.
  */
 void
 SurfaceMontageConfigurationHippocampus::initializeSelectedSurfaces()
 {
-    EventBrainStructureGetAll brainStructureEvent;
-    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
-    
-    Surface* leftAnatSurface = NULL;
-    BrainStructure* leftBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_LEFT);
-    if (leftBrainStructure != NULL) {
-        leftAnatSurface = leftBrainStructure->getPrimaryAnatomicalSurface();
-    }
-    
-    Surface* rightAnatSurface = NULL;
-    BrainStructure* rightBrainStructure = brainStructureEvent.getBrainStructureByStructure(StructureEnum::CORTEX_RIGHT);
-    if (rightBrainStructure != NULL) {
-        rightAnatSurface = rightBrainStructure->getPrimaryAnatomicalSurface();
-    }
-    
-    m_leftFirstSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
-    if (leftAnatSurface != NULL) {
-        m_leftFirstSurfaceSelectionModel->setSurface(leftAnatSurface);
-    }
-    
-    
-    m_leftSecondSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::INFLATED,
-                                                           SurfaceTypeEnum::VERY_INFLATED);
-    
-    m_rightFirstSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::ANATOMICAL);
-    if (rightAnatSurface != NULL) {
-        m_rightFirstSurfaceSelectionModel->setSurface(rightAnatSurface);
-    }
-    
-    m_rightSecondSurfaceSelectionModel->setSurfaceToType(SurfaceTypeEnum::INFLATED,
-                                                            SurfaceTypeEnum::VERY_INFLATED);
+    initializeSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
+                             m_leftFirstSurfaceSelectionModel);
+    initializeSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                             m_leftSecondSurfaceSelectionModel);
+    initializeSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
+                             m_rightFirstSurfaceSelectionModel);
+    initializeSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT,
+                             m_rightSecondSurfaceSelectionModel);
 }
 
 /**
@@ -165,7 +163,9 @@ bool
 SurfaceMontageConfigurationHippocampus::isValid()
 {
     const bool valid = ((getLeftFirstSurfaceSelectionModel()->getSurface() != NULL)
-                        || (getRightFirstSurfaceSelectionModel()->getSurface() != NULL));
+                        || (getRightFirstSurfaceSelectionModel()->getSurface() != NULL)
+                        || (getLeftSecondSurfaceSelectionModel()->getSurface() != NULL)
+                        || (getRightSecondSurfaceSelectionModel()->getSurface() != NULL));
     return valid;
 }
 
@@ -443,19 +443,6 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
     }
     
     CaretAssert(totalNum == static_cast<int32_t>(surfaceMontageViewports.size()));
-    
-//    std::cout << "Orientation: " << SurfaceMontageLayoutOrientationEnum::toName(getLayoutOrientation()) << std::endl;
-//    for (int32_t i = 0; i < numViewports; i++) {
-//        const SurfaceMontageViewport& svp = surfaceMontageViewports[i];
-//        std::cout << qPrintable("("
-//                                + AString::number(svp.getRow())
-//                                + ","
-//                                + AString::number(svp.getColumn())
-//                                + ") "
-//                                + ProjectionViewTypeEnum::toName(svp.getProjectionViewType()))
-//        << std::endl;
-//    }
-//    std::cout << std::endl;
 }
 
 /**
