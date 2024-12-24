@@ -54,12 +54,12 @@ OperationParameters* AlgorithmCiftiCreateLabel::getParameters()
     volumeOpt->addVolumeParameter(1, "label-volume", "label volume file containing the data to be copied");
     volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file that defines which voxels to use");
     
-    OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for the left surface");
+    OptionalParameter* leftLabelOpt = ret->createOptionalParameter(3, "-left-label", "label file for the left cortical surface");
     leftLabelOpt->addLabelParameter(1, "label", "the label file");
     OptionalParameter* leftRoiOpt = leftLabelOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* rightLabelOpt = ret->createOptionalParameter(4, "-right-label", "label file for the right surface");
+    OptionalParameter* rightLabelOpt = ret->createOptionalParameter(4, "-right-label", "label file for the right cortical surface");
     rightLabelOpt->addLabelParameter(1, "label", "the label file");
     OptionalParameter* rightRoiOpt = rightLabelOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");

@@ -55,12 +55,12 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
     
     ret->createOptionalParameter(13, "-fwhm", "kernel sizes are FWHM, not sigma");
     
-    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(6, "-left-surface", "specify the left surface to use");
+    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(6, "-left-surface", "specify the left cortical surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
     OptionalParameter* leftCorrAreasOpt = leftSurfOpt->createOptionalParameter(2, "-left-corrected-areas", "vertex areas to use instead of computing them from the left surface");
     leftCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
-    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(7, "-right-surface", "specify the right surface to use");
+    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(7, "-right-surface", "specify the right cortical surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     OptionalParameter* rightCorrAreasOpt = rightSurfOpt->createOptionalParameter(2, "-right-corrected-areas", "vertex areas to use instead of computing them from the right surface");
     rightCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");

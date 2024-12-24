@@ -56,12 +56,12 @@ OperationParameters* AlgorithmCiftiCreateDenseTimeseries::getParameters()
     volumeOpt->addVolumeParameter(1, "volume-data", "volume file containing all voxel data for all volume structures");
     volumeOpt->addVolumeParameter(2, "structure-label-volume", "label volume file containing labels for cifti structures");
     
-    OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for the left surface");
+    OptionalParameter* leftMetricOpt = ret->createOptionalParameter(3, "-left-metric", "metric for the left cortical surface");
     leftMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* leftRoiOpt = leftMetricOpt->createOptionalParameter(2, "-roi-left", "roi of vertices to use from left surface");
     leftRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
     
-    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for the right surface");
+    OptionalParameter* rightMetricOpt = ret->createOptionalParameter(4, "-right-metric", "metric for the right cortical surface");
     rightMetricOpt->addMetricParameter(1, "metric", "the metric file");
     OptionalParameter* rightRoiOpt = rightMetricOpt->createOptionalParameter(2, "-roi-right", "roi of vertices to use from right surface");
     rightRoiOpt->addMetricParameter(1, "roi-metric", "the ROI as a metric file");
