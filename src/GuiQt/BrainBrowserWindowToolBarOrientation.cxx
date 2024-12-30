@@ -512,6 +512,7 @@ BrainBrowserWindowToolBarOrientation::updateContent(BrowserTabContent* browserTa
                     break;
                 case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
                     enableDualViewOrientationButtons = true;
+                case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION:
                     break;
             }
             

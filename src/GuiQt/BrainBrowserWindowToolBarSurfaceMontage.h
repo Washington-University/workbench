@@ -35,6 +35,7 @@ namespace caret {
     class SurfaceMontageCerebralComponent;
     class SurfaceMontageFlatMapsComponent;
     class SurfaceMontageHippocampusComponent;
+    class SurfaceMontageHippocampusFlatMapsComponent;
     class SurfaceSelectionViewController;
     
     class BrainBrowserWindowToolBarSurfaceMontage : public BrainBrowserWindowToolBarComponent {
@@ -68,6 +69,8 @@ namespace caret {
         SurfaceMontageFlatMapsComponent* m_flatMapsComponent;
         
         SurfaceMontageHippocampusComponent* m_hippocampusComponent;
+        
+        SurfaceMontageHippocampusFlatMapsComponent* m_hippocampusFlatMapsComponent;
         
         QStackedWidget* m_stackedWidget;
         
@@ -224,6 +227,42 @@ namespace caret {
         WuQWidgetObjectGroup* m_widgetGroup;
     };
     
+    /* ===========================================================================*/
+    
+    class SurfaceMontageHippocampusFlatMapsComponent : public QWidget {
+        
+        Q_OBJECT
+        
+    public:
+        SurfaceMontageHippocampusFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                                   const QString& parentObjectNamePrefix);
+        
+        ~SurfaceMontageHippocampusFlatMapsComponent();
+        
+        void updateContent(BrowserTabContent* browserTabContent);
+        
+        private slots:
+        void leftSurfaceSelected(Surface*);
+        void leftSecondSurfaceSelected(Surface*);
+        void rightSurfaceSelected(Surface*);
+        void rightSecondSurfaceSelected(Surface*);
+        void checkBoxSelected(bool);
+        
+    private:
+        BrainBrowserWindowToolBarSurfaceMontage* m_parentToolBarMontage;
+        
+        SurfaceSelectionViewController* m_leftSurfaceViewController;
+        SurfaceSelectionViewController* m_leftSecondSurfaceViewController;
+        SurfaceSelectionViewController* m_rightSurfaceViewController;
+        SurfaceSelectionViewController* m_rightSecondSurfaceViewController;
+        QCheckBox* m_leftCheckBox;
+        QCheckBox* m_rightCheckBox;
+        QCheckBox* m_surfaceMontageFirstSurfaceCheckBox;
+        QCheckBox* m_surfaceMontageSecondSurfaceCheckBox;
+        
+        WuQWidgetObjectGroup* m_widgetGroup;
+    };
+
 
 #ifdef __BRAIN_BROWSER_WINDOW_TOOL_BAR_SURFACE_MONTAGE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

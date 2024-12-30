@@ -42,7 +42,9 @@ public:
         /** flat maps */
         FLAT_CONFIGURATION,
         /** L/R Hippocampus **/
-        HIPPOCAMPUS_CONFIGURATION
+        HIPPOCAMPUS_CONFIGURATION,
+        /** L/R Flat Hippocampus **/
+        HIPPOCAMPUS_FLAT_CONFIGURATION
     };
 
 

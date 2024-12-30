@@ -38,6 +38,7 @@
 #include "SurfaceMontageConfigurationCerebral.h"
 #include "SurfaceMontageConfigurationFlatMaps.h"
 #include "SurfaceMontageConfigurationHippocampus.h"
+#include "SurfaceMontageConfigurationHippocampusFlatMaps.h"
 #include "SurfaceMontageLayoutOrientationEnum.h"
 #include "SurfaceSelectionModel.h"
 #include "SurfaceSelectionViewController.h"
@@ -109,6 +110,9 @@ m_parentToolBar(parentToolBar)
     m_hippocampusComponent = new SurfaceMontageHippocampusComponent(this,
                                                                     objectNamePrefix);
     
+    m_hippocampusFlatMapsComponent = new SurfaceMontageHippocampusFlatMapsComponent(this,
+                                                                                    objectNamePrefix);
+    
     QHBoxLayout* configOrientationLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutSpacingAndMargins(configOrientationLayout, 2, 0);
     configOrientationLayout->addStretch();
@@ -123,6 +127,7 @@ m_parentToolBar(parentToolBar)
     m_stackedWidget->addWidget(m_cerebralComponent);
     m_stackedWidget->addWidget(m_flatMapsComponent);
     m_stackedWidget->addWidget(m_hippocampusComponent);
+    m_stackedWidget->addWidget(m_hippocampusFlatMapsComponent);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 0);
@@ -204,6 +209,9 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
     if (msm->getHippocampusConfiguration(tabIndex)->isValid()) {
         validConfigs.push_back(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION);
     }
+    if (msm->getHippocampusFlatMapsConfiguration(tabIndex)->isValid()) {
+        validConfigs.push_back(SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION);
+    }
     
     m_surfaceMontageConfigurationTypeEnumComboBox->setupWithItems<SurfaceMontageConfigurationTypeEnum,SurfaceMontageConfigurationTypeEnum::Enum>(validConfigs);
     SurfaceMontageConfigurationAbstract* selectedConfiguration = msm->getSelectedConfiguration(tabIndex);
@@ -228,8 +236,281 @@ BrainBrowserWindowToolBarSurfaceMontage::updateContent(BrowserTabContent* browse
             m_hippocampusComponent->updateContent(browserTabContent);
             m_stackedWidget->setCurrentWidget(m_hippocampusComponent);
             break;
+        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION:
+            m_hippocampusFlatMapsComponent->updateContent(browserTabContent);
+            m_stackedWidget->setCurrentWidget(m_hippocampusFlatMapsComponent);
+            break;
     }
 }
+
+
+
+
+/*
+ ********************************************************************************************
+ */
+
+/**
+ * \class caret::SurfaceMontageHippocampusFlatMapsComponent
+ * \brief Hippocampus Flat Maps Surface Montage Component of Brain Browser Window ToolBar
+ * \ingroup GuiQt
+ */
+
+/**
+ * Constructor.
+ *
+ * @param parentToolBar
+ *    parent toolbar.
+ * @param objectNamePrefix
+ *    Prefix name for naming objects
+ */
+SurfaceMontageHippocampusFlatMapsComponent::SurfaceMontageHippocampusFlatMapsComponent(BrainBrowserWindowToolBarSurfaceMontage* parentToolBarMontage,
+                                                                       const QString& parentObjectNamePrefix)
+: QWidget(parentToolBarMontage)
+{
+    const QString objectNamePrefix(parentObjectNamePrefix
+                                   + ":SurfaceHippocampusFlatMapsMontage");
+    
+    m_parentToolBarMontage = parentToolBarMontage;
+    
+    WuQMacroManager* macroManager = WuQMacroManager::instance();
+    
+    m_leftCheckBox = new QCheckBox("Left");
+    QObject::connect(m_leftCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(checkBoxSelected(bool)));
+    m_leftCheckBox->setObjectName(objectNamePrefix
+                                  + ":EnableLeft");
+    m_leftCheckBox->setToolTip("Enable Left Surfaces");
+    macroManager->addMacroSupportToObject(m_leftCheckBox,
+                                          "Enable left surface in hippocampus flat montage");
+    
+    m_rightCheckBox = new QCheckBox("Right");
+    QObject::connect(m_rightCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(checkBoxSelected(bool)));
+    m_rightCheckBox->setObjectName(objectNamePrefix
+                                   + ":EnableRight");
+    m_rightCheckBox->setToolTip("Enable Right Surface");
+    macroManager->addMacroSupportToObject(m_rightCheckBox,
+                                          "Enable right surface in hippocampus flat montage");
+        
+    m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
+    QObject::connect(m_surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(checkBoxSelected(bool)));
+    m_surfaceMontageFirstSurfaceCheckBox->setObjectName(objectNamePrefix
+                                                        + ":EnableFirstRowSurfaces");
+    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable First Surfaces");
+    macroManager->addMacroSupportToObject(m_surfaceMontageFirstSurfaceCheckBox,
+                                          "Enable first surface row in hippocampus flat montage");
+    
+    m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox(" ");
+    QObject::connect(m_surfaceMontageSecondSurfaceCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(checkBoxSelected(bool)));
+    m_surfaceMontageSecondSurfaceCheckBox->setObjectName(objectNamePrefix
+                                                         + ":EnableSecondRowSurfaces");
+    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Second Surfaces");
+    macroManager->addMacroSupportToObject(m_surfaceMontageSecondSurfaceCheckBox,
+                                          "Enable second row in hippocampus flat montage");
+    
+    m_leftSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                     objectNamePrefix
+                                                                     + ":SurfaceLeftTop",
+                                                                     "hippocampus flat montage left top");
+    QObject::connect(m_leftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(leftSurfaceSelected(Surface*)));
+    
+    m_leftSecondSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                           objectNamePrefix
+                                                                           + ":SurfaceLeftBottom",
+                                                                           "hippocampus flat montage left bottom");
+    QObject::connect(m_leftSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(leftSecondSurfaceSelected(Surface*)));
+    
+    m_rightSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                      objectNamePrefix
+                                                                      + ":SurfaceRightTop",
+                                                                      "hippocampus flat montage right top");
+    QObject::connect(m_rightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(rightSurfaceSelected(Surface*)));
+    
+    m_rightSecondSurfaceViewController = new SurfaceSelectionViewController(this,
+                                                                            objectNamePrefix
+                                                                            + ":SurfaceRightBottom",
+                                                                            "hippocampus flat montage right bottom");
+    QObject::connect(m_rightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(rightSecondSurfaceSelected(Surface*)));
+    
+    int32_t columnIndex = 0;
+    const int32_t COLUMN_ONE_TWO     = columnIndex++;
+    const int32_t COLUMN_INDEX_LEFT  = columnIndex++;
+    const int32_t COLUMN_INDEX_RIGHT = columnIndex++;
+    
+    QGridLayout* layout = new QGridLayout(this);
+    layout->setColumnStretch(0,   0);
+    layout->setColumnStretch(1, 100);
+    layout->setColumnStretch(2, 100);
+    WuQtUtilities::setLayoutSpacingAndMargins(layout, 4, 0);
+    int row = layout->rowCount();
+    layout->addWidget(m_surfaceMontageFirstSurfaceCheckBox, row, COLUMN_ONE_TWO);
+    layout->addWidget(m_leftSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
+    layout->addWidget(m_rightSurfaceViewController->getWidget(), row, COLUMN_INDEX_RIGHT);
+    row = layout->rowCount();
+    layout->addWidget(m_surfaceMontageSecondSurfaceCheckBox, row, COLUMN_ONE_TWO);
+    layout->addWidget(m_leftSecondSurfaceViewController->getWidget(), row, COLUMN_INDEX_LEFT);
+    layout->addWidget(m_rightSecondSurfaceViewController->getWidget(), row, COLUMN_INDEX_RIGHT);
+    row = layout->rowCount();
+    layout->addWidget(m_leftCheckBox, row, COLUMN_INDEX_LEFT, Qt::AlignHCenter);
+    layout->addWidget(m_rightCheckBox, row, COLUMN_INDEX_RIGHT, Qt::AlignHCenter);
+    row = layout->rowCount();
+    
+    m_widgetGroup = new WuQWidgetObjectGroup(this);
+    m_widgetGroup->add(m_leftSurfaceViewController->getWidget());
+    m_widgetGroup->add(m_leftSecondSurfaceViewController->getWidget());
+    m_widgetGroup->add(m_rightSurfaceViewController->getWidget());
+    m_widgetGroup->add(m_rightSecondSurfaceViewController->getWidget());
+    m_widgetGroup->add(m_surfaceMontageFirstSurfaceCheckBox);
+    m_widgetGroup->add(m_surfaceMontageSecondSurfaceCheckBox);
+    m_widgetGroup->add(m_leftCheckBox);
+    m_widgetGroup->add(m_rightCheckBox);
+    
+    setFixedHeight(sizeHint().height());
+}
+
+/**
+ * Destructor.
+ */
+SurfaceMontageHippocampusFlatMapsComponent::~SurfaceMontageHippocampusFlatMapsComponent()
+{
+    
+}
+
+/**
+ * Update the hippocampus montage options widget.
+ *
+ * @param browserTabContent
+ *   The active model display controller (may be NULL).
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::updateContent(BrowserTabContent* browserTabContent)
+{
+    m_widgetGroup->blockAllSignals(true);
+    
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    ModelSurfaceMontage* msm = browserTabContent->getDisplayedSurfaceMontageModel();
+    SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+    
+    m_leftCheckBox->setChecked(smcc->isLeftEnabled());
+    m_rightCheckBox->setChecked(smcc->isRightEnabled());
+    m_surfaceMontageFirstSurfaceCheckBox->setChecked(smcc->isFirstSurfaceEnabled());
+    m_surfaceMontageSecondSurfaceCheckBox->setChecked(smcc->isSecondSurfaceEnabled());
+    
+    m_leftSurfaceViewController->updateControl(smcc->getLeftFirstSurfaceSelectionModel());
+    m_leftSecondSurfaceViewController->updateControl(smcc->getLeftSecondSurfaceSelectionModel());
+    m_rightSurfaceViewController->updateControl(smcc->getRightFirstSurfaceSelectionModel());
+    m_rightSecondSurfaceViewController->updateControl(smcc->getRightSecondSurfaceSelectionModel());
+    
+    m_widgetGroup->blockAllSignals(false);
+}
+
+/**
+ * Called when montage left first surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::leftSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = m_parentToolBarMontage->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+        smcc->getLeftFirstSurfaceSelectionModel()->setSurface(surface);
+        m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when montage left second surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::leftSecondSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = m_parentToolBarMontage->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+        smcc->getLeftSecondSurfaceSelectionModel()->setSurface(surface);
+        m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when montage right surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::rightSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = m_parentToolBarMontage->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+        smcc->getRightFirstSurfaceSelectionModel()->setSurface(surface);
+        m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when montage right second surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::rightSecondSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = m_parentToolBarMontage->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+        SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+        smcc->getRightSecondSurfaceSelectionModel()->setSurface(surface);
+        m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
+    }
+}
+
+/**
+ * Called when surface montage checkbox is toggled.
+ * @param status
+ *    New status of check box.
+ */
+void
+SurfaceMontageHippocampusFlatMapsComponent::checkBoxSelected(bool /*status*/)
+{
+    BrowserTabContent* btc = m_parentToolBarMontage->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    ModelSurfaceMontage* msm = btc->getDisplayedSurfaceMontageModel();
+    SurfaceMontageConfigurationHippocampusFlatMaps* smcc = msm->getHippocampusFlatMapsConfiguration(tabIndex);
+    smcc->setLeftEnabled(m_leftCheckBox->isChecked());
+    smcc->setRightEnabled(m_rightCheckBox->isChecked());
+    smcc->setFirstSurfaceEnabled(m_surfaceMontageFirstSurfaceCheckBox->isChecked());
+    smcc->setSecondSurfaceEnabled(m_surfaceMontageSecondSurfaceCheckBox->isChecked());
+    
+    m_parentToolBarMontage->updateUserInterface();
+    m_parentToolBarMontage->invalidateColoringAndUpdateGraphicsWindow();
+}
+
+
+
+
+
+
+
+
 
 /*
  ********************************************************************************************

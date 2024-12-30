@@ -121,6 +121,10 @@ SurfaceMontageConfigurationTypeEnum::initialize()
     enumData.push_back(SurfaceMontageConfigurationTypeEnum(HIPPOCAMPUS_CONFIGURATION,
                                                            "HIPPOCAMPUS_CONFIGURATION",
                                                            "Hippocampus"));
+
+    enumData.push_back(SurfaceMontageConfigurationTypeEnum(HIPPOCAMPUS_FLAT_CONFIGURATION,
+                                                           "HIPPOCAMPUS_FLAT_CONFIGURATION",
+                                                           "Hippocampus Flat Maps"));
 }
 
 /**

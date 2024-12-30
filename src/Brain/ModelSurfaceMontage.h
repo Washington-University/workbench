@@ -35,6 +35,7 @@ namespace caret {
     class SurfaceMontageConfigurationCerebral;
     class SurfaceMontageConfigurationFlatMaps;
     class SurfaceMontageConfigurationHippocampus;
+    class SurfaceMontageConfigurationHippocampusFlatMaps;
     
     /// Controls the display of a surface montage
     class ModelSurfaceMontage : public Model, public EventListenerInterface  {
@@ -96,6 +97,10 @@ namespace caret {
         
         const SurfaceMontageConfigurationHippocampus* getHippocampusConfiguration(const int32_t tabIndex) const;
         
+        SurfaceMontageConfigurationHippocampusFlatMaps* getHippocampusFlatMapsConfiguration(const int32_t tabIndex);
+        
+        const SurfaceMontageConfigurationHippocampusFlatMaps* getHippocampusFlatMapsConfiguration(const int32_t tabIndex) const;
+        
         virtual AString toString() const;
         
         virtual void getDescriptionOfContent(const int32_t tabIndex,
@@ -126,6 +131,8 @@ namespace caret {
         SurfaceMontageConfigurationFlatMaps* m_flatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         SurfaceMontageConfigurationHippocampus* m_hippocampusConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        SurfaceMontageConfigurationHippocampusFlatMaps* m_hippocampusFlatMapsConfiguration[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         mutable SurfaceMontageConfigurationTypeEnum::Enum m_selectedConfigurationType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };

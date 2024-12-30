@@ -233,6 +233,7 @@ SurfaceMontageConfigurationCerebellar.h
 SurfaceMontageConfigurationCerebral.h
 SurfaceMontageConfigurationFlatMaps.h
 SurfaceMontageConfigurationHippocampus.h
+SurfaceMontageConfigurationHippocampusFlatMaps.h
 SurfaceMontageConfigurationTypeEnum.h
 SurfaceMontageLayoutOrientationEnum.h
 SurfaceMontageViewport.h
@@ -468,6 +469,7 @@ SurfaceMontageConfigurationCerebellar.cxx
 SurfaceMontageConfigurationCerebral.cxx
 SurfaceMontageConfigurationFlatMaps.cxx
 SurfaceMontageConfigurationHippocampus.cxx
+SurfaceMontageConfigurationHippocampusFlatMaps.cxx
 SurfaceMontageConfigurationTypeEnum.cxx
 SurfaceMontageLayoutOrientationEnum.cxx
 SurfaceMontageViewport.cxx
