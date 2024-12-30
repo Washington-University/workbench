@@ -1711,7 +1711,7 @@ MapSettingsPaletteColorMappingWidget::updateThresholdSection()
     
     this->thresholdLinkCheckBox->setChecked(this->paletteColorMapping->isThresholdNegMinPosMaxLinked());
     
-    this->thresholdAdjustmentWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
+    this->thresholdAdjustmentWidget->setEnabled(paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
     this->thresholdFileWidget->setEnabled(paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE);
     this->thresholdOutlineDrawingModeComboBox->setSelectedItem<PaletteThresholdOutlineDrawingModeEnum, PaletteThresholdOutlineDrawingModeEnum::Enum>(this->paletteColorMapping->getThresholdOutlineDrawingMode());
     this->thresholdOutlineDrawingColorComboBox->setSelectedColor(this->paletteColorMapping->getThresholdOutlineDrawingColor());
