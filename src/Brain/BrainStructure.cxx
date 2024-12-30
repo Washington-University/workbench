@@ -537,6 +537,33 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
 }
 
 /**
+ * @return Surface that matches both the surface type and secondary surface type.  If more than
+ * one surface matches, it will probably be whichever was loaded first.
+ * @param surfaceType
+ *    The surface type
+ * @param secondarySurfaceType
+ *    The secondary surface type
+ */
+Surface* 
+BrainStructure::getSurfaceOfTypeAndSecondaryType(const SurfaceTypeEnum::Enum surfaceType,
+                                                 const SecondarySurfaceTypeEnum::Enum secondarySurfaceType) const
+{
+    std::vector<Surface*> surfaces;
+    getSurfacesOfType(surfaceType,
+                      surfaces);
+    
+    Surface* surfaceOut(NULL);
+    for (Surface* s : surfaces) {
+        if (s->getSecondaryType() == secondarySurfaceType) {
+            surfaceOut = s;
+            break;
+        }
+    }
+    
+    return surfaceOut;
+}
+
+/**
  * Get all surfaces.
  *
  * @param surfaceOut
@@ -596,6 +623,8 @@ BrainStructure::getPrimaryAnatomicalSurfacePrivate() const
         Surface* pialSurface         = NULL;
         Surface* anatomicalSurface   = NULL;
         Surface* fiducialSurface     = NULL;
+        Surface* innerSurface        = NULL;
+        Surface* outerSurface        = NULL;
         const int32_t numSurfaces = static_cast<int32_t>(primaryAnatomicalSurfaces.size());
         
         for (int32_t i = 0; i < numSurfaces; i++) {
@@ -606,20 +635,34 @@ BrainStructure::getPrimaryAnatomicalSurfacePrivate() const
             if (primaryAnatomicalSurfaces[i]->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
                 const SecondarySurfaceTypeEnum::Enum secondType = primaryAnatomicalSurfaces[i]->getSecondaryType();
                 const AString name = primaryAnatomicalSurfaces[i]->getFileNameNoPath().toLower();
-                if (secondType == SecondarySurfaceTypeEnum::MIDTHICKNESS) {
-                    if (midThicknessSurface == NULL) {
-                        midThicknessSurface = primaryAnatomicalSurfaces[i];
-                    }
-                }
-                if (secondType == SecondarySurfaceTypeEnum::GRAY_WHITE) {
-                    if (whiteMatterSurface == NULL) {
-                        whiteMatterSurface = primaryAnatomicalSurfaces[i];
-                    }
-                }
-                if (secondType == SecondarySurfaceTypeEnum::PIAL) {
-                    if (pialSurface == NULL) {
-                        pialSurface = primaryAnatomicalSurfaces[i];
-                    }
+                switch (secondType) {
+                    case SecondarySurfaceTypeEnum::INVALID:
+                        break;
+                    case SecondarySurfaceTypeEnum::MIDTHICKNESS:
+                        if (midThicknessSurface == NULL) {
+                            midThicknessSurface = primaryAnatomicalSurfaces[i];
+                        }
+                        break;
+                    case SecondarySurfaceTypeEnum::GRAY_WHITE:
+                        if (whiteMatterSurface == NULL) {
+                            whiteMatterSurface = primaryAnatomicalSurfaces[i];
+                        }
+                        break;
+                    case SecondarySurfaceTypeEnum::PIAL:
+                        if (pialSurface == NULL) {
+                            pialSurface = primaryAnatomicalSurfaces[i];
+                        }
+                        break;
+                    case SecondarySurfaceTypeEnum::INNER:
+                        if (innerSurface == NULL) {
+                            innerSurface = primaryAnatomicalSurfaces[i];
+                        }
+                        break;
+                    case SecondarySurfaceTypeEnum::OUTER:
+                        if (outerSurface == NULL) {
+                            outerSurface = primaryAnatomicalSurfaces[i];
+                        }
+                        break;
                 }
             }
         }
@@ -655,6 +698,16 @@ BrainStructure::getPrimaryAnatomicalSurfacePrivate() const
                     fiducialSurface = primaryAnatomicalSurfaces[i];
                 }
             }
+            if (name.indexOf("inner") >= 0) {
+                if (innerSurface == NULL) {
+                    innerSurface = primaryAnatomicalSurfaces[i];
+                }
+            }
+            if (name.indexOf("outer") >= 0) {
+                if (outerSurface == NULL) {
+                    outerSurface = primaryAnatomicalSurfaces[i];
+                }
+            }
         }
         
         if (midThicknessSurface != NULL) {
@@ -671,6 +724,12 @@ BrainStructure::getPrimaryAnatomicalSurfacePrivate() const
         }
         else if (fiducialSurface != NULL) {
             m_primaryAnatomicalSurface = fiducialSurface;
+        }
+        else if (innerSurface != NULL) {
+            m_primaryAnatomicalSurface = innerSurface;
+        }
+        else if (outerSurface != NULL) {
+            m_primaryAnatomicalSurface = outerSurface;
         }
     }
     

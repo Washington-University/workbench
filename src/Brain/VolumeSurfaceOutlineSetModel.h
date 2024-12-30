@@ -21,10 +21,13 @@
  */
 /*LICENSE_END*/
 
+#include <utility>
+
 #include "BrainConstants.h"
 #include "CaretColorEnum.h"
 #include "CaretObject.h"
 #include "SceneableInterface.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -69,6 +72,9 @@ namespace caret {
                                const CaretColorEnum::Enum color,
                                int32_t& outlineIndex);
         
+        std::pair<Surface*,Surface*> getHippoInnerOuterSurfaces(Brain* brain,
+                                                                const StructureEnum::Enum structure);
+
         VolumeSurfaceOutlineModel* m_outlineModels[BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES];
         
         int32_t m_numberOfDisplayedVolumeSurfaceOutlines;

@@ -119,7 +119,9 @@ public:
         INVALID,
         GRAY_WHITE,
         MIDTHICKNESS,
-        PIAL
+        PIAL,
+        INNER,
+        OUTER
     };
 
     static AString toName(Enum e);

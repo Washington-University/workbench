@@ -439,6 +439,14 @@ SecondarySurfaceTypeEnum::initialize()
                                        "PIAL", 
                                        "Pial",
                                        "Pial"));
+    enumData.push_back(SecondarySurfaceTypeEnum(INNER,
+                                                "INNER",
+                                                "Inner",
+                                                "Inner"));
+    enumData.push_back(SecondarySurfaceTypeEnum(OUTER,
+                                                "OUTER",
+                                                "Outer",
+                                                "Outer"));
 }
 
 /**

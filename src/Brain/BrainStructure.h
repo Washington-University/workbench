@@ -94,6 +94,9 @@ namespace caret {
         void getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
                                std::vector<Surface*>& surfacesOut) const;
         
+        Surface* getSurfaceOfTypeAndSecondaryType(const SurfaceTypeEnum::Enum surfaceType,
+                                                  const SecondarySurfaceTypeEnum::Enum secondarySurfaceType) const;
+
         bool containsSurface(const Surface* surface);
         
         const Surface* getPrimaryAnatomicalSurface() const;
