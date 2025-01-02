@@ -293,21 +293,21 @@ SurfaceMontageHippocampusFlatMapsComponent::SurfaceMontageHippocampusFlatMapsCom
     macroManager->addMacroSupportToObject(m_rightCheckBox,
                                           "Enable right surface in hippocampus flat montage");
         
-    m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
+    m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox("H");
     QObject::connect(m_surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     m_surfaceMontageFirstSurfaceCheckBox->setObjectName(objectNamePrefix
                                                         + ":EnableFirstRowSurfaces");
-    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable First Surfaces");
+    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable Hippocampus Surfaces");
     macroManager->addMacroSupportToObject(m_surfaceMontageFirstSurfaceCheckBox,
                                           "Enable first surface row in hippocampus flat montage");
     
-    m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox(" ");
+    m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox("D");
     QObject::connect(m_surfaceMontageSecondSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     m_surfaceMontageSecondSurfaceCheckBox->setObjectName(objectNamePrefix
                                                          + ":EnableSecondRowSurfaces");
-    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Second Surfaces");
+    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Dentate Hippocampus Surfaces");
     macroManager->addMacroSupportToObject(m_surfaceMontageSecondSurfaceCheckBox,
                                           "Enable second row in hippocampus flat montage");
     
@@ -577,21 +577,21 @@ SurfaceMontageHippocampusComponent::SurfaceMontageHippocampusComponent(BrainBrow
     macroManager->addMacroSupportToObject(m_medialCheckBox,
                                           "Enable medial view in hippocampus montage");
     
-    m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox(" ");
+    m_surfaceMontageFirstSurfaceCheckBox = new QCheckBox("H");
     QObject::connect(m_surfaceMontageFirstSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     m_surfaceMontageFirstSurfaceCheckBox->setObjectName(objectNamePrefix
                                                         + ":EnableFirstRowSurfaces");
-    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable First Surfaces");
+    m_surfaceMontageFirstSurfaceCheckBox->setToolTip("Enable Hippocampus Surfaces");
     macroManager->addMacroSupportToObject(m_surfaceMontageFirstSurfaceCheckBox,
                                           "Enable first surface row in hippocampus montage");
     
-    m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox(" ");
+    m_surfaceMontageSecondSurfaceCheckBox = new QCheckBox("D");
     QObject::connect(m_surfaceMontageSecondSurfaceCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(checkBoxSelected(bool)));
     m_surfaceMontageSecondSurfaceCheckBox->setObjectName(objectNamePrefix
                                                          + ":EnableSecondRowSurfaces");
-    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Second Surfaces");
+    m_surfaceMontageSecondSurfaceCheckBox->setToolTip("Enable Dentate Hippocampus Surfaces");
     macroManager->addMacroSupportToObject(m_surfaceMontageSecondSurfaceCheckBox,
                                           "Enable second row in hippocampus montage");
     
