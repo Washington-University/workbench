@@ -102,10 +102,10 @@ namespace caret {
         SurfaceSelectionViewController* m_rightHippoSurfaceSelector;
         SurfaceSelectionViewController* m_dentateLeftHippoSurfaceSelector;
         SurfaceSelectionViewController* m_dentateRightHippoSurfaceSelector;
-        SurfaceSelectionModel* m_leftHippSurfaceSelectionModel;
-        SurfaceSelectionModel* m_rightHippSurfaceSelectionModel;
-        SurfaceSelectionModel* m_leftDentateHippSurfaceSelectionModel;
-        SurfaceSelectionModel* m_rightDentateHippSurfaceSelectionModel;
+        std::unique_ptr<SurfaceSelectionModel> m_leftHippSurfaceSelectionModel;
+        std::unique_ptr<SurfaceSelectionModel> m_rightHippSurfaceSelectionModel;
+        std::unique_ptr<SurfaceSelectionModel> m_leftDentateHippSurfaceSelectionModel;
+        std::unique_ptr<SurfaceSelectionModel> m_rightDentateHippSurfaceSelectionModel;
 
         void updateAllWholeBrainSurfaceMenus();
         void updateWholeBrainSurfaceMenu(QMenu* menu,

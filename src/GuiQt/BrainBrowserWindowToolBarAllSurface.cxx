@@ -595,18 +595,18 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     std::vector<SurfaceTypeEnum::Enum> surfaceTypes;
     surfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
     
-    m_leftHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
-                                                                surfaceTypes);
-    m_rightHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
-                                                                 surfaceTypes);
-    m_leftDentateHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
-                                                                       surfaceTypes);
-    m_rightDentateHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
-                                                                        surfaceTypes);
-    
+    m_leftHippSurfaceSelectionModel.reset(new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
+                                                                    surfaceTypes));
+    m_rightHippSurfaceSelectionModel.reset(new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
+                                                                     surfaceTypes));
+    m_leftDentateHippSurfaceSelectionModel.reset(new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                                                                           surfaceTypes));
+    m_rightDentateHippSurfaceSelectionModel.reset(new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                                                                            surfaceTypes));
+
     QLabel* leftLabel(new QLabel("Left"));
     m_leftHippoSurfaceSelector = new SurfaceSelectionViewController(this,
-                                                                    m_leftHippSurfaceSelectionModel,
+                                                                    m_leftHippSurfaceSelectionModel.get(),
                                                                     (parentObjectName + ":SelectLeftHippocampus"),
                                                                     "Select left hippocampus surface");
     QObject::connect(m_leftHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
@@ -614,7 +614,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     
     QLabel* rightLabel(new QLabel("Right"));
     m_rightHippoSurfaceSelector = new SurfaceSelectionViewController(this,
-                                                                     m_rightHippSurfaceSelectionModel,
+                                                                     m_rightHippSurfaceSelectionModel.get(),
                                                                      (parentObjectName + ":SelectRightHippocampus"),
                                                                      "Select right hippocampus surface");
     QObject::connect(m_rightHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
@@ -622,7 +622,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     
     QLabel* dentateLeftLabel(new QLabel("Dentate Left"));
     m_dentateLeftHippoSurfaceSelector = new SurfaceSelectionViewController(this,
-                                                                           m_leftDentateHippSurfaceSelectionModel,
+                                                                           m_leftDentateHippSurfaceSelectionModel.get(),
                                                                            (parentObjectName + ":SelectDentateLeftHippocampus"),
                                                                            "Select left dentate hippocampus surface");
     QObject::connect(m_dentateLeftHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
@@ -630,7 +630,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     
     QLabel* dentateRightLabel(new QLabel("Dentate Right"));
     m_dentateRightHippoSurfaceSelector = new SurfaceSelectionViewController(this,
-                                                                            m_rightDentateHippSurfaceSelectionModel,
+                                                                            m_rightDentateHippSurfaceSelectionModel.get(),
                                                                             (parentObjectName + ":SelectDentateRightHippocampus"),
                                                                             "Select right dentate hippocampus surface");
     QObject::connect(m_dentateRightHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
