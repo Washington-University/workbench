@@ -704,6 +704,10 @@ namespace caret {
         
         void setWholeBrainCerebellumEnabled(const bool enabled);
         
+        bool isWholeBrainHippocampusEnabled() const;
+        
+        void setWholeBrainHippocampusEnabled(const bool enabled);
+        
         float getWholeBrainLeftRightSeparation() const;
         
         void setWholeBrainLeftRightSeparation(const float separation);

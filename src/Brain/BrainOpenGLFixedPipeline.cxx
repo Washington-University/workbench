@@ -7200,8 +7200,16 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                 case StructureEnum::CEREBELLUM:
                     drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
                     break;
+                case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
+                case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
+                case StructureEnum::HIPPOCAMPUS_LEFT:
+                case StructureEnum::HIPPOCAMPUS_RIGHT:
+                    drawIt = browserTabContent->isWholeBrainHippocampusEnabled();
+                    break;
                 default:
-                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+                    CaretLogWarning("PROGRAMMER ISSUE: Surface type "
+                                    + StructureEnum::toName(structure)
+                                    + " has not been implemented for ALL view drawing.");
                     break;
             }
             
@@ -7249,6 +7257,11 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     break;
                 case StructureEnum::CEREBELLUM:
                     dz = browserTabContent->getWholeBrainCerebellumSeparation();
+                    break;
+                case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
+                case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
+                case StructureEnum::HIPPOCAMPUS_LEFT:
+                case StructureEnum::HIPPOCAMPUS_RIGHT:
                     break;
                 default:
                     CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");

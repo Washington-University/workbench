@@ -27,8 +27,10 @@
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
+#include <QLabel>
 #include <QMenu>
 #include <QToolButton>
+#include <QWidgetAction>
 
 #include "Brain.h"
 #include "BrainBrowserWindowToolBar.h"
@@ -38,6 +40,8 @@
 #include "GuiManager.h"
 #include "ModelWholeBrain.h"
 #include "Surface.h"
+#include "SurfaceSelectionModel.h"
+#include "SurfaceSelectionViewController.h"
 #include "SurfaceTypeEnum.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
@@ -183,6 +187,30 @@ m_parentToolBar(parentToolBar)
                                           "Select all view cerebellum surface");
     
     /*
+     * Hippocampus
+     */
+    this->wholeBrainSurfaceHippocampusCheckBox = new QCheckBox(" ");
+    WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceHippocampusCheckBox, 
+                                          "Enable/Disable display of the hippocampus surfaces");
+    QObject::connect(this->wholeBrainSurfaceHippocampusCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(wholeBrainSurfaceHippocampusCheckBoxStateChanged(int)));
+    this->wholeBrainSurfaceHippocampusCheckBox->setObjectName(objectNamePrefix
+                                                             + "EnableHippocampus");
+    macroManager->addMacroSupportToObject(this->wholeBrainSurfaceHippocampusCheckBox,
+                                          "Enable all view hippocampus");
+    
+    m_wholeBrainSurfaceHippocampusToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_wholeBrainSurfaceHippocampusToolButton);
+    QObject::connect(m_wholeBrainSurfaceHippocampusToolButton, &QToolButton::clicked,
+                     this, &BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusToolButtonClicked);
+    m_wholeBrainHippcampusMenu = new QMenu();
+    QWidgetAction* wholeBrainHippcampusMenuAction = new QWidgetAction(m_wholeBrainSurfaceHippocampusToolButton);
+    wholeBrainHippcampusMenuAction->setDefaultWidget(createHippocampusSufaceSelectionWidget(objectNamePrefix));
+    m_wholeBrainHippcampusMenu->addAction(wholeBrainHippcampusMenuAction);
+    QObject::connect(m_wholeBrainHippcampusMenu, &QMenu::aboutToShow,
+                     this, &BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusMenuAboutToShow);
+
+    /*
      * Left/Right separation
      */
     const int separationSpinngerWidth = 48;
@@ -231,6 +259,7 @@ m_parentToolBar(parentToolBar)
     wholeBrainLeftSurfaceToolButton->setText("L");
     wholeBrainRightSurfaceToolButton->setText("R");
     wholeBrainCerebellumSurfaceToolButton->setText("C");
+    m_wholeBrainSurfaceHippocampusToolButton->setText("H");
     
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setVerticalSpacing(2);
@@ -244,7 +273,9 @@ m_parentToolBar(parentToolBar)
     gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 3, 1);
     gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 2, 2, 1);
     gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 3, 2);
-    gridLayout->addWidget(this->wholeBrainSurfaceMatchCheckBox, 4, 0, 1, 6);
+    gridLayout->addWidget(this->wholeBrainSurfaceHippocampusCheckBox, 4, 0);
+    gridLayout->addWidget(m_wholeBrainSurfaceHippocampusToolButton, 4, 1);
+    gridLayout->addWidget(this->wholeBrainSurfaceMatchCheckBox, 5, 0, 1, 6);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
@@ -257,18 +288,11 @@ m_parentToolBar(parentToolBar)
     addToWidgetGroup(wholeBrainRightSurfaceToolButton);
     addToWidgetGroup(this->wholeBrainSurfaceCerebellumCheckBox);
     addToWidgetGroup(wholeBrainCerebellumSurfaceToolButton);
+    addToWidgetGroup(this->wholeBrainSurfaceHippocampusCheckBox);
+    addToWidgetGroup(m_wholeBrainSurfaceHippocampusToolButton);
     addToWidgetGroup(this->wholeBrainSurfaceSeparationLeftRightSpinBox);
     addToWidgetGroup(this->wholeBrainSurfaceSeparationCerebellumSpinBox);
     addToWidgetGroup(this->wholeBrainSurfaceMatchCheckBox);
-    
-//    QWidget* w = this->createToolWidget("Surface Viewing",
-//                                        widget,
-//                                        WIDGET_PLACEMENT_LEFT,
-//                                        WIDGET_PLACEMENT_TOP,
-//                                        0);
-//    w->setVisible(false);
-//    return w;
-
 }
 
 /**
@@ -318,6 +342,7 @@ BrainBrowserWindowToolBarAllSurface::updateContent(BrowserTabContent* browserTab
         this->wholeBrainSurfaceLeftCheckBox->setChecked(browserTabContent->isWholeBrainLeftEnabled());
         this->wholeBrainSurfaceRightCheckBox->setChecked(browserTabContent->isWholeBrainRightEnabled());
         this->wholeBrainSurfaceCerebellumCheckBox->setChecked(browserTabContent->isWholeBrainCerebellumEnabled());
+        this->wholeBrainSurfaceHippocampusCheckBox->setChecked(browserTabContent->isWholeBrainHippocampusEnabled());
         
         updateAllWholeBrainSurfaceMenus();
         
@@ -525,6 +550,182 @@ BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceCerebellumToolButtonTrigge
 }
 
 /**
+ * Called when hippocampus  tool button is clicked
+ */
+void
+BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusToolButtonClicked()
+{
+    m_wholeBrainHippcampusMenu->exec(m_wholeBrainSurfaceHippocampusToolButton->mapToGlobal(QPoint(0,0)));
+}
+
+/**
+ * Called when hippocampus menu is about to show
+ */
+void
+BrainBrowserWindowToolBarAllSurface::wholeBrainHippocampusMenuAboutToShow()
+{
+    m_leftHippoSurfaceSelector->updateControl();
+    m_rightHippoSurfaceSelector->updateControl();
+    m_dentateLeftHippoSurfaceSelector->updateControl();
+    m_dentateRightHippoSurfaceSelector->updateControl();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel != NULL) {
+        const int32_t tabIndex(btc->getTabNumber());
+        m_leftHippoSurfaceSelector->setSurface(wholeBrainModel->getSelectedSurface(StructureEnum::HIPPOCAMPUS_LEFT,
+                                                                                   tabIndex));
+        m_rightHippoSurfaceSelector->setSurface(wholeBrainModel->getSelectedSurface(StructureEnum::HIPPOCAMPUS_RIGHT,
+                                                                                    tabIndex));
+        m_dentateLeftHippoSurfaceSelector->setSurface(wholeBrainModel->getSelectedSurface(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                                                                                          tabIndex));
+        m_dentateRightHippoSurfaceSelector->setSurface(wholeBrainModel->getSelectedSurface(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT,
+                                                                                           tabIndex));
+    }
+}
+
+/**
+ * @return New instance of widget for selecting hippocampus surfaces
+ * @param parentObjectName
+ *   Name of parent object for macros
+ */
+QWidget*
+BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(const AString& parentObjectName)
+{
+    std::vector<SurfaceTypeEnum::Enum> surfaceTypes;
+    surfaceTypes.push_back(SurfaceTypeEnum::ANATOMICAL);
+    
+    m_leftHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_LEFT,
+                                                                surfaceTypes);
+    m_rightHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_RIGHT,
+                                                                 surfaceTypes);
+    m_leftDentateHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                                                                       surfaceTypes);
+    m_rightDentateHippSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                                                                        surfaceTypes);
+    
+    QLabel* leftLabel(new QLabel("Left"));
+    m_leftHippoSurfaceSelector = new SurfaceSelectionViewController(this,
+                                                                    m_leftHippSurfaceSelectionModel,
+                                                                    (parentObjectName + ":SelectLeftHippocampus"),
+                                                                    "Select left hippocampus surface");
+    QObject::connect(m_leftHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
+                     this, &BrainBrowserWindowToolBarAllSurface::leftHippoSurfaceSelected);
+    
+    QLabel* rightLabel(new QLabel("Right"));
+    m_rightHippoSurfaceSelector = new SurfaceSelectionViewController(this,
+                                                                     m_rightHippSurfaceSelectionModel,
+                                                                     (parentObjectName + ":SelectRightHippocampus"),
+                                                                     "Select right hippocampus surface");
+    QObject::connect(m_rightHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
+                     this, &BrainBrowserWindowToolBarAllSurface::rightHippoSurfaceSelected);
+    
+    QLabel* dentateLeftLabel(new QLabel("Dentate Left"));
+    m_dentateLeftHippoSurfaceSelector = new SurfaceSelectionViewController(this,
+                                                                           m_leftDentateHippSurfaceSelectionModel,
+                                                                           (parentObjectName + ":SelectDentateLeftHippocampus"),
+                                                                           "Select left dentate hippocampus surface");
+    QObject::connect(m_dentateLeftHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
+                     this, &BrainBrowserWindowToolBarAllSurface::dentateLeftHippoSurfaceSelected);
+    
+    QLabel* dentateRightLabel(new QLabel("Dentate Right"));
+    m_dentateRightHippoSurfaceSelector = new SurfaceSelectionViewController(this,
+                                                                            m_rightDentateHippSurfaceSelectionModel,
+                                                                            (parentObjectName + ":SelectDentateRightHippocampus"),
+                                                                            "Select right dentate hippocampus surface");
+    QObject::connect(m_dentateRightHippoSurfaceSelector, &SurfaceSelectionViewController::surfaceSelected,
+                     this, &BrainBrowserWindowToolBarAllSurface::dentateRightHippoSurfaceSelected);
+
+    QWidget* widget(new QWidget());
+    QGridLayout* gridLayout(new QGridLayout(widget));
+    int row(gridLayout->rowCount());
+    gridLayout->addWidget(leftLabel, row, 0);
+    gridLayout->addWidget(m_leftHippoSurfaceSelector->getWidget(), row, 1);
+    row = gridLayout->rowCount();
+    gridLayout->addWidget(rightLabel, row, 0);
+    gridLayout->addWidget(m_rightHippoSurfaceSelector->getWidget(), row, 1);
+    row = gridLayout->rowCount();
+    gridLayout->addWidget(dentateLeftLabel, row, 0);
+    gridLayout->addWidget(m_dentateLeftHippoSurfaceSelector->getWidget(), row, 1);
+    row = gridLayout->rowCount();
+    gridLayout->addWidget(dentateRightLabel, row, 0);
+    gridLayout->addWidget(m_dentateRightHippoSurfaceSelector->getWidget(), row, 1);
+    row = gridLayout->rowCount();
+    return widget;
+}
+
+/**
+ * Called when hippocampus surface selected
+ * @param surface
+ *    Surface that was selected
+ */
+void
+BrainBrowserWindowToolBarAllSurface::leftHippoSurfaceSelected(Surface* surface)
+{
+    selectSurface(StructureEnum::HIPPOCAMPUS_LEFT,
+                  surface);
+}
+
+/**
+ * Called when hippocampus surface selected
+ * @param surface
+ *    Surface that was selected
+ */
+void
+BrainBrowserWindowToolBarAllSurface::rightHippoSurfaceSelected(Surface* surface)
+{
+    selectSurface(StructureEnum::HIPPOCAMPUS_RIGHT,
+                  surface);
+}
+
+/**
+ * Called when hippocampus surface selected
+ * @param surface
+ *    Surface that was selected
+ */
+void
+BrainBrowserWindowToolBarAllSurface::dentateLeftHippoSurfaceSelected(Surface* surface)
+{
+    selectSurface(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT,
+                  surface);
+}
+
+/**
+ * Called when hippocampus surface selected
+ * @param surface
+ *    Surface that was selected
+ */
+void
+BrainBrowserWindowToolBarAllSurface::dentateRightHippoSurfaceSelected(Surface* surface)
+{
+    selectSurface(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT,
+                  surface);
+}
+
+/**
+ * Select a surface for the given structure for Whole Brain View
+ * @param structure
+ *    The structure
+ * @param surface
+ *    Surface that was selected
+ */
+void
+BrainBrowserWindowToolBarAllSurface::selectSurface(const StructureEnum::Enum structure,
+                                                   Surface* surface)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
+        return;
+    }
+    
+    wholeBrainModel->setSelectedSurface(structure,
+                                        btc->getTabNumber(),
+                                        surface);
+    this->updateGraphicsWindowAndYokedWindows();
+}
+
+/**
  * Called when cerebellum surface is selected from menu
  *
  * @param action
@@ -549,7 +750,6 @@ BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceCerebellumMenuTriggered(QA
         this->updateGraphicsWindowAndYokedWindows();
     }
 }
-
 
 /**
  * Called when whole brain surface right checkbox is toggled.
@@ -584,6 +784,24 @@ BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceCerebellumCheckBoxStateCha
     btc->setWholeBrainCerebellumEnabled(this->wholeBrainSurfaceCerebellumCheckBox->isChecked());
     this->updateGraphicsWindowAndYokedWindows();
 }
+
+/**
+ * Called when whole brain hippocampus check box is toggled.
+ */
+void
+BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceHippocampusCheckBoxStateChanged(int /*state*/)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    
+    ModelWholeBrain* wholeBrainModel = btc->getDisplayedWholeBrainModel();
+    if (wholeBrainModel == NULL) {
+        return;
+    }
+    
+    btc->setWholeBrainHippocampusEnabled(this->wholeBrainSurfaceHippocampusCheckBox->isChecked());
+    this->updateGraphicsWindowAndYokedWindows();
+}
+
 
 /**
  * Called when whole brain separation left/right spin box value is changed.

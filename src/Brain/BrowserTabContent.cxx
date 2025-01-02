@@ -8191,6 +8191,27 @@ BrowserTabContent::setWholeBrainCerebellumEnabled(const bool enabled)
 }
 
 /**
+ * @return Enabled status for cerebellum.
+ */
+bool
+BrowserTabContent::isWholeBrainHippocampusEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isHippocampusEnabled();
+}
+
+/**
+ * Set the enabled status for the cerebellum.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainHippocampusEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setHippocampusEnabled(enabled);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
  * @return The separation between the left and right surfaces.
  */
 float
@@ -8369,6 +8390,8 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 *m_histologyViewingTransformation = *btc->m_histologyViewingTransformation;
                 *m_mediaViewingTransformation = *btc->m_mediaViewingTransformation;
                 m_volumeSliceSettings->copyToMeForYoking(*btc->m_volumeSliceSettings);
+                *m_wholeBrainSurfaceSettings = *btc->m_wholeBrainSurfaceSettings;
+
                 *m_obliqueVolumeRotationMatrix = *btc->m_obliqueVolumeRotationMatrix;
                 *m_clippingPlaneGroup = *btc->m_clippingPlaneGroup;
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
@@ -8527,6 +8550,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 *btc->m_cerebellumViewingTransformation = *m_cerebellumViewingTransformation;
                 *btc->m_volumeSliceViewingTransformation = *m_volumeSliceViewingTransformation;
                 btc->m_volumeSliceSettings->copyToMeForYoking(*m_volumeSliceSettings);
+                *btc->m_wholeBrainSurfaceSettings = *m_wholeBrainSurfaceSettings;
                 *btc->m_obliqueVolumeRotationMatrix = *m_obliqueVolumeRotationMatrix;
                 *btc->m_clippingPlaneGroup = *m_clippingPlaneGroup;
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
