@@ -287,11 +287,11 @@ ClusterContainer::getAllClusterKeys() const
  * @return A container containing the merged clusters.
  */
 std::unique_ptr<ClusterContainer>
-ClusterContainer::mergeDisjointRightLeftClusters() const
+ClusterContainer::mergeDisjointRightLeftClusters()
 {
-    std::unique_ptr<ClusterContainer> clustersOut(new ClusterContainer());
-    
     const std::vector<int32_t> allKeys(getAllClusterKeys());
+    
+    std::vector<Cluster*> newClustersFromSplitting;
     
     /*
      * Need to split any central clusters into left and right before merging
@@ -305,10 +305,10 @@ ClusterContainer::mergeDisjointRightLeftClusters() const
                     break;
                 case Cluster::LocationType::CENTRAL:
                 {
-                    std::vector<Cluster*> newClusters(cluster->splitClusterIntoRightAndLeft());
-                    for (Cluster* c : newClusters) {
-                        clustersOut->addCluster(c);
-                    }
+                    std::vector<Cluster*> splitClusters(cluster->splitClusterIntoRightAndLeft());
+                    newClustersFromSplitting.insert(newClustersFromSplitting.end(),
+                                                    splitClusters.begin(),
+                                                    splitClusters.end());
                 }
                     break;
                 case Cluster::LocationType::LEFT:
@@ -318,10 +318,20 @@ ClusterContainer::mergeDisjointRightLeftClusters() const
             }
         }
     }
+    
+    /*
+     * For any clusters that were split, add them into
+     * all clusters so that they are get merged below
+     */
+    for (Cluster* c : newClustersFromSplitting) {
+        addCluster(c);
+    }
 
+    
     /*
      * Merge clusters for each key
      */
+    std::unique_ptr<ClusterContainer> clustersOut(new ClusterContainer());
     for (int32_t key : allKeys) {
         std::vector<const Cluster*> keyClusters(getClustersWithKey(key));
         

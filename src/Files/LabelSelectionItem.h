@@ -58,6 +58,13 @@ namespace caret {
             
             int64_t getNumberOfBrainordinates() const { return m_numberOfBrainordinates; }
 
+            virtual AString toString() const override {
+                const AString msg("Title=" + m_title
+                                  + ", XYZ=" + m_xyz.toString()
+                                  + ", num-brainordinates=" + AString::number(m_numberOfBrainordinates));
+                return msg;
+            }
+            
             void merge(const COG& cog) {
                 const Vector3D sum((m_xyz * m_numberOfBrainordinates)
                                    + (cog.m_xyz * cog.m_numberOfBrainordinates));
@@ -243,6 +250,10 @@ namespace caret {
         
         void setMyAndChildrenMergedClusters();
 
+        void multipleClusterWarning(const COG* cog,
+                                    const Cluster* duplicate,
+                                    const std::vector<const Cluster*>& clusters) const;
+        
         const ItemType m_itemType;
         
         int32_t m_labelIndex;

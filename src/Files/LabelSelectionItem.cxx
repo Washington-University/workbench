@@ -628,6 +628,31 @@ LabelSelectionItem::getMyAndChildrenCentersOfGravity() const
 }
 
 /**
+ * Log a warning when there is more that one cluster for a side
+ * @param cog
+ *    The existing COG
+ * @param duplicate
+ *    Cluster that wants to replace the COG and is duplicate of it
+ * @clusters
+ *    Clusters for the COG
+ */
+void
+LabelSelectionItem::multipleClusterWarning(const COG* cog,
+                                           const Cluster* duplicate,
+                                           const std::vector<const Cluster*>& clusters) const
+{
+    AString msg("There is more than cluster of the same type (should only be one) type="
+                + duplicate->getLocationTypeName());
+    msg.appendWithNewLine("   Using: " + cog->toString());
+    msg.appendWithNewLine("   Ignoring: " + duplicate->toString());
+    msg.appendWithNewLine("   Original clusters: ");
+    for (const auto& c : clusters) {
+        msg.appendWithNewLine("      " + c->toString());
+    }
+    CaretLogWarning(msg);
+}
+
+/**
  * Set the clusters (may contain multiple, disjoint clusters)
  * @param clusters
  *    Clusters for this item
@@ -642,9 +667,7 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
     
     bool centralSplitFlag(false);
     
-    const AString moreThanOneMsg("There is more than cluster of the same type (should only be one) type=");
     for (const auto& c : clusters) {
-        
         const AString title(c->getLocationTypeName()
                             + ": "
                             + AString::number(c->getNumberOfBrainordinates())
@@ -658,10 +681,7 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                 break;
             case Cluster::LocationType::CENTRAL:
                 if (centralCOG != NULL) {
-                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
-                                      + " name=" + c->getName());
-                    CaretLogWarning(msg);
-                    CaretAssertMessage(0, msg);
+                    multipleClusterWarning(centralCOG, c, clusters);
                 }
                 else {
                     centralCOG = new COG(title,
@@ -672,10 +692,7 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                 break;
             case Cluster::LocationType::LEFT:
                 if (leftCOG != NULL) {
-                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
-                                      + " name=" + c->getName());
-                    CaretLogWarning(msg);
-                    CaretAssertMessage(0, msg);
+                    multipleClusterWarning(leftCOG, c, clusters);
                 }
                 else {
                     leftCOG = new COG(title,
@@ -685,10 +702,7 @@ LabelSelectionItem::setClusters(const std::vector<const Cluster*>& clusters)
                 break;
             case Cluster::LocationType::RIGHT:
                 if (rightCOG != NULL) {
-                    const AString msg(moreThanOneMsg + c->getLocationTypeName()
-                                      + " name=" + c->getName());
-                    CaretLogWarning(msg);
-                    CaretAssertMessage(0, msg);
+                    multipleClusterWarning(rightCOG, c, clusters);
                 }
                 else {
                     rightCOG = new COG(title,

@@ -475,16 +475,17 @@ LabelSelectionItemModel::synchronizeSelectionsWithLabelTable(const bool copyToLa
         GiftiLabel* label(m_giftiLabelTable->getLabel(key));
         if (label != NULL) {
             GroupAndNameHierarchyItem* gnhn(label->getGroupNameSelectionItem());
-            CaretAssert(gnhn);
-            if (copyToLabelTableFlag) {
-                const bool selectedFlag(labelSelectionItem->checkState() != Qt::Unchecked);
-                gnhn->setSelected(m_displayGroup, m_tabIndex, selectedFlag);
-            }
-            else {
-                const Qt::CheckState checkState(gnhn->isSelected(m_displayGroup, m_tabIndex)
-                                                ? Qt::Checked
-                                                : Qt::Unchecked);
-                labelSelectionItem->setCheckState(checkState);
+            if (gnhn != NULL) {
+                if (copyToLabelTableFlag) {
+                    const bool selectedFlag(labelSelectionItem->checkState() != Qt::Unchecked);
+                    gnhn->setSelected(m_displayGroup, m_tabIndex, selectedFlag);
+                }
+                else {
+                    const Qt::CheckState checkState(gnhn->isSelected(m_displayGroup, m_tabIndex)
+                                                    ? Qt::Checked
+                                                    : Qt::Unchecked);
+                    labelSelectionItem->setCheckState(checkState);
+                }
             }
         }
     }
