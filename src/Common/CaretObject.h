@@ -51,22 +51,12 @@ public:
     static void printListOfObjectsNotDeleted(const bool showCallStack);
 
 private:
-    /**
-     * Info about an allocated object.
-     */
-    class CaretObjectInfo {
-    public:
-        CaretObjectInfo(const SystemBacktrace& backtrace);
-        ~CaretObjectInfo();
-        
-        SystemBacktrace m_backtrace;
-    };
     
     void copyHelper(const CaretObject& co);
     
     void initializeMembersCaretObject();
 
-    typedef std::map<CaretObject*, CaretObjectInfo> CARET_OBJECT_TRACKER_MAP;
+    typedef std::map<CaretObject*, SystemBacktrace> CARET_OBJECT_TRACKER_MAP;
     typedef CARET_OBJECT_TRACKER_MAP::iterator CARET_OBJECT_TRACKER_MAP_ITERATOR;
     
     static CARET_OBJECT_TRACKER_MAP allocatedObjects;

@@ -22,7 +22,7 @@
 /*LICENSE_END*/
 
 #include <memory>
-
+#include <vector>
 #include <stdint.h>
 
 #include <AString.h>
@@ -33,7 +33,7 @@ class SystemBacktrace
 {
 #ifdef CARET_OS_WINDOWS
 #else // CARET_OS_WINDOWS
-    void* m_callstack[1024];
+    std::vector<void*> m_callstack;
     int m_numFrames;
 #endif // CARET_OS_WINDOWS
 public:

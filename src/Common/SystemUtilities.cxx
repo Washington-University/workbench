@@ -34,6 +34,7 @@
 #include <QSysInfo>
 #include <QThread>
 #include <QUuid>
+#include <QtCore>
 
 #include "CaretOMP.h"
 
@@ -67,8 +68,6 @@ SystemUtilities::~SystemUtilities()
 {
 }
 
-#include <QtCore>
-
 /**
  * Get the backtrace in a string with each frame
  * separated by a newline character.
@@ -79,20 +78,6 @@ SystemUtilities::~SystemUtilities()
 AString 
 SystemUtilities::getBackTrace()
 {
-/*
-#ifdef CARET_OS_WINDOWS
-    return "";
-#else  // CARET_OS_WINDOWS
-    std::stringstream str;
-    void* callstack[1024];
-    int numFrames = backtrace(callstack, 1024);
-    char** symbols = backtrace_symbols(callstack, numFrames);
-    for (int i = 0; i < numFrames; i++) {
-        str << symbols[i] << std::endl;
-    }
-    return AString::fromStdString(str.str());
-#endif // CARET_OS_WINDOWS
-*/    
     std::vector<AString> backTrace;
     SystemUtilities::getBackTrace(backTrace);
     std::stringstream str;
@@ -131,7 +116,22 @@ void SystemUtilities::getBackTrace(SystemBacktrace& backTraceOut)
 {
 #ifdef CARET_OS_WINDOWS
 #else  // CARET_OS_WINDOWS
-    backTraceOut.m_numFrames = backtrace(backTraceOut.m_callstack, 1024);
+    static const int32_t stackSize(512);
+    backTraceOut.m_callstack.resize(stackSize);
+    backTraceOut.m_numFrames = backtrace(&backTraceOut.m_callstack[0],
+                                         backTraceOut.m_callstack.size());
+    backTraceOut.m_callstack.resize(backTraceOut.m_numFrames);
+    backTraceOut.m_callstack.shrink_to_fit();
+    
+    if (backTraceOut.m_numFrames == stackSize) {
+        static bool warnedFlag(false);
+        if ( ! warnedFlag) {
+            warnedFlag = true;
+            std::cerr << "PROGRAMMER WARNING: SystemUtilities::getBackTrace() size=" << stackSize
+            << " for callstack may be too small (or infinite loop) at line "
+            << __LINE__ << " in " << __FILE__ << std::endl;
+        }
+    }
 #endif // CARET_OS_WINDOWS
 }
 
@@ -150,12 +150,14 @@ AString SystemBacktrace::toSymbolString() const
     std::stringstream str;
 #ifdef CARET_OS_WINDOWS
 #else  // CARET_OS_WINDOWS
-    char** symbols = backtrace_symbols(m_callstack, m_numFrames);
-    for (int i = 0; i < m_numFrames; ++i)
-    {
-        str << symbols[i] << std::endl;
+    if ( ! m_callstack.empty()) {
+        char** symbols = backtrace_symbols(&m_callstack[0], m_numFrames);
+        for (int i = 0; i < m_numFrames; ++i)
+        {
+            str << symbols[i] << std::endl;
+        }
+        free(symbols);
     }
-    free(symbols);
 #endif // CARET_OS_WINDOWS
     return AString::fromStdString(str.str());
 }

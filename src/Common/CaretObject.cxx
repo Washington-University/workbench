@@ -91,9 +91,6 @@ CaretObject::initializeMembersCaretObject()
         CaretObject::allocatedObjects.insert(
                 std::make_pair(this,
                                 myBacktrace));
-        /*CaretObject::allocatedObjects.insert(
-            std::make_pair(this, 
-                            SystemUtilities::getBackTrace()));//*/
     }
 #endif
 }
@@ -148,13 +145,12 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
              iter != allocatedObjects.end();
              iter++) {
             const unsigned long objectAddress = (long long)iter->first;
-            //const CaretObject* caretObject = iter->first;
-            const CaretObjectInfo& caretObjectInfo = iter->second;
+            const SystemBacktrace& backtrace = iter->second;
             // below will crash if item has been deleted
             //std::cout << caretObject->toString().toStdString() << std::endl;
             std::cout << "Address (hex)=" << std::hex << objectAddress << std::endl;
             if (showCallStack) {
-                std::cout << caretObjectInfo.m_backtrace.toSymbolString() << std::endl;
+                std::cout << backtrace.toSymbolString() << std::endl;
             }
             std::cout << std::endl;
             
@@ -168,21 +164,4 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
 }
 #endif
 
-/**
- * Constructor.
- * @param backtrace
- *     The backtrace.
- */
-CaretObject::CaretObjectInfo::CaretObjectInfo(const SystemBacktrace& backtrace)
-{
-    m_backtrace   = backtrace;
-}
-
-/**
- * Destructor.
- */
-CaretObject::CaretObjectInfo::~CaretObjectInfo()
-{
-    
-}
 
