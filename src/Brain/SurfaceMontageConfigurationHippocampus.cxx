@@ -64,7 +64,7 @@ SurfaceMontageConfigurationHippocampus::SurfaceMontageConfigurationHippocampus(c
     m_leftEnabled = true;
     m_rightEnabled = true;
     m_firstSurfaceEnabled = true;
-    m_secondSurfaceEnabled = false;
+    m_secondSurfaceEnabled = true;
     m_lateralEnabled = true;
     m_medialEnabled  = true;
     

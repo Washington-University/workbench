@@ -56,6 +56,22 @@ namespace caret {
         
         void setHippocampusEnabled(const bool enabled);
         
+        bool isHippocampusLeftEnabled() const;
+        
+        void setHippocampusLeftEnabled(const bool enabled);
+        
+        bool isHippocampusRightEnabled() const;
+        
+        void setHippocampusRightEnabled(const bool enabled);
+        
+        bool isDentateHippocampusLeftEnabled() const;
+        
+        void setDentateHippocampusLeftEnabled(const bool enabled);
+        
+        bool isDentateHippocampusRightEnabled() const;
+        
+        void setDentateHippocampusRightEnabled(const bool enabled);
+
         float getLeftRightSeparation() const;
         
         void setLeftRightSeparation(const float separation);
@@ -87,6 +103,14 @@ namespace caret {
         bool m_cerebellumEnabled;
         
         bool m_hippocampusEnabled;
+        
+        bool m_hippocampusLeftEnabled;
+        
+        bool m_hippocampusRightEnabled;
+        
+        bool m_dentateHippocampusLeftEnabled;
+        
+        bool m_dentateHippocampusRightEnabled;
         
         float m_leftRightSeparation;
         

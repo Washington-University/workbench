@@ -44,6 +44,10 @@ WholeBrainSurfaceSettings::WholeBrainSurfaceSettings()
 {
     m_cerebellumEnabled    = true;
     m_hippocampusEnabled   = true;
+    m_hippocampusLeftEnabled = true;
+    m_hippocampusRightEnabled = true;
+    m_dentateHippocampusLeftEnabled = true;
+    m_dentateHippocampusRightEnabled = true;
     m_leftEnabled          = true;
     m_rightEnabled         = true;
     m_leftRightSeparation  = 0.0;
@@ -54,6 +58,10 @@ WholeBrainSurfaceSettings::WholeBrainSurfaceSettings()
     m_sceneAssistant->add("m_rightEnabled", &m_rightEnabled);
     m_sceneAssistant->add("m_cerebellumEnabled", &m_cerebellumEnabled);
     m_sceneAssistant->add("m_hippocampusEnabled", &m_hippocampusEnabled);
+    m_sceneAssistant->add("m_hippocampusLeftEnabled", &m_hippocampusLeftEnabled);
+    m_sceneAssistant->add("m_hippocampusRightEnabled", &m_hippocampusRightEnabled);
+    m_sceneAssistant->add("m_dentateHippocampusLeftEnabled", &m_dentateHippocampusLeftEnabled);
+    m_sceneAssistant->add("m_dentateHippocampusRightEnabled", &m_dentateHippocampusRightEnabled);
     m_sceneAssistant->add("m_leftRightSeparation", &m_leftRightSeparation);
     m_sceneAssistant->add("m_cerebellumSeparation", &m_cerebellumSeparation);
 }
@@ -104,6 +112,10 @@ WholeBrainSurfaceSettings::copyHelperWholeBrainSurfaceSettings(const WholeBrainS
 {
     m_cerebellumEnabled    = obj.m_cerebellumEnabled;
     m_hippocampusEnabled   = obj.m_hippocampusEnabled;
+    m_hippocampusLeftEnabled = obj.m_hippocampusLeftEnabled;
+    m_hippocampusRightEnabled = obj.m_hippocampusRightEnabled;
+    m_dentateHippocampusLeftEnabled = obj.m_dentateHippocampusLeftEnabled;
+    m_dentateHippocampusRightEnabled = obj.m_dentateHippocampusRightEnabled;
     m_leftEnabled          = obj.m_leftEnabled;
     m_rightEnabled         = obj.m_rightEnabled;
     m_leftRightSeparation  = obj.m_leftRightSeparation;
@@ -201,6 +213,83 @@ void
 WholeBrainSurfaceSettings::setHippocampusEnabled(const bool enabled)
 {
     m_hippocampusEnabled = enabled;
+}
+
+/**
+ * @return Enabled status for left hippocampus.
+ */
+bool
+WholeBrainSurfaceSettings::isHippocampusLeftEnabled() const
+{
+    return m_hippocampusLeftEnabled;
+}
+
+/**
+ * Set the enabled status for the left hippocampus.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+WholeBrainSurfaceSettings::setHippocampusLeftEnabled(const bool enabled)
+{
+    m_hippocampusLeftEnabled = enabled;
+}
+/**
+ * @return Enabled status for right hippocampus.
+ */
+bool
+WholeBrainSurfaceSettings::isHippocampusRightEnabled() const
+{
+    return m_hippocampusRightEnabled;
+}
+
+/**
+ * Set the enabled status for the right hippocampus.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+WholeBrainSurfaceSettings::setHippocampusRightEnabled(const bool enabled)
+{
+    m_hippocampusRightEnabled = enabled;
+}
+/**
+ * @return Enabled status for dentate left hippocampus.
+ */
+bool
+WholeBrainSurfaceSettings::isDentateHippocampusLeftEnabled() const
+{
+    return m_dentateHippocampusLeftEnabled;
+}
+
+/**
+ * Set the enabled status for the dentate left hippocampus.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+WholeBrainSurfaceSettings::setDentateHippocampusLeftEnabled(const bool enabled)
+{
+    m_dentateHippocampusLeftEnabled = enabled;
+}
+/**
+ * @return Enabled status for dentate right hippocampus.
+ */
+bool
+WholeBrainSurfaceSettings::isDentateHippocampusRightEnabled() const
+{
+    return m_dentateHippocampusRightEnabled;
+}
+
+/**
+ * Set the enabled status for the hippocampus.
+ * @param enabled
+ *    New enabled status.
+ */
+void
+WholeBrainSurfaceSettings::setDentateHippocampusRightEnabled(const bool enabled)
+{
+    m_dentateHippocampusRightEnabled = enabled;
 }
 
 /**

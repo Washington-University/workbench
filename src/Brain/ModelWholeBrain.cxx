@@ -68,7 +68,11 @@ ModelWholeBrain::ModelWholeBrain(Brain* brain)
     overlaySurfaceStructures.push_back(StructureEnum::CORTEX_LEFT);
     overlaySurfaceStructures.push_back(StructureEnum::CORTEX_RIGHT);
     overlaySurfaceStructures.push_back(StructureEnum::CEREBELLUM);
-    
+    overlaySurfaceStructures.push_back(StructureEnum::HIPPOCAMPUS_LEFT);
+    overlaySurfaceStructures.push_back(StructureEnum::HIPPOCAMPUS_RIGHT);
+    overlaySurfaceStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_LEFT);
+    overlaySurfaceStructures.push_back(StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT);
+
     m_overlaySetArray = new OverlaySetArray(overlaySurfaceStructures,
                                             Overlay::INCLUDE_VOLUME_FILES_YES,
                                             "All View");

@@ -708,6 +708,22 @@ namespace caret {
         
         void setWholeBrainHippocampusEnabled(const bool enabled);
         
+        bool isWholeBrainHippocampusLeftEnabled() const;
+        
+        void setWholeBrainHippocampusLeftEnabled(const bool enabled);
+        
+        bool isWholeBrainHippocampusRightEnabled() const;
+        
+        void setWholeBrainHippocampusRightEnabled(const bool enabled);
+        
+        bool isWholeBrainDentateHippocampusLeftEnabled() const;
+        
+        void setWholeBrainDentateHippocampusLeftEnabled(const bool enabled);
+        
+        bool isWholeBrainDentateHippocampusRightEnabled() const;
+        
+        void setWholeBrainDentateHippocampusRightEnabled(const bool enabled);
+
         float getWholeBrainLeftRightSeparation() const;
         
         void setWholeBrainLeftRightSeparation(const float separation);

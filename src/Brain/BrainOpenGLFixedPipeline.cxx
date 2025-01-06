@@ -2063,6 +2063,7 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForWholeBrainVolum
     glLoadIdentity();
     setOrthographicProjectionForWithBoundingBox(viewport,
                                                 projectionType,
+                                                OrthoFitMode::SET_FROM_HEIGHT,
                                                 &boundingBox);
     glMatrixMode(GL_MODELVIEW);
 }
@@ -2082,7 +2083,53 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForSurfaceFile(con
                                                                              const  ProjectionViewTypeEnum::Enum projectionType,
                                                                              const SurfaceFile* surfaceFile)
 {
+    OrthoFitMode orthoFitMode = OrthoFitMode::SET_FROM_HEIGHT;
     CaretAssert(surfaceFile);
+    switch (surfaceFile->getStructure()) {
+        case StructureEnum::CORTEX_LEFT:
+        case StructureEnum::CORTEX_RIGHT:
+        case StructureEnum::CEREBELLUM:
+        case StructureEnum::ACCUMBENS_LEFT:
+        case StructureEnum::ACCUMBENS_RIGHT:
+        case StructureEnum::ALL:
+        case StructureEnum::ALL_GREY_MATTER:
+        case StructureEnum::ALL_WHITE_MATTER:
+        case StructureEnum::AMYGDALA_LEFT:
+        case StructureEnum::AMYGDALA_RIGHT:
+        case StructureEnum::BRAIN_STEM:
+        case StructureEnum::CAUDATE_LEFT:
+        case StructureEnum::CAUDATE_RIGHT:
+        case StructureEnum::CEREBELLAR_WHITE_MATTER_LEFT:
+        case StructureEnum::CEREBELLAR_WHITE_MATTER_RIGHT:
+        case StructureEnum::CEREBELLUM_LEFT:
+        case StructureEnum::CEREBELLUM_RIGHT:
+        case StructureEnum::CEREBRAL_WHITE_MATTER_LEFT:
+        case StructureEnum::CEREBRAL_WHITE_MATTER_RIGHT:
+        case StructureEnum::CORTEX:
+        case StructureEnum::DIENCEPHALON_VENTRAL_LEFT:
+        case StructureEnum::DIENCEPHALON_VENTRAL_RIGHT:
+            break;
+        case StructureEnum::HIPPOCAMPUS_LEFT:
+        case StructureEnum::HIPPOCAMPUS_RIGHT:
+        case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
+        case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
+            if (surfaceFile->getSurfaceType() == SurfaceTypeEnum::FLAT) {
+                orthoFitMode = OrthoFitMode::SET_FROM_WIDTH;
+            }
+            break;
+        case StructureEnum::PALLIDUM_LEFT:
+        case StructureEnum::PALLIDUM_RIGHT:
+        case StructureEnum::INVALID:
+        case StructureEnum::OTHER:
+        case StructureEnum::OTHER_GREY_MATTER:
+        case StructureEnum::OTHER_WHITE_MATTER:
+        case StructureEnum::PUTAMEN_LEFT:
+        case StructureEnum::PUTAMEN_RIGHT:
+        case StructureEnum::THALAMUS_LEFT:
+        case StructureEnum::THALAMUS_RIGHT:
+            break;
+    }
+    
     glViewport(viewport[0],
                viewport[1],
                viewport[2],
@@ -2091,8 +2138,9 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForSurfaceFile(con
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     setOrthographicProjectionForWithBoundingBox(viewport,
-                                            projectionType,
-                                            surfaceFile->getBoundingBox());
+                                                projectionType,
+                                                orthoFitMode,
+                                                surfaceFile->getBoundingBox());
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -2330,8 +2378,19 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                 const ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<const ModelSurfaceMontage*>(model);
                 CaretAssert(surfaceMontageModel);
                 if (surfaceMontageModel != NULL) {
-                    if (surfaceMontageModel->getSelectedConfigurationType(this->windowTabIndex) ==  SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION) {
-                        rightCortexFlatFlag = true;
+                    switch (surfaceMontageModel->getSelectedConfigurationType(this->windowTabIndex)) {
+                        case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+                            break;
+                        case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+                            break;
+                        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+                            break;
+                        case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+                            rightCortexFlatFlag = true;
+                            break;
+                        case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION:
+                            rightCortexFlatFlag = true;
+                            break;
                     }
                 }
             }
@@ -7201,10 +7260,20 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                     drawIt = browserTabContent->isWholeBrainCerebellumEnabled();
                     break;
                 case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
+                    drawIt = (browserTabContent->isWholeBrainHippocampusEnabled()
+                              && browserTabContent->isWholeBrainDentateHippocampusLeftEnabled());
+                    break;
                 case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
+                    drawIt = (browserTabContent->isWholeBrainHippocampusEnabled()
+                              && browserTabContent->isWholeBrainDentateHippocampusRightEnabled());
+                    break;
                 case StructureEnum::HIPPOCAMPUS_LEFT:
+                    drawIt = (browserTabContent->isWholeBrainHippocampusEnabled()
+                              && browserTabContent->isWholeBrainHippocampusLeftEnabled());
+                    break;
                 case StructureEnum::HIPPOCAMPUS_RIGHT:
-                    drawIt = browserTabContent->isWholeBrainHippocampusEnabled();
+                    drawIt = (browserTabContent->isWholeBrainHippocampusEnabled()
+                              && browserTabContent->isWholeBrainHippocampusRightEnabled());
                     break;
                 default:
                     CaretLogWarning("PROGRAMMER ISSUE: Surface type "
@@ -7470,8 +7539,9 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
  */
 void
 BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int32_t viewport[4],
-                                                 const ProjectionViewTypeEnum::Enum projectionType,
-                                                 const BoundingBox* boundingBox)
+                                                                      const ProjectionViewTypeEnum::Enum projectionType,
+                                                                      const OrthoFitMode orthoFitMode,
+                                                                      const BoundingBox* boundingBox)
 {
     CaretAssert(boundingBox);
     
@@ -7544,16 +7614,17 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
     const float orthoHeight = modelHalfHeight * 1.02;
     const float orthoWidth  = modelHalfWidth  * 1.02;
     
-    const bool setWidthFromHeightFlag = true;
-    if (setWidthFromHeightFlag) {
-        setOrthographicProjectionWithHeight(viewport,
-                                            projectionType,
-                                            orthoHeight);
-    }
-    else {
-        setOrthographicProjectionWithWidth(viewport,
-                                           projectionType,
-                                           orthoWidth);
+    switch (orthoFitMode) {
+        case OrthoFitMode::SET_FROM_WIDTH:
+            setOrthographicProjectionWithWidth(viewport,
+                                               projectionType,
+                                               orthoWidth);
+            break;
+        case OrthoFitMode::SET_FROM_HEIGHT:
+            setOrthographicProjectionWithHeight(viewport,
+                                                projectionType,
+                                                orthoHeight);
+            break;
     }
 }
 
@@ -7639,6 +7710,9 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewp
     double width = viewport[2];
     double height = viewport[3];
     double aspectRatio = (width / height);
+    if (aspectRatio == 0.0) {
+        aspectRatio = 1.0;
+    }
     this->orthographicRight  =    halfWindowWidth;
     this->orthographicLeft   =   -halfWindowWidth;
     this->orthographicTop    =    halfWindowWidth / aspectRatio;

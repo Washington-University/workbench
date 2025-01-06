@@ -1076,8 +1076,19 @@ BrowserTabContent::isFlatSurfaceDisplayed() const
     
     const ModelSurfaceMontage* montageModel = getDisplayedSurfaceMontageModel();
     if (montageModel != NULL) {
-        if (montageModel->getSelectedConfigurationType(getTabNumber()) == SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION) {
-            return true;
+        switch (montageModel->getSelectedConfigurationType(getTabNumber())) {
+            case SurfaceMontageConfigurationTypeEnum::CEREBRAL_CORTEX_CONFIGURATION:
+                break;
+            case SurfaceMontageConfigurationTypeEnum::CEREBELLAR_CORTEX_CONFIGURATION:
+                break;
+            case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_CONFIGURATION:
+                break;
+            case SurfaceMontageConfigurationTypeEnum::FLAT_CONFIGURATION:
+                return true;
+                break;
+            case SurfaceMontageConfigurationTypeEnum::HIPPOCAMPUS_FLAT_CONFIGURATION:
+                return true;
+                break;
         }
     }
     
@@ -8191,7 +8202,7 @@ BrowserTabContent::setWholeBrainCerebellumEnabled(const bool enabled)
 }
 
 /**
- * @return Enabled status for cerebellum.
+ * @return Enabled status for hippocampus.
  */
 bool
 BrowserTabContent::isWholeBrainHippocampusEnabled() const
@@ -8200,7 +8211,7 @@ BrowserTabContent::isWholeBrainHippocampusEnabled() const
 }
 
 /**
- * Set the enabled status for the cerebellum.
+ * Set the enabled status for the hippocampus.
  * @param enabled
  *    New enabled status.
  */
@@ -8208,6 +8219,90 @@ void
 BrowserTabContent::setWholeBrainHippocampusEnabled(const bool enabled)
 {
     m_wholeBrainSurfaceSettings->setHippocampusEnabled(enabled);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for hippocampus left
+ */
+bool
+BrowserTabContent::isWholeBrainHippocampusLeftEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isHippocampusLeftEnabled();
+}
+
+/**
+ * Set the enabled status for the hippocampus left
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainHippocampusLeftEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setHippocampusLeftEnabled(enabled);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for hippocampus right
+ */
+bool
+BrowserTabContent::isWholeBrainHippocampusRightEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isHippocampusRightEnabled();
+}
+
+/**
+ * Set the enabled status for the hippocampus right
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainHippocampusRightEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setHippocampusRightEnabled(enabled);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for dentate hippocampus left
+ */
+bool
+BrowserTabContent::isWholeBrainDentateHippocampusLeftEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isDentateHippocampusLeftEnabled();
+}
+
+/**
+ * Set the enabled status for the dentate hippocampus left
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainDentateHippocampusLeftEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setDentateHippocampusLeftEnabled(enabled);
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
+ * @return Enabled status for dentate hippocampus right
+ */
+bool
+BrowserTabContent::isWholeBrainDentateHippocampusRightEnabled() const
+{
+    return m_wholeBrainSurfaceSettings->isDentateHippocampusRightEnabled();
+}
+
+/**
+ * Set the enabled status for the dentate hippocampus right
+ * @param enabled
+ *    New enabled status.
+ */
+void
+BrowserTabContent::setWholeBrainDentateHippocampusRightEnabled(const bool enabled)
+{
+    m_wholeBrainSurfaceSettings->setDentateHippocampusRightEnabled(enabled);
     updateBrainModelYokedBrowserTabs();
 }
 

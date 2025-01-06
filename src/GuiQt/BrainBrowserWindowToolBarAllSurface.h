@@ -64,6 +64,10 @@ namespace caret {
         void wholeBrainSurfaceRightCheckBoxStateChanged(int state);
         void wholeBrainSurfaceCerebellumCheckBoxStateChanged(int state);
         void wholeBrainSurfaceHippocampusCheckBoxStateChanged(int state);
+        void wholeBrainSurfaceHippocampusLeftCheckBoxClicked(bool checked);
+        void wholeBrainSurfaceHippocampusRightCheckBoxClicked(bool checked);
+        void wholeBrainSurfaceDentateHippocampusLeftCheckBoxClicked(bool checked);
+        void wholeBrainSurfaceDentateHippocampusRightCheckBoxClicked(bool checked);
         void wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double d);
         void wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double d);
         void wholeBrainSurfaceLeftToolButtonTriggered(bool checked);
@@ -88,6 +92,10 @@ namespace caret {
         QCheckBox*      wholeBrainSurfaceRightCheckBox;
         QCheckBox*      wholeBrainSurfaceCerebellumCheckBox;
         QCheckBox*      wholeBrainSurfaceHippocampusCheckBox;
+        QCheckBox*      wholeBrainSurfaceHippocampusLeftCheckBox;
+        QCheckBox*      wholeBrainSurfaceHippocampusRightCheckBox;
+        QCheckBox*      wholeBrainSurfaceDentateHippocampusLeftCheckBox;
+        QCheckBox*      wholeBrainSurfaceDentateHippocampusRightCheckBox;
         QMenu*          wholeBrainSurfaceLeftMenu;
         QMenu*          wholeBrainSurfaceRightMenu;
         QMenu*          wholeBrainSurfaceCerebellumMenu;
