@@ -167,6 +167,8 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     EventBrowserTabGetAll getAllTabs;
     EventManager::get()->sendEvent(getAllTabs.getPointer());
     
+    m_numberOfDisplayedVolumeSurfaceOutlines = 6;
+
     /*
      * Find tabs with left/right
      */
@@ -288,39 +290,39 @@ VolumeSurfaceOutlineSetModel::selectSurfacesAfterSpecFileLoaded(Brain* brain,
     
     addSurfaceOutline(leftHippoOuterSurface,
                       -1,
-                      CaretColorEnum::LIME,
+                      CaretColorEnum::BLUE,
                       nextOutlineIndex);
     addSurfaceOutline(rightHippoOuterSurface,
                       -1,
-                      CaretColorEnum::LIME,
+                      CaretColorEnum::BLUE,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftHippoInnerSurface,
                       -1,
-                      CaretColorEnum::BLUE,
+                      CaretColorEnum::LIME,
                       nextOutlineIndex);
     addSurfaceOutline(rightHippoInnerSurface,
                       -1,
-                      CaretColorEnum::BLUE,
+                      CaretColorEnum::LIME,
                       nextOutlineIndex);
     
     
     addSurfaceOutline(leftDentateHippoOuterSurface,
                       -1,
-                      CaretColorEnum::LIME,
+                      CaretColorEnum::BLUE,
                       nextOutlineIndex);
     addSurfaceOutline(rightDentateHippoOuterSurface,
                       -1,
-                      CaretColorEnum::LIME,
+                      CaretColorEnum::BLUE,
                       nextOutlineIndex);
     
     addSurfaceOutline(leftDentateHippoInnerSurface,
                       -1,
-                      CaretColorEnum::BLUE,
+                      CaretColorEnum::LIME,
                       nextOutlineIndex);
     addSurfaceOutline(rightDentateHippoInnerSurface,
                       -1,
-                      CaretColorEnum::BLUE,
+                      CaretColorEnum::LIME,
                       nextOutlineIndex);
 }
 
@@ -345,7 +347,7 @@ VolumeSurfaceOutlineSetModel::getHippoInnerOuterSurfaces(Brain* brain,
         outerSurface = brainStructure->getSurfaceOfTypeAndSecondaryType(SurfaceTypeEnum::ANATOMICAL,
                                                                         SecondarySurfaceTypeEnum::OUTER);
         innerSurface = brainStructure->getSurfaceOfTypeAndSecondaryType(SurfaceTypeEnum::ANATOMICAL,
-                                                                        SecondarySurfaceTypeEnum::OUTER);
+                                                                        SecondarySurfaceTypeEnum::INNER);
         if (outerSurface == NULL) {
             outerSurface = brainStructure->getSurfaceContainingTextInName("outer");
         }
@@ -403,6 +405,13 @@ VolumeSurfaceOutlineSetModel::addSurfaceOutline(Surface* surface,
                 }
                 
                 outlineIndex++;
+                
+                /*
+                 * Ensure that outline is displayed
+                 */
+                if (m_numberOfDisplayedVolumeSurfaceOutlines < outlineIndex) {
+                    m_numberOfDisplayedVolumeSurfaceOutlines = outlineIndex;
+                }
             }
         }
     }
