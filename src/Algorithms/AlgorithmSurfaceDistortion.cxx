@@ -58,6 +58,10 @@ OperationParameters* AlgorithmSurfaceDistortion::getParameters()
     smoothOpt->addDoubleParameter(1, "sigma", "the size of the smoothing kernel in mm, as sigma by default");
     smoothOpt->createOptionalParameter(2, "-fwhm", "kernel size is FWHM, not sigma");
     
+    OptionalParameter* matchAreaOpt = ret->createOptionalParameter(8, "-match-surface-area", "isotropically rescale the distorted surface so that it has the same surface area as the reference surface");
+    OptionalParameter* matchRoiOpt = matchAreaOpt->createOptionalParameter(1, "-roi", "only use the surface area within a given ROI (e.g., to exclude the medial wall)");
+    matchRoiOpt->addMetricParameter(1, "roi-metric", "the ROI to use, as a metric file");
+    
     ret->createOptionalParameter(5, "-caret5-method", "use the surface distortion method from caret5");
     
     ret->createOptionalParameter(6, "-edge-method", "calculate distortion of edge lengths rather than areas");
@@ -109,13 +113,24 @@ void AlgorithmSurfaceDistortion::useParameters(OperationParameters* myParams, Pr
         ++methodCount;
         strainLog2 = strainOpt->getOptionalParameter(1)->m_present;
     }
+    OptionalParameter* matchAreaOpt = myParams->getOptionalParameter(8);
+    MetricFile* matchRoiMetric = NULL;
+    if (matchAreaOpt->m_present)
+    {
+        OptionalParameter* matchRoiOpt = matchAreaOpt->getOptionalParameter(1);
+        if (matchRoiOpt->m_present)
+        {
+            matchRoiMetric = matchRoiOpt->getMetric(1);
+        }
+    }
     if (methodCount > 1) throw AlgorithmException("you may not specify more than one of -caret5-method, -edge-method, or -local-affine-method");
-    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod, strainLog2);
+    AlgorithmSurfaceDistortion(myProgObj, referenceSurf, distortedSurf, myMetricOut, smooth, caret5method, edgeMethod, strainMethod, strainLog2, matchAreaOpt->m_present, matchRoiMetric);
 }
 
 AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj, const SurfaceFile* referenceSurf, const SurfaceFile* distortedSurf,
                                                        MetricFile* myMetricOut, const float& smooth, const bool& caret5method, const bool& edgeMethod,
-                                                       const bool& strainMethod, const bool& strainLog2) : AbstractAlgorithm(myProgObj)
+                                                       const bool& strainMethod, const bool& strainLog2,
+                                                       const bool& matchArea, const MetricFile* matchAreaROI) : AbstractAlgorithm(myProgObj)
 {
     int methodCount = 0;
     if (caret5method) ++methodCount;
@@ -137,7 +152,36 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         }
     }
     LevelProgress myProgress(myProgObj);
-    if (!referenceSurf->hasNodeCorrespondence(*distortedSurf)) throw AlgorithmException("input surfaces must have node correspondence");
+    if (!referenceSurf->hasNodeCorrespondence(*distortedSurf)) throw AlgorithmException("input surfaces must have vertex correspondence");
+    const SurfaceFile* useDistorted = distortedSurf;
+    SurfaceFile rescaledDistorted;
+    if (matchArea)
+    {
+        if (matchAreaROI != NULL && matchAreaROI->getNumberOfNodes() != referenceSurf->getNumberOfNodes())
+        {
+            throw AlgorithmException("roi metric file for match areas option must have the same number of vertices as the surface files");
+        }
+        vector<float> refAreas, distortAreas;
+        referenceSurf->computeNodeAreas(refAreas);
+        distortedSurf->computeNodeAreas(distortAreas);
+        double totalRef = 0.0, totalDistort = 0.0;
+        for (int i = 0; i < int(refAreas.size()); ++i)
+        {
+            if (matchAreaROI == NULL || matchAreaROI->getValue(i, 0) > 0.0f)
+            {
+                totalRef += refAreas[i];
+                totalDistort += distortAreas[i];
+            }
+        }
+        float rescaleFactor = sqrt(totalRef / totalDistort);
+        rescaledDistorted = *distortedSurf;
+        for (int i = 0; i < rescaledDistorted.getNumberOfNodes(); ++i)
+        {
+            Vector3D thisCoord = rescaledDistorted.getCoordinate(i);
+            rescaledDistorted.setCoordinate(i, thisCoord * rescaleFactor);
+        }
+        useDistorted = &rescaledDistorted;
+    }
     int numNodes = referenceSurf->getNumberOfNodes();
     int numOutCols = 1;
     if (strainMethod) numOutCols = 2;
@@ -148,7 +192,7 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         myMetricOut->setColumnName(0, "area distortion (caret5)");
         int numTiles = referenceSurf->getNumberOfTriangles();
         vector<float> tilescratch(numTiles), nodescratch(numNodes);
-        const float* refCoords = referenceSurf->getCoordinateData(), *distortCoords = distortedSurf->getCoordinateData();
+        const float* refCoords = referenceSurf->getCoordinateData(), *distortCoords = useDistorted->getCoordinateData();
         for (int i = 0; i < numTiles; ++i)
         {
             const int32_t* myTile = referenceSurf->getTriangle(i);
@@ -203,7 +247,7 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
     } else if (edgeMethod) {
         myMetricOut->setColumnName(0, "edge distortion");
         CaretPointer<TopologyHelper> myhelp = referenceSurf->getTopologyHelper();
-        const float* refCoords = referenceSurf->getCoordinateData(), *distortCoords = distortedSurf->getCoordinateData();
+        const float* refCoords = referenceSurf->getCoordinateData(), *distortCoords = useDistorted->getCoordinateData();
         for (int i = 0; i < numNodes; ++i)
         {
             Vector3D refCenter = refCoords + i * 3;
@@ -240,7 +284,7 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
             for (int j = 0; j < 3; ++j)
             {
                 allCoords[0][j] = referenceSurf->getCoordinate(thisTri[j]);
-                allCoords[1][j] = distortedSurf->getCoordinate(thisTri[j]);
+                allCoords[1][j] = useDistorted->getCoordinate(thisTri[j]);
             }
             float allCoords2D[2][3][2];//ref/dist, vert, x/y
             for (int k = 0; k < 2; ++k)
@@ -309,14 +353,14 @@ AlgorithmSurfaceDistortion::AlgorithmSurfaceDistortion(ProgressObject* myProgObj
         vector<float> scratch;
         referenceSurf->computeNodeAreas(scratch);
         refAreas.setValuesForColumn(0, scratch.data());
-        distortedSurf->computeNodeAreas(scratch);
+        useDistorted->computeNodeAreas(scratch);
         distortAreas.setValuesForColumn(0, scratch.data());
         MetricFile refSmoothed, distortSmoothed;
         const float* refData = refAreas.getValuePointerForColumn(0), *distortData = distortAreas.getValuePointerForColumn(0);
         if (smooth > 0.0f)
         {
             AlgorithmMetricSmoothing(smoothRef, referenceSurf, &refAreas, smooth, &refSmoothed, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_EQUAL);
-            AlgorithmMetricSmoothing(smoothDistort, distortedSurf, &distortAreas, smooth, &distortSmoothed, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_EQUAL);
+            AlgorithmMetricSmoothing(smoothDistort, useDistorted, &distortAreas, smooth, &distortSmoothed, NULL, false, false, -1, NULL, MetricSmoothingObject::GEO_GAUSS_EQUAL);
             refData = refSmoothed.getValuePointerForColumn(0);
             distortData = distortSmoothed.getValuePointerForColumn(0);
         }

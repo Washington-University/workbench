@@ -35,7 +35,8 @@ namespace caret {
         AlgorithmSurfaceDistortion(ProgressObject* myProgObj, const SurfaceFile* referenceSurf, const SurfaceFile* distortedSurf,
                                    MetricFile* myMetricOut, const float& smooth = -1.0f,
                                    const bool& caret5method = false, const bool& edgeMethod = false,
-                                   const bool& strainMethod = false, const bool& strainLog2 = false);
+                                   const bool& strainMethod = false, const bool& strainLog2 = false,
+                                   const bool& matchArea = false, const MetricFile* matchAreaROI = NULL);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
