@@ -604,6 +604,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     QObject::connect(wholeBrainSurfaceHippocampusLeftCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceHippocampusLeftCheckBoxClicked);
     wholeBrainSurfaceHippocampusLeftCheckBox->setObjectName(parentObjectName + ":HippoLeftCheckBox");
+    wholeBrainSurfaceHippocampusLeftCheckBox->setToolTip("Select Left Hippocampus Surface");
     WuQMacroManager::instance()->addMacroSupportToObject(wholeBrainSurfaceHippocampusLeftCheckBox,
                                                          "Display Left Hippocampus in All View");
     
@@ -611,6 +612,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     QObject::connect(wholeBrainSurfaceHippocampusRightCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceHippocampusRightCheckBoxClicked);
     wholeBrainSurfaceHippocampusRightCheckBox->setObjectName(parentObjectName + ":HippoRightCheckBox");
+    wholeBrainSurfaceHippocampusRightCheckBox->setToolTip("Select Right Hippocampus Surface");
     WuQMacroManager::instance()->addMacroSupportToObject(wholeBrainSurfaceHippocampusRightCheckBox,
                                                          "Display Right Hippocampus in All View");
     
@@ -619,6 +621,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     QObject::connect(wholeBrainSurfaceDentateHippocampusLeftCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceDentateHippocampusLeftCheckBoxClicked);
     wholeBrainSurfaceDentateHippocampusLeftCheckBox->setObjectName(parentObjectName + ":DetateHippoLeftCheckBox");
+    wholeBrainSurfaceDentateHippocampusLeftCheckBox->setToolTip("Select Left Dentate Hippocampus Surface");
     WuQMacroManager::instance()->addMacroSupportToObject(wholeBrainSurfaceDentateHippocampusLeftCheckBox,
                                                          "Display Dentate Left Hippocampus in All View");
     
@@ -626,6 +629,7 @@ BrainBrowserWindowToolBarAllSurface::createHippocampusSufaceSelectionWidget(cons
     QObject::connect(wholeBrainSurfaceDentateHippocampusRightCheckBox, &QCheckBox::clicked,
                      this, &BrainBrowserWindowToolBarAllSurface::wholeBrainSurfaceDentateHippocampusRightCheckBoxClicked);
     wholeBrainSurfaceDentateHippocampusRightCheckBox->setObjectName(parentObjectName + ":DetateHippoRightCheckBox");
+    wholeBrainSurfaceDentateHippocampusRightCheckBox->setToolTip("Select Left Dentate Hippocampus Surface");
     WuQMacroManager::instance()->addMacroSupportToObject(wholeBrainSurfaceDentateHippocampusRightCheckBox,
                                                          "Display Dentate Right Hippocampus in All View");
 
