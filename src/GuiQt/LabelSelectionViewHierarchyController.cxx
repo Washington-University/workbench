@@ -121,7 +121,7 @@ m_objectNamePrefix(parentObjectName
 #endif
                      this, &LabelSelectionViewHierarchyController::showNameComboBoxActivated);
     
-    m_collapseAllAction = new QAction("Collpase");
+    m_collapseAllAction = new QAction("Collapse");
     m_collapseAllAction->setToolTip("Collapse all items");
     QObject::connect(m_collapseAllAction, &QAction::triggered,
                      this, &LabelSelectionViewHierarchyController::collapseAllActionTriggered);
