@@ -42,6 +42,7 @@
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "Overlay.h"
+#include "OverlaySetInitializer.h"
 #include "PlainTextStringBuilder.h"
 #include "Scene.h"
 #include "SceneClass.h"
@@ -1049,6 +1050,7 @@ OverlaySet::initializeOverlays()
     bool isMatchToVolumeUnderlay = false;
     bool isMatchToVolumeOverlays = false;
     bool isVolumesForHistology   = false;
+    bool atLeastOneOverlayEnabledFlag(false);
     
     switch (m_includeVolumeFiles) {
         case Overlay::INCLUDE_VOLUME_FILES_NO:
@@ -1068,125 +1070,169 @@ OverlaySet::initializeOverlays()
             break;
     }
     
-    /*
-     * Underlays consist of anatomical type data
-     */
-    std::vector<CaretMappableDataFile*> underlayMapFiles;
-    std::vector<int32_t> underlayMapIndices;
-    findUnderlayFiles(m_includeSurfaceStructures,
-                      isMatchToVolumeUnderlay,
-                      underlayMapFiles,
-                      underlayMapIndices);
-    
-    /*
-     * Middle layers are Cifti labels or Gifti Labels
-     * that do not contain shape data
-     */
-    std::vector<CaretMappableDataFile*> middleLayerMapFiles;
-    std::vector<int32_t> middleLayerMapIndices;
-    findMiddleLayerFiles(m_includeSurfaceStructures,
-                         isMatchToVolumeOverlays,
-                         middleLayerMapFiles,
-                         middleLayerMapIndices);
-    
-    /*
-     * Overlays consist of Cifti scalars or Gifti Metric
-     */
-    std::vector<CaretMappableDataFile*> overlayMapFiles;
-    std::vector<int32_t> overlayMapIndices;
-    findOverlayFiles(m_includeSurfaceStructures,
+    {
+        const bool logFlag(m_tabIndex == 0);
+        OverlaySetInitializer initializer;
+        std::vector<OverlaySetInitializer::FileAndMapIndex> layers(initializer.initializeOverlaySet(m_includeSurfaceStructures,
+                                                                                                    isMatchToVolumeUnderlay,
+                                                                                                    logFlag));
+        if (layers.size() > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+            layers.resize(BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+        }
+        
+        /*
+         * Note: There are minimum and maximum number of overlays
+         * that are applied when setNumberOfDisplayedOverlays() is
+         * called.  Thus the displayed number of overlays may
+         * be different than the number of layers to load.
+         *
+         * Layers from overlay initializer are ordered underlay to
+         * overlay.  Put underlay at bottom of these overlays.
+         */
+        int32_t layerIndex(0);
+        const int32_t numLayers(layers.size());
+        setNumberOfDisplayedOverlays(numLayers);
+        const int32_t numDisplayedLayers(getNumberOfDisplayedOverlays());
+        for (int32_t i = (numDisplayedLayers - 1); i >= 0; i--) {
+            Overlay* overlay(getOverlay(i));
+            CaretAssert(overlay);
+            if (layerIndex < numLayers) {
+                CaretAssertVectorIndex(layers, layerIndex);
+                overlay->setSelectionData(layers[layerIndex].m_file,
+                                          layers[layerIndex].m_mapIndex);
+                overlay->setEnabled(true);
+                atLeastOneOverlayEnabledFlag = true;
+                ++layerIndex;
+            }
+            else {
+                overlay->setEnabled(false);
+            }
+            overlay->setMapYokingGroup(MapYokingGroupEnum::MAP_YOKING_GROUP_OFF);
+        }
+    }
+
+    const bool useOldInitializationFlag(false);
+    if (useOldInitializationFlag) {
+        /*
+         * Underlays consist of anatomical type data
+         */
+        std::vector<CaretMappableDataFile*> underlayMapFiles;
+        std::vector<int32_t> underlayMapIndices;
+        findUnderlayFiles(m_includeSurfaceStructures,
+                          isMatchToVolumeUnderlay,
+                          underlayMapFiles,
+                          underlayMapIndices);
+        
+        /*
+         * Middle layers are Cifti labels or Gifti Labels
+         * that do not contain shape data
+         */
+        std::vector<CaretMappableDataFile*> middleLayerMapFiles;
+        std::vector<int32_t> middleLayerMapIndices;
+        findMiddleLayerFiles(m_includeSurfaceStructures,
+                             isMatchToVolumeOverlays,
+                             middleLayerMapFiles,
+                             middleLayerMapIndices);
+        
+        /*
+         * Overlays consist of Cifti scalars or Gifti Metric
+         */
+        std::vector<CaretMappableDataFile*> overlayMapFiles;
+        std::vector<int32_t> overlayMapIndices;
+        findOverlayFiles(m_includeSurfaceStructures,
                          isMatchToVolumeOverlays,
                          overlayMapFiles,
                          overlayMapIndices);
-    
-    const int32_t numberOfUnderlayFiles = static_cast<int32_t>(underlayMapFiles.size());
-    
-    /*
-     * Number of overlay that are displayed.
-     */
-    const int32_t numberOfDisplayedOverlays = getNumberOfDisplayedOverlays();
-    
-    
-    /*
-     * Track overlay that were initialized
-     */
-    std::vector<bool> overlayInitializedFlag(numberOfDisplayedOverlays,
-                                             false);
-    
-    /*
-     * Put in the shape files at the bottom
-     * Note that highest overlay index is bottom
-     */
-    int32_t overlayIndexForUnderlay = (numberOfDisplayedOverlays - 1);
-    for (int32_t underlayFileIndex = 0; underlayFileIndex < numberOfUnderlayFiles; underlayFileIndex++) {
-        if (overlayIndexForUnderlay >= 0) {
-            Overlay* overlay = getOverlay(overlayIndexForUnderlay);
-            overlay->setSelectionData(underlayMapFiles[underlayFileIndex],
-                                      underlayMapIndices[underlayFileIndex]);
-            overlayInitializedFlag[overlayIndexForUnderlay] = true;
-            overlayIndexForUnderlay--;
-        }
-        else {
-            break;
-        }
-    }
-    
-    /*
-     * Combine overlay and middle layer files
-     */
-    std::vector<CaretMappableDataFile*> upperLayerFiles;
-    std::vector<int32_t> upperLayerIndices;
-    upperLayerFiles.insert(upperLayerFiles.end(),
-                           overlayMapFiles.begin(),
-                           overlayMapFiles.end());
-    upperLayerIndices.insert(upperLayerIndices.end(),
-                             overlayMapIndices.begin(),
-                             overlayMapIndices.end());
-    upperLayerFiles.insert(upperLayerFiles.end(),
-                           middleLayerMapFiles.begin(),
-                           middleLayerMapFiles.end());
-    upperLayerIndices.insert(upperLayerIndices.end(),
-                             middleLayerMapIndices.begin(),
-                             middleLayerMapIndices.end());
-    CaretAssert(upperLayerFiles.size() == upperLayerIndices.size());
-    
-    const int32_t numberOfUpperFiles = static_cast<int32_t>(upperLayerFiles.size());
-    
-    /*
-     * Put in overlay and middle layer files
-     */
-    for (int32_t upperFileIndex = 0; upperFileIndex < numberOfUpperFiles; upperFileIndex++) {
+        
+        const int32_t numberOfUnderlayFiles = static_cast<int32_t>(underlayMapFiles.size());
+        
         /*
-         * Find available overlay
+         * Number of overlay that are displayed.
          */
-        int32_t upperLayerOverlayIndex = -1;
-        for (int32_t overlayIndex = 0; overlayIndex < numberOfDisplayedOverlays; overlayIndex++) {
-            if ( ! overlayInitializedFlag[overlayIndex]) {
-                upperLayerOverlayIndex = overlayIndex;
+        const int32_t numberOfDisplayedOverlays = getNumberOfDisplayedOverlays();
+        
+        
+        /*
+         * Track overlay that were initialized
+         */
+        std::vector<bool> overlayInitializedFlag(numberOfDisplayedOverlays,
+                                                 false);
+        
+        /*
+         * Put in the shape files at the bottom
+         * Note that highest overlay index is bottom
+         */
+        int32_t overlayIndexForUnderlay = (numberOfDisplayedOverlays - 1);
+        for (int32_t underlayFileIndex = 0; underlayFileIndex < numberOfUnderlayFiles; underlayFileIndex++) {
+            if (overlayIndexForUnderlay >= 0) {
+                Overlay* overlay = getOverlay(overlayIndexForUnderlay);
+                overlay->setSelectionData(underlayMapFiles[underlayFileIndex],
+                                          underlayMapIndices[underlayFileIndex]);
+                overlayInitializedFlag[overlayIndexForUnderlay] = true;
+                overlayIndexForUnderlay--;
+            }
+            else {
                 break;
             }
         }
         
-        if (upperLayerOverlayIndex >= 0) {
-            Overlay* upperLayerOverlay = getOverlay(upperLayerOverlayIndex);
-            upperLayerOverlay->setSelectionData(upperLayerFiles[upperFileIndex],
-                                                upperLayerIndices[upperFileIndex]);
-            overlayInitializedFlag[upperLayerOverlayIndex] = true;
+        /*
+         * Combine overlay and middle layer files
+         */
+        std::vector<CaretMappableDataFile*> upperLayerFiles;
+        std::vector<int32_t> upperLayerIndices;
+        upperLayerFiles.insert(upperLayerFiles.end(),
+                               overlayMapFiles.begin(),
+                               overlayMapFiles.end());
+        upperLayerIndices.insert(upperLayerIndices.end(),
+                                 overlayMapIndices.begin(),
+                                 overlayMapIndices.end());
+        upperLayerFiles.insert(upperLayerFiles.end(),
+                               middleLayerMapFiles.begin(),
+                               middleLayerMapFiles.end());
+        upperLayerIndices.insert(upperLayerIndices.end(),
+                                 middleLayerMapIndices.begin(),
+                                 middleLayerMapIndices.end());
+        CaretAssert(upperLayerFiles.size() == upperLayerIndices.size());
+        
+        const int32_t numberOfUpperFiles = static_cast<int32_t>(upperLayerFiles.size());
+        
+        /*
+         * Put in overlay and middle layer files
+         */
+        for (int32_t upperFileIndex = 0; upperFileIndex < numberOfUpperFiles; upperFileIndex++) {
+            /*
+             * Find available overlay
+             */
+            int32_t upperLayerOverlayIndex = -1;
+            for (int32_t overlayIndex = 0; overlayIndex < numberOfDisplayedOverlays; overlayIndex++) {
+                if ( ! overlayInitializedFlag[overlayIndex]) {
+                    upperLayerOverlayIndex = overlayIndex;
+                    break;
+                }
+            }
+            
+            if (upperLayerOverlayIndex >= 0) {
+                Overlay* upperLayerOverlay = getOverlay(upperLayerOverlayIndex);
+                upperLayerOverlay->setSelectionData(upperLayerFiles[upperFileIndex],
+                                                    upperLayerIndices[upperFileIndex]);
+                overlayInitializedFlag[upperLayerOverlayIndex] = true;
+            }
+            else {
+                break;
+            }
         }
-        else {
-            break;
-        }
-    }
-    
-    /*
-     * Disable overlays that were not initialized
-     */
-    bool atLeastOneOverlayEnabledFlag(false);
-    for (int32_t i = 0; i < numberOfDisplayedOverlays; i++) {
-        CaretAssertVectorIndex(overlayInitializedFlag, i);
-        getOverlay(i)->setEnabled(overlayInitializedFlag[i]);
-        if (overlayInitializedFlag[i]) {
-            atLeastOneOverlayEnabledFlag = true;
+        
+        /*
+         * Disable overlays that were not initialized
+         */
+//        bool atLeastOneOverlayEnabledFlag(false);
+        for (int32_t i = 0; i < numberOfDisplayedOverlays; i++) {
+            CaretAssertVectorIndex(overlayInitializedFlag, i);
+            getOverlay(i)->setEnabled(overlayInitializedFlag[i]);
+            if (overlayInitializedFlag[i]) {
+                atLeastOneOverlayEnabledFlag = true;
+            }
         }
     }
     
@@ -1196,6 +1242,7 @@ OverlaySet::initializeOverlays()
      * if one loaded an RGB volume (no overlay was enabled).
      */
     if ( ! atLeastOneOverlayEnabledFlag) {
+        const int32_t numberOfDisplayedOverlays(getNumberOfDisplayedOverlays());
         if (numberOfDisplayedOverlays > 0) {
             const int32_t overlayIndex(numberOfDisplayedOverlays - 1);
             Overlay* overlay(getOverlay(overlayIndex));

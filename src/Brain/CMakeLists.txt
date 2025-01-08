@@ -192,6 +192,7 @@ OffScreenSceneRendererOpenGLWindow.h
 Overlay.h
 OverlaySet.h
 OverlaySetArray.h
+OverlaySetInitializer.h
 ProjectionViewTypeEnum.h
 SamplesDrawingModeEnum.h
 SamplesDrawingSettings.h
@@ -428,6 +429,7 @@ OffScreenSceneRendererOpenGLWindow.cxx
 Overlay.cxx
 OverlaySet.cxx
 OverlaySetArray.cxx
+OverlaySetInitializer.cxx
 ProjectionViewTypeEnum.cxx
 SamplesDrawingModeEnum.cxx
 SamplesDrawingSettings.cxx
