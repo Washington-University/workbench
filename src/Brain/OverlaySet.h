@@ -109,38 +109,11 @@ namespace caret {
         virtual void getDescriptionOfContent(PlainTextStringBuilder& descriptionOut) const;
         
     private:
-        void findUnderlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
-                               const bool includeVolumeFiles,
-                               std::vector<CaretMappableDataFile*>& filesOut,
-                               std::vector<int32_t>& mapIndicesOut);
-        
-        void findMiddleLayerFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
-                                  const bool includeVolumeFiles,
-                                  std::vector<CaretMappableDataFile*>& filesOut,
-                                  std::vector<int32_t>& mapIndicesOut);
-        
-        void findOverlayFiles(const std::vector<StructureEnum::Enum>& matchToStructures,
-                              const bool includeVolumeFiles,
-                              std::vector<CaretMappableDataFile*>& filesOut,
-                              std::vector<int32_t>& mapIndicesOut);
-        
-        
         OverlaySet(const OverlaySet&);
         
         OverlaySet& operator=(const OverlaySet&);
         
         Overlay* m_overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
-        
-        bool findFilesWithMapNamed(std::vector<CaretMappableDataFile*>& matchedFilesOut,
-                                   std::vector<int32_t>& matchedFileIndicesOut,
-                                   const std::vector<StructureEnum::Enum>& matchToStructures,
-                                   const DataFileTypeEnum::Enum dataFileType,
-                                   const bool matchToVolumeData,
-                                   const AString& matchToNamesRegularExpressionText,
-                                   const bool matchToNamesRegularExpressionResult,
-                                   const bool matchOneFilePerStructure);
-        
-        std::vector<VolumeFile*> getVolumeFiles() const;
         
         AString m_name;
         
@@ -155,21 +128,9 @@ namespace caret {
         int32_t m_numberOfDisplayedOverlays;
         
         SceneClassAssistant* m_sceneAssistant;
-
-        /** regular expression for matching myeline names - NOT saved to scenes */
-        static const AString s_myelinMatchRegularExpressionText;
-        
-        /** regular expression for matching shape names - NOT saved to scenes */
-        static const AString s_shapeMatchRegularExpressionText;
-        
-        /** regular expression for matching shape and myelin names - NOT saved to scenes */
-        static const AString s_shapeMyelinMatchRegularExpressionText;
     };
     
 #ifdef __OVERLAY_SET_DECLARE__
-    AString const OverlaySet::s_myelinMatchRegularExpressionText = "(myelin)";
-    AString const OverlaySet::s_shapeMatchRegularExpressionText = "(sulc|shape|curv|depth|thick)";
-    AString const OverlaySet::s_shapeMyelinMatchRegularExpressionText = "(myelin|sulc|shape|curv|depth|thick)";
 #endif // __OVERLAY_SET_DECLARE__
 
 } // namespace
