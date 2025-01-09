@@ -32,9 +32,8 @@ namespace caret {
     class SurfaceMontageViewport : public CaretObject {
         
     public:
-//        SurfaceMontageViewport();
-        
         SurfaceMontageViewport(Surface* surface,
+                               Surface* surfaceForSettingOrthographicProjection,
                                const ProjectionViewTypeEnum::Enum projectionViewType);
         
         virtual ~SurfaceMontageViewport();
@@ -43,6 +42,14 @@ namespace caret {
          * @return The surface in the viewport.
          */
         Surface* getSurface() const { return m_surface; }
+        
+        /**
+         * @return Surface to use for setting the orthographic projection
+         * If different that getSurface() is allows scaling surfaces in a montage view to match another surface.
+         * Flat Dentate Hippocampus surface use the Hippocampus Surface for orthographic projection
+         * so that they are drawn in the same width
+         */
+        Surface* getSurfaceForSettingOrthographicProjection() { return m_surfaceForSettingOrthographicProjection; }
         
         ProjectionViewTypeEnum::Enum getProjectionViewType() const { return m_projectionViewType; }
         
@@ -101,6 +108,8 @@ namespace caret {
         int32_t m_viewport[4];
         
         Surface* m_surface;
+        
+        Surface* m_surfaceForSettingOrthographicProjection;
         
         ProjectionViewTypeEnum::Enum m_projectionViewType;
 

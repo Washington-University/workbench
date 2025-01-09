@@ -2108,15 +2108,10 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjectionForSurfaceFile(con
         case StructureEnum::CORTEX:
         case StructureEnum::DIENCEPHALON_VENTRAL_LEFT:
         case StructureEnum::DIENCEPHALON_VENTRAL_RIGHT:
-            break;
         case StructureEnum::HIPPOCAMPUS_LEFT:
         case StructureEnum::HIPPOCAMPUS_RIGHT:
         case StructureEnum::HIPPOCAMPUS_DENTATE_LEFT:
         case StructureEnum::HIPPOCAMPUS_DENTATE_RIGHT:
-            if (surfaceFile->getSurfaceType() == SurfaceTypeEnum::FLAT) {
-                orthoFitMode = OrthoFitMode::SET_FROM_WIDTH;
-            }
-            break;
         case StructureEnum::PALLIDUM_LEFT:
         case StructureEnum::PALLIDUM_RIGHT:
         case StructureEnum::INVALID:
@@ -6947,7 +6942,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         
         this->setViewportAndOrthographicProjectionForSurfaceFile(surfaceViewport,
                                                                  mvp->getProjectionViewType(),
-                                                                 mvp->getSurface());
+                                                                 mvp->getSurfaceForSettingOrthographicProjection());
         
         this->applyViewingTransformations(surfaceMontageModel,
                                           center,

@@ -191,11 +191,13 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
             if (leftSurface != NULL) {
                 if (m_lateralEnabled) {
                     SurfaceMontageViewport smv(leftSurface,
+                                               leftSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
                     leftLateralViewports.push_back(smv);
                 }
                 if (m_medialEnabled) {
                     SurfaceMontageViewport smv(leftSurface,
+                                               leftSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL);
                     leftMedialViewports.push_back(smv);
                 }
@@ -206,11 +208,13 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
             if (leftSurface != NULL) {
                 if (m_lateralEnabled) {
                     SurfaceMontageViewport smv(leftSurface,
+                                               leftSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL);
                     leftLateralViewports.push_back(smv);
                 }
                 if (m_medialEnabled) {
                     SurfaceMontageViewport smv(leftSurface,
+                                               leftSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL);
                     leftMedialViewports.push_back(smv);
                 }
@@ -224,11 +228,13 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
             if (rightSurface != NULL) {
                 if (m_lateralEnabled) {
                     SurfaceMontageViewport smv(rightSurface,
+                                               rightSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL);
                     rightLateralViewports.push_back(smv);
                 }
                 if (m_medialEnabled) {
                     SurfaceMontageViewport smv(rightSurface,
+                                               rightSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL);
                     rightMedialViewports.push_back(smv);
                 }
@@ -241,11 +247,13 @@ SurfaceMontageConfigurationHippocampus::updateSurfaceMontageViewports(std::vecto
             if (rightSurface != NULL) {
                 if (m_lateralEnabled) {
                     SurfaceMontageViewport smv(rightSurface,
+                                               rightSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL);
                     rightLateralViewports.push_back(smv);
                 }
                 if (m_medialEnabled) {
                     SurfaceMontageViewport smv(rightSurface,
+                                               rightSurface,
                                                ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL);
                     rightMedialViewports.push_back(smv);
                 }

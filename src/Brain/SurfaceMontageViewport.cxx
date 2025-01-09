@@ -41,16 +41,24 @@ using namespace caret;
  *
  * @param surface
  *   Surface in the montage.
+ * @param surfaceForSettingOrthographicProjection
+ *   Surface to use for setting the orthographic projection
+ *   If different that getSurface() is allows scaling surfaces in a montage view to match another surface.
+ *   Flat Dentate Hippocampus surface use the Hippocampus Surface for orthographic projection
+ *   so that they are drawn in the same width
  * @param projectionViewType
  *   Projection view type.
  */
 SurfaceMontageViewport::SurfaceMontageViewport(Surface* surface,
+                                               Surface* surfaceForSettingOrthographicProjection,
                                                const ProjectionViewTypeEnum::Enum projectionViewType)
 : CaretObject()
 {
     CaretAssert(surface);
+    CaretAssert(surfaceForSettingOrthographicProjection);
     
     m_surface = surface;
+    m_surfaceForSettingOrthographicProjection = surfaceForSettingOrthographicProjection;
     m_structure = surface->getStructure();
     m_projectionViewType = projectionViewType;
     m_viewport[0] = -1;

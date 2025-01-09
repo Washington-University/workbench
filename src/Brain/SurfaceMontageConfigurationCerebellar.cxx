@@ -305,21 +305,25 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         if (surface != NULL) {
             if (m_anteriorEnabled) {
                 anteriorViewports.push_back(SurfaceMontageViewport(surface,
-                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
+                                                                   surface,
+                                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
                 numFirst++;
             }
             if (m_dorsalEnabled) {
                 dorsalViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 surface,
                                                                  ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL));
                 numFirst++;
             }
             if (m_posteriorEnabled) {
                 posteriorViewports.push_back(SurfaceMontageViewport(surface,
-                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
+                                                                    surface,
+                                                                    ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
                 numFirst++;
             }
             if (m_ventralEnabled) {
                 ventralViewports.push_back(SurfaceMontageViewport(surface,
+                                                                  surface,
                                                                  ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL));
                 numFirst++;
             }
@@ -332,22 +336,26 @@ SurfaceMontageConfigurationCerebellar::updateSurfaceMontageViewports(std::vector
         if (surface != NULL) {
             if (m_anteriorEnabled) {
                 anteriorViewports.push_back(SurfaceMontageViewport(surface,
-                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
+                                                                   surface,
+                                                                   ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR));
                 numSecond++;
             }
             if (m_dorsalEnabled) {
                 dorsalViewports.push_back(SurfaceMontageViewport(surface,
+                                                                 surface,
                                                                  ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL));
                 numSecond++;
             }
             if (m_posteriorEnabled) {
                 posteriorViewports.push_back(SurfaceMontageViewport(surface,
-                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
+                                                                    surface,
+                                                                    ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR));
                 numSecond++;
             }
             if (m_ventralEnabled) {
                 ventralViewports.push_back(SurfaceMontageViewport(surface,
-                                                                 ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL));
+                                                                  surface,
+                                                                  ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL));
                 numSecond++;
             }
         }

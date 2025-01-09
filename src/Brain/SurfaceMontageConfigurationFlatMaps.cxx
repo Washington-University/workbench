@@ -250,6 +250,7 @@ SurfaceMontageConfigurationFlatMaps::updateSurfaceMontageViewports(std::vector<S
         Surface* leftSurface = m_leftSurfaceSelectionModel->getSurface();
         if (leftSurface != NULL) {
             SurfaceMontageViewport smv(leftSurface,
+                                       leftSurface,
                                        ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE);
             surfaceMontageViewports.push_back(smv);
         }
@@ -259,6 +260,7 @@ SurfaceMontageConfigurationFlatMaps::updateSurfaceMontageViewports(std::vector<S
         Surface* rightSurface = m_rightSurfaceSelectionModel->getSurface();
         if (rightSurface != NULL) {
             SurfaceMontageViewport smv(rightSurface,
+                                       rightSurface,
                                        ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE);
             surfaceMontageViewports.push_back(smv);
         }
@@ -268,6 +270,7 @@ SurfaceMontageConfigurationFlatMaps::updateSurfaceMontageViewports(std::vector<S
         Surface* cerebellumSurface = m_cerebellumSurfaceSelectionModel->getSurface();
         if (cerebellumSurface != NULL) {
             SurfaceMontageViewport smv(cerebellumSurface,
+                                       cerebellumSurface,
                                        ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE);
             surfaceMontageViewports.push_back(smv);
         }

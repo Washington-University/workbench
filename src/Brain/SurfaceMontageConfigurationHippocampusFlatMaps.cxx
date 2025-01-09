@@ -147,18 +147,25 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
     std::vector<SurfaceMontageViewport> rightViewports;
     
     if (m_leftEnabled) {
+        Surface* leftFirstSurface(NULL);
         if (m_firstSurfaceEnabled) {
-            Surface* leftSurface = m_leftFirstSurfaceSelectionModel->getSurface();
-            if (leftSurface != NULL) {
-                SurfaceMontageViewport smv(leftSurface,
+            leftFirstSurface = m_leftFirstSurfaceSelectionModel->getSurface();
+            if (leftFirstSurface != NULL) {
+                SurfaceMontageViewport smv(leftFirstSurface,
+                                           leftFirstSurface,
                                            ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE);
                 leftViewports.push_back(smv);
             }
         }
         if (m_secondSurfaceEnabled) {
-            Surface* leftSurface = m_leftSecondSurfaceSelectionModel->getSurface();
-            if (leftSurface != NULL) {
-                SurfaceMontageViewport smv(leftSurface,
+            Surface* leftSecondSurface = m_leftSecondSurfaceSelectionModel->getSurface();
+            if (leftSecondSurface != NULL) {
+                /*
+                 * Note: Using first surface for projection results in second surface being
+                 * drawn about the same size as first surface
+                 */
+                SurfaceMontageViewport smv(leftSecondSurface,
+                                           (leftFirstSurface != NULL) ? leftFirstSurface : leftSecondSurface,
                                            ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE);
                 leftViewports.push_back(smv);
             }
@@ -166,20 +173,26 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
     }
     
     if (m_rightEnabled) {
+        Surface* rightFirstSurface(NULL);
         if (m_firstSurfaceEnabled) {
-            Surface* rightSurface = m_rightFirstSurfaceSelectionModel->getSurface();
-            if (rightSurface != NULL) {
-                SurfaceMontageViewport smv(rightSurface,
+            rightFirstSurface = m_rightFirstSurfaceSelectionModel->getSurface();
+            if (rightFirstSurface != NULL) {
+                SurfaceMontageViewport smv(rightFirstSurface,
+                                           rightFirstSurface,
                                            ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE);
                 rightViewports.push_back(smv);
             }
         }
-    }
-    if (m_rightEnabled) {
+
         if (m_secondSurfaceEnabled) {
-            Surface* rightSurface = m_rightSecondSurfaceSelectionModel->getSurface();
-            if (rightSurface != NULL) {
-                SurfaceMontageViewport smv(rightSurface,
+            Surface* rightSecondSurface = m_rightSecondSurfaceSelectionModel->getSurface();
+            if (rightSecondSurface != NULL) {
+                /*
+                 * Note: Using first surface for projection results in second surface being
+                 * drawn about the same size as first surface
+                 */
+                SurfaceMontageViewport smv(rightSecondSurface,
+                                           (rightFirstSurface != NULL) ? rightFirstSurface : rightSecondSurface,
                                            ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE);
                 rightViewports.push_back(smv);
             }
