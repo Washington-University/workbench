@@ -2342,6 +2342,15 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
     float upY = 0.0;
     float upZ = 0.0;
     
+    /*
+     * Moves dentate flat up to be closer to hippocampus
+     * in flat hippocampus montage
+     * Cannot shrink height of viewport and shift it up
+     * because smaller viewport because surface is
+     * "fit" into viewport based upon width/height
+     */
+    float kludgyDentateFlatTranslationY(0.0);
+    
     bool useGluLookAt = false;
     bool rightCortexFlatFlag = false;
     switch (projectionViewType) {
@@ -2364,11 +2373,15 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
             break;
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+            kludgyDentateFlatTranslationY = 5.0;
+            break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             if (model->getModelType() == ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE) {
                 const ModelSurfaceMontage* surfaceMontageModel = dynamic_cast<const ModelSurfaceMontage*>(model);
                 CaretAssert(surfaceMontageModel);
@@ -2389,6 +2402,9 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                     }
                 }
             }
+            if (projectionViewType == ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE) {
+                kludgyDentateFlatTranslationY = 5.0;
+            }
             break;
     }
 
@@ -2408,7 +2424,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* model,
                                                           scaling);
     
     glTranslatef(translation[0],
-                 translation[1],
+                 translation[1] + kludgyDentateFlatTranslationY,
                  translation[2]);
     
     glMultMatrixd(rotationMatrixElements);
@@ -6922,7 +6938,7 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         const int32_t rowFromBottom = (numberOfRows - rowFromTop - 1);
         const int32_t column = mvp->getColumn();
         
-        const int32_t surfaceViewport[4] = {
+        int32_t surfaceViewport[4] = {
             (viewport[0] + (column * (subViewportWidth + horizontalGap))),
             (viewport[1] + (rowFromBottom * (subViewportHeight + verticalGap))),
             subViewportWidth,
@@ -6930,6 +6946,34 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         };
         mvp->setViewport(surfaceViewport);
         
+        switch (mvp->getProjectionViewType()) {
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_ANTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_DORSAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_POSTERIOR:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_VENTRAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                break;
+            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
+                break;
+        }
         EventDrawingViewportContentAdd addViewportEvent;
         addViewportEvent.addModelSurfaceGridCell(m_windowIndex,
                                                  this->windowTabIndex,
@@ -7565,7 +7609,9 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionForWithBoundingBox(const int3
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_CEREBELLUM_FLAT_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             windowHorizontalSize = boundingBox->getDifferenceX();
             windowVerticalSize   = boundingBox->getDifferenceY();
             break;
@@ -7664,6 +7710,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
@@ -7676,6 +7723,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithHeight(const int32_t view
                     this->orthographicFar, this->orthographicNear);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicNear, this->orthographicFar);
@@ -7731,6 +7779,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewp
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_LATERAL:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
@@ -7743,6 +7792,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjectionWithWidth(const int32_t viewp
                     this->orthographicFar, this->orthographicNear);
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             glOrtho(this->orthographicLeft, this->orthographicRight,
                     this->orthographicBottom, this->orthographicTop,
                     this->orthographicNear, this->orthographicFar);

@@ -166,7 +166,7 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
                  */
                 SurfaceMontageViewport smv(leftSecondSurface,
                                            (leftFirstSurface != NULL) ? leftFirstSurface : leftSecondSurface,
-                                           ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE);
+                                           ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE);
                 leftViewports.push_back(smv);
             }
         }
@@ -193,7 +193,7 @@ SurfaceMontageConfigurationHippocampusFlatMaps::updateSurfaceMontageViewports(st
                  */
                 SurfaceMontageViewport smv(rightSecondSurface,
                                            (rightFirstSurface != NULL) ? rightFirstSurface : rightSecondSurface,
-                                           ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE);
+                                           ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE);
                 rightViewports.push_back(smv);
             }
         }

@@ -4206,11 +4206,15 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
                             break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+                            break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
                             break;
                     }
                 }
@@ -4356,6 +4360,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 isLateral = false;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
                                 isLeft = true;
                                 isFlat = true;
                                 smv->getViewport(flatViewport);
@@ -4370,6 +4375,7 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
                                 isLateral = false;
                                 break;
                             case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
                                 isLeft = false;
                                 isFlat = true;
                                 smv->getViewport(flatViewport);
@@ -5478,11 +5484,15 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
                             break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
+                            break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_LATERAL:
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_MEDIAL:
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                            break;
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
                             break;
                     }
                 }
@@ -5543,6 +5553,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             isLateral = false;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
                             isLeft = true;
                             isLateral = true;
                             break;
@@ -5555,6 +5566,7 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
                             isLateral = false;
                             break;
                         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+                        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
                             isLeft = false;
                             isLateral = true;
                             break;
@@ -5870,6 +5882,7 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_MEDIAL:
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_LEFT_FLAT_DENTATE_SURFACE:
             getFlatRotationMatrix().getRotation(rotationX,
                                                 rotationY,
                                                 rotationZ);
@@ -5883,6 +5896,7 @@ BrowserTabContent::getTransformationsForOpenGLDrawing(const ProjectionViewTypeEn
             rotationY = rotationFlippedY;
             break;
         case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_SURFACE:
+        case ProjectionViewTypeEnum::PROJECTION_VIEW_RIGHT_FLAT_DENTATE_SURFACE:
             translationOut[0] = -translationOut[0];
             getFlatRotationMatrix().getRotation(rotationX,
                                                 rotationY,
