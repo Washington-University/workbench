@@ -329,11 +329,8 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     
     QMenu menu(this);
     
-    QAction* infoAction(NULL);
-    if (infoButtonFlag) {
-        infoAction = menu.addAction("Info...");
-        menu.addSeparator();
-    }
+    QAction* infoAction(menu.addAction("Info..."));
+    menu.addSeparator();
 
     /*
      * My clusters
