@@ -253,7 +253,7 @@ std::vector<AString> AnnotationSampleMetaData::getAllValidSampleTypeValues()
     std::vector<AString> values;
     
     values.push_back("");
-    values.push_back("Slap polyhedron");
+    values.push_back("Slab polyhedron");
     values.push_back("polygon");
 
     return values;
@@ -863,8 +863,12 @@ AnnotationSampleMetaData::setSampleNumber(const AString& value)
 AString
 AnnotationSampleMetaData::getSampleType() const
 {
-    return get(SAMPLES_SAMPLE_TYPE,
-               SAMPLES_OBSOLETE_SAMPLE_TYPE);
+    AString txt(get(SAMPLES_SAMPLE_TYPE,
+                    SAMPLES_OBSOLETE_SAMPLE_TYPE));
+    if (txt == "Slap polyhedron") { /* correct spelling in old values */
+        txt = "Slab polyhedron";
+    }
+    return txt;
 }
 
 /**
