@@ -21,6 +21,7 @@
 #include "OperationMetricLabelImport.h"
 #include "OperationException.h"
 
+#include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
@@ -66,6 +67,9 @@ OperationParameters* OperationMetricLabelImport::getParameters()
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->createOptionalParameter(7, "-drop-unused-labels", "remove any unused label values from the label table");
+    
+    OptionalParameter* hierOpt = ret->createOptionalParameter(8, "-hierarchy", "read label name hierarchy from a json file");
+    hierOpt->addStringParameter(1, "file", "the input json file");
     
     ret->setHelpText(
         AString("Creates a gifti label file from a metric file with label-like values.  ") +
@@ -208,6 +212,24 @@ void OperationMetricLabelImport::useParameters(OperationParameters* myParams, Pr
         }
     }
     int32_t unusedLabel = myTable.getUnassignedLabelKey();
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(8);
+    if (hierOpt->m_present)
+    {
+        AString hierfileName = hierOpt->getString(1);
+        CaretHierarchy myHier;
+        myHier.readJsonFile(hierfileName);
+        set<AString> hierNames = myHier.getAllNames(); //might consider sticking the below warning check loop into GiftiLabelTable::setHierarchy()...
+        map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
+        myTable.getKeysAndNames(tableMap);
+        for (auto iter : tableMap)
+        {
+            if (iter.first != unusedLabel && hierNames.find(iter.second) == hierNames.end())
+            {
+                CaretLogWarning("label name '" + iter.second + "' not found in specified hierarchy");
+            }
+        }
+        myTable.setHierarchy(myHier);
+    }
     translate[unlabeledValue] = unusedLabel;
     const int numNodes = myMetric->getNumberOfNodes();
     vector<int32_t> colScratch(numNodes);
@@ -244,6 +266,7 @@ void OperationMetricLabelImport::useParameters(OperationParameters* myParams, Pr
 void OperationMetricLabelImport::translateLabels(const float* valuesIn, int32_t* labelsOut, const int& numNodes, GiftiLabelTable& myTable, map<int32_t, int32_t>& translate,
                                                  set<int32_t>& usedValues, const bool& dropUnused, const bool& discardOthers, const int32_t& unusedLabel)
 {
+    set<AString> hierNames = myTable.getHierarchy().getAllNames();
     for (int node = 0; node < numNodes; ++node)
     {
         int32_t labelval = (int32_t)floor(valuesIn[node] + 0.5f);//just in case it somehow got poorly encoded, round to nearest
@@ -279,6 +302,10 @@ void OperationMetricLabelImport::translateLabels(const float* valuesIn, int32_t*
                         throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
                     }
                     myLabel.setName(newName);
+                }
+                if (!hierNames.empty() && hierNames.find(myLabel.getName()) == hierNames.end())
+                {
+                    CaretLogWarning("creating label " + myLabel.getName() + ", which does not exist in the hierarchy (note, using -discard-others would de-label vertices with that value instead)");
                 }
                 int32_t newValue = myTable.addLabel(&myLabel);//don't overwrite any values in the table
                 translate[labelval] = newValue;

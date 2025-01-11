@@ -23,6 +23,14 @@
 #include "CaretAssert.h"
 #include "CaretException.h"
 #include "CaretPointer.h"
+#include "CaretLogger.h"
+
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QStandardItem>
+#include <QStandardItemModel>
 
 using namespace caret;
 using namespace std;
@@ -205,6 +213,98 @@ void CaretHierarchy::readXML(const QString& text)
     readXML(xml);
 }
 
+namespace
+{
+    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent);
+    
+    void recurseJsonArrayish(CaretHierarchy& hierarchyOut, const QJsonValue& elements, const AString parent = "")
+    {
+        if (elements.isArray())
+        {
+            QJsonArray myArray = elements.toArray();
+            for (auto iter = myArray.constBegin(); iter != myArray.constEnd(); ++iter)
+            {
+                handleJsonChild(hierarchyOut, iter->toObject(), parent);
+            }
+        } else {
+            //when there is only one child, sometimes children isn't an array - also supports top level not being an array
+            handleJsonChild(hierarchyOut, elements.toObject(), parent);
+        }
+    }
+    
+    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent)
+    {
+        CaretHierarchy::Item toAdd;
+        toAdd.name = thisobj.value("name").toString();
+        if (toAdd.name == "")
+        {
+            if (parent == "")
+            {
+                throw CaretException("empty, non-string, or missing 'name' element in hierarchy json, in a top-level item");
+            } else {
+                throw CaretException("empty, non-string, or missing 'name' element in hierarchy json, in children of '" + parent + "'");
+            }
+        }
+        auto keys = thisobj.keys();
+        for (auto iter = keys.begin(); iter != keys.end(); ++iter)
+        {
+            AString key = *iter;
+            if (key == "name") continue; //don't put name into extraInfo, it is already handled
+            auto valueobj = thisobj.value(key);
+            AString value;
+            bool stringish = true;
+            switch (valueobj.type())
+            {
+                case QJsonValue::Bool:
+                    if (valueobj.toBool()) { value = "True"; } else { value = "False"; }
+                    break;
+                case QJsonValue::Double:
+                    value = AString::number(valueobj.toDouble(), 'g', 16); //handle stupidly large integers with g16, since json numbers are always implicitly double
+                    break;
+                case QJsonValue::String:
+                    value = valueobj.toString();
+                    break;
+                default:
+                    stringish = false;
+                    break;
+            }
+            if (key == "children")
+            {
+                if (stringish)
+                {
+                    CaretLogWarning("found non-array value for 'children' member in hierarchy item '" + toAdd.name + "'");
+                }
+                continue;//treat it as reserved, don't put it in extraInfo
+            } else {
+                if (!stringish)
+                {
+                    CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
+                    continue;//ignore rather than put an empty string for the key?
+                }
+            }
+            toAdd.extraInfo.set(key, value);
+        }
+        if (!hierarchyOut.addItem(toAdd, parent))
+        {
+            throw CaretException("failed to add hierarchy item '" + toAdd.name + "', check whether all 'name's are unique");
+        }
+        if (thisobj.contains("children"))
+        {
+            recurseJsonArrayish(hierarchyOut, thisobj.value("children"), toAdd.name);
+        }
+    }
+}
+
+void CaretHierarchy::readJsonFile(const AString& filename)
+{
+    QFile jsonfile(filename);
+    jsonfile.open(QIODevice::ReadOnly | QIODevice::Text);
+    QJsonDocument myjson = QJsonDocument::fromJson(jsonfile.readAll());
+    clear();
+    //document has .array() (which is not a ref!), value has .toArray(), and document doesn't have .value(), so this conversion nonsense instead of a rewrite into QVariants...
+    recurseJsonArrayish(*this, QJsonValue::fromVariant(myjson.toVariant()));
+}
+
 void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
 {
     for (int index = 0; index < int(children.size()); ++index)
@@ -213,7 +313,7 @@ void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
         auto node = new QStandardItem(child.name);
         qsiOut->setChild(index, node);
         //FIXME: "id" is defunct, figure out how best to stuff vector<pair<AString, AString> > into a QVariant
-        node->setData(QVariant(QString("defunct")));
+        //node->setData(QVariant(QString("defunct")));
         child.QSIModelHelper(node);
     }
 }

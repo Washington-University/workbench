@@ -26,12 +26,13 @@
 #include <utility>
 #include <vector>
 
-#include <QStandardItem>
-#include <QStandardItemModel>
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 #include "AString.h"
+
+class QStandardItem;
+class QStandardItemModel;
 
 namespace caret
 {
@@ -51,6 +52,7 @@ namespace caret
         
         void readXML(const QString& text);
         void readXML(QXmlStreamReader& xml);
+        void readJsonFile(const AString& filename);
         
         QString writeXMLToString() const;
         void writeXML(QXmlStreamWriter& xml) const;
@@ -101,7 +103,7 @@ namespace caret
             bool add(const Item& toAdd, const AString parent, OrderedKVStore** extraInfoOut); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
             
             AString name;
-            AString id; //NOTE: defunct
+            //AString id; //NOTE: defunct
             OrderedKVStore extraInfo;
             std::vector<Item> children;
             

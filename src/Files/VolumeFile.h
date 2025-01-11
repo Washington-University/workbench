@@ -217,9 +217,9 @@ namespace caret {
         ///returns true if volume space matches in spatial dimensions and sform
         bool matchesVolumeSpace(const int64_t dims[3], const std::vector<std::vector<float> >& sform) const;
         
-        virtual void readFile(const AString& filename);
+        virtual void readFile(const AString& filename) override;
 
-        virtual void writeFile(const AString& filename);
+        virtual void writeFile(const AString& filename) override;
 
         ///data type and scaling options
         void setWritingDataTypeNoScaling(const int16_t& type = NIFTI_TYPE_FLOAT32);

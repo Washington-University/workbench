@@ -21,6 +21,7 @@
 #include "OperationCiftiLabelImport.h"
 #include "OperationException.h"
 
+#include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "FileInformation.h"
@@ -64,6 +65,9 @@ OperationParameters* OperationCiftiLabelImport::getParameters()
     unlabeledOption->addIntegerParameter(1, "value", "the numeric value for unlabeled (default 0)");
     
     ret->createOptionalParameter(6, "-drop-unused-labels", "remove any unused label values from the label table");
+    
+    OptionalParameter* hierOpt = ret->createOptionalParameter(7, "-hierarchy", "read label name hierarchy from a json file");
+    hierOpt->addStringParameter(1, "file", "the input json file");
     
     ret->setHelpText(
         AString("Creates a cifti label file from a cifti file with label-like values.  ") +
@@ -196,6 +200,25 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
         }
     }
     int32_t unusedLabel = myTable.getUnassignedLabelKey();
+    set<AString> hierNames; //will want this for deciding whether to warn
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(7);
+    if (hierOpt->m_present)
+    {
+        AString hierfileName = hierOpt->getString(1);
+        CaretHierarchy myHier;
+        myHier.readJsonFile(hierfileName);
+        hierNames = myHier.getAllNames();
+        map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
+        myTable.getKeysAndNames(tableMap);
+        for (auto iter : tableMap)
+        {
+            if (iter.first != unusedLabel && hierNames.find(iter.second) == hierNames.end())
+            {
+                CaretLogWarning("label name '" + iter.second + "' not found in specified hierarchy");
+            }
+        }
+        myTable.setHierarchy(myHier);
+    }
     translate[unlabeledValue] = unusedLabel;
     const CiftiXMLOld& xmlIn = ciftiIn->getCiftiXMLOld();
     int rowSize = xmlIn.getNumberOfColumns(), colSize = xmlIn.getNumberOfRows();
@@ -240,6 +263,10 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
                             CaretLogWarning("name collision in auto-generated name '" + nameBase + "', changed to '" + newName + "'");
                         } else {
                             throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
+                        }
+                        if (hierOpt->m_present && hierNames.find(myLabel.getName()) == hierNames.end())
+                        {
+                            CaretLogWarning("creating label " + myLabel.getName() + ", which does not exist in the hierarchy (note, using -discard-others would de-label voxels with that value instead)");
                         }
                         myLabel.setName(newName);
                     }

@@ -120,11 +120,11 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
     if (m_labelTable != NULL)
     {
         const CaretHierarchy& myHier = m_labelTable->getHierarchy();
-        if (!myHier.isEmpty())
+        if (myHier.isEmpty())
         {
-            tempMD.set("CaretHierarchy", myHier.writeXMLToString());
-        } else {
             tempMD.remove("CaretHierarchy");
+        } else {
+            tempMD.set("CaretHierarchy", myHier.writeXMLToString());
         }
         m_labelTable->writeAsXML(xmlWriter); //expect the extension to not have stuff it doesn't need, so just write everything it has
     }

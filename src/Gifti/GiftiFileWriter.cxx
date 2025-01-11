@@ -26,6 +26,7 @@
 #include "GiftiFileWriter.h"
 #undef __GIFTI_FILE_WRITER_DECLARE__
 
+#include "CaretHierarchy.h"
 #include "FileInformation.h"
 #include "GiftiDataArray.h"
 #include "GiftiXmlElements.h"
@@ -151,11 +152,28 @@ GiftiFileWriter::start(const int numberOfDataArrays,
         this->xmlWriter->writeStartElement(GiftiXmlElements::TAG_GIFTI,
                                          attributes);
         
+        
         //
         // Write Metadata
         //
+        GiftiMetaData tempMD;
         if (metadata != NULL) {
-            metadata->writeAsXML(*this->xmlWriter);
+            tempMD = *metadata;
+        }
+        if (labelTable != NULL)
+        {
+            auto myHier = labelTable->getHierarchy();
+            if (myHier.isEmpty())
+            {
+                tempMD.remove("CaretHierarchy");
+            } else {
+                tempMD.set("CaretHierarchy", myHier.writeXMLToString());
+            }
+        }
+
+        if (!tempMD.isEmpty())
+        {
+            tempMD.writeAsXML(*this->xmlWriter);
         }
         
         //

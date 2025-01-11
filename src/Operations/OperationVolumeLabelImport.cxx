@@ -94,88 +94,6 @@ OperationParameters* OperationVolumeLabelImport::getParameters()
     return ret;
 }
 
-namespace
-{
-    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent);
-    
-    void recurseJsonArrayish(CaretHierarchy& hierarchyOut, const QJsonValue& elements, const AString parent = "")
-    {
-        if (elements.type() == QJsonValue::Array)
-        {
-            QJsonArray myArray = elements.toArray();
-            for (auto iter = myArray.constBegin(); iter != myArray.constEnd(); ++iter)
-            {
-                handleJsonChild(hierarchyOut, iter->toObject(), parent);
-            }
-        } else {
-            //when there is only one child, sometimes children isn't an array - also supports top level not being an array
-            handleJsonChild(hierarchyOut, elements.toObject(), parent);
-        }
-    }
-    
-    void handleJsonChild(CaretHierarchy& hierarchyOut, const QJsonObject& thisobj, const AString parent)
-    {
-        CaretHierarchy::Item toAdd;
-        toAdd.name = thisobj.value("name").toString();
-        if (toAdd.name == "")
-        {
-            if (parent == "")
-            {
-                throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in a top-level item");
-            } else {
-                throw OperationException("empty, non-string, or missing 'name' element in hierarchy json, in children of '" + parent + "'");
-            }
-        }
-        auto keys = thisobj.keys();
-        for (auto iter = keys.begin(); iter != keys.end(); ++iter)
-        {
-            AString key = *iter;
-            if (key == "name") continue; //don't put name into extraInfo, it is already handled
-            auto valueobj = thisobj.value(key);
-            AString value;
-            bool stringish = true;
-            switch (valueobj.type())
-            {
-                case QJsonValue::Bool:
-                    if (valueobj.toBool()) { value = "True"; } else { value = "False"; }
-                    break;
-                case QJsonValue::Double:
-                    value = AString::number(valueobj.toDouble(), 'g', 16); //handle stupidly large integers with g16, since json numbers are always implicitly double
-                    break;
-                case QJsonValue::String:
-                    value = valueobj.toString();
-                    break;
-                default:
-                    stringish = false;
-                    break;
-            }
-            if (key == "children")
-            {
-                if (stringish)
-                {
-                    CaretLogWarning("found non-array value for 'children' member in hierarchy item '" + toAdd.name + "'");
-                }
-                continue;//treat it as reserved, don't put it in extraInfo
-            } else {
-                if (!stringish)
-                {
-                    CaretLogWarning("found non-stringlike value for member '" + key + "' in hierarchy item '" + toAdd.name + "'");
-                    continue;//ignore rather than put an empty string for the key?
-                }
-            }
-            toAdd.extraInfo.set(key, value);
-        }
-        if (!hierarchyOut.addItem(toAdd, parent))
-        {
-            throw OperationException("failed to add hierarchy item '" + toAdd.name + "', check whether all 'name's are unique");
-        }
-        if (thisobj.contains("children"))
-        {
-            recurseJsonArrayish(hierarchyOut, thisobj.value("children"), toAdd.name);
-        }
-    }
-}
-
 void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     AString temp;
@@ -206,7 +124,6 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         }
     }
     bool dropUnused = myParams->getOptionalParameter(7)->m_present;
-    OptionalParameter* hierOpt = myParams->getOptionalParameter(8);
     GiftiLabelTable myTable;
     map<int32_t, int32_t> translate;
     if (listfileName != "")
@@ -306,16 +223,14 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         }
     }
     int32_t tableUnlabeledKey = myTable.getUnassignedLabelKey();
+    set<AString> hierNames; //will want this for deciding whether to warn
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(8);
     if (hierOpt->m_present)
     {
         AString hierfileName = hierOpt->getString(1);
-        QFile jsonfile(hierfileName);
-        jsonfile.open(QIODevice::ReadOnly | QIODevice::Text);
-        QJsonDocument myjson = QJsonDocument::fromJson(jsonfile.readAll());
-        QJsonArray myarray = myjson.array();
         CaretHierarchy myHier;
-        recurseJsonArrayish(myHier, myarray);
-        auto hierNames = myHier.getAllNames();
+        myHier.readJsonFile(hierfileName);
+        hierNames = myHier.getAllNames();
         map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
         myTable.getKeysAndNames(tableMap);
         for (auto iter : tableMap)
@@ -376,6 +291,10 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
                                     throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
                                 }
                                 myLabel.setName(newName);
+                            }
+                            if (hierOpt->m_present && hierNames.find(myLabel.getName()) == hierNames.end())
+                            {
+                                CaretLogWarning("creating label " + myLabel.getName() + ", which does not exist in the hierarchy (note, using -discard-others would de-label voxels with that value instead)");
                             }
                             int32_t newValue = myTable.addLabel(&myLabel);//don't overwrite any values in the table
                             translate[labelval] = newValue;

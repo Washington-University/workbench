@@ -21,6 +21,7 @@
 #include "CiftiLabelsMap.h"
 
 #include "CaretAssert.h"
+#include "CaretHierarchy.h"
 #include "DataFileException.h"
 #include "CaretLogger.h"
 
@@ -280,7 +281,15 @@ void CiftiLabelsMap::writeXML1(QXmlStreamWriter& xml) const
     {
         xml.writeStartElement("NamedMap");
         xml.writeTextElement("MapName", m_maps[i].m_name);
-        m_maps[i].m_metaData.writeCiftiXML1(xml);
+        GiftiMetaData tempMD = m_maps[i].m_metaData;
+        const CaretHierarchy& myHier = m_maps[i].m_labelTable.getHierarchy();
+        if (myHier.isEmpty())
+        {
+            tempMD.remove("CaretHierarchy");
+        } else {
+            tempMD.set("CaretHierarchy", myHier.writeXMLToString());
+        }
+        tempMD.writeCiftiXML1(xml);
         m_maps[i].m_labelTable.writeAsXML(xml);
         xml.writeEndElement();
     }
@@ -294,7 +303,15 @@ void CiftiLabelsMap::writeXML2(QXmlStreamWriter& xml) const
     {
         xml.writeStartElement("NamedMap");
         xml.writeTextElement("MapName", m_maps[i].m_name);
-        m_maps[i].m_metaData.writeCiftiXML2(xml);
+        GiftiMetaData tempMD = m_maps[i].m_metaData;
+        const CaretHierarchy& myHier = m_maps[i].m_labelTable.getHierarchy();
+        if (myHier.isEmpty())
+        {
+            tempMD.remove("CaretHierarchy");
+        } else {
+            tempMD.set("CaretHierarchy", myHier.writeXMLToString());
+        }
+        tempMD.writeCiftiXML2(xml);
         m_maps[i].m_labelTable.writeAsXML(xml);
         xml.writeEndElement();
     }

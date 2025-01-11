@@ -1669,7 +1669,6 @@ GiftiLabelTable::exportToCaret5ColorFile(const AString& filename) const
     file.close();
 }
 
-//could special case NULL and use =, but this is simpler and performance is probably about the same (vector has to call the destructors anyway)
 void GiftiLabelTable::setHierarchy(const CaretHierarchy& hierarchy)
 {
     m_hierarchy = hierarchy; //for =, it pretends to be a non-pointer member
