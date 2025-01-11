@@ -160,6 +160,8 @@ GiftiFileWriter::start(const int numberOfDataArrays,
         if (metadata != NULL) {
             tempMD = *metadata;
         }
+        // update hierarchy metadata, write label table before the metadata if we have a hierarchy, since the table is shorter and easier to read
+        bool labelTableWritten = false;
         if (labelTable != NULL)
         {
             auto myHier = labelTable->getHierarchy();
@@ -168,6 +170,8 @@ GiftiFileWriter::start(const int numberOfDataArrays,
                 tempMD.remove("CaretHierarchy");
             } else {
                 tempMD.set("CaretHierarchy", myHier.writeXMLToString());
+                labelTable->writeAsXML(*this->xmlWriter);
+                labelTableWritten = true;
             }
         }
 
@@ -176,10 +180,9 @@ GiftiFileWriter::start(const int numberOfDataArrays,
             tempMD.writeAsXML(*this->xmlWriter);
         }
         
-        //
-        // Write Labels
-        //
-        if (labelTable != NULL) {
+        // if we didn't write the label table before the metadata, do so now
+        if (labelTable != NULL && !labelTableWritten)
+        {
             labelTable->writeAsXML(*this->xmlWriter);
         }
     }

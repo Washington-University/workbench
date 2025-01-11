@@ -264,11 +264,11 @@ void OperationCiftiLabelImport::useParameters(OperationParameters* myParams, Pro
                         } else {
                             throw OperationException("giving up on resolving name collision for auto-generated name '" + nameBase + "'");
                         }
-                        if (hierOpt->m_present && hierNames.find(myLabel.getName()) == hierNames.end())
-                        {
-                            CaretLogWarning("creating label " + myLabel.getName() + ", which does not exist in the hierarchy (note, using -discard-others would de-label voxels with that value instead)");
-                        }
                         myLabel.setName(newName);
+                    }
+                    if (hierOpt->m_present && hierNames.find(myLabel.getName()) == hierNames.end())
+                    {
+                        CaretLogWarning("creating label " + myLabel.getName() + ", which does not exist in the hierarchy (note, using -discard-others would de-label voxels with that value instead)");
                     }
                     int32_t newValue = myTable.addLabel(&myLabel);//don't overwrite any values in the table
                     translate[labelval] = newValue;

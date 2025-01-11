@@ -344,6 +344,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                 }
             }
         }
+        myTable.setHierarchy(myLabelsMap.getMapLabelTable(0)->getHierarchy()); //grab the first one for now, maybe figure out how to try to merge hierarchies later, if it matters
         *(labelOut->getLabelTable()) = myTable;
         int32_t unusedLabel = myTable.getUnassignedLabelKey();
         if (roiOut != NULL)
@@ -397,6 +398,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             map<int32_t, int32_t> thisRemap = myTable.append(*(myLabelsMap.getMapLabelTable(i)));
             cumulativeRemap.insert(thisRemap.begin(), thisRemap.end());
         }
+        myTable.setHierarchy(myLabelsMap.getMapLabelTable(0)->getHierarchy()); //ditto
         *(labelOut->getLabelTable()) = myTable;
         int32_t unusedLabel = myTable.getUnassignedLabelKey();
         for (int64_t i = 0; i < colSize; ++i)

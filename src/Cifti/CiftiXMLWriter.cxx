@@ -19,6 +19,8 @@
 /*LICENSE_END*/
 
 #include "CiftiXMLWriter.h"
+
+#include "CaretHierarchy.h"
 #include "GiftiLabelTable.h"
 #include "PaletteColorMapping.h"
 
@@ -248,11 +250,18 @@ void CiftiXMLWriter::writeNamedMap(QXmlStreamWriter& xml, const CiftiNamedMapEle
     xml.writeStartElement("MapName");
     xml.writeCharacters(namedMap.m_mapName);
     xml.writeEndElement();
+    map<AString, AString> metadataCopy = namedMap.m_mapMetaData;//make a copy because we may need to modify it to integrate palette and hierarchy
     if (namedMap.m_labelTable != NULL)
     {
         namedMap.m_labelTable->writeAsXML(xml);
+        const CaretHierarchy& myHier = namedMap.m_labelTable->getHierarchy();
+        if (myHier.isEmpty())
+        {
+            metadataCopy.erase("CaretHierarchy");
+        } else {
+            metadataCopy["CaretHierarchy"] = myHier.writeXMLToString();
+        }
     }
-    map<AString, AString> metadataCopy = namedMap.m_mapMetaData;//make a copy because we may need to modify it to integrate palette
     if (namedMap.m_palette != NULL)
     {//NULL palette means we didn't mess with palette at all, leave metadata unchanged
         if (namedMap.m_defaultPalette && !(namedMap.m_palette->isModified()))

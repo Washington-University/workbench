@@ -24,6 +24,7 @@
 #include <sstream>
 
 #include "CaretAssert.h"
+#include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
@@ -885,6 +886,20 @@ GiftiFile::readFile(const AString& filename)
                          + AString::number(i + 1));
             setDataArrayName(i,
                              arrayName);
+        }
+    }
+    
+    AString hierMDtext = metaData.get("CaretHierarchy");
+    if (hierMDtext != "")
+    {
+        try {
+            CaretHierarchy tempHier;
+            tempHier.readXML(hierMDtext);
+            labelTable.setHierarchy(tempHier);
+        } catch (const CaretException& e) {
+            CaretLogWarning("error parsing hierarchy metadata: " + e.whatString());
+        } catch (...) {
+            CaretLogWarning("unknown error parsing hierarchy metadata");
         }
     }
 }

@@ -18,14 +18,17 @@
  */
 /*LICENSE_END*/
 
+#include "CiftiXMLReader.h"
+
+#include "CaretHierarchy.h"
+#include "CaretLogger.h"
+#include "CiftiXMLElements.h"
+#include "DataFileException.h"
+#include "GiftiLabelTable.h"
+
 #include <stdio.h>
 #include <QtCore>
 #include <QRegularExpression>
-#include "CaretLogger.h"
-#include "CiftiXMLElements.h"
-#include "CiftiXMLReader.h"
-#include "DataFileException.h"
-#include "GiftiLabelTable.h"
 
 using namespace caret;
 using namespace std;
@@ -569,6 +572,17 @@ void CiftiXMLReader::parseNamedMap(QXmlStreamReader& xml, CiftiNamedMapElement& 
     if (!xml.hasError() && (!xml.isEndElement() || xml.name() != QLatin1String("NamedMap")))
     {
         xml.raiseError("unexpected element in NamedMap: " + xml.name().toString());
+    }
+    auto hierMDelem = namedMap.m_mapMetaData.find("CaretHierarchy");
+    if (hierMDelem != namedMap.m_mapMetaData.end())
+    {
+        try {
+            CaretHierarchy tempHier;
+            tempHier.readXML(hierMDelem->second);
+            namedMap.m_labelTable->setHierarchy(tempHier);
+        } catch (...) {
+            CaretLogWarning("error parsing hierarchy metadata in CiftiXMLOld"); //this class shouldn't be exposed to the user, only used for internal conversion for old code
+        } //so, it should never have malformed hierarchy metadata
     }
 }
 
