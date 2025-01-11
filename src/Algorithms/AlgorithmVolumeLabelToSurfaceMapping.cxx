@@ -178,6 +178,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
             }
             myLabelOut->setLabelKeysForColumn(i, myArray.data());
         }
+        cumulativeTable.setHierarchy(myVolume->getMapLabelTable(0)->getHierarchy()); //just grab the first one instead of trying to merge them, for now
         *(myLabelOut->getLabelTable()) = cumulativeTable;
     } else {
         const GiftiLabelTable* tempTable = myVolume->getMapLabelTable(mySubVol);
@@ -186,6 +187,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
             throw AlgorithmException("specified subvolume is missing a label table");
         }
         *(myLabelOut->getLabelTable()) = *tempTable;
+        myLabelOut->getLabelTable()->setHierarchy(myVolume->getMapLabelTable(mySubVol)->getHierarchy());
         myLabelOut->setColumnName(0, myVolume->getMapName(mySubVol));
 #pragma omp CARET_PARFOR
         for (int64_t node = 0; node < numNodes; ++node)

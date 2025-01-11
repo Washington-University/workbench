@@ -218,13 +218,13 @@ void OperationMetricLabelImport::useParameters(OperationParameters* myParams, Pr
         AString hierfileName = hierOpt->getString(1);
         CaretHierarchy myHier;
         myHier.readJsonFile(hierfileName);
-        set<AString> hierNames = myHier.getAllNames(); //might consider sticking the below warning check loop into GiftiLabelTable::setHierarchy()...
+        set<AString> hierNames = myHier.getAllNames();
         map<int32_t, AString> tableMap; //keys aren't needed, but API only exposes names as a map
         myTable.getKeysAndNames(tableMap);
         for (auto iter : tableMap)
         {
             if (iter.first != unusedLabel && hierNames.find(iter.second) == hierNames.end())
-            {
+            { //this warning is not built into setHierarchy() because we need to use that to copy them in things like -cifti-separate
                 CaretLogWarning("label name '" + iter.second + "' not found in specified hierarchy");
             }
         }
