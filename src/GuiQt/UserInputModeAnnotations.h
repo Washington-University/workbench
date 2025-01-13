@@ -98,7 +98,11 @@ namespace caret {
             /** Mouse move coordinate and its corrsponding coordinate at other end of polyhedron */
             MOVE_TWO_COORDINATES,
             /** Mouse removes coordinate */
-            REMOVE_COORDINATE
+            REMOVE_COORDINATE,
+            /** Move end of sample polyhedron */
+            MOVE_SAMPLE_POLYHEDRON_END,
+            /** Resize end of sample polyhedron */
+            RESIZE_SAMPLE_POLYHEDRON_END,
         };
         
         UserInputModeAnnotations(const int32_t browserWindowIndex);

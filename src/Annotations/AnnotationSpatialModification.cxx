@@ -93,6 +93,8 @@ m_startOfDraggingFlag(startOfDraggingFlag)
     m_mediaCoordAtMouseXY.m_mediaXYZValid = false;
     m_mediaCoordAtPreviousMouseXY.m_mediaXYZValid = false;
     m_multiPairedMoveFlag = false;
+    m_polyhedronEndMoveFlag = false;
+    m_polyhedronShrinkExpandFlag = false;
 }
 
 /**
@@ -148,6 +150,27 @@ AnnotationSpatialModification::setStereotaxicCoordinateAtMouseXY(const float ste
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[1] = stereotaxicY;
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2] = stereotaxicZ;
     m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid  = true;
+}
+
+/**
+ * Set the stereotaxic coordinate at previous mouse X/Y
+ *
+ * @param stereotaxicX
+ *     stereotaxic X-coordinate.
+ * @param stereotaxicY
+ *     stereotaxic Y-coordinate.
+ * @param stereotaxicZ
+ *     stereotaxic Z-coordinate.
+ */
+void
+AnnotationSpatialModification::setStereotaxicCoordinateAtPreviousMouseXY(const float stereotaxicX,
+                                                                        const float stereotaxicY,
+                                                                        const float stereotaxicZ)
+{
+    m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[0] = stereotaxicX;
+    m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[1] = stereotaxicY;
+    m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[2] = stereotaxicZ;
+    m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicValid  = true;
 }
 
 /**
@@ -306,5 +329,45 @@ void
 AnnotationSpatialModification::setMultiPairedMove(const bool status)
 {
     m_multiPairedMoveFlag = status;
+}
+
+/**
+ * @return True if multi-paired annotation should move the end of the polyhedron
+ */
+bool
+AnnotationSpatialModification::isPolyhedronEndMove() const
+{
+    return m_polyhedronEndMoveFlag;
+}
+
+/**
+ * Set a multi-paired annotation should move the end of the polyhedron.
+ * @param status
+ *    New status.
+ */
+void
+AnnotationSpatialModification::setPolyhedronEndMove(const bool status)
+{
+    m_polyhedronEndMoveFlag = status;
+}
+
+/**
+ * @return True if multi-paired annotation should be shrunk or expanded
+ */
+bool
+AnnotationSpatialModification::isPolyhedronShrinkExpand() const
+{
+    return m_polyhedronShrinkExpandFlag;
+}
+
+/**
+ * Set a multi-paired annotation should be shurnk or expanded
+ * @param status
+ *    New status.
+ */
+void
+AnnotationSpatialModification::setPolyhedronShrinkExpand(const bool status)
+{
+    m_polyhedronShrinkExpandFlag = status;
 }
 

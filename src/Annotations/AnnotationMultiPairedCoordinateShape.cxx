@@ -702,6 +702,7 @@ AnnotationMultiPairedCoordinateShape::isSizeHandleValid(const AnnotationSizingHa
             xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::STEREOTAXIC:
+            xyPlaneFlag = true;
             break;
         case AnnotationCoordinateSpaceEnum::SURFACE:
             break;
@@ -1318,7 +1319,76 @@ AnnotationMultiPairedCoordinateShape::applySpatialModificationStereotaxicSpace(c
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_LINE_START:
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE:
-            /* No dragging entire annotation in stereotaxic space */
+        {
+            /*
+             * Note: Polyhedron has one set of coordinates with half of the coordinates
+             * at one end and the other half of the coordinates at the other end.
+             */
+            if (spatialModification.isPolyhedronEndMove()
+                || spatialModification.isPolyhedronShrinkExpand()) {
+                const int32_t coordIndex(spatialModification.m_polyLineCoordinateIndex);
+                const int32_t numCoords(getNumberOfCoordinates());
+                if ((coordIndex >= 0)
+                    && (coordIndex < numCoords)) {
+                    const int32_t halfNumCoords(numCoords / 2);
+                    if (halfNumCoords >= 3) {
+                        int32_t startIndex(0);
+                        int32_t endIndex(-1);
+                        if (spatialModification.m_polyLineCoordinateIndex < halfNumCoords) {
+                            startIndex = 0;
+                            endIndex   = halfNumCoords - 1;
+                        }
+                        else {
+                            startIndex = halfNumCoords;
+                            endIndex   = numCoords - 1;
+                        }
+                        if (spatialModification.isPolyhedronEndMove()) {
+                            if (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicValid
+                                && spatialModification.m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicValid) {
+                                Vector3D dxyz((spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[0]
+                                               -spatialModification.m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[0]),
+                                              (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[1]
+                                               -spatialModification.m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[1]),
+                                              (spatialModification.m_stereotaxicCoordinateAtMouseXY.m_stereotaxicXYZ[2]
+                                               -spatialModification.m_stereotaxicCoordinateAtPreviousMouseXY.m_stereotaxicXYZ[2]));
+                                for (int32_t i = startIndex; i <= endIndex; i++) {
+                                    AnnotationCoordinate* ac(getCoordinate(i));
+                                    Vector3D xyz(ac->getXYZ());
+                                    xyz += dxyz;
+                                    ac->setXYZ(xyz);
+                                }
+                                setModified();
+                                modifiedFlag = true;
+                            }
+                        }
+                        else if (spatialModification.isPolyhedronShrinkExpand()) {
+                            float expandPercentage(0.0);
+                            if (spatialModification.m_mouseDY > 0) {
+                                expandPercentage = 1.05;
+                            }
+                            else if (spatialModification.m_mouseDY < 0) {
+                                expandPercentage = 0.95;
+                            }
+                            if (expandPercentage > 0.0) {
+                                Vector3D centerOfGravity(0.0, 0.0, 0.0);
+                                for (int32_t i = startIndex; i <= endIndex; i++) {
+                                    centerOfGravity += getCoordinate(i)->getXYZ();
+                                }
+                                centerOfGravity /= static_cast<float>(halfNumCoords);
+                                
+                                for (int32_t i = startIndex; i <= endIndex; i++) {
+                                    Vector3D vec(getCoordinate(i)->getXYZ() - centerOfGravity);
+                                    vec *= expandPercentage;
+                                    getCoordinate(i)->setXYZ(vec + centerOfGravity);
+                                }
+                                setModified();
+                                modifiedFlag = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
             break;
         case AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_ROTATION:
             break;

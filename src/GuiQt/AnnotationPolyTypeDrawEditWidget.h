@@ -64,6 +64,10 @@ namespace caret {
         
         void moveTwoCoordinatesActionTriggered(bool checked);
         
+        void movePolygonCoordinatesActionTriggered(bool checked);
+        
+        void resizePolygonCoordinatesActionTriggered(bool checked);
+
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -100,6 +104,10 @@ namespace caret {
         QAction* m_moveOneCoordinateAction = NULL;
         
         QAction* m_moveTwoCoordinatesAction = NULL;
+        
+        QAction* m_movePolygonCoordinatesAction = NULL;
+        
+        QAction* m_resizePolygonCoordinatesAction = NULL;
         
         int32_t m_annotationNumberOfCoordinates = 0;
         

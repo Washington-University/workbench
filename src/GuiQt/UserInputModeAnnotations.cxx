@@ -379,6 +379,10 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                         case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                             selectableFlag = true;
                             break;
+                        case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                            break;
+                        case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                            break;
                     }
                     cancelEnabledFlag = true;
                     break;
@@ -406,6 +410,10 @@ UserInputModeAnnotations::receiveEvent(Event* event)
                             break;
                         case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                             selectableFlag = true;
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                            break;
+                        case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                             break;
                     }
                     cancelEnabledFlag = true;
@@ -893,6 +901,10 @@ UserInputModeAnnotations::getEnabledPolyTypeDrawEditOperations(std::vector<PolyT
                         operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE);
                         operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES);
                     }
+                    if (numCoords >= 3) {
+                        operationsOut.push_back(PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END);
+                        operationsOut.push_back(PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END);
+                    }
                     
                     selectedAnnotationOut = ann;
                 }
@@ -950,6 +962,10 @@ UserInputModeAnnotations::getCursor() const
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                    break;
             }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
@@ -993,6 +1009,10 @@ UserInputModeAnnotations::getCursor() const
                     if (m_annotationUnderMouseSizeHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
                         cursor = CursorEnum::CURSOR_RESIZE_BOTTOM_LEFT_TOP_RIGHT;
                     }
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                     break;
             }
             break;
@@ -1070,6 +1090,10 @@ UserInputModeAnnotations::getCursor() const
                                 break;
                             case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                                 break;
+                            case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                                break;
+                            case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                                break;
                         }
                 
                         if (s_allowInsertionIntoPolyTypesFlag) {
@@ -1142,6 +1166,12 @@ UserInputModeAnnotations::getCursor() const
                             case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                                 break;
                             case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                                break;
+                            case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                                cursor = CursorEnum::CURSOR_FOUR_ARROWS;
+                                break;
+                            case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                                cursor = CursorEnum::CURSOR_FOUR_ARROWS;
                                 break;
                         }
                         break;
@@ -2087,6 +2117,10 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                    break;
             }
             return;
             break;
@@ -2114,6 +2148,10 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     moveTwoCooordinatesInNewPolyTypeStereotaxicAnnotation(mouseEvent);
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                     break;
             }
             return;
@@ -2335,7 +2373,14 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
             const float mousePressViewportX = mouseEvent.getPressedX() - spaceOriginX;
             const float mousePressViewportY = mouseEvent.getPressedY() - spaceOriginY;
             
-            AnnotationSpatialModification annSpatialMod(m_annotationBeingDraggedHandleType,
+            AnnotationSizingHandleTypeEnum::Enum sizingHandleType = m_annotationBeingDraggedHandleType;
+            if (getPolyTypeDrawEditOperation() == PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END) {
+                if (sizingHandleType == AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE) {
+                    sizingHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
+                }
+            }
+
+            AnnotationSpatialModification annSpatialMod(sizingHandleType,
                                                         spaceWidth,
                                                         spaceHeight,
                                                         mousePressViewportX,
@@ -2397,6 +2442,11 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[1],
                                                               previousMouseXYCoordInfo.m_mediaSpaceInfo.m_xyz[2]);
                 }
+                if (previousMouseXYCoordInfo.m_modelSpaceInfo.m_validFlag) {
+                    annSpatialMod.setStereotaxicCoordinateAtPreviousMouseXY(previousMouseXYCoordInfo.m_modelSpaceInfo.m_xyz[0],
+                                                                            previousMouseXYCoordInfo.m_modelSpaceInfo.m_xyz[1],
+                                                                            previousMouseXYCoordInfo.m_modelSpaceInfo.m_xyz[2]);
+                }
             }
             
             bool allowMoveFlag(true);
@@ -2422,6 +2472,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                         allowMoveFlag = true;
                         annSpatialMod.setMultiPairedMove(true); /* Move the paired coord too */
                         break;
+                    case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                        /* Move end of polyhedron */
+                        allowMoveFlag = true;
+                        annSpatialMod.setPolyhedronEndMove(true);
+                        break;
+                    case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                        /* shrink expand polyhedron */
+                        allowMoveFlag = true;
+                        annSpatialMod.setPolyhedronShrinkExpand(true);
+                        break;
                 }
             }
             
@@ -2432,12 +2492,16 @@ UserInputModeAnnotations::mouseLeftDrag(const MouseEvent& mouseEvent)
                 
                 for (int32_t i = 0; i < numSelectedAnnotations; i++) {
                     Annotation* annotationModified(selectedAnnotations[i]->clone());
+                    CaretAssert(annotationModified);
+                    if (annotationModified->getType() == AnnotationTypeEnum::POLYHEDRON) {
+                        modeDescription = "Move Sample Coordinate";
+                    }
+                    else if (annSpatialMod.isPolyhedronEndMove()) {
+                        modeDescription = "Move Polyhedron End";
+                    }
                     if (annotationModified->applySpatialModification(annSpatialMod)) {
                         annotationsBeforeMoveAndResize.push_back(selectedAnnotations[i]);
                         annotationsAfterMoveAndResize.push_back(annotationModified);
-                        if (annotationModified->getType() == AnnotationTypeEnum::POLYHEDRON) {
-                            modeDescription = "Move Sample Coordinate";
-                        }
                     }
                     else {
                         delete annotationModified;
@@ -2664,6 +2728,10 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                     break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                    break;
             }
             break;
         case Mode::MODE_DRAWING_NEW_POLY_TYPE_INITIALIZE:
@@ -2693,6 +2761,10 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                 case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                     break;
             }
             break;
@@ -2806,6 +2878,10 @@ UserInputModeAnnotations::mouseLeftClick(const MouseEvent& mouseEvent)
                         case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                             break;
                         case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                            break;
+                        case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                            break;
+                        case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                             break;
                     }
                 }
@@ -3024,6 +3100,10 @@ UserInputModeAnnotations::mouseLeftPress(const MouseEvent& mouseEvent)
                 case PolyTypeDrawEditOperation::MOVE_ONE_COORDINATE:
                     break;
                 case PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
+                    break;
+                case PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                    break;
+                case PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
                     break;
             }
             break;

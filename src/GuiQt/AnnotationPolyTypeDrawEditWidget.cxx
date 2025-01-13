@@ -177,6 +177,56 @@ m_browserWindowIndex(browserWindowIndex)
     insertCoordinatesToolButton->setDefaultAction(m_insertCoordinatesAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(insertCoordinatesToolButton);
     
+    QToolButton* movePolygonCoordinatesToolButton(NULL);
+    if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        const AString moveAllToolTip = ("<br>"
+                                        "MOVE one end (polygon) of sample "
+                                        "(only available after sample has been 'finished')"
+                                        "<ul>"
+                                        "<li>Move mouse over the an end (polygon) of the sample"
+                                        "<li>The cursor becomes a 'four arrows' symbol"
+                                        "<li>Hold down the mouse and drag the end (polygon)"
+                                        "of the sample to its new location"
+                                        "</ul>");
+        m_movePolygonCoordinatesAction = new QAction("Move");
+        m_movePolygonCoordinatesAction->setToolTip(moveAllToolTip);
+        m_movePolygonCoordinatesAction->setCheckable(true);
+        QObject::connect(m_movePolygonCoordinatesAction, &QAction::triggered,
+                         this, &AnnotationPolyTypeDrawEditWidget::movePolygonCoordinatesActionTriggered);
+        
+        movePolygonCoordinatesToolButton = new QToolButton();
+        movePolygonCoordinatesToolButton->setDefaultAction(m_movePolygonCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(movePolygonCoordinatesToolButton);
+    }
+    
+    QToolButton* resizePolygonCoordinatesToolButton(NULL);
+    if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+        const AString expConToolTip("<br>"
+                                    "Resize one end of the sample"
+                                    "(only available after sample has been 'finished')"
+                                    "<ul>"
+                                    "<li>Move mouse over the an end (polygon) of the sample"
+                                    "<li>The cursor becomes a 'four arrows' symbol"
+                                    "<li>Hold down the mouse and drag the mouse up to "
+                                    "expand the polygon or drag the mouse down to shrink "
+                                    "the polygon"
+                                    "</br>");
+        m_resizePolygonCoordinatesAction = new QAction("Resize");
+        m_resizePolygonCoordinatesAction->setToolTip(expConToolTip);
+        m_resizePolygonCoordinatesAction->setCheckable(true);
+        QObject::connect(m_resizePolygonCoordinatesAction, &QAction::triggered,
+                         this, &AnnotationPolyTypeDrawEditWidget::resizePolygonCoordinatesActionTriggered);
+        
+        resizePolygonCoordinatesToolButton = new QToolButton();
+        resizePolygonCoordinatesToolButton->setDefaultAction(m_resizePolygonCoordinatesAction);
+        WuQtUtilities::setToolButtonStyleForQt5Mac(resizePolygonCoordinatesToolButton);
+        
+        if (movePolygonCoordinatesToolButton != NULL) {
+            WuQtUtilities::matchWidgetWidths(resizePolygonCoordinatesToolButton,
+                                             movePolygonCoordinatesToolButton);
+        }
+    }
+    
     /*
      * Move One Coordinate button
      */
@@ -256,6 +306,12 @@ m_browserWindowIndex(browserWindowIndex)
     if (m_moveTwoCoordinatesAction != NULL) {
         actionGroup->addAction(m_moveTwoCoordinatesAction);
     }
+    if (m_movePolygonCoordinatesAction != NULL) {
+        actionGroup->addAction(m_movePolygonCoordinatesAction);
+    }
+    if (m_resizePolygonCoordinatesAction != NULL) {
+        actionGroup->addAction(m_resizePolygonCoordinatesAction);
+    }
     
     /*
      * Keep some buttons same width
@@ -302,6 +358,12 @@ m_browserWindowIndex(browserWindowIndex)
                               row, 0, 1, 2, Qt::AlignHCenter);
         gridLayout->addWidget(editLabel,
                               row, 3, 1, 2, Qt::AlignHCenter);
+        if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+            QLabel* polygonLabel(new QLabel("Polygon"));
+            polygonLabel->setFont(font);
+            gridLayout->addWidget(polygonLabel,
+                                  row, 5, 1, 1, Qt::AlignHCenter);
+        }
         ++row;
         
         gridLayout->addWidget(m_finishToolButton,
@@ -312,6 +374,13 @@ m_browserWindowIndex(browserWindowIndex)
                               row, 3, Qt::AlignHCenter);
         gridLayout->addWidget(moveOneCoordinateToolButton,
                               row, 4, Qt::AlignHCenter);
+        
+        if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+            CaretAssert(movePolygonCoordinatesToolButton);
+            gridLayout->addWidget(movePolygonCoordinatesToolButton,
+                                  row, 5, Qt::AlignHCenter);
+        }
+        
         ++row;
         gridLayout->addWidget(cancelToolButton,
                               row, 0, Qt::AlignHCenter);
@@ -322,6 +391,11 @@ m_browserWindowIndex(browserWindowIndex)
         if (moveTwoCoordinatesToolButton != NULL) {
             gridLayout->addWidget(moveTwoCoordinatesToolButton,
                                   row, 4, Qt::AlignHCenter);
+        }
+        if (m_userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
+            CaretAssert(resizePolygonCoordinatesToolButton);
+            gridLayout->addWidget(resizePolygonCoordinatesToolButton,
+                                  row, 5, Qt::AlignHCenter);
         }
     }
     else {
@@ -466,6 +540,10 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
     bool moveOneCoordinateCheckedFlag(false);
     bool moveTwoCoordinatesEnabledFlag(false);
     bool moveTwoCoordinatesCheckedFlag(false);
+    bool movePolygonEnabledFlag(false);
+    bool movePolygonCheckedFlag(false);
+    bool resizePolygonEnabledFlag(false);
+    bool resizePolygonCheckedFlag(false);
     
     for (const auto operation : availableOperations) {
         switch (operation) {
@@ -492,6 +570,12 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
                 break;
             case UserInputModeAnnotations::PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
                 moveTwoCoordinatesEnabledFlag = true;
+                break;
+            case UserInputModeAnnotations::PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+                movePolygonEnabledFlag = true;
+                break;
+            case UserInputModeAnnotations::PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+                resizePolygonEnabledFlag = true;
                 break;
         }
     }
@@ -556,6 +640,12 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         case UserInputModeAnnotations::PolyTypeDrawEditOperation::MOVE_TWO_COORDINATES:
             moveTwoCoordinatesCheckedFlag = true;;
             break;
+        case UserInputModeAnnotations::PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END:
+            movePolygonCheckedFlag = true;
+            break;
+        case UserInputModeAnnotations::PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END:
+            resizePolygonCheckedFlag = true;
+            break;
     }
 
     if (finishEnabledFlag) {
@@ -585,6 +675,14 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
         m_moveTwoCoordinatesAction->setEnabled(moveTwoCoordinatesEnabledFlag);
         m_moveTwoCoordinatesAction->setChecked(moveTwoCoordinatesCheckedFlag);
     }
+    if (m_movePolygonCoordinatesAction != NULL) {
+        m_movePolygonCoordinatesAction->setEnabled(movePolygonEnabledFlag);
+        m_movePolygonCoordinatesAction->setChecked(movePolygonCheckedFlag);
+    }
+    if (m_resizePolygonCoordinatesAction != NULL) {
+        m_resizePolygonCoordinatesAction->setEnabled(resizePolygonEnabledFlag);
+        m_resizePolygonCoordinatesAction->setChecked(resizePolygonCheckedFlag);
+    }
 
     m_finishAction->setEnabled(finishEnabledFlag);
     m_finishAction->setToolTip(finishToolTip);
@@ -601,7 +699,9 @@ AnnotationPolyTypeDrawEditWidget::updateContent()
                || deleteCoordinatesEnabledFlag
                || insertCoordinatesEnabledFlag
                || moveOneCoordinateEnabledFlag
-               || moveTwoCoordinatesEnabledFlag);
+               || moveTwoCoordinatesEnabledFlag
+               || movePolygonCheckedFlag
+               || resizePolygonCheckedFlag);
 }
 
 /**
@@ -771,3 +871,34 @@ AnnotationPolyTypeDrawEditWidget::drawCoordinatesActionTriggered(bool checked)
     
     updateContent();
 }
+
+/**
+ * Called when the move polygon action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationPolyTypeDrawEditWidget::movePolygonCoordinatesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setPolyTypeDrawEditOperation(UserInputModeAnnotations::PolyTypeDrawEditOperation::MOVE_SAMPLE_POLYHEDRON_END);
+    }
+    updateContent();
+}
+
+/**
+ * Called when the resize polygon action is triggered (by user)
+ * @param checked
+ *    New checked status
+ */
+void
+AnnotationPolyTypeDrawEditWidget::resizePolygonCoordinatesActionTriggered(bool checked)
+{
+    CaretAssert(m_userInputModeAnnotations);
+    if (checked) {
+        m_userInputModeAnnotations->setPolyTypeDrawEditOperation(UserInputModeAnnotations::PolyTypeDrawEditOperation::RESIZE_SAMPLE_POLYHEDRON_END);
+    }
+    updateContent();
+}
+

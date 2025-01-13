@@ -55,6 +55,10 @@ namespace caret {
                                                const float stereotaxicY,
                                                const float stereotaxicZ);
         
+        void setStereotaxicCoordinateAtPreviousMouseXY(const float stereotaxicX,
+                                                       const float stereotaxicY,
+                                                       const float stereotaxicZ);
+        
         void setChartCoordinateAtMouseXY(const float chartX,
                                          const float chartY,
                                          const float chartZ);
@@ -83,6 +87,14 @@ namespace caret {
         
         void setMultiPairedMove(const bool status);
 
+        bool isPolyhedronEndMove() const;
+        
+        void setPolyhedronEndMove(const bool status);
+        
+        bool isPolyhedronShrinkExpand() const;
+        
+        void setPolyhedronShrinkExpand(const bool status);
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -208,7 +220,13 @@ namespace caret {
         
         StereotaxicCoord m_stereotaxicCoordinateAtMouseXY;
         
+        StereotaxicCoord m_stereotaxicCoordinateAtPreviousMouseXY;
+        
         bool m_multiPairedMoveFlag = false;;
+        
+        bool m_polyhedronEndMoveFlag = false;
+        
+        bool m_polyhedronShrinkExpandFlag = false;
         
         // ADD_NEW_MEMBERS_HERE
 
