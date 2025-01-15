@@ -119,6 +119,10 @@ void
 CiftiConnectivityMatrixDenseDynamicFile::setEnabledAsLayer(const bool enabled)
 {
     m_enabledAsLayer = enabled;
+    
+    if ( ! m_enabledAsLayer) {
+        setLoadedRowDataToAllZeros();
+    }
 }
 
 /**

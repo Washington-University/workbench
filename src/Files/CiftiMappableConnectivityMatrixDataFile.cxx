@@ -754,20 +754,12 @@ CiftiMappableConnectivityMatrixDataFile::loadDataForColumnIndex(const int64_t co
  */
 void
 CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t /*mapIndex*/,
-                                                           const int32_t surfaceNumberOfNodes,
-                                                           const StructureEnum::Enum structure,
+                                                                   const int32_t surfaceNumberOfNodes,
+                                                                   const StructureEnum::Enum structure,
                                                                    const int32_t nodeIndex,
                                                                    int64_t& rowIndexOut,
                                                                    int64_t& columnIndexOut)
 {
-    if (!isEnabledAsLayer())
-    {
-        return;//TSC: HACK to do nothing when dynconn layer is disabled
-    }
-    
-    ElapsedTimer timer;
-    timer.start();
-    
     rowIndexOut    = -1;
     columnIndexOut = -1;
     
@@ -776,6 +768,14 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
         return;
     }
   
+    /*
+     * If not enabled as a layer, clear any previous
+     * loaded data and do not load any new data
+     */
+    if ( ! isEnabledAsLayer()) {
+        setLoadedRowDataToAllZeros();
+        return;
+    }
     
     /*
      * Loading of data disabled?
@@ -783,6 +783,9 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
     if (m_dataLoadingEnabled == false) {
         return;
     }
+    
+    ElapsedTimer timer;
+    timer.start();
     
     /*
      * Zero out here so that data only gets cleared when data
@@ -917,15 +920,24 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForSurfaceNode(const int32_t
  */
 void
 CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForSurfaceNodes(const int32_t /*mapIndex*/,
-                                                                   const int32_t surfaceNumberOfNodes,
-                                                                   const StructureEnum::Enum structure,
-                                                                   const std::vector<int32_t>& nodeIndices)
+                                                                           const int32_t surfaceNumberOfNodes,
+                                                                           const StructureEnum::Enum structure,
+                                                                           const std::vector<int32_t>& nodeIndices)
 {
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return;
     }
     
+    /*
+     * If not enabled as a layer, clear any previous
+     * loaded data and do not load any new data
+     */
+    if ( ! isEnabledAsLayer()) {
+        setLoadedRowDataToAllZeros();
+        return;
+    }
+
     /*
      * Loading of data disabled?
      */
@@ -1032,6 +1044,15 @@ CiftiMappableConnectivityMatrixDataFile::loadMapDataForVoxelAtCoordinate(const i
         return;
     }
     
+    /*
+     * If not enabled as a layer, clear any previous
+     * loaded data and do not load any new data
+     */
+    if ( ! isEnabledAsLayer()) {
+        setLoadedRowDataToAllZeros();
+        return;
+    }
+
     if (m_ciftiFile == NULL) {
         setLoadedRowDataToAllZeros();
         return;
@@ -1211,6 +1232,15 @@ CiftiMappableConnectivityMatrixDataFile::loadMapAverageDataForVoxelIndices(const
         return false;
     }
     
+    /*
+     * If not enabled as a layer, clear any previous
+     * loaded data and do not load any new data
+     */
+    if ( ! isEnabledAsLayer()) {
+        setLoadedRowDataToAllZeros();
+        return false;
+    }
+
     /*
      * Loading of data disabled?
      */

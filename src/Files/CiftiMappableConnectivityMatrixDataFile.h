@@ -133,10 +133,11 @@ namespace caret {
         virtual void getDataForRow(float* dataOut, const int64_t& index) const;
         
         virtual void processRowAverageData(std::vector<float>& rowAverageData);
-        
-    private:
+
+    protected:
         void setLoadedRowDataToAllZeros();
         
+    private:
         void clearPrivate();
         
         void getRowColumnIndexForNodeWhenLoading(const StructureEnum::Enum structure,

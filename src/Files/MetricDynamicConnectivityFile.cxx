@@ -124,6 +124,11 @@ void
 MetricDynamicConnectivityFile::setEnabledAsLayer(const bool enabled)
 {
     m_enabledAsLayer = enabled;
+    
+    if ( ! m_enabledAsLayer) {
+        clearVertexValues();
+        m_connectivityDataLoaded->reset();
+    }
 }
 
 /**
@@ -285,20 +290,24 @@ MetricDynamicConnectivityFile::loadDataForSurfaceNode(const int32_t surfaceNumbe
                                                       const StructureEnum::Enum structure,
                                                       const int32_t nodeIndex)
 {
-    bool validFlag(false);
+    if (isDataValid()
+        && isEnabledAsLayer()
+        && (getStructure() == structure)
+        && (getNumberOfNodes() == surfaceNumberOfNodes)) {
+        /* OK */
+    }
+    else {
+        clearVertexValues();
+        m_connectivityDataLoaded->reset();
+        return false;
+    }
     
-    if ( ! isDataValid()) {
-        return validFlag;
-    }
     if ( ! m_dataLoadingEnabledFlag) {
-        return validFlag;
+        /* keep any loaded data */
+        return false;
     }
-    if (getStructure() != structure) {
-        return validFlag;
-    }
-    if (getNumberOfNodes() != surfaceNumberOfNodes) {
-        return validFlag;
-    }
+
+    bool validFlag(false);
     
     clearVertexValues();
     m_connectivityDataLoaded->reset();
@@ -355,19 +364,21 @@ MetricDynamicConnectivityFile::loadAverageDataForSurfaceNodes(const int32_t surf
                                                               const StructureEnum::Enum structure,
                                                               const std::vector<int32_t>& nodeIndices)
 {
-    if ( ! isDataValid()) {
+    if (isDataValid()
+        && isEnabledAsLayer()
+        && (getStructure() == structure)
+        && (getNumberOfNodes() == surfaceNumberOfNodes)
+        && (nodeIndices.size() >= 2)) {
+        /* OK */
+    }
+    else {
+        clearVertexValues();
+        m_connectivityDataLoaded->reset();
         return false;
     }
+    
     if ( ! m_dataLoadingEnabledFlag) {
-        return false;
-    }
-    if (getStructure() != structure) {
-        return false;
-    }
-    if (getNumberOfNodes() != surfaceNumberOfNodes) {
-        return false;
-    }
-    if (nodeIndices.size() < 2) {
+        /* keep any loaded data */
         return false;
     }
     
