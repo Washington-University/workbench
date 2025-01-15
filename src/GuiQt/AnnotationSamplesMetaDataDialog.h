@@ -246,11 +246,15 @@ namespace caret {
         
         QLineEdit* m_borderClassLineEdit;
 
+        QLineEdit* m_borderIdLineEdit;
+        
         QLineEdit* m_borderNameLineEdit;
         
         QLineEdit* m_focusFileNameLineEdit;
         
         QLineEdit* m_focusClassLineEdit;
+        
+        QLineEdit* m_focusIdLineEdit;
         
         QLineEdit* m_focusNameLineEdit;
         

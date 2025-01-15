@@ -111,11 +111,15 @@ namespace caret {
         
         static AString getBorderFileNameLabelText() { return "Border File"; }
         
+        static AString getBorderIdLabelText() { return "Border ID"; }
+        
         static AString getBorderNameLabelText() { return "Border Name"; }
         
         static AString getBorderClassLabelText() { return "Border Class"; }
         
         static AString getFocusFileNameLabelText() { return "Focus File"; }
+        
+        static AString getFocusIdLabelText() { return "Focus ID"; }
         
         static AString getFocusNameLabelText() { return "Focus Name"; }
         
@@ -227,10 +231,14 @@ namespace caret {
         
         void setBorderClass(const AString& value);
         
+        AString getBorderID() const;
+        
+        void setBorderID(const AString& value);
+
         AString getBorderName() const;
         
         void setBorderName(const AString& value);
-
+        
         AString getFocusFileName() const;
         
         void setFocusFileName(const AString& value);
@@ -239,10 +247,14 @@ namespace caret {
         
         void setFocusClass(const AString& value);
         
+        AString getFocusID() const;
+        
+        void setFocusID(const AString& value);
+                
         AString getFocusName() const;
         
         void setFocusName(const AString& value);
-                
+        
         AString toFormattedHtml() const;
         
         void updateMetaDataWithNameChanges();
@@ -323,11 +335,15 @@ namespace caret {
         
         static const AString SAMPLES_BORDER_CLASS;
         
-        static const AString SAMPLES_BORDER_NAME;
+        static const AString SAMPLES_BORDER_ID;
 
+        static const AString SAMPLES_BORDER_NAME;
+        
         static const AString SAMPLES_FOCUS_FILENAME;
         
         static const AString SAMPLES_FOCUS_CLASS;
+        
+        static const AString SAMPLES_FOCUS_ID;
         
         static const AString SAMPLES_FOCUS_NAME;
         
@@ -436,14 +452,18 @@ namespace caret {
     
     const AString AnnotationSampleMetaData::SAMPLES_BORDER_CLASS = "Border Class";
     
+    const AString AnnotationSampleMetaData::SAMPLES_BORDER_ID = "Border ID";
+    
     const AString AnnotationSampleMetaData::SAMPLES_BORDER_NAME = "Border Name";
     
     const AString AnnotationSampleMetaData::SAMPLES_FOCUS_FILENAME = "Focus File Name";
     
     const AString AnnotationSampleMetaData::SAMPLES_FOCUS_CLASS = "Focus Class";
     
-    const AString AnnotationSampleMetaData::SAMPLES_FOCUS_NAME = "Focus Name";
+    const AString AnnotationSampleMetaData::SAMPLES_FOCUS_ID = "Focus ID";
 
+    const AString AnnotationSampleMetaData::SAMPLES_FOCUS_NAME = "Focus Name";
+    
     const AString AnnotationSampleMetaData::SAMPLES_REMOVED_ALT_ATLAS_DESCRIPTION = "Alt_Atlas_description";
     
     const AString AnnotationSampleMetaData::SAMPLES_REMOVED_ORIG_ATLAS_NAME = "Orig_atlas_name";

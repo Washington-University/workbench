@@ -314,7 +314,9 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
 {
     copyMetaData(obj);
     
+    setBorderName("");
     setComment("");
+    setFocusName("");
     setHmbaParcelDingAbbreviation("");
     setHmbaParcelDingFullName("");
     setSampleNumber("");
@@ -991,6 +993,27 @@ AnnotationSampleMetaData::setBorderName(const AString& value)
 }
 
 /**
+ * @return border id
+ */
+AString
+AnnotationSampleMetaData::getBorderID() const
+{
+    return get(SAMPLES_BORDER_ID);
+}
+
+/**
+ * Set border id
+ * @param value
+ *    New value
+ */
+void
+AnnotationSampleMetaData::setBorderID(const AString& value)
+{
+    set(SAMPLES_BORDER_ID,
+        value);
+}
+
+/**
  * @return focus file name
  */
 AString
@@ -1031,6 +1054,28 @@ AnnotationSampleMetaData::setFocusClass(const AString& value)
     set(SAMPLES_FOCUS_CLASS,
         value);
 }
+
+/**
+ * @return focus id
+ */
+AString
+AnnotationSampleMetaData::getFocusID() const
+{
+    return get(SAMPLES_FOCUS_ID);
+}
+
+/**
+ * Set focus id
+ * @param value
+ *    New value
+ */
+void
+AnnotationSampleMetaData::setFocusID(const AString& value)
+{
+    set(SAMPLES_FOCUS_ID,
+        value);
+}
+
 
 /**
  * @return focus name
@@ -1246,9 +1291,13 @@ AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<ASt
     
     namesAndValuesOut.emplace_back(getBorderFileNameLabelText(), getBorderFileName());
     
+    namesAndValuesOut.emplace_back(getBorderIdLabelText(), getBorderID());
+    
     namesAndValuesOut.emplace_back(getBorderNameLabelText(), getBorderName());
     
     namesAndValuesOut.emplace_back(getBorderClassLabelText(), getBorderClass());
+    
+    namesAndValuesOut.emplace_back(getFocusIdLabelText(), getFocusID());
     
     namesAndValuesOut.emplace_back(getFocusFileNameLabelText(), getFocusFileName());
     
