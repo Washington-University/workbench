@@ -372,6 +372,9 @@ CiftiConnectivityMatrixViewController::updateViewController()
             dynFileFlag = true;
             layerCheckBox->setChecked(parcelDynConnFile->isEnabledAsLayer());
         }
+        else if (matrixFile != NULL) {
+            layerCheckBox->setChecked(matrixFile->isEnabledAsLayer());
+        }
         else {
             layerCheckBox->setChecked(false);
         }
