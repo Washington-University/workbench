@@ -32,9 +32,22 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        struct SurfParam
+        {
+            SurfaceFile* surface;
+            const MetricFile* correctedAreas;
+            SurfParam() { surface = NULL; correctedAreas = NULL; }
+            SurfParam(SurfaceFile* surfIn, const MetricFile* areasIn = NULL) { surface = surfIn; correctedAreas = areasIn; }
+        };
+
         AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, CiftiFile* myCiftiOut,
                                const float& surfKern = -1.0f, const float& volKern = -1.0f,
-                               SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL, SurfaceFile* myCerebSurf = NULL,
+                               const std::map<StructureEnum::Enum, AlgorithmCiftiGradient::SurfParam> surfParams = std::map<StructureEnum::Enum, AlgorithmCiftiGradient::SurfParam>(),
+                               bool outputAverage = false,
+                               CiftiFile* ciftiVectorsOut = NULL);
+        AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir, CiftiFile* myCiftiOut,
+                               const float& surfKern, const float& volKern,
+                               SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf = NULL, SurfaceFile* myCerebSurf = NULL,
                                bool outputAverage = false,
                                const MetricFile* myLeftAreas = NULL, const MetricFile* myRightAreas = NULL, const MetricFile* myCerebAreas = NULL,
                                CiftiFile* ciftiVectorsOut = NULL);

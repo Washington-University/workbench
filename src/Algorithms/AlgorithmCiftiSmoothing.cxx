@@ -129,7 +129,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
     MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
-    map<StructureEnum::Enum, SurfParam> surfArgs;
+    map<StructureEnum::Enum, SurfParam> surfParams;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(6);
     if (leftSurfOpt->m_present)
     {
@@ -139,7 +139,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         {
             myLeftAreas = leftCorrAreasOpt->getMetric(1);
         }
-        surfArgs[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
+        surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(7);
     if (rightSurfOpt->m_present)
@@ -150,7 +150,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         {
             myRightAreas = rightCorrAreasOpt->getMetric(1);
         }
-        surfArgs[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
+        surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(8);
     if (cerebSurfOpt->m_present)
@@ -161,7 +161,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         {
             myCerebAreas = cerebCorrAreasOpt->getMetric(1);
         }
-        surfArgs[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+        surfParams[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
     }
     auto genSurfArgs = myParams->getRepeatableParameterInstances(13);
     for (auto instance : genSurfArgs)
@@ -169,13 +169,13 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
         bool ok = false;
         StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
         if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
-        if (surfArgs.find(structure) != surfArgs.end()) throw AlgorithmException("more than one surface argument specified for structure '" + instance->getString(1) + "'");
+        if (surfParams.find(structure) != surfParams.end()) throw AlgorithmException("more than one surface argument specified for structure '" + instance->getString(1) + "'");
         auto areasOpt = instance->getOptionalParameter(3);
         if (areasOpt->m_present)
         {
-            surfArgs[structure] = SurfParam(instance->getSurface(2), areasOpt->getMetric(1));
+            surfParams[structure] = SurfParam(instance->getSurface(2), areasOpt->getMetric(1));
         } else {
-            surfArgs[structure] = SurfParam(instance->getSurface(2));
+            surfParams[structure] = SurfParam(instance->getSurface(2));
         }
     }
     CiftiFile* roiCifti = NULL;
@@ -188,7 +188,7 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     bool fixZerosSurf = myParams->getOptionalParameter(11)->m_present;
     bool mergedVolume = myParams->getOptionalParameter(12)->m_present;
     AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut,
-                            surfArgs,
+                            surfParams,
                             roiCifti, fixZerosVol, fixZerosSurf,
                             mergedVolume);
 }

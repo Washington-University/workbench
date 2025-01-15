@@ -69,6 +69,12 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     OptionalParameter* cerebCorrAreasOpt = cerebSurfOpt->createOptionalParameter(2, "-cerebellum-corrected-areas", "vertex areas to use instead of computing them from the cerebellum surface");
     cerebCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
     
+    ParameterComponent* genSurfOpt = ret->createRepeatableParameter(12, "-surface", "specify a surface by structure name");
+    genSurfOpt->addStringParameter(1, "structure", "the surface structure name");
+    genSurfOpt->addSurfaceParameter(2, "surface", "the surface file");
+    OptionalParameter* genCorrAreasOpt = genSurfOpt->createOptionalParameter(3, "-corrected-areas", "vertex areas to use instead of computing them from the surface");
+    genCorrAreasOpt->addMetricParameter(1, "area-metric", "the corrected vertex areas, as a metric");
+
     OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
     presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the size of the gaussian surface smoothing kernel in mm, as sigma by default");
     
@@ -82,12 +88,19 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     OptionalParameter* vectorOpt = ret->createOptionalParameter(10, "-vectors", "output gradient vectors");
     vectorOpt->addCiftiOutputParameter(1, "vectors-out", "the vectors, as a dscalar file");
     
-    ret->setHelpText(
+    AString helpText =
         AString("Performs gradient calculation on each component of the cifti file, and optionally averages the resulting gradients.  ") +
         "The -vectors and -average-output options may not be used together.  " +
         "You must specify a surface for each surface structure in the cifti file.  The COLUMN direction should be faster, and is the " +
-        "direction that works on dtseries.  For dconn, you probably want ROW, unless you are using -average-output."
-    );
+        "direction that works on dtseries.  For dconn, you probably want ROW, unless you are using -average-output.\n\n" +
+        "The <structure> argument to -surface must be one of the following strings:\n";
+    vector<StructureEnum::Enum> myStructureEnums;
+    StructureEnum::getAllEnums(myStructureEnums);
+    for (int i = 0; i < (int)myStructureEnums.size(); ++i)
+    {
+        helpText += "\n" + StructureEnum::toName(myStructureEnums[i]);
+    }
+    ret->setHelpText(helpText);
     return ret;
 }
 
@@ -105,6 +118,7 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
+    map<StructureEnum::Enum, AlgorithmCiftiGradient::SurfParam> surfParams;
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
     MetricFile* myLeftAreas = NULL, *myRightAreas = NULL, *myCerebAreas = NULL;
     OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(4);
@@ -116,6 +130,7 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         {
             myLeftAreas = leftCorrAreasOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
     }
     OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(5);
     if (rightSurfOpt->m_present)
@@ -126,6 +141,7 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         {
             myRightAreas = rightCorrAreasOpt->getMetric(1);
         }
+        surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
     }
     OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(6);
     if (cerebSurfOpt->m_present)
@@ -135,6 +151,22 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         if (cerebCorrAreasOpt->m_present)
         {
             myCerebAreas = cerebCorrAreasOpt->getMetric(1);
+        }
+        surfParams[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    }
+    auto genSurfArgs = myParams->getRepeatableParameterInstances(12);
+    for (auto instance : genSurfArgs)
+    {
+        bool ok = false;
+        StructureEnum::Enum structure = StructureEnum::fromName(instance->getString(1), &ok);
+        if (!ok) throw AlgorithmException("unrecognized structure identifier: " + instance->getString(1));
+        if (surfParams.find(structure) != surfParams.end()) throw AlgorithmException("more than one surface argument specified for structure '" + instance->getString(1) + "'");
+        auto areasOpt = instance->getOptionalParameter(3);
+        if (areasOpt->m_present)
+        {
+            surfParams[structure] = SurfParam(instance->getSurface(2), areasOpt->getMetric(1));
+        } else {
+            surfParams[structure] = SurfParam(instance->getSurface(2));
         }
     }
     float surfKern = -1.0f;
@@ -162,8 +194,8 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
         ciftiVectorsOut = vectorOpt->getOutputCifti(1);
     }
     AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern,
-                           myLeftSurf, myRightSurf, myCerebSurf, outputAverage,
-                           myLeftAreas, myRightAreas, myCerebAreas, ciftiVectorsOut);
+                           surfParams,
+                           outputAverage, ciftiVectorsOut);
 }
 
 AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir,
@@ -171,7 +203,19 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
                                                SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
                                                bool outputAverage,
                                                const MetricFile* myLeftAreas, const MetricFile* myRightAreas, const MetricFile* myCerebAreas,
-                                               CiftiFile* ciftiVectorsOut) : AbstractAlgorithm(myProgObj)
+                                               CiftiFile* ciftiVectorsOut) : AbstractAlgorithm(NULL)
+{
+    std::map<StructureEnum::Enum, SurfParam> surfParams;
+    if (myLeftSurf != NULL) surfParams[StructureEnum::CORTEX_LEFT] = SurfParam(myLeftSurf, myLeftAreas);
+    if (myRightSurf != NULL) surfParams[StructureEnum::CORTEX_RIGHT] = SurfParam(myRightSurf, myRightAreas);
+    if (myCerebSurf != NULL) surfParams[StructureEnum::CEREBELLUM] = SurfParam(myCerebSurf, myCerebAreas);
+    AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern, surfParams, outputAverage, ciftiVectorsOut);
+}
+
+AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const int& myDir,
+                                               CiftiFile* myCiftiOut, const float& surfKern, const float& volKern,
+                                               const std::map<StructureEnum::Enum, SurfParam> surfParams,
+                                               bool outputAverage, caret::CiftiFile* ciftiVectorsOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     const CiftiXML& myXML = myCifti->getCiftiXML();
@@ -211,34 +255,11 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {//sanity check surfaces
-        SurfaceFile* mySurf = NULL;
-        const MetricFile* myAreas = NULL;
-        AString surfType;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myAreas = myLeftAreas;
-                surfType = "left";
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myAreas = myRightAreas;
-                surfType = "right";
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myAreas = myCerebAreas;
-                surfType = "cerebellum";
-                break;
-            default:
-                throw AlgorithmException("found surface model with incorrect type: " + StructureEnum::toName(surfaceList[whichStruct]));
-                break;
-        }
-        if (mySurf == NULL)
-        {
-            throw AlgorithmException(surfType + " surface required but not provided");
-        }
+        AString surfType = StructureEnum::toName(surfaceList[whichStruct]);
+        auto iter = surfParams.find(surfaceList[whichStruct]);
+        if (iter == surfParams.end()) throw AlgorithmException(surfType + " surface required but not provided");
+        const SurfaceFile* mySurf = iter->second.surface;
+        const MetricFile* myAreas = iter->second.correctedAreas;
         if (mySurf->getNumberOfNodes() != myDenseMap.getSurfaceNumberOfNodes(surfaceList[whichStruct]))
         {
             throw AlgorithmException(surfType + " surface has the wrong number of vertices");
@@ -260,25 +281,10 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
     }
     for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
     {
-        SurfaceFile* mySurf = NULL;
-        const MetricFile* myAreas = NULL;
-        switch (surfaceList[whichStruct])
-        {
-            case StructureEnum::CORTEX_LEFT:
-                mySurf = myLeftSurf;
-                myAreas = myLeftAreas;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                mySurf = myRightSurf;
-                myAreas = myRightAreas;
-                break;
-            case StructureEnum::CEREBELLUM:
-                mySurf = myCerebSurf;
-                myAreas = myCerebAreas;
-                break;
-            default:
-                break;
-        }
+        auto iter = surfParams.find(surfaceList[whichStruct]);
+        CaretAssert(iter != surfParams.end()); //we checked this above
+        SurfaceFile* mySurf = iter->second.surface; //computeNormals() isn't const because it modifies an internal member, is used by metric gradient
+        const MetricFile* myAreas = iter->second.correctedAreas;
         MetricFile myMetric, myRoi, myMetricOut, vectorsOut, *vectorPtr = NULL;
         if (ciftiVectorsOut != NULL) vectorPtr = &vectorsOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
