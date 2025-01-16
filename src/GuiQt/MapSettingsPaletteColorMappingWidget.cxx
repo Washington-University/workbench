@@ -2381,7 +2381,7 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
     z--;
     
     if ((numHistogramValues > 2)
-        && (this->paletteColorMapping->getThresholdType() == PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL)) {
+        && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF)) {
         float threshMinValue = this->paletteColorMapping->getThresholdNormalMinimum();
         float threshMaxValue = this->paletteColorMapping->getThresholdNormalMaximum();
         
@@ -2403,10 +2403,9 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                 QwtPlotCurve* minBox = new QwtPlotCurve();
                 minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
                 minBox->setVisible(true);
-                minBox->setStyle(QwtPlotCurve::Dots);
                 
                 QColor minColor(100, 100, 255, 160);
-                minBox->setBrush(QBrush(minColor, Qt::Dense4Pattern));
+                minBox->setBrush(QBrush(minColor));
                 minBox->setPen(QPen(minColor));
                 minBox->setSamples(minSamples);
                 
@@ -2423,10 +2422,9 @@ MapSettingsPaletteColorMappingWidget::updateHistogramPlot()
                 QwtPlotCurve* maxBox = new QwtPlotCurve();
                 maxBox->setRenderHint(QwtPlotItem::RenderAntialiased);
                 maxBox->setVisible(true);
-                maxBox->setStyle(QwtPlotCurve::Dots);
                 
                 QColor maxColor(100, 100, 255, 160);
-                maxBox->setBrush(QBrush(maxColor, Qt::Dense4Pattern));
+                maxBox->setBrush(QBrush(maxColor));
                 maxBox->setPen(QPen(maxColor));
                 maxBox->setSamples(maxSamples);
                 
