@@ -98,7 +98,7 @@ void
 NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* statistics,
                                                      const PaletteColorMapping* paletteColorMapping,
                                                      const float* scalarValues,
-                                                     const PaletteColorMapping* thresholdPaletteColorMapping,
+                                                     const PaletteColorMapping* /*thresholdPaletteColorMapping*/,
                                                      const float* thresholdValues,
                                                      const int64_t numberOfScalars,
                                                      const ColorDataType colorDataType,
@@ -115,7 +115,6 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
     CaretAssert(statistics);
     CaretAssert(paletteColorMapping);
     CaretAssert(scalarValues);
-    CaretAssert(thresholdPaletteColorMapping);
     CaretAssert(thresholdValues);
     CaretAssert(rgbaOutPointer);
     
@@ -137,7 +136,7 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
      * Type of threshold testing
      */
     bool showOutsideFlag = false;
-    const PaletteThresholdTestEnum::Enum thresholdTest = thresholdPaletteColorMapping->getThresholdTest();
+    const PaletteThresholdTestEnum::Enum thresholdTest = paletteColorMapping->getThresholdTest();
     switch (thresholdTest) {
         case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
             showOutsideFlag = true;
@@ -151,13 +150,13 @@ NodeAndVoxelColoring::colorScalarsWithPalettePrivate(const FastStatistics* stati
      * Range of values allowed by thresholding
      */
     const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
-    const float thresholdMinimum = thresholdPaletteColorMapping->getThresholdMinimum(thresholdType);
-    const float thresholdMaximum = thresholdPaletteColorMapping->getThresholdMaximum(thresholdType);
-    const float thresholdMappedPositive = thresholdPaletteColorMapping->getThresholdMappedMaximum();
-    const float thresholdMappedPositiveAverageArea = thresholdPaletteColorMapping->getThresholdMappedAverageAreaMaximum();
-    const float thresholdMappedNegative = thresholdPaletteColorMapping->getThresholdMappedMinimum();
-    const float thresholdMappedNegativeAverageArea = thresholdPaletteColorMapping->getThresholdMappedAverageAreaMinimum();
-    const bool showMappedThresholdFailuresInGreen = thresholdPaletteColorMapping->isShowThresholdFailureInGreen();
+    const float thresholdMinimum = paletteColorMapping->getThresholdMinimum(thresholdType);
+    const float thresholdMaximum = paletteColorMapping->getThresholdMaximum(thresholdType);
+    const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedMaximum();
+    const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
+    const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();
+    const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
+    const bool showMappedThresholdFailuresInGreen = paletteColorMapping->isShowThresholdFailureInGreen();
     
     /*
      * Skip threshold testing?

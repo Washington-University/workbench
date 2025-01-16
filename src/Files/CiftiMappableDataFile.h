@@ -799,6 +799,8 @@ namespace caret {
 
         const CiftiBrainModelsMap* getBrainordinateMapping() const;
         
+        const CiftiParcelsMap* getParcelsMapping() const;
+        
         GraphicsPrimitiveV3fT2f* createMatrixPrimitive(std::vector<uint8_t>& matrixRGBA,
                                                        const int64_t numberOfColumns,
                                                        const int64_t numberOfRows,
@@ -929,6 +931,12 @@ namespace caret {
         
         /** Controls lazy initialization of m_brainordinateMapping */
         mutable bool m_brainordinateMappingCachedFlag = false;
+        
+        /** Is lazily initialized and caches CiftiParcelsMap for comparison with other CIFTI files */
+        mutable std::unique_ptr<CiftiParcelsMap> m_parcelsMapping;
+        
+        /** Controls lazy initialization of m_parcelsMapping */
+        mutable bool m_parcelsMappingCachedFlag = false;
         
         /** Prevents logging 'too large' message more than once for a file */
         mutable bool m_matrixDimensionsTooLargeLoggedFlag = false;

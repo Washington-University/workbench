@@ -8541,6 +8541,39 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
 }
 
 /**
+ * @return Pointer to mapping of data to parcels.
+ *         Will be NULL if data does not map to parcels.
+ */const CiftiParcelsMap* 
+CiftiMappableDataFile::getParcelsMapping() const
+{
+    if ( ! m_parcelsMappingCachedFlag) {
+        m_parcelsMappingCachedFlag = true;
+        
+        switch (m_dataMappingAccessMethod) {
+            case DATA_ACCESS_METHOD_INVALID:
+                CaretAssert(0);
+                break;
+            case DATA_ACCESS_NONE:
+                break;
+            case DATA_ACCESS_FILE_ROWS_OR_XML_ALONG_COLUMN:
+            case DATA_ACCESS_FILE_COLUMNS_OR_XML_ALONG_ROW:
+            {
+                const CiftiXML& myXML = m_ciftiFile->getCiftiXML();
+                if (myXML.getMappingType(m_dataMappingDirectionForCiftiXML) == CiftiMappingType::PARCELS) {
+                    /*
+                     * Cache a COPY of the CiftiParcelsMap to avoid calling CiftiFile::getCiftiXML() many times
+                     */
+                    m_parcelsMapping.reset(new CiftiParcelsMap(myXML.getParcelsMap(m_dataMappingDirectionForCiftiXML)));
+                }
+            }
+                break;
+        }
+    }
+    
+    return m_parcelsMapping.get();
+}
+
+/**
  * @return Pointer to mapping of data to brainordinates.
  *         Will be NULL if data does not map to brainordinates.
  */
@@ -8611,6 +8644,19 @@ CiftiMappableDataFile::getBrainordinateMappingMatch(const CaretMappableDataFile*
                 case CiftiBrainModelsMap::MatchResult::SUBSET:
                     return BrainordinateMappingMatch::SUBSET;
                     break;
+            }
+        }
+    }
+    
+    const CiftiParcelsMap* myParcelsMap = getParcelsMapping();
+    if (myParcelsMap != NULL) {
+        const CiftiParcelsMap* otherParcelsMap = otherCiftiFile->getParcelsMapping();
+        if (otherParcelsMap != NULL) {
+            if (*myParcelsMap == *otherParcelsMap) {
+                return BrainordinateMappingMatch::EQUAL;
+            }
+            else {
+                return BrainordinateMappingMatch::NO;
             }
         }
     }
