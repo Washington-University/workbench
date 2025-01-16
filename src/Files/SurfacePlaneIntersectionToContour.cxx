@@ -383,10 +383,10 @@ SurfacePlaneIntersectionToContour::generateContourFromEdge(IntersectionEdge* sta
     std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive;
     switch (m_drawingLineType) {
         case OPENGL_LINES:
-            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_LOOP));
+            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_LINE_STRIP));
             break;
         case POLYGONAL_LINES:
-            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_LOOP_BEVEL_JOIN));
+            primitive.reset(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::POLYGONAL_LINE_STRIP_BEVEL_JOIN));
             break;
     }
     CaretAssert(primitive.get());
