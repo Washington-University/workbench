@@ -979,15 +979,12 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
-                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE:
                         defaultTabIndex = m_overlayTabIndex;
-                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
                         defaultTabIndex = m_overlayTabIndex;
-                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
                         defaultTabIndex = m_overlayTabIndex;
@@ -998,7 +995,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         defaultTabIndex = m_overlayTabIndex;
                         enableVolumeSurfaceOutline = (haveSurfaces
                                                       & haveVolumes);
-                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART:
                         defaultTabIndex = m_chartTabIndex;
@@ -1009,7 +1005,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
-                        haveSamples = false;
                         break;
                     case ModelTypeEnum::MODEL_TYPE_CHART_TWO:
                         defaultTabIndex = m_chartOverlayTabIndex;
@@ -1020,7 +1015,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                         haveFibers  = false;
                         haveFoci    = false;
                         haveLabels  = false;
-                        haveSamples = false;
                         break;
                 }
             }
