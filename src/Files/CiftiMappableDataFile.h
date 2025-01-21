@@ -694,7 +694,7 @@ namespace caret {
             
             bool getThresholdData(const CaretMappableDataFile* threshMapFile,
                                   const int32_t threshMapIndex,
-                                  std::vector<float>& thresholdData);
+                                  std::vector<float>& thresholdData) const;
             
             /** CIFTI file containing the map */
             CiftiMappableDataFile* m_ciftiMappableDataFile;

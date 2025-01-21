@@ -8331,6 +8331,12 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
     }
     
     /*
+     * Set size of RGBA output
+     */
+    const int32_t numRGBA = numberOfData * 4;
+    rgbaOut.resize(numRGBA);
+
+    /*
      * Get palette for color mapping.
      */
     if (isMappedWithPalette()) {
@@ -8346,18 +8352,73 @@ CiftiMappableDataFile::helpMatrixFileLoadChartDataMatrixRGBA(int32_t& numberOfRo
         CiftiMappableDataFile* nonConstMapFile = const_cast<CiftiMappableDataFile*>(this);
         const FastStatistics* fileFastStats = nonConstMapFile->getFileFastStatistics();
 
-        /*
-         * Color the data.
-         */
-        const int32_t numRGBA = numberOfData * 4;
-        rgbaOut.resize(numRGBA);
-        NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
-                                                      pcm,
-                                                      &data[0],
-                                                      pcm,
-                                                      &data[0],
-                                                      numberOfData,
-                                                      &rgbaOut[0]);
+        
+        
+        
+        bool useThreshMapFileFlag = false;
+        switch (pcm->getThresholdType()) {
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_FILE:
+                useThreshMapFileFlag = true;
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+                break;
+            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+                break;
+        }
+        
+        bool usedThresholdDataFlag(false);
+        if (useThreshMapFileFlag) {
+            const CaretMappableDataFileAndMapSelectionModel* threshFileModel = nonConstMapFile->getMapThresholdFileSelectionModel(0);
+            CaretAssert(threshFileModel);
+            const CaretMappableDataFile* threshMapFile = threshFileModel->getSelectedFile();
+            if (threshMapFile != NULL) {
+                const CiftiMappableDataFile* threshCiftiMapFile(dynamic_cast<const CiftiMappableDataFile*>(threshMapFile));
+                if (threshCiftiMapFile != NULL) {
+                    const int32_t threshNumberOfRows     = threshCiftiMapFile->m_ciftiFile->getNumberOfRows();
+                    const int32_t threshNnumberOfColumns = threshCiftiMapFile->m_ciftiFile->getNumberOfColumns();
+                    const int32_t threshNumberOfData = threshNumberOfRows * threshNnumberOfColumns;
+                    if (threshNumberOfData == numberOfData) {
+                        /*
+                         * Get the data.
+                         */
+                        std::vector<float> threshData(threshNumberOfData);
+                        for (int32_t iRow = 0; iRow < threshNumberOfRows; iRow++) {
+                            CaretAssertVectorIndex(rowIndices, iRow);
+                            const int32_t rowIndex = rowIndices[iRow];
+                            const int32_t rowOffset = rowIndex * numberOfColumnsOut;
+                            CaretAssertVectorIndex(data, rowOffset + numberOfColumnsOut - 1);
+                            threshCiftiMapFile->m_ciftiFile->getRow(&threshData[rowOffset],
+                                                                    iRow);
+                        }
+                        CaretAssert(data.size() == threshData.size());
+                        NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
+                                                                      pcm,
+                                                                      &data[0],
+                                                                      pcm,
+                                                                      &threshData[0],
+                                                                      numberOfData,
+                                                                      &rgbaOut[0]);
+                        usedThresholdDataFlag = true;
+                    }
+                }
+            }
+        }
+        if ( ! usedThresholdDataFlag) {
+            /*
+             * Color the data.
+             */
+            NodeAndVoxelColoring::colorScalarsWithPalette(fileFastStats,
+                                                          pcm,
+                                                          &data[0],
+                                                          pcm,
+                                                          &data[0],
+                                                          numberOfData,
+                                                          &rgbaOut[0]);
+        }
         
         return true;
     }
@@ -9137,7 +9198,7 @@ CiftiMappableDataFile::MapContent::updateHistogramLimitedValues(const int32_t nu
 bool
 CiftiMappableDataFile::MapContent::getThresholdData(const CaretMappableDataFile* threshMapFile,
                                                     const int32_t threshMapIndex,
-                                                    std::vector<float>& thresholdDataOut)
+                                                    std::vector<float>& thresholdDataOut) const
 {
     CaretAssert(threshMapFile);
     CaretAssert(threshMapIndex >= 0);
