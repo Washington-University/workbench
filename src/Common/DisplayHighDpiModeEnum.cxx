@@ -385,7 +385,7 @@ DisplayHighDpiModeEnum::getAllGuiNames(std::vector<AString>& allGuiNames, const 
 DisplayHighDpiModeEnum::Enum
 DisplayHighDpiModeEnum::getDefaultValue()
 {
-    return DisplayHighDpiModeEnum::DPI_OFF;
+    return DisplayHighDpiModeEnum::DPI_AUTO;
 }
 
 /**
