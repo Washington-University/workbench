@@ -23,6 +23,7 @@
 #include "GroupAndNameHierarchyViewController.h"
 #undef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
 
+#include <QAction>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>

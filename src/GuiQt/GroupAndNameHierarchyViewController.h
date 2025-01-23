@@ -29,6 +29,7 @@
 #include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 
+class QAction;
 class QLineEdit;
 class QTreeWidgetItem;
 class QToolButton;
