@@ -1238,7 +1238,7 @@ GiftiTypeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector
  *     Match status.
  */
 CaretMappableDataFile::BrainordinateMappingMatch
-GiftiTypeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
+GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const
 {
     bool giftiFlag = false;
     CaretAssert(mapFile);

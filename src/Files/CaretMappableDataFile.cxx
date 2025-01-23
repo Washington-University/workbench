@@ -1299,6 +1299,8 @@ CaretMappableDataFile::clear()
     
     m_mapThresholdFileSelectionModels.clear();
     m_mapColorModulateFileSelectors.clear();
+    
+    m_mappingMatchedFilesCache.clear();
 }
 
 /**
@@ -1845,4 +1847,31 @@ const CaretMappableDataFile*
 CaretMappableDataFile::castToCaretMappableDataFile() const
 {
     return this;
+}
+
+/*
+ * Are all brainordinates in this file also in the given file?
+ * That is, the brainordinates are equal to or a subset of the brainordinates
+ * in the given file.
+ *
+ * @param mapFile
+ *     The given map file.
+ * @return
+ *     Match status.
+ */
+CaretMappableDataFile::BrainordinateMappingMatch
+CaretMappableDataFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
+{
+    BrainordinateMappingMatch matchStatus = BrainordinateMappingMatch::NO;
+    
+    auto iter(m_mappingMatchedFilesCache.find(mapFile));
+    if (iter != m_mappingMatchedFilesCache.end()) {
+        matchStatus = iter->second;
+    }
+    else {
+        matchStatus = getBrainordinateMappingMatchImplementation(mapFile);
+        m_mappingMatchedFilesCache.insert(std::make_pair(mapFile, matchStatus));
+    }
+    
+    return matchStatus;
 }

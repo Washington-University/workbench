@@ -1939,7 +1939,7 @@ CiftiFiberTrajectoryFile::getDataForSelector(const MapFileDataSelector& /*mapFil
  *     True if brainordinates in this file are subset or equal to the given file, else false.
  */
 CaretMappableDataFile::BrainordinateMappingMatch
-CiftiFiberTrajectoryFile::getBrainordinateMappingMatch(const CaretMappableDataFile* /*mapFile*/) const
+CiftiFiberTrajectoryFile::getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* /*mapFile*/) const
 {
     return BrainordinateMappingMatch::NO;
 }

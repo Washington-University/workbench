@@ -8679,7 +8679,7 @@ CiftiMappableDataFile::getBrainordinateMapping() const
  *     Match status.
  */
 CaretMappableDataFile::BrainordinateMappingMatch
-CiftiMappableDataFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
+CiftiMappableDataFile::getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const
 {
     CaretAssert(mapFile);
     if (this == mapFile) {

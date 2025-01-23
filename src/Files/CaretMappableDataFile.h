@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <memory>
 
 #include "CaretDataFile.h"
@@ -542,9 +543,11 @@ namespace caret {
          * @return 
          *     Match status.
          */
-        virtual BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const = 0;
+        virtual BrainordinateMappingMatch getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const = 0;
         
-        virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
+        BrainordinateMappingMatch getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const;
+        
+       virtual bool getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& mapIndices,
                                                          const StructureEnum::Enum structure,
                                                          const int nodeIndex,
                                                          const int32_t numberOfNodes,
@@ -600,6 +603,9 @@ namespace caret {
         std::vector<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>> m_mapThresholdFileSelectionModels;
         
         std::map<int32_t, std::unique_ptr<DataFileColorModulateSelector>> m_mapColorModulateFileSelectors;
+        
+        /* Cache's status of files that have compatible mapping (brainordinates, parcels, etc.) */
+        mutable std::map<const CaretMappableDataFile*, BrainordinateMappingMatch> m_mappingMatchedFilesCache;
         
         /**
          * Added by WB-781 Apply to All Maps for ColorBar.

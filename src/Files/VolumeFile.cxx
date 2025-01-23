@@ -2828,7 +2828,7 @@ VolumeFile::getDataForSelector(const MapFileDataSelector& mapFileDataSelector,
  *     Match status.
  */
 CaretMappableDataFile::BrainordinateMappingMatch
-VolumeFile::getBrainordinateMappingMatch(const CaretMappableDataFile* mapFile) const
+VolumeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDataFile* mapFile) const
 {
     CaretAssert(mapFile);
     if (mapFile->getDataFileType() == DataFileTypeEnum::VOLUME) {
