@@ -480,6 +480,9 @@ GroupAndNameHierarchyViewController::createTreeWidget()
     m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget);
     
     m_modelTreeWidget->blockSignals(false);
+    
+    m_findItems.clear();
+    m_findItemsCurrentIndex = 0;
 }
 
 
@@ -820,22 +823,22 @@ GroupAndNameHierarchyViewController::infoActionTriggered()
 void
 GroupAndNameHierarchyViewController::findActionTriggered()
 {
-//    m_findItems.clear();
-//    m_findItemsCurrentIndex = 0;
-//    
-//    if (m_labelHierarchyModel != NULL) {
-//        const QString findText(m_findTextLineEdit->text().trimmed());
-//        
-//        const int modelColumn(0);
-//        m_findItems = m_labelHierarchyModel->findItems(findText,
-//                                                       (Qt::MatchContains
-//                                                        | Qt::MatchRecursive),
-//                                                       modelColumn);
-//        if (m_findItems.isEmpty()) {
-//            GuiManager::get()->beep();
-//        }
-//        scrollTreeViewToFindItem();
-//    }
+    m_findItems.clear();
+    m_findItemsCurrentIndex = 0;
+    
+    if (m_modelTreeWidget != NULL) {
+        const QString findText(m_findTextLineEdit->text().trimmed());
+        
+        const int modelColumn(0);
+        m_findItems = m_modelTreeWidget->findItems(findText,
+                                                   (Qt::MatchContains
+                                                  | Qt::MatchRecursive),
+                                                   modelColumn);
+        if (m_findItems.isEmpty()) {
+            GuiManager::get()->beep();
+        }
+        scrollTreeViewToFindItem();
+    }
 }
 
 /**
@@ -844,7 +847,7 @@ GroupAndNameHierarchyViewController::findActionTriggered()
 void
 GroupAndNameHierarchyViewController::nextActionTriggered()
 {
-//    scrollTreeViewToFindItem();
+    scrollTreeViewToFindItem();
 }
 
 /**
@@ -853,28 +856,29 @@ GroupAndNameHierarchyViewController::nextActionTriggered()
 void
 GroupAndNameHierarchyViewController::scrollTreeViewToFindItem()
 {
-//    const int32_t numFindItems(m_findItems.size());
-//    if (numFindItems > 0) {
-//        if ((m_findItemsCurrentIndex < 0)
-//            || (m_findItemsCurrentIndex >= numFindItems)) {
-//            m_findItemsCurrentIndex = 0;
-//        }
-//        CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
-//        const QStandardItem* item(m_findItems[m_findItemsCurrentIndex]);
-//        const QModelIndex modelIndex(m_labelHierarchyModel->indexFromItem(item));
-//        if (modelIndex.isValid()) {
-//            m_treeView->setCurrentIndex(modelIndex);
-//            m_treeView->scrollTo(modelIndex,
-//                                 QTreeView::PositionAtCenter);
-//        }
-//        
-//        /*
-//         * For 'next'
-//         */
-//        ++m_findItemsCurrentIndex;
-//    }
-//    
-//    m_nextAction->setEnabled(numFindItems > 1);
+    const int32_t numFindItems(m_findItems.size());
+    if (numFindItems > 0) {
+        if ((m_findItemsCurrentIndex < 0)
+            || (m_findItemsCurrentIndex >= numFindItems)) {
+            m_findItemsCurrentIndex = 0;
+        }
+        CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
+        const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
+        CaretAssert(item);
+        const QModelIndex modelIndex(m_modelTreeWidget->indexFromItem(item));
+        if (modelIndex.isValid()) {
+            m_modelTreeWidget->setCurrentIndex(modelIndex);
+            m_modelTreeWidget->scrollTo(modelIndex,
+                                        QTreeView::PositionAtCenter);
+        }
+        
+        /*
+         * For 'next'
+         */
+        ++m_findItemsCurrentIndex;
+    }
+    
+    m_nextAction->setEnabled(numFindItems > 1);
 }
 
 
@@ -886,10 +890,10 @@ GroupAndNameHierarchyViewController::scrollTreeViewToFindItem()
 void
 GroupAndNameHierarchyViewController::findTextLineEditTextChanged(const QString& text)
 {
-//    m_findAction->setEnabled( ! text.trimmed().isEmpty());
-//    m_nextAction->setEnabled(false);
-//    m_findItems.clear();
-//    m_findItemsCurrentIndex = 0;
+    m_findAction->setEnabled( ! text.trimmed().isEmpty());
+    m_nextAction->setEnabled(false);
+    m_findItems.clear();
+    m_findItemsCurrentIndex = 0;
 }
 
 /**

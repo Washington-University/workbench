@@ -173,6 +173,10 @@ namespace caret {
         
         bool m_selectionInvalidatesSurfaceNodeColoring;
         
+        QList<QTreeWidgetItem*> m_findItems;
+        
+        int32_t m_findItemsCurrentIndex = 0;
+
         static std::set<GroupAndNameHierarchyViewController*> s_allViewControllers;
         
     };
