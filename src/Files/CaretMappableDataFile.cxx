@@ -487,7 +487,6 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
             SceneObjectMapIntegerKey* sceneThreshMap = new SceneObjectMapIntegerKey("m_mapThresholdFileSelectionModels",
                                                                                     SceneObjectDataTypeEnum::SCENE_CLASS);
             const int32_t numMaps = getNumberOfMaps();
-#pragma omp CARET_PARFOR
             for (int32_t iMap = 0; iMap < numMaps; iMap++) {
                 if (getMapPaletteColorMapping(iMap)->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
                     CaretAssertVectorIndex(m_mapThresholdFileSelectionModels, iMap);
@@ -495,7 +494,6 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
                     CaretMappableDataFileAndMapSelectionModel* threshSel = m_mapThresholdFileSelectionModels[iMap].get();
                     if ((threshSel->getSelectedFile() != this)
                         || (threshSel->getSelectedMapIndex() != iMap)) {
-#pragma omp critical
                         {
                             sceneThreshMap->addClass(iMap, threshSel->saveToScene(sceneAttributes, "threshSelElement"));
                         }
@@ -1528,7 +1526,6 @@ CaretMappableDataFile::updateMapThresholdFileSelectionModels()
     const int32_t numThresh = static_cast<int32_t>(m_mapThresholdFileSelectionModels.size());
     if (numMaps > numThresh) {
         m_mapThresholdFileSelectionModels.resize(numMaps);
-#pragma omp CARET_PARFOR
         for (int32_t i = numThresh; i < numMaps; i++) {
             CaretMappableDataFileAndMapSelectionModel* threshSel(new CaretMappableDataFileAndMapSelectionModel(this));
             threshSel->setSelectedFile(this);
