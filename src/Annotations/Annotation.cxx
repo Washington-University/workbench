@@ -3405,4 +3405,19 @@ Annotation::unlockPolyhedronInWindow(const int32_t windowIndex)
                                          NULL);
 }
 
+/**
+ * Share the metadata from the given annotation with this annotation.  This is used
+ * by Sample Polyhedron where one Actual Sample is a modified version of one
+ * Desired Sample and the two share their metadata.
+ */
+void
+Annotation::sharedMetaDataFromOtherAnnotation(Annotation* annotation)
+{
+    /*
+     * Note that 'm_metaData' is a shared_ptr
+     */
+    CaretAssert(annotation);
+    m_metaData = annotation->m_metaData;
+}
+
 

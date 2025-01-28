@@ -523,6 +523,8 @@ namespace caret {
         
         virtual void invalidateTextSubstitution();
         
+        void sharedMetaDataFromOtherAnnotation(Annotation* annotation);
+        
     private:
         float getLineWidthPixelsObsolete() const;
         
@@ -565,7 +567,11 @@ namespace caret {
         
         AString m_name;
         
-        std::unique_ptr<GiftiMetaData> m_metaData;
+        /*
+         * Shared pointer is used because a related pair of actual 
+         * and desired samples share one instance of metadata.
+         */
+        std::shared_ptr<GiftiMetaData> m_metaData;
         
         int32_t m_uniqueKey;
         
