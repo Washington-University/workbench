@@ -1000,6 +1000,28 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                             }
                         }
                         
+                        const AString polyhedronTypeString(m_streamHelper->getOptionalAttributeStringValue(polyAtts, ELEMENT_POLYHEDRON_DATA, ATTRIBUTE_POLYHEDRON_TYPE, ""));
+                        if ( ! polyhedronTypeString.isEmpty()) {
+                            bool validFlag(false);
+                            AnnotationPolyhedronTypeEnum::Enum polyType(AnnotationPolyhedronTypeEnum::fromName(polyhedronTypeString,
+                                                                                                               &validFlag));
+                            if (validFlag) {
+                                polyhedron->setPolyhedronType(polyType);
+                            }
+                            else {
+                                annotationFile->addFileReadWarning("Faild to recognize AnnotationPolyhedronTypeEnum: "
+                                                                   + polyhedronTypeString);
+                            }
+                        }
+                        else {
+                            /*
+                             * If polyhedron type is missing, it was created before desired
+                             * actual samples were added and should be treated as a
+                             * desired sample.
+                             */
+                            polyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
+                        }
+                        
                         m_stream->skipCurrentElement();
                     }
                     else if (elementName == ELEMENT_FONT_ATTRIBUTES) {

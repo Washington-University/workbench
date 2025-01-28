@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "AnnotationPolyhedronTypeEnum.h"
 #include "CaretObject.h"
 #include "SamplesDrawingModeEnum.h"
 #include "SceneableInterface.h"
@@ -49,6 +50,10 @@ namespace caret {
         SamplesDrawingModeEnum::Enum getDrawingMode() const;
         
         void setDrawingMode(const SamplesDrawingModeEnum::Enum samplesDrawingMode);
+        
+        AnnotationPolyhedronTypeEnum::Enum getPolyhedronDrawingType() const;
+        
+        void setPolyhedronDrawingType(const AnnotationPolyhedronTypeEnum::Enum polyhedronDrawingType);
         
         std::pair<int32_t, int32_t> getSliceRange() const;
         
@@ -104,6 +109,8 @@ namespace caret {
         const BrowserTabContent* m_parentBrowserTabContent;
         
         SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL_SLICES;
+        
+        AnnotationPolyhedronTypeEnum::Enum m_polyhedronDrawingType = AnnotationPolyhedronTypeEnum::INVALID;
         
         mutable int32_t m_lowSliceIndex = 0;
         

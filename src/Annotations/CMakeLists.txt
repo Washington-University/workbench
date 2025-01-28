@@ -58,6 +58,7 @@ AnnotationPercentSizeText.h
 AnnotationPointSizeText.h
 AnnotationPolygon.h
 AnnotationPolyhedron.h
+AnnotationPolyhedronTypeEnum.h
 AnnotationPolyLine.h
 AnnotationRedoUndoCommand.h
 AnnotationRedoUndoCommandModeEnum.h
@@ -121,6 +122,7 @@ AnnotationPercentSizeText.cxx
 AnnotationPointSizeText.cxx
 AnnotationPolygon.cxx
 AnnotationPolyhedron.cxx
+AnnotationPolyhedronTypeEnum.cxx
 AnnotationPolyLine.cxx
 AnnotationRedoUndoCommand.cxx
 AnnotationRedoUndoCommandModeEnum.cxx

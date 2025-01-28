@@ -114,6 +114,7 @@ AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron&
     m_planeOneNameStereotaxicXYZ = obj.m_planeOneNameStereotaxicXYZ;
     m_planeTwoNameStereotaxicXYZ = obj.m_planeTwoNameStereotaxicXYZ;
     *m_fontAttributes = *obj.m_fontAttributes;
+    m_polyhedronType  = obj.m_polyhedronType;
 }
 
 /**
@@ -131,6 +132,8 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     resetProperty(Property::COPY_CUT_PASTE);
     
     m_sampleMetaData.reset(new AnnotationSampleMetaData(getMetaData()));
+    
+    m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
 }
 
 /**
@@ -167,6 +170,26 @@ const AnnotationSampleMetaData*
 AnnotationPolyhedron::getSampleMetaData() const
 {
     return m_sampleMetaData.get();
+}
+
+/**
+ * @return The polyhedron type
+ */
+AnnotationPolyhedronTypeEnum::Enum
+AnnotationPolyhedron::getPolyhedronType() const
+{
+    return m_polyhedronType;
+}
+
+/**
+ * Set the polyhedron type
+ * @param polyhedronType
+ *    Type of polyhedron
+ */
+void
+AnnotationPolyhedron::setPolyhedronType(const AnnotationPolyhedronTypeEnum::Enum polyhedronType)
+{
+    m_polyhedronType = polyhedronType;
 }
 
 /**

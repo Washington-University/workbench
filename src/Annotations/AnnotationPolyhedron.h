@@ -23,6 +23,7 @@
 
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationMultiPairedCoordinateShape.h"
+#include "AnnotationPolyhedronTypeEnum.h"
 #include "GraphicsPolygonTessellator.h"
 #include "Plane.h"
 #include "Vector3D.h"
@@ -75,6 +76,10 @@ namespace caret {
                
         const AnnotationSampleMetaData* getSampleMetaData() const;
                
+        AnnotationPolyhedronTypeEnum::Enum getPolyhedronType() const;
+               
+        void setPolyhedronType(const AnnotationPolyhedronTypeEnum::Enum polyhedronType);
+
         void applyRedoUndoForResetRangeToPlane(const AnnotationPolyhedron* polyhedron);
 
         bool resetRangeToPlanes(const Plane& planeOne,
@@ -209,6 +214,8 @@ namespace caret {
         mutable std::vector<Vector3D> m_tessellationPreviousXYZ;
         
         std::unique_ptr<AnnotationSampleMetaData> m_sampleMetaData;
+               
+        AnnotationPolyhedronTypeEnum::Enum m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
                
         // ADD_NEW_MEMBERS_HERE
 

@@ -72,7 +72,7 @@ namespace caret {
         
         void saveFileActionTriggered();
         
-        void newSampleActionTriggered();
+        void newDesiredSampleActionTriggered();
         
         void samplesDrawingModeEnumComboBoxItemActivated();
         

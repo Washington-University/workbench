@@ -144,7 +144,7 @@ m_browserWindowIndex(browserWindowIndex)
     m_newSampleAction->setText("Insert New Sample");
     m_newSampleAction->setToolTip(sampleToolTipText);
     QObject::connect(m_newSampleAction, &QAction::triggered,
-                     this, &AnnotationSamplesInsertNewWidget::newSampleActionTriggered);
+                     this, &AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered);
     QToolButton* newSampleToolButton(new QToolButton());
     WuQtUtilities::setToolButtonStyleForQt5Mac(newSampleToolButton);
     newSampleToolButton->setDefaultAction(m_newSampleAction);
@@ -372,7 +372,7 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
  * Called when new sample action triggered
  */
 void
-AnnotationSamplesInsertNewWidget::newSampleActionTriggered()
+AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
 {
     SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile == NULL) {
@@ -380,6 +380,15 @@ AnnotationSamplesInsertNewWidget::newSampleActionTriggered()
         return;
     }
     
+    BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    if (bbw != NULL) {
+        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        if (tabContent != NULL) {
+            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            CaretAssert(samplesSettings);
+            samplesSettings->setPolyhedronDrawingType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
+        }
+    }
     const AnnotationCoordinateSpaceEnum::Enum annSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
     const AnnotationTypeEnum::Enum annShape(AnnotationTypeEnum::POLYHEDRON);
     EventAnnotationCreateNewType::PolyhedronDrawingMode polyhedronDrawingMode

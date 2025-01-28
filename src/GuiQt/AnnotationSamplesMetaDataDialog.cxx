@@ -44,10 +44,12 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationSampleMetaData.h"
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "ChooseBorderFocusFromFileDialog.h"
 #include "DingOntologyTermsDialog.h"
 #include "DisplayPropertiesSamples.h"
+#include "EventBrowserTabGet.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -55,6 +57,7 @@
 #include "GuiManager.h"
 #include "HemisphereEnum.h"
 #include "LabelSelectionDialog.h"
+#include "SamplesDrawingSettings.h"
 #include "SamplesFile.h"
 #include "SamplesMetaDataManager.h"
 #include "WuQMessageBoxTwo.h"
@@ -1143,6 +1146,14 @@ AnnotationSamplesMetaDataDialog::finishCreatingNewSample()
     
     CaretAssert(m_polyhedron);
     m_polyhedron->setDrawingNewAnnotationStatus(false);
+    
+    EventBrowserTabGet tabEvent(m_browserTabIndex);
+    EventManager::get()->sendEvent(tabEvent.getPointer());
+    const BrowserTabContent* btc(tabEvent.getBrowserTab());
+    if (btc != NULL) {
+        const SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
+        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
+    }
     
     /*
      * Add annotation to its file

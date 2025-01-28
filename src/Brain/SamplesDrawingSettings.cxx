@@ -60,6 +60,8 @@ m_parentBrowserTabContent(parentBrowserTabContent)
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add<SamplesDrawingModeEnum, SamplesDrawingModeEnum::Enum>("m_drawingMode",
                                                                                 &m_drawingMode);
+    m_sceneAssistant->add<AnnotationPolyhedronTypeEnum, AnnotationPolyhedronTypeEnum::Enum>("m_polyhedronDrawingType",
+                                                                                            &m_polyhedronDrawingType);
     m_sceneAssistant->add("m_lowSliceIndex",
                           &m_lowSliceIndex);
     m_sceneAssistant->add("m_highSliceIndex",
@@ -102,11 +104,12 @@ SamplesDrawingSettings::operator=(const SamplesDrawingSettings& obj)
 void 
 SamplesDrawingSettings::copyHelperSamplesDrawingSettings(const SamplesDrawingSettings& obj)
 {
-    m_drawingMode      = obj.m_drawingMode;
-    m_lowSliceIndex    = obj.m_lowSliceIndex;
-    m_highSliceIndex   = obj.m_highSliceIndex;
-    m_lowerSliceOffset = obj.m_lowerSliceOffset;
-    m_upperSliceOffset = obj.m_upperSliceOffset;
+    m_drawingMode           = obj.m_drawingMode;
+    m_lowSliceIndex         = obj.m_lowSliceIndex;
+    m_highSliceIndex        = obj.m_highSliceIndex;
+    m_lowerSliceOffset      = obj.m_lowerSliceOffset;
+    m_upperSliceOffset      = obj.m_upperSliceOffset;
+    m_polyhedronDrawingType = obj.m_polyhedronDrawingType;
 }
 
 /**
@@ -127,6 +130,26 @@ void
 SamplesDrawingSettings::setDrawingMode(const SamplesDrawingModeEnum::Enum drawingMode)
 {
     m_drawingMode = drawingMode;
+}
+
+/**
+ * @return The polyhedron drawing type
+ */
+AnnotationPolyhedronTypeEnum::Enum
+SamplesDrawingSettings::getPolyhedronDrawingType() const
+{
+    return m_polyhedronDrawingType;
+}
+
+/**
+ * Set the polyhedron drawing type
+ * @param polyhedronDrawingType
+ *    The polyhedron drawing type
+ */
+void
+SamplesDrawingSettings::setPolyhedronDrawingType(const AnnotationPolyhedronTypeEnum::Enum polyhedronDrawingType)
+{
+    m_polyhedronDrawingType = polyhedronDrawingType;
 }
 
 /**
