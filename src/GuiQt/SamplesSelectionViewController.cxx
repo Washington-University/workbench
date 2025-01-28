@@ -115,7 +115,7 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(m_displaySampleNamesCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
-    layout->addWidget(createSelectionWidget(), 100);
+    layout->addWidget(createSelectionWidget(objectNamePrefix), 100);
     
     layout->addStretch();
     
@@ -216,11 +216,18 @@ SamplesSelectionViewController::updateSampleSelections()
                                              allowSampleSelectionFlag);
 }
 
+/**
+ * @return New instance of selection widget
+ * @param objectNamePrefix
+ *    Name of object for macros
+ */
 QWidget*
-SamplesSelectionViewController::createSelectionWidget()
+SamplesSelectionViewController::createSelectionWidget(const AString& objectNamePrefix)
 {
     m_selectionViewController = new DisplayGroupAndTabItemViewController(DataFileTypeEnum::SAMPLES,
-                                                                         m_browserWindowIndex);
+                                                                         m_browserWindowIndex,
+                                                                         (objectNamePrefix + ":SampleSelection"),
+                                                                         "Samples Selection");
     return m_selectionViewController;
 }
 

@@ -29,8 +29,11 @@
 #include "DisplayGroupEnum.h"
 
 class QAction;
+class QLineEdit;
 class QTreeWidget;
 class QTreeWidgetItem;
+class QToolButton;
+
 namespace caret {
 
     class DisplayGroupAndTabItemInterface;
@@ -43,6 +46,8 @@ namespace caret {
     public:
         DisplayGroupAndTabItemViewController(const DataFileTypeEnum::Enum dataFileType,
                                              const int32_t browserWindowIndex,
+                                             const QString& objectNameForMacros,
+                                             const QString& descriptiveNameForMacros,
                                              QWidget* parent = 0);
         
         virtual ~DisplayGroupAndTabItemViewController();
@@ -70,12 +75,31 @@ namespace caret {
         
         void turnOffSelectedItemsTriggered();
         
+        
+        void collapseAllActionTriggered();
+        
+        void expandAllActionTriggered();
+        
+        void allOnActionTriggered();
+        
+        void allOffActionTriggered();
+        
+        void infoActionTriggered();
+        
+        void findActionTriggered();
+        
+        void nextActionTriggered();
+        
+        void findTextLineEditTextChanged(const QString& text);
+        
+
     private:
         DisplayGroupAndTabItemViewController(const DisplayGroupAndTabItemViewController&);
 
         DisplayGroupAndTabItemViewController& operator=(const DisplayGroupAndTabItemViewController&);
         
-        DisplayGroupAndTabItemInterface *m_displayGroupAndTabItem;
+        QWidget* createButtonsWidget(const QString& objectNameForMacros,
+                                     const QString& descriptiveNameForMacros);
         
         void getDisplayGroupAndTabIndex(DisplayGroupEnum::Enum& displayGroupOut,
                                         int32_t& tabIndexOut) const;
@@ -96,15 +120,36 @@ namespace caret {
         
         void setCheckedStatusOfSelectedItems(const bool checkedFlag);
         
+        void scrollTreeViewToFindItem();
+        
         const DataFileTypeEnum::Enum m_dataFileType;
         
         const int32_t m_browserWindowIndex;
         
         QTreeWidget* m_treeWidget;
+                
+        QAction* m_collapseAllAction;
         
-        QAction* m_turnOnSelectedItemsAction;
+        QAction* m_expandAllAction;
         
-        QAction* m_turnOffSelectedItemsAction;
+        QAction* m_allOnAction;
+        
+        QAction* m_allOffAction;
+        
+        QToolButton* m_infoToolButton;
+        
+        QAction* m_infoAction;
+        
+        QAction* m_findAction;
+        
+        QAction* m_nextAction;
+        
+        QLineEdit* m_findTextLineEdit;
+        
+        QList<QTreeWidgetItem*> m_findItems;
+        
+        int32_t m_findItemsCurrentIndex = 0;
+
         
         static std::set<DisplayGroupAndTabItemViewController*> s_allViewControllers;
         

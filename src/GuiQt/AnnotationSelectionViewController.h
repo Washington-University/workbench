@@ -82,7 +82,7 @@ namespace caret {
 
         AnnotationSelectionViewController& operator=(const AnnotationSelectionViewController&);
         
-        QWidget* createSelectionWidget();
+        QWidget* createSelectionWidget(const AString& objectNamePrefix);
         
         void updateAnnotationSelections();
         

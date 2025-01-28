@@ -82,7 +82,7 @@ namespace caret {
 
         SamplesSelectionViewController& operator=(const SamplesSelectionViewController&);
         
-        QWidget* createSelectionWidget();
+        QWidget* createSelectionWidget(const AString& objectNamePrefix);
         
         void updateSampleSelections();
         

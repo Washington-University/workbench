@@ -130,7 +130,7 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(m_displayWindowAnnotationInSingleTabViewsCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
-    layout->addWidget(createSelectionWidget(), 100);
+    layout->addWidget(createSelectionWidget(objectNamePrefix), 100);
     
     layout->addStretch();
     
@@ -236,11 +236,18 @@ AnnotationSelectionViewController::updateAnnotationSelections()
                                              allowAnnotationSelectionFlag);
 }
 
+/**
+ * @return New instance of selection widget
+ * @param objectNamePrefix
+ *    Object name prefix for macros
+ */
 QWidget*
-AnnotationSelectionViewController::createSelectionWidget()
+AnnotationSelectionViewController::createSelectionWidget(const AString& objectNamePrefix)
 {
     m_selectionViewController = new DisplayGroupAndTabItemViewController(DataFileTypeEnum::ANNOTATION,
-                                                                         m_browserWindowIndex);
+                                                                         m_browserWindowIndex,
+                                                                         AString(objectNamePrefix + ":Selection:"),
+                                                                         "Annotation Selection");
     return m_selectionViewController;
 }
 
