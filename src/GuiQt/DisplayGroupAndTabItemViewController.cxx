@@ -145,7 +145,7 @@ DisplayGroupAndTabItemViewController::createButtonsWidget(const QString& objectN
                                           "Expand all in " + descriptiveNameForMacros);
     
     m_allOnAction = new QAction("On");
-    m_allOnAction->setToolTip("Turn all items on");
+    m_allOnAction->setToolTip("Turn all SELECTED items on");
     m_allOnAction->setObjectName(objectNameForMacros + ":AllOn");
     QObject::connect(m_allOnAction, &QAction::triggered,
                      this, &DisplayGroupAndTabItemViewController::allOnActionTriggered);
@@ -156,7 +156,7 @@ DisplayGroupAndTabItemViewController::createButtonsWidget(const QString& objectN
     
     m_allOffAction = new QAction("Off");
     m_allOffAction->setObjectName(objectNameForMacros + ":AllOff");
-    m_allOffAction->setToolTip("Turn all items off");
+    m_allOffAction->setToolTip("Turn all SELECTED items off");
     QObject::connect(m_allOffAction, &QAction::triggered,
                      this, &DisplayGroupAndTabItemViewController::allOffActionTriggered);
     QToolButton* allOffToolButton(new QToolButton());
@@ -710,9 +710,7 @@ void
 DisplayGroupAndTabItemViewController::allOnActionTriggered()
 {
     if (m_treeWidget != NULL) {
-        m_treeWidget->selectAll();
         setCheckedStatusOfSelectedItems(true);
-        m_treeWidget->clearSelection();
     }
 }
 
@@ -723,9 +721,7 @@ void
 DisplayGroupAndTabItemViewController::allOffActionTriggered()
 {
     if (m_treeWidget != NULL) {
-        m_treeWidget->selectAll();
         setCheckedStatusOfSelectedItems(false);
-        m_treeWidget->clearSelection();
     }
 }
 
