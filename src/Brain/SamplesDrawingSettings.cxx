@@ -70,6 +70,7 @@ m_parentBrowserTabContent(parentBrowserTabContent)
                           &m_lowerSliceOffset);
     m_sceneAssistant->add("m_upperSliceOffset",
                           &m_upperSliceOffset);
+    /* linked identifier not saved to scene */
 }
 
 /**
@@ -110,6 +111,7 @@ SamplesDrawingSettings::copyHelperSamplesDrawingSettings(const SamplesDrawingSet
     m_lowerSliceOffset      = obj.m_lowerSliceOffset;
     m_upperSliceOffset      = obj.m_upperSliceOffset;
     m_polyhedronDrawingType = obj.m_polyhedronDrawingType;
+    m_linkedPolyhedronIdentifier = obj.m_linkedPolyhedronIdentifier;
 }
 
 /**
@@ -150,6 +152,28 @@ void
 SamplesDrawingSettings::setPolyhedronDrawingType(const AnnotationPolyhedronTypeEnum::Enum polyhedronDrawingType)
 {
     m_polyhedronDrawingType = polyhedronDrawingType;
+}
+
+/**
+ * @return The linked polyhedron identifier
+ * A desired sample is linked to an actual sample and vice versa
+ */
+AString
+SamplesDrawingSettings::getLinkedPolyhedronIdentifier() const
+{
+    return m_linkedPolyhedronIdentifier;
+}
+
+/**
+ * Set the linked polyhedron identifier
+ * A desired sample is linked to an actual sample and vice versa
+ * @param linkedPolyhedonIdentifier
+ *    The identifier
+ */
+void
+SamplesDrawingSettings::setLinkedPolyhedronIdentifier(const AString& linkedPolyhedronIdentifier)
+{
+    m_linkedPolyhedronIdentifier = linkedPolyhedronIdentifier;
 }
 
 /**
@@ -307,7 +331,7 @@ SamplesDrawingSettings::setLowSliceIndex(const int32_t lowSliceIndex)
 {
     m_lowSliceIndex = lowSliceIndex;
     if (m_lowSliceIndex >= m_highSliceIndex) {
-        m_highSliceIndex = m_lowSliceIndex;// + 1;
+        m_highSliceIndex = m_lowSliceIndex;
     }
 }
 
@@ -321,7 +345,7 @@ SamplesDrawingSettings::setHighSliceIndex(const int32_t highSliceIndex)
 {
     m_highSliceIndex = highSliceIndex;
     if (m_highSliceIndex <= m_lowSliceIndex) {
-        m_lowSliceIndex = m_highSliceIndex;// - 1;
+        m_lowSliceIndex = m_highSliceIndex;
     }
 }
 

@@ -27,6 +27,7 @@
 
 #include <QWidget>
 
+#include "AnnotationPolyhedronTypeEnum.h"
 #include "EventListenerInterface.h"
 #include "UserInputModeEnum.h"
 
@@ -72,6 +73,8 @@ namespace caret {
         
         void saveFileActionTriggered();
         
+        void newActualSampleActionTriggered();
+        
         void newDesiredSampleActionTriggered();
         
         void samplesDrawingModeEnumComboBoxItemActivated();
@@ -85,8 +88,15 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        AString getNewSampleToolTip(const AnnotationPolyhedronTypeEnum::Enum polyhedronType);
+        
+        void createNewSample(const AnnotationPolyhedronTypeEnum::Enum polyhedronType,
+                             AnnotationPolyhedron* linkedPolyhedron);
+        
         std::vector<AnnotationPolyhedron*> getAllPolyhedrons();
 
+        std::vector<AnnotationPolyhedron*> getSelectedDesiredSamples();
+        
         std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox = NULL;
@@ -97,7 +107,11 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QAction* m_newSampleAction = NULL;
+        QToolButton* m_newActualSampleToolButton = NULL;
+        
+        QAction* m_newActualSampleAction = NULL;
+        
+        QAction* m_newDesiredSampleAction = NULL;
         
         EnumComboBoxTemplate* m_samplesDrawingModeEnumComboBox = NULL;
         

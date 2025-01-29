@@ -109,6 +109,8 @@ namespace caret {
         
         static const QString ATTRIBUTE_PLANE_TWO_NAME_XYZ;
         
+        static const QString ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER;
+        
         static const QString ATTRIBUTE_POLYHEDRON_TYPE;
         
         static const QString ATTRIBUTE_ROTATION_ANGLE;
@@ -263,9 +265,11 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_PLANE_TWO_NAME_XYZ = "planeTwoNameXYZ";
     
-    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER = "linkedIdentifier";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_POLYHEDRON_TYPE = "polyhedronType";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_ROTATION_ANGLE = "rotationAngle";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_SPACER_TAB_INDEX = "spacerTabIndex";
     

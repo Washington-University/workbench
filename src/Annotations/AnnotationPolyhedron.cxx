@@ -23,6 +23,8 @@
 #include "AnnotationPolyhedron.h"
 #undef __ANNOTATION_POLYHEDRON_DECLARE__
 
+#include <QDateTime>
+
 #include <algorithm>
 #include <cmath>
 
@@ -115,6 +117,7 @@ AnnotationPolyhedron::copyHelperAnnotationPolyhedron(const AnnotationPolyhedron&
     m_planeTwoNameStereotaxicXYZ = obj.m_planeTwoNameStereotaxicXYZ;
     *m_fontAttributes = *obj.m_fontAttributes;
     m_polyhedronType  = obj.m_polyhedronType;
+    m_linkedPolyhedronIdentifier = obj.m_linkedPolyhedronIdentifier;
 }
 
 /**
@@ -134,6 +137,7 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     m_sampleMetaData.reset(new AnnotationSampleMetaData(getMetaData()));
     
     m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
+    m_linkedPolyhedronIdentifier.clear();
 }
 
 /**
@@ -152,6 +156,28 @@ const AnnotationPolyhedron*
 AnnotationPolyhedron::castToPolyhedron() const
 {
     return this;
+}
+
+/**
+ * @return The linked polyhedron identifier
+ * A desired sample is linked to an actual sample and vice versa
+ */
+AString
+AnnotationPolyhedron::getLinkedPolyhedronIdentifier() const
+{
+    return m_linkedPolyhedronIdentifier;
+}
+
+/**
+ * Set the linked polyhedron identifier
+ * A desired sample is linked to an actual sample and vice versa
+ * @param linkedPolyhedonIdentifier
+ *    The identifier
+ */
+void
+AnnotationPolyhedron::setLinkedPolyhedronIdentifier(const AString& linkedPolyhedronIdentifier)
+{
+    m_linkedPolyhedronIdentifier = linkedPolyhedronIdentifier;
 }
 
 /**
@@ -190,6 +216,23 @@ void
 AnnotationPolyhedron::setPolyhedronType(const AnnotationPolyhedronTypeEnum::Enum polyhedronType)
 {
     m_polyhedronType = polyhedronType;
+    
+    switch (m_polyhedronType) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            /*
+             * Set linked identifier for DESIRED SAMPLE to date/time
+             */
+            if (m_linkedPolyhedronIdentifier.isEmpty()) {
+                const QDateTime dt(QDateTime::currentDateTime());
+                const AString dtString(dt.toString(Qt::ISODate));
+                m_linkedPolyhedronIdentifier = dtString;
+            }
+            break;
+    }
 }
 
 /**

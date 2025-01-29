@@ -92,6 +92,7 @@
 #include "MediaOverlaySet.h"
 #include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
+#include "SamplesDrawingSettings.h"
 #include "SelectionItemAnnotation.h"
 #include "SelectionManager.h"
 #include "SelectionItemSurfaceNode.h"

@@ -34,8 +34,7 @@ namespace caret {
     class AnnotationSampleMetaData;
     class Plane;
     
-    class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape,
-           public AnnotationFontAttributesInterface {
+    class AnnotationPolyhedron : public AnnotationMultiPairedCoordinateShape, public AnnotationFontAttributesInterface {
         
     public:
         class Edge {
@@ -72,6 +71,10 @@ namespace caret {
         
         virtual const AnnotationPolyhedron* castToPolyhedron() const override;
         
+        AString getLinkedPolyhedronIdentifier() const;
+               
+        void setLinkedPolyhedronIdentifier(const AString& linkedPolyhedronIdentifier);
+               
         AnnotationSampleMetaData* getSampleMetaData();
                
         const AnnotationSampleMetaData* getSampleMetaData() const;
@@ -216,6 +219,11 @@ namespace caret {
         std::unique_ptr<AnnotationSampleMetaData> m_sampleMetaData;
                
         AnnotationPolyhedronTypeEnum::Enum m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
+        
+        /**
+         * A desired sample is linked to an actual sample and vice versa
+         */
+        AString m_linkedPolyhedronIdentifier;
                
         // ADD_NEW_MEMBERS_HERE
 

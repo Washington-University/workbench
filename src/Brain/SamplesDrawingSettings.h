@@ -32,6 +32,7 @@
 
 
 namespace caret {
+    class AnnotationPolyhedron;
     class BrowserTabContent;
     class SceneClassAssistant;
 
@@ -54,6 +55,10 @@ namespace caret {
         AnnotationPolyhedronTypeEnum::Enum getPolyhedronDrawingType() const;
         
         void setPolyhedronDrawingType(const AnnotationPolyhedronTypeEnum::Enum polyhedronDrawingType);
+        
+        AString getLinkedPolyhedronIdentifier() const;
+        
+        void setLinkedPolyhedronIdentifier(const AString& identifier);
         
         std::pair<int32_t, int32_t> getSliceRange() const;
         
@@ -109,6 +114,8 @@ namespace caret {
         const BrowserTabContent* m_parentBrowserTabContent;
         
         SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL_SLICES;
+        
+        AString m_linkedPolyhedronIdentifier;
         
         AnnotationPolyhedronTypeEnum::Enum m_polyhedronDrawingType = AnnotationPolyhedronTypeEnum::INVALID;
         

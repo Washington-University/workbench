@@ -46,6 +46,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ChooseBorderFocusFromFileDialog.h"
 #include "DingOntologyTermsDialog.h"
 #include "DisplayPropertiesSamples.h"
@@ -1149,10 +1150,31 @@ AnnotationSamplesMetaDataDialog::finishCreatingNewSample()
     
     EventBrowserTabGet tabEvent(m_browserTabIndex);
     EventManager::get()->sendEvent(tabEvent.getPointer());
-    const BrowserTabContent* btc(tabEvent.getBrowserTab());
+    BrowserTabContent* btc(tabEvent.getBrowserTab());
     if (btc != NULL) {
-        const SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
+        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
         m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
+
+        switch (m_polyhedron->getPolyhedronType()) {
+            case AnnotationPolyhedronTypeEnum::INVALID:
+                break;
+            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            {
+                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
+                if (identifer.isEmpty()) {
+                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
+                }
+                else {
+                    m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
+                }
+                
+                /* Clear identifier to prevent it from being used again */
+                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
+            }
+                break;
+            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                break;
+        }
     }
     
     /*

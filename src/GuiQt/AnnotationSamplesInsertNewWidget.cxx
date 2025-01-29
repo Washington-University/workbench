@@ -46,6 +46,7 @@
 #include "DisplayPropertiesSamples.h"
 #include "DrawingViewportContent.h"
 #include "EnumComboBoxTemplate.h"
+#include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
@@ -58,6 +59,7 @@
 #include "SamplesDrawingSettings.h"
 #include "SamplesFile.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -87,25 +89,6 @@ m_userInputMode(userInputMode),
 m_browserWindowIndex(browserWindowIndex)
 {
     CaretAssert(userInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING);
-    
-    const AString sampleToolTipText("<html>"
-                                    "Click this button to initiate the drawing of a sample polyhedron.<br>"
-                                    "Use the <b>Slice</b> controls to exclude slices from drawing (a large 'X' "
-                                    "will appear over the excluded slices).  <br><br>"
-                                    "To draw a sample polyhedron:"
-                                    "<ul>"
-                                    "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"
-                                    "<li> <i>Drag</i> (move with left button down) the mouse to create curved lines "
-                                    "<li> Note that one can intermix clicks and drags while drawing"
-                                    "<li> To remove the most recently entered coordinate, click the <b>X</b> "
-                                    "button in the <b>Drawing</b> section of the Toolbar"
-                                    "<li> When finished, <i>click</i> the <b>Finish</b> button in the <b>Drawing</b> "
-                                    "section of the Toolbar OR <i>shift-click</i> the mouse to conclude drawing of "
-                                    "the sample polyhedron"
-                                    "<li> To cancel drawing of the sample polyhedron, <i>click</i> the <b>Cancel</b> button "
-                                    "in the <b>Drawing</b> section of the Toolbar"
-                                    "</ul>"
-                                    "</html>");
     
     QLabel* fileLabel(new QLabel("File"));
     
@@ -140,14 +123,31 @@ m_browserWindowIndex(browserWindowIndex)
     saveFileToolButton->setDefaultAction(m_saveFileAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(saveFileToolButton);
 
-    m_newSampleAction = new QAction();
-    m_newSampleAction->setText("Insert New Sample");
-    m_newSampleAction->setToolTip(sampleToolTipText);
-    QObject::connect(m_newSampleAction, &QAction::triggered,
+    QLabel* newLabel(new QLabel("New:"));
+    
+    m_newDesiredSampleAction = new QAction();
+    m_newDesiredSampleAction->setText("Desired");
+    m_newDesiredSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE));
+    QObject::connect(m_newDesiredSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered);
-    QToolButton* newSampleToolButton(new QToolButton());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newSampleToolButton);
-    newSampleToolButton->setDefaultAction(m_newSampleAction);
+    QToolButton* newDesiredSampleToolButton(new QToolButton());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(newDesiredSampleToolButton);
+    newDesiredSampleToolButton->setDefaultAction(m_newDesiredSampleAction);
+    
+    m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
+    m_samplesDrawingModeEnumComboBox->setup<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>();
+    QObject::connect(m_samplesDrawingModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated);
+    
+    m_newActualSampleAction = new QAction();
+    m_newActualSampleAction->setText("Actual");
+    m_newActualSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE));
+    QObject::connect(m_newActualSampleAction, &QAction::triggered,
+                     this, &AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered);
+    m_newActualSampleToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newActualSampleToolButton);
+    m_newActualSampleToolButton->setDefaultAction(m_newActualSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
@@ -191,7 +191,9 @@ m_browserWindowIndex(browserWindowIndex)
     QWidget* samplesWidget(new QWidget());
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
-    samplesLayout->addWidget(newSampleToolButton);
+    samplesLayout->addWidget(newLabel);
+    samplesLayout->addWidget(newDesiredSampleToolButton);
+    samplesLayout->addWidget(m_newActualSampleToolButton);
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
     samplesLayout->addSpacing(4);
     samplesLayout->addWidget(m_upperSliceOffsetLabel);
@@ -369,10 +371,95 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
 }
 
 /**
- * Called when new sample action triggered
+ * Called when new actual sample action triggered
+ */
+void
+AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
+{
+    SamplesFile* samplesFile(getSelectedSamplesFile());
+    if (samplesFile == NULL) {
+        WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+                                  "Warning",
+                                  "No Samples File is selcted");
+        return;
+    }
+    
+    const std::vector<AnnotationPolyhedron*> selectedDesiredPolyhedrons(getSelectedDesiredSamples());
+    const int32_t numDesiredPolygonsSelected(selectedDesiredPolyhedrons.size());
+    if (numDesiredPolygonsSelected == 0) {
+        const AString msg("No Desired Sample is selected.  Do you want to create an Actual "
+                          "Sample that is not associated with a Desired Sample.   If not, "
+                          "click No to close this dialog, select a Desired Sample, and "
+                          "click the Actual button again.");
+        const WuQMessageBoxTwo::StandardButton button(WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+                                                                                "Warning",
+                                                                                msg,
+                                                                                ((int)WuQMessageBoxTwo::StandardButton::Yes
+                                                                                 | (int)WuQMessageBoxTwo::StandardButton::No),
+                                                                                WuQMessageBoxTwo::StandardButton::No));
+        if (button == WuQMessageBoxTwo::StandardButton::Yes) {
+            AnnotationPolyhedron* linkedPolyhedron(NULL);
+            createNewSample(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+                            linkedPolyhedron);
+        }
+    }
+    else if (numDesiredPolygonsSelected == 1) {
+        CaretAssertVectorIndex(selectedDesiredPolyhedrons, 0);
+        AnnotationPolyhedron* desiredPolyhedron(selectedDesiredPolyhedrons[0]);
+        CaretAssert(desiredPolyhedron);
+
+        QMenu menu(this);
+        QAction* copyAction = menu.addAction("Create as Copy of Desired Sample Polyhedron");
+        QAction* drawAction = menu.addAction("Draw Actual Sample as New Polyhedron");
+        QAction* actionSelected(menu.exec(m_newActualSampleToolButton->mapToGlobal(QPoint(0, 0))));
+        if (actionSelected == copyAction) {
+            AnnotationPolyhedron* actualPolyhedron(new AnnotationPolyhedron(*desiredPolyhedron));
+            actualPolyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE);
+            actualPolyhedron->setLinkedPolyhedronIdentifier(desiredPolyhedron->getLinkedPolyhedronIdentifier());
+            CaretAssert(samplesFile);
+            EventAnnotationAddToRemoveFromFile addEvent(EventAnnotationAddToRemoveFromFile::MODE_CREATE,
+                                                        samplesFile,
+                                                        actualPolyhedron);
+            EventManager::get()->sendEvent(addEvent.getPointer());
+            updateContent();
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        }
+        else if (actionSelected == drawAction) {
+            createNewSample(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+                            desiredPolyhedron);
+        }
+    }
+    else {
+        const AString msg("There is more than one Desired Sample selected.  There must be exactly one "
+                          "selected Desired Sample when creating an associated Actual Sample or no "
+                          "selected Desired Sample to create an unassociated Actual Sample.");
+        WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+                                  "Warning",
+                                  msg);
+    }
+}
+
+/**
+ * Called when new desired sample action triggered
  */
 void
 AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
+{
+    AnnotationPolyhedron* linkedPolyhedron(NULL);
+    createNewSample(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                    linkedPolyhedron);
+}
+
+/**
+ * Create a new sample of the given polyhedron type
+ * @param polyhedronType
+ *    Type of polyhedron to create
+ * @param linkedPolyhedron
+ *    Polyhedron that is linked to the newly created polyhedron
+ */
+void
+AnnotationSamplesInsertNewWidget::createNewSample(const AnnotationPolyhedronTypeEnum::Enum polyhedronType,
+                                                  AnnotationPolyhedron* linkedPolyhedron)
 {
     SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile == NULL) {
@@ -381,12 +468,20 @@ AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
     }
     
     BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
     if (bbw != NULL) {
         BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+        CaretAssert(tabContent);
         if (tabContent != NULL) {
             SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
-            samplesSettings->setPolyhedronDrawingType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
+            samplesSettings->setPolyhedronDrawingType(polyhedronType);
+            if (linkedPolyhedron != NULL) {
+                samplesSettings->setLinkedPolyhedronIdentifier(linkedPolyhedron->getLinkedPolyhedronIdentifier());
+            }
+            else {
+                samplesSettings->setLinkedPolyhedronIdentifier("");
+            }
         }
     }
     const AnnotationCoordinateSpaceEnum::Enum annSpace(AnnotationCoordinateSpaceEnum::STEREOTAXIC);
@@ -528,6 +623,34 @@ AnnotationSamplesInsertNewWidget::getAllPolyhedrons()
 }
 
 /**
+ * @return All selected desired samples
+ */
+std::vector<AnnotationPolyhedron*>
+AnnotationSamplesInsertNewWidget::getSelectedDesiredSamples()
+{
+    std::vector<AnnotationPolyhedron*> polyhedrons;
+    
+    const AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING));
+    const std::vector<Annotation*> selectedAnnotations(annMan->getAnnotationsSelectedForEditing(m_browserWindowIndex));
+    for (const auto& ann : selectedAnnotations) {
+        AnnotationPolyhedron* ap(ann->castToPolyhedron());
+        if (ap != NULL) {
+            switch (ap->getPolyhedronType()) {
+                case AnnotationPolyhedronTypeEnum::INVALID:
+                    break;
+                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                    break;
+                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                    polyhedrons.push_back(ap);
+                    break;
+            }
+        }
+    }
+    
+    return polyhedrons;
+}
+
+/**
  * Called when select tool button action is triggered
  */
 void
@@ -569,3 +692,34 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
         }
     }
 }
+
+/**
+ * @return Tooltip for new sample action
+ * @param polyhedronType
+ *    Type of polyhedron to create
+ */
+AString
+AnnotationSamplesInsertNewWidget::getNewSampleToolTip(const AnnotationPolyhedronTypeEnum::Enum polyhedronType)
+{
+    const AString typeString(AnnotationPolyhedronTypeEnum::toGuiName(polyhedronType));
+    const AString sampleToolTipText("<html>"
+                                    "Click this button to initiate the drawing of a " + typeString + " polyhedron.<br>"
+                                    "Use the <b>Slice</b> controls to exclude slices from drawing (a large 'X' "
+                                    "will appear over the excluded slices).  <br><br>"
+                                    "To draw a sample polyhedron:"
+                                    "<ul>"
+                                    "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"
+                                    "<li> <i>Drag</i> (move with left button down) the mouse to create curved lines "
+                                    "<li> Note that one can intermix clicks and drags while drawing"
+                                    "<li> To remove the most recently entered coordinate, click the <b>X</b> "
+                                    "button in the <b>Drawing</b> section of the Toolbar"
+                                    "<li> When finished, <i>click</i> the <b>Finish</b> button in the <b>Drawing</b> "
+                                    "section of the Toolbar OR <i>shift-click</i> the mouse to conclude drawing of "
+                                    "the sample polyhedron"
+                                    "<li> To cancel drawing of the sample polyhedron, <i>click</i> the <b>Cancel</b> button "
+                                    "in the <b>Drawing</b> section of the Toolbar"
+                                    "</ul>"
+                                    "</html>");
+    return sampleToolTipText;
+}
+

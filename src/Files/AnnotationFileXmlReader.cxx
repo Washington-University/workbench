@@ -1022,6 +1022,9 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                             polyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
                         }
                         
+                        const AString linkedIdString(m_streamHelper->getOptionalAttributeStringValue(polyAtts, ELEMENT_POLYHEDRON_DATA, ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER, ""));
+                        polyhedron->setLinkedPolyhedronIdentifier(linkedIdString);
+
                         m_stream->skipCurrentElement();
                     }
                     else if (elementName == ELEMENT_FONT_ATTRIBUTES) {

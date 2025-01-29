@@ -776,6 +776,8 @@ AnnotationFileXmlWriter::writeMultiPairedCoordinateShapeAnnotation(const Annotat
                                  AString::fromNumbers(polyhedron->getPlaneTwoNameStereotaxicXYZ()));
         m_stream->writeAttribute(ATTRIBUTE_POLYHEDRON_TYPE,
                                  AnnotationPolyhedronTypeEnum::toName(polyhedron->getPolyhedronType()));
+        m_stream->writeAttribute(ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER,
+                                 polyhedron->getLinkedPolyhedronIdentifier());
 
         m_stream->writeEndElement();
 
