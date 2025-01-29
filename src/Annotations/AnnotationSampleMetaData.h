@@ -35,12 +35,6 @@ namespace caret {
     class AnnotationSampleMetaData : public CaretObject {
         
     public:
-        enum class LocationEnum {
-            ACTUAL,
-            DESIRED,
-            UNKNOWN
-        };
-        
         static int32_t getFirstLeftHemisphereAllenSlabNumber();
         
         static int32_t getFirstRightHemisphereAllenSlabNumber();
@@ -196,13 +190,7 @@ namespace caret {
         AString getPrimaryParcellation() const;
         
         void setPrimaryParcellation(const AString& value);
-        
-        static AString getSampleLocationText(AnnotationSampleMetaData::LocationEnum location);
-        
-        LocationEnum getSampleLocation() const;
-        
-        void setSampleLocation(const LocationEnum value);
-        
+                
         AString getSampleName() const;
         
         void setSampleName(const AString& value);
@@ -314,8 +302,6 @@ namespace caret {
         static const AString SAMPLES_DING_FULL_NAME;
         
         static const AString SAMPLES_HEMISPHERE;
-        
-        static const AString SAMPLES_LOCATION;
         
         static const AString SAMPLES_NHASH_SLAB_ID;
         
@@ -431,8 +417,6 @@ namespace caret {
     const AString AnnotationSampleMetaData::SAMPLES_DING_FULL_NAME = "Ding Full Name";
     
     const AString AnnotationSampleMetaData::SAMPLES_HEMISPHERE = "Hemisphere";
-    
-    const AString AnnotationSampleMetaData::SAMPLES_LOCATION = "Location";
     
     const AString AnnotationSampleMetaData::SAMPLES_NHASH_SLAB_ID = "NHash Slab ID";
     

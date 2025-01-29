@@ -752,71 +752,6 @@ AnnotationSampleMetaData::setPrimaryParcellation(const AString& value)
 }
 
 /**
- * @return The text name for the given sample location
- * @param location
- *   The location
- */
-AString
-AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum location)
-{
-    AString text("Invalid");
-    switch (location) {
-        case LocationEnum::ACTUAL:
-            text = "Actual";
-            break;
-        case LocationEnum::DESIRED:
-            text = "Desired";
-            break;
-        case LocationEnum::UNKNOWN:
-            text = "Unknown";
-            break;
-    }
-    return text;
-}
-
-/**
- * @return sample location
- */
-AnnotationSampleMetaData::LocationEnum
-AnnotationSampleMetaData::getSampleLocation() const
-{
-    LocationEnum location(LocationEnum::UNKNOWN);
-    
-    const AString locationText(get(SAMPLES_LOCATION).toLower());
-    if (locationText == "actual") {
-        location = LocationEnum::ACTUAL;
-    }
-    else if (locationText == "desired") {
-        location = LocationEnum::DESIRED;
-    }
-    
-    return location;
-}
-
-/**
- * Set sample location
- * @param value
- *    New value
- */
-void
-AnnotationSampleMetaData::setSampleLocation(const LocationEnum value)
-{
-    AString locationText("");
-    switch (value) {
-        case LocationEnum::ACTUAL:
-            locationText = "Actual";
-            break;
-        case LocationEnum::DESIRED:
-            locationText = "Desired";
-            break;
-        case LocationEnum::UNKNOWN:
-            break;
-    }
-    set(SAMPLES_LOCATION,
-        locationText);
-}
-
-/**
  * @return sample name
  */
 AString
@@ -1264,8 +1199,6 @@ AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<ASt
     namesAndValuesOut.emplace_back(getSlabFaceLabelText(), getSlabFace());
     
     namesAndValuesOut.emplace_back(getSampleTypeLabelText(), getSampleType());
-    
-    namesAndValuesOut.emplace_back(getLocationLabelText(), getSampleLocationText(getSampleLocation()));
     
     namesAndValuesOut.emplace_back(getDesiredSampleEditDateLabelText(), getDesiredSampleEditDate());
     

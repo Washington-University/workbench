@@ -208,10 +208,6 @@ namespace caret {
         
         QComboBox* m_sampleTypeComboBox;
         
-        QRadioButton* m_sampleLocationActualRadioButton;
-        
-        QRadioButton* m_sampleLocationDesiredRadioButton;
-        
         QDateEdit* m_desiredSampleEntryDateEdit;
         
         QDateEdit* m_actualSampleEntryDateEdit;

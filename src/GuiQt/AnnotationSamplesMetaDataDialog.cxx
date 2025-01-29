@@ -501,27 +501,6 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QObject::connect(m_sampleTypeComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setSampleType(text); });
 
-    m_sampleLocationActualRadioButton  = new QRadioButton(AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum::ACTUAL));
-    m_sampleLocationDesiredRadioButton = new QRadioButton(AnnotationSampleMetaData::getSampleLocationText(AnnotationSampleMetaData::LocationEnum::DESIRED));
-    QButtonGroup* sampleLocationButtonGroup(new QButtonGroup(this));
-    sampleLocationButtonGroup->addButton(m_sampleLocationActualRadioButton);
-    sampleLocationButtonGroup->addButton(m_sampleLocationDesiredRadioButton);
-    QObject::connect(sampleLocationButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
-                     [=](QAbstractButton* button) { 
-        if (button == m_sampleLocationActualRadioButton) {
-            m_sampleMetaData->setSampleLocation(AnnotationSampleMetaData::LocationEnum::ACTUAL);
-        }
-        else if (button == m_sampleLocationDesiredRadioButton) {
-            m_sampleMetaData->setSampleLocation(AnnotationSampleMetaData::LocationEnum::DESIRED);
-        }
-    });
-    QWidget* sampleLocationWidget(new QWidget());
-    QHBoxLayout* sampleLocationLayout(new QHBoxLayout(sampleLocationWidget));
-    sampleLocationLayout->setContentsMargins(0, 0, 0, 0);
-    sampleLocationLayout->addWidget(m_sampleLocationActualRadioButton);
-    sampleLocationLayout->addWidget(m_sampleLocationDesiredRadioButton);
-    addWidget("Location", "", gridLayout, sampleLocationWidget);
-
     m_desiredSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getDesiredSampleEditDateLabelText(),
                                                "Format is dd/mm/yyyy",
                                                gridLayout);
@@ -844,16 +823,7 @@ AnnotationSamplesMetaDataDialog::loadMetaDataIntoDialog()
     setComboBoxSelection(m_slabFaceComboBox, m_sampleMetaData->getSlabFace());
     QSignalBlocker sampleTypeBlocker(m_sampleTypeComboBox);
     setComboBoxSelection(m_sampleTypeComboBox, m_sampleMetaData->getSampleType());
-    switch (m_sampleMetaData->getSampleLocation()) {
-        case AnnotationSampleMetaData::LocationEnum::ACTUAL:
-            m_sampleLocationActualRadioButton->setChecked(true);
-            break;
-        case AnnotationSampleMetaData::LocationEnum::DESIRED:
-            m_sampleLocationDesiredRadioButton->setChecked(true);
-            break;
-        case AnnotationSampleMetaData::LocationEnum::UNKNOWN:
-            break;
-    }
+
     QSignalBlocker desiredDateBlocker(m_desiredSampleEntryDateEdit);
     setDateEditSelection(m_desiredSampleEntryDateEdit, m_sampleMetaData->getDesiredSampleEditDate());
     QSignalBlocker actualDateBlocker(m_actualSampleEntryDateEdit);
