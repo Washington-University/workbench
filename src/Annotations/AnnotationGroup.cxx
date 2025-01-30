@@ -95,6 +95,12 @@ SceneableInterface()
         case AnnotationGroupTypeEnum::INVALID:
             CaretAssertMessage(0, "Should never get here");
             break;
+        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            m_groupKey.setSamplesActualUniqueKey(uniqueKey);
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            m_groupKey.setSamplesDesiredUniqueKey(uniqueKey);
+            break;
         case AnnotationGroupTypeEnum::SPACE:
             m_groupKey.setSpaceGroupUniqueKey(uniqueKey);
             break;
@@ -330,6 +336,12 @@ AnnotationGroup::getName() const
             case AnnotationGroupTypeEnum::INVALID:
                 CaretAssertMessage(0, "Should never get here");
                 break;
+            case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                m_name.append("Actual");
+                break;
+            case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                m_name.append("Desired");
+                break;
             case AnnotationGroupTypeEnum::SPACE:
                 m_name.append(spaceName);
                 break;
@@ -392,6 +404,12 @@ AnnotationGroup::getUniqueKey() const
     switch (m_groupKey.getGroupType()) {
         case AnnotationGroupTypeEnum::INVALID:
             CaretAssertMessage(0, "Should never get here");
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            uniqueKey = m_groupKey.getSamplesActualUniqueKey();
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            uniqueKey = m_groupKey.getSamplesDesiredUniqueKey();
             break;
         case AnnotationGroupTypeEnum::SPACE:
             uniqueKey = m_groupKey.getSpaceGroupUniqueKey();

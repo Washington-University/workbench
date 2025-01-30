@@ -247,6 +247,10 @@ namespace caret {
         
         AnnotationGroup* getSpaceAnnotationGroup(const Annotation* annotation);
         
+        AnnotationGroup* createSamplesAnnotationGroup(const AnnotationGroupTypeEnum::Enum groupType);
+        
+        AnnotationGroup* getSamplesAnnotationGroup(const Annotation* annotation);
+        
         void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent);
         
         const AnnotationFileSubType m_fileSubType;

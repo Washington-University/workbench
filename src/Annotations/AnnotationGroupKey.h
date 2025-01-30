@@ -54,6 +54,10 @@ namespace caret {
         
         int32_t getUserGroupUniqueKey() const;
         
+        int32_t getSamplesActualUniqueKey() const;
+        
+        int32_t getSamplesDesiredUniqueKey() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -71,6 +75,10 @@ namespace caret {
         
         void setUserGroupUniqueKey(const int32_t userGroupUniqueKey);
         
+        void setSamplesActualUniqueKey(const int32_t samplesActualUniqueKey);
+        
+        void setSamplesDesiredUniqueKey(const int32_t samplesDesiredUniqueKey);
+        
         AnnotationFile* m_annotationFile;
         
         AnnotationGroupTypeEnum::Enum m_groupType;
@@ -78,6 +86,10 @@ namespace caret {
         int32_t m_spaceGroupUniqueKey;
         
         int32_t m_userGroupUniqueKey;
+        
+        int32_t m_samplesActualGroupUniqueKey;
+        
+        int32_t m_samplesDesiredGroupUniqueKey;
         
         friend class Annotation;
         friend class AnnotationFile;

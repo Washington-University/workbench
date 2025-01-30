@@ -36,12 +36,15 @@ using namespace caret;
  * This class is a member of each annotation and tracks the
  * group to which the annotation belongs.
  *
- * There are two types of annotation groups: 'Space' and 'User'.
+ * There are four types of annotation groups.
  * By default, annotations are assigned to a 'Space' group when
  * added to an annotation file.  In an annotation file, there
  * is one group for each space (stereotaxic, surface, each tab,
  * and each window).  A user may create 'User' groups to group
  * annotation that are in the same space.
+ *
+ * SAMPLES_ACTUAL and SAMPLES_DESIRED are used
+ * by the SamplesFiles to group polyhedron samples.
  *
  * Creating a user group:
  *    - The group type is set to USER.
@@ -67,7 +70,9 @@ AnnotationGroupKey::AnnotationGroupKey()
 m_annotationFile(NULL),
 m_groupType(AnnotationGroupTypeEnum::INVALID),
 m_spaceGroupUniqueKey(-1),
-m_userGroupUniqueKey(-1)
+m_userGroupUniqueKey(-1),
+m_samplesActualGroupUniqueKey(-1),
+m_samplesDesiredGroupUniqueKey(-1)
 {
     reset();
 }
@@ -119,6 +124,8 @@ AnnotationGroupKey::copyHelperAnnotationGroupKey(const AnnotationGroupKey& obj)
     m_groupType           = obj.m_groupType;
     m_spaceGroupUniqueKey = obj.m_spaceGroupUniqueKey;
     m_userGroupUniqueKey  = obj.m_userGroupUniqueKey;
+    m_samplesActualGroupUniqueKey  = obj.m_samplesActualGroupUniqueKey;
+    m_samplesDesiredGroupUniqueKey = obj.m_samplesDesiredGroupUniqueKey;
 }
 
 /**
@@ -131,6 +138,8 @@ AnnotationGroupKey::reset()
     m_groupType           = AnnotationGroupTypeEnum::INVALID;
     m_spaceGroupUniqueKey = -1;
     m_userGroupUniqueKey  = -1;
+    m_samplesActualGroupUniqueKey  = -1;
+    m_samplesDesiredGroupUniqueKey = -1;
 }
 
 
@@ -156,6 +165,16 @@ AnnotationGroupKey::operator==(const AnnotationGroupKey& groupKey) const
             switch (m_groupType) {
                 case AnnotationGroupTypeEnum::INVALID:
                     CaretAssertMessage(0, "Should never get here.");
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                    if (m_samplesActualGroupUniqueKey == groupKey.m_samplesActualGroupUniqueKey) {
+                        return true;
+                    }
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                    if (m_samplesDesiredGroupUniqueKey == groupKey.m_samplesDesiredGroupUniqueKey) {
+                        return true;
+                    }
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     if (m_spaceGroupUniqueKey == groupKey.m_spaceGroupUniqueKey) {
@@ -197,6 +216,12 @@ AnnotationGroupKey::operator<(const AnnotationGroupKey& groupKey) const
                 case AnnotationGroupTypeEnum::INVALID:
                     CaretAssertMessage(0, "Should never get here.");
                     lessThanFlag = false;
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                    lessThanFlag = (m_samplesActualGroupUniqueKey < groupKey.m_samplesActualGroupUniqueKey);
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                    lessThanFlag = (m_samplesDesiredGroupUniqueKey < groupKey.m_samplesDesiredGroupUniqueKey);
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     lessThanFlag = (m_spaceGroupUniqueKey < groupKey.m_spaceGroupUniqueKey);
@@ -293,6 +318,24 @@ AnnotationGroupKey::getUserGroupUniqueKey() const
 }
 
 /**
+ * @return The samples actual group unique key.
+ */
+int32_t
+AnnotationGroupKey::getSamplesActualUniqueKey() const
+{
+    return m_samplesActualGroupUniqueKey;
+}
+
+/**
+ * @return The samples desired group unique key.
+ */
+int32_t
+AnnotationGroupKey::getSamplesDesiredUniqueKey() const
+{
+    return m_samplesDesiredGroupUniqueKey;
+}
+
+/**
  * Set the user group unique key.
  *
  * @param userGroupUniqueKey
@@ -302,6 +345,30 @@ void
 AnnotationGroupKey::setUserGroupUniqueKey(const int32_t userGroupUniqueKey)
 {
     m_userGroupUniqueKey = userGroupUniqueKey;
+}
+
+/**
+ * Set the samles actual group unique key.
+ *
+ * @param samplesActualUniqueKey
+ *     The samples actual group unique key.
+ */
+void
+AnnotationGroupKey::setSamplesActualUniqueKey(const int32_t samplesActualUniqueKey)
+{
+    m_samplesActualGroupUniqueKey = samplesActualUniqueKey;
+}
+
+/**
+ * Set the samples desired group unique key.
+ *
+ * @param samplesDesiredUniqueKey
+ *     The samples desired group unique key.
+ */
+void
+AnnotationGroupKey::setSamplesDesiredUniqueKey(const int32_t samplesDesiredUniqueKey)
+{
+    m_samplesDesiredGroupUniqueKey = samplesDesiredUniqueKey;
 }
 
 /**
@@ -315,6 +382,8 @@ AnnotationGroupKey::toString() const
     return ("AnnotationGroupKey: "
             + AnnotationGroupTypeEnum::toName(m_groupType)
             + " spaceKey=" + AString::number(m_spaceGroupUniqueKey)
-            + " userGroupKey=" + AString::number(m_userGroupUniqueKey));
+            + " userGroupKey=" + AString::number(m_userGroupUniqueKey)
+            + " samplesActualGroupKey=" + AString::number(m_samplesActualGroupUniqueKey)
+            + " samplesDesiredGroupKey=" + AString::number(m_samplesDesiredGroupUniqueKey));
 }
 

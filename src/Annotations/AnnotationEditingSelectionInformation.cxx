@@ -180,6 +180,10 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
                 switch (groupKey.getGroupType()) {
                     case AnnotationGroupTypeEnum::INVALID:
                         break;
+                    case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                        break;
+                    case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                        break;
                     case AnnotationGroupTypeEnum::SPACE:
                         /*
                          * All annotations in a space group, allow creating a user group
@@ -210,6 +214,10 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
             
             switch (groupKey.getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     /*

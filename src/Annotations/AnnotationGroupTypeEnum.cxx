@@ -116,7 +116,15 @@ AnnotationGroupTypeEnum::initialize()
                                     "INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(AnnotationGroupTypeEnum(SPACE, 
+    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_ACTUAL,
+                                               "SAMPLES_ACTUAL",
+                                               "Actual Sample Polyhedrons"));
+    
+    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_DESIRED,
+                                               "SAMPLES_DESIRED",
+                                               "Desired Sample Polyhedrons"));
+    
+    enumData.push_back(AnnotationGroupTypeEnum(SPACE,
                                     "SPACE", 
                                     "Space"));
     

@@ -32,6 +32,7 @@
 #include "AnnotationOval.h"
 #include "AnnotationPercentSizeText.h"
 #include "AnnotationPointSizeText.h"
+#include "AnnotationPolyhedron.h"
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
@@ -264,6 +265,95 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW_CLONE);
     EventManager::get()->addProcessedEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_REOPEN_CLOSED);
+}
+
+/**
+ * Get the samples actual or desired annotation group.  If the group does not exist,
+ * it will be created
+ * @param annotation
+ *    The annotation SHOULD BE POLYHEDRON
+ * @return Group or NULL if annotation is neither actual nor desired polyhedron
+ */
+AnnotationGroup*
+AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
+{
+    AnnotationGroup* group(NULL);
+    
+    const AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+    if (polyhedron != NULL) {
+        switch (polyhedron->getPolyhedronType()) {
+            case AnnotationPolyhedronTypeEnum::INVALID:
+                CaretLogSevere("Requesting samples annotation group for polyhedron that is neither actual nor desired");
+                break;
+            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            {
+                for (auto ag : m_annotationGroups) {
+                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_ACTUAL) {
+                        return ag.get();
+                    }
+                }
+                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_ACTUAL);
+                m_annotationGroups.emplace_back(group);
+            }
+                break;
+            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            {
+                for (auto ag : m_annotationGroups) {
+                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_DESIRED) {
+                        return ag.get();
+                    }
+                }
+                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_DESIRED);
+                m_annotationGroups.emplace_back(group);
+            }
+                break;
+        }
+    }
+    else {
+        CaretLogSevere("Requesting samples annotation group for annotation that is not a polyhedron");
+    }
+    
+    return group;
+}
+
+/**
+ * @return A new Annotation Group for the given samples group type
+ * @param groupType
+ *    The type of the group (must be SAMPLES_ACTUAL or SAMPLES_DESIRED)
+ */
+AnnotationGroup*
+AnnotationFile::createSamplesAnnotationGroup(const AnnotationGroupTypeEnum::Enum groupType)
+{
+    switch (groupType) {
+        case AnnotationGroupTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            break;
+        case AnnotationGroupTypeEnum::SPACE:
+            CaretAssert(0);
+            break;
+        case AnnotationGroupTypeEnum::USER:
+            CaretAssert(0);
+            break;
+    }
+
+    const AnnotationCoordinateSpaceEnum::Enum annotationSpace = AnnotationCoordinateSpaceEnum::STEREOTAXIC;
+    SpacerTabIndex annotationSpacerTabIndex;
+    const int32_t annotationTabOrWindowIndex = -1;
+    AString annotationMediaFileName;
+    HistologySpaceKey histologySpaceKey;
+    AnnotationGroup* group = new AnnotationGroup(this,
+                                                 groupType,
+                                                 generateUniqueKey(),
+                                                 annotationSpace,
+                                                 annotationTabOrWindowIndex,
+                                                 annotationSpacerTabIndex,
+                                                 annotationMediaFileName,
+                                                 histologySpaceKey);
+    return group;
 }
 
 /**
@@ -687,13 +777,24 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation,
             return;
         }
     }
-
+    
     CaretAssert(uniqueKey > 0);
     if (uniqueKey <= 0) {
         CaretLogSevere("invalid key less than zero.");
     }
     
-    AnnotationGroup* group = getSpaceAnnotationGroup(annotation);
+    AnnotationGroup* group(NULL);
+    AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+    if ((polyhedron != NULL)
+        && (getDataFileType() == DataFileTypeEnum::SAMPLES)) {
+        group = getSamplesAnnotationGroup(annotation);
+        if (group == NULL) {
+            group = getSpaceAnnotationGroup(annotation);
+        }
+    }
+    else {
+        group = getSpaceAnnotationGroup(annotation);
+    }
     CaretAssert(group);
     
     annotation->setUniqueKey(uniqueKey);
@@ -721,9 +822,20 @@ AnnotationFile::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& an
         CaretLogSevere("invalid key less than zero.");
     }
     
-    AnnotationGroup* group = getSpaceAnnotationGroup(annotation.data());
+    AnnotationGroup* group(NULL);
+    AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+    if ((polyhedron != NULL)
+        && (getDataFileType() == DataFileTypeEnum::SAMPLES)) {
+        group = getSamplesAnnotationGroup(annotation.get());
+        if (group == NULL) {
+            group = getSpaceAnnotationGroup(annotation.get());
+        }
+    }
+    else {
+        group = getSpaceAnnotationGroup(annotation.get());
+    }
     CaretAssert(group);
-    
+
     annotation->setUniqueKey(uniqueKey);
     
     group->addAnnotationPrivateSharedPointer(annotation);
@@ -751,7 +863,7 @@ AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
 /**
  * Add a group while reading an annotation file.
  *
- * @param groupType
+ * @param groupTypeIn
  *     Type of annotation group.
  * @param coordinateSpace
  *     Coordinate space of the group's annotaitons.
@@ -771,7 +883,7 @@ AnnotationFile::addAnnotationDuringFileVersionOneReading(Annotation* annotation)
  *     If there is an error.
  */
 void
-AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupType,
+AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnum::Enum groupTypeIn,
                                                     const AnnotationCoordinateSpaceEnum::Enum coordinateSpace,
                                                     const int32_t tabOrWindowIndex,
                                                     const SpacerTabIndex& spacerTabIndex,
@@ -780,9 +892,52 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
                                                     const int32_t uniqueKey,
                                                     const std::vector<Annotation*>& annotations)
 {
+    AnnotationGroupTypeEnum::Enum groupType(groupTypeIn);
+    
+    if ((groupType == AnnotationGroupTypeEnum::SPACE)
+        && (coordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC)) {
+        /*
+         * Before sample polyhedrons were split into two types
+         * (Actual and Desired) the polyhedrons were in a stereotaxic
+         * space group.  Detect this and then move them to a desired
+         * sample group.
+         */
+        if ( ! annotations.empty()) {
+            bool allDesiredSamplesFlag(true);
+            for (Annotation* ann : annotations) {
+                bool desiredSampleFlag(false);
+                const AnnotationPolyhedron* polyhedron(ann->castToPolyhedron());
+                if (polyhedron != NULL) {
+                    switch (polyhedron->getPolyhedronType()) {
+                        case AnnotationPolyhedronTypeEnum::INVALID:
+                            break;
+                        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                            break;
+                        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                            desiredSampleFlag = true;
+                            break;
+                    }
+                }
+                
+                if ( ! desiredSampleFlag) {
+                    allDesiredSamplesFlag = false;
+                    break;
+                }
+            }
+            
+            if (allDesiredSamplesFlag) {
+                groupType = AnnotationGroupTypeEnum::SAMPLES_DESIRED;
+            }
+        }
+    }
+    
     switch (groupType) {
         case AnnotationGroupTypeEnum::INVALID:
             throw DataFileException("INVALID group type is not allowed while annotation file.");
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
             break;
         case AnnotationGroupTypeEnum::SPACE:
             break;
@@ -1515,6 +1670,10 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
         switch (group->getGroupType()) {
             case  AnnotationGroupTypeEnum::INVALID:
                 break;
+            case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                break;
+            case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                break;
             case AnnotationGroupTypeEnum::SPACE:
             {
                 std::vector<Annotation*> groupAnnotations;
@@ -2074,6 +2233,12 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
             AnnotationGroup* group = NULL;
             switch (groupToCopy->getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_ACTUAL);
+                    break;
+                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_DESIRED);
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     /*

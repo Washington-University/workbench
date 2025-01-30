@@ -2087,6 +2087,12 @@ Annotation::setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey)
                                "Do not call this method with invalid key.  "
                                "Instead call invalidateAnnotationGroupKey().");
             break;
+        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            CaretAssert(newGroupKeyForAnnotation.getSamplesActualUniqueKey() > 0);
+            break;
+        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            CaretAssert(newGroupKeyForAnnotation.getSamplesDesiredUniqueKey() > 0);
+            break;
         case AnnotationGroupTypeEnum::SPACE:
             CaretAssert(newGroupKeyForAnnotation.getSpaceGroupUniqueKey() > 0);
             
