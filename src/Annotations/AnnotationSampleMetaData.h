@@ -49,6 +49,8 @@ namespace caret {
         
         AnnotationSampleMetaData(GiftiMetaData* metadata);
         
+        void updateMetaData(const GiftiMetaData* metadata) const;
+        
         virtual ~AnnotationSampleMetaData();
         
         bool validateMetaData(AString& errorMessageOut) const;
@@ -273,7 +275,7 @@ namespace caret {
                     const int32_t value);
         
         /** An instance of AnnotationSampleMetaData wraps an instance of GiftiMetaData - DO NOT DELETE */
-        GiftiMetaData* m_metadata;
+        mutable GiftiMetaData* m_metadata;
         
         bool m_metaDataHasBeenUpdatedFlag = false;
         

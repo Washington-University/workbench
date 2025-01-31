@@ -119,6 +119,18 @@ AnnotationSampleMetaData::~AnnotationSampleMetaData()
 }
 
 /**
+ * Update the metadata that this instance wraps
+ * @param metadata
+ *    New metadata that is wrapped
+ */
+void
+AnnotationSampleMetaData::updateMetaData(const GiftiMetaData* metadata) const
+{
+    m_metadata = const_cast<GiftiMetaData*>(metadata);
+    CaretAssert(metadata);
+}
+
+/**
  * @return True if the metadata is valid
  * @param errorMessageOut
  *   Contains error information if validation fails

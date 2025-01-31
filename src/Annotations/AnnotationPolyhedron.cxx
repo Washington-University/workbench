@@ -186,6 +186,7 @@ AnnotationPolyhedron::setLinkedPolyhedronIdentifier(const AString& linkedPolyhed
 AnnotationSampleMetaData*
 AnnotationPolyhedron::getSampleMetaData()
 {
+    m_sampleMetaData->updateMetaData(getMetaData());
     return m_sampleMetaData.get();
 }
 
@@ -195,6 +196,7 @@ AnnotationPolyhedron::getSampleMetaData()
 const AnnotationSampleMetaData*
 AnnotationPolyhedron::getSampleMetaData() const
 {
+    m_sampleMetaData->updateMetaData(getMetaData());
     return m_sampleMetaData.get();
 }
 

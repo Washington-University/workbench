@@ -27,6 +27,7 @@
 
 #include "AnnotationCoordinateSpaceEnum.h"
 #include "AnnotationGroupTypeEnum.h"
+#include "AnnotationPolyhedronTypeEnum.h"
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
@@ -39,6 +40,7 @@ namespace caret {
 
     class Annotation;
     class AnnotationGroup;
+    class AnnotationPolyhedron;
     class DisplayGroupAndTabItemHelper;
     class HistologySpaceKey;
     class SceneClassAssistant;
@@ -250,6 +252,11 @@ namespace caret {
         AnnotationGroup* createSamplesAnnotationGroup(const AnnotationGroupTypeEnum::Enum groupType);
         
         AnnotationGroup* getSamplesAnnotationGroup(const Annotation* annotation);
+        
+        void shareMetaDataWithLinkedSampleAnnotation(AnnotationPolyhedron* polyhedron);
+        
+        AnnotationPolyhedron* getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::Enum polyhedronType,
+                                                        const AString& linkedIdentifier);
         
         void updateSpacerAnnotationsAfterTileTabsModification(const EventTileTabsGridConfigurationModification* modEvent);
         

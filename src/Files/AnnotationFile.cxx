@@ -317,6 +317,97 @@ AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
 }
 
 /**
+ * Share metadata with polyhedron that has same linked identifier as the given polyhedron
+ * @param polyhedron
+ *    The polyhedron
+ */
+void
+AnnotationFile::shareMetaDataWithLinkedSampleAnnotation(AnnotationPolyhedron* polyhedron)
+{
+    switch (polyhedron->getPolyhedronType()) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+        {
+            const AString id(polyhedron->getLinkedPolyhedronIdentifier());
+            if ( ! id.isEmpty()) {
+                AnnotationPolyhedron* linkedPolyhedron(getLinkedSampleAnnotation(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE, id));
+                if (linkedPolyhedron != NULL) {
+                    polyhedron->sharedMetaDataFromOtherAnnotation(linkedPolyhedron);
+                }
+            }
+        }
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            break;
+    }
+}
+
+
+/**
+ * Get the linked sample annotation with the given polyhedron type and the given linked identifier
+ * @param polyhedronType
+ *    The type of poyhedron
+ * @param linkedIdentifier
+ *    The linked identiifer
+ * @param
+ *    Pointer to matching polyhedron or NULL if not found
+ */
+AnnotationPolyhedron*
+AnnotationFile::getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::Enum polyhedronType,
+                                          const AString& linkedIdentifier)
+{
+    AnnotationGroupTypeEnum::Enum groupType(AnnotationGroupTypeEnum::INVALID);
+    switch (polyhedronType) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            CaretLogSevere("Requesting linked samples annotation group for polyhedron that is neither actual nor desired");
+            return NULL;
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            groupType = AnnotationGroupTypeEnum::SAMPLES_ACTUAL;
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            groupType = AnnotationGroupTypeEnum::SAMPLES_DESIRED;
+            break;
+    }
+    
+    AnnotationGroup* annotationGroup(NULL);
+    
+    switch (polyhedronType) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            CaretAssert(0);
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+        {
+            for (auto ag : m_annotationGroups) {
+                if (ag->getGroupType() == groupType) {
+                    annotationGroup = ag.get();
+                    break;
+                }
+            }
+        }
+            break;
+    }
+    
+    if (annotationGroup != NULL) {
+        std::vector<Annotation*> annotations;
+        annotationGroup->getAllAnnotations(annotations);
+        
+        for (Annotation* ann : annotations) {
+            AnnotationPolyhedron* polyhedron(ann->castToPolyhedron());
+            if (polyhedron != NULL) {
+                if (polyhedron->getLinkedPolyhedronIdentifier() == linkedIdentifier) {
+                    return polyhedron;
+                }
+            }
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * @return A new Annotation Group for the given samples group type
  * @param groupType
  *    The type of the group (must be SAMPLES_ACTUAL or SAMPLES_DESIRED)
@@ -791,6 +882,8 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation,
         if (group == NULL) {
             group = getSpaceAnnotationGroup(annotation);
         }
+        
+        shareMetaDataWithLinkedSampleAnnotation(polyhedron);
     }
     else {
         group = getSpaceAnnotationGroup(annotation);
@@ -830,6 +923,7 @@ AnnotationFile::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& an
         if (group == NULL) {
             group = getSpaceAnnotationGroup(annotation.get());
         }
+        shareMetaDataWithLinkedSampleAnnotation(polyhedron);
     }
     else {
         group = getSpaceAnnotationGroup(annotation.get());

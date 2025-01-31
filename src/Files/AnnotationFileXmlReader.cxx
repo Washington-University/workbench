@@ -1024,6 +1024,8 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         
                         const AString linkedIdString(m_streamHelper->getOptionalAttributeStringValue(polyAtts, ELEMENT_POLYHEDRON_DATA, ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER, ""));
                         polyhedron->setLinkedPolyhedronIdentifier(linkedIdString);
+                        
+                        annotationFile->shareMetaDataWithLinkedSampleAnnotation(polyhedron);
 
                         m_stream->skipCurrentElement();
                     }
