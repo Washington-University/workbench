@@ -43,6 +43,7 @@
 #include "EventAnnotationAddToRemoveFromFile.h"
 #include "EventAnnotationGroupGetWithKey.h"
 #include "EventAnnotationGrouping.h"
+#include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
 #include "EventAnnotationTextSubstitutionInvalidate.h"
 #include "EventBrowserTabClose.h"
 #include "EventBrowserTabDelete.h"
@@ -254,6 +255,7 @@ AnnotationFile::initializeAnnotationFile()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_ADD_TO_REMOVE_FROM_FILE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_GROUPING);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_INVALIDATE);
     
     /* Map yoking may require update to substitutions */
@@ -315,34 +317,6 @@ AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
     
     return group;
 }
-
-/**
- * Share metadata with polyhedron that has same linked identifier as the given polyhedron
- * @param polyhedron
- *    The polyhedron
- */
-void
-AnnotationFile::shareMetaDataWithLinkedSampleAnnotation(AnnotationPolyhedron* polyhedron)
-{
-    switch (polyhedron->getPolyhedronType()) {
-        case AnnotationPolyhedronTypeEnum::INVALID:
-            break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-        {
-            const AString id(polyhedron->getLinkedPolyhedronIdentifier());
-            if ( ! id.isEmpty()) {
-                AnnotationPolyhedron* linkedPolyhedron(getLinkedSampleAnnotation(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE, id));
-                if (linkedPolyhedron != NULL) {
-                    polyhedron->sharedMetaDataFromOtherAnnotation(linkedPolyhedron);
-                }
-            }
-        }
-            break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-            break;
-    }
-}
-
 
 /**
  * Get the linked sample annotation with the given polyhedron type and the given linked identifier
@@ -717,6 +691,49 @@ AnnotationFile::receiveEvent(Event* event)
             }
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER) {
+        EventAnnotationPolyhedronGetByLinkedIdentifier* polyEvent(dynamic_cast<EventAnnotationPolyhedronGetByLinkedIdentifier*>(event));
+        CaretAssert(polyEvent);
+        if ((polyEvent->getAnnotationFile() == this)
+            || (polyEvent->getAnnotationFile() == NULL)) {
+            AnnotationGroup* polyGroup(NULL);
+            for (auto& group : m_annotationGroups) {
+                switch (group->getGroupType()) {
+                    case AnnotationGroupTypeEnum::INVALID:
+                        break;
+                    case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE) {
+                            polyGroup = group.get();
+                        }
+                        break;
+                    case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE) {
+                            polyGroup = group.get();
+                        }
+                        break;
+                    case AnnotationGroupTypeEnum::SPACE:
+                        break;
+                    case AnnotationGroupTypeEnum::USER:
+                        break;
+                }
+            }
+            
+            if (polyGroup != NULL) {
+                std::vector<Annotation*> annotations;
+                polyGroup->getAllAnnotations(annotations);
+                for (Annotation* a : annotations) {
+                    AnnotationPolyhedron* poly(a->castToPolyhedron());
+                    if (poly != NULL) {
+                        if (poly->getLinkedPolyhedronIdentifier() == polyEvent->getLinkedIdentifier()) {
+                            polyEvent->setPolyhedron(poly);
+                            polyEvent->setEventProcessed();
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_CLOSE) {
         EventBrowserTabClose* closeEvent = dynamic_cast<EventBrowserTabClose*>(event);
         CaretAssert(closeEvent);
@@ -882,8 +899,6 @@ AnnotationFile::addAnnotationPrivate(Annotation* annotation,
         if (group == NULL) {
             group = getSpaceAnnotationGroup(annotation);
         }
-        
-        shareMetaDataWithLinkedSampleAnnotation(polyhedron);
     }
     else {
         group = getSpaceAnnotationGroup(annotation);
@@ -923,7 +938,6 @@ AnnotationFile::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& an
         if (group == NULL) {
             group = getSpaceAnnotationGroup(annotation.get());
         }
-        shareMetaDataWithLinkedSampleAnnotation(polyhedron);
     }
     else {
         group = getSpaceAnnotationGroup(annotation.get());

@@ -253,8 +253,6 @@ namespace caret {
         
         AnnotationGroup* getSamplesAnnotationGroup(const Annotation* annotation);
         
-        void shareMetaDataWithLinkedSampleAnnotation(AnnotationPolyhedron* polyhedron);
-        
         AnnotationPolyhedron* getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::Enum polyhedronType,
                                                         const AString& linkedIdentifier);
         

@@ -114,6 +114,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH",
                                      "Get slice depth while drawing a new polyhedron"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER,
+                                     "EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER",
+                                     "Get an annotation polyhedron using its linked identifer"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_GET_BOUNDS,
                                      "EVENT_ANNOTATION_TEXT_GET_BOUNDS",
                                      "Get bounds for annotation text"));

@@ -50,6 +50,7 @@
 #include "EventAnnotationCreateNewType.h"
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventAnnotationGetSelectedInsertNewFile.h"
+#include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
 #include "EventDataFileAdd.h"
 #include "EventDrawingViewportContentGet.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -408,6 +409,20 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
         AnnotationPolyhedron* desiredPolyhedron(selectedDesiredPolyhedrons[0]);
         CaretAssert(desiredPolyhedron);
 
+        const AString desiredPolyLinkedIdentifier(desiredPolyhedron->getLinkedPolyhedronIdentifier());
+        EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
+                                                                 AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+                                                                 desiredPolyLinkedIdentifier);
+        EventManager::get()->sendEvent(polyEvent.getPointer());
+        if (polyEvent.getPolyhedron() != NULL) {
+            const AString msg("There is an ACTUAL SAMPLE linked to the selected DESIRED SAMPLE.  "
+                              "Only one ACTUAL SAMPLE may be linked to a DESIRED SAMPLE.  Name of "
+                              "the existing ACTUAL SAMPLE is \""
+                              + polyEvent.getPolyhedron()->getName() + "\"");
+            WuQMessageBoxTwo::critical(this, "ERROR", msg);
+            return;
+        }
+        
         QMenu menu(this);
         QAction* copyAction = menu.addAction("Create as Copy of Desired Sample Polyhedron");
         QAction* drawAction = menu.addAction("Draw Actual Sample as New Polyhedron");
@@ -415,7 +430,7 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
         if (actionSelected == copyAction) {
             AnnotationPolyhedron* actualPolyhedron(new AnnotationPolyhedron(*desiredPolyhedron));
             actualPolyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE);
-            actualPolyhedron->setLinkedPolyhedronIdentifier(desiredPolyhedron->getLinkedPolyhedronIdentifier());
+            actualPolyhedron->setLinkedPolyhedronIdentifier(desiredPolyLinkedIdentifier);
             CaretAssert(samplesFile);
             EventAnnotationAddToRemoveFromFile addEvent(EventAnnotationAddToRemoveFromFile::MODE_CREATE,
                                                         samplesFile,

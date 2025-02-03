@@ -62,6 +62,8 @@ public:
         EVENT_ANNOTATION_GROUPING,
         /** Annotation get slice depth while drawing a new polyhedron */
         EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH,
+        /** Get an annotation polyhedron using its linked identifier */
+        EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER,
         /** Get the bounds of annotation text */
         EVENT_ANNOTATION_TEXT_GET_BOUNDS,
         /** Get annotation text substitutions */

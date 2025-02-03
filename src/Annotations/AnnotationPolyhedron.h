@@ -71,6 +71,10 @@ namespace caret {
         
         virtual const AnnotationPolyhedron* castToPolyhedron() const override;
         
+        virtual GiftiMetaData* getMetaData() override;
+        
+        virtual const GiftiMetaData* getMetaData() const override;
+        
         AString getLinkedPolyhedronIdentifier() const;
                
         void setLinkedPolyhedronIdentifier(const AString& linkedPolyhedronIdentifier);

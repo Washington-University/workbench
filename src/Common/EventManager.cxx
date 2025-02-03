@@ -403,6 +403,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_ANNOTATION_GROUP_GET_WITH_KEY:
         case EventTypeEnum::EVENT_ANNOTATION_GROUPING:
         case EventTypeEnum::EVENT_ANNOTATION_NEW_DRAWING_POLYHEDRON_SLICE_DEPTH:
+        case EventTypeEnum::EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_GET_BOUNDS:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET:
         case EventTypeEnum::EVENT_ANNOTATION_TEXT_SUBSTITUTION_GET_ALL_GROUP_IDS:

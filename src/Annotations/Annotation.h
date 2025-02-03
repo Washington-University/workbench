@@ -349,9 +349,9 @@ namespace caret {
         
         void setCustomBackgroundColor(const uint8_t rgba[4]);
         
-        GiftiMetaData* getMetaData();
+        virtual GiftiMetaData* getMetaData();
         
-        const GiftiMetaData* getMetaData() const;
+        virtual const GiftiMetaData* getMetaData() const;
         
         void convertObsoleteLineWidthPixelsToPercentageWidth(const float viewportHeight) const;
         
@@ -522,8 +522,6 @@ namespace caret {
         void clearDrawnInWindowStatusForAllWindows();
         
         virtual void invalidateTextSubstitution();
-        
-        void sharedMetaDataFromOtherAnnotation(Annotation* annotation);
         
     private:
         float getLineWidthPixelsObsolete() const;

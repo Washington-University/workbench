@@ -86,6 +86,7 @@ EventAnnotationAddToRemoveFromFile.h
 EventAnnotationChartLabelGet.h
 EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
+EventAnnotationPolyhedronGetByLinkedIdentifier.h
 EventAnnotationTextGetBounds.h
 EventAnnotationTextSubstitutionGet.h
 EventAnnotationTextSubstitutionGetAllGroupIDs.h
@@ -150,6 +151,7 @@ EventAnnotationAddToRemoveFromFile.cxx
 EventAnnotationChartLabelGet.cxx
 EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
+EventAnnotationPolyhedronGetByLinkedIdentifier.cxx
 EventAnnotationTextGetBounds.cxx
 EventAnnotationTextSubstitutionGet.cxx
 EventAnnotationTextSubstitutionGetAllGroupIDs.cxx

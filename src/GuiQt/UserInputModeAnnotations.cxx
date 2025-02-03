@@ -5231,6 +5231,19 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
          */
         CaretAssert(m_annotation);
         Annotation* clonedAnnotation(m_annotation->clone());
+        
+        AnnotationPolyhedron* polyhedron(clonedAnnotation->castToPolyhedron());
+        CaretAssert(polyhedron);
+        switch (polyhedron->getPolyhedronType()) {
+            case AnnotationPolyhedronTypeEnum::INVALID:
+                break;
+            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                std::cout << "Polyhedron link: " << polyhedron->getLinkedPolyhedronIdentifier() << std::endl;
+                break;
+            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                break;
+        }
+        
         AnnotationSamplesMetaDataDialog dialog(m_userInputMode,
                                              m_browserWindowIndex,
                                              m_browserTabIndex,

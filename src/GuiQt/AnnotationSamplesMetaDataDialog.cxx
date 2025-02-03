@@ -127,10 +127,49 @@ m_volumeSliceThickness(volumeSliceThickness)
 {
     CaretAssert(m_polyhedron);
 
-    if (s_previousCreateSampleMetaData) {
-        AnnotationSampleMetaData* polyMetaData(m_polyhedron->getSampleMetaData());
-        CaretAssert(polyMetaData);
-        polyMetaData->copyMetaDataForNewAnnotation(*s_previousCreateSampleMetaData);
+    bool copyMetaDataFlag(true);
+    EventBrowserTabGet tabEvent(m_browserTabIndex);
+    EventManager::get()->sendEvent(tabEvent.getPointer());
+    BrowserTabContent* btc(tabEvent.getBrowserTab());
+    if (btc != NULL) {
+        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
+        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
+        
+        switch (m_polyhedron->getPolyhedronType()) {
+            case AnnotationPolyhedronTypeEnum::INVALID:
+                break;
+            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            {
+                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
+                if (identifer.isEmpty()) {
+                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
+                }
+                else {
+                    m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
+                    
+                    /*
+                     * Do not copy metadata from previously created sample
+                     * since this actual polyhedron shares its metadata
+                     * with a desired polyhedron
+                     */
+                    copyMetaDataFlag = false;
+                }
+                
+                /* Clear identifier to prevent it from being used again */
+                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
+            }
+                break;
+            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                break;
+        }
+    }
+
+    if (copyMetaDataFlag) {
+        if (s_previousCreateSampleMetaData) {
+            AnnotationSampleMetaData* polyMetaData(m_polyhedron->getSampleMetaData());
+            CaretAssert(polyMetaData);
+            polyMetaData->copyMetaDataForNewAnnotation(*s_previousCreateSampleMetaData);
+        }
     }
         
     /*
@@ -1118,34 +1157,34 @@ AnnotationSamplesMetaDataDialog::finishCreatingNewSample()
     CaretAssert(m_polyhedron);
     m_polyhedron->setDrawingNewAnnotationStatus(false);
     
-    EventBrowserTabGet tabEvent(m_browserTabIndex);
-    EventManager::get()->sendEvent(tabEvent.getPointer());
-    BrowserTabContent* btc(tabEvent.getBrowserTab());
-    if (btc != NULL) {
-        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
-        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
-
-        switch (m_polyhedron->getPolyhedronType()) {
-            case AnnotationPolyhedronTypeEnum::INVALID:
-                break;
-            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-            {
-                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
-                if (identifer.isEmpty()) {
-                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
-                }
-                else {
-                    m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
-                }
-                
-                /* Clear identifier to prevent it from being used again */
-                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
-            }
-                break;
-            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                break;
-        }
-    }
+//    EventBrowserTabGet tabEvent(m_browserTabIndex);
+//    EventManager::get()->sendEvent(tabEvent.getPointer());
+//    BrowserTabContent* btc(tabEvent.getBrowserTab());
+//    if (btc != NULL) {
+//        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
+//        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
+//
+//        switch (m_polyhedron->getPolyhedronType()) {
+//            case AnnotationPolyhedronTypeEnum::INVALID:
+//                break;
+//            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+//            {
+//                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
+//                if (identifer.isEmpty()) {
+//                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
+//                }
+//                else {
+//                    m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
+//                }
+//                
+//                /* Clear identifier to prevent it from being used again */
+//                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
+//            }
+//                break;
+//            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+//                break;
+//        }
+//    }
     
     /*
      * Add annotation to its file

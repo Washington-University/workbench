@@ -23,7 +23,7 @@
 #include "AnnotationPolyhedron.h"
 #undef __ANNOTATION_POLYHEDRON_DECLARE__
 
-#include <QDateTime>
+#include <QUuid>
 
 #include <algorithm>
 #include <cmath>
@@ -34,6 +34,8 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
+#include "EventManager.h"
 #include "HtmlStringBuilder.h"
 #include "HtmlTableBuilder.h"
 #include "MathFunctions.h"
@@ -159,6 +161,48 @@ AnnotationPolyhedron::castToPolyhedron() const
 }
 
 /**
+ * @return Pointer to the metadata
+ */
+GiftiMetaData*
+AnnotationPolyhedron::getMetaData()
+{
+    switch (m_polyhedronType) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            if ( ! m_linkedPolyhedronIdentifier.isEmpty()) {
+                EventAnnotationPolyhedronGetByLinkedIdentifier linkEvent(NULL,
+                                                                         AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                                                                         m_linkedPolyhedronIdentifier);
+                EventManager::get()->sendEvent(linkEvent.getPointer());
+                AnnotationPolyhedron* desiredPolyhedron(linkEvent.getPolyhedron());
+                if (desiredPolyhedron != NULL) {
+                    return desiredPolyhedron->getMetaData();
+                }
+                else {
+                    CaretLogSevere("Failed to find matching polyhedron with link identifier="
+                                   + m_linkedPolyhedronIdentifier);
+                }
+            }
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            break;
+    }
+    return Annotation::getMetaData();
+}
+
+/**
+ * @return Pointer to the metadata (const method)
+ */
+const GiftiMetaData*
+AnnotationPolyhedron::getMetaData() const
+{
+    AnnotationPolyhedron* nonConstPolyhedron(const_cast<AnnotationPolyhedron*>(this));
+    CaretAssert(nonConstPolyhedron);
+    return nonConstPolyhedron->getMetaData();
+}
+
+/**
  * @return The linked polyhedron identifier
  * A desired sample is linked to an actual sample and vice versa
  */
@@ -229,9 +273,7 @@ AnnotationPolyhedron::setPolyhedronType(const AnnotationPolyhedronTypeEnum::Enum
              * Set linked identifier for DESIRED SAMPLE to date/time
              */
             if (m_linkedPolyhedronIdentifier.isEmpty()) {
-                const QDateTime dt(QDateTime::currentDateTime());
-                const AString dtString(dt.toString(Qt::ISODate));
-                m_linkedPolyhedronIdentifier = dtString;
+                m_linkedPolyhedronIdentifier = QUuid::createUuid().toString();
             }
             break;
     }
