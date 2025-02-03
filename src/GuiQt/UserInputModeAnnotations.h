@@ -528,6 +528,7 @@ namespace caret {
         /*
          * Some private methods are accessed by this friend class
          */
+        friend class AnnotationDeleteWidget;
         friend class AnnotationPolyTypeDrawEditWidget;
         friend class UserInputModeAnnotationsContextMenu;
         friend class UserInputModeAnnotationsWidget;

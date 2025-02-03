@@ -34,9 +34,11 @@
 #include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "UserInputModeAnnotations.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -157,53 +159,14 @@ AnnotationDeleteWidget::createDeleteToolButton()
 void
 AnnotationDeleteWidget::deleteActionTriggered()
 {
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_browserWindowIndex);
-    std::vector<Annotation*> deleteAnnotations;
-    for (auto a : selectedAnnotations) {
-        if (a->testProperty(Annotation::Property::DELETION)) {
-            switch (a->getType()) {
-                case AnnotationTypeEnum::BOX:
-                    break;
-                case AnnotationTypeEnum::BROWSER_TAB:
-                    CaretAssert(0);
-                    break;
-                case AnnotationTypeEnum::COLOR_BAR:
-                    break;
-                case AnnotationTypeEnum::IMAGE:
-                    break;
-                case AnnotationTypeEnum::LINE:
-                    break;
-                case AnnotationTypeEnum::OVAL:
-                    break;
-                case AnnotationTypeEnum::POLYHEDRON:
-                    break;
-                case AnnotationTypeEnum::POLYGON:
-                    break;
-                case AnnotationTypeEnum::POLYLINE:
-                    break;
-                case AnnotationTypeEnum::SCALE_BAR:
-                    break;
-                case AnnotationTypeEnum::TEXT:
-                    break;
-            }
-            
-            deleteAnnotations.push_back(a);
+    EventGetOrSetUserInputModeProcessor inputProcessorEvent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(inputProcessorEvent.getPointer());
+    UserInputModeAbstract* inputProcessor(inputProcessorEvent.getUserInputProcessor());
+    if (inputProcessor != NULL) {
+        UserInputModeAnnotations* annotationsProcessor(dynamic_cast<UserInputModeAnnotations*>(inputProcessor));
+        if (annotationsProcessor != NULL) {
+            annotationsProcessor->deleteSelectedAnnotations();
         }
-    }
-    
-    if ( ! deleteAnnotations.empty()) {
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeDeleteAnnotations(deleteAnnotations);
-
-        AString errorMessage;
-        if ( ! annotationManager->applyCommand(undoCommand,
-                                               errorMessage)) {
-            WuQMessageBox::errorOk(this,
-                                   errorMessage);
-        }
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     }
 }
 

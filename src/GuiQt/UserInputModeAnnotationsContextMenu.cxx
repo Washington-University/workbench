@@ -636,23 +636,7 @@ UserInputModeAnnotationsContextMenu::cutAnnnotation()
 void
 UserInputModeAnnotationsContextMenu::deleteAnnotations()
 {
-    /*
-     * Delete the annotation that is under the mouse
-     */
-    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
-    std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(m_mouseEvent.getBrowserWindowIndex());
-    if ( ! selectedAnnotations.empty()) {
-        AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
-        undoCommand->setModeDeleteAnnotations(selectedAnnotations);
-        AString errorMessage;
-        if ( ! annotationManager->applyCommand(undoCommand,
-                                               errorMessage)) {
-            WuQMessageBox::errorOk(this,
-                                   errorMessage);
-        }
-        EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
-        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-    }
+    m_userInputModeAnnotations->deleteSelectedAnnotations();
 }
 
 /**
