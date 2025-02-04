@@ -436,6 +436,12 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
                                                         samplesFile,
                                                         actualPolyhedron);
             EventManager::get()->sendEvent(addEvent.getPointer());
+            
+            AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING));
+            std::vector<Annotation*> selectedAnnotations { actualPolyhedron };
+            annMan->setAnnotationsForEditing(m_browserWindowIndex,
+                                             selectedAnnotations);
+            
             updateContent();
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
