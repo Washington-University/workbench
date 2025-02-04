@@ -151,3 +151,47 @@ SamplesFile::generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFil
     return sampleNumberOut;
 }
 
+/**
+ * @return All annotations for drawing (may be override by subclass
+ * to change order of drawing).  This method returns the desired samples
+ * followed by the actual samples so that actual samples are drawn on
+ * top of desired samples.
+ */
+std::vector<Annotation*>
+SamplesFile::getAllAnnotationsForDrawing() const
+{
+    std::vector<Annotation*> actualSamples;
+    std::vector<Annotation*> desiredSamples;
+    std::vector<Annotation*> otherSamples;
+
+    std::vector<Annotation*> allAnnotations;
+    getAllAnnotations(allAnnotations);
+    
+    for (Annotation* ann : allAnnotations) {
+        AnnotationPolyhedron* poly(ann->castToPolyhedron());
+        if (poly != NULL) {
+            switch (poly->getPolyhedronType()) {
+                case AnnotationPolyhedronTypeEnum::INVALID:
+                    otherSamples.push_back(ann);
+                    break;
+                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                    actualSamples.push_back(ann);
+                    break;
+                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                    desiredSamples.push_back(ann);
+                    break;
+            }
+        }
+    }
+
+    std::vector<Annotation*> annotations(otherSamples.begin(),
+                                         otherSamples.end());
+    annotations.insert(annotations.end(),
+                       desiredSamples.begin(),
+                       desiredSamples.end());
+    annotations.insert(annotations.end(),
+                       actualSamples.begin(),
+                       actualSamples.end());
+
+    return annotations;
+}

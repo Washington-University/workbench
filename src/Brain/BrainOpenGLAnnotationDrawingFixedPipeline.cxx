@@ -1151,7 +1151,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
         else {
             CaretAssertVectorIndex(allAnnotationFiles, iFile);
             annotationFile = allAnnotationFiles[iFile];
-            annotationFile->getAllAnnotations(annotationsFromFile);
+            annotationsFromFile = annotationFile->getAllAnnotationsForDrawing();
         }
         
         const int32_t annotationCount = static_cast<int32_t>(annotationsFromFile.size());

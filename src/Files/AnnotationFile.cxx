@@ -1537,6 +1537,18 @@ AnnotationFile::getAllAnnotations(std::vector<Annotation*>& annotationsOut) cons
 }
 
 /**
+ * @return All annotations for drawing (may be override by subclass
+ * to change order of drawing)
+ */
+std::vector<Annotation*>
+AnnotationFile::getAllAnnotationsForDrawing() const
+{
+    std::vector<Annotation*> annotations;
+    getAllAnnotations(annotations);
+    return annotations;
+}
+
+/**
  * Get all annotation groups in this file.
  *
  * @param annotationGroupsOut

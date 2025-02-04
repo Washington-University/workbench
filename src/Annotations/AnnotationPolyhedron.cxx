@@ -1163,6 +1163,10 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
     HtmlStringBuilder html;
     
     html.add(tableBuilder.getAsHtmlTable());
+    
+    html.add("Sample Type: " + AnnotationPolyhedronTypeEnum::toGuiName(getPolyhedronType()));
+    html.addLineBreak();
+    
     html.add(getMetadataInformationHtml());
     
     float endOnePolygonArea(0.0);

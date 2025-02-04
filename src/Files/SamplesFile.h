@@ -45,6 +45,7 @@ namespace caret {
         static AString generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFiles,
                                                       const AString& slabID);
         
+        virtual std::vector<Annotation*> getAllAnnotationsForDrawing() const override;
 
         // ADD_NEW_METHODS_HERE
 

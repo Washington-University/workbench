@@ -114,6 +114,8 @@ namespace caret {
 
         void getAllAnnotations(std::vector<Annotation*>& annotationsOut) const;
         
+        virtual std::vector<Annotation*> getAllAnnotationsForDrawing() const;
+        
         void getAllAnnotationGroups(std::vector<AnnotationGroup*>& annotationGroupsOut) const;
         
         void clearAllAnnotationsDrawnInWindowStatus();
