@@ -50,6 +50,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     protected:
+        virtual void deleteSelectedAnnotations() override;
+        
         virtual void processMouseSelectAnnotation(const MouseEvent& mouseEvent,
                                                   const bool shiftKeyDownFlag,
                                                   const bool singleSelectionModeFlag);

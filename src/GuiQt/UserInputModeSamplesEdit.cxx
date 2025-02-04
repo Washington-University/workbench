@@ -25,6 +25,8 @@
 
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
+#include "AnnotationPolyhedron.h"
+#include "AnnotationRedoUndoCommand.h"
 #include "Brain.h"
 #include "BrowserWindowContent.h"
 #include "BrainBrowserWindow.h"
@@ -35,9 +37,11 @@
 #include "EventBrowserTabSelectInWindow.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
+#include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 
 using namespace caret;
     
@@ -108,4 +112,164 @@ UserInputModeSamplesEdit::processMouseSelectAnnotation(const MouseEvent& mouseEv
     UserInputModeAnnotations::processMouseSelectAnnotation(mouseEvent,
                                                            shiftKeyDownFlag,
                                                            singleSelectionModeFlag);
+}
+
+/**
+ * Delete all selected annotations except color bars which are turned off for display
+ */
+void
+UserInputModeSamplesEdit::deleteSelectedAnnotations()
+{
+    AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
+    if (annotationManager->isAnnotationSelectedForEditingDeletable(getBrowserWindowIndex())) {
+        BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(getBrowserWindowIndex()));
+        CaretAssert(bbw);
+
+        std::vector<Annotation*> selectedAnnotations = annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex());
+        if ( ! selectedAnnotations.empty()) {
+            std::set<AnnotationPolyhedron*> polyhedronsToDelete;
+            for (Annotation* ann : selectedAnnotations) {
+                AnnotationPolyhedron* p(ann->castToPolyhedron());
+                if (p != NULL) {
+                    polyhedronsToDelete.insert(p);
+                }
+            }
+            
+            if ( ! polyhedronsToDelete.empty()) {
+                /*
+                 * If user has an Actual Sample selected but its corresponding
+                 * Desired Sample is NOT selected, this will contain the
+                 * corresponding Desired Samples that are NOT selected
+                 */
+                std::set<AnnotationPolyhedron*> desiredPolyhedronsNotSelected;
+                
+                /*
+                 * If user has a Desired Sample selected but its corresponding
+                 * Actual Sample is NOT selected, this will contain the
+                 * corresponding Actual Samples that are NOT selected
+                 */
+                std::set<AnnotationPolyhedron*> actualPolyhedronsNotSelected;
+                
+                for (AnnotationPolyhedron* poly : polyhedronsToDelete) {
+                    switch (poly->getPolyhedronType()) {
+                        case AnnotationPolyhedronTypeEnum::INVALID:
+                            break;
+                        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                        {
+                            EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
+                                                                                     AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                                                                                     poly->getLinkedPolyhedronIdentifier());
+                            EventManager::get()->sendEvent(polyEvent.getPointer());
+                            AnnotationPolyhedron* desiredPolyedron(polyEvent.getPolyhedron());
+                            if (desiredPolyedron != NULL) {
+                                if (std::find(polyhedronsToDelete.begin(),
+                                              polyhedronsToDelete.end(),
+                                              desiredPolyedron) == polyhedronsToDelete.end()) {
+                                    desiredPolyhedronsNotSelected.insert(desiredPolyedron);
+                                }
+                                else {
+                                    /*
+                                     * If here, the desiredPolyedron is one of
+                                     * the selected annotations for deletion.
+                                     */
+                                }
+                            }
+                        }
+                            break;
+                        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                        {
+                            EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
+                                                                                     AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+                                                                                     poly->getLinkedPolyhedronIdentifier());
+                            EventManager::get()->sendEvent(polyEvent.getPointer());
+                            AnnotationPolyhedron* actualPolyedron(polyEvent.getPolyhedron());
+                            if (actualPolyedron != NULL) {
+                                if (std::find(polyhedronsToDelete.begin(),
+                                              polyhedronsToDelete.end(),
+                                              actualPolyedron) == polyhedronsToDelete.end()) {
+                                    actualPolyhedronsNotSelected.insert(actualPolyedron);
+                                }
+                                else {
+                                    /*
+                                     * If here, the actualPolyhedron is one of
+                                     * the selected annotations for deletion.
+                                     */
+                                }
+                            }
+                        }
+                            break;
+                    }
+                }
+                
+                AString msg;
+                if ( ! actualPolyhedronsNotSelected.empty()) {
+                    msg.appendWithNewLine("Actual sample(s) corresponding to the selected desired sample(s) will also be deleted.");
+                }
+                
+                if ( ! desiredPolyhedronsNotSelected.empty()) {
+                    msg.appendWithNewLine("Do you also want to delete the desired sample(s) corresponding to the "
+                                          "selected actual sample(s)?");
+                    
+                }
+                
+                if ( ! desiredPolyhedronsNotSelected.empty()) {
+                    WuQMessageBoxTwo::StandardButton button
+                    = WuQMessageBoxTwo::warning(bbw, 
+                                                "Warning",
+                                                msg,
+                                                WuQMessageBoxTwo::createButtonMask(WuQMessageBoxTwo::StandardButton::Yes,
+                                                                                   WuQMessageBoxTwo::StandardButton::No,
+                                                                                   WuQMessageBoxTwo::StandardButton::Cancel),
+                                                WuQMessageBoxTwo::StandardButton::Cancel);
+                    if (button == WuQMessageBoxTwo::StandardButton::Yes) {
+                        polyhedronsToDelete.insert(desiredPolyhedronsNotSelected.begin(),
+                                                   desiredPolyhedronsNotSelected.end());
+                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
+                                                   actualPolyhedronsNotSelected.end());
+                    }
+                    else if (button == WuQMessageBoxTwo::StandardButton::No) {
+                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
+                                                   actualPolyhedronsNotSelected.end());
+                    }
+                    else {
+                        polyhedronsToDelete.clear();
+                    }
+                }
+                else if ( ! actualPolyhedronsNotSelected.empty()) {
+                    WuQMessageBoxTwo::StandardButton button
+                     = WuQMessageBoxTwo::warning(bbw,
+                                                 "Warning",
+                                                 msg,
+                                                 WuQMessageBoxTwo::createButtonMask(WuQMessageBoxTwo::StandardButton::Ok,
+                                                                                    WuQMessageBoxTwo::StandardButton::Cancel),
+                                                 WuQMessageBoxTwo::StandardButton::Cancel);
+                    if (button == WuQMessageBoxTwo::StandardButton::Ok) {
+                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
+                                                   actualPolyhedronsNotSelected.end());
+                    }
+                    else {
+                        polyhedronsToDelete.clear();
+                    }
+                }
+                else {
+                    /* Nothing, all corresponding polygons are selected */
+                }
+            }
+            
+            if ( ! polyhedronsToDelete.empty()) {
+                std::vector<Annotation*> annotations(polyhedronsToDelete.begin(),
+                                                     polyhedronsToDelete.end());
+                    AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                    undoCommand->setModeDeleteAnnotations(annotations);
+                    AString errorMessage;
+                    if ( !  annotationManager->applyCommand(undoCommand,
+                                                            errorMessage)) {
+                        WuQMessageBox::errorOk(bbw,
+                                               errorMessage);
+                    }
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            }
+        }
+    }
 }

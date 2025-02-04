@@ -184,6 +184,8 @@ namespace caret {
         
         void processSelectAllAnnotations();
         
+        virtual void deleteSelectedAnnotations();
+        
     private:
         /**
          * Type of poly-type annotation for drawing / editing
@@ -425,8 +427,6 @@ namespace caret {
         Annotation* getSingleSelectedAnnotation() const;
         
         void cutAnnotation();
-        
-        virtual void deleteSelectedAnnotations();
         
         void resetAnnotationUnderMouse();
         
