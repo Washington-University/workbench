@@ -1022,8 +1022,16 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                             polyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
                         }
                         
+                        /*
+                         * Older files before actual/desired type was added also do not have
+                         * a linked identifier.  Only set the linked identifier if it is valid.
+                         * Note: calling setPolyhedronType() will initialize the linked
+                         * identifier so we don't want overwrite it with an empty identifier.
+                         */
                         const AString linkedIdString(m_streamHelper->getOptionalAttributeStringValue(polyAtts, ELEMENT_POLYHEDRON_DATA, ATTRIBUTE_POLYHEDRON_LINKED_IDENTIFIER, ""));
-                        polyhedron->setLinkedPolyhedronIdentifier(linkedIdString);
+                        if ( ! linkedIdString.isEmpty()) {
+                            polyhedron->setLinkedPolyhedronIdentifier(linkedIdString);
+                        }
                         
                         m_stream->skipCurrentElement();
                     }
