@@ -57,6 +57,11 @@ namespace caret {
             No       = 16
         };
         
+        static int32_t createButtonMask(const StandardButton button1,
+                                        const StandardButton button2 = StandardButton::NoButton,
+                                        const StandardButton button3 = StandardButton::NoButton,
+                                        const StandardButton button4 = StandardButton::NoButton);
+
         static StandardButton critical(QWidget *parent,
                                        const QString &title,
                                        const QString &text,

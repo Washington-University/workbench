@@ -44,6 +44,31 @@ using namespace caret;
  */
 
 /**
+ * @return A button mask for use with the dialog methods
+ * @param button1
+ *    First standard button for dialog
+ * @param button2
+ *    Optional second standard button for dialog
+ * @param button3
+ *    Optional third standard button for dialog
+ * @param button4
+ *    Optional four standard button for dialog
+ */
+int32_t
+WuQMessageBoxTwo::createButtonMask(const StandardButton button1,
+                                   const StandardButton button2,
+                                   const StandardButton button3,
+                                   const StandardButton button4)
+{
+    const int32_t mask(static_cast<int32_t>(button1)
+                       | static_cast<int32_t>(button2)
+                       | static_cast<int32_t>(button3)
+                       | static_cast<int32_t>(button4));
+    return mask;
+}
+
+
+/**
  * Displays a critical message bot with the givent text and title.
  * @param parent
  *    Parent widget of dialog
