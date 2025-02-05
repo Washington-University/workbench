@@ -291,7 +291,7 @@ AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
             {
                 for (auto ag : m_annotationGroups) {
                     if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_ACTUAL) {
-                        return ag.get();
+                        return ag.data();
                     }
                 }
                 group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_ACTUAL);
@@ -302,7 +302,7 @@ AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
             {
                 for (auto ag : m_annotationGroups) {
                     if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_DESIRED) {
-                        return ag.get();
+                        return ag.data();
                     }
                 }
                 group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_DESIRED);
@@ -356,7 +356,7 @@ AnnotationFile::getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::En
         {
             for (auto ag : m_annotationGroups) {
                 if (ag->getGroupType() == groupType) {
-                    annotationGroup = ag.get();
+                    annotationGroup = ag.data();
                     break;
                 }
             }
@@ -703,12 +703,12 @@ AnnotationFile::receiveEvent(Event* event)
                         break;
                     case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
                         if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE) {
-                            polyGroup = group.get();
+                            polyGroup = group.data();
                         }
                         break;
                     case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
                         if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE) {
-                            polyGroup = group.get();
+                            polyGroup = group.data();
                         }
                         break;
                     case AnnotationGroupTypeEnum::SPACE:
@@ -934,13 +934,13 @@ AnnotationFile::addAnnotationPrivateSharedPointer(QSharedPointer<Annotation>& an
     AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
     if ((polyhedron != NULL)
         && (getDataFileType() == DataFileTypeEnum::SAMPLES)) {
-        group = getSamplesAnnotationGroup(annotation.get());
+        group = getSamplesAnnotationGroup(annotation.data());
         if (group == NULL) {
-            group = getSpaceAnnotationGroup(annotation.get());
+            group = getSpaceAnnotationGroup(annotation.data());
         }
     }
     else {
-        group = getSpaceAnnotationGroup(annotation.get());
+        group = getSpaceAnnotationGroup(annotation.data());
     }
     CaretAssert(group);
 
