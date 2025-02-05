@@ -865,7 +865,7 @@ GroupAndNameHierarchyViewController::scrollTreeViewToFindItem()
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
         CaretAssert(item);
-        const QModelIndex modelIndex(m_modelTreeWidget->indexFromItem(item));
+        const QModelIndex modelIndex(m_modelTreeWidget->getIndexFromItem(item));
         if (modelIndex.isValid()) {
             m_modelTreeWidget->setCurrentIndex(modelIndex);
             m_modelTreeWidget->scrollTo(modelIndex,
