@@ -26,7 +26,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
-#include <QTreeWidget>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -44,6 +43,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQMacroManager.h"
+#include "WuQTreeWidget.h"
 
 using namespace caret;
 
@@ -78,7 +78,7 @@ DisplayGroupAndTabItemViewController::DisplayGroupAndTabItemViewController(const
 m_dataFileType(dataFileType),
 m_browserWindowIndex(browserWindowIndex)
 {
-    m_treeWidget = new QTreeWidget();
+    m_treeWidget = new WuQTreeWidget();
     m_treeWidget->setHeaderHidden(true);
     m_treeWidget->setSelectionMode(QTreeWidget::NoSelection);
     
@@ -796,7 +796,7 @@ DisplayGroupAndTabItemViewController::scrollTreeViewToFindItem()
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QTreeWidgetItem* item(m_findItems[m_findItemsCurrentIndex]);
         CaretAssert(item);
-        const QModelIndex modelIndex(m_treeWidget->indexFromItem(item));
+        const QModelIndex modelIndex(m_treeWidget->getIndexFromItem(item));
         if (modelIndex.isValid()) {
             m_treeWidget->setCurrentIndex(modelIndex);
             m_treeWidget->scrollTo(modelIndex,

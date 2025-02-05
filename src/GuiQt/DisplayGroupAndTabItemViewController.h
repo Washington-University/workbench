@@ -30,7 +30,6 @@
 
 class QAction;
 class QLineEdit;
-class QTreeWidget;
 class QTreeWidgetItem;
 class QToolButton;
 
@@ -38,6 +37,7 @@ namespace caret {
 
     class DisplayGroupAndTabItemInterface;
     class DisplayGroupAndTabItemTreeWidgetItem;
+    class WuQTreeWidget;
     
     class DisplayGroupAndTabItemViewController : public QWidget {
         
@@ -126,7 +126,7 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QTreeWidget* m_treeWidget;
+        WuQTreeWidget* m_treeWidget;
                 
         QAction* m_collapseAllAction;
         
