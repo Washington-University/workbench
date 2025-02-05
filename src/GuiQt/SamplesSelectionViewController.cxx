@@ -115,9 +115,7 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(m_displaySampleNamesCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
-    layout->addWidget(createSelectionWidget(objectNamePrefix), 100);
-    
-    layout->addStretch();
+    layout->addWidget(createSelectionWidget(objectNamePrefix));
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);

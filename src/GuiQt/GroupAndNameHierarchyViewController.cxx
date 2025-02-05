@@ -470,6 +470,7 @@ GroupAndNameHierarchyViewController::createTreeWidget()
     }
     
     m_modelTreeWidget = new WuQTreeWidget();
+    m_modelTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     QObject::connect(m_modelTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
                      this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
     QObject::connect(m_modelTreeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
@@ -477,7 +478,7 @@ GroupAndNameHierarchyViewController::createTreeWidget()
     QObject::connect(m_modelTreeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
                      this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
     
-    m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget);
+    m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget, 0);
     
     m_modelTreeWidget->blockSignals(false);
     
@@ -519,12 +520,6 @@ GroupAndNameHierarchyViewController::updateContents(std::vector<GroupAndNameHier
     if (numberOfModels != static_cast<int32_t>(this->m_treeWidgetItems.size())) {
         needUpdate = true;
     }
-//    else if (m_displayGroup != m_previousDisplayGroup) {
-//        needUpdate = true;
-//    }
-//    else if (browserTabIndex != m_previousBrowserTabIndex) {
-//        needUpdate = true;
-//    }
     else {
         /*
          * Have the displayed models changed?

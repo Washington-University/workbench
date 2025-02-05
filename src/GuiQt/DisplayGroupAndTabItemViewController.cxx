@@ -97,7 +97,8 @@ m_browserWindowIndex(browserWindowIndex)
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(createButtonsWidget(objectNameForMacros,
                                           descriptiveNameForMacros));
-    layout->addWidget(m_treeWidget, 100);
+    layout->addWidget(m_treeWidget);
+    layout->addStretch();
     
     s_allViewControllers.insert(this);
 }
