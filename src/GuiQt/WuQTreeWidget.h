@@ -37,6 +37,8 @@ namespace caret {
         
         void resizeToFitContent();
         
+        QModelIndex getIndexFromItem(const QTreeWidgetItem *item, int column = 0) const;
+        
     private slots:
         void itemExpandedOrCollapsed(QTreeWidgetItem*);
         
