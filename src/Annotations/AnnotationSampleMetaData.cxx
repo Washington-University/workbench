@@ -326,9 +326,13 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
 {
     copyMetaData(obj);
     
-    setBorderName("");
+    for (int32_t i = 0; i < getNumberOfBorders(); i++) {
+        setBorderName(i, "");
+    }
     setComment("");
-    setFocusName("");
+    for (int32_t i = 0; i < getNumberOfFoci(); i++) {
+        setFocusName(i, "");
+    }
     setHmbaParcelDingAbbreviation("");
     setHmbaParcelDingFullName("");
     setSampleNumber("");
@@ -361,6 +365,63 @@ AnnotationSampleMetaData::get(const AString& currentMetaDataName,
     return valueOut;
 }
 
+
+/**
+ * @return Value for metadata from the array with the given name and at the given index
+ * @param index
+ *    Index in the array
+ * @param currentMetaDataName
+ *    Current name for metadata element
+ * @param previousMetaDataNameOne
+ *    A previous name for metadata element, use if currentMetaDataName not found
+ * @param previousMetaDataNameTwo
+ *    Another previous name for metadata element, use if currentMetaDataName and previousMetaDataNameOne not found
+ */
+AString
+AnnotationSampleMetaData::getArray(const int32_t index,
+                                   const AString& currentMetaDataName,
+                                   const AString& previousMetaDataNameOne,
+                                   const AString& previousMetaDataNameTwo) const
+{
+    /*
+     * Get with element index
+     */
+    AString value(get(createArrayElementName(currentMetaDataName, index),
+                      createArrayElementName(previousMetaDataNameOne, index),
+                      createArrayElementName(previousMetaDataNameTwo, index)));
+    if (value.isEmpty()) {
+        if (index == 0) {
+            /*
+             * If value not found for element index 0,
+             * metadata may have been created with single element
+             * before it became an array
+             */
+            value = get(currentMetaDataName,
+                        previousMetaDataNameOne,
+                        previousMetaDataNameTwo);
+        }
+    }
+    
+    return value;
+}
+
+/**
+ * @return Metadata name for the given array and element index
+ * @param arrayName
+ *    Name of array
+ * @param elementIndex
+ *    Index of element
+ */
+AString
+AnnotationSampleMetaData::createArrayElementName(const AString& arrayName,
+                                                 const int32_t elementIndex) const
+{
+    return (arrayName
+            + ":"
+            + AString::number(elementIndex));
+}
+
+
 /**
  * Set the metadata with the given name
  * @param currentMetaDataName
@@ -374,6 +435,24 @@ AnnotationSampleMetaData::set(const AString& currentMetaDataName,
 {
     m_metadata->set(currentMetaDataName,
                     value);
+}
+
+/**
+ * Set the metadata with to the array with the given name and at the given index
+ * @param index
+ *    Index in the array7
+ * @param currentMetaDataName
+ *    Name of metadata element
+ * @param value
+ *    Value of metadata element
+ */
+void
+AnnotationSampleMetaData::setArray(const int32_t index,
+                                   const AString& currentMetaDataName,
+                                   const AString& value)
+{
+    set(createArrayElementName(currentMetaDataName, index),
+        value);
 }
 
 /**
@@ -877,172 +956,246 @@ AnnotationSampleMetaData::setSubjectName(const AString& value)
 }
 
 /**
+ * Number of borders
+ */
+int32_t
+AnnotationSampleMetaData::getNumberOfBorders() const
+{
+    return s_numberOfBorders;
+}
+
+/**
  * @return border file name
+ * @param borderIndex
+ *    Index of the border
  */
 AString
-AnnotationSampleMetaData::getBorderFileName() const
+AnnotationSampleMetaData::getBorderFileName(const int32_t borderIndex) const
 {
-    return get(SAMPLES_BORDER_FILENAME);
+    return getArray(borderIndex,
+                    SAMPLES_BORDER_FILENAME);
 }
 
 /**
  * Set border file name
+ * @param borderIndex
+ *    Index of the border
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setBorderFileName(const AString& value)
+AnnotationSampleMetaData::setBorderFileName(const int32_t borderIndex,
+                                            const AString& value)
 {
-    set(SAMPLES_BORDER_FILENAME,
-        value);
+    setArray(borderIndex,
+             SAMPLES_BORDER_FILENAME,
+             value);
 }
 
 /**
  * @return border class
+ * @param borderIndex
+ *    Index of the border
  */
 AString
-AnnotationSampleMetaData::getBorderClass() const
+AnnotationSampleMetaData::getBorderClass(const int32_t borderIndex) const
 {
-    return get(SAMPLES_BORDER_CLASS);
+    return getArray(borderIndex,
+                    SAMPLES_BORDER_CLASS);
 }
 
 /**
  * Set border class
+ * @param borderIndex
+ *    Index of the border
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setBorderClass(const AString& value)
+AnnotationSampleMetaData::setBorderClass(const int32_t borderIndex,
+                                         const AString& value)
 {
-    set(SAMPLES_BORDER_CLASS,
-        value);
+    setArray(borderIndex,
+             SAMPLES_BORDER_CLASS,
+             value);
 }
 
 /**
  * @return border name
+ * @param borderIndex
+ *    Index of the border
  */
 AString
-AnnotationSampleMetaData::getBorderName() const
+AnnotationSampleMetaData::getBorderName(const int32_t borderIndex) const
 {
-    return get(SAMPLES_BORDER_NAME);
+    return getArray(borderIndex,
+                    SAMPLES_BORDER_NAME);
 }
 
 /**
  * Set border name
+ * @param borderIndex
+ *    Index of the border
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setBorderName(const AString& value)
+AnnotationSampleMetaData::setBorderName(const int32_t borderIndex,
+                                        const AString& value)
 {
-    set(SAMPLES_BORDER_NAME,
-        value);
+    setArray(borderIndex,
+             SAMPLES_BORDER_NAME,
+             value);
 }
 
 /**
  * @return border id
+ * @param borderIndex
+ *    Index of the border
  */
 AString
-AnnotationSampleMetaData::getBorderID() const
+AnnotationSampleMetaData::getBorderID(const int32_t borderIndex) const
 {
-    return get(SAMPLES_BORDER_ID);
+    return getArray(borderIndex,
+                    SAMPLES_BORDER_ID);
 }
 
 /**
  * Set border id
+ * @param borderIndex
+ *    Index of the border
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setBorderID(const AString& value)
+AnnotationSampleMetaData::setBorderID(const int32_t borderIndex,
+                                      const AString& value)
 {
-    set(SAMPLES_BORDER_ID,
-        value);
+    setArray(borderIndex,
+             SAMPLES_BORDER_ID,
+             value);
+}
+
+/**
+ * @return The number of foci
+ */
+int32_t
+AnnotationSampleMetaData::getNumberOfFoci() const
+{
+    return s_numberOfFoci;
 }
 
 /**
  * @return focus file name
+ * @param focusIndex
+ *    Index of the focus
  */
 AString
-AnnotationSampleMetaData::getFocusFileName() const
+AnnotationSampleMetaData::getFocusFileName(const int32_t focusIndex) const
 {
-    return get(SAMPLES_FOCUS_FILENAME);
+    return getArray(focusIndex,
+                    SAMPLES_FOCUS_FILENAME);
 }
 
 /**
  * Set focus file name
+ * @param focusIndex
+ *    Index of the focus
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setFocusFileName(const AString& value)
+AnnotationSampleMetaData::setFocusFileName(const int32_t focusIndex,
+                                           const AString& value)
 {
-    set(SAMPLES_FOCUS_FILENAME,
-        value);
+    setArray(focusIndex,
+             SAMPLES_FOCUS_FILENAME,
+             value);
 }
 
 /**
  * @return focus class
+ * @param focusIndex
+ *    Index of the focus
  */
 AString
-AnnotationSampleMetaData::getFocusClass() const
+AnnotationSampleMetaData::getFocusClass(const int32_t focusIndex) const
 {
-    return get(SAMPLES_FOCUS_CLASS);
+    return getArray(focusIndex,
+                    SAMPLES_FOCUS_CLASS);
 }
 
 /**
  * Set focus class
+ * @param focusIndex
+ *    Index of the focus
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setFocusClass(const AString& value)
+AnnotationSampleMetaData::setFocusClass(const int32_t focusIndex,
+                                        const AString& value)
 {
-    set(SAMPLES_FOCUS_CLASS,
-        value);
+    setArray(focusIndex,
+             SAMPLES_FOCUS_CLASS,
+             value);
 }
 
 /**
  * @return focus id
+ * @param focusIndex
+ *    Index of the focus
  */
 AString
-AnnotationSampleMetaData::getFocusID() const
+AnnotationSampleMetaData::getFocusID(const int32_t focusIndex) const
 {
-    return get(SAMPLES_FOCUS_ID);
+    return getArray(focusIndex,
+                    SAMPLES_FOCUS_ID);
 }
 
 /**
  * Set focus id
+ * @param focusIndex
+ *    Index of the focus
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setFocusID(const AString& value)
+AnnotationSampleMetaData::setFocusID(const int32_t focusIndex,
+                                     const AString& value)
 {
-    set(SAMPLES_FOCUS_ID,
-        value);
+    setArray(focusIndex,
+             SAMPLES_FOCUS_ID,
+             value);
 }
 
 
 /**
  * @return focus name
+ * @param focusIndex
+ *    Index of the focus
  */
 AString
-AnnotationSampleMetaData::getFocusName() const
+AnnotationSampleMetaData::getFocusName(const int32_t focusIndex) const
 {
-    return get(SAMPLES_FOCUS_NAME);
+    return getArray(focusIndex,
+                    SAMPLES_FOCUS_NAME);
 }
 
 /**
  * Set focus name
+ * @param focusIndex
+ *    Index of the focus
  * @param value
  *    New value
  */
 void
-AnnotationSampleMetaData::setFocusName(const AString& value)
+AnnotationSampleMetaData::setFocusName(const int32_t focusIndex,
+                                       const AString& value)
 {
-    set(SAMPLES_FOCUS_NAME,
-        value);
+    setArray(focusIndex,
+             SAMPLES_FOCUS_NAME,
+             value);
 }
 
 /**
@@ -1234,21 +1387,25 @@ AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<ASt
     
     namesAndValuesOut.emplace_back(getCommentLabelText(), getComment());
     
-    namesAndValuesOut.emplace_back(getBorderFileNameLabelText(), getBorderFileName());
+    for (int32_t i = 0; i < getNumberOfBorders(); i++) {
+        namesAndValuesOut.emplace_back(getBorderFileNameLabelText(), getBorderFileName(i));
+        
+        namesAndValuesOut.emplace_back(getBorderIdLabelText(), getBorderID(i));
+        
+        namesAndValuesOut.emplace_back(getBorderNameLabelText(), getBorderName(i));
+        
+        namesAndValuesOut.emplace_back(getBorderClassLabelText(), getBorderClass(i));
+    }
     
-    namesAndValuesOut.emplace_back(getBorderIdLabelText(), getBorderID());
-    
-    namesAndValuesOut.emplace_back(getBorderNameLabelText(), getBorderName());
-    
-    namesAndValuesOut.emplace_back(getBorderClassLabelText(), getBorderClass());
-    
-    namesAndValuesOut.emplace_back(getFocusIdLabelText(), getFocusID());
-    
-    namesAndValuesOut.emplace_back(getFocusFileNameLabelText(), getFocusFileName());
-    
-    namesAndValuesOut.emplace_back(getFocusNameLabelText(), getFocusName());
-    
-    namesAndValuesOut.emplace_back(getFocusClassLabelText(), getFocusClass());
+    for (int32_t i = 0; i < getNumberOfFoci(); i++) {
+        namesAndValuesOut.emplace_back(getFocusIdLabelText(), getFocusID(i));
+        
+        namesAndValuesOut.emplace_back(getFocusFileNameLabelText(), getFocusFileName(i));
+        
+        namesAndValuesOut.emplace_back(getFocusNameLabelText(), getFocusName(i));
+        
+        namesAndValuesOut.emplace_back(getFocusClassLabelText(), getFocusClass(i));
+    }
     
     namesAndValuesOut.emplace_back(getBicanDonorIdLabelText(), getBicanDonorID());
     

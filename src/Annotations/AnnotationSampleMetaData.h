@@ -213,37 +213,49 @@ namespace caret {
         
         void setSubjectName(const AString& value);
 
-        AString getBorderFileName() const;
+        int32_t getNumberOfBorders() const;
         
-        void setBorderFileName(const AString& value);
+        AString getBorderFileName(const int32_t borderIndex) const;
+        
+        void setBorderFileName(const int32_t borderIndex,
+                               const AString& value);
 
-        AString getBorderClass() const;
+        AString getBorderClass(const int32_t borderIndex) const;
         
-        void setBorderClass(const AString& value);
+        void setBorderClass(const int32_t borderIndex,
+                            const AString& value);
         
-        AString getBorderID() const;
+        AString getBorderID(const int32_t borderIndex) const;
         
-        void setBorderID(const AString& value);
+        void setBorderID(const int32_t borderIndex,
+                         const AString& value);
 
-        AString getBorderName() const;
+        AString getBorderName(const int32_t borderIndex) const;
         
-        void setBorderName(const AString& value);
+        void setBorderName(const int32_t borderIndex,
+                           const AString& value);
         
-        AString getFocusFileName() const;
+        int32_t getNumberOfFoci() const;
         
-        void setFocusFileName(const AString& value);
+        AString getFocusFileName(const int32_t focusIndex) const;
         
-        AString getFocusClass() const;
+        void setFocusFileName(const int32_t focusIndex,
+                              const AString& value);
         
-        void setFocusClass(const AString& value);
+        AString getFocusClass(const int32_t focusIndex) const;
         
-        AString getFocusID() const;
+        void setFocusClass(const int32_t focusIndex,
+                           const AString& value);
         
-        void setFocusID(const AString& value);
+        AString getFocusID(const int32_t focusIndex) const;
+        
+        void setFocusID(const int32_t focusIndex,
+                        const AString& value);
                 
-        AString getFocusName() const;
+        AString getFocusName(const int32_t focusIndex) const;
         
-        void setFocusName(const AString& value);
+        void setFocusName(const int32_t focusIndex,
+                          const AString& value);
         
         AString toFormattedHtml() const;
         
@@ -264,8 +276,17 @@ namespace caret {
                     const AString& previousMetaDataNameOne = "",
                     const AString& previousMetaDataNameTwo = "") const;
         
+        AString getArray(const int32_t index,
+                         const AString& currentMetaDataName,
+                         const AString& previousMetaDataNameOne = "",
+                         const AString& previousMetaDataNameTwo = "") const;
+
         void set(const AString& currentMetaDataName,
                  const AString& value);
+        
+        void setArray(const int32_t index,
+                      const AString& currentMetaDataName,
+                      const AString& value);
         
         int32_t getInt(const AString& currentMetaDataName,
                        const AString& previousMetaDataNameOne = "",
@@ -273,6 +294,9 @@ namespace caret {
         
         void setInt(const AString& currentMetaDataName,
                     const int32_t value);
+        
+        AString createArrayElementName(const AString& arrayName,
+                                       const int32_t elementIndex) const;
         
         /** An instance of AnnotationSampleMetaData wraps an instance of GiftiMetaData - DO NOT DELETE */
         mutable GiftiMetaData* m_metadata;
@@ -393,6 +417,9 @@ namespace caret {
         
         static int32_t s_lastRightHemisphereAllenSlabNumber;
         
+        static int32_t s_numberOfBorders;
+        
+        static int32_t s_numberOfFoci;
     };
     
 #ifdef __ANNOTATION_SAMPLE_META_DATA_DECLARE__
@@ -494,6 +521,10 @@ namespace caret {
     
     int32_t AnnotationSampleMetaData::s_lastRightHemisphereAllenSlabNumber = 99;
 
+    int32_t AnnotationSampleMetaData::s_numberOfBorders = 2;
+    
+    int32_t AnnotationSampleMetaData::s_numberOfFoci = 2;
+    
 #endif // __ANNOTATION_SAMPLE_META_DATA_DECLARE__
 
 } // namespace

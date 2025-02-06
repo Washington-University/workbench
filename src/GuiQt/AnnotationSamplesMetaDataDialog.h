@@ -89,7 +89,8 @@ namespace caret {
         };
         
     private slots:
-        void chooseButtonClicked(const ChooseButtonEnum chooseButton);
+        void chooseButtonClicked(const ChooseButtonEnum chooseButton,
+                                 const int32_t focusBorderIndex);
         
     private:
         enum class DialogMode {
@@ -238,21 +239,22 @@ namespace caret {
         QLineEdit* m_nhashSlabIdLineEdit;
         
         
-        QLineEdit* m_borderFileNameLineEdit;
+        std::vector<QLineEdit*> m_borderFileNameLineEdits;
         
-        QLineEdit* m_borderClassLineEdit;
+        std::vector<QLineEdit*> m_borderClassLineEdits;
 
-        QLineEdit* m_borderIdLineEdit;
+        std::vector<QLineEdit*> m_borderIdLineEdits;
         
-        QLineEdit* m_borderNameLineEdit;
+        std::vector<QLineEdit*> m_borderNameLineEdits;
         
-        QLineEdit* m_focusFileNameLineEdit;
         
-        QLineEdit* m_focusClassLineEdit;
+        std::vector<QLineEdit*> m_focusFileNameLineEdits;
         
-        QLineEdit* m_focusIdLineEdit;
+        std::vector<QLineEdit*> m_focusClassLineEdits;
         
-        QLineEdit* m_focusNameLineEdit;
+        std::vector<QLineEdit*> m_focusIdLineEdits;
+        
+        std::vector<QLineEdit*> m_focusNameLineEdits;
         
 
         QSpinBox* m_firstLeftHemisphereAllenSlabNumberSpinBox;

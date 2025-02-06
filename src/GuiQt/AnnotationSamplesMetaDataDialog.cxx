@@ -360,7 +360,7 @@ AnnotationSamplesMetaDataDialog::addLineEdit(const AString& labelText,
                                       gridLayout);
     QAction* action(new QAction("Choose..."));
     QObject::connect(action, &QAction::triggered,
-                     this, [=] { chooseButtonClicked(chooseButton); });
+                     this, [=] { chooseButtonClicked(chooseButton, 0); });
     QToolButton* toolButton(new QToolButton());
     toolButton->setDefaultAction(action);
     gridLayout->addWidget(toolButton, row, 2);
@@ -643,79 +643,93 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
 QWidget*
 AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
 {
-    QLabel* borderFileLabel(new QLabel(AnnotationSampleMetaData::getBorderFileNameLabelText() + ":"));
-    QLabel* borderClassLabel(new QLabel(AnnotationSampleMetaData::getBorderClassLabelText() + ":"));
-    QLabel* borderIdLabel(new QLabel(AnnotationSampleMetaData::getBorderIdLabelText() + ":"));
-    QLabel* borderNameLabel(new QLabel(AnnotationSampleMetaData::getBorderNameLabelText() + ":"));
-
-    m_borderFileNameLineEdit = new QLineEdit();
-    
-    m_borderClassLineEdit = new QLineEdit();
-    
-    m_borderIdLineEdit = new QLineEdit();
-    QObject::connect(m_borderIdLineEdit, &QLineEdit::textEdited,
-                     [=](const QString& text) { m_sampleMetaData->setBorderID(text); });
-
-    m_borderNameLineEdit = new QLineEdit();
-    
-    QAction* selectBorderAction(new QAction("Choose..."));
-    QObject::connect(selectBorderAction, &QAction::triggered,
-                     this, [=] { chooseButtonClicked(ChooseButtonEnum::BORDER); });
-    QToolButton* selectBorderToolButton(new QToolButton());
-    selectBorderToolButton->setDefaultAction(selectBorderAction);
-    
-    QLabel* focusFileLabel(new QLabel(AnnotationSampleMetaData::getFocusFileNameLabelText() + ":"));
-    QLabel* focusClassLabel(new QLabel(AnnotationSampleMetaData::getFocusClassLabelText() + ":"));
-    QLabel* focusIdLabel(new QLabel(AnnotationSampleMetaData::getFocusIdLabelText()));
-    QLabel* focusNameLabel(new QLabel(AnnotationSampleMetaData::getFocusNameLabelText() + ":"));
-    
-    m_focusFileNameLineEdit = new QLineEdit();
-    
-    m_focusClassLineEdit = new QLineEdit();
-
-    m_focusIdLineEdit = new QLineEdit();
-    QObject::connect(m_focusIdLineEdit, &QLineEdit::textEdited,
-                     [=](const QString& text) { m_sampleMetaData->setFocusID(text); });
-
-    m_focusNameLineEdit = new QLineEdit();
-    
-    QAction* selectFocusAction(new QAction("Choose..."));
-    QObject::connect(selectFocusAction, &QAction::triggered,
-                     this, [=] { chooseButtonClicked(ChooseButtonEnum::FOCUS); });
-    QToolButton* selectFocusToolButton(new QToolButton());
-    selectFocusToolButton->setDefaultAction(selectFocusAction);
-    
-
     QGridLayout* gridLayout(new QGridLayout());
     gridLayout->setContentsMargins(0, 0, 0, 0);
-    int row(gridLayout->rowCount());
-    gridLayout->addWidget(borderFileLabel, row, 0);
-    gridLayout->addWidget(m_borderFileNameLineEdit, row, 1, 1, 3);
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(borderNameLabel, row, 0);
-    gridLayout->addWidget(m_borderNameLineEdit, row, 1);
-    gridLayout->addWidget(borderClassLabel, row, 2);
-    gridLayout->addWidget(m_borderClassLineEdit, row, 3);
-    gridLayout->addWidget(selectBorderToolButton, row - 1, 4, 2, 1);
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(borderIdLabel, row, 0);
-    gridLayout->addWidget(m_borderIdLineEdit, row, 1);
+
+    const int32_t numBorders(m_sampleMetaData->getNumberOfBorders());
+
+    int32_t row(0);
+    for (int32_t i = 0; i < numBorders; i++) {
+        if (i > 0) {
+            row = gridLayout->rowCount();
+            gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
+        }
+        row = gridLayout->rowCount();
+
+        QLabel* borderFileLabel(new QLabel(AnnotationSampleMetaData::getBorderFileNameLabelText() + ":"));
+        QLabel* borderClassLabel(new QLabel(AnnotationSampleMetaData::getBorderClassLabelText() + ":"));
+        QLabel* borderIdLabel(new QLabel(AnnotationSampleMetaData::getBorderIdLabelText() + ":"));
+        QLabel* borderNameLabel(new QLabel(AnnotationSampleMetaData::getBorderNameLabelText() + ":"));
+        
+        m_borderFileNameLineEdits.push_back(new QLineEdit());
+        
+        m_borderClassLineEdits.push_back(new QLineEdit());
+        
+        m_borderIdLineEdits.push_back(new QLineEdit());
+        QObject::connect(m_borderIdLineEdits[i], &QLineEdit::textEdited,
+                         [=](const QString& text) { m_sampleMetaData->setBorderID(i, text); });
+        
+        m_borderNameLineEdits.push_back(new QLineEdit());
+        
+        QAction* selectBorderAction(new QAction("Choose..."));
+        QObject::connect(selectBorderAction, &QAction::triggered,
+                         this, [=] { chooseButtonClicked(ChooseButtonEnum::BORDER, i); });
+        QToolButton* selectBorderToolButton(new QToolButton());
+        selectBorderToolButton->setDefaultAction(selectBorderAction);
+
+        gridLayout->addWidget(borderFileLabel, row, 0);
+        gridLayout->addWidget(m_borderFileNameLineEdits[i], row, 1, 1, 3);
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(borderNameLabel, row, 0);
+        gridLayout->addWidget(m_borderNameLineEdits[i], row, 1);
+        gridLayout->addWidget(borderClassLabel, row, 2);
+        gridLayout->addWidget(m_borderClassLineEdits[i], row, 3);
+        gridLayout->addWidget(selectBorderToolButton, row - 1, 4, 2, 1);
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(borderIdLabel, row, 0);
+        gridLayout->addWidget(m_borderIdLineEdits[i], row, 1);
+    }
     
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
-    
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(focusFileLabel, row, 0);
-    gridLayout->addWidget(m_focusFileNameLineEdit, row, 1, 1, 3);
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(focusNameLabel, row, 0);
-    gridLayout->addWidget(m_focusNameLineEdit, row, 1);
-    gridLayout->addWidget(focusClassLabel, row, 2);
-    gridLayout->addWidget(m_focusClassLineEdit, row, 3);
-    gridLayout->addWidget(selectFocusToolButton, row - 1, 4, 2, 1);
-    row = gridLayout->rowCount();
-    gridLayout->addWidget(focusIdLabel, row, 0);
-    gridLayout->addWidget(m_focusIdLineEdit, row, 1);
+    const int32_t numFoci(m_sampleMetaData->getNumberOfFoci());
+    for (int32_t i = 0; i < numFoci; i++) {
+        QLabel* focusFileLabel(new QLabel(AnnotationSampleMetaData::getFocusFileNameLabelText() + ":"));
+        QLabel* focusClassLabel(new QLabel(AnnotationSampleMetaData::getFocusClassLabelText() + ":"));
+        QLabel* focusIdLabel(new QLabel(AnnotationSampleMetaData::getFocusIdLabelText()));
+        QLabel* focusNameLabel(new QLabel(AnnotationSampleMetaData::getFocusNameLabelText() + ":"));
+        
+        m_focusFileNameLineEdits.push_back(new QLineEdit());
+        
+        m_focusClassLineEdits.push_back(new QLineEdit());
+        
+        m_focusIdLineEdits.push_back(new QLineEdit());
+        QObject::connect(m_focusIdLineEdits[i], &QLineEdit::textEdited,
+                         [=](const QString& text) { m_sampleMetaData->setFocusID(i, text); });
+        
+        m_focusNameLineEdits.push_back(new QLineEdit());
+        
+        QAction* selectFocusAction(new QAction("Choose..."));
+        QObject::connect(selectFocusAction, &QAction::triggered,
+                         this, [=] { chooseButtonClicked(ChooseButtonEnum::FOCUS, i); });
+        QToolButton* selectFocusToolButton(new QToolButton());
+        selectFocusToolButton->setDefaultAction(selectFocusAction);
+        
+        
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
+
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(focusFileLabel, row, 0);
+        gridLayout->addWidget(m_focusFileNameLineEdits[i], row, 1, 1, 3);
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(focusNameLabel, row, 0);
+        gridLayout->addWidget(m_focusNameLineEdits[i], row, 1);
+        gridLayout->addWidget(focusClassLabel, row, 2);
+        gridLayout->addWidget(m_focusClassLineEdits[i], row, 3);
+        gridLayout->addWidget(selectFocusToolButton, row - 1, 4, 2, 1);
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(focusIdLabel, row, 0);
+        gridLayout->addWidget(m_focusIdLineEdits[i], row, 1);
+    }
 
     gridLayout->setColumnStretch(gridLayout->columnCount(), 100); /* Push to left */
 
@@ -897,14 +911,21 @@ AnnotationSamplesMetaDataDialog::loadMetaDataIntoDialog()
     /*
      * Border / Foci Tab
      */
-    m_borderFileNameLineEdit->setText(m_sampleMetaData->getBorderFileName());
-    m_borderClassLineEdit->setText(m_sampleMetaData->getBorderClass());
-    m_borderIdLineEdit->setText(m_sampleMetaData->getBorderID());
-    m_borderNameLineEdit->setText(m_sampleMetaData->getBorderName());
-    m_focusFileNameLineEdit->setText(m_sampleMetaData->getFocusFileName());
-    m_focusClassLineEdit->setText(m_sampleMetaData->getFocusClass());
-    m_focusIdLineEdit->setText(m_sampleMetaData->getFocusID());
-    m_focusNameLineEdit->setText(m_sampleMetaData->getFocusName());
+    const int32_t numBorders(m_sampleMetaData->getNumberOfBorders());
+    for (int32_t i = 0; i < numBorders; i++) {
+        m_borderFileNameLineEdits[i]->setText(m_sampleMetaData->getBorderFileName(i));
+        m_borderClassLineEdits[i]->setText(m_sampleMetaData->getBorderClass(i));
+        m_borderIdLineEdits[i]->setText(m_sampleMetaData->getBorderID(i));
+        m_borderNameLineEdits[i]->setText(m_sampleMetaData->getBorderName(i));
+    }
+    
+    const int32_t numFoci(m_sampleMetaData->getNumberOfFoci());
+    for (int32_t i = 0; i < numFoci; i++) {
+        m_focusFileNameLineEdits[i]->setText(m_sampleMetaData->getFocusFileName(i));
+        m_focusClassLineEdits[i]->setText(m_sampleMetaData->getFocusClass(i));
+        m_focusIdLineEdits[i]->setText(m_sampleMetaData->getFocusID(i));
+        m_focusNameLineEdits[i]->setText(m_sampleMetaData->getFocusName(i));
+    }
     
     /*
      * Speciman Portal Tab
@@ -961,14 +982,21 @@ AnnotationSamplesMetaDataDialog::readMetaDataFromDialog()
     
     m_sampleMetaData->setComment(m_commentTextEdit->toPlainText());
     
-    m_sampleMetaData->setBorderFileName(m_borderFileNameLineEdit->text().trimmed());
-    m_sampleMetaData->setBorderClass(m_borderClassLineEdit->text().trimmed());
-    m_sampleMetaData->setBorderID(m_borderIdLineEdit->text().trimmed());
-    m_sampleMetaData->setBorderName(m_borderNameLineEdit->text().trimmed());
-    m_sampleMetaData->setFocusFileName(m_focusFileNameLineEdit->text().trimmed());
-    m_sampleMetaData->setFocusID(m_focusIdLineEdit->text().trimmed());
-    m_sampleMetaData->setFocusClass(m_focusClassLineEdit->text().trimmed());
-    m_sampleMetaData->setFocusName(m_focusNameLineEdit->text().trimmed());
+    const int32_t numBorders(m_sampleMetaData->getNumberOfBorders());
+    for (int32_t i = 0; i < numBorders; i++) {
+        m_sampleMetaData->setBorderFileName(i, m_borderFileNameLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setBorderClass(i, m_borderClassLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setBorderID(i, m_borderIdLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setBorderName(i, m_borderNameLineEdits[i]->text().trimmed());
+    }
+    
+    const int32_t numFoci(m_sampleMetaData->getNumberOfFoci());
+    for (int32_t i = 0; i < numFoci; i++) {
+        m_sampleMetaData->setFocusFileName(i, m_focusFileNameLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setFocusID(i, m_focusIdLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setFocusClass(i, m_focusClassLineEdits[i]->text().trimmed());
+        m_sampleMetaData->setFocusName(i, m_focusNameLineEdits[i]->text().trimmed());
+    }
 
     /*
      * Speciman Portal Tab
@@ -1007,9 +1035,12 @@ AnnotationSamplesMetaDataDialog::getLabelFileAndMap()
  * Called when a choose button is clicked
  * @param metaDataName
  *    Name of metadata for button
+ * @param focusBorderIndex
+ *    Index of item that was selected for border and foci
  */
 void
-AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum chooseButton)
+AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum chooseButton,
+                                                     const int32_t focusBorderIndex)
 {
     switch (chooseButton) {
         case ChooseButtonEnum::ALTERNATE_PARCELLATION:
@@ -1025,17 +1056,20 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
         {
             ChooseBorderFocusFromFileDialog chooseDialog(ChooseBorderFocusFromFileDialog::FileMode::BORDER,
                                                          this);
-            chooseDialog.setSelections(m_borderFileNameLineEdit->text(),
-                                       m_borderClassLineEdit->text(),
-                                       m_borderNameLineEdit->text());
+            chooseDialog.setSelections(m_borderFileNameLineEdits[focusBorderIndex]->text(),
+                                       m_borderClassLineEdits[focusBorderIndex]->text(),
+                                       m_borderNameLineEdits[focusBorderIndex]->text());
             if (chooseDialog.exec() == ChooseBorderFocusFromFileDialog::Accepted) {
-                m_sampleMetaData->setBorderFileName(chooseDialog.getSelectedFileName());
-                m_sampleMetaData->setBorderClass(chooseDialog.getSelectedClass());
-                m_sampleMetaData->setBorderName(chooseDialog.getSelectedName());
+                m_sampleMetaData->setBorderFileName(focusBorderIndex,
+                                                    chooseDialog.getSelectedFileName());
+                m_sampleMetaData->setBorderClass(focusBorderIndex,
+                                                 chooseDialog.getSelectedClass());
+                m_sampleMetaData->setBorderName(focusBorderIndex,
+                                                chooseDialog.getSelectedName());
                 
-                m_borderFileNameLineEdit->setText(chooseDialog.getSelectedFileName());
-                m_borderClassLineEdit->setText(chooseDialog.getSelectedClass());
-                m_borderNameLineEdit->setText(chooseDialog.getSelectedName());
+                m_borderFileNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedFileName());
+                m_borderClassLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedClass());
+                m_borderNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedName());
             }
         }
             break;
@@ -1061,17 +1095,20 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
         {
             ChooseBorderFocusFromFileDialog chooseDialog(ChooseBorderFocusFromFileDialog::FileMode::FOCUS,
                                                          this);
-            chooseDialog.setSelections(m_focusFileNameLineEdit->text(),
-                                       m_focusClassLineEdit->text(),
-                                       m_focusNameLineEdit->text());
+            chooseDialog.setSelections(m_focusFileNameLineEdits[focusBorderIndex]->text(),
+                                       m_focusClassLineEdits[focusBorderIndex]->text(),
+                                       m_focusNameLineEdits[focusBorderIndex]->text());
             if (chooseDialog.exec() == ChooseBorderFocusFromFileDialog::Accepted) {
-                m_sampleMetaData->setFocusFileName(chooseDialog.getSelectedFileName());
-                m_sampleMetaData->setFocusClass(chooseDialog.getSelectedClass());
-                m_sampleMetaData->setFocusName(chooseDialog.getSelectedName());
+                m_sampleMetaData->setFocusFileName(focusBorderIndex,
+                                                   chooseDialog.getSelectedFileName());
+                m_sampleMetaData->setFocusClass(focusBorderIndex,
+                                                chooseDialog.getSelectedClass());
+                m_sampleMetaData->setFocusName(focusBorderIndex,
+                                               chooseDialog.getSelectedName());
                 
-                m_focusFileNameLineEdit->setText(chooseDialog.getSelectedFileName());
-                m_focusClassLineEdit->setText(chooseDialog.getSelectedClass());
-                m_focusNameLineEdit->setText(chooseDialog.getSelectedName());
+                m_focusFileNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedFileName());
+                m_focusClassLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedClass());
+                m_focusNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedName());
             }
         }
             break;
