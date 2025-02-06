@@ -142,7 +142,7 @@ m_volumeSliceThickness(volumeSliceThickness)
             {
                 const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
                 if (identifer.isEmpty()) {
-                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
+                    setWindowTitle("New Actual Sample");
                 }
                 else {
                     m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
@@ -153,6 +153,8 @@ m_volumeSliceThickness(volumeSliceThickness)
                      * with a desired polyhedron
                      */
                     copyMetaDataFlag = false;
+                    
+                    setWindowTitle("Add Actual Sample to Desired Sample");
                 }
                 
                 /* Clear identifier to prevent it from being used again */
@@ -160,6 +162,7 @@ m_volumeSliceThickness(volumeSliceThickness)
             }
                 break;
             case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                setWindowTitle("New Desired Sample");
                 break;
         }
     }
@@ -210,6 +213,16 @@ m_volumeSliceThickness(0.0)
     CaretAssert(m_polyhedron);
     CaretAssert(m_polyhedron->getSampleMetaData());
     
+    switch (m_polyhedron->getPolyhedronType()) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            setWindowTitle("Edit Actual Sample Metadata");
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            setWindowTitle("Edit Desired Sample Metadata");
+            break;
+    }
     /*
      * Make a COPY of the annotation's metadata so that user edit's a copy of the metadata.
      * This allows user to cancel editing without any changes to the metadata.
