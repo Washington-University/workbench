@@ -652,7 +652,7 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
     for (int32_t i = 0; i < numBorders; i++) {
         if (i > 0) {
             row = gridLayout->rowCount();
-            gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
+            gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 5);
         }
         row = gridLayout->rowCount();
 
@@ -715,7 +715,7 @@ AnnotationSamplesMetaDataDialog::createBorderFociTabWidget()
         
         
         row = gridLayout->rowCount();
-        gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 4);
+        gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 5);
 
         row = gridLayout->rowCount();
         gridLayout->addWidget(focusFileLabel, row, 0);
