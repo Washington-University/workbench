@@ -47,6 +47,10 @@ namespace caret {
         
         static void setLastRightHemisphereAllenSlabNumber(const int32_t number);
         
+        static AString getCurrentDateInString();
+        
+        static AString getInvalidDateInString();
+        
         AnnotationSampleMetaData(GiftiMetaData* metadata);
         
         void updateMetaData(const GiftiMetaData* metadata) const;

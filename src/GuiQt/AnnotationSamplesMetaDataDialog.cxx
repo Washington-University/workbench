@@ -156,6 +156,7 @@ m_volumeSliceThickness(volumeSliceThickness)
                     
                     setWindowTitle("Add Actual Sample to Desired Sample");
                 }
+                m_polyhedron->getSampleMetaData()->setActualSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
                 
                 /* Clear identifier to prevent it from being used again */
                 sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
@@ -163,6 +164,7 @@ m_volumeSliceThickness(volumeSliceThickness)
                 break;
             case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
                 setWindowTitle("New Desired Sample");
+                m_polyhedron->getSampleMetaData()->setDesiredSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
                 break;
         }
     }
@@ -181,8 +183,6 @@ m_volumeSliceThickness(volumeSliceThickness)
     m_sampleMetaData = m_polyhedron->getSampleMetaData();
     CaretAssert(m_sampleMetaData);
     m_sampleMetaData->updateMetaDataWithNameChanges();
-    
-    m_sampleMetaData->setActualSampleEditDate(QDate::currentDate().toString(AnnotationSampleMetaData::getDateFormat()));
     
     createDialog();
 
@@ -559,7 +559,6 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QObject::connect(m_desiredSampleEntryDateEdit, &QDateEdit::dateChanged,
                      [=](QDate date) {
         m_sampleMetaData->setDesiredSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
-        std::cout << "Date" << std::endl;
     });
     
     m_actualSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getActualSampleEditDateLabelText(),
@@ -568,7 +567,6 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QObject::connect(m_actualSampleEntryDateEdit, &QDateEdit::dateChanged,
                      [=](QDate date) {
         m_sampleMetaData->setActualSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
-        std::cout << "Date2" << std::endl;
     });
 
     

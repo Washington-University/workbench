@@ -431,6 +431,7 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
             AnnotationPolyhedron* actualPolyhedron(new AnnotationPolyhedron(*desiredPolyhedron));
             actualPolyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE);
             actualPolyhedron->setLinkedPolyhedronIdentifier(desiredPolyLinkedIdentifier);
+            actualPolyhedron->getSampleMetaData()->setActualSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
             CaretAssert(samplesFile);
             EventAnnotationAddToRemoveFromFile addEvent(EventAnnotationAddToRemoveFromFile::MODE_CREATE,
                                                         samplesFile,

@@ -136,7 +136,12 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     }
     resetProperty(Property::COPY_CUT_PASTE);
     
+    /*
+     * Initialize metadata with invalid dates
+     */
     m_sampleMetaData.reset(new AnnotationSampleMetaData(getMetaData()));
+    m_sampleMetaData->setActualSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
+    m_sampleMetaData->setDesiredSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
     
     m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
     m_linkedPolyhedronIdentifier.clear();

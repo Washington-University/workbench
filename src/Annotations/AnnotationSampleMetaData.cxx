@@ -324,6 +324,12 @@ AnnotationSampleMetaData::copyMetaData(const AnnotationSampleMetaData& obj)
 void
 AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMetaData& obj)
 {
+    /*
+     * Save dates and restore at end of this method
+     */
+    const AString actualDate(getActualSampleEditDate());
+    const AString desiredDate(getDesiredSampleEditDate());
+    
     copyMetaData(obj);
     
     for (int32_t i = 0; i < getNumberOfBorders(); i++) {
@@ -337,6 +343,10 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
     setHmbaParcelDingFullName("");
     setSampleNumber("");
     setSampleType("");
+    
+    setActualSampleEditDate(actualDate);
+    setDesiredSampleEditDate(desiredDate);
+    
     m_metadata->setModified();
 }
 
@@ -1423,3 +1433,23 @@ AnnotationSampleMetaData::toString() const
     return "AnnotationSampleMetaData";
 }
 
+/**
+ * @return Current date in a string
+ */
+AString
+AnnotationSampleMetaData::getCurrentDateInString()
+{
+    return QDate::currentDate().toString(AnnotationSampleMetaData::getDateFormat());
+}
+
+/**
+ * @return Invalid date in a string
+ */
+AString
+AnnotationSampleMetaData::getInvalidDateInString()
+{
+    const int year(1970);
+    const int month(1);
+    const int day(1);
+    return QDate(year, month, day).toString(AnnotationSampleMetaData::getDateFormat());
+}
