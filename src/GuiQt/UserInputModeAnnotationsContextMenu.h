@@ -112,6 +112,8 @@ namespace caret {
         
         void unlockPolyhedronSelected();
         
+        void selectTabContainingMouseSelected();
+        
     private:
         UserInputModeAnnotationsContextMenu(const UserInputModeAnnotationsContextMenu&);
 

@@ -42,6 +42,7 @@
 #include "AnnotationText.h"
 #include "AnnotationTextEditorDialog.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -50,6 +51,7 @@
 #include "EventAnnotationGetBeingDrawnInWindow.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabGetAtWindowXY.h"
+#include "EventBrowserWindowTileTabOperation.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -125,6 +127,7 @@ m_newAnnotationCreatedByContextMenu(NULL)
     }
     
     const int32_t browserWindexIndex = m_mouseEvent.getBrowserWindowIndex();
+    BrainBrowserWindow* browserWindow(GuiManager::get()->getBrowserWindowByWindowIndex(browserWindexIndex));
     std::vector<AnnotationAndFile> selectedAnnotations;
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputModeAnnotations->getUserInputMode());
     annotationManager->getAnnotationsAndFilesSelectedForEditingIncludingLabels(browserWindexIndex,
@@ -331,6 +334,15 @@ m_newAnnotationCreatedByContextMenu(NULL)
                                                       undoMenuItemSuffix,
                                                       pasteText,
                                                       pasteSpecialText);
+
+    /*
+     * Select tab containing mouse
+     */
+    QAction* selectTabContainingMouseAction(addAction("Select This Tab",
+                                                      this,
+                                                      &UserInputModeAnnotationsContextMenu::selectTabContainingMouseSelected));
+    selectTabContainingMouseAction->setEnabled(browserWindow->isTileTabsSelected());
+    addSeparator();
     
     /*
      * Cut
@@ -1374,3 +1386,25 @@ UserInputModeAnnotationsContextMenu::insertPolylineCoordinateAtMouse(UserInputMo
     }
 }
 
+/**
+ * Called to select the tab containing the mouse
+ */
+void
+UserInputModeAnnotationsContextMenu::selectTabContainingMouseSelected()
+{
+    int windowViewport[4];
+    m_mouseEvent.getViewportContent()->getWindowViewport(windowViewport);
+    /*
+     * Select tab
+     */
+    std::vector<BrowserTabContent*> emptyBrowserTabs;
+    EventBrowserWindowTileTabOperation tileTabOperation(EventBrowserWindowTileTabOperation::OPERATION_SELECT_TAB,
+                                                        m_parentOpenGLWidget,
+                                                        m_mouseEvent.getBrowserWindowIndex(),
+                                                        m_browserTabContent->getTabNumber(),
+                                                        windowViewport,
+                                                        m_mouseEvent.getPressedX(),
+                                                        m_mouseEvent.getPressedY(),
+                                                        emptyBrowserTabs);
+    EventManager::get()->sendEvent(tileTabOperation.getPointer());
+}
