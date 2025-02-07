@@ -2190,6 +2190,20 @@ Annotation::getName() const
             const AnnotationPolyhedron* polyhedron(castToPolyhedron());
             CaretAssert(polyhedron);
             nameOut = polyhedron->getSampleMetaData()->getSampleNumber();
+            if ( ! nameOut.isEmpty()) {
+                nameOut.append(".");
+            }
+            switch (polyhedron->getPolyhedronType()) {
+                case AnnotationPolyhedronTypeEnum::INVALID:
+                    nameOut.append("U");
+                    break;
+                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                    nameOut.append("A");
+                    break;
+                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                    nameOut.append("D");
+                    break;
+            }
         }
             break;
         case AnnotationTypeEnum::POLYGON:
