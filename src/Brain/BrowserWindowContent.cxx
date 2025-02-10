@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "EventBrowserWindowGetTabs.h"
 #include "EventManager.h"
+#include "SamplesDrawingSettings.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "SceneIntegerArray.h"
@@ -59,6 +60,7 @@ m_windowIndex(windowIndex)
     m_customGridTileTabsConfiguration.reset(TileTabsLayoutGridConfiguration::newInstanceCustomGrid());
     m_validFlag = false;
     m_windowTabAspectRatios.reset(new WindowTabAspectRatios());
+    m_samplesDrawingSettings.reset(new SamplesDrawingSettings());
     reset();
     
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
@@ -73,6 +75,9 @@ m_windowIndex(windowIndex)
     m_sceneAssistant->add("m_sceneGraphicsHeight", &m_sceneGraphicsHeight);
     m_sceneAssistant->add("m_sceneSelectedTabIndex", &m_sceneSelectedTabIndex);
     m_sceneAssistant->add("m_windowAnnotationsStackingOrder", &m_windowAnnotationsStackingOrder);
+    m_sceneAssistant->add("m_samplesDrawingSettings",
+                          "SamplesDrawingSettings",
+                          m_samplesDrawingSettings.get());
 }
 
 /**
@@ -964,4 +969,22 @@ void
 BrowserWindowContent::setWindowTabAspectRatios(const WindowTabAspectRatios& windowTabAspectRatios)
 {
     m_windowTabAspectRatios.reset(new WindowTabAspectRatios(windowTabAspectRatios));
+}
+
+/**
+ * @return The samples drawing settings
+ */
+SamplesDrawingSettings*
+BrowserWindowContent::getSamplesDrawingSettings()
+{
+    return m_samplesDrawingSettings.get();
+}
+
+/**
+ * @return The sampels drawing settings (const method)
+ */
+const SamplesDrawingSettings*
+BrowserWindowContent::getSamplesDrawingSettings() const
+{
+    return m_samplesDrawingSettings.get();
 }

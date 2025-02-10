@@ -24,6 +24,7 @@
 #undef __EVENT_BROWSER_TAB_GET_AT_WINDOW_X_Y_DECLARE__
 
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "DrawingViewportContent.h"
 #include "EventDrawingViewportContentGet.h"
@@ -111,14 +112,18 @@ EventBrowserTabGetAtWindowXY::getVolumeMontageViewportContent() const
 std::vector<std::shared_ptr<DrawingViewportContent>>
 EventBrowserTabGetAtWindowXY::getSamplesDrawingVolumeMontageViewportContents() const
 {
-    const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
+    CaretAssert(m_browserWindowContent);
+    const SamplesDrawingSettings* samplesDrawingSettings(m_browserWindowContent->getSamplesDrawingSettings());
     std::vector<std::shared_ptr<DrawingViewportContent>> contentsOut;
     
     for (const auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
-        if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
-                                                                   volumeSlice.getColumnIndex())) {
-            contentsOut.push_back(vp);
+        if (m_browserTabContent != NULL) {
+            if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(m_browserTabContent->getTabNumber(),
+                                                                       volumeSlice.getRowIndex(),
+                                                                       volumeSlice.getColumnIndex())) {
+                contentsOut.push_back(vp);
+            }
         }
     }
     return contentsOut;
@@ -132,13 +137,17 @@ EventBrowserTabGetAtWindowXY::getSamplesDrawingVolumeMontageViewportContents() c
 bool
 EventBrowserTabGetAtWindowXY::isWindowXyInSamplesDrawingVolumeSlice(const Vector3D& windowXY) const
 {
-    const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
+    CaretAssert(m_browserWindowContent);
+    const SamplesDrawingSettings* samplesDrawingSettings(m_browserWindowContent->getSamplesDrawingSettings());
     for (const auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
-        if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
-                                                                   volumeSlice.getColumnIndex())) {
-            if (vp->containsWindowXY(windowXY)) {
-                return true;
+        if (m_browserTabContent != NULL) {
+            if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(m_browserTabContent->getTabNumber(),
+                                                                       volumeSlice.getRowIndex(),
+                                                                       volumeSlice.getColumnIndex())) {
+                if (vp->containsWindowXY(windowXY)) {
+                    return true;
+                }
             }
         }
     }
@@ -161,17 +170,21 @@ EventBrowserTabGetAtWindowXY::getSamplesDrawingViewportContents(const Vector3D& 
     std::shared_ptr<DrawingViewportContent> firstViewportContent;
     std::shared_ptr<DrawingViewportContent> lastViewportContent;
 
-    const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
+    CaretAssert(m_browserWindowContent);
+    const SamplesDrawingSettings* samplesDrawingSettings(m_browserWindowContent->getSamplesDrawingSettings());
     for (auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
-        if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
-                                                                   volumeSlice.getColumnIndex())) {
-            if ( ! firstViewportContent) {
-                firstViewportContent = vp;
-            }
-            lastViewportContent = vp;
-            if (vp->containsWindowXY(windowXY)) {
-                drawingViewportContent = vp;
+        if (m_browserTabContent != NULL) {
+            if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(m_browserTabContent->getTabNumber(),
+                                                                       volumeSlice.getRowIndex(),
+                                                                       volumeSlice.getColumnIndex())) {
+                if ( ! firstViewportContent) {
+                    firstViewportContent = vp;
+                }
+                lastViewportContent = vp;
+                if (vp->containsWindowXY(windowXY)) {
+                    drawingViewportContent = vp;
+                }
             }
         }
     }
@@ -199,16 +212,19 @@ EventBrowserTabGetAtWindowXY::getSamplesResetExtentViewportContents() const
     std::shared_ptr<DrawingViewportContent> firstViewportContent;
     std::shared_ptr<DrawingViewportContent> lastViewportContent;
     
-    CaretAssert(m_browserTabContent);
-    const SamplesDrawingSettings* samplesDrawingSettings(m_browserTabContent->getSamplesDrawingSettings());
+    CaretAssert(m_browserWindowContent);
+    const SamplesDrawingSettings* samplesDrawingSettings(m_browserWindowContent->getSamplesDrawingSettings());
     for (auto& vp : m_volumeMontageViewportContent) {
         const DrawingViewportContentVolumeSlice& volumeSlice(vp->getVolumeSlice());
-        if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(volumeSlice.getRowIndex(),
-                                                                   volumeSlice.getColumnIndex())) {
-            if ( ! firstViewportContent) {
-                firstViewportContent = vp;
+        if (m_browserTabContent != NULL) {
+            if (samplesDrawingSettings->isSliceInLowerUpperOffsetRange(m_browserTabContent->getTabNumber(),
+                                                                       volumeSlice.getRowIndex(),
+                                                                       volumeSlice.getColumnIndex())) {
+                if ( ! firstViewportContent) {
+                    firstViewportContent = vp;
+                }
+                lastViewportContent = vp;
             }
-            lastViewportContent = vp;
         }
     }
     
@@ -226,14 +242,19 @@ EventBrowserTabGetAtWindowXY::getSamplesResetExtentViewportContents() const
  * Set the browser tab content
  * @param brainOpenGLViewportContent
  *    The brain opengl viewport content containing mouse
+ * @param browserWindowContent
+ *    Browser window content
  * @param browserTabContent
  *    Browser tab content contining mousse
  */
 void
 EventBrowserTabGetAtWindowXY::setBrowserTabContent(const BrainOpenGLViewportContent* brainOpenGLViewportContent,
+                                                   BrowserWindowContent* browserWindowContent,
                                                    BrowserTabContent* browserTabContent)
 {
     m_brainOpenGLViewportContent = brainOpenGLViewportContent;
+    m_browserWindowContent       = browserWindowContent;
+    CaretAssert(m_browserWindowContent);
     m_browserTabContent          = browserTabContent;
     
     if ((m_brainOpenGLViewportContent != NULL)

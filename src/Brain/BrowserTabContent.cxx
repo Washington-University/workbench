@@ -100,7 +100,6 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "PaletteColorMapping.h"
-#include "SamplesDrawingSettings.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -211,8 +210,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_manualLayoutBrowserTabAnnotation->setBrowserTabContent(this,
                                                              m_tabNumber);
     
-    m_samplesDrawingSettings.reset(new SamplesDrawingSettings(this));
-    
     m_mouseLeftDragMode = MouseLeftDragModeEnum::INVALID;
     
     m_sceneClassAssistant = new SceneClassAssistant();
@@ -268,10 +265,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                "VolumeSliceSettings",
                                m_volumeSliceSettings);
 
-    m_sceneClassAssistant->add("m_samplesDrawingSettings",
-                               "SamplesDrawingSettings",
-                               m_samplesDrawingSettings.get());
-    
     m_sceneClassAssistant->add("m_wholeBrainSurfaceSettings",
                                "WholeBrainSurfaceSettings",
                                m_wholeBrainSurfaceSettings);
@@ -486,8 +479,6 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprThreeAxialInverseRotationQuaternion = tabToClone->m_mprThreeAxialInverseRotationQuaternion;
     m_mprThreeCoronalInverseRotationQuaternion = tabToClone->m_mprThreeCoronalInverseRotationQuaternion;
     m_mprThreeParasagittalInverseRotationQuaternion = tabToClone->m_mprThreeParasagittalInverseRotationQuaternion;
-    
-    *m_samplesDrawingSettings = *tabToClone->m_samplesDrawingSettings;
     
     Model* model = getModelForDisplay();
     
@@ -7757,24 +7748,6 @@ BrowserTabContent::setVolumeMontageCoordinateTextAlignment(const VolumeMontageCo
 }
 
 /**
- * @return The samples drawing settings
- */
-SamplesDrawingSettings*
-BrowserTabContent::getSamplesDrawingSettings()
-{
-    return m_samplesDrawingSettings.get();
-}
-
-/**
- * @return The sampels drawing settings (const method)
- */
-const SamplesDrawingSettings*
-BrowserTabContent::getSamplesDrawingSettings() const
-{
-    return m_samplesDrawingSettings.get();
-}
-
-/**
  * If true, selected histology slices in tab move to location
  * of the identification operation.
  */
@@ -8553,8 +8526,6 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprThreeCoronalInverseRotationQuaternion = btc->m_mprThreeCoronalInverseRotationQuaternion;
                 m_mprThreeParasagittalInverseRotationQuaternion = btc->m_mprThreeParasagittalInverseRotationQuaternion;
 
-                *m_samplesDrawingSettings = *btc->m_samplesDrawingSettings;
-
                 /**
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
@@ -8711,7 +8682,6 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprThreeCoronalInverseRotationQuaternion = m_mprThreeCoronalInverseRotationQuaternion;
                 btc->m_mprThreeParasagittalInverseRotationQuaternion = m_mprThreeParasagittalInverseRotationQuaternion;
 
-                *btc->m_samplesDrawingSettings = *m_samplesDrawingSettings;
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 
                  * *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;

@@ -32,6 +32,7 @@
 
 namespace caret {
     class WindowTabAspectRatios;
+    class SamplesDrawingSettings;
     class SceneClassAssistant;
     class TileTabsLayoutBaseConfiguration;
     class TileTabsLayoutGridConfiguration;
@@ -118,6 +119,10 @@ namespace caret {
         
         void setWindowTabAspectRatios(const WindowTabAspectRatios& windowTabAspectRatios);
         
+        SamplesDrawingSettings* getSamplesDrawingSettings();
+        
+        const SamplesDrawingSettings* getSamplesDrawingSettings() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
@@ -184,6 +189,8 @@ namespace caret {
         std::unique_ptr<TileTabsLayoutGridConfiguration> m_customGridTileTabsConfiguration;
         
         std::unique_ptr<TileTabsLayoutManualConfiguration> m_previousManualTileTabsConfiguration;
+        
+        std::unique_ptr<SamplesDrawingSettings> m_samplesDrawingSettings;
         
         friend class BrainBrowserWindow;
 

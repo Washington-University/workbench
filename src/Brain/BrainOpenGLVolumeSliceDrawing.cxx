@@ -39,6 +39,7 @@
 #include "BrainOpenGLVolumeSurfaceOutlineDrawing.h"
 #include "BrainordinateRegionOfInterest.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
@@ -48,6 +49,7 @@
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesLabels.h"
 #include "ElapsedTimer.h"
+#include "EventBrowserWindowContent.h"
 #include "EventDrawingViewportContentAdd.h"
 #include "GapsAndMargins.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -607,7 +609,10 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
             break;
     }
     
-    const SamplesDrawingSettings* samplesSettings(m_browserTabContent->getSamplesDrawingSettings());
+    std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(m_fixedPipelineDrawing->m_windowIndex);
+    EventManager::get()->sendEvent(windowContentEvent->getPointer());
+    const BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
+    const SamplesDrawingSettings* samplesSettings(windowContent->getSamplesDrawingSettings());
     
     /*
      * Determine a slice offset to selected slices is in
@@ -692,7 +697,8 @@ BrainOpenGLVolumeSliceDrawing::drawVolumeSliceViewTypeMontage(const AllSliceView
                 sliceIndex -= sliceStep;
 
                 if (m_fixedPipelineDrawing->m_windowUserInputMode == UserInputModeEnum::Enum::SAMPLES_EDITING) {
-                    if ( ! samplesSettings->isSliceInLowerUpperOffsetRange(i, j)) {
+                    if ( ! samplesSettings->isSliceInLowerUpperOffsetRange(m_tabIndex,
+                                                                           i, j)) {
                         const uint8_t rgba[4] { 255, 0, 0, 255 };
                         const float percentageThickness(3.0);
                         GraphicsShape::drawViewportCrossPercentageLineWidth(rgba,

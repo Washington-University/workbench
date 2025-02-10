@@ -33,13 +33,12 @@
 
 namespace caret {
     class AnnotationPolyhedron;
-    class BrowserTabContent;
     class SceneClassAssistant;
 
     class SamplesDrawingSettings : public CaretObject, public SceneableInterface {
         
     public:
-        SamplesDrawingSettings(BrowserTabContent* parentBrowserTabContent);
+        SamplesDrawingSettings();
         
         virtual ~SamplesDrawingSettings();
         
@@ -68,7 +67,8 @@ namespace caret {
         
         void setLowerSliceOffset(const int32_t sliceOffset);
         
-        bool isSliceInLowerUpperOffsetRange(const int32_t sliceRow,
+        bool isSliceInLowerUpperOffsetRange(const int32_t tabIndex,
+                                            const int32_t sliceRow,
                                             const int32_t sliceColumn) const;
         
         // ADD_NEW_METHODS_HERE
@@ -101,8 +101,6 @@ namespace caret {
 
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
-        const BrowserTabContent* m_parentBrowserTabContent;
-        
         SamplesDrawingModeEnum::Enum m_drawingMode = SamplesDrawingModeEnum::ALL_SLICES;
         
         AString m_linkedPolyhedronIdentifier;

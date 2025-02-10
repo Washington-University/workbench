@@ -45,12 +45,13 @@
 #include "AnnotationSampleMetaData.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ChooseBorderFocusFromFileDialog.h"
 #include "DingOntologyTermsDialog.h"
 #include "DisplayPropertiesSamples.h"
-#include "EventBrowserTabGet.h"
+#include "EventBrowserWindowContent.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
@@ -128,19 +129,19 @@ m_volumeSliceThickness(volumeSliceThickness)
     CaretAssert(m_polyhedron);
 
     bool copyMetaDataFlag(true);
-    EventBrowserTabGet tabEvent(m_browserTabIndex);
-    EventManager::get()->sendEvent(tabEvent.getPointer());
-    BrowserTabContent* btc(tabEvent.getBrowserTab());
-    if (btc != NULL) {
-        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
-        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
+    auto windowEvent = EventBrowserWindowContent::getWindowContent(m_browserWindowIndex);
+    EventManager::get()->sendEvent(windowEvent->getPointer());
+    BrowserWindowContent* bwc(windowEvent->getBrowserWindowContent());
+    if (bwc != NULL) {
+        SamplesDrawingSettings* samplesDrawingSettings(bwc->getSamplesDrawingSettings());
+        m_polyhedron->setPolyhedronType(samplesDrawingSettings->getPolyhedronDrawingType());
         
         switch (m_polyhedron->getPolyhedronType()) {
             case AnnotationPolyhedronTypeEnum::INVALID:
                 break;
             case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
             {
-                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
+                const AString identifer(samplesDrawingSettings->getLinkedPolyhedronIdentifier());
                 if (identifer.isEmpty()) {
                     setWindowTitle("New Actual Sample");
                 }
@@ -159,7 +160,7 @@ m_volumeSliceThickness(volumeSliceThickness)
                 m_polyhedron->getSampleMetaData()->setActualSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
                 
                 /* Clear identifier to prevent it from being used again */
-                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
+                samplesDrawingSettings->setLinkedPolyhedronIdentifier("");
             }
                 break;
             case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
@@ -1204,36 +1205,7 @@ AnnotationSamplesMetaDataDialog::finishCreatingNewSample()
     
     CaretAssert(m_polyhedron);
     m_polyhedron->setDrawingNewAnnotationStatus(false);
-    
-//    EventBrowserTabGet tabEvent(m_browserTabIndex);
-//    EventManager::get()->sendEvent(tabEvent.getPointer());
-//    BrowserTabContent* btc(tabEvent.getBrowserTab());
-//    if (btc != NULL) {
-//        SamplesDrawingSettings* sampleDrawingSettings(btc->getSamplesDrawingSettings());
-//        m_polyhedron->setPolyhedronType(sampleDrawingSettings->getPolyhedronDrawingType());
-//
-//        switch (m_polyhedron->getPolyhedronType()) {
-//            case AnnotationPolyhedronTypeEnum::INVALID:
-//                break;
-//            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-//            {
-//                const AString identifer(sampleDrawingSettings->getLinkedPolyhedronIdentifier());
-//                if (identifer.isEmpty()) {
-//                    CaretLogWarning("Creating actual polyhedron but no linked identifier found");
-//                }
-//                else {
-//                    m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
-//                }
-//                
-//                /* Clear identifier to prevent it from being used again */
-//                sampleDrawingSettings->setLinkedPolyhedronIdentifier("");
-//            }
-//                break;
-//            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-//                break;
-//        }
-//    }
-    
+        
     /*
      * Add annotation to its file
      */

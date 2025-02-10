@@ -58,6 +58,7 @@
 #include "DummyFontTextRenderer.h"
 #include "ElapsedTimer.h"
 #include "EventBrainReset.h"
+#include "EventBrowserWindowContent.h"
 #include "EventImageCapture.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
@@ -2746,8 +2747,12 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             const BrainOpenGLViewportContent* vpContent(getViewportContentAtXY(mouseXY[0],
                                                                                mouseXY[1]));
             if (vpContent != NULL) {
+                std::unique_ptr<EventBrowserWindowContent> windowContentEvent = EventBrowserWindowContent::getWindowContent(vpContent->getWindowIndex());
+                EventManager::get()->sendEvent(windowContentEvent->getPointer());
+                BrowserWindowContent* windowContent = windowContentEvent->getBrowserWindowContent();
                 BrowserTabContent* tabContent(vpContent->getBrowserTabContent());
                 tabEvent->setBrowserTabContent(vpContent,
+                                               windowContent,
                                                tabContent);
                 tabEvent->setEventProcessed();
             }

@@ -33,6 +33,7 @@ namespace caret {
 
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class BrowserWindowContent;
     class DrawingViewportContent;
     
     class EventBrowserTabGetAtWindowXY : public Event {
@@ -60,6 +61,7 @@ namespace caret {
         std::vector<std::shared_ptr<DrawingViewportContent>> getSamplesDrawingVolumeMontageViewportContents() const;
         
         void setBrowserTabContent(const BrainOpenGLViewportContent* brainOpenGLViewportContent,
+                                  BrowserWindowContent* browserWindowContent,
                                   BrowserTabContent* browserTabContent);
 
         bool isWindowXyInSamplesDrawingVolumeSlice(const Vector3D& windowXY) const;
@@ -76,6 +78,8 @@ namespace caret {
         const Vector3D m_mouseXY;
         
         const BrainOpenGLViewportContent* m_brainOpenGLViewportContent = NULL;
+        
+        BrowserWindowContent* m_browserWindowContent = NULL;
         
         BrowserTabContent* m_browserTabContent = NULL;
         

@@ -38,6 +38,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "BrainBrowserWindow.h"
+#include "BrowserWindowContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretDataFileSelectionComboBox.h"
@@ -262,10 +263,10 @@ AnnotationSamplesInsertNewWidget::updateContent()
 {
     const BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
     if (bbw != NULL) {
-        const BrowserTabContent* tabContent(bbw->getBrowserTabContent());
-        if (tabContent != NULL) {
+        const BrowserWindowContent* windowContent(bbw->getBrowerWindowContent());
+        if (windowContent != NULL) {
             
-            const SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+            const SamplesDrawingSettings* samplesSettings(windowContent->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             
             const SamplesDrawingModeEnum::Enum drawingMode(samplesSettings->getDrawingMode());
@@ -521,10 +522,10 @@ AnnotationSamplesInsertNewWidget::createNewSample(const AnnotationPolyhedronType
     BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
     CaretAssert(bbw);
     if (bbw != NULL) {
-        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
-        CaretAssert(tabContent);
-        if (tabContent != NULL) {
-            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+        BrowserWindowContent* bwc(bbw->getBrowerWindowContent());
+        CaretAssert(bwc);
+        if (bwc != NULL) {
+            SamplesDrawingSettings* samplesSettings(bwc->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             samplesSettings->setPolyhedronDrawingType(polyhedronType);
             if (linkedPolyhedron != NULL) {
@@ -579,10 +580,12 @@ void
 AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated()
 {
     BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
     if (bbw != NULL) {
-        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
-        if (tabContent != NULL) {
-            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+        BrowserWindowContent* bwc(bbw->getBrowerWindowContent());
+        CaretAssert(bwc);
+        if (bwc != NULL) {
+            SamplesDrawingSettings* samplesSettings(bwc->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             const SamplesDrawingModeEnum::Enum drawingMode(m_samplesDrawingModeEnumComboBox->getSelectedItem<SamplesDrawingModeEnum,SamplesDrawingModeEnum::Enum>());
             samplesSettings->setDrawingMode(drawingMode);
@@ -600,10 +603,12 @@ void
 AnnotationSamplesInsertNewWidget::lowerSliceOffsetSpinBoxValueChanged(int value)
 {
     BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
     if (bbw != NULL) {
-        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
-        if (tabContent != NULL) {
-            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+        BrowserWindowContent* bwc(bbw->getBrowerWindowContent());
+        CaretAssert(bwc);
+        if (bwc != NULL) {
+            SamplesDrawingSettings* samplesSettings(bwc->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             samplesSettings->setLowerSliceOffset(value);
             EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
@@ -620,10 +625,12 @@ void
 AnnotationSamplesInsertNewWidget::upperSliceOffsetSpinBoxValueChanged(int value)
 {
     BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
     if (bbw != NULL) {
-        BrowserTabContent* tabContent(bbw->getBrowserTabContent());
-        if (tabContent != NULL) {
-            SamplesDrawingSettings* samplesSettings(tabContent->getSamplesDrawingSettings());
+        BrowserWindowContent* bwc(bbw->getBrowerWindowContent());
+        CaretAssert(bwc);
+        if (bwc != NULL) {
+            SamplesDrawingSettings* samplesSettings(bwc->getSamplesDrawingSettings());
             CaretAssert(samplesSettings);
             samplesSettings->setUpperSliceOffset(value);
             EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());

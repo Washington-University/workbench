@@ -43,17 +43,10 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param parentBrowserTabContent
- *    Browser tab content that 'owns' this instance
- *    Note: We just need the index of the browser tab but the index may change from the original value
- *    in the BrowserTabContent's constructor to the tab index when restoring the scene.  Thus, we can
- *    just call BrowserTabContent::getTabNumber() and always get the correct tab index.
  */
-SamplesDrawingSettings::SamplesDrawingSettings(BrowserTabContent* parentBrowserTabContent)
-: CaretObject(),
-m_parentBrowserTabContent(parentBrowserTabContent)
+SamplesDrawingSettings::SamplesDrawingSettings()
+: CaretObject()
 {
-    CaretAssert(m_parentBrowserTabContent);
     m_sceneAssistant = std::unique_ptr<SceneClassAssistant>(new SceneClassAssistant());
     m_sceneAssistant->add<SamplesDrawingModeEnum, SamplesDrawingModeEnum::Enum>("m_drawingMode",
                                                                                 &m_drawingMode);
@@ -171,18 +164,21 @@ SamplesDrawingSettings::setLinkedPolyhedronIdentifier(const AString& linkedPolyh
  * @return True if slice montage is enabled for tab using these settings
  * and the slice at the given row and column is in range for sample drawing
  * when in CUSTOM mode.
+ * @param tabIndex
+ *    Index of the tab
  * @param sliceRow
  *    Row of the slice
  * @param sliceColumn
  *    Column of the slice
  */
 bool
-SamplesDrawingSettings::isSliceInLowerUpperOffsetRange(const int32_t sliceRow,
+SamplesDrawingSettings::isSliceInLowerUpperOffsetRange(const int32_t tabIndex,
+                                                       const int32_t sliceRow,
                                                        const int32_t sliceColumn) const
 {
     bool inRangeFlag(false);
     
-    EventBrowserTabGet tabEvent(m_parentBrowserTabContent->getTabNumber());
+    EventBrowserTabGet tabEvent(tabIndex);
     EventManager::get()->sendEvent(tabEvent.getPointer());
     const BrowserTabContent* tabContent(tabEvent.getBrowserTab());
     

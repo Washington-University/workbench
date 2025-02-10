@@ -95,7 +95,6 @@ namespace caret {
     class OverlaySet;
     class Palette;
     class PlainTextStringBuilder;
-    class SamplesDrawingSettings;
     class SceneClassAssistant;
     class Surface;
     class ViewingTransformations;
@@ -649,10 +648,6 @@ namespace caret {
         
         void setVolumeMontageCoordinateTextAlignment(const VolumeMontageCoordinateTextAlignmentEnum::Enum alignment);
         
-        SamplesDrawingSettings* getSamplesDrawingSettings();
-        
-        const SamplesDrawingSettings* getSamplesDrawingSettings() const;
-        
         HistologyCoordinate getHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile) const;
         
         void setHistologySelectedCoordinate(const HistologySlicesFile* histologySlicesFile,
@@ -987,8 +982,6 @@ namespace caret {
         Vector3D m_mprThreeCoronalRotationVector;
         Vector3D m_mprThreeParasagittalRotationVector;
 
-        std::unique_ptr<SamplesDrawingSettings> m_samplesDrawingSettings;
-        
         /** aspect ratio */
         float m_aspectRatio;
         
