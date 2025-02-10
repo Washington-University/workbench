@@ -60,16 +60,6 @@ namespace caret {
         
         void setLinkedPolyhedronIdentifier(const AString& identifier);
         
-        std::pair<int32_t, int32_t> getSliceRange() const;
-        
-        int32_t getLowSliceIndex() const;
-        
-        int32_t getHighSliceIndex() const;
-        
-        void setLowSliceIndex(const int32_t lowSliceIndex);
-        
-        void setHighSliceIndex(const int32_t highSliceIndex);
-
         int32_t getUpperSliceOffset() const;
         
         void setUpperSliceOffset(const int32_t sliceOffset);
@@ -118,10 +108,6 @@ namespace caret {
         AString m_linkedPolyhedronIdentifier;
         
         AnnotationPolyhedronTypeEnum::Enum m_polyhedronDrawingType = AnnotationPolyhedronTypeEnum::INVALID;
-        
-        mutable int32_t m_lowSliceIndex = 0;
-        
-        mutable int32_t m_highSliceIndex = 0;
         
         int32_t m_upperSliceOffset = 0;
         

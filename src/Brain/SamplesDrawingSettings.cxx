@@ -26,10 +26,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "BrowserTabContent.h"
-#include "DrawingViewportContent.h"
 #include "EventBrowserTabGet.h"
-#include "EventBrowserTabIndexGetWindowIndex.h"
-#include "EventDrawingViewportContentGet.h"
 #include "EventManager.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -62,10 +59,6 @@ m_parentBrowserTabContent(parentBrowserTabContent)
                                                                                 &m_drawingMode);
     m_sceneAssistant->add<AnnotationPolyhedronTypeEnum, AnnotationPolyhedronTypeEnum::Enum>("m_polyhedronDrawingType",
                                                                                             &m_polyhedronDrawingType);
-    m_sceneAssistant->add("m_lowSliceIndex",
-                          &m_lowSliceIndex);
-    m_sceneAssistant->add("m_highSliceIndex",
-                          &m_highSliceIndex);
     m_sceneAssistant->add("m_lowerSliceOffset",
                           &m_lowerSliceOffset);
     m_sceneAssistant->add("m_upperSliceOffset",
@@ -106,8 +99,6 @@ void
 SamplesDrawingSettings::copyHelperSamplesDrawingSettings(const SamplesDrawingSettings& obj)
 {
     m_drawingMode           = obj.m_drawingMode;
-    m_lowSliceIndex         = obj.m_lowSliceIndex;
-    m_highSliceIndex        = obj.m_highSliceIndex;
     m_lowerSliceOffset      = obj.m_lowerSliceOffset;
     m_upperSliceOffset      = obj.m_upperSliceOffset;
     m_polyhedronDrawingType = obj.m_polyhedronDrawingType;
@@ -177,44 +168,6 @@ SamplesDrawingSettings::setLinkedPolyhedronIdentifier(const AString& linkedPolyh
 }
 
 /**
- * @return A pair containing the minimum and maximum slice indices for the tab
- * in this
- */
-std::pair<int32_t, int32_t>
-SamplesDrawingSettings::getSliceRange() const
-{
-    std::pair<int32_t, int32_t> minMaxSliceIndices;
-    minMaxSliceIndices.first  = 0;
-    minMaxSliceIndices.second = 0;
-
-    EventBrowserTabGet tabEvent(m_parentBrowserTabContent->getTabNumber());
-    EventManager::get()->sendEvent(tabEvent.getPointer());
-    const BrowserTabContent* tabContent(tabEvent.getBrowserTab());
-    if (tabContent != NULL) {
-        int32_t numSlices(0);
-        switch (tabContent->getVolumeSliceDrawingType()) {
-            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
-                numSlices = (tabContent->getVolumeMontageNumberOfRows()
-                             * tabContent->getVolumeMontageNumberOfColumns());
-                break;
-            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
-                numSlices = 1;
-                break;
-        }
-        
-        /*
-         * Range 1..N
-         */
-        if (numSlices > 0) {
-            minMaxSliceIndices.first = 1;
-        }
-        minMaxSliceIndices.second = numSlices;
-    }
-
-    return minMaxSliceIndices;
-}
-
-/**
  * @return True if slice montage is enabled for tab using these settings
  * and the slice at the given row and column is in range for sample drawing
  * when in CUSTOM mode.
@@ -262,91 +215,6 @@ SamplesDrawingSettings::isSliceInLowerUpperOffsetRange(const int32_t sliceRow,
     }
     
     return inRangeFlag;
-}
-
-
-/**
- * @return The samples drawing low slice index
- */
-int32_t
-SamplesDrawingSettings::getLowSliceIndex() const
-{
-    const auto minMax(getSliceRange());
-    const int32_t minValue(minMax.first);
-    const int32_t maxValue(minMax.second);
-    
-    if (m_lowSliceIndex > maxValue) {
-        m_lowSliceIndex = maxValue;
-    }
-    else if (m_lowSliceIndex < minValue) {
-        m_lowSliceIndex = minValue;
-    }
-    
-    switch (m_drawingMode) {
-        case SamplesDrawingModeEnum::ALL_SLICES:
-            m_lowSliceIndex = minValue;
-            break;
-        case SamplesDrawingModeEnum::EXCLUDE:
-            break;
-    }
-    
-    return m_lowSliceIndex;
-}
-
-/**
- * @return The samples drawing high slice index
- */
-int32_t
-SamplesDrawingSettings::getHighSliceIndex() const
-{
-    const auto minMax(getSliceRange());
-    const int32_t minValue(minMax.first);
-    const int32_t maxValue(minMax.second);
-    
-    if (m_highSliceIndex > maxValue) {
-        m_highSliceIndex = maxValue;
-    }
-    else if (m_highSliceIndex < minValue) {
-        m_highSliceIndex = minValue;
-    }
-    
-    switch (m_drawingMode) {
-        case SamplesDrawingModeEnum::ALL_SLICES:
-            m_highSliceIndex = maxValue;
-            break;
-        case SamplesDrawingModeEnum::EXCLUDE:
-            break;
-    }
-    
-    return m_highSliceIndex;
-}
-
-/**
- * Set the samples low slice index
- * @param lowSliceIndex
- *    The sliced index
- */
-void
-SamplesDrawingSettings::setLowSliceIndex(const int32_t lowSliceIndex)
-{
-    m_lowSliceIndex = lowSliceIndex;
-    if (m_lowSliceIndex >= m_highSliceIndex) {
-        m_highSliceIndex = m_lowSliceIndex;
-    }
-}
-
-/**
- * Set the samples high slice index
- * @param highSliceIndex
- *    The sliced index
- */
-void
-SamplesDrawingSettings::setHighSliceIndex(const int32_t highSliceIndex)
-{
-    m_highSliceIndex = highSliceIndex;
-    if (m_highSliceIndex <= m_lowSliceIndex) {
-        m_lowSliceIndex = m_highSliceIndex;
-    }
 }
 
 /**
