@@ -30,6 +30,7 @@
 
 
 namespace caret {
+    class AnnotationPolyhedron;
     class GiftiMetaData;
 
     class AnnotationSampleMetaData : public CaretObject {
@@ -185,7 +186,7 @@ namespace caret {
         
         void setHmbaParcelDingFullName(const AString& value);
         
-        AString getLocalSampleID() const;
+        AString getLocalSampleID(const AnnotationPolyhedron* polyhedron) const;
                 
         AString getLocalSlabID() const;
         
@@ -261,11 +262,12 @@ namespace caret {
         void setFocusName(const int32_t focusIndex,
                           const AString& value);
         
-        AString toFormattedHtml() const;
+        AString toFormattedHtml(const AnnotationPolyhedron* polyhedron) const;
         
         void updateMetaDataWithNameChanges();
         
-        void getAllMetaDataNamesAndValues(std::vector<std::pair<AString, AString>>& namesAndValuesOut) const;
+        void getAllMetaDataNamesAndValues(const AnnotationPolyhedron* polyhedron,
+                                          std::vector<std::pair<AString, AString>>& namesAndValuesOut) const;
         
         // ADD_NEW_METHODS_HERE
 

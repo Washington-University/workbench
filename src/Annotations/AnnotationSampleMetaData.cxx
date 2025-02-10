@@ -25,6 +25,7 @@
 
 #include <QDate>
 
+#include "AnnotationPolyhedron.h"
 #include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "HemisphereEnum.h"
@@ -779,14 +780,26 @@ AnnotationSampleMetaData::setHmbaParcelDingFullName(const AString& value)
 
 /**
  * @return local sample ID that is a composite of other metadata items
+ * @param polyhedron
+ *    Polyhedron for getting type of polyhedron (actual / desired)
  */
 AString
-AnnotationSampleMetaData::getLocalSampleID() const
+AnnotationSampleMetaData::getLocalSampleID(const AnnotationPolyhedron* polyhedron) const
 {
     const AString separator(".");
     std::vector<AString> components;
     components.push_back(getLocalSlabID());
     components.push_back(get(SAMPLES_SAMPLE_NUMBER));
+    switch (polyhedron->getPolyhedronType()) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            components.push_back("A");
+            break;
+        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            components.push_back("D");
+            break;
+    }
     const AString valueOut = assembleCompositeElementComponents(components,
                                                                 separator);
     return valueOut;
@@ -1329,9 +1342,11 @@ AnnotationSampleMetaData::updateMetaDataWithNameChanges()
 
 /**
  * @return The metadata  in an HTML table format
+ * @param polyhedron
+ *    Polyhedron for getting type of polyhedron (actual / desired)
  */
 AString
-AnnotationSampleMetaData::toFormattedHtml() const
+AnnotationSampleMetaData::toFormattedHtml(const AnnotationPolyhedron* polyhedron) const
 {
     const int32_t numberOfColumns(2);
     HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
@@ -1340,7 +1355,8 @@ AnnotationSampleMetaData::toFormattedHtml() const
     
     
     std::vector<std::pair<AString, AString>> namesAndValues;
-    getAllMetaDataNamesAndValues(namesAndValues);
+    getAllMetaDataNamesAndValues(polyhedron,
+                                 namesAndValues);
     
     for (const auto& nv : namesAndValues) {
         tableBuilder.addRow((nv.first + ": "), nv.second);
@@ -1351,11 +1367,14 @@ AnnotationSampleMetaData::toFormattedHtml() const
 
 /**
  * Get all metadata names and values
+ * @param polyhedron
+ *    Polyhedron for getting type of polyhedron (actual / desired)
  * @param namesAndValuesOut
  *    Pairs with names and values
  */
 void
-AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<AString, AString>>& namesAndValuesOut) const
+AnnotationSampleMetaData::getAllMetaDataNamesAndValues(const AnnotationPolyhedron* polyhedron,
+                                                       std::vector<std::pair<AString, AString>>& namesAndValuesOut) const
 {
     namesAndValuesOut.clear();
     
@@ -1389,7 +1408,7 @@ AnnotationSampleMetaData::getAllMetaDataNamesAndValues(std::vector<std::pair<ASt
     
     namesAndValuesOut.emplace_back(getSampleNumberLabelText(), getSampleNumber());
     
-    namesAndValuesOut.emplace_back(getLocalSampleIdLabelText(), getLocalSampleID());
+    namesAndValuesOut.emplace_back(getLocalSampleIdLabelText(), getLocalSampleID(polyhedron));
     
     namesAndValuesOut.emplace_back(getPrimaryParcellationLabelText(), getPrimaryParcellation());
     

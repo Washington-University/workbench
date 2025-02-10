@@ -899,7 +899,7 @@ AnnotationSamplesMetaDataDialog::loadMetaDataIntoDialog()
     m_sampleNameLineEdit->setText(m_sampleMetaData->getSampleName());
     m_alternativeSampleNameLineEdit->setText(m_sampleMetaData->getAlternateSampleName());
     m_sampleNumberLineEdit->setText(m_sampleMetaData->getSampleNumber());
-    m_localSampleIdLineEdit->setText(m_sampleMetaData->getLocalSampleID());
+    m_localSampleIdLineEdit->setText(m_sampleMetaData->getLocalSampleID(m_polyhedron));
     m_primaryParcellationLineEdit->setText(m_sampleMetaData->getPrimaryParcellation());
     m_alternativeParcellationLineEdit->setText(m_sampleMetaData->getAlternateParcellation());
     
@@ -949,7 +949,7 @@ AnnotationSamplesMetaDataDialog::loadLocalSlabID()
 void
 AnnotationSamplesMetaDataDialog::loadLocalSampleID()
 {
-    m_localSampleIdLineEdit->setText(m_sampleMetaData->getLocalSampleID());
+    m_localSampleIdLineEdit->setText(m_sampleMetaData->getLocalSampleID(m_polyhedron));
 }
 
 /**

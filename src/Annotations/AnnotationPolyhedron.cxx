@@ -1223,7 +1223,7 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
 AString
 AnnotationPolyhedron::getMetadataInformationHtml() const
 {
-    return getSampleMetaData()->toFormattedHtml();
+    return getSampleMetaData()->toFormattedHtml(this);
 }
 
 /**
