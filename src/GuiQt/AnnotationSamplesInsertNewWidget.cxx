@@ -131,9 +131,9 @@ m_browserWindowIndex(browserWindowIndex)
     m_newDesiredSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE));
     QObject::connect(m_newDesiredSampleAction, &QAction::triggered,
                      this, &AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered);
-    QToolButton* newDesiredSampleToolButton(new QToolButton());
-    WuQtUtilities::setToolButtonStyleForQt5Mac(newDesiredSampleToolButton);
-    newDesiredSampleToolButton->setDefaultAction(m_newDesiredSampleAction);
+    m_newDesiredSampleToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newDesiredSampleToolButton);
+    m_newDesiredSampleToolButton->setDefaultAction(m_newDesiredSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
@@ -193,7 +193,7 @@ m_browserWindowIndex(browserWindowIndex)
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
     samplesLayout->addWidget(newLabel);
-    samplesLayout->addWidget(newDesiredSampleToolButton);
+    samplesLayout->addWidget(m_newDesiredSampleToolButton);
     samplesLayout->addWidget(m_newActualSampleToolButton);
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
     samplesLayout->addSpacing(4);
@@ -377,6 +377,10 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
 void
 AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
 {
+    if ( ! isVolumeSliceMontageEnabledInSelectedTab(m_newActualSampleToolButton)) {
+        return;
+    }
+    
     SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile == NULL) {
         WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
@@ -467,9 +471,34 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
 void
 AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
 {
-    AnnotationPolyhedron* linkedPolyhedron(NULL);
-    createNewSample(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
-                    linkedPolyhedron);
+    if (isVolumeSliceMontageEnabledInSelectedTab(m_newDesiredSampleToolButton)) {
+        AnnotationPolyhedron* linkedPolyhedron(NULL);
+        createNewSample(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                        linkedPolyhedron);
+    }
+}
+
+/**
+ * @return True if a volume slice montage is enabled in the selected tab
+ * @param parent
+ *    Parent widget for dialogs
+ */
+bool
+AnnotationSamplesInsertNewWidget::isVolumeSliceMontageEnabledInSelectedTab(QWidget* parent) const
+{
+    const BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
+    const BrowserTabContent* tabContent(bbw->getBrowserTabContent());
+    if (tabContent != NULL) {
+        FunctionResult result(tabContent->isVolumeSlicesMontageDisplayed());
+        if (result.isOk()) {
+            return true;
+        }
+        WuQMessageBoxTwo::critical(parent,
+                                   "Error",
+                                   result.getErrorMessage());
+    }
+    return false;
 }
 
 /**

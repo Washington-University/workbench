@@ -1160,6 +1160,32 @@ BrowserTabContent::isVolumeSlicesDisplayed() const
 }
 
 /**
+ * @return Function result indicating if a volume slices montage is
+ * displayed and if not what is displayed.
+ */
+FunctionResult
+BrowserTabContent::isVolumeSlicesMontageDisplayed() const
+{
+    AString msg;
+    if (isVolumeSlicesDisplayed()) {
+        switch (m_volumeSliceSettings->getSliceDrawingType()) {
+            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_MONTAGE:
+                break;
+            case VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE:
+                msg = ("Volume is displayed but montage view is not enabled in the selected tab: "
+                       + getTabName());
+                break;
+        }
+    }
+    else {
+        msg = ("Volume montage is not displayed in the selected tab: "
+               + getTabName());
+    }
+    return FunctionResult(msg,
+                          msg.isEmpty());
+}
+
+/**
  * @return  Is a MPR volume viewer displayed (OLD version)
  */
 bool

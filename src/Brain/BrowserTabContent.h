@@ -33,6 +33,7 @@
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "ClippingPlanePanningModeEnum.h"
 #include "EventListenerInterface.h"
+#include "FunctionResult.h"
 #include "HistologyCoordinate.h"
 #include "HistologySlice.h"
 #include "Matrix4x4.h"
@@ -234,6 +235,8 @@ namespace caret {
         bool isFlatSurfaceDisplayed() const;
         
         bool isVolumeSlicesDisplayed() const;
+        
+        FunctionResult isVolumeSlicesMontageDisplayed() const;
         
         bool isVolumeMprOldDisplayed() const;
         

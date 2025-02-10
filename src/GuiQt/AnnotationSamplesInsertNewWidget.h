@@ -97,6 +97,8 @@ namespace caret {
 
         std::vector<AnnotationPolyhedron*> getSelectedDesiredSamples();
         
+        bool isVolumeSliceMontageEnabledInSelectedTab(QWidget* parent) const;
+        
         std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox = NULL;
@@ -110,6 +112,8 @@ namespace caret {
         QToolButton* m_newActualSampleToolButton = NULL;
         
         QAction* m_newActualSampleAction = NULL;
+        
+        QToolButton* m_newDesiredSampleToolButton = NULL;
         
         QAction* m_newDesiredSampleAction = NULL;
         
