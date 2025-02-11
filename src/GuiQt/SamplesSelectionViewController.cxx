@@ -27,20 +27,25 @@
 #include <QLabel>
 #include <QVBoxLayout>
 
-#include "SamplesFile.h"
+#include "AnnotationPolyhedron.h"
+#include "AnnotationSamplesMetaDataDialog.h"
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "DisplayGroupAndTabItemViewController.h"
+#include "DisplayGroupAndTabItemTreeWidgetItem.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesSamples.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "SamplesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBoxTwo.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -226,9 +231,97 @@ SamplesSelectionViewController::createSelectionWidget(const AString& objectNameP
                                                                          m_browserWindowIndex,
                                                                          (objectNamePrefix + ":SampleSelection"),
                                                                          "Samples Selection");
+    std::vector<ContextSensitiveMenuItemsEnum::Enum> contextMenuItems;
+    contextMenuItems.push_back(ContextSensitiveMenuItemsEnum::INFORMATION);
+    contextMenuItems.push_back(ContextSensitiveMenuItemsEnum::EDIT_METADATA);
+    
+    m_selectionViewController->enableContextSensitiveMenu(contextMenuItems);
+    
+    QObject::connect(m_selectionViewController, &DisplayGroupAndTabItemViewController::contextMenuItemSelected,
+                     this, &SamplesSelectionViewController::contextMenuItemSelected);
+    
     return m_selectionViewController;
 }
 
+/**
+ * @return Polyhedrons stored in the tree widget items
+ * @param treeWidgetItems
+ *    The tree widget items
+ */
+std::vector<AnnotationPolyhedron*>
+SamplesSelectionViewController::getPolyhedronsFromTreeWidgetItems(QList<QTreeWidgetItem*>& treeWidgetItems) const
+{
+    std::vector<AnnotationPolyhedron*> polyhedronsOut;
+    
+    for (int32_t i = 0; i < treeWidgetItems.count(); i++) {
+        DisplayGroupAndTabItemTreeWidgetItem* dgtw(dynamic_cast<DisplayGroupAndTabItemTreeWidgetItem*>(treeWidgetItems.at(i)));
+        if (dgtw != NULL) {
+            DisplayGroupAndTabItemInterface* dgi(dgtw->getDisplayGroupAndTabItem());
+            if (dgi != NULL) {
+                Annotation* annotation(dynamic_cast<Annotation*>(dgi));
+                if (annotation != NULL) {
+                    AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
+                    if (polyhedron != NULL) {
+                        polyhedronsOut.push_back(polyhedron);
+                    }
+                }
+            }
+        }
+    }
+
+    return polyhedronsOut;
+}
+/**
+ * Called when an item is selected from the list of samples viewer
+ * @param itemsSelected
+ *    Items in samples viewer that were selected
+ * @param contextMenuItem
+ *    The context menu item selected from the menu
+ */
+void
+SamplesSelectionViewController::contextMenuItemSelected(QList<QTreeWidgetItem*>& itemsSelected,
+                                                        const ContextSensitiveMenuItemsEnum::Enum contextMenuItem)
+{
+    std::vector<AnnotationPolyhedron*> polyhedrons(getPolyhedronsFromTreeWidgetItems(itemsSelected));
+    
+    switch (contextMenuItem) {
+        case ContextSensitiveMenuItemsEnum::CUT:
+            break;
+        case ContextSensitiveMenuItemsEnum::COPY:
+            break;
+        case ContextSensitiveMenuItemsEnum::PASTE:
+            break;
+        case ContextSensitiveMenuItemsEnum::DELETE:
+            break;
+        case ContextSensitiveMenuItemsEnum::INFORMATION:
+            if (polyhedrons.size() == 1) {
+                const AString html(polyhedrons[0]->getPolyhedronInformationHtml());
+                WuQTextEditorDialog::runNonModal("Sample Information",
+                                                 html,
+                                                 WuQTextEditorDialog::TextMode::HTML,
+                                                 WuQTextEditorDialog::WrapMode::NO,
+                                                 m_selectionViewController);
+            }
+            else {
+                WuQMessageBoxTwo::criticalOk(this,
+                                             "Error",
+                                             "Only one item may be selected for Information");
+            }
+            break;
+        case ContextSensitiveMenuItemsEnum::EDIT_METADATA:
+            if (polyhedrons.size() == 1) {
+                AnnotationSamplesMetaDataDialog dialog(polyhedrons[0],
+                                                       this);
+                dialog.exec();
+            }
+            else {
+                WuQMessageBoxTwo::criticalOk(this,
+                                             "Error",
+                                             "Only one item may be selected for editing metadata");
+            }
+            break;
+    }
+}
 
 /**
  * Called when one of the checkboxes is clicked.

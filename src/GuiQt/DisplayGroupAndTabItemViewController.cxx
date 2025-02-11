@@ -23,6 +23,8 @@
 #include "DisplayGroupAndTabItemViewController.h"
 #undef __DISPLAY_GROUP_AND_TAB_ITEM_VIEW_CONTROLLER_DECLARE__
 
+#include <map>
+
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -266,6 +268,20 @@ DisplayGroupAndTabItemViewController::itemsWereSelected()
 }
 
 /**
+ * Set the items displayed in the context-sensitive (right-click) menu
+ * @param contextMenuItems
+ *    Items for display in the menu
+ */
+void
+DisplayGroupAndTabItemViewController::enableContextSensitiveMenu(const std::vector<ContextSensitiveMenuItemsEnum::Enum>& contextMenuItems)
+{
+    m_contextMenuItems.clear();
+    m_contextMenuItems.insert(contextMenuItems.begin(),
+                              contextMenuItems.end());
+}
+
+
+/**
  * Display a context sensitive (right-click) menu.
  *
  * @param pos
@@ -281,17 +297,39 @@ DisplayGroupAndTabItemViewController::displayContextMenu(const QPoint& pos)
     }
     
     QMenu menu(this);
-    QAction* onAction = menu.addAction("Turn all selected items ON");
-    menu.addAction("Turn all selected items OFF");
+    QAction* onAction(menu.addAction("Turn all selected items ON"));
+    QAction* offAction(menu.addAction("Turn all selected items OFF"));
+    
+    std::map<QAction*, ContextSensitiveMenuItemsEnum::Enum> menuActionEnumMap;
+    std::vector<ContextSensitiveMenuItemsEnum::Enum> allContextMenuEnums;
+    ContextSensitiveMenuItemsEnum::getAllEnums(allContextMenuEnums);
+    for (ContextSensitiveMenuItemsEnum::Enum menuEnum : allContextMenuEnums) {
+        if (m_contextMenuItems.find(menuEnum) != m_contextMenuItems.end()) {
+            QAction* action = menu.addAction(ContextSensitiveMenuItemsEnum::toGuiName(menuEnum));
+            menuActionEnumMap.insert(std::make_pair(action, menuEnum));
+        }
+    }
     
     QSignalBlocker blocker(m_treeWidget);
     QAction* selectedAction = menu.exec(m_treeWidget->mapToGlobal(pos));
-    if (selectedAction == NULL) {
-        return;
+    if (selectedAction == onAction) {
+        const bool newStatus(true);
+        setCheckedStatusOfSelectedItems(newStatus);
     }
-
-    const bool newStatus = (selectedAction == onAction);
-    setCheckedStatusOfSelectedItems(newStatus);
+    else if (selectedAction == offAction) {
+        const bool newStatus(false);
+        setCheckedStatusOfSelectedItems(newStatus);
+    }
+    else if (selectedAction != NULL) {
+        for (auto& actionEnum : menuActionEnumMap) {
+            if (actionEnum.first == selectedAction) {
+                const ContextSensitiveMenuItemsEnum::Enum itemEnum(actionEnum.second);
+                emit contextMenuItemSelected(itemsSelected,
+                                             itemEnum);
+                break;
+            }
+        }
+    }
 }
 
 /**

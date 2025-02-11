@@ -25,6 +25,7 @@
 
 #include <QWidget>
 
+#include "ContextSensitiveMenuItemsEnum.h"
 #include "DataFileTypeEnum.h"
 #include "DisplayGroupEnum.h"
 
@@ -52,6 +53,8 @@ namespace caret {
         
         virtual ~DisplayGroupAndTabItemViewController();
 
+        void enableContextSensitiveMenu(const std::vector<ContextSensitiveMenuItemsEnum::Enum>& contextMenuItems);
+        
         void updateContent(std::vector<DisplayGroupAndTabItemInterface*>& contentItemsIn,
                            const DisplayGroupEnum::Enum displayGroup,
                            const int32_t tabIndex,
@@ -59,6 +62,10 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    signals:
+        void contextMenuItemSelected(QList<QTreeWidgetItem*>& itemsSelected,
+                                     const ContextSensitiveMenuItemsEnum::Enum contextMenuItem);
+        
     private slots:
         void itemWasCollapsed(QTreeWidgetItem* item);
         
@@ -150,6 +157,7 @@ namespace caret {
         
         int32_t m_findItemsCurrentIndex = 0;
 
+        std::set<ContextSensitiveMenuItemsEnum::Enum> m_contextMenuItems;
         
         static std::set<DisplayGroupAndTabItemViewController*> s_allViewControllers;
         

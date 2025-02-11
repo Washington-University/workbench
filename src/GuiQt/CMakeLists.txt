@@ -426,6 +426,7 @@ CiftiParcelSelectionComboBox.h
 ClippingPlanesWidget.h
 ColorEditorWidget.h
 ConnectivityCorrelationSettingsMenu.h
+ContextSensitiveMenuItemsEnum.h
 CopyPaletteColorMappingToFilesDialog.h
 CursorDisplayScoped.h
 CursorEnum.h
@@ -776,6 +777,7 @@ CiftiParcelSelectionComboBox.cxx
 ClippingPlanesWidget.cxx
 ColorEditorWidget.cxx
 ConnectivityCorrelationSettingsMenu.cxx
+ContextSensitiveMenuItemsEnum.cxx
 CopyPaletteColorMappingToFilesDialog.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx

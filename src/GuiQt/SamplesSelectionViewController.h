@@ -25,13 +25,16 @@
 
 #include <QWidget>
 
+#include "ContextSensitiveMenuItemsEnum.h"
 #include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 #include "SceneableInterface.h"
 
 class QCheckBox;
+class QTreeWidgetItem;
 
 namespace caret {
+    class AnnotationPolyhedron;
     class DisplayGroupAndTabItemViewController;
     class DisplayGroupEnumComboBox;
     class SceneClassAssistant;
@@ -77,6 +80,9 @@ namespace caret {
         
         void displayGroupSelected(const DisplayGroupEnum::Enum);
         
+        void contextMenuItemSelected(QList<QTreeWidgetItem*>& itemsSelected,
+                                     const ContextSensitiveMenuItemsEnum::Enum contextMenuItem);
+        
     private:
         SamplesSelectionViewController(const SamplesSelectionViewController&);
 
@@ -87,6 +93,8 @@ namespace caret {
         void updateSampleSelections();
         
         void updateOtherSampleViewControllers();
+        
+        std::vector<AnnotationPolyhedron*> getPolyhedronsFromTreeWidgetItems(QList<QTreeWidgetItem*>& treeWidgetItems) const;
         
         SceneClassAssistant* m_sceneAssistant;
 
