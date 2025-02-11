@@ -487,6 +487,14 @@ AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
 bool
 AnnotationSamplesInsertNewWidget::isVolumeSliceMontageEnabledInSelectedTab(QWidget* parent) const
 {
+    /*
+     * Allow any tab selected, even if not volume slice montage?
+     */
+    const bool allowAnyTabFlag(true);
+    if (allowAnyTabFlag) {
+        return true;
+    }
+    
     const BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
     CaretAssert(bbw);
     const BrowserTabContent* tabContent(bbw->getBrowserTabContent());
