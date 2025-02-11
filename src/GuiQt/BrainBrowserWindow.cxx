@@ -3566,7 +3566,7 @@ BrainBrowserWindow::processDataFileOpen()
     
     if (fd.exec() == CaretFileDialog::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
-        if (selectedFiles.empty() == false) {            
+        if ( ! selectedFiles.empty()) {
             /*
              * Load the files.
              */
@@ -3585,9 +3585,59 @@ BrainBrowserWindow::processDataFileOpen()
                       "",
                       "");
             
+            std::vector<AString> sceneFileNames;
             for (auto name : filenamesVector) {
                 CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
                 prefs->addToRecentFilesAndOrDirectories(name);
+                
+                bool validFlag(false);
+                const DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::fromName(name,
+                                                                                     &validFlag));
+                if (validFlag) {
+                    if (dataFileType == DataFileTypeEnum::SCENE) {
+                        sceneFileNames.push_back(name);
+                    }
+                }
+            }
+            
+            if ( ! sceneFileNames.empty()) {
+                Brain* brain(GuiManager::get()->getBrain());
+                CaretAssert(brain);
+                const int32_t numSceneFiles(brain->getNumberOfSceneFiles());
+                if (numSceneFiles > 0) {
+                    SceneFile* sceneFile(NULL);
+                    /*
+                     * Find scene file by name
+                     */
+                    for (int32_t i = 0; i < numSceneFiles; i++) {
+                        sceneFile = brain->getSceneFileWithName(sceneFileNames[i]);
+                        if (sceneFile != NULL) {
+                            break;
+                        }
+                    }
+                    /*
+                     * If scene file not found by name, use last scene file
+                     * since it should be the most recently loaded scene file
+                     */
+                    if (sceneFile == NULL) {
+                        sceneFile = brain->getSceneFile(numSceneFiles - 1);
+                    }
+                    if (sceneFile != NULL) {
+                        const int32_t numScenes(sceneFile->getNumberOfScenes());
+                        if (numScenes > 0) {
+                            /*
+                             * Select the recently loaded scene file in the scene dialog
+                             */
+                            Scene* scene(sceneFile->getSceneAtIndex(0));
+                            CaretAssert(scene);
+                            const bool showSceneDialogFlag(false);
+                            GuiManager::get()->processShowSceneDialogAndScene(this,
+                                                                              sceneFile,
+                                                                              scene,
+                                                                              showSceneDialogFlag);
+                        }
+                    }
+                }
             }
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
