@@ -43,6 +43,7 @@
 #include "CaretFileDialog.h"
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretDataFileSelectionModel.h"
+#include "DataFileContentInformation.h"
 #include "DataFileException.h"
 #include "DisplayPropertiesSamples.h"
 #include "DrawingViewportContent.h"
@@ -62,6 +63,7 @@
 #include "SamplesFile.h"
 #include "WuQMessageBox.h"
 #include "WuQMessageBoxTwo.h"
+#include "WuQTextEditorDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -726,20 +728,43 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
     
     QMenu menu(this);
     
+    QAction* samplesFileInfoAction(NULL);
+    SamplesFile* samplesFile(getSelectedSamplesFile());
+    if (samplesFile != NULL) {
+        samplesFileInfoAction = menu.addAction("Show Samples File Information...");
+        menu.addSeparator();
+    }
+    
     std::vector<AnnotationPolyhedron*> polyhedrons(getAllPolyhedrons());
     for (AnnotationPolyhedron* ap : polyhedrons) {
-        menuActionSamples.emplace_back(menu.addAction(ap->getName()),
+        menuActionSamples.emplace_back(menu.addAction(ap->getName() + "..."),
                                        ap);
     }
     
     QAction* actionSelected(menu.exec(m_selectToolButton->mapToGlobal(QPoint(0, 0))));
     if (actionSelected != NULL) {
-        for (const auto& ap : menuActionSamples) {
-            if (ap.first == actionSelected) {
-                AnnotationSamplesMetaDataDialog dialog(ap.second,
-                                                       m_selectToolButton);
-                dialog.exec();
-                EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+        if (actionSelected == samplesFileInfoAction) {
+            DataFileContentInformation dataFileContentInformation;
+            const bool showMapInformationFlag(true);
+            dataFileContentInformation.setOptionFlag(DataFileContentInformation::OPTION_SHOW_MAP_INFORMATION,
+                                                     showMapInformationFlag);
+            CaretAssert(samplesFile);
+            samplesFile->addToDataFileContentInformation(dataFileContentInformation);
+            
+            WuQTextEditorDialog::runNonModal("File Information",
+                                             dataFileContentInformation.getInformationInString(),
+                                             WuQTextEditorDialog::TextMode::PLAIN,
+                                             WuQTextEditorDialog::WrapMode::NO,
+                                             this);
+        }
+        else {
+            for (const auto& ap : menuActionSamples) {
+                if (ap.first == actionSelected) {
+                    AnnotationSamplesMetaDataDialog dialog(ap.second,
+                                                           m_selectToolButton);
+                    dialog.exec();
+                    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+                }
             }
         }
     }
