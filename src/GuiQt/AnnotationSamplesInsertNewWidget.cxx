@@ -728,21 +728,7 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
     
     std::vector<AnnotationPolyhedron*> polyhedrons(getAllPolyhedrons());
     for (AnnotationPolyhedron* ap : polyhedrons) {
-        const AnnotationSampleMetaData* asmd(ap->getSampleMetaData());
-        CaretAssert(asmd);
-        AString sampleNumber(asmd->getSampleNumber());
-        if (sampleNumber.isEmpty()) {
-            sampleNumber = "No-Num";
-        }
-        AString sampleName(asmd->getSampleName());
-        if (sampleName.isEmpty()) {
-            sampleName = "No-Name";
-        }
-        const AString text(sampleNumber
-                           + " "
-                           + sampleName);
-        
-        menuActionSamples.emplace_back(menu.addAction(text),
+        menuActionSamples.emplace_back(menu.addAction(ap->getName()),
                                        ap);
     }
     
