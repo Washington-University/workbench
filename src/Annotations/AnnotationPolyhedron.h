@@ -163,6 +163,8 @@ namespace caret {
        
         virtual void clearModified() override;
                
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
+        
         AString getPolyhedronInformationHtml() const;
              
         AString getMetadataInformationHtml() const;

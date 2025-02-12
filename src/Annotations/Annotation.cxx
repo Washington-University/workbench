@@ -42,6 +42,7 @@
 #include "BrainConstants.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "DisplayGroupAndTabItemHelper.h"
 #include "GiftiMetaData.h"
 #include "MathFunctions.h"
@@ -2158,6 +2159,24 @@ Annotation::invalidateTextSubstitution()
     /* Nothing, override by AnnotationText */
 }
 
+/**
+ * Add information about the content of this instance.
+ *
+ * @param dataFileInformation
+ *     Will contain information about this instance.
+ */
+void
+Annotation::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
+{
+    dataFileInformation.addNameAndValue("Annotation Name", getName());
+    dataFileInformation.addNameAndValue("Type", AnnotationTypeEnum::toName(m_type));
+    dataFileInformation.addNameAndValue("Space", AnnotationCoordinateSpaceEnum::toGuiName(getCoordinateSpace()));
+    
+    const AnnotationText* textAnn = castToTextAnnotation();
+    if (textAnn != NULL) {
+        dataFileInformation.addNameAndValue("Text", textAnn->getText());
+    }
+}
 
 /**
  * @return Name of annotation.

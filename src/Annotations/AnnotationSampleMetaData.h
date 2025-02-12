@@ -31,6 +31,7 @@
 
 namespace caret {
     class AnnotationPolyhedron;
+    class DataFileContentInformation;
     class GiftiMetaData;
 
     class AnnotationSampleMetaData : public CaretObject {
@@ -261,6 +262,9 @@ namespace caret {
         
         void setFocusName(const int32_t focusIndex,
                           const AString& value);
+        
+        virtual void addToDataFileContentInformation(const AnnotationPolyhedron* polyhedron,
+                                                     DataFileContentInformation& dataFileInformation) const;
         
         AString toFormattedHtml(const AnnotationPolyhedron* polyhedron) const;
         

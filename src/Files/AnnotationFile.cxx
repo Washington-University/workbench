@@ -37,6 +37,7 @@
 #include "CaretAssert.h"
 #include "CaretColorEnum.h"
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "DataFileContentCopyMoveParameters.h"
 #include "DataFileException.h"
 #include "DisplayGroupAndTabItemHelper.h"
@@ -853,6 +854,13 @@ void
 AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation)
 {
     CaretDataFile::addToDataFileContentInformation(dataFileInformation);
+    
+    std::vector<Annotation*> annotations;
+    getAllAnnotations(annotations);
+    for (Annotation* ann : annotations) {
+        dataFileInformation.addNameAndValue("----", "----");
+        ann->addToDataFileContentInformation(dataFileInformation);
+    }
 }
 
 /**

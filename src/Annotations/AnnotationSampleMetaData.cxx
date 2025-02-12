@@ -26,6 +26,7 @@
 #include <QDate>
 
 #include "AnnotationPolyhedron.h"
+#include "DataFileContentInformation.h"
 #include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "HemisphereEnum.h"
@@ -1337,6 +1338,27 @@ AnnotationSampleMetaData::updateMetaDataWithNameChanges()
             m_metadata->set(SAMPLES_HEMISPHERE,
                 "right");
         }
+    }
+}
+
+/**
+ * Add information about the content of this instance.
+ *
+ * @param polyhedron
+ *    Polyhedron that owns this metadat
+ * @param dataFileInformation
+ *     Will contain information about this instance.
+ */
+void
+AnnotationSampleMetaData::addToDataFileContentInformation(const AnnotationPolyhedron* polyhedron,
+                                                          DataFileContentInformation& dataFileInformation) const
+{
+    std::vector<std::pair<AString, AString>> namesAndValues;
+    getAllMetaDataNamesAndValues(polyhedron,
+                                 namesAndValues);
+    
+    for (const auto& nv : namesAndValues) {
+        dataFileInformation.addNameAndValue(nv.first, nv.second);
     }
 }
 

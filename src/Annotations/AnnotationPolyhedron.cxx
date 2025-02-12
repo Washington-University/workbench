@@ -34,6 +34,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DataFileContentInformation.h"
 #include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
 #include "EventManager.h"
 #include "HtmlStringBuilder.h"
@@ -1116,6 +1117,94 @@ AnnotationPolyhedron::restoreSubClassDataFromScene(const SceneAttributes* sceneA
                                                   sceneClass);
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
+}
+
+/**
+ * Add information about the content of this instance.
+ *
+ * @param dataFileInformation
+ *     Will contain information about this instance.
+ */
+void
+AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const
+{
+    Annotation::addToDataFileContentInformation(dataFileInformation);
+
+    AString abcdText, pointOnPlaneXyzText;
+    if (m_planeOne.toAbcdAndPointXYZ(abcdText,
+                                     pointOnPlaneXyzText)) {
+        dataFileInformation.addNameAndValue("Plane One",
+                                    (abcdText +
+                                     + "  "
+                                     + pointOnPlaneXyzText));
+    }
+    else {
+        dataFileInformation.addNameAndValue("Plane One",
+                                            "Invalid");
+    }
+    
+    if (m_planeTwo.toAbcdAndPointXYZ(abcdText,
+                                     pointOnPlaneXyzText)) {
+        dataFileInformation.addNameAndValue("Plane Two",
+                                            (abcdText +
+                                             + "  "
+                                             + pointOnPlaneXyzText));
+    }
+    else {
+        dataFileInformation.addNameAndValue("Plane Two",
+                                            "Invalid");
+    }
+    
+    dataFileInformation.addNameAndValue("Plane One Text",
+                                        m_planeOneNameStereotaxicXYZ.toString(6));
+    dataFileInformation.addNameAndValue("Plane Two Text",
+                                        m_planeTwoNameStereotaxicXYZ.toString(6));
+    
+    const int32_t numCoords(getNumberOfCoordinates() / 2);
+    for (int32_t i = 0; i < numCoords; i++) {
+        const AnnotationCoordinate* acOne(getCoordinate(i));
+        const AnnotationCoordinate* acTwo(getCoordinate(i + numCoords));
+        dataFileInformation.addNameAndValue(("Coord " + AString::number(i + 1)),
+                                            (acOne->getXYZ().toString(6),
+                                             + "   "
+                                             + acTwo->getXYZ().toString(6)));
+    }
+    
+    dataFileInformation.addNameAndValue("Sample Type: ",
+                                        AnnotationPolyhedronTypeEnum::toGuiName(getPolyhedronType()));
+    
+    float endOnePolygonArea(0.0);
+    float endTwoPolygonArea(0.0);
+    float endToEndDistance(0.0);
+    float polyhedronVolume(0.0);
+    AString warningMessage;
+    AString errorMessage;
+    
+    if (computePolyhedronVolume(polyhedronVolume,
+                                endOnePolygonArea,
+                                endTwoPolygonArea,
+                                endToEndDistance,
+                                warningMessage,
+                                errorMessage)) {
+        dataFileInformation.addNameAndValue("Polyhedron Volume ",
+                                            AString::number(polyhedronVolume));
+        dataFileInformation.addNameAndValue("Polyhedron End One Area ",
+                                            AString::number(endOnePolygonArea));
+        dataFileInformation.addNameAndValue("Polyhedron End Two Area ",
+                                            AString::number(endTwoPolygonArea));
+        dataFileInformation.addNameAndValue("Distance Between Ends ",
+                                            AString::number(endToEndDistance));
+        if ( ! warningMessage.isEmpty()) {
+            dataFileInformation.addNameAndValue("Polyhedron Volume Warnings: ",
+                                                warningMessage);
+        }
+    }
+    else {
+        dataFileInformation.addNameAndValue("Polyhedron Volume Failed: "
+                                            ,errorMessage);
+    }
+    getSampleMetaData()->addToDataFileContentInformation(this,
+                                                         dataFileInformation);
 }
 
 /**

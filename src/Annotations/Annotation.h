@@ -52,6 +52,7 @@ namespace caret {
     class AnnotationSpatialModification;
     class AnnotationText;
     class AnnotationTwoCoordinateShape;
+    class DataFileContentInformation;
     class DisplayGroupAndTabItemHelper;
     class GiftiMetaData;
     class SceneClassAssistant;
@@ -254,6 +255,8 @@ namespace caret {
         
         virtual bool isModified() const override;
 
+        virtual void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation) const;
+        
         AnnotationGroupKey getAnnotationGroupKey() const;
         
         int32_t getUniqueKey() const;
