@@ -26,6 +26,7 @@
 #undef __DATA_FILE_CONTENT_INFORMATION_DECLARE__
 
 #include "CaretAssert.h"
+#include "HtmlTableBuilder.h"
 #include "Vector3D.h"
 
 using namespace caret;
@@ -88,7 +89,7 @@ DataFileContentInformation::addNameAndValue(const AString& name,
     if (name.indexNotOf(' ') >= 0) {
         colonChar = ':';
     }
-    
+
     m_namesAndValues.push_back(std::make_pair((name + colonChar),
                                               value));
 }
@@ -185,8 +186,38 @@ DataFileContentInformation::addNameAndValue(const AString& name,
 void
 DataFileContentInformation::addText(const AString& text)
 {
-    m_text.append(text);
+    m_namesAndValues.push_back(std::make_pair(s_TEXT_NAME_ID,
+                                              text));
 }
+
+/**
+ * @return The information formatted into a two column HTML table.
+ */
+AString
+DataFileContentInformation::getInformationInHtml() const
+{
+    HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
+                                  2);
+    
+    const int32_t numNamesAndValues = static_cast<int32_t>(m_namesAndValues.size());
+    if (numNamesAndValues > 0) {
+        for (int32_t i = 0; i < numNamesAndValues; i++) {
+            if (m_namesAndValues[i].first == s_TEXT_NAME_ID) {
+                tableBuilder.addRowAllColumns(m_namesAndValues[i].second);
+            }
+            else {
+                tableBuilder.addRow(m_namesAndValues[i].first,
+                                    m_namesAndValues[i].second);
+            }
+        }
+    }
+    
+    tableBuilder.addRow(m_text);
+    
+    AString textOut(tableBuilder.getAsHtmlTable());
+    return textOut;
+}
+
 
 /**
  * @return All of the information in a string.
@@ -210,8 +241,13 @@ DataFileContentInformation::getInformationInString() const
         
         for (int32_t i = 0; i < numNamesAndValues; i++) {
             AString label = m_namesAndValues[i].first;
-            textOut.appendWithNewLine(label.leftJustified(longestLabelLength)
-                                      + m_namesAndValues[i].second);
+            if (label == s_TEXT_NAME_ID) {
+                textOut.appendWithNewLine(m_namesAndValues[i].second);
+            }
+            else {
+                textOut.appendWithNewLine(label.leftJustified(longestLabelLength)
+                                          + m_namesAndValues[i].second);
+            }
         }
         
         textOut.append("\n");

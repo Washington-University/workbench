@@ -752,8 +752,8 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
             samplesFile->addToDataFileContentInformation(dataFileContentInformation);
             
             WuQTextEditorDialog::runNonModal("File Information",
-                                             dataFileContentInformation.getInformationInString(),
-                                             WuQTextEditorDialog::TextMode::PLAIN,
+                                             dataFileContentInformation.getInformationInHtml(),
+                                             WuQTextEditorDialog::TextMode::HTML,
                                              WuQTextEditorDialog::WrapMode::NO,
                                              this);
         }

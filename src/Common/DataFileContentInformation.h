@@ -79,6 +79,8 @@ namespace caret {
         
         AString getInformationInString() const;
         
+        AString getInformationInHtml() const;
+        
         bool isOptionFlag(const OptionFlag optionFlag) const;
         
         void setOptionFlag(const OptionFlag optionFlag,
@@ -100,12 +102,14 @@ namespace caret {
         
         std::map<OptionFlag, bool> m_optionFlags;
         
+        static const AString s_TEXT_NAME_ID;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __DATA_FILE_CONTENT_INFORMATION_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString DataFileContentInformation::s_TEXT_NAME_ID = "TEXTtextTEXT";
 #endif // __DATA_FILE_CONTENT_INFORMATION_DECLARE__
 
 } // namespace

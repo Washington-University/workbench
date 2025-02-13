@@ -2607,11 +2607,20 @@ SpecFileManagementDialog::showFileInformation(CaretDataFile* caretDataFile)
     
     caretDataFile->addToDataFileContentInformation(dataFileContentInformation);
     
-    WuQTextEditorDialog::runNonModal("File Information",
-                                     dataFileContentInformation.getInformationInString(),
-                                     WuQTextEditorDialog::TextMode::PLAIN,
-                                     WuQTextEditorDialog::WrapMode::NO,
-                                     this);
+    if (caretDataFile->getDataFileType() == DataFileTypeEnum::SAMPLES) {
+        WuQTextEditorDialog::runNonModal("File Information",
+                                         dataFileContentInformation.getInformationInHtml(),
+                                         WuQTextEditorDialog::TextMode::HTML,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         this);
+    }
+    else {
+        WuQTextEditorDialog::runNonModal("File Information",
+                                         dataFileContentInformation.getInformationInString(),
+                                         WuQTextEditorDialog::TextMode::PLAIN,
+                                         WuQTextEditorDialog::WrapMode::NO,
+                                         this);
+    }
 }
 
 /**

@@ -65,6 +65,8 @@ namespace caret {
                     const QString& textColFour  = "",
                     const QString& textColFive  = "");
         
+        void addRowAllColumns(const QString& textAllColumns);
+        
         QString getAsHtmlTable() const;
         
        // ADD_NEW_METHODS_HERE

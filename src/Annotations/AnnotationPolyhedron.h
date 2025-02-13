@@ -167,8 +167,6 @@ namespace caret {
         
         AString getPolyhedronInformationHtml() const;
              
-        AString getMetadataInformationHtml() const;
-               
         bool computePolyhedronVolume(float& volumeOut,
                                      float& endOneAreaOut,
                                      float& endTwoAreaOut,

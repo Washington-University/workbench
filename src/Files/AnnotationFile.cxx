@@ -858,7 +858,7 @@ AnnotationFile::addToDataFileContentInformation(DataFileContentInformation& data
     std::vector<Annotation*> annotations;
     getAllAnnotations(annotations);
     for (Annotation* ann : annotations) {
-        dataFileInformation.addNameAndValue("----", "----");
+        dataFileInformation.addText(" ");
         ann->addToDataFileContentInformation(dataFileInformation);
     }
 }

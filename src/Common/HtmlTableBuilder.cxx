@@ -202,6 +202,25 @@ HtmlTableBuilder::addRowPrivate(const QString& rowElementTag,
     m_tableRows.push_back(tr);
 }
 
+/**
+ * Add data spanning all columns into a table row
+ *
+ * @param textAllColumns
+ *   Data spanning all columns
+ */
+void 
+HtmlTableBuilder::addRowAllColumns(const QString& textAllColumns)
+{
+    QString text(textAllColumns);
+    text.replace("\n", "<br>");
+    
+    QString tr("<tr><td colspan="
+               + QString::number(m_numberOfColumns)
+               + ">");
+    tr.append(text);
+    tr.append("</td></tr>");
+    m_tableRows.push_back(tr);
+}
 
 /**
  * Add table data element to a row

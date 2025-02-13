@@ -1165,12 +1165,12 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
         const AnnotationCoordinate* acOne(getCoordinate(i));
         const AnnotationCoordinate* acTwo(getCoordinate(i + numCoords));
         dataFileInformation.addNameAndValue(("Coord " + AString::number(i + 1)),
-                                            (acOne->getXYZ().toString(6),
+                                            (acOne->getXYZ().toString(6)
                                              + "   "
                                              + acTwo->getXYZ().toString(6)));
     }
     
-    dataFileInformation.addNameAndValue("Sample Type: ",
+    dataFileInformation.addNameAndValue("Sample Type",
                                         AnnotationPolyhedronTypeEnum::toGuiName(getPolyhedronType()));
     
     float endOnePolygonArea(0.0);
@@ -1186,21 +1186,21 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
                                 endToEndDistance,
                                 warningMessage,
                                 errorMessage)) {
-        dataFileInformation.addNameAndValue("Polyhedron Volume ",
+        dataFileInformation.addNameAndValue("Polyhedron Volume",
                                             AString::number(polyhedronVolume));
-        dataFileInformation.addNameAndValue("Polyhedron End One Area ",
+        dataFileInformation.addNameAndValue("Polyhedron End One Area",
                                             AString::number(endOnePolygonArea));
-        dataFileInformation.addNameAndValue("Polyhedron End Two Area ",
+        dataFileInformation.addNameAndValue("Polyhedron End Two Area",
                                             AString::number(endTwoPolygonArea));
-        dataFileInformation.addNameAndValue("Distance Between Ends ",
+        dataFileInformation.addNameAndValue("Distance Between Ends",
                                             AString::number(endToEndDistance));
         if ( ! warningMessage.isEmpty()) {
-            dataFileInformation.addNameAndValue("Polyhedron Volume Warnings: ",
+            dataFileInformation.addNameAndValue("Polyhedron Volume Warnings",
                                                 warningMessage);
         }
     }
     else {
-        dataFileInformation.addNameAndValue("Polyhedron Volume Failed: "
+        dataFileInformation.addNameAndValue("Polyhedron Volume Failed"
                                             ,errorMessage);
     }
     getSampleMetaData()->addToDataFileContentInformation(this,
@@ -1213,106 +1213,10 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
 AString
 AnnotationPolyhedron::getPolyhedronInformationHtml() const
 {
-    const int32_t numberOfColumns(3);
-    HtmlTableBuilder tableBuilder(HtmlTableBuilder::V4_01,
-                                  numberOfColumns);
-    
-    AString abcdText, pointOnPlaneXyzText;
-    if (m_planeOne.toAbcdAndPointXYZ(abcdText,
-                                     pointOnPlaneXyzText)) {
-        tableBuilder.addRow("Plane One",
-                            abcdText,
-                            pointOnPlaneXyzText);
-    }
-    else {
-        tableBuilder.addRow("Plane One",
-                            "Invalid");
-    }
-
-    if (m_planeTwo.toAbcdAndPointXYZ(abcdText,
-                                     pointOnPlaneXyzText)) {
-        tableBuilder.addRow("Plane Two",
-                            abcdText,
-                            pointOnPlaneXyzText);
-    }
-    else {
-        tableBuilder.addRow("Plane Two",
-                            "Invalid");
-    }
-
-    tableBuilder.addRow("Plane One Text",
-                        m_planeOneNameStereotaxicXYZ.toString(6));
-    tableBuilder.addRow("Plane Two Text",
-                        m_planeTwoNameStereotaxicXYZ.toString(6));
-
-    const int32_t numCoords(getNumberOfCoordinates() / 2);
-    for (int32_t i = 0; i < numCoords; i++) {
-        const AnnotationCoordinate* acOne(getCoordinate(i));
-        const AnnotationCoordinate* acTwo(getCoordinate(i + numCoords));
-        tableBuilder.addRow("Coord " + AString::number(i + 1),
-                            acOne->getXYZ().toString(6),
-                            acTwo->getXYZ().toString(6));
-    }
-    
-    HtmlStringBuilder html;
-    
-    html.add(tableBuilder.getAsHtmlTable());
-    
-    html.add("Sample Type: " + AnnotationPolyhedronTypeEnum::toGuiName(getPolyhedronType()));
-    html.addLineBreak();
-    
-    html.add(getMetadataInformationHtml());
-    
-    float endOnePolygonArea(0.0);
-    float endTwoPolygonArea(0.0);
-    float endToEndDistance(0.0);
-    float polyhedronVolume(0.0);
-    AString warningMessage;
-    AString errorMessage;
-    
-    if (computePolyhedronVolume(polyhedronVolume,
-                                endOnePolygonArea,
-                                endTwoPolygonArea,
-                                endToEndDistance,
-                                warningMessage,
-                                errorMessage)) {
-        html.addLineBreak();
-        html.addLineBreak();
-        html.add("Polyhedron Volume "
-                 + AString::number(polyhedronVolume));
-        html.addLineBreak();
-        html.addLineBreak();
-        html.add("Polyhedron End One Area "
-                 + AString::number(endOnePolygonArea));
-        html.addLineBreak();
-        html.add("Polyhedron End Two Area "
-                 + AString::number(endTwoPolygonArea));
-        html.addLineBreak();
-        html.add("Distance Between Ends "
-                 + AString::number(endToEndDistance));
-        html.addLineBreak();
-        if ( ! warningMessage.isEmpty()) {
-            html.addLineBreak();
-            html.add("Polyhedron Volume Warnings: "
-                     + warningMessage);
-        }
-    }
-    else {
-        html.addLineBreak();
-        html.add("Polyhedron Volume Failed: "
-                 + errorMessage);
-    }
-    
-    return html.toStringWithHtmlBody();
-}
-
-/**
- * @return metadata for polyhedron in HTML format
- */
-AString
-AnnotationPolyhedron::getMetadataInformationHtml() const
-{
-    return getSampleMetaData()->toFormattedHtml(this);
+    DataFileContentInformation dfci;
+    addToDataFileContentInformation(dfci);
+    AString htmlOut(dfci.getInformationInHtml());
+    return htmlOut;
 }
 
 /**
