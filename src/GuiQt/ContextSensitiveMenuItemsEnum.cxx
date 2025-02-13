@@ -136,8 +136,8 @@ ContextSensitiveMenuItemsEnum::initialize()
                                     "PASTE", 
                                     "Paste"));
     
-    enumData.push_back(ContextSensitiveMenuItemsEnum(DELETE, 
-                                    "DELETE", 
+    enumData.push_back(ContextSensitiveMenuItemsEnum(DELETER,
+                                    "DELETER", 
                                     "Delete"));
     
     enumData.push_back(ContextSensitiveMenuItemsEnum(INFORMATION, 

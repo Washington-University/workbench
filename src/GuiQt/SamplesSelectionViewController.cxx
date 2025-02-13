@@ -291,7 +291,7 @@ SamplesSelectionViewController::contextMenuItemSelected(QList<QTreeWidgetItem*>&
             break;
         case ContextSensitiveMenuItemsEnum::PASTE:
             break;
-        case ContextSensitiveMenuItemsEnum::DELETE:
+        case ContextSensitiveMenuItemsEnum::DELETER:
             break;
         case ContextSensitiveMenuItemsEnum::INFORMATION:
             if (polyhedrons.size() == 1) {

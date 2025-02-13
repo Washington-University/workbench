@@ -41,8 +41,8 @@ public:
         COPY,
         /** Paste */
         PASTE,
-        /** Delete */
-        DELETE,
+        /** Delete  (DELETE is reserved word on Windows */
+        DELETER,
         /** Information */
         INFORMATION,
         /** Edit Metadata */
