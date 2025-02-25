@@ -20,6 +20,8 @@
 
 #include "OperationVolumeReorient.h"
 #include "OperationException.h"
+
+#include "CaretCommandGlobalOptions.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -107,5 +109,11 @@ void OperationVolumeReorient::useParameters(OperationParameters* myParams, Progr
         }
     }
     myVol->reorient(orient);
+    if (caret_global_command_options.m_volumeScale) //we aren't currently using an output volume parameter, but we should probably obey the datatype options...
+    {
+        myVol->setWritingDataTypeAndScaling(caret_global_command_options.m_volumeDType, caret_global_command_options.m_volumeMin, caret_global_command_options.m_volumeMax);
+    } else {
+        myVol->setWritingDataTypeNoScaling(caret_global_command_options.m_volumeDType);
+    }
     myVol->writeFile(outName);
 }

@@ -21,6 +21,7 @@
 #include "OperationVolumeSetSpace.h"
 #include "OperationException.h"
 
+#include "CaretCommandGlobalOptions.h"
 #include "FloatMatrix.h"
 #include "NiftiIO.h"
 #include "VolumeFile.h"
@@ -156,5 +157,11 @@ void OperationVolumeSetSpace::useParameters(OperationParameters* myParams, Progr
     }
     if (!haveSpace) throw OperationException("you must specify -plumb, -sform, or -file");
     orig->setVolumeSpace(newSform.getMatrix());
+    if (caret_global_command_options.m_volumeScale) //we aren't currently using an output volume parameter, but we should probably obey the datatype options...
+    {
+        orig->setWritingDataTypeAndScaling(caret_global_command_options.m_volumeDType, caret_global_command_options.m_volumeMin, caret_global_command_options.m_volumeMax);
+    } else {
+        orig->setWritingDataTypeNoScaling(caret_global_command_options.m_volumeDType);
+    }
     orig->writeFile(myParams->getString(2));
 }
