@@ -32,6 +32,9 @@
 #include "Vector3D.h"
 #include "VolumeFile.h"
 
+#include "AlgorithmMetricDilate.h"
+
+//for gaussian weighting
 #include "AlgorithmSurfaceToSurface3dDistance.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
 
@@ -69,11 +72,14 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
-    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(3, "-volume-roi", "use a volume roi");
-    roiVol->addVolumeParameter(1, "roi-volume", "the roi volume file");
-    roiVol->createOptionalParameter(2, "-weighted", "treat the roi values as weightings rather than binary");
-    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
-    ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
+    OptionalParameter* roiVolOpt = ribbonOpt->createOptionalParameter(3, "-volume-roi", "use a volume roi");
+    roiVolOpt->addVolumeParameter(1, "roi-volume", "the roi volume file");
+    roiVolOpt->createOptionalParameter(2, "-weighted", "treat the roi values as weightings rather than binary");
+    OptionalParameter* ribbonDilOpt = ribbonOpt->createOptionalParameter(11, "-dilate-missing", "use dilation for small vertices that 'missed' the geometry tests");
+    ribbonDilOpt->addDoubleParameter(1, "dist", "distance in mm for dilation (can be small, like 1mm)");
+    ribbonDilOpt->createOptionalParameter(2, "-nearest", "use nearest neighbor dilation (mainly useful for integer data)");
+    OptionalParameter* ribbonSubdivOpt = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
+    ribbonSubdivOpt->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     ribbonOpt->createOptionalParameter(7, "-thin-columns", "use non-overlapping polyhedra");
     OptionalParameter* gaussianOpt = ribbonOpt->createOptionalParameter(8, "-gaussian", "reduce weight to voxels that aren't near <surface>");
     gaussianOpt->addDoubleParameter(1, "scale", "value to multiply the local thickness by, to get the gaussian sigma");
@@ -81,11 +87,11 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ribbonInterpOpt->addStringParameter(1, "method", "interpolation method, must be CUBIC, ENCLOSING_VOXEL, or TRILINEAR");
     OptionalParameter* badVertOpt = ribbonOpt->createOptionalParameter(9, "-bad-vertices-out", "output an ROI of which vertices didn't intersect any valid voxels");
     badVertOpt->addMetricOutputParameter(1, "roi-out", "the output metric file of vertices that have no data");
-    OptionalParameter* ribbonWeights = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
-    ribbonWeights->addIntegerParameter(1, "vertex", "the vertex number to get the voxel weights for, 0-based");
-    ribbonWeights->addVolumeOutputParameter(2, "weights-out", "volume to write the weights to");
-    OptionalParameter* ribbonWeightsText = ribbonOpt->createOptionalParameter(6, "-output-weights-text", "write the voxel weights for all vertices to a text file");
-    ribbonWeightsText->addStringParameter(1, "text-out", "output - the output text filename");//fake the output formatting
+    OptionalParameter* ribbonWeightsOpt = ribbonOpt->createOptionalParameter(5, "-output-weights", "write the voxel weights for a vertex to a volume file");
+    ribbonWeightsOpt->addIntegerParameter(1, "vertex", "the vertex number to get the voxel weights for, 0-based");
+    ribbonWeightsOpt->addVolumeOutputParameter(2, "weights-out", "volume to write the weights to");
+    OptionalParameter* ribbonWeightsTextOpt = ribbonOpt->createOptionalParameter(6, "-output-weights-text", "write the voxel weights for all vertices to a text file");
+    ribbonWeightsTextOpt->addStringParameter(1, "text-out", "output - the output text filename");//fake the output formatting
     
     OptionalParameter* myelinStyleOpt = ret->createOptionalParameter(9, "-myelin-style", "use the method from myelin mapping");
     myelinStyleOpt->addVolumeParameter(1, "ribbon-roi", "an roi volume of the cortical ribbon for this hemisphere");
@@ -93,8 +99,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     myelinStyleOpt->addDoubleParameter(3, "sigma", "gaussian kernel in mm for weighting voxels within range");
     myelinStyleOpt->createOptionalParameter(4, "-legacy-bug", "emulate old v1.2.3 and earlier code that didn't follow a cylinder cutoff");
     
-    OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
-    subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
+    OptionalParameter* subvolumeSelectOpt = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
+    subvolumeSelectOpt->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
         AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the vertex lies inside, while trilinear does a 3D ") + 
@@ -212,6 +218,18 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 myRoiVol = roiVol->getVolume(1);
                 weightedRoi = roiVol->getOptionalParameter(2)->m_present;
             }
+            float dilate = -1.0f;
+            bool dilateNearest = false;
+            OptionalParameter* ribbonDilOpt = ribbonOpt->getOptionalParameter(11);
+            if (ribbonDilOpt->m_present)
+            {
+                dilate = float(ribbonDilOpt->getDouble(1));
+                if (!(dilate >= 0.0f))
+                {
+                    throw AlgorithmException("dilate distance must not be negative or NaN");
+                }
+                dilateNearest = ribbonDilOpt->getOptionalParameter(2)->m_present;
+            }
             int32_t subdivisions = 3;
             OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(4);
             if (ribbonSubdiv->m_present)
@@ -269,10 +287,10 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                     throw AlgorithmException("-output-weights options are incompatible with -interpolate");
                 }
                 AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, volInterpMethod, myRoiVol, weightedRoi, subdivisions, thinColumns,
-                                                mySubVol, gaussScale, badVertices);
+                                                mySubVol, gaussScale, badVertices, dilate, dilateNearest);
             } else {
                 AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, innerSurf, outerSurf, myRoiVol, weightedRoi, subdivisions, thinColumns,
-                                                mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut);
+                                                mySubVol, gaussScale, badVertices, weightsOutVertex, weightsOut, dilate, dilateNearest);
             }
             if (ribbonWeightsText->m_present)
             {//do this after the algorithm, to let it do the error condition checking
@@ -410,7 +428,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                                                  const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile* roiVol, const bool roiWeights,
                                                                  const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices,
-                                                                 const int& weightsOutVertex, VolumeFile* weightsOut) : AbstractAlgorithm(myProgObj)
+                                                                 const int& weightsOutVertex, VolumeFile* weightsOut, float dilateDist, bool dilateNearest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -427,15 +445,29 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
         numColumns = myVolDims[4];
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
-    myMetricOut->setStructure(mySurface->getStructure());
+    MetricFile rawMappingTemp;
+    MetricFile* rawMapping = myMetricOut;
+    if (dilateDist >= 0.0f)
+    {
+        rawMapping = &rawMappingTemp;
+    }
+    rawMapping->setNumberOfNodesAndColumns(numNodes, numColumns);
+    rawMapping->setStructure(mySurface->getStructure());
+    AlgorithmMetricDilate::Method dilMethod = AlgorithmMetricDilate::WEIGHTED;
+    if (dilateNearest)
+    {
+        dilMethod = AlgorithmMetricDilate::AlgorithmMetricDilate::NEAREST;
+    }
     vector<float> badVertScratch;
+    MetricFile badVertTemp; //we will need a metric file if we do the dilate step, so always make a metric file
+    MetricFile* badVertCompute = &badVertTemp;
     if (badVertices != NULL)
     {
-        badVertices->setNumberOfNodesAndColumns(numNodes, 1);
-        badVertices->setStructure(mySurface->getStructure());
-        badVertScratch.resize(numNodes, 0.0f);
+        badVertCompute = badVertices;
     }
+    badVertCompute->setNumberOfNodesAndColumns(numNodes, 1);
+    badVertCompute->setStructure(mySurface->getStructure());
+    badVertScratch.resize(numNodes, 0.0f);
     if (!mySurface->hasNodeCorrespondence(*outerSurf) || !mySurface->hasNodeCorrespondence(*innerSurf))
     {
         throw AlgorithmException("all surfaces must have vertex correspondence");
@@ -480,7 +512,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                     metricLabel += " component " + AString::number(j);
                 }
                 metricLabel += " ribbon constrained";
-                myMetricOut->setColumnName(thisCol, metricLabel);
+                rawMapping->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PARFOR schedule(dynamic)
                 for (int64_t node = 0; node < numNodes; ++node)
                 {
@@ -498,13 +530,13 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         myScratch[node] /= totalWeight;
                     } else {
                         myScratch[node] = 0.0f;
-                        if (thisCol == 0 && badVertices != NULL)
+                        if (thisCol == 0)
                         {
                             badVertScratch[node] = 1.0f;
                         }
                     }
                 }
-                myMetricOut->setValuesForColumn(thisCol, myScratch);
+                rawMapping->setValuesForColumn(thisCol, myScratch);
             }
         }
     } else {
@@ -517,7 +549,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             }
             metricLabel += " ribbon constrained";
             int64_t thisCol = j;
-            myMetricOut->setColumnName(thisCol, metricLabel);
+            rawMapping->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PARFOR schedule(dynamic)
             for (int64_t node = 0; node < numNodes; ++node)
             {
@@ -535,25 +567,25 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         myScratch[node] /= totalWeight;
                     } else {
                         myScratch[node] = 0.0f;
-                        if (badVertices != NULL)
-                        {
-                            badVertScratch[node] = 1.0f;
-                        }
+                        badVertScratch[node] = 1.0f;
                     }
             }
-            myMetricOut->setValuesForColumn(thisCol, myScratch);
+            rawMapping->setValuesForColumn(thisCol, myScratch);
         }
     }
-    if (badVertices != NULL)
+    badVertCompute->setValuesForColumn(0, badVertScratch.data());
+    if (dilateDist >= 0.0f)
     {
-        badVertices->setValuesForColumn(0, badVertScratch.data());
+        CaretAssert(rawMapping != myMetricOut);
+        AlgorithmMetricDilate(NULL, rawMapping, mySurface, dilateDist, myMetricOut, badVertCompute, NULL, -1, dilMethod);
     }
 }
 
 //interpolation ribbon mapping
 AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                                                  const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType, const VolumeFile* roiVol, const bool roiWeights,
-                                                                 const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale, MetricFile* badVertices) : AbstractAlgorithm(myProgObj)
+                                                                 const int32_t& subdivisions, const bool& thinColumns, const int64_t& mySubVol, const float& gaussScale,
+                                                                 MetricFile* badVertices, float dilateDist, bool dilateNearest) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -578,15 +610,29 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     }
     int64_t numColumns = (endVol - startVol) * myVolDims[4];
     int64_t numNodes = mySurface->getNumberOfNodes();
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
-    myMetricOut->setStructure(mySurface->getStructure());
+    MetricFile rawMappingTemp;
+    MetricFile* rawMapping = myMetricOut;
+    if (dilateDist >= 0.0f)
+    {
+        rawMapping = &rawMappingTemp;
+    }
+    rawMapping->setNumberOfNodesAndColumns(numNodes, numColumns);
+    rawMapping->setStructure(mySurface->getStructure());
+    AlgorithmMetricDilate::Method dilMethod = AlgorithmMetricDilate::WEIGHTED;
+    if (dilateNearest)
+    {
+        dilMethod = AlgorithmMetricDilate::AlgorithmMetricDilate::NEAREST;
+    }
     vector<float> badVertScratch, myScratchArray(numNodes);
+    MetricFile badVertTemp; //we will need a metric file if we do the dilate step, so always make a metric file
+    MetricFile* badVertCompute = &badVertTemp;
     if (badVertices != NULL)
     {
-        badVertices->setNumberOfNodesAndColumns(numNodes, 1);
-        badVertices->setStructure(mySurface->getStructure());
-        badVertScratch.resize(numNodes, 0.0f);
+        badVertCompute = badVertices;
     }
+    badVertCompute->setNumberOfNodesAndColumns(numNodes, 1);
+    badVertCompute->setStructure(mySurface->getStructure());
+    badVertScratch.resize(numNodes, 0.0f);
     const float* roiFrame = NULL;
     if (roiVol != NULL) roiFrame = roiVol->getFrame();
     vector<vector<PointWeight> > pointList = RibbonMappingHelper::computePointsRibbon(myVolume->getVolumeSpace(), innerSurf, outerSurf, roiFrame, subdivisions, thinColumns);
@@ -616,7 +662,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             {
                 metricLabel += " component " + AString::number(j);
             }
-            myMetricOut->setColumnName(thisCol, metricLabel);
+            rawMapping->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PAR
             {
                 CaretPointer<SignedDistanceHelper> distHelp;
@@ -651,23 +697,22 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         myScratchArray[node] = accum / weightAccum;
                     } else {
                         myScratchArray[node] = 0.0f;
-                        if (badVertices != NULL)
-                        {
-                            badVertScratch[node] = 1.0f;
-                        }
+                        badVertScratch[node] = 1.0f;
                     }
                 }
             }
-            myMetricOut->setValuesForColumn(thisCol, myScratchArray.data());
+            rawMapping->setValuesForColumn(thisCol, myScratchArray.data());
             if (interpType == VolumeFile::CUBIC)
             {
                 myVolume->freeSpline(i, j);//release memory we no longer need, if we allocated it
             }
         }
     }
-    if (badVertices != NULL)
+    badVertCompute->setValuesForColumn(0, badVertScratch.data());
+    if (dilateDist >= 0.0f)
     {
-        badVertices->setValuesForColumn(0, badVertScratch.data());
+        CaretAssert(rawMapping != myMetricOut);
+        AlgorithmMetricDilate(NULL, rawMapping, mySurface, dilateDist, myMetricOut, badVertCompute, NULL, -1, dilMethod);
     }
 }
 

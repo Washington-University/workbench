@@ -21,11 +21,15 @@
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
 #include "AlgorithmException.h"
 
+#include "CaretAssert.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
+#include "MetricFile.h"
 #include "RibbonMappingHelper.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
+
+#include "AlgorithmLabelDilate.h"
 
 #include <cmath>
 #include <map>
@@ -57,6 +61,8 @@ OperationParameters* AlgorithmVolumeLabelToSurfaceMapping::getParameters()
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(3, "-volume-roi", "use a volume roi");
     roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
+    OptionalParameter* ribbonDilOpt = ribbonOpt->createOptionalParameter(6, "-dilate-missing", "use dilation for small vertices that 'missed' the geometry tests");
+    ribbonDilOpt->addDoubleParameter(1, "dist", "distance in mm for dilation (can be small, like 1mm)");
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(4, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     ribbonOpt->createOptionalParameter(5, "-thin-columns", "use non-overlapping polyhedra");
@@ -115,12 +121,23 @@ void AlgorithmVolumeLabelToSurfaceMapping::useParameters(OperationParameters* my
             }
         }
         bool thinColumns = ribbonOpt->getOptionalParameter(5)->m_present;
-        AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns, mySubVol);
+        float dilateDist = -1.0f;
+        OptionalParameter* dilOpt = ribbonOpt->getOptionalParameter(6);
+        if (dilOpt->m_present)
+        {
+            dilateDist = float(dilOpt->getDouble(1));
+            if (!(dilateDist >= 0.0f))
+            {
+                throw AlgorithmException("dilate distance must not be negative or NaN");
+            }
+        }
+        AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, innerSurf, outerSurf, myRoiVol, subdivisions, thinColumns, mySubVol, dilateDist);
     } else {
         AlgorithmVolumeLabelToSurfaceMapping(myProgObj, myVolume, mySurface, myLabelOut, mySubVol);
     }
 }
 
+//enclosing
 AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface,
                                                                            LabelFile* myLabelOut, const int64_t& mySubVol) : AbstractAlgorithm(myProgObj)
 {
@@ -198,10 +215,11 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
     }
 }
 
+//ribbon
 AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, LabelFile* myLabelOut,
                                                                            const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
                                                                            const VolumeFile* myRoiVol, const int32_t& subdivisions, const bool& thinColumns,
-                                                                           const int64_t& mySubVol): AbstractAlgorithm(myProgObj)
+                                                                           const int64_t& mySubVol, const float dilateDist): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (myVolume->getType() != SubvolumeAttributes::LABEL)
@@ -223,9 +241,16 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
         numColumns = 1;
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
-    myLabelOut->setNumberOfNodesAndColumns(numNodes, numColumns);
-    myLabelOut->setStructure(mySurface->getStructure());
+    LabelFile outScratch;
+    LabelFile* rawMapping = myLabelOut;
+    if (dilateDist >= 0.0f)
+    {
+        rawMapping = &outScratch;
+    }
+    rawMapping->setNumberOfNodesAndColumns(numNodes, numColumns);
+    rawMapping->setStructure(mySurface->getStructure());
     vector<int32_t> myArray(numNodes);
+    vector<float> badVerts(numNodes, 0.0f);
     vector<vector<VoxelWeight> > myWeights;
     const float* roiFrame = NULL;
     if (myRoiVol != NULL) roiFrame = myRoiVol->getFrame();
@@ -246,7 +271,7 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                 }
                 frameRemap = cumulativeTable.append(*tempTable);
             }
-            myLabelOut->setColumnName(i, myVolume->getMapName(i));
+            rawMapping->setColumnName(i, myVolume->getMapName(i));
 #pragma omp CARET_PARFOR
             for (int64_t node = 0; node < numNodes; ++node)
             {
@@ -273,6 +298,10 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                         bestSum = iter->second;
                     }
                 }
+                if (i == 0 && weightRef.empty())
+                {
+                    badVerts[node] = 1.0f;
+                }
                 map<int32_t, int32_t>::iterator iter = frameRemap.find(tempKey);
                 if (iter != frameRemap.end())
                 {
@@ -281,9 +310,9 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                     myArray[node] = tempKey;//for simplicity, assume all values in the frame are in the label table
                 }
             }
-            myLabelOut->setLabelKeysForColumn(i, myArray.data());
+            rawMapping->setLabelKeysForColumn(i, myArray.data());
         }
-        *(myLabelOut->getLabelTable()) = cumulativeTable;
+        *(rawMapping->getLabelTable()) = cumulativeTable;
     } else {
         const GiftiLabelTable* tempTable = myVolume->getMapLabelTable(mySubVol);
         int unlabeledKey = tempTable->getUnassignedLabelKey();
@@ -291,8 +320,8 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
         {
             throw AlgorithmException("specified subvolume is missing a label table");
         }
-        *(myLabelOut->getLabelTable()) = *tempTable;
-        myLabelOut->setColumnName(0, myVolume->getMapName(mySubVol));
+        *(rawMapping->getLabelTable()) = *tempTable;
+        rawMapping->setColumnName(0, myVolume->getMapName(mySubVol));
 #pragma omp CARET_PARFOR
         for (int64_t node = 0; node < numNodes; ++node)
         {//for simplicity, assume all values in the volume file are in the label table
@@ -319,9 +348,21 @@ AlgorithmVolumeLabelToSurfaceMapping::AlgorithmVolumeLabelToSurfaceMapping(Progr
                     bestSum = iter->second;
                 }
             }
+            if (weightRef.empty())
+            {
+                badVerts[node] = 1.0f;
+            }
             myArray[node] = tempKey;//for simplicity, assume all values in the frame are in the label table
         }
-        myLabelOut->setLabelKeysForColumn(0, myArray.data());
+        rawMapping->setLabelKeysForColumn(0, myArray.data());
+    }
+    if (dilateDist >= 0.0f)
+    {
+        CaretAssert(rawMapping != myLabelOut);
+        MetricFile badVertsMetric;
+        badVertsMetric.setNumberOfNodesAndColumns(numNodes, 1);
+        badVertsMetric.setValuesForColumn(0, badVerts.data());
+        AlgorithmLabelDilate(NULL, rawMapping, mySurface, dilateDist, myLabelOut, &badVertsMetric);
     }
 }
 

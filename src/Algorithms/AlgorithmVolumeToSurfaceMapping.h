@@ -50,17 +50,21 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
+        //interpolation
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut, const VolumeFile::InterpType& myMethod,
                                         const int64_t& mySubVol = -1);
+        //ribbon
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                         const SurfaceFile* innerSurf, const SurfaceFile* outerSurf,
                                         const VolumeFile* roiVol = NULL, const bool roiWeights = false, const int32_t& subdivisions = 3, const bool& thinColumns = false,
                                         const int64_t& mySubVol = -1, const float& gaussScale = -1.0f, MetricFile* badVertices = NULL,
-                                        const int& weightsOutVertex = -1, VolumeFile* weightsOut = NULL);
+                                        const int& weightsOutVertex = -1, VolumeFile* weightsOut = NULL, float dilateDist = -1.0f, bool dilateNearest = false);
+        //interpolated ribbon
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                         const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const VolumeFile::InterpType interpType,
                                         const VolumeFile* roiVol = NULL, const bool roiWeights = false, const int32_t& subdivisions = 3, const bool& thinColumns = false,
-                                        const int64_t& mySubVol = -1, const float& gaussScale = -1.0f, MetricFile* badVertices = NULL);
+                                        const int64_t& mySubVol = -1, const float& gaussScale = -1.0f, MetricFile* badVertices = NULL, float dilateDist = -1.0f, bool dilateNearest = false);
+        //myelin-style
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, const VolumeFile* myVolume, const SurfaceFile* mySurface, MetricFile* myMetricOut,
                                         const VolumeFile* roiVol, const MetricFile* thickness, const float& sigma, const int64_t& mySubVol = -1, const bool& oldCutoffBug = false);
         static OperationParameters* getParameters();
