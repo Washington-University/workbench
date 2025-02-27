@@ -176,6 +176,12 @@ Focus::copyHelperFocus(const Focus& focus)
     }
     
     setNameOrClassModified(); // new name/class so modified
+    if (focus.isNameRgbaValid()) {
+        setNameRgba(focus.m_nameRgbaColor);
+    }
+    if (focus.isClassRgbaValid()) {
+        setClassRgba(focus.m_classRgbaColor);
+    }
 }
 
 /**

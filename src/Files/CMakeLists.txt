@@ -26,6 +26,7 @@ IF(WORKBENCH_USE_CMAKE_AUTOMOC)
     SET(CMAKE_AUTOMOC ON)
 ELSE()
     SET(MOC_INPUT_HEADER_FILES
+        DataFileEditorModel.h
         LabelSelectionItemModel.h
     )
 
@@ -112,6 +113,8 @@ CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 DataFileColorModulateSelector.h
+DataFileEditorItem.h
+DataFileEditorModel.h
 DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
@@ -297,6 +300,8 @@ CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 DataFileColorModulateSelector.cxx
+DataFileEditorItem.cxx
+DataFileEditorModel.cxx
 DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx

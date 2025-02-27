@@ -22,10 +22,12 @@
 /*LICENSE_END*/
 
 #include "CaretDataFile.h"
+#include "FunctionResult.h"
 #include "GroupAndNameHierarchyUserInterface.h"
 
 namespace caret {
 
+    class DataFileEditorModel;
     class GroupAndNameHierarchyModel;
     class Focus;
     class GiftiLabelTable;
@@ -72,6 +74,8 @@ namespace caret {
         
         void addFocus(Focus* focus);
         
+        void addFocusUseColorsFromFocus(Focus* focus);
+        
         Focus* getFocus(const int32_t indx);
         
         const Focus* getFocus(const int32_t indx) const;
@@ -106,6 +110,10 @@ namespace caret {
         
         static AString getFileVersionAsString();
         
+        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
+        
+        FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
+        
         /** XML Tag for foci file */
         static const AString XML_TAG_FOCI_FILE;
         
@@ -122,6 +130,8 @@ namespace caret {
         void copyHelperFociFile(const FociFile& obj);
         
         void initializeFociFile();
+        
+        void clearFoci();
         
         GiftiMetaData* m_metadata;
         

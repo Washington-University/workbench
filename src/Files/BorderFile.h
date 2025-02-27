@@ -25,6 +25,7 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DisplayGroupEnum.h"
+#include "FunctionResult.h"
 #include "GroupAndNameHierarchyUserInterface.h"
 
 #include <map>
@@ -37,6 +38,7 @@ namespace caret {
 
     class Border;
     class BorderPointFromSearch;
+    class DataFileEditorModel;
     class GroupAndNameHierarchyModel;
     class GiftiLabel;
     class GiftiLabelTable;
@@ -133,6 +135,8 @@ namespace caret {
         
         void addBorder(Border* border);
         
+        void addBorderUseColorsFromBorder(Border* border);
+        
         void removeBorder(const int32_t indx);
         
         void removeBorder(Border* border);
@@ -183,6 +187,11 @@ namespace caret {
         
         AString getObsoleteMultiStructureFormatMessage();
         
+        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
+        
+        FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
+        
+
         /** XML Tag for BorderFile element */
         static const AString XML_TAG_BORDER_FILE;
         
@@ -208,6 +217,8 @@ namespace caret {
         void copyHelperBorderFile(const BorderFile& obj);
         
         void initializeBorderFile();
+        
+        void clearBorders();
         
         bool canWriteAsVersion(const int& version) const;
         

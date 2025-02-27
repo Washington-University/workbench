@@ -32,6 +32,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
+#include "DataFileEditorItem.h"
+#include "DataFileEditorModel.h"
 #include "DataFileException.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "FileAdapter.h"
@@ -41,6 +43,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceProjectedItem.h"
+#include "Vector3D.h"
 #include "XmlAttributes.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -206,10 +209,20 @@ void
 FociFile::clear()
 {
     CaretDataFile::clear();
+    m_metadata->clear();
+    clearFoci();
+}
+
+/**
+ * Clear foci only
+ */
+void
+FociFile::clearFoci()
+{
     m_classNameHierarchy->clear();
+    m_forceUpdateOfGroupAndNameHierarchy = true;
     m_classColorTable->clear();
     m_nameColorTable->clear();
-    m_metadata->clear();
     const int32_t numFoci = getNumberOfFoci();
     for (int32_t i = 0; i < numFoci; i++) {
         delete m_foci[i];
@@ -286,6 +299,57 @@ FociFile::addFocus(Focus* focus)
     m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
+
+/**
+ * Add a focus and if th focus' name or class colors are not in the respecitive
+ * color tables, add them to the color table.
+ *
+ * NOTE: This focus file
+ * takes ownership of the 'focus' and
+ * will handle deleting it.  After calling
+ * this method, the caller must never
+ * do anything with the focus that was passed
+ * to this method.
+ *
+ * @param focus
+ *    Focus added to this focus file.
+ */
+void
+FociFile::addFocusUseColorsFromFocus(Focus* focus)
+{
+    m_foci.push_back(focus);
+    const AString name = focus->getName();
+    if (name.isEmpty() == false) {
+        const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
+        if (nameColorKey < 0) {
+            if (focus->isNameRgbaValid()) {
+                float rgba[4];
+                focus->getNameRgba(rgba);
+                m_nameColorTable->addLabel(name, rgba[0], rgba[1], rgba[2], 1.0f);
+            }
+            else {
+                m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
+    }
+    AString className = focus->getClassName();
+    if (className.isEmpty() == false) {
+        const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
+        if (classColorKey < 0) {
+            if (focus->isClassRgbaValid()) {
+                float rgba[4];
+                focus->getClassRgba(rgba);
+                m_classColorTable->addLabel(name, rgba[0], rgba[1], rgba[2], 1.0f);
+            }
+            else {
+                m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
+            }
+        }
+    }
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    setModified();
+}
+
 
 /**
  * Remove the focus at the given index.
@@ -822,3 +886,157 @@ FociFile::getAllClassesForFociWithName(const AString& focusName) const
     std::vector<AString> namesOut(names.begin(), names.end());
     return namesOut;
 }
+
+/**
+ * Export the content of a foci file to a DataFileEditorModel
+ * @return The DataFileEditorModel containing foci data.
+ * Caller takes ownership of returned model.
+ */
+FunctionResultValue<DataFileEditorModel*>
+FociFile::exportToDataFileEditorModel() const
+{
+    const int32_t numFoci(getNumberOfFoci());
+    if (numFoci <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         ("There are no foci to export from "
+                                                          + getFileNameNoPath()),
+                                                         false);
+    }
+
+    DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
+    dataFileEditorModel->setColumnCount(3);
+    
+    /*
+     * Titles for columns
+     */
+    QList<QString> columnTitles;
+    columnTitles << "Name" << "Class" << "XYZ";
+    dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
+    
+    const GiftiLabelTable* classColorTable(getClassColorTable());
+    const GiftiLabelTable* nameColorTable(getNameColorTable());
+    
+    for (int32_t i = 0; i < numFoci; i++) {
+        const Focus* focus(getFocus(i));
+        
+        /*
+         * For Focus Name
+         */
+        float nameRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        const GiftiLabel* nameLabel(nameColorTable->getLabelBestMatching(focus->getName()));
+        if (nameLabel != NULL) {
+            nameLabel->getColor(nameRGBA);
+        }
+        
+        /*
+         * For Focus Class
+         */
+        float classRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        const GiftiLabel* classLabel(classColorTable->getLabelBestMatching(focus->getClassName()));
+        if (classLabel != NULL) {
+            classLabel->getColor(classRGBA);
+        }
+        
+        /*
+         * For Focus XYZ
+         */
+        AString xyzText;
+        const int32_t numProj(focus->getNumberOfProjections());
+        for (int32_t i = 0; i < numProj; i++) {
+            const SurfaceProjectedItem* spi = focus->getProjection(i);
+            CaretAssert(spi);
+            Vector3D xyz;
+            spi->getStereotaxicXYZ(xyz);
+            xyzText = xyz.toString();
+            break;
+        }
+        
+        /*
+         * All items in row represent the same focus
+         */
+        std::shared_ptr<Focus> focusShared(new Focus(*focus));
+        
+        /*
+         * Set colors for focus so that they are available
+         * when and if the focus is copied
+         */
+        focusShared->setNameRgba(nameRGBA);
+        focusShared->setClassRgba(classRGBA);
+        
+        /*
+         * Create a row and add it to model
+         */
+        QList<QStandardItem*> rowItems;
+        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::NAME,
+                                                  focusShared,
+                                                  focus->getName(),
+                                                  nameRGBA));
+        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::CLASS,
+                                                  focusShared,
+                                                  focus->getClassName(),
+                                                  classRGBA));
+        
+        float xyzRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
+                                                  focusShared,
+                                                  xyzText,
+                                                  xyzRGBA));
+        dataFileEditorModel->appendRow(rowItems);
+    }
+
+    return  FunctionResultValue<DataFileEditorModel*>(dataFileEditorModel,
+                                                      "",
+                                                      true);
+}
+
+/**
+ * Import foci data from the given DataFileEditorModel
+ * Replaces content of this instance.
+ * @param dataFileEditorModel
+ *    Model that contains foci data
+ * @return
+ *    Function result indicating success or failure
+ */
+FunctionResult
+FociFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel)
+{
+    AString errorMessage;
+    std::vector<const Focus*> newFoci;
+    
+    const int32_t numRows(dataFileEditorModel.rowCount());
+    for (int32_t iRow = 0; iRow < numRows; iRow++) {
+        const int32_t column(0);
+        const DataFileEditorItem* item(dataFileEditorModel.getDataFileItemAtRowColumn(iRow, column));
+        if (item != NULL) {
+            const Focus* focus(item->getFocus());
+            if (focus != NULL) {
+                newFoci.push_back(focus);
+            }
+            else {
+                errorMessage.appendWithNewLine("PROGRAM ERROR: Focus missing at row=" + AString::number(iRow));
+            }
+        }
+        else {
+            errorMessage.appendWithNewLine("PROGRAM ERROR: Invalid item at row=" + AString::number(iRow));
+        }
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        return FunctionResult::error(errorMessage);
+    }
+    
+    /*
+     * Remove all foci
+     */
+    clearFoci();
+    
+    /*
+     * Add foci from data file editor model
+     */
+    for (const Focus* focus : newFoci) {
+        addFocus(new Focus(*focus));
+    }
+    
+    return FunctionResult::ok();
+}
+

@@ -256,6 +256,8 @@ namespace caret {
         void processDevelopOmeZarrOpenTesting();
         void developerMenuAboutToShow();
         
+        void processEditBorders();
+        void processEditFoci();
         void processProjectFoci();
         void processSplitBorderFiles();
         
@@ -466,6 +468,8 @@ namespace caret {
 
         QAction* m_featuresToolBoxAction;
         
+        QAction* m_dataBordersEditAction;
+        QAction* m_dataFociEditAction;
         QAction* m_dataFociProjectAction;
         QAction* m_dataBorderFilesSplitAction;
         QAction* m_dataPaletteEditorDialogAction;

@@ -65,6 +65,7 @@
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "CziImageFile.h"
+#include "DataFileEditorDialog.h"
 #include "DataFileException.h"
 #include "DeveloperFlagsEnum.h"
 #include "DisplayPropertiesImages.h"
@@ -1720,6 +1721,14 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
+    m_dataBordersEditAction = new QAction("Edit Borders...");
+    QObject::connect(m_dataBordersEditAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processEditBorders);
+    
+    m_dataFociEditAction = new QAction("Edit Foci...");
+    QObject::connect(m_dataFociEditAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processEditFoci);
+    
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
                                 "Project Foci to Surfaces",
@@ -2791,8 +2800,11 @@ BrainBrowserWindow::createMenuData()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processDataMenuAboutToShow()));
     
-    menu->addAction(m_dataFociProjectAction);
+    menu->addAction(m_dataBordersEditAction);
     menu->addAction(m_dataBorderFilesSplitAction);
+    menu->addSeparator();
+    menu->addAction(m_dataFociEditAction);
+    menu->addAction(m_dataFociProjectAction);
     
     return menu;
 }
@@ -2804,7 +2816,11 @@ void
 BrainBrowserWindow::processDataMenuAboutToShow()
 {
     Brain* brain = GuiManager::get()->getBrain();
+    bool haveBorderFiles = (GuiManager::get()->getBrain()->getNumberOfBorderFiles() > 0);
+    m_dataBordersEditAction->setEnabled(haveBorderFiles);
+    
     bool haveFociFiles = (GuiManager::get()->getBrain()->getNumberOfFociFiles() > 0);
+    m_dataFociEditAction->setEnabled(haveFociFiles);
     m_dataFociProjectAction->setEnabled(haveFociFiles);
     
     bool haveMultiStructureBorderFiles = false;
@@ -3306,6 +3322,41 @@ BrainBrowserWindow::processDevelopOmeZarrOpenTesting()
         WuQMessageBox::errorOk(this, e.whatString());
     }
 }
+
+/**
+ * Edit borders.
+ */
+void
+BrainBrowserWindow::processEditBorders()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    const int32_t numBorderFiles(brain->getNumberOfBorderFiles());
+    
+    if (numBorderFiles > 0) {
+        DataFileEditorDialog* dialog = new DataFileEditorDialog(DataFileEditorDialog::DataType::BORDERS,
+                                                                this);
+        dialog->exec();
+    }
+}
+
+/**
+ * Edit foci.
+ */
+void
+BrainBrowserWindow::processEditFoci()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    const int32_t numFociFiles(brain->getNumberOfFociFiles());
+    
+    if (numFociFiles > 0) {
+        DataFileEditorDialog* dialog = new DataFileEditorDialog(DataFileEditorDialog::DataType::FOCI,
+                                                                this);
+        dialog->exec();
+    }
+}
+
 
 /**
  * Project foci.
