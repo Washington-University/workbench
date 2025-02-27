@@ -28,6 +28,7 @@
 #include <set>
 
 #include <QAbstractButton>
+#include <QAction>
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHeaderView>
