@@ -125,6 +125,7 @@ DataFileEditorDialog::createDialog()
     m_viewFileSelectionComboBox->updateComboBox(m_viewFileSelectionModel.get());
     QObject::connect(m_viewFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &DataFileEditorDialog::dataFileSelected);
+    m_viewFileSelectionComboBox->getWidget()->setToolTip("Select file for items displayed below");
     
     /*
      * Action buttons
@@ -132,18 +133,21 @@ DataFileEditorDialog::createDialog()
     m_copyAction = new QAction("Copy to");
     QObject::connect(m_copyAction, &QAction::triggered,
                      this, &DataFileEditorDialog::copyActionTriggered);
+    m_copyAction->setToolTip("Copy items selected below to this file ->");
     QToolButton* copyButton(new QToolButton());
     copyButton->setDefaultAction(m_copyAction);
     
     m_moveAction = new QAction("Move to");
     QObject::connect(m_moveAction, &QAction::triggered,
                      this, &DataFileEditorDialog::moveActionTriggered);
+    m_moveAction->setToolTip("Move items selected below to this file ->");
     QToolButton* moveButton(new QToolButton());
     moveButton->setDefaultAction(m_moveAction);
     
     m_deleteAction = new QAction("Delete...");
     QObject::connect(m_deleteAction, &QAction::triggered,
                      this, &DataFileEditorDialog::deleteActionTriggered);
+    m_deleteAction->setToolTip("Delete items selected below from viewed file");
     QToolButton* deleteButton(new QToolButton());
     deleteButton->setDefaultAction(m_deleteAction);
 
@@ -155,6 +159,7 @@ DataFileEditorDialog::createDialog()
     m_copyMoveToFileSelectionComboBox->updateComboBox(m_copyMoveToFileSelectionModel.get());
     QObject::connect(m_copyMoveToFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
                      this, &DataFileEditorDialog::copyMoveToFileSelected);
+    m_copyMoveToFileSelectionComboBox->getWidget()->setToolTip("Select file for destination of copy and move items");
 
     /*
      * Tree view displaying model
