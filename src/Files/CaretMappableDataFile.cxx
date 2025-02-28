@@ -306,6 +306,7 @@ CaretMappableDataFile::applyPaletteColorMappingToAllMaps(const int32_t mapIndex)
 void
 CaretMappableDataFile::invalidateHistogramChartColoring()
 {
+    if (m_chartingDelegate == NULL) return; //TSC: this function is for invalidation of things that already exist, not for creation of something we haven't used yet
     getChartingDelegate()->getHistogramCharting()->invalidateAllColoring();
 }
 
