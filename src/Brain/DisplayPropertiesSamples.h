@@ -25,19 +25,21 @@
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
-
+#include "EventListenerInterface.h"
 
 
 namespace caret {
     class Annotation;
     class Brain;
 
-    class DisplayPropertiesSamples : public DisplayProperties {
+    class DisplayPropertiesSamples : public DisplayProperties, public EventListenerInterface {
         
     public:
         DisplayPropertiesSamples(Brain* parentBrain);
         
         virtual ~DisplayPropertiesSamples();
+        
+        virtual void receiveEvent(Event* event);
         
         virtual void reset();
         
@@ -50,6 +52,14 @@ namespace caret {
         bool isDisplaySampleNames() const;
         
         void setDisplaySampleNames(const bool status);
+        
+        bool isDisplaySampleNumbers() const;
+        
+        void setDisplaySampleNumbers(const bool status);
+        
+        bool isDisplaySampleActualDesiredSuffix() const;
+        
+        void setDisplaySampleActualDesiredSuffix(const bool status);
         
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
@@ -83,6 +93,10 @@ namespace caret {
         bool m_displaySamples;
         
         bool m_displaySampleNames;
+        
+        bool m_displaySampleNumbers;
+        
+        bool m_displaySampleActualDesiredSuffix;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

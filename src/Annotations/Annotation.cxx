@@ -44,6 +44,8 @@
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
 #include "DisplayGroupAndTabItemHelper.h"
+#include "EventAnnotationPolyhedronNameComponentSettings.h"
+#include "EventManager.h"
 #include "GiftiMetaData.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -2186,7 +2188,6 @@ Annotation::getName() const
 {
     AString nameOut(m_name);
     
-    AString suffixName;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
@@ -2208,26 +2209,26 @@ Annotation::getName() const
              */
             const AnnotationPolyhedron* polyhedron(castToPolyhedron());
             CaretAssert(polyhedron);
-            nameOut = polyhedron->getSampleMetaData()->getSampleNumber();
+
+            std::vector<AString> textComponents;
+            if ( ! polyhedron->getSampleMetaData()->getSampleName().isEmpty()) {
+                textComponents.push_back(polyhedron->getSampleMetaData()->getSampleName());
+            }
+            if ( ! polyhedron->getSampleMetaData()->getSampleNumber().isEmpty()) {
+                textComponents.push_back(polyhedron->getSampleMetaData()->getSampleNumber());
+            }
             switch (polyhedron->getPolyhedronType()) {
                 case AnnotationPolyhedronTypeEnum::INVALID:
-                    /*
-                     * Do not add character for invalid
-                     */
                     break;
                 case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-                    if ( ! nameOut.isEmpty()) {
-                        nameOut.append(".");
-                    }
-                    nameOut.append("A");
+                    textComponents.push_back("A");
                     break;
                 case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                    if ( ! nameOut.isEmpty()) {
-                        nameOut.append(".");
-                    }
-                    nameOut.append("D");
+                    textComponents.push_back("D");
                     break;
             }
+
+            nameOut = AString::join(textComponents, ".");
         }
             break;
         case AnnotationTypeEnum::POLYGON:
@@ -2243,6 +2244,79 @@ Annotation::getName() const
     return nameOut;
 }
 
+/**
+ * @return name for drawing in graphics window
+ */
+AString
+Annotation::getNameForGraphicsDrawing() const
+{
+    AString nameOut(m_name);
+    
+    switch (m_type) {
+        case AnnotationTypeEnum::BOX:
+            break;
+        case AnnotationTypeEnum::BROWSER_TAB:
+            break;
+        case AnnotationTypeEnum::COLOR_BAR:
+            break;
+        case AnnotationTypeEnum::IMAGE:
+            break;
+        case AnnotationTypeEnum::LINE:
+            break;
+        case AnnotationTypeEnum::OVAL:
+            break;
+        case AnnotationTypeEnum::POLYHEDRON:
+        {
+            /*
+             * Since it is difficult to detect a change in metadata,
+             * we just add the Ding Abbreviation to the annotation name here.
+             */
+            const AnnotationPolyhedron* polyhedron(castToPolyhedron());
+            CaretAssert(polyhedron);
+            
+            EventAnnotationPolyhedronNameComponentSettings nameCompEvent;
+            EventManager::get()->sendEvent(nameCompEvent.getPointer());
+            
+            std::vector<AString> textComponents;
+            if (nameCompEvent.isShowName()) {
+                if ( ! polyhedron->getSampleMetaData()->getSampleName().isEmpty()) {
+                    textComponents.push_back(polyhedron->getSampleMetaData()->getSampleName());
+                }
+            }
+            if (nameCompEvent.isShowNumber()) {
+                if ( ! polyhedron->getSampleMetaData()->getSampleNumber().isEmpty()) {
+                    textComponents.push_back(polyhedron->getSampleMetaData()->getSampleNumber());
+                }
+            }
+            if (nameCompEvent.isShowActualDesiredSuffix()) {
+                switch (polyhedron->getPolyhedronType()) {
+                    case AnnotationPolyhedronTypeEnum::INVALID:
+                        break;
+                    case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                        textComponents.push_back("A");
+                        break;
+                    case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                        textComponents.push_back("D");
+                        break;
+                }
+            }
+            
+            
+            nameOut = AString::join(textComponents, ".");
+        }
+            break;
+        case AnnotationTypeEnum::POLYGON:
+            break;
+        case AnnotationTypeEnum::POLYLINE:
+            break;
+        case AnnotationTypeEnum::SCALE_BAR:
+            break;
+        case AnnotationTypeEnum::TEXT:
+            break;
+    }
+    
+    return nameOut;
+}
 
 /**
  * Called by text annotation to reset the name

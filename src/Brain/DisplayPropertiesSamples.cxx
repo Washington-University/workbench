@@ -27,6 +27,8 @@
 #include "AnnotationManager.h"
 #include "Brain.h"
 #include "CaretLogger.h"
+#include "EventAnnotationPolyhedronNameComponentSettings.h"
+#include "EventManager.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
@@ -58,9 +60,15 @@ m_parentBrain(parentBrain)
                           &m_displaySamples);
     m_sceneAssistant->add("m_displaySampleNames",
                           &m_displaySampleNames);
+    m_sceneAssistant->add("m_displaySampleNumbers",
+                          &m_displaySampleNumbers);
+    m_sceneAssistant->add("m_displaySampleActualDesiredSuffix",
+                          &m_displaySampleActualDesiredSuffix);
 
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_ANNOTATION_POLYHEDRON_NAME_COMPONENT_SETTINGS);
 }
 
 /**
@@ -68,6 +76,26 @@ m_parentBrain(parentBrain)
  */
 DisplayPropertiesSamples::~DisplayPropertiesSamples()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ *
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void
+DisplayPropertiesSamples::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_ANNOTATION_POLYHEDRON_NAME_COMPONENT_SETTINGS) {
+        EventAnnotationPolyhedronNameComponentSettings* settingsEvent(dynamic_cast<EventAnnotationPolyhedronNameComponentSettings*>(event));
+        CaretAssert(settingsEvent);
+        settingsEvent->setShowName(isDisplaySampleNames());
+        settingsEvent->setShowNumber(isDisplaySampleNumbers());
+        settingsEvent->setShowActualDesiredSuffix(isDisplaySampleActualDesiredSuffix());
+        settingsEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -124,6 +152,8 @@ DisplayPropertiesSamples::resetPrivate()
 {
     m_displaySamples = true;
     m_displaySampleNames = true;
+    m_displaySampleNumbers = true;
+    m_displaySampleActualDesiredSuffix = true;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
@@ -189,6 +219,48 @@ void
 DisplayPropertiesSamples::setDisplaySampleNames(const bool status)
 {
     m_displaySampleNames = status;
+}
+
+/**
+ * @return Status for displaying sample number
+ */
+bool
+DisplayPropertiesSamples::isDisplaySampleNumbers() const
+{
+    return m_displaySampleNumbers;
+}
+
+/**
+ * Set the display status for samples number
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesSamples::setDisplaySampleNumbers(const bool status)
+{
+    m_displaySampleNumbers = status;
+}
+
+/**
+ * @return Status for displaying sample actual desired suffix
+ */
+bool
+DisplayPropertiesSamples::isDisplaySampleActualDesiredSuffix() const
+{
+    return m_displaySampleActualDesiredSuffix;
+}
+
+/**
+ * Set the display status for samples actual desired suffix
+ *
+ * @param status
+ *     New display status.
+ */
+void
+DisplayPropertiesSamples::setDisplaySampleActualDesiredSuffix(const bool status)
+{
+    m_displaySampleActualDesiredSuffix = status;
 }
 
 /**

@@ -44,6 +44,7 @@
 #include "AnnotationPolyLine.h"
 #include "AnnotationPolyhedron.h"
 #include "AnnotationPercentSizeText.h"
+#include "AnnotationSampleMetaData.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationText.h"
 #include "AnnotationTextSubstitutionLayerSet.h"
@@ -552,7 +553,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     if ( ! dps->isDisplaySamples()) {
         return;
     }
-    m_displaySampleNamesFlag = dps->isDisplaySampleNames();
     
     if (plane.isValidPlane()) {
         m_volumeSpacePlane = plane;
@@ -571,7 +571,6 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawModelSpaceSamplesOnVolumeSlice(In
     
     m_volumeSpacePlane = Plane();
     m_inputs = NULL;
-    m_displaySampleNamesFlag = false;
 }
 
 /**
@@ -5602,15 +5601,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 }
                 
                 if (polyhedron != NULL) {
-                    if (m_displaySampleNamesFlag) {
-                        const bool selectionFlag(true);
-                        drawPolyhedronName(annotationFile,
-                                           polyhedron,
-                                           windowVertexXYZ,
-                                           polyhedronNameXYZ,
-                                           polyhedronNameSizeHandleType,
-                                           selectionFlag);
-                    }
+                    const bool selectionFlag(true);
+                    drawPolyhedronName(annotationFile,
+                                       polyhedron,
+                                       windowVertexXYZ,
+                                       polyhedronNameXYZ,
+                                       polyhedronNameSizeHandleType,
+                                       selectionFlag);
                 }
             }
         }
@@ -5621,15 +5618,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
             }
             
             if (polyhedron != NULL) {
-                if (m_displaySampleNamesFlag) {
-                    const bool selectionFlag(false);
-                    drawPolyhedronName(annotationFile,
-                                       polyhedron,
-                                       windowVertexXYZ,
-                                       polyhedronNameXYZ,
-                                       polyhedronNameSizeHandleType,
-                                       selectionFlag);
-                }
+                const bool selectionFlag(false);
+                drawPolyhedronName(annotationFile,
+                                   polyhedron,
+                                   windowVertexXYZ,
+                                   polyhedronNameXYZ,
+                                   polyhedronNameSizeHandleType,
+                                   selectionFlag);
             }
         }
                 
@@ -5701,7 +5696,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* an
     if (polyhedron->getNumberOfCoordinates() < 1) {
         return;
     }
-    const AString polyhedronName(polyhedron->getName());
+    const AString polyhedronName(polyhedron->getNameForGraphicsDrawing());
     if (polyhedronName.isEmpty()) {
         return;
     }
@@ -5717,9 +5712,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* an
                                             viewportXYZ)) {
         const AnnotationFontAttributes* fontAttributes(polyhedron->getFontAttributes());
         CaretAssert(fontAttributes);
-        
         AnnotationPercentSizeText annText(AnnotationAttributesDefaultTypeEnum::NORMAL);
-        annText.setFont(fontAttributes->getFont());
         annText.setText(polyhedronName);
         annText.setHorizontalAlignment(AnnotationTextAlignHorizontalEnum::CENTER);
         annText.setVerticalAlignment(AnnotationTextAlignVerticalEnum::MIDDLE);

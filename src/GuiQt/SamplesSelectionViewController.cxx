@@ -113,11 +113,25 @@ m_browserWindowIndex(browserWindowIndex)
     macroManager->addMacroSupportToObject(m_displaySampleNamesCheckBox,
                                           "Enable display of sample names");
 
+    m_displaySamplesNumberCheckBox = new QCheckBox("Display Sample Numbers");
+    m_displaySamplesNumberCheckBox->setToolTip("Disables/enables display of sample number in all windows");
+    QObject::connect(m_displaySamplesNumberCheckBox, &QCheckBox::clicked,
+                     this, &SamplesSelectionViewController::checkBoxToggled);
+    m_displaySamplesNumberCheckBox->setObjectName(objectNamePrefix
+                                                  + "Enable display of sample numbers");
+    
+    m_displaySamplesActualDesiredSuffixCheckBox = new QCheckBox("Display Sample Actual/Desired Suffix");
+    m_displaySamplesActualDesiredSuffixCheckBox->setToolTip("Disables/enables display of actual/desired suffix in all windows");
+    QObject::connect(m_displaySamplesActualDesiredSuffixCheckBox, &QCheckBox::clicked,
+                     this, &SamplesSelectionViewController::checkBoxToggled);
+    
     m_sceneAssistant = new SceneClassAssistant();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_displaySamplesCheckBox);
     layout->addWidget(m_displaySampleNamesCheckBox);
+    layout->addWidget(m_displaySamplesNumberCheckBox);
+    layout->addWidget(m_displaySamplesActualDesiredSuffixCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(objectNamePrefix));
@@ -199,6 +213,8 @@ SamplesSelectionViewController::updateSampleSelections()
     
     m_displaySamplesCheckBox->setChecked(dpa->isDisplaySamples());
     m_displaySampleNamesCheckBox->setChecked(dpa->isDisplaySampleNames());
+    m_displaySamplesNumberCheckBox->setChecked(dpa->isDisplaySampleNumbers());
+    m_displaySamplesActualDesiredSuffixCheckBox->setChecked(dpa->isDisplaySampleActualDesiredSuffix());
     
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<SamplesFile*> samplesFiles(brain->getAllSamplesFiles());
@@ -339,6 +355,8 @@ SamplesSelectionViewController::checkBoxToggled()
 
     dpa->setDisplaySamples(m_displaySamplesCheckBox->isChecked());
     dpa->setDisplaySampleNames(m_displaySampleNamesCheckBox->isChecked());
+    dpa->setDisplaySampleNumbers(m_displaySamplesNumberCheckBox->isChecked());
+    dpa->setDisplaySampleActualDesiredSuffix(m_displaySamplesActualDesiredSuffixCheckBox->isChecked());
     
     updateOtherSampleViewControllers();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());

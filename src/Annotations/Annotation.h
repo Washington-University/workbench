@@ -263,6 +263,8 @@ namespace caret {
         
         AString getName() const;
         
+        AString getNameForGraphicsDrawing() const;
+        
         void replaceWithCopyOfAnnotation(const Annotation* annotation);
         
         QString getShortDescriptiveString() const;

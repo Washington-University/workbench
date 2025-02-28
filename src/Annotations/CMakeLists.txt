@@ -87,6 +87,7 @@ EventAnnotationChartLabelGet.h
 EventAnnotationGroupGetWithKey.h
 EventAnnotationGrouping.h
 EventAnnotationPolyhedronGetByLinkedIdentifier.h
+EventAnnotationPolyhedronNameComponentSettings.h
 EventAnnotationTextGetBounds.h
 EventAnnotationTextSubstitutionGet.h
 EventAnnotationTextSubstitutionGetAllGroupIDs.h
@@ -152,6 +153,7 @@ EventAnnotationChartLabelGet.cxx
 EventAnnotationGroupGetWithKey.cxx
 EventAnnotationGrouping.cxx
 EventAnnotationPolyhedronGetByLinkedIdentifier.cxx
+EventAnnotationPolyhedronNameComponentSettings.cxx
 EventAnnotationTextGetBounds.cxx
 EventAnnotationTextSubstitutionGet.cxx
 EventAnnotationTextSubstitutionGetAllGroupIDs.cxx

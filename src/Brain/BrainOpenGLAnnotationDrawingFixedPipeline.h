@@ -514,8 +514,6 @@ namespace caret {
         
         float m_surfaceViewScaling;
         
-        bool m_displaySampleNamesFlag = false;
-        
         /**
          * Dummy annotation file is used for annotations that 
          * do not belong to a file.  This includes the 

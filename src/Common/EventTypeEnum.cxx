@@ -118,6 +118,10 @@ EventTypeEnum::initialize()
                                      "EVENT_ANNOTATION_POLYHEDRON_GET_BY_LINKED_IDENTIFIER",
                                      "Get an annotation polyhedron using its linked identifer"));
     
+    enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_POLYHEDRON_NAME_COMPONENT_SETTINGS,
+                                     "EVENT_ANNOTATION_POLYHEDRON_NAME_COMPONENT_SETTINGS",
+                                     "Event for annotation polyhedron name component settings"));
+    
     enumData.push_back(EventTypeEnum(EVENT_ANNOTATION_TEXT_GET_BOUNDS,
                                      "EVENT_ANNOTATION_TEXT_GET_BOUNDS",
                                      "Get bounds for annotation text"));
