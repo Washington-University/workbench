@@ -24,6 +24,7 @@
 
 
 #include <memory>
+
 #include <vector>
 
 #include <QDialog>
@@ -56,6 +57,11 @@ namespace caret {
             FOCI
         };
         
+        enum EditorIndex : int32_t {
+            LEFT  = 0,
+            RIGHT = 1
+        };
+        
         DataFileEditorDialog(const DataType dataType,
                              QWidget* parent = 0);
         
@@ -72,61 +78,80 @@ namespace caret {
     private slots:
         void dialogButtonClicked(QAbstractButton* buttonClicked);
         
-        void dataFileSelected(CaretDataFile* caretDataFile);
+        void fileSelected(const EditorIndex editorIndex,
+                          CaretDataFile* caretDataFile);
         
-        void copyMoveToFileSelected(CaretDataFile* caretDataFile);
+        void copyActionSelected(const EditorIndex editorIndex);
         
-        void copyActionTriggered();
+        void moveActionSelected(const EditorIndex editorIndex);
         
-        void deleteActionTriggered();
-        
-        void moveActionTriggered();
+        void deleteActionSelected(const EditorIndex editorIndex);
         
     private:
+        class EditorWidgets {
+        public:
+            EditorWidgets(CaretDataFileSelectionModel* fileSelectionModel,
+                          CaretDataFileSelectionComboBox* fileSelectionComboBox,
+                          QTreeView* treeView,
+                          QAction* copyAction,
+                          QAction* moveAction,
+                          QAction* deleteAction);
+            
+            ~EditorWidgets();
+            
+            void setModel(DataFileEditorModel* model);
+            
+            CaretDataFile* getSelectedFile();
+            
+            std::unique_ptr<DataFileEditorModel> m_model;
+
+            std::unique_ptr<CaretDataFileSelectionModel> m_fileSelectionModel;
+            
+            CaretDataFileSelectionComboBox* m_fileSelectionComboBox;
+            
+            QTreeView* m_treeView = NULL;
+            
+            QAction* m_copyAction = NULL;
+            
+            QAction* m_deleteAction = NULL;
+            
+            QAction* m_moveAction = NULL;
+        };
+        
         void createDialog();
         
-        FociFile* getSelectedFociFile();
+        std::pair<QWidget*,EditorWidgets*> createEditor(const EditorIndex editorIndex);
         
-        std::vector<DataFileEditorItem*> getSelectedItems() const;
+        std::vector<int32_t> getSelectedRowIndicesSorted(const EditorIndex editorIndex) const;
         
-        std::vector<int32_t> getSelectedRowIndicesSorted() const;
+        std::vector<DataFileEditorItem*> getSelectedItems(const EditorIndex editorIndex) const;
+
+        std::vector<const Border*> getSelectedBorders(const EditorIndex editorIndex) const;
         
-        std::vector<const Border*> getSelectedBorders() const;
+        std::vector<const Focus*> getSelectedFoci(const EditorIndex editorIndex) const;
         
-        std::vector<const Focus*> getSelectedFoci() const;
+        EditorWidgets* getEditor(const EditorIndex editorIndex) const;
         
         void updateGraphicsAndUserInterface();
         
-        bool copyBorders();
+        bool copyBorders(const EditorIndex sourceEditorIndex,
+                         const EditorIndex destinationEditorIndex);
         
-        bool copyFoci();
+        bool copyFoci(const EditorIndex sourceEditorIndex,
+                      const EditorIndex destinationEditorIndex);
         
-        void updateCopyMoveToActions();
+        void updateCopyMoveDeleteActions();
         
         const DataType m_dataType;
-        
-        std::unique_ptr<DataFileEditorModel> m_model;
         
         DataFileTypeEnum::Enum m_dataFileType = DataFileTypeEnum::UNKNOWN;
         
         QDialogButtonBox* m_buttonBox;
         
-        std::unique_ptr<CaretDataFileSelectionModel> m_viewFileSelectionModel;
+        std::unique_ptr<EditorWidgets> m_leftEditor = NULL;
         
-        CaretDataFileSelectionComboBox* m_viewFileSelectionComboBox;
-        
-        std::unique_ptr<CaretDataFileSelectionModel> m_copyMoveToFileSelectionModel;
-        
-        CaretDataFileSelectionComboBox* m_copyMoveToFileSelectionComboBox;
-        
-        QTreeView* m_treeView = NULL;
-        
-        QAction* m_copyAction = NULL;
-        
-        QAction* m_deleteAction = NULL;
-        
-        QAction* m_moveAction = NULL;
-        
+        std::unique_ptr<EditorWidgets> m_rightEditor = NULL;
+                
         // ADD_NEW_MEMBERS_HERE
 
     };

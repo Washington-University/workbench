@@ -19,7 +19,7 @@
  */
 /*LICENSE_END*/
 
-
+#include <array>
 #include <memory>
 
 #include <QStringList>
@@ -283,14 +283,14 @@ FociFile::addFocus(Focus* focus)
 {
     m_foci.push_back(focus);
     const AString name = focus->getName();
-    if (name.isEmpty() == false) {
+    if ( ! name.isEmpty()) {
         const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
         if (nameColorKey < 0) {
             m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
         }
     }
     AString className = focus->getClassName();
-    if (className.isEmpty() == false) {
+    if ( ! className.isEmpty()) {
         const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
         if (classColorKey < 0) {
             m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -317,9 +317,8 @@ FociFile::addFocus(Focus* focus)
 void
 FociFile::addFocusUseColorsFromFocus(Focus* focus)
 {
-    m_foci.push_back(focus);
     const AString name = focus->getName();
-    if (name.isEmpty() == false) {
+    if ( ! name.isEmpty()) {
         const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
         if (nameColorKey < 0) {
             if (focus->isNameRgbaValid()) {
@@ -331,21 +330,60 @@ FociFile::addFocusUseColorsFromFocus(Focus* focus)
                 m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
+        else if (focus->isNameRgbaValid()) {
+            const GiftiLabel* label(m_nameColorTable->getLabel(nameColorKey));
+            if (label != NULL) {
+                std::array<float, 4> focusRGBA;
+                focus->getNameRgba(focusRGBA.data());
+                std::array<float, 4> rgba;
+                label->getColor(rgba.data());
+                if (focusRGBA != rgba) {
+                    AString msg("Adding focus with name color ("
+                                + AString::fromNumbers(focusRGBA.data(), 4)
+                                + ") different than existing name color ("
+                                + AString::fromNumbers(rgba.data(), 4)
+                                + ") in foci file.");
+                    CaretLogWarning(msg);
+                }
+            }
+        }
     }
     AString className = focus->getClassName();
-    if (className.isEmpty() == false) {
+    if ( ! className.isEmpty()) {
         const int32_t classColorKey = m_classColorTable->getLabelKeyFromName(className);
         if (classColorKey < 0) {
             if (focus->isClassRgbaValid()) {
                 float rgba[4];
                 focus->getClassRgba(rgba);
-                m_classColorTable->addLabel(name, rgba[0], rgba[1], rgba[2], 1.0f);
+                m_classColorTable->addLabel(className, rgba[0], rgba[1], rgba[2], 1.0f);
             }
             else {
                 m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
+        else if (focus->isClassRgbaValid()) {
+            const GiftiLabel* label(m_classColorTable->getLabel(classColorKey));
+            if (label != NULL) {
+                std::array<float, 4> focusRGBA;
+                focus->getClassRgba(focusRGBA.data());
+                std::array<float, 4> rgba;
+                label->getColor(rgba.data());
+                if (focusRGBA != rgba) {
+                    AString msg("Adding focus with class color ("
+                                + AString::fromNumbers(focusRGBA.data(), 4)
+                                + ") different than existing class color ("
+                                + AString::fromNumbers(rgba.data(), 4)
+                                + ") in foci file.");
+                    CaretLogWarning(msg);
+                }
+            }
+        }
     }
+
+    focus->setNameRgbaInvalid();
+    focus->setClassRgbaInvalid();
+    m_foci.push_back(focus);
+    
     m_forceUpdateOfGroupAndNameHierarchy = true;
     setModified();
 }
@@ -905,6 +943,8 @@ FociFile::exportToDataFileEditorModel() const
 
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
     dataFileEditorModel->setColumnCount(3);
+    const int32_t classColumnIndex(1);
+    dataFileEditorModel->setDefaultSortingColumnIndex(classColumnIndex);
     
     /*
      * Titles for columns
@@ -1034,7 +1074,7 @@ FociFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEdito
      * Add foci from data file editor model
      */
     for (const Focus* focus : newFoci) {
-        addFocus(new Focus(*focus));
+        addFocusUseColorsFromFocus(new Focus(*focus));
     }
     
     return FunctionResult::ok();

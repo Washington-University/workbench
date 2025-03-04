@@ -105,3 +105,24 @@ DataFileEditorModel::getDataFileItemAtRowColumn(const int32_t rowIndex,
     return itemOut;
 }
 
+/**
+ * @return Column index for sorting when loaded into GUI
+ */
+int32_t
+DataFileEditorModel::getDefaultSortingColumnIndex() const
+{
+    return m_defaultSortingColumnIndex;
+}
+
+/**
+ * Set column index for sorting when loaded into GUI
+ * @param columnIndex
+ *    The column index
+ */
+void
+DataFileEditorModel::setDefaultSortingColumnIndex(const int32_t columnIndex)
+{
+    m_defaultSortingColumnIndex = columnIndex;
+}
+
+

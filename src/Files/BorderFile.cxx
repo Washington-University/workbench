@@ -1057,8 +1057,6 @@ BorderFile::addBorder(Border* border)
 void
 BorderFile::addBorderUseColorsFromBorder(Border* border)
 {
-    addBorder(border);
-    
     const AString name = border->getName();
     if (name.isEmpty() == false) {
         const int32_t nameColorKey = m_nameColorTable->getLabelKeyFromName(name);
@@ -1072,6 +1070,23 @@ BorderFile::addBorderUseColorsFromBorder(Border* border)
                 m_nameColorTable->addLabel(name, 0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
+        else if (border->isNameRgbaValid()) {
+            const GiftiLabel* label(m_nameColorTable->getLabel(nameColorKey));
+            if (label != NULL) {
+                std::array<float, 4> borderRGBA;
+                border->getNameRgba(borderRGBA.data());
+                std::array<float, 4> rgba;
+                label->getColor(rgba.data());
+                if (borderRGBA != rgba) {
+                    AString msg("Adding border with name color ("
+                                + AString::fromNumbers(borderRGBA.data(), 4)
+                                + ") different than existing name color ("
+                                + AString::fromNumbers(rgba.data(), 4)
+                                + ") in border file.");
+                    CaretLogWarning(msg);
+                }
+            }
+        }
     }
     AString className = border->getClassName();
     if (className.isEmpty() == false) {
@@ -1080,13 +1095,37 @@ BorderFile::addBorderUseColorsFromBorder(Border* border)
             if (border->isClassRgbaValid()) {
                 float rgba[4];
                 border->getClassRgba(rgba);
-                m_classColorTable->addLabel(name, rgba[0], rgba[1], rgba[2], 1.0f);
+                m_classColorTable->addLabel(className, rgba[0], rgba[1], rgba[2], 1.0f);
             }
             else {
                 m_classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 1.0f);
             }
         }
+        else if (border->isClassRgbaValid()) {
+            const GiftiLabel* label(m_classColorTable->getLabel(classColorKey));
+            if (label != NULL) {
+                std::array<float, 4> borderRGBA;
+                border->getClassRgba(borderRGBA.data());
+                std::array<float, 4> rgba;
+                label->getColor(rgba.data());
+                if (borderRGBA != rgba) {
+                    AString msg("Adding border with class color ("
+                                + AString::fromNumbers(borderRGBA.data(), 4)
+                                + ") different than existing border color ("
+                                + AString::fromNumbers(rgba.data(), 4)
+                                + ") in border file.");
+                    CaretLogWarning(msg);
+                }
+            }
+        }
     }
+    
+    border->setNameRgbaInvalid();
+    border->setClassRgbaInvalid();
+    addBorder(border);
+    
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    setModified();
 }
 
 /**
@@ -1292,8 +1331,8 @@ void BorderFile::setBorderMetadataValue(const AString& name, const AString& clas
 }
 
 /**
- * Version 1 foci files contained one color table for both names
- * and classes.  Newer versions of the foci file keep them in
+ * Version 1 border files contained one color table for both names
+ * and classes.  Newer versions of the border file keep them in
  * separate tables.
  *
  * @param oldColorTable
@@ -1369,8 +1408,8 @@ BorderFile::getAllBorderNamesSorted() const
 {
     std::set<QString> nameSet;
     
-    const int32_t numFoci = getNumberOfBorders();
-    for (int32_t i = 0;i < numFoci; i++) {
+    const int32_t numBorders = getNumberOfBorders();
+    for (int32_t i = 0;i < numBorders; i++) {
         nameSet.insert(m_borders[i]->getName());
     }
     
@@ -2640,7 +2679,9 @@ BorderFile::exportToDataFileEditorModel() const
     
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
     dataFileEditorModel->setColumnCount(3);
-    
+    const int32_t classColumnIndex(1);
+    dataFileEditorModel->setDefaultSortingColumnIndex(classColumnIndex);
+
     /*
      * Titles for columns
      */

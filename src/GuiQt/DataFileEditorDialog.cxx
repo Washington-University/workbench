@@ -63,6 +63,8 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param dataType
+ *    Type of data for editing
  * @param parent
  *    Parent widget
  */
@@ -88,19 +90,27 @@ m_dataType(dataType)
     
     createDialog();
     
-    dataFileSelected(m_viewFileSelectionModel->getSelectedFile());
+    CaretAssert(m_leftEditor);
+    CaretAssert(m_rightEditor);
+    
+    fileSelected(EditorIndex::LEFT,
+                 m_leftEditor->m_fileSelectionModel->getSelectedFile());
     
     /*
      * View file will default to first file.
      * Try to load second file in copy/move to file.
      */
-    std::vector<CaretDataFile*> copyMoveToFiles(m_copyMoveToFileSelectionModel->getAvailableFiles());
+    CaretDataFileSelectionModel* rightFileModel(m_rightEditor->m_fileSelectionModel.get());
+    std::vector<CaretDataFile*> copyMoveToFiles(rightFileModel->getAvailableFiles());
     if (copyMoveToFiles.size() >= 2) {
         CaretAssertVectorIndex(copyMoveToFiles, 1);
-        m_copyMoveToFileSelectionModel->setSelectedFile(copyMoveToFiles[1]);
-        m_copyMoveToFileSelectionComboBox->updateComboBox(m_copyMoveToFileSelectionModel.get());
+        rightFileModel->setSelectedFile(copyMoveToFiles[1]);
+        m_rightEditor->m_fileSelectionComboBox->updateComboBox(rightFileModel);
+        fileSelected(EditorIndex::RIGHT,
+                     rightFileModel->getSelectedFile());
     }
-    updateCopyMoveToActions();
+    
+    updateCopyMoveDeleteActions();
 }
 
 /**
@@ -116,60 +126,11 @@ DataFileEditorDialog::~DataFileEditorDialog()
 void
 DataFileEditorDialog::createDialog()
 {
-    /*
-     * File selection
-     */
-    QLabel* viewFileLabel(new QLabel("View File: "));
-    m_viewFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_dataFileType));
+    std::pair<QWidget*,EditorWidgets*> leftSide = createEditor(EditorIndex::LEFT);
+    m_leftEditor.reset(leftSide.second);
+    std::pair<QWidget*,EditorWidgets*> rightSide(createEditor(EditorIndex::RIGHT));
+    m_rightEditor.reset(rightSide.second);
     
-    m_viewFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    m_viewFileSelectionComboBox->updateComboBox(m_viewFileSelectionModel.get());
-    QObject::connect(m_viewFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
-                     this, &DataFileEditorDialog::dataFileSelected);
-    m_viewFileSelectionComboBox->getWidget()->setToolTip("Select file for items displayed below");
-    
-    /*
-     * Action buttons
-     */
-    m_copyAction = new QAction("Copy to");
-    QObject::connect(m_copyAction, &QAction::triggered,
-                     this, &DataFileEditorDialog::copyActionTriggered);
-    m_copyAction->setToolTip("Copy items selected below to this file ->");
-    QToolButton* copyButton(new QToolButton());
-    copyButton->setDefaultAction(m_copyAction);
-    
-    m_moveAction = new QAction("Move to");
-    QObject::connect(m_moveAction, &QAction::triggered,
-                     this, &DataFileEditorDialog::moveActionTriggered);
-    m_moveAction->setToolTip("Move items selected below to this file ->");
-    QToolButton* moveButton(new QToolButton());
-    moveButton->setDefaultAction(m_moveAction);
-    
-    m_deleteAction = new QAction("Delete...");
-    QObject::connect(m_deleteAction, &QAction::triggered,
-                     this, &DataFileEditorDialog::deleteActionTriggered);
-    m_deleteAction->setToolTip("Delete items selected below from viewed file");
-    QToolButton* deleteButton(new QToolButton());
-    deleteButton->setDefaultAction(m_deleteAction);
-
-    /*
-     * Copy/Move to File selection
-     */
-    m_copyMoveToFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_dataFileType));
-    m_copyMoveToFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
-    m_copyMoveToFileSelectionComboBox->updateComboBox(m_copyMoveToFileSelectionModel.get());
-    QObject::connect(m_copyMoveToFileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
-                     this, &DataFileEditorDialog::copyMoveToFileSelected);
-    m_copyMoveToFileSelectionComboBox->getWidget()->setToolTip("Select file for destination of copy and move items");
-
-    /*
-     * Tree view displaying model
-     */
-    m_treeView = new QTreeView();
-    m_treeView->setSortingEnabled(true);
-    m_treeView->setSelectionMode(QTreeView::ExtendedSelection);
-    QHeaderView* headerView(m_treeView->header());
-    headerView->setSectionResizeMode(QHeaderView::ResizeToContents);
     
     /*
      * Dialog buttons
@@ -183,25 +144,129 @@ DataFileEditorDialog::createDialog()
     /*
      * Dialog's layouts
      */
+    QGridLayout* layout(new QGridLayout(this));
+    layout->setRowStretch(0, 100);
+    layout->setColumnStretch(0, 50);
+    layout->setColumnStretch(1, 50);
+    layout->addWidget(leftSide.first, 0, 0);
+    layout->addWidget(rightSide.first, 0, 1);
+    layout->addWidget(m_buttonBox, 1, 0, 1, 2);
+}
+
+/**
+ * Create an editor for data file items
+ * @param editorIndex
+ *    Left/right side index
+ * @return
+ *    Widget containing GUI components and widgets used for editing
+ */
+std::pair<QWidget*,DataFileEditorDialog::EditorWidgets*>
+DataFileEditorDialog::createEditor(const EditorIndex editorIndex)
+{
+    /*
+     * File selection
+     */
+    QLabel* fileLabel(new QLabel("File: "));
+    CaretDataFileSelectionModel* fileSelectionModel(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(m_dataFileType));
+    
+    CaretDataFileSelectionComboBox* fileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
+    fileSelectionComboBox->updateComboBox(fileSelectionModel);
+    QObject::connect(fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     [=](CaretDataFile* caretDataFile) { fileSelected(editorIndex,
+                                                                      caretDataFile); });
+    fileSelectionComboBox->getWidget()->setToolTip("Select file displayed below");
+    
+    AString copyText;
+    AString moveText;
+    AString copyToolTip;
+    AString deleteToolTip;
+    AString moveToolTip;
+    QBoxLayout::Direction buttonsLayoutDirection(QBoxLayout::LeftToRight);
+    switch (editorIndex) {
+        case LEFT:
+            copyText = "Copy ->";
+            moveText = "Move ->";
+            copyToolTip = "Copy selected items to file on right";
+            deleteToolTip = "Delete selected items";
+            moveToolTip = "Move selected items to file on right";
+            buttonsLayoutDirection = QBoxLayout::RightToLeft;
+            break;
+        case RIGHT:
+            copyText = "<- Copy";
+            moveText = "<- Move";
+            copyToolTip = "Copy selected items to file on left";
+            deleteToolTip = "Delete selected items";
+            moveToolTip = "Move selected items to file on left";
+            buttonsLayoutDirection = QBoxLayout::LeftToRight;
+            break;
+    }
+    /*
+     * Action buttons
+     */
+    QAction* copyAction = new QAction(copyText);
+    QObject::connect(copyAction, &QAction::triggered,
+                     [=]() { copyActionSelected(editorIndex); });
+    copyAction->setToolTip(copyToolTip);
+    QToolButton* copyButton(new QToolButton());
+    copyButton->setDefaultAction(copyAction);
+    
+    QAction* moveAction = new QAction(moveText);
+    QObject::connect(moveAction, &QAction::triggered,
+                     [=]() { moveActionSelected(editorIndex); });
+    moveAction->setToolTip(moveToolTip);
+    QToolButton* moveButton(new QToolButton());
+    moveButton->setDefaultAction(moveAction);
+    
+    QAction* deleteAction = new QAction("Delete...");
+    QObject::connect(deleteAction, &QAction::triggered,
+                     [=]() { deleteActionSelected(editorIndex); });
+    deleteAction->setToolTip(deleteToolTip);
+    QToolButton* deleteButton(new QToolButton());
+    deleteButton->setDefaultAction(deleteAction);
+        
+    /*
+     * Tree view displaying model
+     */
+    QTreeView* treeView = new QTreeView();
+    treeView->setSortingEnabled(true);
+    treeView->setSelectionMode(QTreeView::ExtendedSelection);
+    QHeaderView* headerView(treeView->header());
+    headerView->setSectionResizeMode(QHeaderView::ResizeToContents);
+        
+    EditorWidgets* editorWidget(new EditorWidgets(fileSelectionModel,
+                                                  fileSelectionComboBox,
+                                                  treeView,
+                                                  copyAction,
+                                                  moveAction,
+                                                  deleteAction));
+
+    /*
+     * Widget's layouts
+     */
     QMargins zeroMargin(0, 0, 0, 0);
     QHBoxLayout* fileSelectionLayout(new QHBoxLayout());
     fileSelectionLayout->setContentsMargins(zeroMargin);
-    fileSelectionLayout->addWidget(viewFileLabel);
-    fileSelectionLayout->addWidget(m_viewFileSelectionComboBox->getWidget(), 100);
+    fileSelectionLayout->addWidget(fileLabel);
+    fileSelectionLayout->addWidget(fileSelectionComboBox->getWidget(), 100);
     
-    QHBoxLayout* copyMoveLayout(new QHBoxLayout());
-    copyMoveLayout->setContentsMargins(zeroMargin);
-    copyMoveLayout->addWidget(copyButton);
-    copyMoveLayout->addWidget(moveButton);
-    copyMoveLayout->addWidget(m_copyMoveToFileSelectionComboBox->getWidget());
-        
-    QVBoxLayout* layout(new QVBoxLayout(this));
+    QHBoxLayout* buttonsLayout(new QHBoxLayout());
+    buttonsLayout->setDirection(buttonsLayoutDirection);
+    buttonsLayout->setContentsMargins(zeroMargin);
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(copyButton);
+    buttonsLayout->addWidget(moveButton);
+    buttonsLayout->addWidget(deleteButton);
+    buttonsLayout->addStretch();
+
+    QWidget* widget(new QWidget());
+    QVBoxLayout* layout(new QVBoxLayout(widget));
     layout->addLayout(fileSelectionLayout);
-    layout->addLayout(copyMoveLayout);
-    layout->addWidget(deleteButton);
-    layout->addWidget(m_treeView, 100);
-    layout->addWidget(m_buttonBox);
+    layout->addLayout(buttonsLayout);
+    layout->addWidget(treeView, 100);
+    
+    return std::make_pair(widget, editorWidget);
 }
+
 
 /**
  * Called when a dialog button is clicked
@@ -231,14 +296,17 @@ DataFileEditorDialog::dialogButtonClicked(QAbstractButton* buttonClicked)
 }
 
 /**
- * Called when view file is selected
+ * Called when file is selected
+ * @param editorIndex
+ *    Left/right side index
  * @param caretDataFile
  *    File that is selected
  */
 void
-DataFileEditorDialog::dataFileSelected(CaretDataFile* caretDataFile)
+DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
+                                   CaretDataFile* caretDataFile)
 {
-    m_model    = NULL;
+    DataFileEditorModel* model(NULL);
     
     if (caretDataFile != NULL) {
         switch (m_dataType) {
@@ -248,7 +316,7 @@ DataFileEditorDialog::dataFileSelected(CaretDataFile* caretDataFile)
                 if (borderFile != NULL) {
                     FunctionResultValue<DataFileEditorModel*> result = borderFile->exportToDataFileEditorModel();
                     if (result.isOk()) {
-                        m_model.reset(result.getValue());
+                        model = result.getValue();
                     }
                     else {
                         WuQMessageBoxTwo::criticalOk(this,
@@ -265,7 +333,7 @@ DataFileEditorDialog::dataFileSelected(CaretDataFile* caretDataFile)
                 if (fociFile != NULL) {
                     FunctionResultValue<DataFileEditorModel*> result = fociFile->exportToDataFileEditorModel();
                     if (result.isOk()) {
-                        m_model.reset(result.getValue());
+                        model = result.getValue();
                     }
                     else {
                         WuQMessageBoxTwo::criticalOk(this,
@@ -279,38 +347,206 @@ DataFileEditorDialog::dataFileSelected(CaretDataFile* caretDataFile)
         }
     }
     
-    if (m_model) {
-        m_treeView->setModel(m_model.get());
-        m_treeView->sortByColumn(0, Qt::AscendingOrder);
+    QTreeView* treeView(NULL);
+    switch (editorIndex) {
+        case LEFT:
+            m_leftEditor->setModel(model);
+            treeView = m_leftEditor->m_treeView;
+            break;
+        case RIGHT:
+            m_rightEditor->setModel(model);
+            treeView = m_rightEditor->m_treeView;
+            break;
+    }
+
+    if (model != NULL) {
+        treeView->setModel(model);
+        treeView->sortByColumn(model->getDefaultSortingColumnIndex(), 
+                               Qt::AscendingOrder);
+
+        /*
+         * Selection model is valid (not NULL) only when there is
+         * a model in the tree view
+         */
+        QItemSelectionModel* selectionModel(treeView->selectionModel());
+        CaretAssert(selectionModel);
+        QObject::connect(selectionModel, &QItemSelectionModel::selectionChanged,
+                         [=](const QItemSelection&, const QItemSelection&)
+                         { updateCopyMoveDeleteActions(); });
     }
     else {
-        m_treeView->reset();
+        treeView->reset();
     }
     
-    updateCopyMoveToActions();
+    updateCopyMoveDeleteActions();
 }
 
 /**
- * Called when copy/move to file is selected
- * @param caretDataFile
- *    File that is selected
+ * Called when
+ * @param editorIndex
+ *    Left/right side index
  */
 void
-DataFileEditorDialog::copyMoveToFileSelected(CaretDataFile* /*caretDataFile*/)
+DataFileEditorDialog::copyActionSelected(const EditorIndex editorIndex)
 {
-    updateCopyMoveToActions();
+    EditorIndex destinationIndex = EditorIndex::LEFT;
+    switch (editorIndex) {
+        case LEFT:
+            destinationIndex = EditorIndex::RIGHT;
+            break;
+        case RIGHT:
+            destinationIndex = EditorIndex::LEFT;
+            break;
+    }
+    CaretAssert(editorIndex != destinationIndex);
+    
+    switch (m_dataType) {
+        case DataType::BORDERS:
+            copyBorders(editorIndex, destinationIndex);
+            break;
+        case DataType::FOCI:
+            copyFoci(editorIndex, destinationIndex);
+            break;
+    }
+}
+
+/**
+ * Called when move button clicked
+ * @param editorIndex
+ *    Left/right side index
+ */
+void
+DataFileEditorDialog::moveActionSelected(const EditorIndex editorIndex)
+{
+    EditorIndex destinationIndex = EditorIndex::LEFT;
+    switch (editorIndex) {
+        case LEFT:
+            destinationIndex = EditorIndex::RIGHT;
+            break;
+        case RIGHT:
+            destinationIndex = EditorIndex::LEFT;
+            break;
+    }
+    CaretAssert(editorIndex != destinationIndex);
+    
+    switch (m_dataType) {
+        case DataType::BORDERS:
+            if (copyBorders(editorIndex, destinationIndex)) {
+                deleteActionSelected(editorIndex);
+            }
+            break;
+        case DataType::FOCI:
+            if (copyFoci(editorIndex, destinationIndex)) {
+                deleteActionSelected(editorIndex);
+            }
+            break;
+    }
+}
+
+/**
+ * Called when delete button clicked
+ * @param editorIndex
+ *    Left/right side index
+ */
+void
+DataFileEditorDialog::deleteActionSelected(const EditorIndex editorIndex)
+{
+    std::vector<int32_t> rowIndices(getSelectedRowIndicesSorted(editorIndex));
+    if (rowIndices.empty()) {
+        WuQMessageBoxTwo::critical(this, "Error", "No items are selected");
+        return;
+    }
+    
+    CaretDataFileSelectionModel* fileSelectionModel(NULL);
+    DataFileEditorModel* model(NULL);
+    switch (editorIndex) {
+        case LEFT:
+            fileSelectionModel = m_leftEditor->m_fileSelectionModel.get();
+            model = m_leftEditor->m_model.get();
+            break;
+        case RIGHT:
+            fileSelectionModel = m_rightEditor->m_fileSelectionModel.get();
+            model = m_rightEditor->m_model.get();
+            break;
+    }
+    CaretAssert(fileSelectionModel);
+    CaretAssert(model);
+    
+    /*
+     * Reverse indices since need to remove higher
+     * numbered rows first
+     */
+    std::reverse(rowIndices.begin(),
+                 rowIndices.end());
+    for (const int32_t rowIndex : rowIndices) {
+        model->removeRow(rowIndex);
+    }
+    
+    switch (m_dataType) {
+        case DataType::BORDERS:
+        {
+            BorderFile* selectedBorderFile(fileSelectionModel->getSelectedFileOfType<BorderFile>());
+            if (selectedBorderFile != NULL) {
+                selectedBorderFile->importFromDataFileEditorModel(*model);
+                
+                /*
+                 * Reloads file with deleted borders
+                 */
+                fileSelected(editorIndex,
+                             selectedBorderFile);
+            }
+            else {
+                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
+            }
+        }
+            break;
+        case DataType::FOCI:
+        {
+            FociFile* selectedFociFile(fileSelectionModel->getSelectedFileOfType<FociFile>());
+            if (selectedFociFile != NULL) {
+                selectedFociFile->importFromDataFileEditorModel(*model);
+                
+                /*
+                 * Reloads file with deleted foci
+                 */
+                fileSelected(editorIndex,
+                             selectedFociFile);
+            }
+            else {
+                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
+            }
+        }
+            break;
+    }
+    
+    updateGraphicsAndUserInterface();
+    
+    
 }
 
 /**
  * Update the copy/move to actions
  */
 void
-DataFileEditorDialog::updateCopyMoveToActions()
+DataFileEditorDialog::updateCopyMoveDeleteActions()
 {
-    bool enabledFlag(m_viewFileSelectionModel->getSelectedFile()
-                     != m_copyMoveToFileSelectionModel->getSelectedFile());
-    m_copyAction->setEnabled(enabledFlag);
-    m_moveAction->setEnabled(enabledFlag);
+    const bool filesDifferentFlag(m_leftEditor->getSelectedFile()
+                                  != m_rightEditor->getSelectedFile());
+    
+    const bool leftItemsSelectedFlag( ! getSelectedItems(EditorIndex::LEFT).empty());
+    const bool rightItemsSelectedFlag( ! getSelectedItems(EditorIndex::RIGHT).empty());
+    
+    m_leftEditor->m_deleteAction->setEnabled(leftItemsSelectedFlag);
+    m_leftEditor->m_copyAction->setEnabled(filesDifferentFlag
+                                           && leftItemsSelectedFlag);
+    m_leftEditor->m_moveAction->setEnabled(filesDifferentFlag
+                                           && leftItemsSelectedFlag);
+
+    m_rightEditor->m_deleteAction->setEnabled(leftItemsSelectedFlag);
+    m_rightEditor->m_copyAction->setEnabled(filesDifferentFlag
+                                            && rightItemsSelectedFlag);
+    m_rightEditor->m_moveAction->setEnabled(filesDifferentFlag
+                                            && rightItemsSelectedFlag);
 }
 
 /**
@@ -326,16 +562,29 @@ DataFileEditorDialog::done(int result)
 }
 
 /**
- * @return Indicies of selected rows
+ * @return Selected row indexes sorted for the given editor
+ * @param editorIndex
+ *    Left/right side index
  */
 std::vector<int32_t>
-DataFileEditorDialog::getSelectedRowIndicesSorted() const
+DataFileEditorDialog::getSelectedRowIndicesSorted(const EditorIndex editorIndex) const
 {
+    QTreeView* treeView(NULL);
+    switch (editorIndex) {
+        case LEFT:
+            treeView = m_leftEditor->m_treeView;
+            break;
+        case RIGHT:
+            treeView = m_rightEditor->m_treeView;
+            break;
+    }
+    CaretAssert(treeView);
+    
     /*
      * Put in set to remove duplicates and sort
      */
     std::set<int32_t> rowIndicesSet;
-    const QModelIndexList modelndexes(m_treeView->selectionModel()->selectedRows());
+    const QModelIndexList modelndexes(treeView->selectionModel()->selectedRows());
     for (const QModelIndex& mi : modelndexes) {
         rowIndicesSet.insert(mi.row());
     }
@@ -346,26 +595,59 @@ DataFileEditorDialog::getSelectedRowIndicesSorted() const
 }
 
 /**
- * @return All items that are selected
+ * @return All items that are selected for the given editor
+ * @param editorIndex
+ *    Left/right side index
  */
 std::vector<DataFileEditorItem*>
-DataFileEditorDialog::getSelectedItems() const
+DataFileEditorDialog::getSelectedItems(const EditorIndex editorIndex) const
 {
-    QModelIndexList modelndexes(m_treeView->selectionModel()->selectedRows());
-    return m_model->getItemsFromIndices(modelndexes);
+    std::vector<DataFileEditorItem*> items;
+    
+    EditorWidgets* editor(getEditor(editorIndex));
+    CaretAssert(editor);
+    QItemSelectionModel* selectionModel(editor->m_treeView->selectionModel());
+    if (selectionModel != NULL) { /* selection model may be NULL */
+        QModelIndexList modelndexes = selectionModel->selectedRows();
+        items = editor->m_model->getItemsFromIndices(modelndexes);
+    }
+    return items;
 }
 
 /**
- * @return The selected borders
+ * @return Editor for the left/right side
+ * @param editorIndex
+ *    Left/right side index
+ */
+DataFileEditorDialog::EditorWidgets*
+DataFileEditorDialog::getEditor(const EditorIndex editorIndex) const
+{
+    EditorWidgets* editor(NULL);
+    switch (editorIndex) {
+        case LEFT:
+            editor = m_leftEditor.get();
+            break;
+        case RIGHT:
+            editor = m_rightEditor.get();
+            break;
+    }
+    CaretAssert(editor);
+    return editor;
+}
+
+/**
+ * @return The selected borders for the given editor
+ * @param editorIndex
+ *    Left/right side index
  */
 std::vector<const Border*>
-DataFileEditorDialog::getSelectedBorders() const
+DataFileEditorDialog::getSelectedBorders(const EditorIndex editorIndex) const
 {
     CaretAssert(m_dataType == DataType::BORDERS);
     
     std::vector<const Border*> bordersOut;
     
-    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems());
+    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems(editorIndex));
     for (DataFileEditorItem* item : selectedItems) {
         const Border* border(item->getBorder());
         if (border != NULL) {
@@ -376,16 +658,18 @@ DataFileEditorDialog::getSelectedBorders() const
 }
 
 /**
- * @return The selected foci
+ * @return The selected foci for the given editor
+ * @param editorIndex
+ *    Left/right side index
  */
 std::vector<const Focus*>
-DataFileEditorDialog::getSelectedFoci() const
+DataFileEditorDialog::getSelectedFoci(const EditorIndex editorIndex) const
 {
     CaretAssert(m_dataType == DataType::FOCI);
     
     std::vector<const Focus*> fociOut;
     
-    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems());
+    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems(editorIndex));
     for (DataFileEditorItem* item : selectedItems) {
         const Focus* focus(item->getFocus());
         if (focus != NULL) {
@@ -396,180 +680,95 @@ DataFileEditorDialog::getSelectedFoci() const
 }
 
 /**
- * Called when copy action is triggered
- */
-void
-DataFileEditorDialog::copyActionTriggered()
-{
-    switch (m_dataType) {
-        case DataType::BORDERS:
-            copyBorders();
-            break;
-        case DataType::FOCI:
-            copyFoci();
-            break;
-    }
-}
-
-/**
- * Copy borders.
+ * Copy borders from source to desintation
  * @return True if successful, else false.
  */
 bool
-DataFileEditorDialog::copyBorders()
+DataFileEditorDialog::copyBorders(const EditorIndex sourceEditorIndex,
+                                  const EditorIndex destinationEditorIndex)
 {
-    std::vector<const Border*> borders(getSelectedBorders());
+    std::vector<const Border*> borders(getSelectedBorders(sourceEditorIndex));
     if (borders.empty()) {
         WuQMessageBoxTwo::critical(this, "Error", "No borders are selected");
         return false;
     }
+
+    BorderFile* sourceBorderFile(getEditor(sourceEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<BorderFile>());
+    BorderFile* destinationBorderFile(getEditor(destinationEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<BorderFile>());
+    if (sourceBorderFile == destinationBorderFile) {
+        WuQMessageBoxTwo::critical(this, "Error", "Border files are the same");
+        return false;
+    }
     
-    BorderFile* sourceBorderFile(m_viewFileSelectionModel->getSelectedFileOfType<BorderFile>());
-    BorderFile* destinationBorderFile(m_copyMoveToFileSelectionModel->getSelectedFileOfType<BorderFile>());
-    if ((sourceBorderFile != NULL)
-        && (destinationBorderFile != NULL)) {
-        if (sourceBorderFile != destinationBorderFile) {
-            for (const Border* border : borders) {
-                Border* borderCopy(new Border(*border));
-                if (border->isNameRgbaValid()) {
-                    float rgba[4];
-                    border->getNameRgba(rgba);
-                    borderCopy->setNameRgba(rgba);
-                }
-                if (border->isClassRgbaValid()) {
-                    float rgba[4];
-                    border->getClassRgba(rgba);
-                    borderCopy->setClassRgba(rgba);
-                }
-                destinationBorderFile->addBorderUseColorsFromBorder(borderCopy);
-            }
-            updateGraphicsAndUserInterface();
-            return true;
+    for (const Border* border : borders) {
+        Border* borderCopy(new Border(*border));
+        if (border->isNameRgbaValid()) {
+            float rgba[4];
+            border->getNameRgba(rgba);
+            borderCopy->setNameRgba(rgba);
         }
-        else {
-            WuQMessageBoxTwo::criticalOk(this, "Error", "Viewed and copy/move to files are the same");
+        if (border->isClassRgbaValid()) {
+            float rgba[4];
+            border->getClassRgba(rgba);
+            borderCopy->setClassRgba(rgba);
         }
+        destinationBorderFile->addBorderUseColorsFromBorder(borderCopy);
     }
-    else {
-        WuQMessageBoxTwo::criticalOk(this, "Error", "Selected files are invalid");
-    }
-    return false;
+    updateGraphicsAndUserInterface();
+    
+    /*
+     * Reloads file with copied borders
+     */
+    fileSelected(destinationEditorIndex,
+                 destinationBorderFile);
+    
+    return true;
 }
 
 /**
- * Copy foci.
+ * Copy foci from source to desintation
  * @return True if successful, else false.
  */
 bool
-DataFileEditorDialog::copyFoci()
+DataFileEditorDialog::copyFoci(const EditorIndex sourceEditorIndex,
+                               const EditorIndex destinationEditorIndex)
 {
-    std::vector<const Focus*> foci(getSelectedFoci());
+    std::vector<const Focus*> foci(getSelectedFoci(sourceEditorIndex));
     if (foci.empty()) {
         WuQMessageBoxTwo::critical(this, "Error", "No foci are selected");
         return false;
     }
     
-    FociFile* sourceFociFile(m_viewFileSelectionModel->getSelectedFileOfType<FociFile>());
-    FociFile* destinationFociFile(m_copyMoveToFileSelectionModel->getSelectedFileOfType<FociFile>());
-    if ((sourceFociFile != NULL)
-        && (destinationFociFile != NULL)) {
-        if (sourceFociFile != destinationFociFile) {
-            for (const Focus* focus : foci) {
-                destinationFociFile->addFocusUseColorsFromFocus(new Focus(*focus));
-            }
-            updateGraphicsAndUserInterface();
-            return true;
+    FociFile* sourceFociFile(getEditor(sourceEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<FociFile>());
+    FociFile* destinationFociFile(getEditor(destinationEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<FociFile>());
+    if (sourceFociFile == destinationFociFile) {
+        WuQMessageBoxTwo::critical(this, "Error", "Foci files are the same");
+        return false;
+    }
+    
+    for (const Focus* focus : foci) {
+        Focus* focusCopy(new Focus(*focus));
+        if (focus->isNameRgbaValid()) {
+            float rgba[4];
+            focus->getNameRgba(rgba);
+            focusCopy->setNameRgba(rgba);
         }
-        else {
-            WuQMessageBoxTwo::criticalOk(this, "Error", "Viewed and copy/move to files are the same");
+        if (focus->isClassRgbaValid()) {
+            float rgba[4];
+            focus->getClassRgba(rgba);
+            focusCopy->setClassRgba(rgba);
         }
+        destinationFociFile->addFocusUseColorsFromFocus(focusCopy);
     }
-    else {
-        WuQMessageBoxTwo::criticalOk(this, "Error", "Selected files are invalid");
-    }
-    return false;
-}
-
-/**
- * Called when delete action is triggered
- */
-void
-DataFileEditorDialog::deleteActionTriggered()
-{
-    std::vector<int32_t> rowIndices(getSelectedRowIndicesSorted());
-    if (rowIndices.empty()) {
-        WuQMessageBoxTwo::critical(this, "Error", "No items are selected");
-        return;
-    }
+    updateGraphicsAndUserInterface();
     
     /*
-     * Reverse indices since need to remove higher
-     * numbered rows first
+     * Reloads file with copied foci
      */
-    std::reverse(rowIndices.begin(),
-                 rowIndices.end());
-    for (const int32_t rowIndex : rowIndices) {
-        m_model->removeRow(rowIndex);
-    }
+    fileSelected(destinationEditorIndex,
+                 destinationFociFile);
     
-    switch (m_dataType) {
-        case DataType::BORDERS:
-        {
-            BorderFile* selectedBorderFile(m_viewFileSelectionModel->getSelectedFileOfType<BorderFile>());
-            if (selectedBorderFile != NULL) {
-                selectedBorderFile->importFromDataFileEditorModel(*m_model);
-            }
-            else {
-                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
-            }
-        }
-            break;
-        case DataType::FOCI:
-        {
-            FociFile* selectedFociFile(m_viewFileSelectionModel->getSelectedFileOfType<FociFile>());
-            if (selectedFociFile != NULL) {
-                selectedFociFile->importFromDataFileEditorModel(*m_model);
-            }
-            else {
-                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
-            }
-        }
-            break;
-    }
-    
-    updateGraphicsAndUserInterface();
-}
-
-/**
- * Called when move action is triggered
- */
-void
-DataFileEditorDialog::moveActionTriggered()
-{
-    switch (m_dataType) {
-        case DataType::BORDERS:
-            /*
-             * First copy to destination file
-             */
-            if (copyBorders()) {
-                /*
-                 * If copy successful, then delete from source file
-                 */
-                deleteActionTriggered();
-            }
-            break;
-        case DataType::FOCI:
-            /*
-             * First copy to destination file
-             */
-            if (copyFoci()) {
-                /*
-                 * If copy successful, then delete from source file
-                 */
-                deleteActionTriggered();
-            }
-            break;
-    }
+    return true;
 }
 
 /**
@@ -582,4 +781,58 @@ DataFileEditorDialog::updateGraphicsAndUserInterface()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
+/**
+ * Constructor
+ * @param fileSelectionModel
+ *    The file selection model
+ * @param fileSelectionComboBox
+ *    The file selection combo box
+ * @param treeView
+ *    The tree view
+ * @param copyAction
+ *    The copy action
+ * @param moveAction
+ *    The move action
+ * @param deleteAction
+ *    The delete action
+ */
+DataFileEditorDialog::EditorWidgets::EditorWidgets(CaretDataFileSelectionModel* fileSelectionModel,
+                                                   CaretDataFileSelectionComboBox* fileSelectionComboBox,
+                                                   QTreeView* treeView,
+                                                   QAction* copyAction,
+                                                   QAction* moveAction,
+                                                   QAction* deleteAction)
+{
+    m_fileSelectionModel.reset(fileSelectionModel);
+    m_fileSelectionComboBox = fileSelectionComboBox;
+    m_treeView              = treeView;
+    m_copyAction            = copyAction;
+    m_moveAction            = moveAction;
+    m_deleteAction          = deleteAction;
+}
+
+DataFileEditorDialog::EditorWidgets::~EditorWidgets()
+{
+    
+}
+
+/**
+ * Set the model (takes ownership and will delete model)
+ * @param model
+ *    The model
+ */
+void
+DataFileEditorDialog::EditorWidgets::setModel(DataFileEditorModel* model)
+{
+    m_model.reset(model);
+}
+
+/**
+ * @return File selected in this editor widget
+ */
+CaretDataFile*
+DataFileEditorDialog::EditorWidgets::getSelectedFile()
+{
+    return m_fileSelectionModel->getSelectedFile();
+}
 

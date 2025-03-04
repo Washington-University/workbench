@@ -49,9 +49,15 @@ namespace caret {
         DataFileEditorItem* getDataFileItemAtRowColumn(const int32_t rowIndex,
                                                        const int32_t columnIndex) const;
 
+        int32_t getDefaultSortingColumnIndex() const;
+        
+        void setDefaultSortingColumnIndex(const int32_t columnIndex);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
+        int32_t m_defaultSortingColumnIndex = 0;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
