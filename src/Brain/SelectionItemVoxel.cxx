@@ -215,7 +215,12 @@ SelectionItemVoxel::setVoxelIdentification(Brain* brain,
 {
     setBrain(brain);
     m_volumeFile  = volumeFile;
-    m_voxelSizeMillimeters = m_volumeFile->getMaximumVoxelSpacing();
+    if (m_volumeFile != NULL) {
+        m_voxelSizeMillimeters = m_volumeFile->getMaximumVoxelSpacing();
+    }
+    else {
+        m_voxelSizeMillimeters = 1.0;
+    }
 //    if (m_volumeFile != NULL) {
 //        float sp, sc, sa;
 //        m_volumeFile->getVoxelSpacingPCA(sp, sc, sa);

@@ -1128,21 +1128,23 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                     
                 }
                 else if (voxelValid) {
-                    SelectionItemVoxel* voxelID = selectionManager->getVoxelIdentification();
-                    voxelID->setBrain(brain);
-                    voxelID->setEnabledForSelection(true);
-                    voxelID->setVoxelIdentification(brain,
-                                                    ciftiMapFile,
-                                                    voxelIJK,
-                                                    voxelXYZ,
-                                                    voxelID->getPlane(),
-                                                    0.0);
-                    const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
-                    voxelID->setModelXYZ(doubleXYZ);
-                    
-                    GuiManager::get()->processIdentification(-1, // invalid tab index
-                                                             selectionManager,
-                                                             this);
+//                    if (ciftiMapFile != NULL) {
+                        SelectionItemVoxel* voxelID = selectionManager->getVoxelIdentification();
+                        voxelID->setBrain(brain);
+                        voxelID->setEnabledForSelection(true);
+                        voxelID->setVoxelIdentification(brain,
+                                                        ciftiMapFile,
+                                                        voxelIJK,
+                                                        voxelXYZ,
+                                                        voxelID->getPlane(),
+                                                        0.0);
+                        const double doubleXYZ[3] = { voxelXYZ[0], voxelXYZ[1], voxelXYZ[2] };
+                        voxelID->setModelXYZ(doubleXYZ);
+                        
+                        GuiManager::get()->processIdentification(-1, // invalid tab index
+                                                                 selectionManager,
+                                                                 this);
+//                    }
                 }
             }
         }
