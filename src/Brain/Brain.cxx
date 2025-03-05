@@ -139,6 +139,7 @@
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
+#include "ScenePathName.h"
 #include "ScenePathNameArray.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
@@ -8780,19 +8781,25 @@ Brain::saveToScene(const SceneAttributes* sceneAttributes,
          borderIter != m_borderFiles.end();
          borderIter++) {
         BorderFile* bf = *borderIter;
+        ScenePathName spn(bf->getFileNameNoPath(),
+                          bf->getFileName());
         sceneClass->addClass(bf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
-                                                         bf->getFileNameNoPath()));
+                                                                              spn.getRelativePathToSceneFile(sceneAttributes->getSceneFileName())));
     }
     for (std::vector<FociFile*>::iterator fociIter = m_fociFiles.begin();
          fociIter != m_fociFiles.end();
          fociIter++) {
         FociFile* ff = *fociIter;
+        ScenePathName spn(ff->getFileNameNoPath(),
+                          ff->getFileName());
         sceneClass->addClass(ff->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
-                                                         ff->getFileNameNoPath()));
+                                                                              spn.getRelativePathToSceneFile(sceneAttributes->getSceneFileName())));
     }
-    for (auto lf : m_volumeFiles) {
-        sceneClass->addClass(lf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
-                                                                              lf->getFileNameNoPath()));
+    for (auto vf : m_volumeFiles) {
+        ScenePathName spn(vf->getFileNameNoPath(),
+                          vf->getFileName());
+        sceneClass->addClass(vf->getGroupAndNameHierarchyModel()->saveToScene(sceneAttributes,
+                                                                              spn.getRelativePathToSceneFile(sceneAttributes->getSceneFileName())));
     }
 
     sceneClass->addClass(m_identificationManager->saveToScene(sceneAttributes,
@@ -9058,7 +9065,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
          borderIter != m_borderFiles.end();
          borderIter++) {
         BorderFile* bf = *borderIter;
-        const SceneClass* borderScene = sceneClass->getClass(bf->getFileNameNoPath());
+        const SceneClass* borderScene = sceneClass->getClassNamedWithFileName(bf->getFileName(),
+                                                                              bf->getFileNameNoPath(),
+                                                                              sceneAttributes->getSceneFileName());
         if (borderScene != NULL) {
             /*
              * WB-533 Default State of Borders in Scenes
@@ -9079,11 +9088,15 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
          fociIter++) {
         FociFile* ff = *fociIter;
         ff->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
-                                                              sceneClass->getClass(ff->getFileNameNoPath()));
+                                                              sceneClass->getClassNamedWithFileName(ff->getFileName(),
+                                                                                                    ff->getFileNameNoPath(),
+                                                                                                    sceneAttributes->getSceneFileName()));
     }
     for (auto vf : m_volumeFiles) {
         vf->getGroupAndNameHierarchyModel()->restoreFromScene(sceneAttributes,
-                                                              sceneClass->getClass(vf->getFileNameNoPath()));
+                                                              sceneClass->getClassNamedWithFileName(vf->getFileName(),
+                                                                                                    vf->getFileNameNoPath(),
+                                                                                                    sceneAttributes->getSceneFileName()));
     }
 
     m_identificationManager->restoreFromScene(sceneAttributes,

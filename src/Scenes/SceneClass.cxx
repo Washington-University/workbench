@@ -1379,3 +1379,35 @@ SceneClass::logMissing(const AString& missingInfo) const
 }
 
 
+/**
+ * Find and return the scene's child class with the given name that uses a file name,
+ * possibly just the filename or a relative path and filename.
+ *
+ * @param filenameFullPath
+ *     Full path of file
+ * @param filenameNoPath
+ *     Filename no path
+ * @param sceneFileName
+ *     Name of scene file
+ * @return
+ *     Pointer to the class with the given name or NULL if
+ *     no child class exists with the given name.
+ */
+const SceneClass*
+SceneClass::getClassNamedWithFileName(const AString& filenameFullPath,
+                                      const AString& filenameNoPath,
+                                      const AString& sceneFileName) const
+{
+    ScenePathName spn(filenameFullPath,
+                      filenameFullPath);
+    const AString relativePathName(spn.getRelativePathToSceneFile(sceneFileName));
+    const SceneClass* sc(NULL);
+    if ( ! relativePathName.isEmpty()) {
+        sc = getClass(relativePathName);
+    }
+    if (sc == NULL) {
+        sc = getClass(filenameNoPath);
+    }
+    return sc;
+}
+

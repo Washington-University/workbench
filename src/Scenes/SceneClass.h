@@ -261,6 +261,10 @@ namespace caret {
         
         SceneClass* getClass(const AString& name);
         
+        const SceneClass* getClassNamedWithFileName(const AString& filenameFullPath,
+                                                    const AString& filenameNoPath,
+                                                    const AString& sceneFileName) const;
+        
         const SceneClassArray* getClassArray(const AString& name) const;
         
         SceneClassArray* getClassArray(const AString& name);
