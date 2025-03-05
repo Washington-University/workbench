@@ -40,6 +40,7 @@
 #include "ChartableTwoFileLineLayerChart.h"
 #include "ChartableTwoFileLineSeriesChart.h"
 #include "ChartableTwoFileMatrixChart.h"
+#include "CiftiFiberOrientationFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CiftiMappableDataFile.h"
 #include "CaretVolumeExtension.h"
@@ -407,6 +408,11 @@ IdentificationFormattedTextGenerator::getFilesForIdentification(const Identifica
         CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
         HistologySlicesFile* histologyFile(caretDataFile->castToHistologySlicesFile());
         MediaFile* mediaFile(caretDataFile->castToMediaFile());
+        const CiftiFiberOrientationFile* fibersFile(dynamic_cast<CiftiFiberOrientationFile*>(caretDataFile));
+        if (fibersFile != NULL) {
+            /* Ignore fiber orientations file, no maps */
+            continue;
+        }
         if ((mapFile == NULL)
             && (histologyFile == NULL)
             && (mediaFile == NULL)) {
