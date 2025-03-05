@@ -32,6 +32,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
+#include "CiftiFiberOrientationFile.h"
 #include "EnumComboBoxTemplate.h"
 #include "EventCaretDataFilesGet.h"
 #include "EventGetDisplayedDataFiles.h"
@@ -247,11 +248,20 @@ IdentificationFileFilteringTableWidget::updateContent()
         CaretMappableDataFile* mapFile(caretDataFile->castToCaretMappableDataFile());
         MediaFile* mediaFile(caretDataFile->castToMediaFile());
         HistologySlicesFile* histologySlicesFile(caretDataFile->castToHistologySlicesFile());
+        CiftiFiberOrientationFile* ciftiFiberOrientationFile(dynamic_cast<CiftiFiberOrientationFile*>(caretDataFile));
+        
+        if (ciftiFiberOrientationFile != NULL) {
+            /* Ignore fiber orientation file (has no maps) */
+            continue;
+        }
         
         if ((mapFile == NULL)
             && (histologySlicesFile == NULL)
             && (mediaFile == NULL)) {
-            const AString txt("File is neither mappable nor histology nor media");
+            AString txt("File type is not recognized for identification processing: ");
+            if (caretDataFile != NULL) {
+                txt.appendWithNewLine(caretDataFile->getFileNameNoPath());
+            }
             CaretAssertMessage(0, txt);
             CaretLogSevere(txt);
             continue;
