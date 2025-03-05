@@ -37,14 +37,13 @@ class QDialogButtonBox;
 class QTreeView;
 
 namespace caret {
+    class Annotation;
     class Border;
-    class BorderFile;
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
     class DataFileEditorItem;
     class DataFileEditorModel;
-    class FociFile;
     class Focus;
 
     class DataFileEditorDialog : public QDialog {
@@ -53,8 +52,10 @@ namespace caret {
 
     public:
         enum class DataType {
+            ANNOTATIONS,
             BORDERS,
-            FOCI
+            FOCI,
+            SAMPLES
         };
         
         enum EditorIndex : int32_t {
@@ -126,13 +127,20 @@ namespace caret {
         
         std::vector<DataFileEditorItem*> getSelectedItems(const EditorIndex editorIndex) const;
 
+        std::vector<const Annotation*> getSelectedAnnotations(const EditorIndex editorIndex) const;
+        
         std::vector<const Border*> getSelectedBorders(const EditorIndex editorIndex) const;
         
         std::vector<const Focus*> getSelectedFoci(const EditorIndex editorIndex) const;
         
+        std::vector<const Annotation*> getSelectedSamples(const EditorIndex editorIndex) const;
+        
         EditorWidgets* getEditor(const EditorIndex editorIndex) const;
         
         void updateGraphicsAndUserInterface();
+        
+        bool copyAnnotations(const EditorIndex sourceEditorIndex,
+                             const EditorIndex destinationEditorIndex);
         
         bool copyBorders(const EditorIndex sourceEditorIndex,
                          const EditorIndex destinationEditorIndex);
@@ -140,7 +148,13 @@ namespace caret {
         bool copyFoci(const EditorIndex sourceEditorIndex,
                       const EditorIndex destinationEditorIndex);
         
+        bool copySamples(const EditorIndex sourceEditorIndex,
+                         const EditorIndex destinationEditorIndex);
+        
         void updateCopyMoveDeleteActions();
+        
+        void updateOtherModelView(const EditorIndex editorIndex,
+                                  const CaretDataFile* caretDataFile);
         
         const DataType m_dataType;
         

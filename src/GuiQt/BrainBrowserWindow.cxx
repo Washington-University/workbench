@@ -1721,6 +1721,10 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
+    m_dataAnnotationsEditAction = new QAction("Edit Annotations...");
+    QObject::connect(m_dataAnnotationsEditAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processEditAnnotations);
+    
     m_dataBordersEditAction = new QAction("Edit Borders...");
     QObject::connect(m_dataBordersEditAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processEditBorders);
@@ -1728,6 +1732,10 @@ BrainBrowserWindow::createActions()
     m_dataFociEditAction = new QAction("Edit Foci...");
     QObject::connect(m_dataFociEditAction, &QAction::triggered,
                      this, &BrainBrowserWindow::processEditFoci);
+    
+    m_dataSamplesEditAction = new QAction("Edit Samples...");
+    QObject::connect(m_dataSamplesEditAction, &QAction::triggered,
+                     this, &BrainBrowserWindow::processEditSamples);
     
     m_dataFociProjectAction =
     WuQtUtilities::createAction("Project Foci...",
@@ -2800,11 +2808,15 @@ BrainBrowserWindow::createMenuData()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processDataMenuAboutToShow()));
     
+    menu->addAction(m_dataAnnotationsEditAction);
+    menu->addSeparator();
     menu->addAction(m_dataBordersEditAction);
     menu->addAction(m_dataBorderFilesSplitAction);
     menu->addSeparator();
     menu->addAction(m_dataFociEditAction);
     menu->addAction(m_dataFociProjectAction);
+    menu->addSeparator();
+    menu->addAction(m_dataSamplesEditAction);
     
     return menu;
 }
@@ -2816,6 +2828,11 @@ void
 BrainBrowserWindow::processDataMenuAboutToShow()
 {
     Brain* brain = GuiManager::get()->getBrain();
+    
+    std::vector<AnnotationFile*> annotationFiles;
+    brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    m_dataAnnotationsEditAction->setEnabled( ! annotationFiles.empty());
+    
     bool haveBorderFiles = (GuiManager::get()->getBrain()->getNumberOfBorderFiles() > 0);
     m_dataBordersEditAction->setEnabled(haveBorderFiles);
     
@@ -2831,7 +2848,15 @@ BrainBrowserWindow::processDataMenuAboutToShow()
             break;
         }
     }
-    m_dataBorderFilesSplitAction->setEnabled(haveMultiStructureBorderFiles);    
+    m_dataBorderFilesSplitAction->setEnabled(haveMultiStructureBorderFiles);  
+    
+    m_dataSamplesEditAction->setEnabled(brain->getNumberOfSamplesFiles() > 0);
+    
+    /*
+     * DISABLE ANNOTATIONS AND SAMPLES EDITING
+     */
+    m_dataAnnotationsEditAction->setEnabled(false);
+    m_dataSamplesEditAction->setEnabled(false);
 }
 
 /**
@@ -3324,6 +3349,24 @@ BrainBrowserWindow::processDevelopOmeZarrOpenTesting()
 }
 
 /**
+ * Edit Annotations.
+ */
+void
+BrainBrowserWindow::processEditAnnotations()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    std::vector<AnnotationFile*> annotationFiles;
+    brain->getAllAnnotationFilesIncludingSceneAnnotationFile(annotationFiles);
+    
+    if ( ! annotationFiles.empty()) {
+        DataFileEditorDialog* dialog = new DataFileEditorDialog(DataFileEditorDialog::DataType::ANNOTATIONS,
+                                                                this);
+        dialog->exec();
+    }
+}
+
+/**
  * Edit borders.
  */
 void
@@ -3335,6 +3378,22 @@ BrainBrowserWindow::processEditBorders()
     
     if (numBorderFiles > 0) {
         DataFileEditorDialog* dialog = new DataFileEditorDialog(DataFileEditorDialog::DataType::BORDERS,
+                                                                this);
+        dialog->exec();
+    }
+}
+
+/**
+ * Edit Samples.
+ */
+void
+BrainBrowserWindow::processEditSamples()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    
+    if (brain->getNumberOfSamplesFiles() > 0) {
+        DataFileEditorDialog* dialog = new DataFileEditorDialog(DataFileEditorDialog::DataType::SAMPLES,
                                                                 this);
         dialog->exec();
     }

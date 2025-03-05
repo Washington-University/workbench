@@ -7184,6 +7184,10 @@ Brain::receiveEvent(Event* event)
         
         std::vector<CaretDataFile*> caretDataFiles;
         getAllDataFiles(caretDataFiles);
+        if ( ! getSceneAnnotationFile()->isEmpty()) {
+            caretDataFiles.insert(caretDataFiles.begin(),
+                                  getSceneAnnotationFile());
+        }
         filesEvent->addAllCaretDataFiles(caretDataFiles);
         filesEvent->setEventProcessed();
     }

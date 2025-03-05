@@ -256,8 +256,10 @@ namespace caret {
         void processDevelopOmeZarrOpenTesting();
         void developerMenuAboutToShow();
         
+        void processEditAnnotations();
         void processEditBorders();
         void processEditFoci();
+        void processEditSamples();
         void processProjectFoci();
         void processSplitBorderFiles();
         
@@ -467,12 +469,14 @@ namespace caret {
         QToolButton* m_toolBarUndoUnlockWindowAndAllTabAspectRatioButton;
 
         QAction* m_featuresToolBoxAction;
-        
+
+        QAction* m_dataAnnotationsEditAction;
         QAction* m_dataBordersEditAction;
         QAction* m_dataFociEditAction;
         QAction* m_dataFociProjectAction;
         QAction* m_dataBorderFilesSplitAction;
         QAction* m_dataPaletteEditorDialogAction;
+        QAction* m_dataSamplesEditAction;
         
         QMenu* m_moveSelectedTabToWindowMenu;
         

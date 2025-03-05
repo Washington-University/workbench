@@ -161,6 +161,13 @@ Border::copyHelperBorder(const Border& obj)
     
     clearModified();
     setNameOrClassModified(); // new name/class so modified
+
+    if (obj.isNameRgbaValid()) {
+        setNameRgba(obj.m_nameRgbaColor);
+    }
+    if (obj.isClassRgbaValid()) {
+        setClassRgba(obj.m_classRgbaColor);
+    }
 }
 
 /**
@@ -274,6 +281,7 @@ Border::setClassRgba(const float rgba[4])
     m_classRgbaColor[1] = rgba[1];
     m_classRgbaColor[2] = rgba[2];
     m_classRgbaColor[3] = rgba[3];
+    CaretAssert(rgba[3] != 0.0);
     m_classRgbaColorValid = true;
 }
 
@@ -330,6 +338,7 @@ Border::setNameRgba(const float rgba[4])
     m_nameRgbaColor[1] = rgba[1];
     m_nameRgbaColor[2] = rgba[2];
     m_nameRgbaColor[3] = rgba[3];
+    CaretAssert(rgba[3] != 0.0);
     m_nameRgbaColorValid = true;
 }
 

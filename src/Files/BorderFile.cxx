@@ -2698,7 +2698,7 @@ BorderFile::exportToDataFileEditorModel() const
         /*
          * For Border Name
          */
-        float nameRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        float nameRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
         const GiftiLabel* nameLabel(nameColorTable->getLabelBestMatching(border->getName()));
         if (nameLabel != NULL) {
             nameLabel->getColor(nameRGBA);
@@ -2707,7 +2707,7 @@ BorderFile::exportToDataFileEditorModel() const
         /*
          * For Border Class
          */
-        float classRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        float classRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
         const GiftiLabel* classLabel(classColorTable->getLabelBestMatching(border->getClassName()));
         if (classLabel != NULL) {
             classLabel->getColor(classRGBA);
@@ -2810,7 +2810,7 @@ BorderFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEdi
      * Add border from data file editor model
      */
     for (const Border* border : newBorders) {
-        addBorder(new Border(*border));
+        addBorderUseColorsFromBorder(new Border(*border));
     }
     
     return FunctionResult::ok();

@@ -35,12 +35,14 @@
 #include "EventAnnotationGrouping.h"
 #include "EventListenerInterface.h"
 #include "EventTileTabsGridConfigurationModification.h"
+#include "FunctionResult.h"
 
 namespace caret {
 
     class Annotation;
     class AnnotationGroup;
     class AnnotationPolyhedron;
+    class DataFileEditorModel;
     class DisplayGroupAndTabItemHelper;
     class HistologySpaceKey;
     class SceneClassAssistant;
@@ -184,7 +186,13 @@ namespace caret {
         
         virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
         
-    protected: 
+        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
+        
+        FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
+        
+        void addAnnotationCopiedFromAnotherFile(const Annotation* annotation);
+        
+    protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                              SceneClass* sceneClass);
 

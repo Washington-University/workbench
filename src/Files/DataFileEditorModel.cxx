@@ -27,11 +27,6 @@
 
 #include "CaretAssert.h"
 #include "DataFileEditorItem.h"
-#include "FociFile.h"
-#include "Focus.h"
-#include "GiftiLabel.h"
-#include "GiftiLabelTable.h"
-#include "Vector3D.h"
 
 using namespace caret;
     

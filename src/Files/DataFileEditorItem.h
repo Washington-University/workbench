@@ -30,6 +30,7 @@
 class QCollator;
 
 namespace caret {
+    class Annotation;
     class Border;
     class Focus;
  
@@ -41,6 +42,11 @@ namespace caret {
             CLASS = QStandardItem::UserType + 2,
             XYZ   = QStandardItem::UserType + 3
         };
+        
+        DataFileEditorItem(const ItemType dataItemType,
+                           std::shared_ptr<Annotation> annotation,
+                           const AString& text,
+                           const float iconRGBA[4]);
         
         DataFileEditorItem(const ItemType dataItemType,
                            std::shared_ptr<Focus> focus,
@@ -64,9 +70,13 @@ namespace caret {
         
         virtual bool operator<(const QStandardItem &other) const override;
         
+        const Annotation* getAnnotation() const;
+        
         const Border* getBorder() const;
         
         const Focus* getFocus() const;
+        
+        const Annotation* getSample() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -76,7 +86,12 @@ namespace caret {
         ItemType m_dataItemType;
         
         /*
-         * All items in one row represent the same focus
+         * All items in one row represent the same annotation
+         */
+        std::shared_ptr<Annotation> m_annotation;
+        
+        /*
+         * All items in one row represent the same border
          */
         std::shared_ptr<Border> m_border;
         

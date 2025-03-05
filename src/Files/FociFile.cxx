@@ -962,7 +962,7 @@ FociFile::exportToDataFileEditorModel() const
         /*
          * For Focus Name
          */
-        float nameRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        float nameRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
         const GiftiLabel* nameLabel(nameColorTable->getLabelBestMatching(focus->getName()));
         if (nameLabel != NULL) {
             nameLabel->getColor(nameRGBA);
@@ -971,7 +971,7 @@ FociFile::exportToDataFileEditorModel() const
         /*
          * For Focus Class
          */
-        float classRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        float classRGBA[4] { 0.0, 0.0, 0.0, 1.0 };
         const GiftiLabel* classLabel(classColorTable->getLabelBestMatching(focus->getClassName()));
         if (classLabel != NULL) {
             classLabel->getColor(classRGBA);

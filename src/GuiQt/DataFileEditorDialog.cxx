@@ -37,6 +37,8 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 
+#include "Annotation.h"
+#include "AnnotationFile.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
@@ -49,6 +51,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FociFile.h"
 #include "Focus.h"
+#include "SamplesFile.h"
 #include "WuQMessageBoxTwo.h"
 
 using namespace caret;
@@ -75,6 +78,10 @@ m_dataType(dataType)
 {
     m_dataFileType = DataFileTypeEnum::UNKNOWN;
     switch (m_dataType) {
+        case DataType::ANNOTATIONS:
+            m_dataFileType = DataFileTypeEnum::ANNOTATION;
+            setWindowTitle("Edit Annotations");
+            break;
         case DataType::BORDERS:
             m_dataFileType = DataFileTypeEnum::BORDER;
             setWindowTitle("Edit Borders");
@@ -82,6 +89,10 @@ m_dataType(dataType)
         case DataType::FOCI:
             m_dataFileType = DataFileTypeEnum::FOCI;
             setWindowTitle("Edit Foci");
+            break;
+        case DataType::SAMPLES:
+            m_dataFileType = DataFileTypeEnum::SAMPLES;
+            setWindowTitle("Edit Samples");
             break;
     }
     CaretAssert(m_dataFileType != DataFileTypeEnum::UNKNOWN);
@@ -102,9 +113,12 @@ m_dataType(dataType)
      */
     CaretDataFileSelectionModel* rightFileModel(m_rightEditor->m_fileSelectionModel.get());
     std::vector<CaretDataFile*> copyMoveToFiles(rightFileModel->getAvailableFiles());
-    if (copyMoveToFiles.size() >= 2) {
-        CaretAssertVectorIndex(copyMoveToFiles, 1);
-        rightFileModel->setSelectedFile(copyMoveToFiles[1]);
+    if ( ! copyMoveToFiles.empty()) {
+        const int32_t fileIndex((copyMoveToFiles.size() >= 2)
+                                ? 1
+                                : 0);
+        CaretAssertVectorIndex(copyMoveToFiles, fileIndex);
+        rightFileModel->setSelectedFile(copyMoveToFiles[fileIndex]);
         m_rightEditor->m_fileSelectionComboBox->updateComboBox(rightFileModel);
         fileSelected(EditorIndex::RIGHT,
                      rightFileModel->getSelectedFile());
@@ -295,6 +309,35 @@ DataFileEditorDialog::dialogButtonClicked(QAbstractButton* buttonClicked)
     }
 }
 
+
+/**
+ * Update model in the other view if it contains the same file
+ * @param editorIndex
+ *    Side that is NOT updated
+ * @param reloadIfThisFile
+ *    Reload if this file is viewed
+ */
+void
+DataFileEditorDialog::updateOtherModelView(const EditorIndex editorIndex,
+                                           const CaretDataFile* caretDataFile)
+{
+    EditorIndex otherIndex = EditorIndex::LEFT;
+    switch (editorIndex) {
+        case LEFT:
+            otherIndex = EditorIndex::RIGHT;
+            break;
+        case RIGHT:
+            otherIndex = EditorIndex::LEFT;
+            break;
+    }
+    
+    if (getEditor(otherIndex)->getSelectedFile() == caretDataFile) {
+        fileSelected(otherIndex,
+                     getEditor(otherIndex)->getSelectedFile());
+    }
+}
+
+
 /**
  * Called when file is selected
  * @param editorIndex
@@ -310,6 +353,22 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
     
     if (caretDataFile != NULL) {
         switch (m_dataType) {
+            case DataType::ANNOTATIONS:
+            {
+                AnnotationFile* annotationFile = dynamic_cast<AnnotationFile*>(caretDataFile);
+                if (annotationFile != NULL) {
+                    FunctionResultValue<DataFileEditorModel*> result = annotationFile->exportToDataFileEditorModel();
+                    if (result.isOk()) {
+                        model = result.getValue();
+                    }
+                    else {
+                        WuQMessageBoxTwo::criticalOk(this,
+                                                     "Error",
+                                                     result.getErrorMessage());
+                    }
+                }
+            }
+                break;
             case DataType::BORDERS:
             {
                 BorderFile* borderFile = dynamic_cast<BorderFile*>(caretDataFile);
@@ -324,7 +383,6 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
                                                      result.getErrorMessage());
                     }
                 }
-                
             }
                 break;
             case DataType::FOCI:
@@ -341,7 +399,22 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
                                                      result.getErrorMessage());
                     }
                 }
-                
+            }
+                break;
+            case DataType::SAMPLES:
+            {
+                SamplesFile* samplesFile = dynamic_cast<SamplesFile*>(caretDataFile);
+                if (samplesFile != NULL) {
+                    FunctionResultValue<DataFileEditorModel*> result = samplesFile->exportToDataFileEditorModel();
+                    if (result.isOk()) {
+                        model = result.getValue();
+                    }
+                    else {
+                        WuQMessageBoxTwo::criticalOk(this,
+                                                     "Error",
+                                                     result.getErrorMessage());
+                    }
+                }
             }
                 break;
         }
@@ -361,7 +434,7 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
 
     if (model != NULL) {
         treeView->setModel(model);
-        treeView->sortByColumn(model->getDefaultSortingColumnIndex(), 
+        treeView->sortByColumn(model->getDefaultSortingColumnIndex(),
                                Qt::AscendingOrder);
 
         /*
@@ -401,11 +474,17 @@ DataFileEditorDialog::copyActionSelected(const EditorIndex editorIndex)
     CaretAssert(editorIndex != destinationIndex);
     
     switch (m_dataType) {
+        case DataType::ANNOTATIONS:
+            copyAnnotations(editorIndex, destinationIndex);
+            break;
         case DataType::BORDERS:
             copyBorders(editorIndex, destinationIndex);
             break;
         case DataType::FOCI:
             copyFoci(editorIndex, destinationIndex);
+            break;
+        case DataType::SAMPLES:
+            copySamples(editorIndex, destinationIndex);
             break;
     }
 }
@@ -430,6 +509,11 @@ DataFileEditorDialog::moveActionSelected(const EditorIndex editorIndex)
     CaretAssert(editorIndex != destinationIndex);
     
     switch (m_dataType) {
+        case DataType::ANNOTATIONS:
+            if (copyAnnotations(editorIndex, destinationIndex)) {
+                deleteActionSelected(editorIndex);
+            }
+            break;
         case DataType::BORDERS:
             if (copyBorders(editorIndex, destinationIndex)) {
                 deleteActionSelected(editorIndex);
@@ -437,6 +521,11 @@ DataFileEditorDialog::moveActionSelected(const EditorIndex editorIndex)
             break;
         case DataType::FOCI:
             if (copyFoci(editorIndex, destinationIndex)) {
+                deleteActionSelected(editorIndex);
+            }
+            break;
+        case DataType::SAMPLES:
+            if (copySamples(editorIndex, destinationIndex)) {
                 deleteActionSelected(editorIndex);
             }
             break;
@@ -483,6 +572,28 @@ DataFileEditorDialog::deleteActionSelected(const EditorIndex editorIndex)
     }
     
     switch (m_dataType) {
+        case DataType::ANNOTATIONS:
+        {
+            AnnotationFile* selectedAnnotationFile(fileSelectionModel->getSelectedFileOfType<AnnotationFile>());
+            if (selectedAnnotationFile != NULL) {
+                selectedAnnotationFile->importFromDataFileEditorModel(*model);
+                
+                /*
+                 * Reloads file with deleted borders
+                 */
+                fileSelected(editorIndex,
+                             selectedAnnotationFile);
+                /*
+                 * Reloads other view since it may have the same file
+                 */
+                updateOtherModelView(editorIndex,
+                                     selectedAnnotationFile);
+            }
+            else {
+                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
+            }
+        }
+            break;
         case DataType::BORDERS:
         {
             BorderFile* selectedBorderFile(fileSelectionModel->getSelectedFileOfType<BorderFile>());
@@ -494,6 +605,11 @@ DataFileEditorDialog::deleteActionSelected(const EditorIndex editorIndex)
                  */
                 fileSelected(editorIndex,
                              selectedBorderFile);
+                /*
+                 * Reloads other view since it may have the same file
+                 */
+                updateOtherModelView(editorIndex,
+                                     selectedBorderFile);
             }
             else {
                 WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
@@ -511,6 +627,33 @@ DataFileEditorDialog::deleteActionSelected(const EditorIndex editorIndex)
                  */
                 fileSelected(editorIndex,
                              selectedFociFile);
+                /*
+                 * Reloads other view since it may have the same file
+                 */
+                updateOtherModelView(editorIndex,
+                                     selectedFociFile);
+            }
+            else {
+                WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
+            }
+        }
+            break;
+        case DataType::SAMPLES:
+        {
+            SamplesFile* selectedSamplesFile(fileSelectionModel->getSelectedFileOfType<SamplesFile>());
+            if (selectedSamplesFile != NULL) {
+                selectedSamplesFile->importFromDataFileEditorModel(*model);
+                
+                /*
+                 * Reloads file with deleted borders
+                 */
+                fileSelected(editorIndex,
+                             selectedSamplesFile);
+                /*
+                 * Reloads other view since it may have the same file
+                 */
+                updateOtherModelView(editorIndex,
+                                     selectedSamplesFile);
             }
             else {
                 WuQMessageBoxTwo::critical(this, "Error", "PROGRAM ERROR: Selected file is invalid");
@@ -542,7 +685,7 @@ DataFileEditorDialog::updateCopyMoveDeleteActions()
     m_leftEditor->m_moveAction->setEnabled(filesDifferentFlag
                                            && leftItemsSelectedFlag);
 
-    m_rightEditor->m_deleteAction->setEnabled(leftItemsSelectedFlag);
+    m_rightEditor->m_deleteAction->setEnabled(rightItemsSelectedFlag);
     m_rightEditor->m_copyAction->setEnabled(filesDifferentFlag
                                             && rightItemsSelectedFlag);
     m_rightEditor->m_moveAction->setEnabled(filesDifferentFlag
@@ -636,6 +779,28 @@ DataFileEditorDialog::getEditor(const EditorIndex editorIndex) const
 }
 
 /**
+ * @return The selected annotations for the given editor
+ * @param editorIndex
+ *    Left/right side index
+ */
+std::vector<const Annotation*>
+DataFileEditorDialog::getSelectedAnnotations(const EditorIndex editorIndex) const
+{
+    CaretAssert(m_dataType == DataType::ANNOTATIONS);
+    
+    std::vector<const Annotation*> annotationsOut;
+    
+    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems(editorIndex));
+    for (DataFileEditorItem* item : selectedItems) {
+        const Annotation* annotation(item->getAnnotation());
+        if (annotation != NULL) {
+            annotationsOut.push_back(annotation);
+        }
+    }
+    return annotationsOut;
+}
+
+/**
  * @return The selected borders for the given editor
  * @param editorIndex
  *    Left/right side index
@@ -677,6 +842,64 @@ DataFileEditorDialog::getSelectedFoci(const EditorIndex editorIndex) const
         }
     }
     return fociOut;
+}
+
+/**
+ * @return The selected samples for the given editor
+ * @param editorIndex
+ *    Left/right side index
+ */
+std::vector<const Annotation*>
+DataFileEditorDialog::getSelectedSamples(const EditorIndex editorIndex) const
+{
+    CaretAssert(m_dataType == DataType::SAMPLES);
+    
+    std::vector<const Annotation*> annotationsOut;
+    
+    std::vector<DataFileEditorItem*> selectedItems(getSelectedItems(editorIndex));
+    for (DataFileEditorItem* item : selectedItems) {
+        const Annotation* annotation(item->getSample());
+        if (annotation != NULL) {
+            annotationsOut.push_back(annotation);
+        }
+    }
+    return annotationsOut;
+}
+
+/**
+ * Copy annotations from source to desintation
+ * @return True if successful, else false.
+ */
+bool
+DataFileEditorDialog::copyAnnotations(const EditorIndex sourceEditorIndex,
+                                      const EditorIndex destinationEditorIndex)
+{
+    std::vector<const Annotation*> annotations(getSelectedAnnotations(sourceEditorIndex));
+    if (annotations.empty()) {
+        WuQMessageBoxTwo::critical(this, "Error", "No annotations are selected");
+        return false;
+    }
+    
+    AnnotationFile* sourceAnnotationFile(getEditor(sourceEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<AnnotationFile>());
+    AnnotationFile* destinationAnnotationFile(getEditor(destinationEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<AnnotationFile>());
+    if (sourceAnnotationFile == destinationAnnotationFile) {
+        WuQMessageBoxTwo::critical(this, "Error", "Annotation files are the same");
+        return false;
+    }
+    
+    for (const Annotation* annotation : annotations) {
+        Annotation* annotationCopy(annotation->clone());
+        destinationAnnotationFile->addAnnotationCopiedFromAnotherFile(annotationCopy);
+    }
+    updateGraphicsAndUserInterface();
+    
+    /*
+     * Reloads file with copied borders
+     */
+    fileSelected(destinationEditorIndex,
+                 destinationAnnotationFile);
+    
+    return true;
 }
 
 /**
@@ -767,6 +990,52 @@ DataFileEditorDialog::copyFoci(const EditorIndex sourceEditorIndex,
      */
     fileSelected(destinationEditorIndex,
                  destinationFociFile);
+    
+    return true;
+}
+
+/**
+ * Copy samples from source to desintation
+ * @return True if successful, else false.
+ */
+bool
+DataFileEditorDialog::copySamples(const EditorIndex sourceEditorIndex,
+                                  const EditorIndex destinationEditorIndex)
+{
+    std::vector<const Annotation*> samples(getSelectedSamples(sourceEditorIndex));
+    if (samples.empty()) {
+        WuQMessageBoxTwo::critical(this, "Error", "No samples are selected");
+        return false;
+    }
+    
+    SamplesFile* sourceSamplesFile(getEditor(sourceEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<SamplesFile>());
+    SamplesFile* destinationSamplesFile(getEditor(destinationEditorIndex)->m_fileSelectionModel->getSelectedFileOfType<SamplesFile>());
+    if (sourceSamplesFile == destinationSamplesFile) {
+        WuQMessageBoxTwo::critical(this, "Error", "Sample files are the same");
+        return false;
+    }
+    
+    for (const Annotation* sample : samples) {
+        Annotation* sampleCopy(sample->clone());
+        //        if (border->isNameRgbaValid()) {
+        //            float rgba[4];
+        //            border->getNameRgba(rgba);
+        //            annotationCopy->setNameRgba(rgba);
+        //        }
+        //        if (border->isClassRgbaValid()) {
+        //            float rgba[4];
+        //            border->getClassRgba(rgba);
+        //            annotationCopy->setClassRgba(rgba);
+        //        }
+        destinationSamplesFile->addAnnotationCopiedFromAnotherFile(sampleCopy);
+    }
+    updateGraphicsAndUserInterface();
+    
+    /*
+     * Reloads file with copied borders
+     */
+    fileSelected(destinationEditorIndex,
+                 destinationSamplesFile);
     
     return true;
 }

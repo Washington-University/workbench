@@ -39,6 +39,8 @@
 #include "CaretLogger.h"
 #include "DataFileContentInformation.h"
 #include "DataFileContentCopyMoveParameters.h"
+#include "DataFileEditorItem.h"
+#include "DataFileEditorModel.h"
 #include "DataFileException.h"
 #include "DisplayGroupAndTabItemHelper.h"
 #include "EventAnnotationAddToRemoveFromFile.h"
@@ -2884,6 +2886,159 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
         removeAnnotationPrivate(ann,
                                 keepAnnotationForUndoRedoFlag);
     }
+}
+
+/**
+ * Export the content of a border file to a DataFileEditorModel
+ * @return The DataFileEditorModel containing border data.
+ * Caller takes ownership of returned model.
+ */
+FunctionResultValue<DataFileEditorModel*>
+AnnotationFile::exportToDataFileEditorModel() const
+{
+    std::vector<AnnotationGroup*> groups;
+    getAllAnnotationGroups(groups);
+    
+    DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
+    dataFileEditorModel->setColumnCount(2);
+    const int32_t groupColumnIndex(1);
+    dataFileEditorModel->setDefaultSortingColumnIndex(groupColumnIndex);
+    
+    for (AnnotationGroup* ag : groups) {
+        std::vector<Annotation*> annotations;
+        ag->getAllAnnotations(annotations);
+        
+        if ( ! annotations.empty()) {
+            for (Annotation* ann : annotations) {
+                CaretAssert(ann);
+                
+                /*
+                 * All items in row represent the same annotation
+                 */
+                std::shared_ptr<Annotation> annShared(ann->clone());
+                
+                float nameRGBA[4];
+                if (ann->getType() == AnnotationTypeEnum::TEXT) {
+                    const AnnotationText* at(ann->castToTextAnnotation());
+                    CaretAssert(at);
+                    at->getTextColorRGBA(nameRGBA);
+                }
+                else {
+                    ann->getBackgroundColorRGBA(nameRGBA);
+                    if (ann->getLineColor() != CaretColorEnum::NONE) {
+                        ann->getLineColorRGBA(nameRGBA);
+                    }
+                }
+                
+                /*
+                 * Create a row and add it to model
+                 */
+                QList<QStandardItem*> rowItems;
+                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::NAME,
+                                                          annShared,
+                                                          ann->getName(),
+                                                          nameRGBA));
+                
+                const float invalidRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::CLASS,
+                                                          annShared,
+                                                          ag->getName(),
+                                                          invalidRGBA));
+                
+                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
+                                                          annShared,
+                                                          AnnotationCoordinateSpaceEnum::toGuiName(ann->getCoordinateSpace()),
+                                                          invalidRGBA));
+                dataFileEditorModel->appendRow(rowItems);
+            }
+        }
+    }
+
+    if (dataFileEditorModel->rowCount() <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         ("There are no annotations to export from "
+                                                          + getFileNameNoPath()),
+                                                         false);
+    }
+    
+    /*
+     * Titles for columns
+     */
+    QList<QString> columnTitles;
+    columnTitles << "Name" << "Group" << "XYZ";
+    dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
+    
+    return  FunctionResultValue<DataFileEditorModel*>(dataFileEditorModel,
+                                                      "",
+                                                      true);
+}
+
+/**
+ * Add an annotation from another annotation file.  Currently used by editor (Data Menu)
+ * @param annotation
+ *    Annotation that is copied and added to this file
+ */
+void
+AnnotationFile::addAnnotationCopiedFromAnotherFile(const Annotation* annotation)
+{
+    CaretAssert(annotation);
+    
+    Annotation* annCopy(annotation->clone());
+    addAnnotationPrivate(annCopy,
+                         generateUniqueKey());
+}
+
+
+/**
+ * Import border data from the given DataFileEditorModel
+ * Replaces content of this instance.
+ * @param dataFileEditorModel
+ *    Model that contains border data
+ * @return
+ *    Function result indicating success or failure
+ */
+FunctionResult
+AnnotationFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel)
+{
+    AString errorMessage;
+    std::vector<const Annotation*> newAnnotations;
+    
+    const int32_t numRows(dataFileEditorModel.rowCount());
+    for (int32_t iRow = 0; iRow < numRows; iRow++) {
+        const int32_t column(0);
+        const DataFileEditorItem* item(dataFileEditorModel.getDataFileItemAtRowColumn(iRow, column));
+        if (item != NULL) {
+            const Annotation* ann(item->getAnnotation());
+            if (ann != NULL) {
+                newAnnotations.push_back(ann);
+            }
+            else {
+                errorMessage.appendWithNewLine("PROGRAM ERROR: Border missing at row=" + AString::number(iRow));
+            }
+        }
+        else {
+            errorMessage.appendWithNewLine("PROGRAM ERROR: Invalid item at row=" + AString::number(iRow));
+        }
+    }
+    
+    if ( ! errorMessage.isEmpty()) {
+        return FunctionResult::error(errorMessage);
+    }
+    
+    /*
+     * Remove all annotations
+     */
+    clearPrivate();
+    
+    /*
+     * Add border from data file editor model
+     */
+    for (const Annotation* ann : newAnnotations) {
+        addAnnotationPrivate(ann->clone(),
+                             generateUniqueKey());
+    }
+    
+    return FunctionResult::ok();
 }
 
 

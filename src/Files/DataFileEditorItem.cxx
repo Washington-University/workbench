@@ -25,6 +25,7 @@
 
 #include <QCollator>
 
+#include "Annotation.h"
 #include "Border.h"
 #include "CaretAssert.h"
 #include "Focus.h"
@@ -37,6 +38,35 @@ using namespace caret;
  * \brief Item for data file editor
  * \ingroup Files
  */
+
+/**
+ * Constructor for an annotation.
+ * @param dataItemType
+ *    Type of the data item
+ * @param annotation
+ *    Annotation for display in the editor.
+ * @param colorTable
+ *    Color table for coloring by name
+ */
+DataFileEditorItem::DataFileEditorItem(const ItemType dataItemType,
+                                       std::shared_ptr<Annotation> annotation,
+                                       const AString& text,
+                                       const float iconRGBA[4])
+: QStandardItem(),
+m_dataItemType(dataItemType)
+{
+    m_annotation = annotation;
+    setText(text);
+    switch (m_dataItemType) {
+        case ItemType::NAME:
+            setIcon(createIcon(iconRGBA));
+            break;
+        case ItemType::CLASS:
+            break;
+        case ItemType::XYZ:
+            break;
+    }
+}
 
 /**
  * Constructor for a border.
@@ -67,7 +97,6 @@ m_dataItemType(dataItemType)
             break;
     }
 }
-
 
 /**
  * Constructor for a focus.
@@ -122,12 +151,17 @@ m_dataItemType(obj.m_dataItemType)
             setIcon(icon());
             break;
         case ItemType::CLASS:
-            setIcon(icon());
+            if ( ! icon().isNull()) {
+                setIcon(icon());
+            }
             break;
         case ItemType::XYZ:
             break;
     }
 
+    if (obj.m_annotation) {
+        m_annotation.reset(obj.m_annotation->clone());
+    }
     if (obj.m_border) {
         m_border.reset(new Border(*obj.m_border));
     }
@@ -169,8 +203,61 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
         s_collator->setCaseSensitivity(Qt::CaseSensitive);
     }
     
+    const Annotation* annotation(m_annotation.get());
+    if (annotation != NULL) {
+        const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
+        CaretAssert(otherItem);
+        const Annotation* otherAnnotation(otherItem->m_annotation.get());
+        CaretAssert(otherAnnotation);
+        
+        CaretAssert(s_collator);
+        switch (m_dataItemType) {
+            case ItemType::NAME:
+            {
+                
+                /*
+                 * Sort by name and then class
+                 */
+                const int32_t nameResult(s_collator->compare(annotation->getName(),
+                                                             otherAnnotation->getName()));
+                if (nameResult < 0) {
+                    return true;
+                }
+                else if (nameResult > 0) {
+                    return false;
+                }
+//                return (s_collator->compare(this->text(1),
+//                                            otherItem->text(1)));
+            }
+                break;
+            case ItemType::CLASS:
+            {
+//                /*
+//                 * Sort by class and then name
+//                 */
+//                const int32_t classResult(s_collator->compare(this->text(1),
+//                                                              otherItem->text(1)));
+//                if (classResult < 0) {
+//                    return true;
+//                }
+//                else if (classResult > 0) {
+//                    return false;
+//                }
+//                return (s_collator->compare(annotation->getName(),
+//                                            otherAnnotation->getName()));
+            }
+                break;
+            case ItemType::XYZ:
+            {
+                return (AnnotationCoordinateSpaceEnum::toGuiName(annotation->getCoordinateSpace())
+                        < AnnotationCoordinateSpaceEnum::toGuiName(otherAnnotation->getCoordinateSpace()));
+            }
+                break;
+        }
+    }
+    
     const Border* border(m_border.get());
-    if (border) {
+    if (border != NULL) {
         const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
         CaretAssert(otherItem);
         const Border* otherBorder(otherItem->m_border.get());
@@ -230,7 +317,7 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
     }
     
     const Focus* focus(m_focus.get());
-    if (focus) {
+    if (focus != NULL) {
         const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
         CaretAssert(otherItem);
         const Focus* otherFocus(otherItem->m_focus.get());
@@ -308,6 +395,15 @@ DataFileEditorItem::createIcon(const float rgba[4]) const
 }
 
 /**
+ * @return Annotation in this item
+ */
+const Annotation*
+DataFileEditorItem::getAnnotation() const
+{
+    return m_annotation.get();
+}
+
+/**
  * @return Border in this item
  */
 const Border*
@@ -324,4 +420,14 @@ DataFileEditorItem::getFocus() const
 {
     return m_focus.get();
 }
+
+/**
+ * @return Sample in this item
+ */
+const Annotation*
+DataFileEditorItem::getSample() const
+{
+    return m_annotation.get();
+}
+
 
