@@ -2275,9 +2275,6 @@ BorderFile::exportToCaret5Format(const std::vector<SurfaceFile*>& surfaceFiles,
 {
     AString errorMessage;
     
-    if (getNumberOfBorders() <= 0) {
-        errorMessage.appendWithNewLine("This border file contains zero borders.");
-    }
     if (outputCaret5FilesPrefix.isEmpty()) {
         errorMessage.appendWithNewLine("Caret5 output file prefix is empty.");
     }

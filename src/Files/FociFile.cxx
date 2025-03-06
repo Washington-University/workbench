@@ -934,12 +934,6 @@ FunctionResultValue<DataFileEditorModel*>
 FociFile::exportToDataFileEditorModel() const
 {
     const int32_t numFoci(getNumberOfFoci());
-    if (numFoci <= 0) {
-        return FunctionResultValue<DataFileEditorModel*>(NULL,
-                                                         ("There are no foci to export from "
-                                                          + getFileNameNoPath()),
-                                                         false);
-    }
 
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
     dataFileEditorModel->setColumnCount(3);

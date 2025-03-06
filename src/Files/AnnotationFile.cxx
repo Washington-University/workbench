@@ -2945,27 +2945,24 @@ AnnotationFile::exportToDataFileEditorModel() const
                                                           ag->getName(),
                                                           invalidRGBA));
                 
+                AString xyzText;
+                if (ann->getNumberOfCoordinates() > 0) {
+                    xyzText = ann->getCoordinate(0)->toStringForCoordinateSpace(ann->getCoordinateSpace());
+                }
                 rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
                                                           annShared,
-                                                          AnnotationCoordinateSpaceEnum::toGuiName(ann->getCoordinateSpace()),
+                                                          xyzText,
                                                           invalidRGBA));
                 dataFileEditorModel->appendRow(rowItems);
             }
         }
     }
 
-    if (dataFileEditorModel->rowCount() <= 0) {
-        return FunctionResultValue<DataFileEditorModel*>(NULL,
-                                                         ("There are no annotations to export from "
-                                                          + getFileNameNoPath()),
-                                                         false);
-    }
-    
     /*
      * Titles for columns
      */
     QList<QString> columnTitles;
-    columnTitles << "Name" << "Group" << "XYZ";
+    columnTitles << "Name" << "Group" << "Coordinate";
     dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
     
     return  FunctionResultValue<DataFileEditorModel*>(dataFileEditorModel,

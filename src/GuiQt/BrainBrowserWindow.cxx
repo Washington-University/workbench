@@ -2851,12 +2851,6 @@ BrainBrowserWindow::processDataMenuAboutToShow()
     m_dataBorderFilesSplitAction->setEnabled(haveMultiStructureBorderFiles);  
     
     m_dataSamplesEditAction->setEnabled(brain->getNumberOfSamplesFiles() > 0);
-    
-    /*
-     * DISABLE ANNOTATIONS AND SAMPLES EDITING
-     */
-    m_dataAnnotationsEditAction->setEnabled(false);
-    m_dataSamplesEditAction->setEnabled(false);
 }
 
 /**
