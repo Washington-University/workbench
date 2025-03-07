@@ -26,8 +26,13 @@
 #include "OperationException.h"
 #include "SpecFile.h"
 
+#ifdef HAVE_QUAZIP
+#include <quazip/quazip.h>
+#include <quazip/quazipfile.h>
+#else
 #include "quazip.h"
 #include "quazipfile.h"
+#endif // HAVE_QUAZIP
 
 //for cleanPath
 #include <QDir>
