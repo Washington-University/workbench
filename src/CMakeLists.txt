@@ -501,9 +501,22 @@ ENDIF (ZLIB_FOUND)
 # Try to find QuaZip, otherwise use bundled
 #
 SET(QUAZIP_RESULT "Not Found")
-FIND_PACKAGE(QuaZip  QUIET)
+IF (WORKBENCH_USE_QT6)
+    FIND_PACKAGE(QuaZip-Qt6  QUIET)
+    IF (QuaZip-Qt6_FOUND)
+        SET(QUAZIP_FOUND 1)
+        SET(QUAZIP_RESULT "${QuaZip-Qt6_VERSION}    ${QuaZip-Qt6_DIR}")
+    ENDIF (QuaZip-Qt6_FOUND)
+ELSE (WORKBENCH_USE_QT6)
+    FIND_PACKAGE(QuaZip-Qt5  QUIET)
+    IF (QuaZip-Qt5_FOUND)
+        SET(QUAZIP_FOUND 1)
+        SET(QUAZIP_RESULT "${QuaZip-Qt5_VERSION}    ${QuaZip-Qt5_DIR}")
+    ENDIF (QuaZip-Qt5_FOUND)
+ENDIF (WORKBENCH_USE_QT6)
+
 IF (QUAZIP_FOUND)
-  SET(QUAZIP_RESULT "Using QuaZip Library ${QUAZIP_LIBRARIES}")
+    ADD_DEFINITIONS(-DHAVE_QUAZIP)
 ELSE (QUAZIP_FOUND)
     #
     # Quazip needs this defined here for static linking on windows
