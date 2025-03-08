@@ -112,7 +112,7 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
             throw OperationException("'" + varName + "' is a named constant equal to " + AString::number(constVal, 'g', 15) + ", please use a different variable name");
         }
         const CiftiXML& tempXML = myVarOpts[i]->getCifti(2)->getCiftiXML();
-        int thisNumDims = tempXML.getNumberOfDimensions();
+        const int thisNumDims = tempXML.getNumberOfDimensions();
         vector<int64_t> thisSelectInfo(thisNumDims, -1);
         vector<bool> thisRepeat(thisNumDims, false);
         const vector<ParameterComponent*>& thisSelectOpts = myVarOpts[i]->getRepeatableParameterInstances(3);
@@ -122,12 +122,19 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
             int64_t thisIndex = -2;
             if (dim >= (int)thisSelectInfo.size())
             {
+                thisSelectInfo.resize(dim + 1, -1);
+                thisRepeat.resize(dim + 1, false);
+            }
+            if (thisSelectInfo[dim] != -1)
+            {
+                throw OperationException("-select may not be specified more than once for the same dimension on a single input file");
+            }
+            if (dim >= thisNumDims)
+            {
                 bool ok = false;
                 thisIndex = int(thisSelectOpts[j]->getString(2).toLong(&ok)) - 1;
                 if (!ok) throw OperationException("non-integer index '" + thisSelectOpts[j]->getString(2) + "' specified on nonexistent dimension");
                 if (thisIndex != 0) throw OperationException("-select used  for variable '" + varName + "' with index other than 1 on nonexistent dimension");
-                thisSelectInfo.resize(dim + 1, -1);
-                thisRepeat.resize(dim + 1, false);
             } else {
                 thisIndex = tempXML.getMap(dim)->getIndexFromNumberOrName(thisSelectOpts[j]->getString(2));
             }
@@ -170,7 +177,17 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
                     if (j < thisNumDims)
                     {
                         outDims[j] = tempXML.getDimensionLength(j);
-                        outXML.setMap(j, *(tempXML.getMap(j)));//copy the mapping type, since this input defines this dimension
+                        if (tempXML.getMappingType(j) != CiftiMappingType::LABELS)
+                        {
+                            outXML.setMap(j, *(tempXML.getMap(j)));//copy the mapping type, since this input defines this dimension
+                        } else {//grab the map names from label dimension and put into scalar
+                            CiftiScalarsMap dummyMap(tempXML.getDimensionLength(j));
+                            for (int k = 0; k < tempXML.getDimensionLength(j); ++k)
+                            {
+                                dummyMap.setMapName(k, tempXML.getMap(j)->getIndexName(k));
+                            }
+                            outXML.setMap(j, dummyMap);
+                        }
                     } else {//if higher dimension than the file has, transparently say it is of length 1, and don't use the mapping
                         outDims[j] = 1;
                     }
@@ -190,9 +207,19 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
                             throw OperationException("variable '" + varName + "' has length " + AString::number(tempXML.getDimensionLength(j)) +
                                                     " for dimension " + AString::number(j + 1) + " while previous -var options require a length of " + AString::number(outDims[j]));
                         }
-                        if (outXML.getMap(j) == NULL)//dimension was set to 1 by -select, but didn't set a mapping, so borrow from here
+                        if (outXML.getMap(j) == NULL)//dimension was set to 1 by -select, but didn't set a mapping (or type was labels), so borrow from here
                         {
-                            outXML.setMap(j, *(tempXML.getMap(j)));
+                            if (tempXML.getMappingType(j) != CiftiMappingType::LABELS)
+                            {
+                                outXML.setMap(j, *(tempXML.getMap(j)));
+                            } else {//grab the map names from label dimension and put into scalar
+                                CiftiScalarsMap dummyMap(tempXML.getDimensionLength(j));
+                                for (int k = 0; k < tempXML.getDimensionLength(j); ++k)
+                                {
+                                    dummyMap.setMapName(k, tempXML.getMap(j)->getIndexName(k));
+                                }
+                                outXML.setMap(j, dummyMap);
+                            }
                         } else {//test mapping types for compatibility since -select wasn't used
                             AString explanation;
                             if (!overrideMapCheck && !outXML.getMap(j)->approximateMatch(*(tempXML.getMap(j)), &explanation))
@@ -226,14 +253,14 @@ void OperationCiftiMath::useParameters(OperationParameters* myParams, ProgressOb
     {
         if (varCiftiFiles[i] == NULL) throw OperationException("no -var option specified for variable '" + myVarNames[i] + "'");
     }
-    CiftiScalarsMap dummyMap;//make an empty length-1 scalar map for dimensions we don't have a mapping for
-    dummyMap.setLength(1);
     for (int i = 0; i < outXML.getNumberOfDimensions(); ++i)
     {
         if (outDims[i] == -1) throw OperationException("all -var options used -select and -repeat for dimension " +
                                                        AString::number(i + 1) + ", there is no file to get the dimension length from");
-        if (outXML.getMap(i) == NULL)//-select was used in all variables for this dimension, so we don't have a mapping
+        if (outXML.getMap(i) == NULL)//-select was used in all variables for this dimension (that weren't label type), so we don't have a mapping
         {
+            if (outDims[i] > 1) CaretLogWarning("creating empty-named scalars map of length greater than 1, this probably shouldn't happen");
+            CiftiScalarsMap dummyMap(outDims[i]);//make an empty-name scalar map of the correct length
             outXML.setMap(i, dummyMap);//so, make it a length-1 scalar with no name and empty metadata
         }
         CaretAssert(outDims[i] == outXML.getDimensionLength(i));
