@@ -105,7 +105,8 @@ namespace caret {
         
         void readFontAttibutes(AnnotationFontAttributesInterface* fontAttributes,
                                const AString& elementName,
-                               const QXmlStreamAttributes& attributes);
+                               const QXmlStreamAttributes& attributes,
+                               bool& readBackgroundColorFlagOut);
         
         CaretPointer<QXmlStreamReader> m_stream;
         

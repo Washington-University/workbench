@@ -137,6 +137,11 @@ AnnotationText::initializeAnnotationTextMembers()
             m_customColorText[1]      = 1.0;
             m_customColorText[2]      = 1.0;
             m_customColorText[3]      = 1.0;
+            m_colorTextBackground     = CaretColorEnum::NONE;
+            m_customColorTextBackground[0]      = 0.0;
+            m_customColorTextBackground[1]      = 0.0;
+            m_customColorTextBackground[2]      = 0.0;
+            m_customColorTextBackground[3]      = 1.0;
             m_boldEnabled             = false;
             m_italicEnabled           = false;
             m_underlineEnabled        = false;
@@ -154,6 +159,11 @@ AnnotationText::initializeAnnotationTextMembers()
             m_customColorText[1]      = s_userDefaultCustomColorText[1];
             m_customColorText[2]      = s_userDefaultCustomColorText[2];
             m_customColorText[3]      = s_userDefaultCustomColorText[3];
+            m_colorTextBackground     = s_userDefaultColorTextBackground;
+            m_customColorTextBackground[0]      = s_userDefaultCustomColorTextBackground[0];
+            m_customColorTextBackground[1]      = s_userDefaultCustomColorTextBackground[1];
+            m_customColorTextBackground[2]      = s_userDefaultCustomColorTextBackground[2];
+            m_customColorTextBackground[3]      = s_userDefaultCustomColorTextBackground[3];
             m_boldEnabled             = s_userDefaultBoldEnabled;
             m_italicEnabled           = s_userDefaultItalicEnabled;
             m_underlineEnabled        = s_userDefaultUnderlineEnabled;
@@ -182,6 +192,9 @@ AnnotationText::initializeAnnotationTextMembers()
     m_attributesAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorText",
                                                                      &m_colorText);
     m_attributesAssistant->addArray("m_customColorText", m_customColorText, 4, 1.0);
+    m_attributesAssistant->add<CaretColorEnum, CaretColorEnum::Enum>("m_colorTextBackground",
+                                                                     &m_colorTextBackground);
+    m_attributesAssistant->addArray("m_customColorTextBackground", m_customColorTextBackground, 4, 1.0);
     m_attributesAssistant->add("m_boldEnabled",
                                &m_boldEnabled);
     m_attributesAssistant->add("m_italicEnabled",
@@ -903,6 +916,157 @@ AnnotationText::setCustomTextColor(const uint8_t rgba[4])
 }
 
 /**
+ * @return The background color.
+ */
+CaretColorEnum::Enum
+AnnotationText::getTextBackgroundColor() const
+{
+    return m_colorTextBackground;
+}
+
+/**
+ * Set the background color.
+ *
+ * @param color
+ *     New value for foreground color.
+ */
+void
+AnnotationText::setTextBackgroundColor(const CaretColorEnum::Enum color)
+{
+    if (m_colorTextBackground != color) {
+        m_colorTextBackground = color;
+        setModified();
+    }
+}
+
+/**
+ * Get the background's color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+AnnotationText::getTextBackgroundColorRGBA(float rgbaOut[4]) const
+{
+    switch (m_colorTextBackground) {
+        case CaretColorEnum::NONE:
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
+            rgbaOut[3] = 0.0;
+            break;
+        case CaretColorEnum::CUSTOM:
+            getCustomTextBackgroundColor(rgbaOut);
+            break;
+        case CaretColorEnum::AQUA:
+        case CaretColorEnum::BLACK:
+        case CaretColorEnum::BLUE:
+        case CaretColorEnum::FUCHSIA:
+        case CaretColorEnum::GRAY:
+        case CaretColorEnum::GREEN:
+        case CaretColorEnum::LIME:
+        case CaretColorEnum::MAROON:
+        case CaretColorEnum::NAVY:
+        case CaretColorEnum::OLIVE:
+        case CaretColorEnum::PURPLE:
+        case CaretColorEnum::RED:
+        case CaretColorEnum::SILVER:
+        case CaretColorEnum::TEAL:
+        case CaretColorEnum::WHITE:
+        case CaretColorEnum::YELLOW:
+            CaretColorEnum::toRGBAFloat(m_colorTextBackground,
+                                        rgbaOut);
+            rgbaOut[3] = 1.0;
+            break;
+    }
+}
+
+/**
+ * Get the background color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+AnnotationText::getTextBackgroundColorRGBA(uint8_t rgbaOut[4]) const
+{
+    float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
+    getTextBackgroundColorRGBA(rgbaFloat);
+    
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationText::getCustomTextBackgroundColor(float rgbaOut[4]) const
+{
+    rgbaOut[0] = m_customColorTextBackground[0];
+    rgbaOut[1] = m_customColorTextBackground[1];
+    rgbaOut[2] = m_customColorTextBackground[2];
+    rgbaOut[3] = m_customColorTextBackground[3];
+}
+
+/**
+ * Get the foreground color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationText::getCustomTextBackgroundColor(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorTextBackground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorTextBackground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorTextBackground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorTextBackground[3] * 255.0);
+}
+
+/**
+ * Set the foreground color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationText::setCustomTextBackgroundColor(const float rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        if (rgba[i] != m_customColorTextBackground[i]) {
+            m_customColorTextBackground[i] = rgba[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * Set the foreground color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationText::setCustomTextBackgroundColor(const uint8_t rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        const float component = rgba[i] / 255.0;
+        if (component != m_customColorTextBackground[i]) {
+            m_customColorTextBackground[i] = component;
+            setModified();
+        }
+    }
+}
+
+/**
  * @return
  *    Is bold enabled ?
  */
@@ -997,6 +1161,11 @@ AnnotationText::copyHelperAnnotationText(const AnnotationText& obj)
     m_customColorText[1]  = obj.m_customColorText[1];
     m_customColorText[2]  = obj.m_customColorText[2];
     m_customColorText[3]  = obj.m_customColorText[3];
+    m_colorTextBackground = obj.m_colorTextBackground;
+    m_customColorTextBackground[0]  = obj.m_customColorTextBackground[0];
+    m_customColorTextBackground[1]  = obj.m_customColorTextBackground[1];
+    m_customColorTextBackground[2]  = obj.m_customColorTextBackground[2];
+    m_customColorTextBackground[3]  = obj.m_customColorTextBackground[3];
     m_boldEnabled         = obj.m_boldEnabled;
     m_italicEnabled       = obj.m_italicEnabled;
     m_underlineEnabled    = obj.m_underlineEnabled;
@@ -1296,6 +1465,33 @@ AnnotationText::setUserDefaultTextColor(const CaretColorEnum::Enum color)
  */
 void
 AnnotationText::setUserDefaultCustomTextColor(const float rgba[4])
+{
+    s_userDefaultCustomColorText[0] = rgba[0];
+    s_userDefaultCustomColorText[1] = rgba[1];
+    s_userDefaultCustomColorText[2] = rgba[2];
+    s_userDefaultCustomColorText[3] = rgba[3];
+}
+
+/**
+ * Set the default value for text background color
+ *
+ * @param color
+ *     Default for newly created annotations.
+ */
+void
+AnnotationText::setUserDefaultTextBackgroundColor(const CaretColorEnum::Enum color)
+{
+    s_userDefaultColorTextBackground = color;
+}
+
+/**
+ * Set the default value for custom text color
+ *
+ * @param rgba
+ *     Default for newly created annotations.
+ */
+void
+AnnotationText::setUserDefaultCustomTextBackgroundColor(const float rgba[4])
 {
     s_userDefaultCustomColorText[0] = rgba[0];
     s_userDefaultCustomColorText[1] = rgba[1];

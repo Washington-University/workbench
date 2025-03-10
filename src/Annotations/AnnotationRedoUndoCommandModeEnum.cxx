@@ -238,6 +238,10 @@ AnnotationRedoUndoCommandModeEnum::initialize()
                                                          "TEXT_COLOR",
                                                          "Text Color"));
 
+    enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_COLOR_BACKGROUND,
+                                                         "TEXT_COLOR_BACKGROUND",
+                                                         "Text Background Color"));
+    
     enumData.push_back(AnnotationRedoUndoCommandModeEnum(TEXT_CONNECT_TO_BRAINORDINATE,
                                                      "TEXT_CONNECT_TO_BRAINORDINATE",
                                                      "Text Connect to Brainordinate"));

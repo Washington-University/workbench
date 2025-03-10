@@ -127,7 +127,7 @@ m_browserWindowIndex(browserWindowIndex)
     saveFileToolButton->setDefaultAction(m_saveFileAction);
     WuQtUtilities::setToolButtonStyleForQt5Mac(saveFileToolButton);
 
-    QLabel* newLabel(new QLabel("New:"));
+    QLabel* newLabel(new QLabel("New "));
     
     m_newDesiredSampleAction = new QAction();
     m_newDesiredSampleAction->setText("Desired");

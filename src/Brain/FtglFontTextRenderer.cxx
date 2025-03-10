@@ -1076,7 +1076,7 @@ FtglFontTextRenderer::applyBackgroundColoring(const TextStringGroup& textStringG
     textStringGroup.getViewportBounds(s_textMarginSize, bottomLeft, bottomRight, topRight, topLeft, rotationPointXYZ);
     
     float backgroundColor[4];
-    textStringGroup.m_annotationText.getBackgroundColorRGBA(backgroundColor);
+    textStringGroup.m_annotationText.getTextBackgroundColorRGBA(backgroundColor);
     
     if (backgroundColor[3] > 0.0) {
         //        const AString bg("Background for \"" + annotationText.getText() + ": BL="

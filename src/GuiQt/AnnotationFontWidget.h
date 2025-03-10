@@ -64,6 +64,8 @@ namespace caret {
     private slots:
         void textColorSelected(const CaretColorEnum::Enum);
         
+        void textBackgroundColorSelected(const CaretColorEnum::Enum);
+        
         void fontBoldChanged();
 
         void fontItalicChanged();
@@ -84,6 +86,8 @@ namespace caret {
                                    const bool tooSmallFontFlag);
         
         void updateTextColorButton();
+        
+        void updateTextBackgroundColorButton();
         
         void updateFontNameControls();
         
@@ -115,6 +119,12 @@ namespace caret {
         
         CaretColorEnumMenu* m_textColorMenu;
         
+        QToolButton* m_textBackgroundColorToolButton;
+        
+        QAction* m_textBackgroundColorAction;
+        
+        CaretColorEnumMenu* m_textBackgroundColorMenu;
+        
         QAction* m_boldFontAction;
         
         QAction* m_italicFontAction;
@@ -131,7 +141,10 @@ namespace caret {
         std::vector<AnnotationFontAttributesInterface*> m_annotationsFontStyle;
         
         /** Contains annotations supporting font color */
-        std::vector<AnnotationFontAttributesInterface*> m_annotationsFontColor;
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsTextFontColor;
+        
+        /** Contains annotations supporting font background color */
+        std::vector<AnnotationFontAttributesInterface*> m_annotationsTextBackgroundFontColor;
         
         // ADD_NEW_MEMBERS_HERE
 

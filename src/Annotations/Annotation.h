@@ -104,6 +104,8 @@ namespace caret {
             TEXT_EDIT,
             /** Annotation has text color */
             TEXT_COLOR,
+            /** Annotation has text background color */
+            TEXT_COLOR_BACKGROUND,
             /** Annotation has font name */
             TEXT_FONT_NAME,
             /** Annotation has font size*/

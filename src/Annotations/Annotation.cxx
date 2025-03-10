@@ -1806,6 +1806,7 @@ Annotation::initializeProperties()
     bool scaleBarFlag = false;
     bool textAttributesFlag = false;
     bool textFlag = false;
+    bool textBackgroundFlag = false;
     switch (m_type) {
         case AnnotationTypeEnum::BOX:
             break;
@@ -1828,6 +1829,7 @@ Annotation::initializeProperties()
         case AnnotationTypeEnum::POLYHEDRON:
             fillColorFlag = false;
             textAttributesFlag = true;
+            textBackgroundFlag = true;
             break;
         case AnnotationTypeEnum::POLYGON:
             fillColorFlag = false;
@@ -1839,7 +1841,9 @@ Annotation::initializeProperties()
             scaleBarFlag = true;
             break;
         case AnnotationTypeEnum::TEXT:
+            fillColorFlag = false;
             textFlag = true;
+            textBackgroundFlag = true;
             break;
     }
     
@@ -1848,6 +1852,7 @@ Annotation::initializeProperties()
     setProperty(Property::TEXT_ALIGNMENT, textFlag);
     setProperty(Property::TEXT_EDIT, textFlag);
     setProperty(Property::TEXT_COLOR, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
+    setProperty(Property::TEXT_COLOR_BACKGROUND, textBackgroundFlag);
     setProperty(Property::TEXT_FONT_NAME, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
     setProperty(Property::TEXT_FONT_SIZE, colorBarFlag | scaleBarFlag | textFlag | textAttributesFlag);
     setProperty(Property::TEXT_FONT_STYLE, textFlag | textAttributesFlag);

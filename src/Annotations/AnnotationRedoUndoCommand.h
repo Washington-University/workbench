@@ -172,6 +172,10 @@ namespace caret {
                                     const float customColor[4],
                                     const std::vector<Annotation*>& annotations);
         
+        void setModeTextBackgroundColor(const CaretColorEnum::Enum color,
+                                        const float customColor[4],
+                                        const std::vector<Annotation*>& annotations);
+
         void setModeTextConnectToBrainordinate(const AnnotationTextConnectTypeEnum::Enum newConnectType,
                                                const std::vector<Annotation*>& annotations);
         

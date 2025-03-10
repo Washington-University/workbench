@@ -4324,6 +4324,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawText(AnnotationFile* annotationFi
     
     float backgroundRGBA[4];
     text->getBackgroundColorRGBA(backgroundRGBA);
+    if (text->getBackgroundColor() != CaretColorEnum::NONE) {
+        text->getTextBackgroundColorRGBA(backgroundRGBA);
+    }
     uint8_t foregroundRGBA[4];
     text->getLineColorRGBA(foregroundRGBA);
     uint8_t textColorRGBA[4];
@@ -5721,6 +5724,9 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* an
         uint8_t rgba[4];
         fontAttributes->getCustomTextColor(rgba);
         annText.setCustomTextColor(rgba);
+        annText.setTextBackgroundColor(fontAttributes->getTextBackgroundColor());
+        fontAttributes->getCustomTextBackgroundColor(rgba);
+        annText.setCustomTextBackgroundColor(rgba);
         annText.setBoldStyleEnabled(fontAttributes->isBoldStyleEnabled());
         annText.setItalicStyleEnabled(fontAttributes->isItalicStyleEnabled());
         annText.setUnderlineStyleEnabled(fontAttributes->isUnderlineStyleEnabled());

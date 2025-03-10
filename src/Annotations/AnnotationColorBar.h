@@ -73,6 +73,22 @@ namespace caret {
         virtual void setCustomTextColor(const float rgba[4]);
         
         virtual void setCustomTextColor(const uint8_t rgba[4]);
+
+        virtual CaretColorEnum::Enum getTextBackgroundColor() const;
+        
+        virtual void setTextBackgroundColor(const CaretColorEnum::Enum color);
+        
+        virtual void getTextBackgroundColorRGBA(float rgbaOut[4]) const;
+        
+        virtual void getTextBackgroundColorRGBA(uint8_t rgbaOut[4]) const;
+        
+        virtual void getCustomTextBackgroundColor(float rgbaOut[4]) const;
+        
+        virtual void getCustomTextBackgroundColor(uint8_t rgbaOut[4]) const;
+        
+        virtual void setCustomTextBackgroundColor(const float rgba[4]);
+        
+        virtual void setCustomTextBackgroundColor(const uint8_t rgba[4]); 
         
         virtual bool isBoldStyleEnabled() const;
         
@@ -150,6 +166,10 @@ namespace caret {
         CaretColorEnum::Enum m_colorText;
         
         float m_customColorText[4];
+        
+        CaretColorEnum::Enum m_colorTextBackground;
+        
+        float m_customColorTextBackground[4];
         
         bool m_displayedFlag;
         

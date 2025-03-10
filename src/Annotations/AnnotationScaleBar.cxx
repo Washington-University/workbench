@@ -88,6 +88,10 @@ AnnotationFontAttributesInterface()
                                                                    &m_colorText);
         m_sceneAssistant->addArray("m_customColorText",
                                    m_customColorText, 4, 1.0);
+        m_sceneAssistant->add<CaretColorEnum,CaretColorEnum::Enum>("m_colorTextBackground",
+                                                                   &m_colorTextBackground);
+        m_sceneAssistant->addArray("m_customColorTextBackground",
+                                   m_customColorTextBackground, 4, 1.0);
     }
 }
 /**
@@ -169,6 +173,11 @@ AnnotationScaleBar::copyHelperAnnotationScaleBar(const AnnotationScaleBar& obj)
     m_customColorText[1]  = obj.m_customColorText[1];
     m_customColorText[2]  = obj.m_customColorText[2];
     m_customColorText[3]  = obj.m_customColorText[3];
+    m_colorTextBackground           = obj.m_colorTextBackground;
+    m_customColorTextBackground[0]  = obj.m_customColorTextBackground[0];
+    m_customColorTextBackground[1]  = obj.m_customColorTextBackground[1];
+    m_customColorTextBackground[2]  = obj.m_customColorTextBackground[2];
+    m_customColorTextBackground[3]  = obj.m_customColorTextBackground[3];
     m_fontTooSmallWhenLastDrawnFlag = obj.m_fontTooSmallWhenLastDrawnFlag;
     
     *m_lengthTextAnnotation = *obj.m_lengthTextAnnotation;
@@ -198,7 +207,12 @@ AnnotationScaleBar::reset()
     m_customColorText[1]      = 1.0;
     m_customColorText[2]      = 1.0;
     m_customColorText[3]      = 1.0;
-    
+    m_colorTextBackground              = CaretColorEnum::NONE;
+    m_customColorTextBackground[0]      = 1.0;
+    m_customColorTextBackground[1]      = 1.0;
+    m_customColorTextBackground[2]      = 1.0;
+    m_customColorTextBackground[3]      = 1.0;
+
     setLineColor(CaretColorEnum::WHITE);
     setBackgroundColor(CaretColorEnum::BLACK);
     setLength(25.0);
@@ -605,6 +619,157 @@ AnnotationScaleBar::setCustomTextColor(const uint8_t rgba[4])
         const float component = rgba[i] / 255.0;
         if (component != m_customColorText[i]) {
             m_customColorText[i] = component;
+            setModified();
+        }
+    }
+}
+
+/**
+ * @return The background color.
+ */
+CaretColorEnum::Enum
+AnnotationScaleBar::getTextBackgroundColor() const
+{
+    return m_colorTextBackground;
+}
+
+/**
+ * Set the background color.
+ *
+ * @param color
+ *     New value for background color.
+ */
+void
+AnnotationScaleBar::setTextBackgroundColor(const CaretColorEnum::Enum color)
+{
+    if (m_colorTextBackground != color) {
+        m_colorTextBackground = color;
+        setModified();
+    }
+}
+
+/**
+ * Get the background color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+AnnotationScaleBar::getTextBackgroundColorRGBA(float rgbaOut[4]) const
+{
+    switch (m_colorText) {
+        case CaretColorEnum::NONE:
+            rgbaOut[0] = 0.0;
+            rgbaOut[1] = 0.0;
+            rgbaOut[2] = 0.0;
+            rgbaOut[3] = 0.0;
+            break;
+        case CaretColorEnum::CUSTOM:
+            getCustomTextBackgroundColor(rgbaOut);
+            break;
+        case CaretColorEnum::AQUA:
+        case CaretColorEnum::BLACK:
+        case CaretColorEnum::BLUE:
+        case CaretColorEnum::FUCHSIA:
+        case CaretColorEnum::GRAY:
+        case CaretColorEnum::GREEN:
+        case CaretColorEnum::LIME:
+        case CaretColorEnum::MAROON:
+        case CaretColorEnum::NAVY:
+        case CaretColorEnum::OLIVE:
+        case CaretColorEnum::PURPLE:
+        case CaretColorEnum::RED:
+        case CaretColorEnum::SILVER:
+        case CaretColorEnum::TEAL:
+        case CaretColorEnum::WHITE:
+        case CaretColorEnum::YELLOW:
+            CaretColorEnum::toRGBAFloat(m_colorText,
+                                        rgbaOut);
+            rgbaOut[3] = 1.0;
+            break;
+    }
+}
+
+/**
+ * Get the background color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+AnnotationScaleBar::getTextBackgroundColorRGBA(uint8_t rgbaOut[4]) const
+{
+    float rgbaFloat[4] = { 0.0, 0.0, 0.0, 0.0 };
+    getTextBackgroundColorRGBA(rgbaFloat);
+    
+    rgbaOut[0] = static_cast<uint8_t>(rgbaFloat[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(rgbaFloat[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(rgbaFloat[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(rgbaFloat[3] * 255.0);
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationScaleBar::getCustomTextBackgroundColor(float rgbaOut[4]) const
+{
+    rgbaOut[0] = m_customColorTextBackground[0];
+    rgbaOut[1] = m_customColorTextBackground[1];
+    rgbaOut[2] = m_customColorTextBackground[2];
+    rgbaOut[3] = m_customColorTextBackground[3];
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationScaleBar::getCustomTextBackgroundColor(uint8_t rgbaOut[4]) const
+{
+    rgbaOut[0] = static_cast<uint8_t>(m_customColorTextBackground[0] * 255.0);
+    rgbaOut[1] = static_cast<uint8_t>(m_customColorTextBackground[1] * 255.0);
+    rgbaOut[2] = static_cast<uint8_t>(m_customColorTextBackground[2] * 255.0);
+    rgbaOut[3] = static_cast<uint8_t>(m_customColorTextBackground[3] * 255.0);
+}
+
+/**
+ * Set the background color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationScaleBar::setCustomTextBackgroundColor(const float rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        if (rgba[i] != m_customColorTextBackground[i]) {
+            m_customColorTextBackground[i] = rgba[i];
+            setModified();
+        }
+    }
+}
+
+/**
+ * Set the background color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationScaleBar::setCustomTextBackgroundColor(const uint8_t rgba[4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        const float component = rgba[i] / 255.0;
+        if (component != m_customColorTextBackground[i]) {
+            m_customColorTextBackground[i] = component;
             setModified();
         }
     }

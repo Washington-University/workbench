@@ -107,6 +107,8 @@ public:
         TEXT_CHARACTERS,
         /** Text Color */
         TEXT_COLOR,
+        /** Text Color Background*/
+        TEXT_COLOR_BACKGROUND,
         /** Text Connect to Brainordinate */
         TEXT_CONNECT_TO_BRAINORDINATE,
         /** Text Font Bold */

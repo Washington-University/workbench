@@ -125,6 +125,10 @@ namespace caret {
         
         static const QString ATTRIBUTE_TEXT_CUSTOM_RGBA;
         
+        static const QString ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR;
+        
+        static const QString ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA;
+        
         static const QString ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE;
         
         static const QString ATTRIBUTE_TEXT_FONT_BOLD;
@@ -281,8 +285,12 @@ namespace caret {
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CUSTOM_RGBA = "textCustomRGBA";
     
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR = "textBackgroundCaretColor";
+    
+    const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA = "textBackgroundCustomRGBA";
+    
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_CONNECT_BRAINORDINATE = "connectBrainordinate";
-
+    
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_BOLD = "fontBold";
     
     const QString AnnotationFileXmlFormatBase::ATTRIBUTE_TEXT_FONT_ITALIC = "fontItalic";

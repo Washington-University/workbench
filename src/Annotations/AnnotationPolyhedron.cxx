@@ -823,6 +823,101 @@ AnnotationPolyhedron::setCustomTextColor(const uint8_t rgba[4])
 }
 
 /**
+ * @return The background color.
+ */
+CaretColorEnum::Enum
+AnnotationPolyhedron::getTextBackgroundColor() const
+{
+    return m_fontAttributes->getTextBackgroundColor();
+}
+
+/**
+ * Set the background color.
+ *
+ * @param color
+ *     New value for foreground color.
+ */
+void
+AnnotationPolyhedron::setTextBackgroundColor(const CaretColorEnum::Enum color)
+{
+    m_fontAttributes->setTextBackgroundColor(color);
+}
+
+/**
+ * Get the background color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0.0 to 1.0.
+ */
+void
+AnnotationPolyhedron::getTextBackgroundColorRGBA(float rgbaOut[4]) const
+{
+    m_fontAttributes->getTextBackgroundColorRGBA(rgbaOut);
+}
+
+/**
+ * Get the background color's RGBA components regardless of
+ * coloring (custom color or a CaretColorEnum) selected by the user.
+ *
+ * @param rgbaOut
+ *     RGBA components ranging 0 to 255.
+ */
+void
+AnnotationPolyhedron::getTextBackgroundColorRGBA(uint8_t rgbaOut[4]) const
+{
+    m_fontAttributes->getTextBackgroundColorRGBA(rgbaOut);
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationPolyhedron::getCustomTextBackgroundColor(float rgbaOut[4]) const
+{
+    m_fontAttributes->getCustomTextBackgroundColor(rgbaOut);
+}
+
+/**
+ * Get the background color.
+ *
+ * @param rgbaOut
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationPolyhedron::getCustomTextBackgroundColor(uint8_t rgbaOut[4]) const
+{
+    m_fontAttributes->getCustomTextBackgroundColor(rgbaOut);
+}
+
+/**
+ * Set the background color with floats.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0.0, 1.0].
+ */
+void
+AnnotationPolyhedron::setCustomTextBackgroundColor(const float rgba[4])
+{
+    m_fontAttributes->setCustomTextBackgroundColor(rgba);
+}
+
+/**
+ * Set the background color with unsigned bytes.
+ *
+ * @param rgba
+ *    RGBA components (red, green, blue, alpha) each of which ranges [0, 255].
+ */
+void
+AnnotationPolyhedron::setCustomTextBackgroundColor(const uint8_t rgba[4])
+{
+    m_fontAttributes->setCustomTextBackgroundColor(rgba);
+}
+
+/**
  * @return
  *    Is bold enabled ?
  */

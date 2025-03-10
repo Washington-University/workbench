@@ -156,6 +156,27 @@ m_browserWindowIndex(browserWindowIndex)
     m_textColorToolButton->setIconSize(toolButtonSize);
     WuQtUtilities::setToolButtonStyleForQt5Mac(m_textColorToolButton);
     
+    /*
+     * Text background color menu
+     */
+    m_textBackgroundColorMenu = new CaretColorEnumMenu((CaretColorEnum::OPTION_INCLUDE_CUSTOM_COLOR
+                                                        | CaretColorEnum::OPTION_INCLUDE_NONE_COLOR));
+    QObject::connect(m_textBackgroundColorMenu, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                     this, SLOT(textBackgroundColorSelected(const CaretColorEnum::Enum)));
+    
+    /*
+     * Text background color action and toolbutton
+     */
+    QLabel* textBackgroundColorLabel = new QLabel("Back");
+    m_textBackgroundColorAction = new QAction("B",
+                                              this);
+    m_textBackgroundColorAction->setToolTip("Adjust the text background color");
+    m_textBackgroundColorAction->setMenu(m_textBackgroundColorMenu);
+    m_textBackgroundColorToolButton = new QToolButton();
+    m_textBackgroundColorToolButton->setDefaultAction(m_textBackgroundColorAction);
+    m_textBackgroundColorToolButton->setIconSize(toolButtonSize);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_textBackgroundColorToolButton);
+    
     QToolButton* boldFontToolButton      = NULL;
     QToolButton* italicFontToolButton    = NULL;
     QToolButton* underlineFontToolButton = NULL;
@@ -234,33 +255,41 @@ m_browserWindowIndex(browserWindowIndex)
             QLabel* styleLabel = new QLabel("Style");
             
             switch (orientation) {
-                case Qt::Horizontal:
+                case Qt::Horizontal: /* Used in samples toolbar */
                 {
-                    QHBoxLayout* topLayout(new QHBoxLayout());
-                    WuQtUtilities::setLayoutSpacingAndMargins(topLayout, 2, 0);
-                    topLayout->addWidget(fontLabel);
-                    topLayout->addWidget(m_fontNameComboBox->getWidget());
-                    topLayout->addWidget(textColorLabel);
-                    topLayout->addWidget(m_textColorToolButton);
-                    topLayout->addStretch();
+                    QHBoxLayout* stylesLayout = new QHBoxLayout();
+                    stylesLayout->setContentsMargins(0, 0, 0, 0);
+                    stylesLayout->setSpacing(2);
+                    stylesLayout->addWidget(boldFontToolButton);
+                    stylesLayout->addWidget(italicFontToolButton);
+                    stylesLayout->addWidget(underlineFontToolButton);
+                    stylesLayout->addStretch();
+
+                    QGridLayout* gridLayout(new QGridLayout(this));
+                    gridLayout->setContentsMargins(0, 0, 0, 0);
+                    gridLayout->setHorizontalSpacing(2);
+                    gridLayout->setVerticalSpacing(2);
+                    const int topRowIndex(0);
+                    const int bottomRowIndex(1);
+                    int columnIndex(0);
+                    gridLayout->addWidget(fontLabel, topRowIndex, columnIndex);
+                    gridLayout->addWidget(m_fontNameComboBox->getWidget(), topRowIndex, (columnIndex + 1));
                     
-                    QHBoxLayout* bottomLayout(new QHBoxLayout());
-                    WuQtUtilities::setLayoutSpacingAndMargins(bottomLayout, 2, 0);
-                    bottomLayout->addWidget(sizeLabel);
-                    bottomLayout->addWidget(m_fontSizeSpinBox->getWidget());
-                    bottomLayout->addWidget(styleLabel);
-                    bottomLayout->addWidget(boldFontToolButton);
-                    bottomLayout->addWidget(italicFontToolButton);
-                    bottomLayout->addWidget(underlineFontToolButton);
-                    bottomLayout->addStretch();
-                    
-                    QVBoxLayout* layout(new QVBoxLayout(this));
-                    WuQtUtilities::setLayoutSpacingAndMargins(layout, 0, 0);
-                    layout->addLayout(topLayout);
-                    layout->addLayout(bottomLayout);
+                    gridLayout->addWidget(sizeLabel, bottomRowIndex, columnIndex);
+                    ++columnIndex;
+                    gridLayout->addWidget(m_fontSizeSpinBox->getWidget(), bottomRowIndex, columnIndex);
+                    ++columnIndex;
+                    gridLayout->addWidget(styleLabel, topRowIndex, columnIndex, Qt::AlignHCenter);
+                    gridLayout->addLayout(stylesLayout, bottomRowIndex, columnIndex);
+                    ++columnIndex;
+                    gridLayout->addWidget(textColorLabel, topRowIndex, columnIndex, Qt::AlignHCenter);
+                    gridLayout->addWidget(m_textColorToolButton, bottomRowIndex, columnIndex);
+                    ++columnIndex;
+                    gridLayout->addWidget(textBackgroundColorLabel, topRowIndex, columnIndex, Qt::AlignHCenter);
+                    gridLayout->addWidget(m_textBackgroundColorToolButton, bottomRowIndex, columnIndex);
                 }
                     break;
-                case Qt::Vertical:
+                case Qt::Vertical:  /* Used in annotations toolbar */
                 {
                     QHBoxLayout* stylesLayout = new QHBoxLayout();
                     WuQtUtilities::setLayoutSpacingAndMargins(stylesLayout, 0, 0);
@@ -285,6 +314,8 @@ m_browserWindowIndex(browserWindowIndex)
                     fontNameSizeLayout->addLayout(stylesLayout, 2, 1);
                     fontNameSizeLayout->addWidget(textColorLabel, 1, 2);
                     fontNameSizeLayout->addWidget(m_textColorToolButton, 2, 2);
+                    fontNameSizeLayout->addWidget(textBackgroundColorLabel, 1, 3);
+                    fontNameSizeLayout->addWidget(m_textBackgroundColorToolButton, 2, 3);
                 }
                     break;
             }
@@ -354,8 +385,10 @@ AnnotationFontWidget::receiveEvent(Event* event)
 void
 AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterface*>& annotations)
 {
-    m_annotationsFontColor.clear();
-    m_annotationsFontColor.reserve(annotations.size());
+    m_annotationsTextFontColor.clear();
+    m_annotationsTextFontColor.reserve(annotations.size());
+    m_annotationsTextBackgroundFontColor.clear();
+    m_annotationsTextBackgroundFontColor.reserve(annotations.size());
     m_annotationsFontName.clear();
     m_annotationsFontName.reserve(annotations.size());
     m_annotationsFontSize.clear();
@@ -375,7 +408,10 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
             m_annotationsFontStyle.push_back(a);
         }
         if (ann->testProperty(Annotation::Property::TEXT_COLOR)) {
-            m_annotationsFontColor.push_back(a);
+            m_annotationsTextFontColor.push_back(a);
+        }
+        if (ann->testProperty(Annotation::Property::TEXT_COLOR_BACKGROUND)) {
+            m_annotationsTextBackgroundFontColor.push_back(a);
         }
     }
     
@@ -383,8 +419,10 @@ AnnotationFontWidget::updateContent(std::vector<AnnotationFontAttributesInterfac
     updateFontSizeControls();
     updateFontStyleControls();
     updateTextColorButton();
+    updateTextBackgroundColorButton();
     
-    setEnabled((m_annotationsFontColor.size()
+    setEnabled((m_annotationsTextFontColor.size()
+                + m_annotationsTextBackgroundFontColor.size()
                 + m_annotationsFontName.size()
                 + m_annotationsFontSize.size()
                 + m_annotationsFontStyle.size()) > 0);
@@ -599,9 +637,9 @@ AnnotationFontWidget::updateFontSizeSpinBox(const float value,
 void
 AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
 {
-    if ( ! m_annotationsFontColor.empty()) {
+    if ( ! m_annotationsTextFontColor.empty()) {
         float rgba[4];
-        m_annotationsFontColor[0]->getTextColorRGBA(rgba);
+        m_annotationsTextFontColor[0]->getTextColorRGBA(rgba);
         
         if (caretColor == CaretColorEnum::CUSTOM) {
             QColor color;
@@ -634,7 +672,7 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
                 AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
                 undoCommand->setModeTextColor(caretColor,
                                               rgba,
-                                              convertToAnnotations(m_annotationsFontColor));
+                                              convertToAnnotations(m_annotationsTextFontColor));
                 AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
                 AString errorMessage;
                 if ( ! annMan->applyCommand(undoCommand,
@@ -666,6 +704,81 @@ AnnotationFontWidget::textColorSelected(const CaretColorEnum::Enum caretColor)
 }
 
 /**
+ * Gets called when the text background color is changed.
+ *
+ * @param caretColor
+ *     Background color that was selected.
+ */
+void
+AnnotationFontWidget::textBackgroundColorSelected(const CaretColorEnum::Enum caretColor)
+{
+    if ( ! m_annotationsTextBackgroundFontColor.empty()) {
+        float rgba[4];
+        m_annotationsTextBackgroundFontColor[0]->getTextBackgroundColorRGBA(rgba);
+        
+        if (caretColor == CaretColorEnum::CUSTOM) {
+            QColor color;
+            color.setRgbF(rgba[0], rgba[1], rgba[2]);
+            
+            QColor newColor = QColorDialog::getColor(color,
+                                                     m_textBackgroundColorToolButton,
+                                                     "Text Background Color");
+            if (newColor.isValid()) {
+                rgba[0] = newColor.redF();
+                rgba[1] = newColor.greenF();
+                rgba[2] = newColor.blueF();
+                
+                
+                switch (m_parentWidgetType) {
+                    case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                        AnnotationText::setUserDefaultCustomTextBackgroundColor(rgba);
+                        break;
+                    case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+                        CaretAssert(0);
+                        break;
+                }
+            }
+        }
+        
+        
+        switch (m_parentWidgetType) {
+            case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            {
+                AnnotationRedoUndoCommand* undoCommand = new AnnotationRedoUndoCommand();
+                undoCommand->setModeTextBackgroundColor(caretColor,
+                                              rgba,
+                                              convertToAnnotations(m_annotationsTextBackgroundFontColor));
+                AnnotationManager* annMan = GuiManager::get()->getBrain()->getAnnotationManager(m_userInputMode);
+                AString errorMessage;
+                if ( ! annMan->applyCommand(undoCommand,
+                                            errorMessage)) {
+                    WuQMessageBox::errorOk(this,
+                                           errorMessage);
+                }
+                AnnotationText::setUserDefaultTextBackgroundColor(caretColor);
+            }
+                break;
+            case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+                CaretAssert(0);
+                break;
+        }
+    }
+    
+    updateTextBackgroundColorButton();
+    
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+            EventManager::get()->sendSimpleEvent(EventTypeEnum::EVENT_ANNOTATION_TOOLBAR_UPDATE);
+            break;
+        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            CaretAssert(0);
+            break;
+    }
+    
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
+/**
  * Update the text color button.
  */
 void
@@ -681,20 +794,20 @@ AnnotationFontWidget::updateTextColorButton()
     switch (m_parentWidgetType) {
         case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
         {
-            const int32_t numAnnotations = static_cast<int32_t>(m_annotationsFontColor.size());
+            const int32_t numAnnotations = static_cast<int32_t>(m_annotationsTextFontColor.size());
             if (numAnnotations > 0) {
                 bool firstColorSupportFlag = true;
                 bool allSameColorFlag = true;
                 
                 for (int32_t i = 0; i < numAnnotations; i++) {
                     if (firstColorSupportFlag) {
-                        m_annotationsFontColor[i]->getTextColorRGBA(rgba);
+                        m_annotationsTextFontColor[i]->getTextColorRGBA(rgba);
                         firstColorSupportFlag = false;
                         colorButtonValidFlag = true;
                     }
                     else {
                         float colorRGBA[4];
-                        m_annotationsFontColor[i]->getTextColorRGBA(colorRGBA);
+                        m_annotationsTextFontColor[i]->getTextColorRGBA(colorRGBA);
                         for (int32_t iColor = 0; iColor < 4; iColor++) {
                             if (rgba[iColor] != colorRGBA[iColor]) {
                                 allSameColorFlag = false;
@@ -709,11 +822,11 @@ AnnotationFontWidget::updateTextColorButton()
                 }
                 
                 if (allSameColorFlag) {
-                    colorEnum = m_annotationsFontColor[0]->getTextColor();
-                    m_annotationsFontColor[0]->getTextColorRGBA(rgba);
+                    colorEnum = m_annotationsTextFontColor[0]->getTextColor();
+                    m_annotationsTextFontColor[0]->getTextColorRGBA(rgba);
                     
                     float customRGBA[4];
-                    m_annotationsFontColor[0]->getCustomTextColor(customRGBA);
+                    m_annotationsTextFontColor[0]->getCustomTextColor(customRGBA);
                     m_textColorMenu->setCustomIconColor(customRGBA);
                     
                     switch (m_parentWidgetType) {
@@ -745,6 +858,87 @@ AnnotationFontWidget::updateTextColorButton()
         
     }
 }
+
+/**
+ * Update the text background color button.
+ */
+void
+AnnotationFontWidget::updateTextBackgroundColorButton()
+{
+    CaretColorEnum::Enum colorEnum = CaretColorEnum::NONE;
+    float rgba[4];
+    CaretColorEnum::toRGBAFloat(colorEnum, rgba);
+    rgba[3] = 1.0;
+    
+    bool colorButtonValidFlag = false;
+    
+    switch (m_parentWidgetType) {
+        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+        {
+            const int32_t numAnnotations = static_cast<int32_t>(m_annotationsTextBackgroundFontColor.size());
+            if (numAnnotations > 0) {
+                bool firstColorSupportFlag = true;
+                bool allSameColorFlag = true;
+                
+                for (int32_t i = 0; i < numAnnotations; i++) {
+                    if (firstColorSupportFlag) {
+                        m_annotationsTextBackgroundFontColor[i]->getTextBackgroundColorRGBA(rgba);
+                        firstColorSupportFlag = false;
+                        colorButtonValidFlag = true;
+                    }
+                    else {
+                        float colorRGBA[4];
+                        m_annotationsTextBackgroundFontColor[i]->getTextBackgroundColorRGBA(colorRGBA);
+                        for (int32_t iColor = 0; iColor < 4; iColor++) {
+                            if (rgba[iColor] != colorRGBA[iColor]) {
+                                allSameColorFlag = false;
+                                break;
+                            }
+                        }
+                        
+                        if ( ! allSameColorFlag) {
+                            break;
+                        }
+                    }
+                }
+                
+                if (allSameColorFlag) {
+                    colorEnum = m_annotationsTextBackgroundFontColor[0]->getTextBackgroundColor();
+                    m_annotationsTextBackgroundFontColor[0]->getTextBackgroundColorRGBA(rgba);
+                    
+                    float customRGBA[4];
+                    m_annotationsTextBackgroundFontColor[0]->getCustomTextBackgroundColor(customRGBA);
+                    m_textBackgroundColorMenu->setCustomIconColor(customRGBA);
+                    
+                    switch (m_parentWidgetType) {
+                        case AnnotationWidgetParentEnum::ANNOTATION_TOOL_BAR_WIDGET:
+                            AnnotationText::setUserDefaultTextBackgroundColor(colorEnum);
+                            AnnotationText::setUserDefaultCustomTextBackgroundColor(customRGBA);
+                            break;
+                        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+                            CaretAssert(0);
+                            break;
+                    }
+                }
+            }
+        }
+            break;
+        case AnnotationWidgetParentEnum::PARENT_ENUM_FOR_LATER_USE:
+            CaretAssert(0);
+            break;
+    }
+    
+    
+    QPixmap pm = WuQtUtilities::createCaretColorEnumPixmap(m_textBackgroundColorToolButton, 24, 24, colorEnum, rgba, true);
+    m_textBackgroundColorAction->setIcon(QIcon(pm));
+    m_textBackgroundColorMenu->setSelectedColor(colorEnum);
+    
+    m_textBackgroundColorToolButton->setEnabled(colorButtonValidFlag);
+    if (colorButtonValidFlag) {
+        
+    }
+}
+
 
 /**
  * Gets called when font bold changed.

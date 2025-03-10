@@ -894,6 +894,8 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
 
     AnnotationPolyhedron* polyhedron(annotation->castToPolyhedron());
 
+    bool readBackgroundColorFlag(false);
+    
     bool done(false);
     while ( ! done) {
         const QXmlStreamReader::TokenType tokenType(m_stream->readNext());
@@ -1040,7 +1042,8 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         if (fontAttributesInterface != NULL) {
                             readFontAttibutes(fontAttributesInterface,
                                               elementName,
-                                              m_stream->attributes());
+                                              m_stream->attributes(),
+                                              readBackgroundColorFlag);
                         }
                     }
                     else {
@@ -1456,10 +1459,9 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
     const QXmlStreamAttributes attributes = m_stream->attributes();
     
     bool haveTextColorFlag = false;
-    
     {
         /*
-         * Background color
+         * Text color
          */
         const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
                                                                                     annotationTextElementName,
@@ -1525,6 +1527,80 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
         textAnnotation->getCustomLineColor(rgba);
         textAnnotation->setCustomTextColor(rgba);
         textAnnotation->setLineColor(CaretColorEnum::NONE);
+    }
+    
+    
+    
+    
+    bool haveTextBackgroundColorFlag = false;
+    {
+        /*
+         * Text color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    annotationTextElementName,
+                                                                                    ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            bool valid = false;
+            CaretColorEnum::Enum value = CaretColorEnum::fromName(valueString,
+                                                                  &valid);
+            if (valid) {
+                textAnnotation->setTextBackgroundColor(value);
+                haveTextBackgroundColorFlag = true;
+            }
+            else {
+                m_streamHelper->throwDataFileException("Invalid value "
+                                                       + valueString
+                                                       + " for attribute "
+                                                       + ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR);
+            }
+        }
+    }
+    
+    bool haveCustomTextBackgroundColorFlag = false;
+    {
+        /*
+         * Background custom color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    annotationTextElementName,
+                                                                                    ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            std::vector<float> rgba;
+            AString::toNumbers(valueString, rgba);
+            if (rgba.size() == 4) {
+                textAnnotation->setCustomTextBackgroundColor(&rgba[0]);
+                haveCustomTextBackgroundColorFlag = true;
+            }
+            else {
+                m_streamHelper->throwDataFileException(ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA
+                                                       + " must contain 4 elements but "
+                                                       + valueString
+                                                       + " contains "
+                                                       + QString::number(rgba.size())
+                                                       + " elements");
+            }
+        }
+    }
+    
+    if (haveTextBackgroundColorFlag
+        && haveCustomTextBackgroundColorFlag) {
+        /* nothing */
+    }
+    else {
+        /*
+         * Older  annotations did not have a text background color
+         * and the text was drawn using the annotation background color.
+         * So, copy the background color to the text background color and set
+         * the background color to none.
+         */
+        textAnnotation->setTextBackgroundColor(textAnnotation->getBackgroundColor());
+        float rgba[4];
+        textAnnotation->getCustomBackgroundColor(rgba);
+        textAnnotation->setCustomTextBackgroundColor(rgba);
+        textAnnotation->setBackgroundColor(CaretColorEnum::NONE);
     }
     
     textAnnotation->setBoldStyleEnabled(m_streamHelper->getRequiredAttributeBoolValue(attributes,
@@ -1718,12 +1794,19 @@ AnnotationFileXmlReader::readTextDataElement(AnnotationText *textAnnotation,
  *    The font attributes
  * @param attributes
  *    The XML stream attributes
+ * @param readBackgroundColorFlagOut
+ *   Output will be true if the background color was read (background
+ *    color added March 2025)
+ * @return True
  */
 void
 AnnotationFileXmlReader::readFontAttibutes(AnnotationFontAttributesInterface* fontAttributes,
                                            const AString& elementName,
-                                           const QXmlStreamAttributes& attributes)
+                                           const QXmlStreamAttributes& attributes,
+                                           bool& readBackgroundColorFlagOut)
 {
+    readBackgroundColorFlagOut = false;
+    
     CaretAssert(fontAttributes);
     
     {
@@ -1788,6 +1871,56 @@ AnnotationFileXmlReader::readFontAttibutes(AnnotationFontAttributesInterface* fo
             }
             else {
                 m_streamHelper->throwDataFileException(ATTRIBUTE_TEXT_CUSTOM_RGBA
+                                                       + " must contain 4 elements but "
+                                                       + valueString
+                                                       + " contains "
+                                                       + QString::number(rgba.size())
+                                                       + " elements");
+            }
+        }
+    }
+
+    {
+        /*
+         * Text background color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    elementName,
+                                                                                    ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            bool valid = false;
+            CaretColorEnum::Enum value = CaretColorEnum::fromName(valueString,
+                                                                  &valid);
+            if (valid) {
+                readBackgroundColorFlagOut = true;
+                fontAttributes->setTextBackgroundColor(value);
+            }
+            else {
+                m_streamHelper->throwDataFileException("Invalid value "
+                                                       + valueString
+                                                       + " for attribute "
+                                                       + ATTRIBUTE_TEXT_BACKGROUND_CARET_COLOR);
+            }
+        }
+    }
+    
+    {
+        /*
+         * Custom background color
+         */
+        const QString valueString = m_streamHelper->getOptionalAttributeStringValue(attributes,
+                                                                                    elementName,
+                                                                                    ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA,
+                                                                                    "");
+        if ( ! valueString.isEmpty()) {
+            std::vector<float> rgba;
+            AString::toNumbers(valueString, rgba);
+            if (rgba.size() == 4) {
+                fontAttributes->setCustomTextBackgroundColor(&rgba[0]);
+            }
+            else {
+                m_streamHelper->throwDataFileException(ATTRIBUTE_TEXT_BACKGROUND_CUSTOM_RGBA
                                                        + " must contain 4 elements but "
                                                        + valueString
                                                        + " contains "
