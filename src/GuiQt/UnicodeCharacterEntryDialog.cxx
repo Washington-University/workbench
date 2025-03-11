@@ -30,6 +30,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QSpinBox>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #include "CaretAssert.h"
@@ -153,6 +154,6 @@ UnicodeCharacterEntryDialog::done(int resultCode)
 void
 UnicodeCharacterEntryDialog::displayHyperlink(const QString& link)
 {
-    QDesktopServices::openUrl(link);
+    QDesktopServices::openUrl(QUrl(link));
 }
 
