@@ -23,6 +23,8 @@
 #include "AnnotationTextEditorWidget.h"
 #undef __ANNOTATION_TEXT_EDITOR_WIDGET_DECLARE__
 
+#include <QAction>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QToolButton>
@@ -92,11 +94,20 @@ m_browserWindowIndex(browserWindowIndex)
     m_annotationTextConnectTypeEnumComboBox->getWidget()->setFixedWidth(width);
     m_textLineEdit->setFixedWidth(width);
     
-    QVBoxLayout* layout = new QVBoxLayout(this);
+    m_editAction = new QAction("E\nd\ni\nt");
+    QObject::connect(m_editAction, &QAction::triggered,
+                     this, &AnnotationTextEditorWidget::displayTextEditor);
+    m_editAction->setToolTip("Edit the text in a text editor");
+    QToolButton* editToolButton(new QToolButton());
+    editToolButton->setDefaultAction(m_editAction);
+    WuQtUtilities::setToolButtonStyleForQt5Mac(editToolButton);
+    
+    QGridLayout* layout = new QGridLayout(this);
     WuQtUtilities::setLayoutSpacingAndMargins(layout, 2, 2);
-    layout->addWidget(textLabel, 0, Qt::AlignHCenter);
-    layout->addWidget(m_textLineEdit); //, 0, Qt::AlignHCenter);
-    layout->addWidget(m_annotationTextConnectTypeEnumComboBox->getWidget(), 0, Qt::AlignHCenter);
+    layout->addWidget(textLabel, 0, 0, Qt::AlignHCenter);
+    layout->addWidget(m_textLineEdit, 1, 0); //, 0, Qt::AlignHCenter);
+    layout->addWidget(m_annotationTextConnectTypeEnumComboBox->getWidget(), 2, 0, Qt::AlignHCenter);
+    layout->addWidget(editToolButton, 0, 1, 3, 1, Qt::AlignVCenter);
     
     setSizePolicy(sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);

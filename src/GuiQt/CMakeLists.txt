@@ -255,6 +255,7 @@ ELSE()
         TileTabsConfigurationDialog.h
 	TileTabsLayoutConfigurationTypeWidget.h
 	TileTabsManualTabGeometryWidget.h
+	UnicodeCharacterEntryDialog.h
         UserInputModeAnnotationsContextMenu.h
         UserInputModeAnnotationsWidget.h
         UserInputModeBordersWidget.h
@@ -589,6 +590,7 @@ TileTabsConfigurationDialog.h
 TileTabsGridConfigurationModifier.h
 TileTabsLayoutConfigurationTypeWidget.h
 TileTabsManualTabGeometryWidget.h
+UnicodeCharacterEntryDialog.h
 UserInputModeAbstract.h
 UserInputModeAnnotations.h
 UserInputModeAnnotationsContextMenu.h
@@ -940,6 +942,7 @@ TileTabsConfigurationDialog.cxx
 TileTabsGridConfigurationModifier.cxx
 TileTabsLayoutConfigurationTypeWidget.cxx
 TileTabsManualTabGeometryWidget.cxx
+UnicodeCharacterEntryDialog.cxx
 UserInputModeAbstract.cxx
 UserInputModeAnnotations.cxx
 UserInputModeAnnotationsContextMenu.cxx

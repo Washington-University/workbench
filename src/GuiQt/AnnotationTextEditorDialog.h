@@ -27,6 +27,8 @@
 #include "UserInputModeEnum.h"
 
 class QTextEdit;
+class QToolBar;
+class QToolButton;
 
 namespace caret {
 
@@ -43,20 +45,44 @@ namespace caret {
         
         virtual ~AnnotationTextEditorDialog();
         
-        virtual void done(int resultCode);
+        virtual void done(int resultCode) override;
         
     signals:
         void textHasBeenChanged(const QString&);
         
+    private:
+        enum class InsertItem {
+            ANNOTATION_SUBSTITUTION,
+            UNICODE_CHARCTER
+        };
+
     private slots:
         void textWasEdited();
         
+        void insertItemSelected(const InsertItem item);
+        
+        void insertUnicodeCharacterSelected(const QChar unicodeCharacter);
+        
         // ADD_NEW_METHODS_HERE
 
-    private:
+    private:        
         AnnotationTextEditorDialog(const AnnotationTextEditorDialog&);
 
         AnnotationTextEditorDialog& operator=(const AnnotationTextEditorDialog&);
+        
+        QToolBar* createToolBar();
+        
+        QToolButton* createInsertUnicodeAction(const short unicodeValue,
+                                               const AString& optionalTextPrefix,
+                                               const AString& tooltip);
+        
+        QToolButton* createInsertItemAction(const InsertItem item,
+                                            const AString& text,
+                                            const AString& tooltip);
+
+        void addToolButton(QToolButton* toolButton);
+        
+        void finishToolButtons(QToolBar* toolbar);
         
         const UserInputModeEnum::Enum m_userInputMode;
         
@@ -65,6 +91,8 @@ namespace caret {
         QString m_uneditedText;
         
         QTextEdit* m_textEdit;
+        
+        std::vector<QWidget*> m_toolWidgets;
         
         // ADD_NEW_MEMBERS_HERE
 

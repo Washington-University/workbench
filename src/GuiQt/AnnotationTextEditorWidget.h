@@ -77,6 +77,8 @@ namespace caret {
         
         EnumComboBoxTemplate* m_annotationTextConnectTypeEnumComboBox;
         
+        QAction* m_editAction;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
