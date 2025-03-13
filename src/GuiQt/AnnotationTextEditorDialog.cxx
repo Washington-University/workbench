@@ -130,6 +130,15 @@ AnnotationTextEditorDialog::createToolBar()
     addToolButton(createInsertUnicodeAction(0x00B3,
                                                  "x",
                                                  "Insert superscript 3"));
+    addToolButton(createInsertUnicodeAction(0x2264,
+                                            "",
+                                            "Insert less than or equal to"));
+    addToolButton(createInsertUnicodeAction(0x2265,
+                                            "",
+                                            "Insert greater than or equal to"));
+    addToolButton(createInsertUnicodeAction(0x2260,
+                                            "",
+                                            "Insert not equal to"));
     addToolButton(createInsertItemAction(InsertItem::UNICODE_CHARCTER,
                                               "U", "Insert unicode character by entering hexadecimal value"));
 
