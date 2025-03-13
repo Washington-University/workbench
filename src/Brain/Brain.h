@@ -152,6 +152,8 @@ namespace caret {
         
         const BorderFile* getBorderFile(const int32_t indx) const;
 
+        const BorderFile* getBorderFileMatchingToName(const AString& borderFileName) const;
+        
         void getAllAnnotationFilesIncludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const;
         
         void getAllAnnotationFilesExcludingSceneAnnotationFile(std::vector<AnnotationFile*>& annotationFilesOut) const;
@@ -191,6 +193,8 @@ namespace caret {
         FociFile* getFociFile(const int32_t indx);
         
         const FociFile* getFociFile(const int32_t indx) const;
+        
+        const FociFile* getFociFileMatchingToName(const AString& fociFileName) const;
         
         const std::vector<ImageFile*> getAllImagesFiles() const;
         
@@ -694,6 +698,41 @@ namespace caret {
             }
         }
         
+        /**
+         * Find the data file with the given name
+         *
+         * @param dataFiles
+         *     Files of a particular type
+         * @param fileName
+         *     File name for matching, usually absolute
+         * @return
+         *     Pointer to matching file or NULL if no match
+         */
+        template <class DFT>
+        DFT*
+        findFileWithName(const std::vector<DFT*>& loadedDataFiles,
+                         const AString& fileName) const
+        {
+            DFT* longestNameMatchFile = NULL;
+            int32_t longestNameMatchLength = -1;
+            
+            for (DFT* file : loadedDataFiles) {
+                if (file->getFileName() == fileName) {
+                    return file;
+                }
+                
+                if (fileName.endsWith(file->getFileNameNoPath())) {
+                    const int32_t matchLen(fileName.countMatchingCharactersFromEnd(file->getFileName()));
+                    if (matchLen > longestNameMatchLength) {
+                        longestNameMatchFile = file;
+                        longestNameMatchLength = matchLen;
+                    }
+                }
+            }
+            
+            return longestNameMatchFile;
+        }
+
         CaretDataFile* addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                             CaretDataFile* caretDataFile,
                                             const DataFileTypeEnum::Enum dataFileType,

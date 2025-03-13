@@ -21,9 +21,12 @@
  */
 /*LICENSE_END*/
 
+#include <array>
+
 #include "CaretDataFile.h"
 #include "FunctionResult.h"
 #include "GroupAndNameHierarchyUserInterface.h"
+#include "SamplesColorModeEnum.h"
 
 namespace caret {
 
@@ -110,6 +113,9 @@ namespace caret {
         
         static AString getFileVersionAsString();
         
+        FunctionResultValue<std::array<uint8_t, 4>> getNameOrClassColor(const SamplesColorModeEnum::Enum samplesColorMode,
+                                                                        const AString& focusNameOrClassName) const;
+
         FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
         
         FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);

@@ -120,6 +120,7 @@ EventCaretDataFilesGet.h
 EventCaretMappableDataFileMapsViewedInOverlays.h
 EventCaretMappableDataFilesGet.h
 EventChartMatrixParcelYokingValidation.h
+EventFocusFileGetColor.h
 EventGetDisplayedDataFiles.h
 EventHistologySlicesFilesGet.h
 EventMapYokingSelectMap.h
@@ -184,6 +185,7 @@ PixelLogicalIndex.h
 RectangleTransform.h
 RgbaFile.h
 RibbonMappingHelper.h
+SamplesColorModeEnum.h
 SamplesFile.h
 SceneDataFileInfo.h
 SceneFile.h
@@ -307,6 +309,7 @@ EventCaretDataFilesGet.cxx
 EventCaretMappableDataFileMapsViewedInOverlays.cxx
 EventCaretMappableDataFilesGet.cxx
 EventChartMatrixParcelYokingValidation.cxx
+EventFocusFileGetColor.cxx
 EventGetDisplayedDataFiles.cxx
 EventHistologySlicesFilesGet.cxx
 EventMapYokingSelectMap.cxx
@@ -370,6 +373,7 @@ PixelLogicalIndex.cxx
 RectangleTransform.cxx
 RgbaFile.cxx
 RibbonMappingHelper.cxx
+SamplesColorModeEnum.cxx
 SamplesFile.cxx
 SceneDataFileInfo.cxx
 SceneFile.cxx

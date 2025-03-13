@@ -36,10 +36,12 @@
 #include "DisplayGroupAndTabItemTreeWidgetItem.h"
 #include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesSamples.h"
+#include "EnumComboBoxTemplate.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "SamplesColorModeEnum.h"
 #include "SamplesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
@@ -125,13 +127,26 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_displaySamplesActualDesiredSuffixCheckBox, &QCheckBox::clicked,
                      this, &SamplesSelectionViewController::checkBoxToggled);
     
+    QLabel* colorModeLabel(new QLabel("Color Source"));
+    m_samplesColorModeEnumComboBox = new EnumComboBoxTemplate(this);
+    m_samplesColorModeEnumComboBox->setup<SamplesColorModeEnum,SamplesColorModeEnum::Enum>();
+    QObject::connect(m_samplesColorModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
+                     this, &SamplesSelectionViewController::samplesColorModeEnumComboBoxItemActivated);
+    
     m_sceneAssistant = new SceneClassAssistant();
+    
+    QHBoxLayout* colorModeLayout(new QHBoxLayout());
+    colorModeLayout->setContentsMargins(0, 0, 0, 0);
+    colorModeLayout->addWidget(colorModeLabel);
+    colorModeLayout->addWidget(m_samplesColorModeEnumComboBox->getWidget());
+    colorModeLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_displaySamplesCheckBox);
     layout->addWidget(m_displaySampleNamesCheckBox);
     layout->addWidget(m_displaySamplesNumberCheckBox);
     layout->addWidget(m_displaySamplesActualDesiredSuffixCheckBox);
+    layout->addLayout(colorModeLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(objectNamePrefix));
@@ -215,7 +230,8 @@ SamplesSelectionViewController::updateSampleSelections()
     m_displaySampleNamesCheckBox->setChecked(dpa->isDisplaySampleNames());
     m_displaySamplesNumberCheckBox->setChecked(dpa->isDisplaySampleNumbers());
     m_displaySamplesActualDesiredSuffixCheckBox->setChecked(dpa->isDisplaySampleActualDesiredSuffix());
-    
+    m_samplesColorModeEnumComboBox->setSelectedItem<SamplesColorModeEnum,SamplesColorModeEnum::Enum>(dpa->getColorMode());
+
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<SamplesFile*> samplesFiles(brain->getAllSamplesFiles());
     
@@ -361,6 +377,20 @@ SamplesSelectionViewController::checkBoxToggled()
     updateOtherSampleViewControllers();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
 }
+
+/**
+ * Called when the color mode is changed
+ */
+void
+SamplesSelectionViewController::samplesColorModeEnumComboBoxItemActivated()
+{
+    DisplayPropertiesSamples* dpa = GuiManager::get()->getBrain()->getDisplayPropertiesSamples();
+    const SamplesColorModeEnum::Enum colorMode(m_samplesColorModeEnumComboBox->getSelectedItem<SamplesColorModeEnum,SamplesColorModeEnum::Enum>());
+    dpa->setColorMode(colorMode);
+    updateOtherSampleViewControllers();
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+}
+
 
 /**
  * Called when the display group combo box is changed.

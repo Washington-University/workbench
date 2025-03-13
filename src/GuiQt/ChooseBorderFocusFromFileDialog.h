@@ -38,6 +38,9 @@ class QStackedWidget;
 namespace caret {
 
     class BorderFile;
+    class CaretDataFile;
+    class CaretDataFileSelectionComboBox;
+    class CaretDataFileSelectionModel;
     class FociFile;
     
     class ChooseBorderFocusFromFileDialog : public WuQDialogModal {
@@ -75,7 +78,7 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private slots:
-        void chooseFileActionTriggered();
+        void dataFileSelected(CaretDataFile* caretDataFile);
         
         void modeButtonGroupButtonClicked(QAbstractButton* button);
         
@@ -107,8 +110,9 @@ namespace caret {
         
         void setToolTipText(QWidget* widget,
                             const ToolTip toolTip) const;
-        
-        bool loadFileName(const AString& filename);
+                
+        void setComboBox(QComboBox* comboBox,
+                         const QString& text);
         
         const FileMode m_fileMode;
         
@@ -116,7 +120,9 @@ namespace caret {
         
         DataFileTypeEnum::Enum m_dataFileType = DataFileTypeEnum::UNKNOWN;
         
-        QLineEdit* m_fileNameLineEdit;
+        CaretDataFileSelectionModel* m_fileSelectionModel;
+        
+        CaretDataFileSelectionComboBox* m_fileSelectionComboBox;
         
         QLineEdit* m_classLineEdit;
         
@@ -142,9 +148,9 @@ namespace caret {
         
         QComboBox* m_nameWidgetNameSelectionComboBox;
         
-        std::unique_ptr<BorderFile> m_borderFile;
+        BorderFile* m_borderFile = NULL;
         
-        std::unique_ptr<FociFile> m_fociFile;
+        FociFile* m_fociFile = NULL;
         
         std::vector<AString> m_allNames;
         

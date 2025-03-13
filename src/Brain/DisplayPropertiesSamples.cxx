@@ -64,7 +64,8 @@ m_parentBrain(parentBrain)
                           &m_displaySampleNumbers);
     m_sceneAssistant->add("m_displaySampleActualDesiredSuffix",
                           &m_displaySampleActualDesiredSuffix);
-
+    m_sceneAssistant->add<SamplesColorModeEnum, SamplesColorModeEnum::Enum>("m_colorMode",
+                                                                            &m_colorMode);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     
@@ -154,6 +155,7 @@ DisplayPropertiesSamples::resetPrivate()
     m_displaySampleNames = true;
     m_displaySampleNumbers = true;
     m_displaySampleActualDesiredSuffix = true;
+    m_colorMode = SamplesColorModeEnum::SAMPLE;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_GROUP_TAB;
@@ -261,6 +263,26 @@ void
 DisplayPropertiesSamples::setDisplaySampleActualDesiredSuffix(const bool status)
 {
     m_displaySampleActualDesiredSuffix = status;
+}
+
+/**
+ * @return The color mode
+ */
+SamplesColorModeEnum::Enum
+DisplayPropertiesSamples::getColorMode() const
+{
+    return m_colorMode;
+}
+
+/**
+ * Set the color mode
+ * @param colorMode
+ *    The new color mode
+ */
+void
+DisplayPropertiesSamples::setColorMode(const SamplesColorModeEnum::Enum colorMode)
+{
+    m_colorMode = colorMode;
 }
 
 /**

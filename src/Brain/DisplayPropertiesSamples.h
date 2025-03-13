@@ -26,6 +26,7 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "EventListenerInterface.h"
+#include "SamplesColorModeEnum.h"
 
 
 namespace caret {
@@ -60,6 +61,10 @@ namespace caret {
         bool isDisplaySampleActualDesiredSuffix() const;
         
         void setDisplaySampleActualDesiredSuffix(const bool status);
+        
+        SamplesColorModeEnum::Enum getColorMode() const;
+        
+        void setColorMode(const SamplesColorModeEnum::Enum colorMode);
         
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
@@ -97,6 +102,8 @@ namespace caret {
         bool m_displaySampleNumbers;
         
         bool m_displaySampleActualDesiredSuffix;
+        
+        SamplesColorModeEnum::Enum m_colorMode = SamplesColorModeEnum::SAMPLE;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

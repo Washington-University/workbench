@@ -42,6 +42,25 @@ using namespace caret;
  */
 
 /**
+ * @return New instance of combo box with a selection model for the given data file type
+ * @param dataFileType
+ *    Type of data file
+ * @param parent
+ *    Parent object
+ */
+std::pair<CaretDataFileSelectionModel*, CaretDataFileSelectionComboBox*>
+CaretDataFileSelectionComboBox::newInstanceForFileType(const DataFileTypeEnum::Enum dataFileType,
+                                                       QObject* parent)
+{
+    CaretDataFileSelectionModel* model(CaretDataFileSelectionModel::newInstanceForCaretDataFileType(dataFileType));
+    
+    CaretDataFileSelectionComboBox* comboBox(new CaretDataFileSelectionComboBox(parent));
+    comboBox->updateComboBox(model);
+    
+    return std::make_pair(model, comboBox);
+}
+
+/**
  * Constructor.
  *
  * @param parent

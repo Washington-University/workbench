@@ -37,6 +37,7 @@ namespace caret {
     class AnnotationPolyhedron;
     class DisplayGroupAndTabItemViewController;
     class DisplayGroupEnumComboBox;
+    class EnumComboBoxTemplate;
     class SceneClassAssistant;
 
     class SamplesSelectionViewController : public QWidget, public EventListenerInterface, public SceneableInterface {
@@ -76,6 +77,8 @@ namespace caret {
 //                                                  const SceneClass* sceneClass) = 0;
 
     private slots:
+        void samplesColorModeEnumComboBoxItemActivated();
+        
         void checkBoxToggled();
         
         void displayGroupSelected(const DisplayGroupEnum::Enum);
@@ -111,6 +114,8 @@ namespace caret {
         QCheckBox* m_displaySamplesNumberCheckBox;
         
         QCheckBox* m_displaySamplesActualDesiredSuffixCheckBox;
+        
+        EnumComboBoxTemplate* m_samplesColorModeEnumComboBox;;
         
         static std::set<SamplesSelectionViewController*> s_allSamplesSelectionViewControllers;
         

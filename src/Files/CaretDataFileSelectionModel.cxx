@@ -220,34 +220,6 @@ CaretDataFileSelectionModel::newInstanceForCaretDataFileTypesInStructure(const S
     
 }
 
-///**
-// * Create a new instance of a Caret Data File Selection Model that
-// * selects files of the given Data File Types.
-// *
-// * @param dataFileTypes
-// *    Types of the data file.
-// * @param volumeTypes
-// *    Types of volumnes
-// */
-//CaretDataFileSelectionModel*
-//CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(const std::vector<DataFileTypeEnum::Enum>& dataFileTypes,
-//                                                              const std::vector<SubvolumeAttributes::VolumeType>& volumeTypes)
-//{
-//    CaretDataFileSelectionModel* model = new CaretDataFileSelectionModel(NULL,
-//                                                                         structure,
-//                                                                         FILE_MODE_DATA_FILE_TYPE_ENUM);
-//    model->m_dataFileTypes.insert(model->m_dataFileTypes.end(),
-//                                  dataFileTypes.begin(),
-//                                  dataFileTypes.end());
-//    model->m_volumeTypes.insert(model->m_volumeTypes.end(),
-//                                volumeTypes.begin(),
-//                                volumeTypes.end());
-//    
-//    return model;
-//    
-//}
-
-
 /**
  * Create a new instance of a Caret Data File Selection Model that
  * selects files that implement the chartable matrix parcel interface.
@@ -356,6 +328,47 @@ void
 CaretDataFileSelectionModel::setSelectedFile(CaretDataFile* selectedFile)
 {
     m_selectedFile = selectedFile;
+}
+
+/**
+ * Set the selected file best matching filename or first file if no match.
+ * The names of the files (without paths) must match
+ *
+ * @param filename
+ *     name of file
+ */
+void
+CaretDataFileSelectionModel::setSelectedFileByFilename(const AString& filename)
+{
+    std::vector<CaretDataFile*> allFiles(getAvailableFiles());
+    CaretDataFile* longestNameMatchFile = NULL;
+    int32_t longestNameMatchLength = -1;
+        
+    for (CaretDataFile* cdf : allFiles) {
+        if (cdf->getFileName() == filename) {
+            longestNameMatchFile = cdf;
+            break;
+        }
+        
+        if (filename.endsWith(cdf->getFileNameNoPath())) {
+            const int32_t matchLen(filename.countMatchingCharactersFromEnd(cdf->getFileName()));
+            if (matchLen > longestNameMatchLength) {
+                longestNameMatchFile = cdf;
+                longestNameMatchLength = matchLen;
+            }
+        }
+    }
+    
+    if (longestNameMatchFile != NULL) {
+        setSelectedFile(longestNameMatchFile);
+    }
+    else if ( ! allFiles.empty()) {
+        CaretAssertVectorIndex(allFiles, 0);
+        setSelectedFile(allFiles[0]);
+    }
+    else {
+        setSelectedFile(NULL);
+    }
 }
 
 /**

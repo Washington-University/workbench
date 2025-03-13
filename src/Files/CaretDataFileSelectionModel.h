@@ -89,6 +89,7 @@ namespace caret {
         
         void setSelectedFile(CaretDataFile* selectedFile);
         
+        void setSelectedFileByFilename(const AString& filename);
 
         // ADD_NEW_METHODS_HERE
 

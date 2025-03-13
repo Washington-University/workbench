@@ -347,6 +347,10 @@ EventTypeEnum::initialize()
                                      "EVENT_DRAWING_VIEWPORT_CONTENT_GET",
                                      "Event get a drawing viewport after drawing"));
     
+    enumData.push_back(EventTypeEnum(EVENT_FOCUS_FILE_GET_COLOR,
+                                     "EVENT_FOCUS_FILE_GET_COLOR",
+                                     "Get a focus class or name color from a focus file"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GET_DISPLAYED_DATA_FILES,
                                      "EVENT_GET_DISPLAYED_DATA_FILES",
                                      "Get data files displayed in windows/tabs"));

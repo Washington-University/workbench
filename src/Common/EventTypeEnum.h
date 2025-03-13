@@ -172,6 +172,8 @@ public:
         EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR,
         /** Drawing viewport content event, get after drawing */
         EVENT_DRAWING_VIEWPORT_CONTENT_GET,
+        /** Get a focus class or name color from a focus file */
+        EVENT_FOCUS_FILE_GET_COLOR,
         /** Get data files that are display in windows/tabs */
         EVENT_GET_DISPLAYED_DATA_FILES,
         /** Get node data files */

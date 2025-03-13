@@ -456,6 +456,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_ADD:
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR:
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_GET:
+        case EventTypeEnum::EVENT_FOCUS_FILE_GET_COLOR:
         case EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES:
         case EventTypeEnum::EVENT_GET_NODE_DATA_FILES:
         case EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE:

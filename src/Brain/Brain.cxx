@@ -85,6 +85,7 @@
 #include "EventDataFileReload.h"
 #include "EventDataFileReloadAll.h"
 #include "EventCaretDataFilesGet.h"
+#include "EventFocusFileGetColor.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventHistologySlicesFilesGet.h"
 #include "EventMediaFilesGet.h"
@@ -266,6 +267,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_FOCUS_FILE_GET_COLOR);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET);
     EventManager::get()->addEventListener(this,
@@ -5167,6 +5170,22 @@ Brain::getBorderFile(const int32_t indx) const
 }
 
 /**
+ * Get border file that best matches the given border file name (right-most match)
+ * @param borderFileName
+ *    Name of border file
+ * @return
+ *    Pointer to best matching file or NULL if not found.
+ */
+const BorderFile*
+Brain::getBorderFileMatchingToName(const AString& borderFileName) const
+{
+    BorderFile* borderFile = findFileWithName(m_borderFiles,
+                                              borderFileName);
+    return borderFile;
+}
+
+
+/**
  * @return All CZI image files.
  */
 const std::vector<CziImageFile*>
@@ -5316,6 +5335,21 @@ Brain::getFociFile(const int32_t indx) const
 {
     CaretAssertVectorIndex(m_fociFiles, indx);
     return m_fociFiles[indx];
+}
+
+/**
+ * Get foci file that best matches the given foci file name (right-most match)
+ * @param fociFileName
+ *    Name of foci file
+ * @return
+ *    Pointer to best matching file or NULL if not found.
+ */
+const FociFile*
+Brain::getFociFileMatchingToName(const AString& fociFileName) const
+{
+    FociFile* fociFile = findFileWithName(m_fociFiles,
+                                          fociFileName);
+    return fociFile;
 }
 
 /**
@@ -7207,6 +7241,24 @@ Brain::receiveEvent(Event* event)
         }
         
         dataFilesEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_FOCUS_FILE_GET_COLOR) {
+        EventFocusFileGetColor* focusEvent(dynamic_cast<EventFocusFileGetColor*>(event));
+        CaretAssert(focusEvent);
+        
+        FociFile* fociFile(findFileWithName(m_fociFiles,
+                                            focusEvent->getFociFileName()));
+        if (fociFile != NULL) {
+            const auto result(fociFile->getNameOrClassColor(focusEvent->getSamplesColorMode(),
+                                                            focusEvent->getFocusOrClassName()));
+            if (result.isOk()) {
+                focusEvent->setColorRGBA(result.getValue());
+            }
+            else {
+                focusEvent->setErrorMessage(result.getErrorMessage());
+            }
+            focusEvent->setEventProcessed();
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET) {
         EventHistologySlicesFilesGet* histologyEvent(dynamic_cast<EventHistologySlicesFilesGet*>(event));

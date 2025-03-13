@@ -21,6 +21,7 @@
  */
 /*LICENSE_END*/
 
+#include <utility>
 #include <vector>
 
 #include "DataFileTypeEnum.h"
@@ -38,6 +39,10 @@ namespace caret {
         Q_OBJECT
 
     public:
+        static std::pair<CaretDataFileSelectionModel*, CaretDataFileSelectionComboBox*>
+                  newInstanceForFileType(const DataFileTypeEnum::Enum dataFileType,
+                                         QObject* parent);
+        
         CaretDataFileSelectionComboBox(QObject* parent);
         
         virtual ~CaretDataFileSelectionComboBox();

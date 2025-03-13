@@ -63,6 +63,7 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserWindowPixelSizeInfoEvent.h"
 #include "EventDrawingViewportContentGet.h"
+#include "EventFocusFileGetColor.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "GraphicsEngineDataOpenGL.h"
@@ -5261,6 +5262,53 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
 
     uint8_t foregroundRGBA[4];
     multiPairedCoordShape->getLineColorRGBA(foregroundRGBA);
+    
+    /*
+     * Override with FOCI color
+     */
+    const DisplayPropertiesSamples* dps(m_inputs->m_brain->getDisplayPropertiesSamples());
+    const AnnotationSampleMetaData* smd(polyhedron->getSampleMetaData());
+    AString fociFileName;
+    AString focusOrClassName;
+    switch (dps->getColorMode()) {
+        case SamplesColorModeEnum::SAMPLE:
+            break;
+        case SamplesColorModeEnum::FOCUS_ONE_NAME:
+            CaretAssert(smd->getNumberOfFoci() >= 1);
+            fociFileName     = smd->getFocusFileName(0);
+            focusOrClassName = smd->getFocusName(0);
+            break;
+        case SamplesColorModeEnum::FOCUS_TWO_NAME:
+            CaretAssert(smd->getNumberOfFoci() >= 2);
+            fociFileName     = smd->getFocusFileName(1);
+            focusOrClassName = smd->getFocusName(1);
+            break;
+        case SamplesColorModeEnum::FOCUS_ONE_CLASS:
+            CaretAssert(smd->getNumberOfFoci() >= 1);
+            fociFileName     = smd->getFocusFileName(0);
+            focusOrClassName = smd->getFocusClass(0);
+            break;
+        case SamplesColorModeEnum::FOCUS_TWO_CLASS:
+            CaretAssert(smd->getNumberOfFoci() >= 2);
+            fociFileName     = smd->getFocusFileName(1);
+            focusOrClassName = smd->getFocusClass(1);
+            break;
+    }
+    if (( ! fociFileName.isEmpty())
+        && ( ! focusOrClassName.isEmpty())) {
+        EventFocusFileGetColor colorEvent(fociFileName,
+                                          dps->getColorMode(),
+                                          focusOrClassName);
+        EventManager::get()->sendEvent(colorEvent.getPointer());
+        if (colorEvent.getEventProcessCount() > 0) {
+            const std::array<uint8_t, 4> rgbaArray(colorEvent.getColorRGBA());
+            foregroundRGBA[0] = rgbaArray[0];
+            foregroundRGBA[1] = rgbaArray[1];
+            foregroundRGBA[2] = rgbaArray[2];
+            foregroundRGBA[3] = rgbaArray[3];
+        }
+    }
+    
     const bool drawForegroundFlag = (foregroundRGBA[3] > 0.0f);
     
     float absAngle(-10000.0);

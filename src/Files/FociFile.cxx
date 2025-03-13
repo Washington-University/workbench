@@ -1074,3 +1074,54 @@ FociFile::importFromDataFileEditorModel(const DataFileEditorModel& dataFileEdito
     return FunctionResult::ok();
 }
 
+/**
+ * Get the color for the given name or class name
+ * @param samplesColorMode
+ *    Indicates to find name or class
+ * @param focusNameOrClassName
+ *    The focus name or class name
+ */
+FunctionResultValue<std::array<uint8_t, 4>>
+FociFile::getNameOrClassColor(const SamplesColorModeEnum::Enum samplesColorMode,
+                              const AString& focusNameOrClassName) const
+{
+    std::array<uint8_t, 4> rgba;
+    rgba.fill(0);
+    
+    AString errorMessage;
+    
+    if (focusNameOrClassName.isEmpty()) {
+        errorMessage = "Focus or class name is empty";
+    }
+    else {
+        GiftiLabel* gl(NULL);
+        switch (samplesColorMode) {
+            case SamplesColorModeEnum::SAMPLE:
+                break;
+            case SamplesColorModeEnum::FOCUS_ONE_NAME:
+            case SamplesColorModeEnum::FOCUS_TWO_NAME:
+                gl = m_nameColorTable->getLabel(focusNameOrClassName);
+                break;
+            case SamplesColorModeEnum::FOCUS_ONE_CLASS:
+            case SamplesColorModeEnum::FOCUS_TWO_CLASS:
+                gl = m_classColorTable->getLabel(focusNameOrClassName);
+                break;
+        }
+        
+        if (gl != NULL) {
+            std::array<float, 4> rgbaFloat;
+            gl->getColor(rgbaFloat.data());
+            for (int32_t i = 0; i < 4; i++) {
+                rgba[i] = static_cast<uint8_t>(rgbaFloat[i] * 255.0);
+            }
+        }
+        else {
+            errorMessage = ("Color not found for " + focusNameOrClassName);
+        }
+    }
+    
+    return FunctionResultValue<std::array<uint8_t, 4>>(rgba,
+                                                       errorMessage,
+                                                       ( errorMessage.isEmpty()));
+}
+

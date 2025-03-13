@@ -35,11 +35,15 @@
 #include <QStackedWidget>
 
 #include "BorderFile.h"
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretDataFileSelectionComboBox.h"
+#include "CaretDataFileSelectionModel.h"
 #include "CaretFileDialog.h"
 #include "DataFileException.h"
 #include "FileInformation.h"
 #include "FociFile.h"
+#include "GuiManager.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -80,14 +84,16 @@ m_fileMode(fileMode)
     CaretAssert(m_dataFileType != DataFileTypeEnum::UNKNOWN);
 
     QLabel* fileLabel(new QLabel("File: "));
-    m_fileNameLineEdit = new QLineEdit();
-    m_fileNameLineEdit->setReadOnly(true);
     
-    QAction* fileAction(new QAction("Choose..."));
-    QObject::connect(fileAction, &QAction::triggered,
-                     this, &ChooseBorderFocusFromFileDialog::chooseFileActionTriggered);
-    QToolButton* fileToolButton(new QToolButton());
-    fileToolButton->setDefaultAction(fileAction);
+    auto modelAndComboBox = CaretDataFileSelectionComboBox::newInstanceForFileType(m_dataFileType,
+                                                                                   this);
+    m_fileSelectionModel    = modelAndComboBox.first;
+    CaretAssert(m_fileSelectionModel);
+    m_fileSelectionComboBox = modelAndComboBox.second;
+    CaretAssert(m_fileSelectionComboBox);
+    QObject::connect(m_fileSelectionComboBox, &CaretDataFileSelectionComboBox::fileSelected,
+                     this, &ChooseBorderFocusFromFileDialog::dataFileSelected);
+    m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
     
     QWidget* widget(new QWidget());
     QGridLayout* layout(new QGridLayout(widget));
@@ -95,8 +101,7 @@ m_fileMode(fileMode)
     layout->setColumnStretch(2, 100);
     int row(layout->rowCount());
     layout->addWidget(fileLabel, row, 0);
-    layout->addWidget(m_fileNameLineEdit, row, 1, 1, 2);
-    layout->addWidget(fileToolButton, row, 3);
+    layout->addWidget(m_fileSelectionComboBox->getWidget(), row, 1, 1, 2);
     row = layout->rowCount();
     layout->addWidget(createModeSelectionWidget(), row, 0, 1, 2, Qt::AlignTop);
     layout->addWidget(createClassAndNameSelectionWidget(), row, 2, 1, -1, (Qt::AlignLeft | Qt::AlignLeft));
@@ -234,12 +239,25 @@ ChooseBorderFocusFromFileDialog::okButtonClicked()
 }
 
 /**
- * @return The selected file name
+ * @return The name of the selected file or NULL if no file loaded
  */
 AString
 ChooseBorderFocusFromFileDialog::getSelectedFileName() const
 {
-    return m_fileNameLineEdit->text().trimmed();
+    switch (m_fileMode) {
+        case FileMode::BORDER:
+            if (m_borderFile != NULL) {
+                return m_borderFile->getFileName();
+            }
+            break;
+        case FileMode::FOCUS:
+            if (m_fociFile != NULL) {
+                return m_fociFile->getFileName();
+            }
+            break;
+    }
+    
+    return "";
 }
 
 /**
@@ -296,17 +314,64 @@ ChooseBorderFocusFromFileDialog::setSelections(const AString& filename,
                                                const AString& className,
                                                const AString& name)
 {
-    FileInformation fileInfo(filename);
-    if (fileInfo.exists()) {
-        if (loadFileName(filename)) {
-            m_classWidgetClassSelectionComboBox->setCurrentText(className);
-            classWidgetClassComboBoxActivated(m_classWidgetClassSelectionComboBox->currentIndex());
-            m_classWidgetNameSelectionComboBox->setCurrentText(name);
-            
-            m_nameWidgetNameSelectionComboBox->setCurrentText(name);
-            nameWidgetNameComboBoxActivated(m_nameWidgetNameSelectionComboBox->currentIndex());
-            m_nameWidgetClassSelectionComboBox->setCurrentText(className);
+    const CaretDataFile* caretDataFile(NULL);
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretDataFile* defaultCaretDataFile(NULL);
+    CaretAssert(brain);
+    switch (m_fileMode) {
+        case FileMode::BORDER:
+            caretDataFile = brain->getBorderFileMatchingToName(filename);
+            if (brain->getNumberOfBorderFiles() > 0) {
+                defaultCaretDataFile = brain->getBorderFile(0);
+            }
+            break;
+        case FileMode::FOCUS:
+            caretDataFile = brain->getFociFileMatchingToName(filename);
+            if (brain->getNumberOfFociFiles() > 0) {
+                defaultCaretDataFile = brain->getFociFile(0);
+            }
+            break;
+    }
+    
+    if (caretDataFile == NULL) {
+        caretDataFile = defaultCaretDataFile;
+    }
+    if (caretDataFile != NULL) {
+        m_fileSelectionModel->setSelectedFile(const_cast<CaretDataFile*>(caretDataFile));
+        dataFileSelected(m_fileSelectionModel->getSelectedFile());
+        
+        setComboBox(m_classWidgetClassSelectionComboBox, className);
+        classWidgetClassComboBoxActivated(m_classWidgetClassSelectionComboBox->currentIndex());
+        setComboBox(m_classWidgetNameSelectionComboBox, name);
+        
+        setComboBox(m_nameWidgetNameSelectionComboBox, name);
+        nameWidgetNameComboBoxActivated(m_nameWidgetNameSelectionComboBox->currentIndex());
+        setComboBox(m_nameWidgetClassSelectionComboBox, className);
+    }
+}
+
+/**
+ * Set the combo box so that the given text is selected if it contains the text.  If not
+ * set the combo box to the first item.
+ * @param comboBox
+ *    The combo box
+ * @param text
+ *    Name to select in combo box
+ */
+void
+ChooseBorderFocusFromFileDialog::setComboBox(QComboBox* comboBox,
+                                             const QString& text)
+{
+    int32_t index(0);
+    if ( ! text.isEmpty()) {
+        index = comboBox->findText(text);
+        if (index < 0) {
+            index = 0;
         }
+    }
+    if ((index >= 0)
+        && (index < comboBox->count())) {
+        comboBox->setCurrentIndex(index);
     }
 }
 
@@ -365,69 +430,42 @@ ChooseBorderFocusFromFileDialog::nameWidgetNameComboBoxActivated(int index)
 
 
 /**
- * Called to choose the border or focus file
+ * Called with selected border or focus file
+ * @param caretDataFile
+ *    File that was selected
  */
 void
-ChooseBorderFocusFromFileDialog::chooseFileActionTriggered()
+ChooseBorderFocusFromFileDialog::dataFileSelected(CaretDataFile* caretDataFile)
 {
+    m_borderFile = NULL;
+    m_fociFile   = NULL;
     
-    const AString filename(CaretFileDialog::getOpenFileName(this,
-                                                            "Choose File",
-                                                            QString(),
-                                                            DataFileTypeEnum::toQFileDialogFilterForReading(m_dataFileType)));
-    loadFileName(filename);
-}
+    m_allNames.clear();
+    m_allClassNames.clear();
 
-/**
- * Load the file with the given name
- * @param filename
- *    Name of file
- * @return True if file was successfully loaded
- */
-bool
-ChooseBorderFocusFromFileDialog::loadFileName(const AString& filename)
-{
-    bool successFlag(false);
-    if ( ! filename.isEmpty()) {
-        m_fileNameLineEdit->setText("");
-        m_allNames.clear();
-        m_allClassNames.clear();
+    if (caretDataFile != NULL) {
+        switch (m_fileMode) {
+            case FileMode::BORDER:
+                m_borderFile = dynamic_cast<BorderFile*>(caretDataFile);
+                m_allNames = m_borderFile->getAllBorderNames();
+                m_allClassNames = m_borderFile->getAllBorderClasses();
+                break;
+            case FileMode::FOCUS:
+                m_fociFile = dynamic_cast<FociFile*>(caretDataFile);
+                m_allNames = m_fociFile->getAllFociNames();
+                m_allClassNames = m_fociFile->getAllFociClasses();
+                break;
+        }
         
-        try {
-            switch (m_fileMode) {
-                case FileMode::BORDER:
-                    m_borderFile.reset(new BorderFile());
-                    m_borderFile->readFile(filename);
-                    m_allNames = m_borderFile->getAllBorderNames();
-                    m_allClassNames = m_borderFile->getAllBorderClasses();
-                    break;
-                case FileMode::FOCUS:
-                    m_fociFile.reset(new FociFile());
-                    m_fociFile->readFile(filename);
-                    m_allNames = m_fociFile->getAllFociNames();
-                    m_allClassNames = m_fociFile->getAllFociClasses();
-                    break;
-            }
-            
-            m_fileNameLineEdit->setText(filename);
-            loadComboBox(m_nameWidgetNameSelectionComboBox,
-                         m_allNames);
-            loadComboBox(m_classWidgetClassSelectionComboBox,
-                         m_allClassNames);
-            successFlag = true;
-        }
-        catch (const DataFileException& dfe) {
-            WuQMessageBox::errorOk(this, ("Error reading file: "
-                                          + dfe.whatString()));
-        }
+        loadComboBox(m_nameWidgetNameSelectionComboBox,
+                     m_allNames);
+        loadComboBox(m_classWidgetClassSelectionComboBox,
+                     m_allClassNames);
     }
     
     m_modeClassRadioButton->setChecked(true);
     modeButtonGroupButtonClicked(m_modeClassRadioButton);
-    
-    return successFlag;
 }
-
 
 /**
  * Load combo box with the given items
