@@ -118,6 +118,8 @@ namespace caret {
         
         QDoubleSpinBox* m_extentSpinBox;
         
+        QLineEdit* m_focusIDLineEdit;
+        
         QLineEdit* m_regionOfInterestLineEdit;
         
         QLineEdit* m_statisticLineEdit;

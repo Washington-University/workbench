@@ -286,6 +286,9 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     m_extentSpinBox->setRange(-10000000.0,
                               10000000.0);
     
+    QLabel* focusIDLabel = new QLabel("Focus ID");
+    m_focusIDLineEdit = new QLineEdit();
+    
     QLabel* regionOfInterestLabel = new QLabel("ROI");
     m_regionOfInterestLineEdit = new QLineEdit();
     
@@ -338,6 +341,9 @@ FociPropertiesEditorDialog::FociPropertiesEditorDialog(const QString& title,
     row++;
     gridLayout->addWidget(extentLabel, row, 0);
     gridLayout->addWidget(m_extentSpinBox, row, 1, 1, 1);
+    row++;
+    gridLayout->addWidget(focusIDLabel, row, 0);
+    gridLayout->addWidget(m_focusIDLineEdit, row, 1, 1, 1);
     row++;
     gridLayout->addWidget(regionOfInterestLabel, row, 0);
     gridLayout->addWidget(m_regionOfInterestLineEdit, row, 1, 1, 3);
@@ -634,6 +640,7 @@ FociPropertiesEditorDialog::loadFromFocusDataIntoDialog(const Focus* focus)
     m_areaLineEdit->setText(focus->getArea());
     m_geographyLineEdit->setText(focus->getGeography());
     m_extentSpinBox->setValue(focus->getExtent());
+    m_focusIDLineEdit->setText(focus->getFocusID());
     m_regionOfInterestLineEdit->setText(focus->getRegionOfInterest());
     m_statisticLineEdit->setText(focus->getStatistic());
 }
@@ -659,6 +666,7 @@ FociPropertiesEditorDialog::loadFromDialogIntoFocusData(Focus* focus) const
     focus->setArea(m_areaLineEdit->text().trimmed());
     focus->setGeography(m_geographyLineEdit->text().trimmed());
     focus->setExtent(m_extentSpinBox->value());
+    focus->setFocusID(m_focusIDLineEdit->text().trimmed());
     focus->setRegionOfInterest(m_regionOfInterestLineEdit->text().trimmed());
     focus->setStatistic(m_statisticLineEdit->text().trimmed());
 }

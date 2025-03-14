@@ -99,6 +99,10 @@ namespace caret {
         
         void setNameRgba(const float rgba[4]);
         
+        AString getFocusID() const;
+        
+        void setFocusID(const AString& focusID);
+        
         AString getSumsIdNumber() const;
         
         void setSumsIdNumber(const AString& sumsIdNumber);
@@ -168,6 +172,7 @@ namespace caret {
         static const AString XML_TAG_SUMS_VERSION_NUMBER;
         static const AString XML_TAG_SUMS_MSLID;
         static const AString XML_TAG_SUMS_ATTRIBUTE_ID;
+        static const AString XML_TAG_FOCUS_ID;
         
     private:
         void copyHelperFocus(const Focus& obj);
@@ -207,6 +212,8 @@ namespace caret {
         AString m_sumsMSLID;
         
         AString m_attributeID;
+        
+        AString m_focusID;
         
         /** RGBA color components assigned to focus' name */
         float m_nameRgbaColor[4];
@@ -249,6 +256,7 @@ namespace caret {
     const AString Focus::XML_TAG_SUMS_VERSION_NUMBER = "SumsVersionNumber";
     const AString Focus::XML_TAG_SUMS_MSLID = "SumsMSLID";
     const AString Focus::XML_TAG_SUMS_ATTRIBUTE_ID = "AttributeID";
+    const AString Focus::XML_TAG_FOCUS_ID = "FocusID";
 
 #endif // __FOCUS_DECLARE__
 

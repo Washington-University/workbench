@@ -112,6 +112,7 @@ Focus::clear()
     m_sumsVersionNumber = "";
     m_sumsMSLID = "";
     m_attributeID = "";
+    m_focusID = "";
 
     m_groupNameSelectionItem = NULL;
     
@@ -163,6 +164,7 @@ Focus::copyHelperFocus(const Focus& focus)
     m_sumsVersionNumber = focus.m_sumsVersionNumber;
     m_sumsMSLID = focus.m_sumsMSLID;
     m_attributeID = focus.m_attributeID;
+    m_focusID = focus.m_focusID;
     
     this->removeAllProjections();
     
@@ -505,6 +507,27 @@ void Focus::setNameRgba(const float rgba[4])
 }
 
 /**
+ * @return The fcous ID
+ */
+AString
+Focus::getFocusID() const
+{
+    return m_focusID;
+}
+
+/**
+ * Set the focus id
+ * @param focusID
+ *    New focus id
+ */
+void
+Focus::setFocusID(const AString& focusID)
+{
+    m_focusID = focusID;
+    setModified();
+}
+
+/**
  * Set the selection item for the group/name hierarchy.
  *
  * @param item
@@ -793,6 +816,7 @@ Focus::writeAsXML(XmlWriter& xmlWriter,
     xmlWriter.writeElementCData(XML_TAG_SUMS_VERSION_NUMBER, m_sumsVersionNumber);
     xmlWriter.writeElementCData(XML_TAG_SUMS_MSLID, m_sumsMSLID);
     xmlWriter.writeElementCData(XML_TAG_SUMS_ATTRIBUTE_ID, m_attributeID);
+    xmlWriter.writeElementCData(XML_TAG_FOCUS_ID, m_focusID);
     
     m_studyMetaDataLinkSet->writeXML(xmlWriter);
     const int32_t numProj = getNumberOfProjections();
@@ -885,6 +909,9 @@ Focus::setElementFromText(const AString& elementName,
     }
     else if (elementName == Focus::XML_TAG_SUMS_ATTRIBUTE_ID) {
         m_attributeID = textValue;
+    }
+    else if (elementName == Focus::XML_TAG_FOCUS_ID) {
+        m_focusID = textValue;
     }
     else {
         return false;
