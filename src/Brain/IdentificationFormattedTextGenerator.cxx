@@ -2164,9 +2164,15 @@ IdentificationFormattedTextGenerator::generateFocusIdentifcationText(HtmlTableBu
                        stereoXYZText);
     }
     else {
+        AString focusIdText;
+        if ( ! focus->getFocusID().isEmpty()) {
+            focusIdText = ("<br>ID: " + focus->getFocusID());
+        }
         htmlTableBuilder.addRow(stereoXYZText,
                                       ("FOCUS " + AString::number(focusIndex)),
-                                      ("Name: " + focus->getName() + "<br>Class: " + focus->getClassName()));
+                                      ("Name: " + focus->getName()
+                                       + "<br>Class: " + focus->getClassName()
+                                       + focusIdText));
     }
 }
 
