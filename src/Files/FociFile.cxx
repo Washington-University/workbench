@@ -929,24 +929,33 @@ FociFile::getAllClassesForFociWithName(const AString& focusName) const
  * Export the content of a foci file to a DataFileEditorModel
  * @return The DataFileEditorModel containing foci data.
  * Caller takes ownership of returned model.
+ * @param modelContent
+ *    Describes content of the model
  */
 FunctionResultValue<DataFileEditorModel*>
-FociFile::exportToDataFileEditorModel() const
+FociFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelContent) const
 {
     const int32_t numFoci(getNumberOfFoci());
+    if (numFoci <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         ("There are no foci to export from "
+                                                          + getFileNameNoPath()),
+                                                         false);
+    }
+    
+    const int32_t numColumns(modelContent.getNumberOfColumns());
+    if (numColumns <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         "Model content is empty",
+                                                         false);
+    }
 
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
-    dataFileEditorModel->setColumnCount(3);
-    const int32_t classColumnIndex(1);
-    dataFileEditorModel->setDefaultSortingColumnIndex(classColumnIndex);
-    
     /*
-     * Titles for columns
+     * Setup column titles and default sorting
      */
-    QList<QString> columnTitles;
-    columnTitles << "Name" << "Class" << "XYZ";
-    dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
-    
+    dataFileEditorModel->setNumberOfColumnsAndColumnTitles(modelContent);
+
     const GiftiLabelTable* classColorTable(getClassColorTable());
     const GiftiLabelTable* nameColorTable(getNameColorTable());
     
@@ -1001,20 +1010,40 @@ FociFile::exportToDataFileEditorModel() const
          * Create a row and add it to model
          */
         QList<QStandardItem*> rowItems;
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::NAME,
-                                                  focusShared,
-                                                  focus->getName(),
-                                                  nameRGBA));
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::CLASS,
-                                                  focusShared,
-                                                  focus->getClassName(),
-                                                  classRGBA));
         
-        float xyzRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
-                                                  focusShared,
-                                                  xyzText,
-                                                  xyzRGBA));
+        float emptyRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        for (int32_t iCol = 0; iCol < numColumns; iCol++) {
+            switch (modelContent.getColumnDataType(iCol)) {
+                case DataFileEditorItemTypeEnum::CLASS_NAME:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::CLASS_NAME,
+                                                              focusShared,
+                                                              focus->getClassName(),
+                                                              classRGBA));
+                    break;
+                case DataFileEditorItemTypeEnum::COORDINATES:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
+                                                              focusShared,
+                                                              xyzText,
+                                                              emptyRGBA));
+                    break;
+                case DataFileEditorItemTypeEnum::GROUP_NAME:
+                    CaretAssert(0);
+                    break;
+                case DataFileEditorItemTypeEnum::IDENTIFIER:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::IDENTIFIER,
+                                                              focusShared,
+                                                              focus->getFocusID(),
+                                                              nameRGBA));
+                    break;
+                case DataFileEditorItemTypeEnum::NAME:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
+                                                              focusShared,
+                                                              focus->getName(),
+                                                              nameRGBA));
+                    break;
+            }
+        }
+
         dataFileEditorModel->appendRow(rowItems);
     }
 
@@ -1022,6 +1051,7 @@ FociFile::exportToDataFileEditorModel() const
                                                       "",
                                                       true);
 }
+
 
 /**
  * Import foci data from the given DataFileEditorModel

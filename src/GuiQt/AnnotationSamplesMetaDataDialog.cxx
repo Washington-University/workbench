@@ -1059,16 +1059,17 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                                        m_borderClassLineEdits[focusBorderIndex]->text(),
                                        m_borderNameLineEdits[focusBorderIndex]->text());
             if (chooseDialog.exec() == ChooseBorderFocusFromFileDialog::Accepted) {
+                const ChooseBorderFocusFromFileDialog::FilesSelections selections(chooseDialog.getFileSelections());
                 m_sampleMetaData->setBorderFileName(focusBorderIndex,
-                                                    chooseDialog.getSelectedFileName());
+                                                    selections.getFileName());
                 m_sampleMetaData->setBorderClass(focusBorderIndex,
-                                                 chooseDialog.getSelectedClass());
+                                                 selections.getClassName());
                 m_sampleMetaData->setBorderName(focusBorderIndex,
-                                                chooseDialog.getSelectedName());
+                                                selections.getName());
                 
-                m_borderFileNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedFileName());
-                m_borderClassLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedClass());
-                m_borderNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedName());
+                m_borderFileNameLineEdits[focusBorderIndex]->setText(selections.getFileName());
+                m_borderClassLineEdits[focusBorderIndex]->setText(selections.getClassName());
+                m_borderNameLineEdits[focusBorderIndex]->setText(selections.getName());
             }
         }
             break;
@@ -1098,16 +1099,20 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                                        m_focusClassLineEdits[focusBorderIndex]->text(),
                                        m_focusNameLineEdits[focusBorderIndex]->text());
             if (chooseDialog.exec() == ChooseBorderFocusFromFileDialog::Accepted) {
+                const ChooseBorderFocusFromFileDialog::FilesSelections selections(chooseDialog.getFileSelections());
                 m_sampleMetaData->setFocusFileName(focusBorderIndex,
-                                                   chooseDialog.getSelectedFileName());
+                                                   selections.getFileName());
                 m_sampleMetaData->setFocusClass(focusBorderIndex,
-                                                chooseDialog.getSelectedClass());
+                                                selections.getClassName());
                 m_sampleMetaData->setFocusName(focusBorderIndex,
-                                               chooseDialog.getSelectedName());
+                                               selections.getName());
+                m_sampleMetaData->setFocusID(focusBorderIndex,
+                                             selections.getIdentifer());
                 
-                m_focusFileNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedFileName());
-                m_focusClassLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedClass());
-                m_focusNameLineEdits[focusBorderIndex]->setText(chooseDialog.getSelectedName());
+                m_focusFileNameLineEdits[focusBorderIndex]->setText(selections.getFileName());
+                m_focusClassLineEdits[focusBorderIndex]->setText(selections.getClassName());
+                m_focusNameLineEdits[focusBorderIndex]->setText(selections.getName());
+                m_focusIdLineEdits[focusBorderIndex]->setText(selections.getIdentifer());
             }
         }
             break;

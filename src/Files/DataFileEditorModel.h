@@ -24,18 +24,22 @@
 
 
 #include <memory>
+#include <vector>
 
 #include <QStandardItemModel>
 
+#include "DataFileEditorItemTypeEnum.h"
+
 namespace caret {
     class DataFileEditorItem;
+    class DataFileEditorColumnContent;
     class FociFile;
 
     class DataFileEditorModel : public QStandardItemModel {
         
         Q_OBJECT
 
-    public:
+    public:        
         DataFileEditorModel();
         
         virtual ~DataFileEditorModel();
@@ -52,6 +56,8 @@ namespace caret {
         int32_t getDefaultSortingColumnIndex() const;
         
         void setDefaultSortingColumnIndex(const int32_t columnIndex);
+        
+        void setNumberOfColumnsAndColumnTitles(const DataFileEditorColumnContent& modelContent);
         
         // ADD_NEW_METHODS_HERE
 

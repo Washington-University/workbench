@@ -357,7 +357,12 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
             {
                 AnnotationFile* annotationFile = dynamic_cast<AnnotationFile*>(caretDataFile);
                 if (annotationFile != NULL) {
-                    FunctionResultValue<DataFileEditorModel*> result = annotationFile->exportToDataFileEditorModel();
+                    DataFileEditorColumnContent modelContent;
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAME, "Group");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "Coordinate");
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAME);
+                    FunctionResultValue<DataFileEditorModel*> result = annotationFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();
                     }
@@ -373,7 +378,12 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
             {
                 BorderFile* borderFile = dynamic_cast<BorderFile*>(caretDataFile);
                 if (borderFile != NULL) {
-                    FunctionResultValue<DataFileEditorModel*> result = borderFile->exportToDataFileEditorModel();
+                    DataFileEditorColumnContent modelContent;
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::CLASS_NAME, "Class");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "XYZ");
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::CLASS_NAME);
+                    FunctionResultValue<DataFileEditorModel*> result = borderFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();
                     }
@@ -389,7 +399,12 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
             {
                 FociFile* fociFile = dynamic_cast<FociFile*>(caretDataFile);
                 if (fociFile != NULL) {
-                    FunctionResultValue<DataFileEditorModel*> result = fociFile->exportToDataFileEditorModel();
+                    DataFileEditorColumnContent modelContent;
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::CLASS_NAME, "Class");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "XYZ");
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::CLASS_NAME);
+                    FunctionResultValue<DataFileEditorModel*> result = fociFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();
                     }
@@ -405,7 +420,12 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
             {
                 SamplesFile* samplesFile = dynamic_cast<SamplesFile*>(caretDataFile);
                 if (samplesFile != NULL) {
-                    FunctionResultValue<DataFileEditorModel*> result = samplesFile->exportToDataFileEditorModel();
+                    DataFileEditorColumnContent modelContent;
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAME, "Group");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "Coordinate");
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAME);
+                    FunctionResultValue<DataFileEditorModel*> result = samplesFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();
                     }
@@ -1017,16 +1037,6 @@ DataFileEditorDialog::copySamples(const EditorIndex sourceEditorIndex,
     
     for (const Annotation* sample : samples) {
         Annotation* sampleCopy(sample->clone());
-        //        if (border->isNameRgbaValid()) {
-        //            float rgba[4];
-        //            border->getNameRgba(rgba);
-        //            annotationCopy->setNameRgba(rgba);
-        //        }
-        //        if (border->isClassRgbaValid()) {
-        //            float rgba[4];
-        //            border->getClassRgba(rgba);
-        //            annotationCopy->setClassRgba(rgba);
-        //        }
         destinationSamplesFile->addAnnotationCopiedFromAnotherFile(sampleCopy);
     }
     updateGraphicsAndUserInterface();

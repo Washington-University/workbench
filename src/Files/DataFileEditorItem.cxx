@@ -48,7 +48,7 @@ using namespace caret;
  * @param colorTable
  *    Color table for coloring by name
  */
-DataFileEditorItem::DataFileEditorItem(const ItemType dataItemType,
+DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Annotation> annotation,
                                        const AString& text,
                                        const float iconRGBA[4])
@@ -57,15 +57,30 @@ m_dataItemType(dataItemType)
 {
     m_annotation = annotation;
     setText(text);
+    
     switch (m_dataItemType) {
-        case ItemType::NAME:
+        case DataFileEditorItemTypeEnum::CLASS_NAME:
+            break;
+        case DataFileEditorItemTypeEnum::COORDINATES:
+            break;
+        case DataFileEditorItemTypeEnum::GROUP_NAME:
+            break;
+        case DataFileEditorItemTypeEnum::IDENTIFIER:
+            break;
+        case DataFileEditorItemTypeEnum::NAME:
             setIcon(createIcon(iconRGBA));
             break;
-        case ItemType::CLASS:
-            break;
-        case ItemType::XYZ:
-            break;
     }
+
+//    switch (m_dataItemType) {
+//        case ItemType::NAME:
+//            setIcon(createIcon(iconRGBA));
+//            break;
+//        case ItemType::CLASS:
+//            break;
+//        case ItemType::XYZ:
+//            break;
+//    }
 }
 
 /**
@@ -77,7 +92,7 @@ m_dataItemType(dataItemType)
  * @param colorTable
  *    Color table for coloring by name
  */
-DataFileEditorItem::DataFileEditorItem(const ItemType dataItemType,
+DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Border> border,
                                        const AString& text,
                                        const float iconRGBA[4])
@@ -86,16 +101,31 @@ m_dataItemType(dataItemType)
 {
     m_border = border;
     setText(text);
+    
     switch (m_dataItemType) {
-        case ItemType::NAME:
+        case DataFileEditorItemTypeEnum::CLASS_NAME:
             setIcon(createIcon(iconRGBA));
             break;
-        case ItemType::CLASS:
-            setIcon(createIcon(iconRGBA));
+        case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case ItemType::XYZ:
+        case DataFileEditorItemTypeEnum::GROUP_NAME:
+            break;
+        case DataFileEditorItemTypeEnum::IDENTIFIER:
+            break;
+        case DataFileEditorItemTypeEnum::NAME:
+            setIcon(createIcon(iconRGBA));
             break;
     }
+//    switch (m_dataItemType) {
+//        case ItemType::NAME:
+//            setIcon(createIcon(iconRGBA));
+//            break;
+//        case ItemType::CLASS:
+//            setIcon(createIcon(iconRGBA));
+//            break;
+//        case ItemType::XYZ:
+//            break;
+//    }
 }
 
 /**
@@ -107,7 +137,7 @@ m_dataItemType(dataItemType)
  * @param colorTable
  *    Color table for coloring by name
  */
-DataFileEditorItem::DataFileEditorItem(const ItemType dataItemType,
+DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Focus> focus,
                                        const AString& text,
                                        const float iconRGBA[4])
@@ -116,16 +146,31 @@ m_dataItemType(dataItemType)
 {
     m_focus = focus;
     setText(text);
+
     switch (m_dataItemType) {
-        case ItemType::NAME:
+        case DataFileEditorItemTypeEnum::CLASS_NAME:
             setIcon(createIcon(iconRGBA));
             break;
-        case ItemType::CLASS:
-            setIcon(createIcon(iconRGBA));
+        case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case ItemType::XYZ:
+        case DataFileEditorItemTypeEnum::GROUP_NAME:
+            break;
+        case DataFileEditorItemTypeEnum::IDENTIFIER:
+            break;
+        case DataFileEditorItemTypeEnum::NAME:
+            setIcon(createIcon(iconRGBA));
             break;
     }
+//    switch (m_dataItemType) {
+//        case ItemType::NAME:
+//            setIcon(createIcon(iconRGBA));
+//            break;
+//        case ItemType::CLASS:
+//            setIcon(createIcon(iconRGBA));
+//            break;
+//        case ItemType::XYZ:
+//            break;
+//    }
 }
 
 /**
@@ -147,17 +192,37 @@ m_dataItemType(obj.m_dataItemType)
     setText(obj.text());
     
     switch (m_dataItemType) {
-        case ItemType::NAME:
-            setIcon(icon());
+        case DataFileEditorItemTypeEnum::CLASS_NAME:
             break;
-        case ItemType::CLASS:
-            if ( ! icon().isNull()) {
-                setIcon(icon());
-            }
+        case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case ItemType::XYZ:
+        case DataFileEditorItemTypeEnum::GROUP_NAME:
+            break;
+        case DataFileEditorItemTypeEnum::IDENTIFIER:
+            break;
+        case DataFileEditorItemTypeEnum::NAME:
             break;
     }
+    
+    /*
+     * Copy icon if it is valid
+     */
+    if ( ! icon().isNull()) {
+        setIcon(icon());
+    }
+
+//    switch (m_dataItemType) {
+//        case ItemType::NAME:
+//            setIcon(icon());
+//            break;
+//        case ItemType::CLASS:
+//            if ( ! icon().isNull()) {
+//                setIcon(icon());
+//            }
+//            break;
+//        case ItemType::XYZ:
+//            break;
+//    }
 
     if (obj.m_annotation) {
         m_annotation.reset(obj.m_annotation->clone());
@@ -180,12 +245,12 @@ DataFileEditorItem::clone() const
 }
 
 /**
- * @return Type of this item
+ * @return QStandardItem::Type of this item
  */
 int
 DataFileEditorItem::type() const
 {
-    return static_cast<int>(m_dataItemType);
+    return DataFileEditorItemTypeEnum::toQStandardItemType(m_dataItemType);
 }
 
 /**
@@ -212,7 +277,21 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
         
         CaretAssert(s_collator);
         switch (m_dataItemType) {
-            case ItemType::NAME:
+            case DataFileEditorItemTypeEnum::CLASS_NAME:
+                break;
+            case DataFileEditorItemTypeEnum::COORDINATES:
+            {
+                return (AnnotationCoordinateSpaceEnum::toGuiName(annotation->getCoordinateSpace())
+                        < AnnotationCoordinateSpaceEnum::toGuiName(otherAnnotation->getCoordinateSpace()));
+            }
+                break;
+            case DataFileEditorItemTypeEnum::GROUP_NAME:
+            {
+            }
+                break;
+            case DataFileEditorItemTypeEnum::IDENTIFIER:
+                break;
+            case DataFileEditorItemTypeEnum::NAME:
             {
                 
                 /*
@@ -226,31 +305,6 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
                 else if (nameResult > 0) {
                     return false;
                 }
-//                return (s_collator->compare(this->text(1),
-//                                            otherItem->text(1)));
-            }
-                break;
-            case ItemType::CLASS:
-            {
-//                /*
-//                 * Sort by class and then name
-//                 */
-//                const int32_t classResult(s_collator->compare(this->text(1),
-//                                                              otherItem->text(1)));
-//                if (classResult < 0) {
-//                    return true;
-//                }
-//                else if (classResult > 0) {
-//                    return false;
-//                }
-//                return (s_collator->compare(annotation->getName(),
-//                                            otherAnnotation->getName()));
-            }
-                break;
-            case ItemType::XYZ:
-            {
-                return (AnnotationCoordinateSpaceEnum::toGuiName(annotation->getCoordinateSpace())
-                        < AnnotationCoordinateSpaceEnum::toGuiName(otherAnnotation->getCoordinateSpace()));
             }
                 break;
         }
@@ -265,7 +319,42 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
         
         CaretAssert(s_collator);
         switch (m_dataItemType) {
-            case ItemType::NAME:
+            case DataFileEditorItemTypeEnum::CLASS_NAME:
+            {
+                /*
+                 * Sort by class and then name
+                 */
+                const int32_t classResult(s_collator->compare(border->getClassName(),
+                                                              otherBorder->getClassName()));
+                if (classResult < 0) {
+                    return true;
+                }
+                else if (classResult > 0) {
+                    return false;
+                }
+                return (border->getName() < otherBorder->getName());
+            }
+                break;
+            case DataFileEditorItemTypeEnum::COORDINATES:
+            {
+                /*
+                 * Sort by XYZ
+                 */
+                if ((border->getNumberOfPoints() > 0)
+                    && (otherItem->m_border->getNumberOfPoints() > 0)) {
+                    Vector3D xyz;
+                    m_border->getPoint(0)->getStereotaxicXYZ(xyz);
+                    Vector3D otherXyz;
+                    otherBorder->getPoint(0)->getStereotaxicXYZ(otherXyz);
+                    return (xyz < otherXyz);
+                }
+            }
+                break;
+            case DataFileEditorItemTypeEnum::GROUP_NAME:
+                break;
+            case DataFileEditorItemTypeEnum::IDENTIFIER:
+                break;
+            case DataFileEditorItemTypeEnum::NAME:
             {
                 
                 /*
@@ -282,37 +371,6 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
                 return (border->getClassName() < otherBorder->getClassName());
             }
                 break;
-            case ItemType::CLASS:
-            {
-                /*
-                 * Sort by class and then name
-                 */
-                const int32_t classResult(s_collator->compare(border->getClassName(),
-                                                              otherBorder->getClassName()));
-                if (classResult < 0) {
-                    return true;
-                }
-                else if (classResult > 0) {
-                    return false;
-                }
-                return (border->getName() < otherBorder->getName());
-            }
-                break;
-            case ItemType::XYZ:
-            {
-                /*
-                 * Sort by XYZ
-                 */
-                if ((border->getNumberOfPoints() > 0)
-                    && (otherItem->m_border->getNumberOfPoints() > 0)) {
-                    Vector3D xyz;
-                    m_border->getPoint(0)->getStereotaxicXYZ(xyz);
-                    Vector3D otherXyz;
-                    otherBorder->getPoint(0)->getStereotaxicXYZ(otherXyz);
-                    return (xyz < otherXyz);
-                }
-            }
-                break;
         }
     }
     
@@ -325,7 +383,42 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
         
         CaretAssert(s_collator);
         switch (m_dataItemType) {
-            case ItemType::NAME:
+            case DataFileEditorItemTypeEnum::CLASS_NAME:
+            {
+                /*
+                 * Sort by class and then name
+                 */
+                const int32_t classResult(s_collator->compare(focus->getClassName(),
+                                                              otherFocus->getClassName()));
+                if (classResult < 0) {
+                    return true;
+                }
+                else if (classResult > 0) {
+                    return false;
+                }
+                return (focus->getName() < otherFocus->getName());
+            }
+                break;
+            case DataFileEditorItemTypeEnum::COORDINATES:
+            {
+                /*
+                 * Sort by XYZ
+                 */
+                if ((m_focus->getNumberOfProjections() > 0)
+                    && (otherItem->m_focus->getNumberOfProjections() > 0)) {
+                    Vector3D xyz;
+                    m_focus->getProjection(0)->getStereotaxicXYZ(xyz);
+                    Vector3D otherXyz;
+                    otherFocus->getProjection(0)->getStereotaxicXYZ(otherXyz);
+                    return (xyz < otherXyz);
+                }
+            }
+                break;
+            case DataFileEditorItemTypeEnum::GROUP_NAME:
+                break;
+            case DataFileEditorItemTypeEnum::IDENTIFIER:
+                break;
+            case DataFileEditorItemTypeEnum::NAME:
             {
                 
                 /*
@@ -342,38 +435,57 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
                 return (focus->getClassName() < otherFocus->getClassName());
             }
                 break;
-            case ItemType::CLASS:
-            {
-                /*
-                 * Sort by class and then name
-                 */
-                const int32_t classResult(s_collator->compare(focus->getClassName(),
-                                                              otherFocus->getClassName()));
-                if (classResult < 0) {
-                    return true;
-                }
-                else if (classResult > 0) {
-                    return false;
-                }
-                return (focus->getName() < otherFocus->getName());
-            }
-                break;
-            case ItemType::XYZ:
-            {
-                /*
-                 * Sort by XYZ
-                 */
-                if ((m_focus->getNumberOfProjections() > 0)
-                    && (otherItem->m_focus->getNumberOfProjections() > 0)) {
-                    Vector3D xyz;
-                    m_focus->getProjection(0)->getStereotaxicXYZ(xyz);
-                    Vector3D otherXyz;
-                    otherFocus->getProjection(0)->getStereotaxicXYZ(otherXyz);
-                    return (xyz < otherXyz);
-                }
-            }
-                break;
         }
+//        switch (m_dataItemType) {
+//            case ItemType::NAME:
+//            {
+//                
+//                /*
+//                 * Sort by name and then class
+//                 */
+//                const int32_t nameResult(s_collator->compare(focus->getName(),
+//                                                             otherFocus->getName()));
+//                if (nameResult < 0) {
+//                    return true;
+//                }
+//                else if (nameResult > 0) {
+//                    return false;
+//                }
+//                return (focus->getClassName() < otherFocus->getClassName());
+//            }
+//                break;
+//            case ItemType::CLASS:
+//            {
+//                /*
+//                 * Sort by class and then name
+//                 */
+//                const int32_t classResult(s_collator->compare(focus->getClassName(),
+//                                                              otherFocus->getClassName()));
+//                if (classResult < 0) {
+//                    return true;
+//                }
+//                else if (classResult > 0) {
+//                    return false;
+//                }
+//                return (focus->getName() < otherFocus->getName());
+//            }
+//                break;
+//            case ItemType::XYZ:
+//            {
+//                /*
+//                 * Sort by XYZ
+//                 */
+//                if ((m_focus->getNumberOfProjections() > 0)
+//                    && (otherItem->m_focus->getNumberOfProjections() > 0)) {
+//                    Vector3D xyz;
+//                    m_focus->getProjection(0)->getStereotaxicXYZ(xyz);
+//                    Vector3D otherXyz;
+//                    otherFocus->getProjection(0)->getStereotaxicXYZ(otherXyz);
+//                    return (xyz < otherXyz);
+//                }
+//            }
+//                break;
+//        }
     }
     
     return false;

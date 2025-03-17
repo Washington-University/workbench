@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "DataFileEditorItem.h"
+#include "DataFileEditorColumnContent.h"
 
 using namespace caret;
     
@@ -120,4 +121,29 @@ DataFileEditorModel::setDefaultSortingColumnIndex(const int32_t columnIndex)
     m_defaultSortingColumnIndex = columnIndex;
 }
 
+/**
+ * Set the number of columns and the column titles from the given model content
+ */
+void
+DataFileEditorModel::setNumberOfColumnsAndColumnTitles(const DataFileEditorColumnContent& modelContent)
+{
+    const int32_t numColumns(modelContent.getNumberOfColumns());
+    if (numColumns < 0) {
+        return;
+    }
+    QList<QString> columnTitles;
+    int32_t sortingColumnIndex(-1);
+    setColumnCount(numColumns);
+    for (int32_t iCol = 0; iCol < numColumns; iCol++) {
+        columnTitles << modelContent.getColumnName(iCol);
+        if (modelContent.getColumnDataType(iCol) == modelContent.getDefaultSortingColumnDataType()) {
+            sortingColumnIndex = iCol;
+        }
+    }
+    
+    setHorizontalHeaderLabels(columnTitles);
 
+    if (sortingColumnIndex >= 0) {
+        setDefaultSortingColumnIndex(sortingColumnIndex);
+    }
+}

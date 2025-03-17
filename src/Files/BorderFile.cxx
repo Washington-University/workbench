@@ -2663,9 +2663,11 @@ BorderFile::getAllClassesForBordersWithName(const AString& borderName) const
  * Export the content of a border file to a DataFileEditorModel
  * @return The DataFileEditorModel containing border data.
  * Caller takes ownership of returned model.
+ * @param modelContent
+ *    Describes content of the model
  */
 FunctionResultValue<DataFileEditorModel*>
-BorderFile::exportToDataFileEditorModel() const
+BorderFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelContent) const
 {
     const int32_t numBorders(getNumberOfBorders());
     if (numBorders <= 0) {
@@ -2675,17 +2677,18 @@ BorderFile::exportToDataFileEditorModel() const
                                                          false);
     }
     
+    const int32_t numColumns(modelContent.getNumberOfColumns());
+    if (numColumns <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         "Model content is empty",
+                                                         false);
+    }
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
-    dataFileEditorModel->setColumnCount(3);
-    const int32_t classColumnIndex(1);
-    dataFileEditorModel->setDefaultSortingColumnIndex(classColumnIndex);
-
+    
     /*
-     * Titles for columns
+     * Setup column titles and default sorting
      */
-    QList<QString> columnTitles;
-    columnTitles << "Name" << "Class" << "XYZ";
-    dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
+    dataFileEditorModel->setNumberOfColumnsAndColumnTitles(modelContent);
     
     const GiftiLabelTable* classColorTable(getClassColorTable());
     const GiftiLabelTable* nameColorTable(getNameColorTable());
@@ -2741,20 +2744,37 @@ BorderFile::exportToDataFileEditorModel() const
          * Create a row and add it to model
          */
         QList<QStandardItem*> rowItems;
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::NAME,
-                                                  borderShared,
-                                                  border->getName(),
-                                                  nameRGBA));
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::CLASS,
-                                                  borderShared,
-                                                  border->getClassName(),
-                                                  classRGBA));
         
-        float xyzRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
-        rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
-                                                  borderShared,
-                                                  xyzText,
-                                                  xyzRGBA));
+        float emptyRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+        for (int32_t iCol = 0; iCol < numColumns; iCol++) {
+            switch (modelContent.getColumnDataType(iCol)) {
+                case DataFileEditorItemTypeEnum::CLASS_NAME:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::CLASS_NAME,
+                                                              borderShared,
+                                                              border->getClassName(),
+                                                              classRGBA));
+                    break;
+                case DataFileEditorItemTypeEnum::COORDINATES:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
+                                                              borderShared,
+                                                              xyzText,
+                                                              emptyRGBA));
+                    break;
+                case DataFileEditorItemTypeEnum::GROUP_NAME:
+                    CaretAssert(0);
+                    break;
+                case DataFileEditorItemTypeEnum::IDENTIFIER:
+                    CaretAssert(0);
+                    break;
+                case DataFileEditorItemTypeEnum::NAME:
+                    rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
+                                                              borderShared,
+                                                              border->getName(),
+                                                              nameRGBA));
+                    break;
+            }
+        }
+        
         dataFileEditorModel->appendRow(rowItems);
     }
     

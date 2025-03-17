@@ -26,6 +26,7 @@
 #include <QStandardItem>
 
 #include "AString.h"
+#include "DataFileEditorItemTypeEnum.h"
 
 class QCollator;
 
@@ -37,23 +38,17 @@ namespace caret {
     class DataFileEditorItem : public QStandardItem {
         
     public:
-        enum class ItemType {
-            NAME  = QStandardItem::UserType + 1,
-            CLASS = QStandardItem::UserType + 2,
-            XYZ   = QStandardItem::UserType + 3
-        };
-        
-        DataFileEditorItem(const ItemType dataItemType,
+        DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Annotation> annotation,
                            const AString& text,
                            const float iconRGBA[4]);
         
-        DataFileEditorItem(const ItemType dataItemType,
+        DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Focus> focus,
                            const AString& text,
                            const float iconRGBA[4]);        
 
-        DataFileEditorItem(const ItemType dataItemType,
+        DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Border> border,
                            const AString& text,
                            const float iconRGBA[4]);
@@ -83,7 +78,7 @@ namespace caret {
     private:
         QIcon createIcon(const float rgba[4]) const;
         
-        ItemType m_dataItemType;
+        DataFileEditorItemTypeEnum::Enum m_dataItemType;
         
         /*
          * All items in one row represent the same annotation

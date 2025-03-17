@@ -21,19 +21,14 @@
  */
 /*LICENSE_END*/
 
-
+#include <QDialog>
 
 #include <memory>
 
 #include "DataFileTypeEnum.h"
-#include "WuQDialogModal.h"
+#include "FunctionResult.h"
 
-class QAbstractButton;
-class QButtonGroup;
-class QComboBox;
-class QLineEdit;
-class QRadioButton;
-class QStackedWidget;
+class QTreeView;
 
 namespace caret {
 
@@ -41,9 +36,10 @@ namespace caret {
     class CaretDataFile;
     class CaretDataFileSelectionComboBox;
     class CaretDataFileSelectionModel;
+    class DataFileEditorItem;
     class FociFile;
     
-    class ChooseBorderFocusFromFileDialog : public WuQDialogModal {
+    class ChooseBorderFocusFromFileDialog : public QDialog {
         
         Q_OBJECT
 
@@ -51,6 +47,30 @@ namespace caret {
         enum class FileMode {
             BORDER,
             FOCUS
+        };
+        
+        class FilesSelections {
+        public:
+            FilesSelections(const AString& filename,
+                            const AString& name,
+                            const AString& className,
+                            const AString& identifier)
+        :   m_filename(filename),
+            m_name(name),
+            m_className(className),
+            m_identifier(identifier)
+            { }
+            
+            AString getFileName()  const { return m_filename; }
+            AString getName()      const { return m_name; }
+            AString getClassName() const { return m_className; }
+            AString getIdentifer() const { return m_identifier; }
+
+        private:
+            AString m_filename;
+            AString m_name;
+            AString m_className;
+            AString m_identifier;
         };
         
         ChooseBorderFocusFromFileDialog(const FileMode fileMode,
@@ -66,57 +86,19 @@ namespace caret {
                            const AString& className,
                            const AString& name);
         
-        AString getSelectedFileName() const;
+        FilesSelections getFileSelections() const;
         
-        AString getSelectedName() const;
+        virtual void done(int result) override;
         
-        AString getSelectedClass() const;
-        
-        virtual void okButtonClicked() override;
-        
-
         // ADD_NEW_METHODS_HERE
 
     private slots:
         void dataFileSelected(CaretDataFile* caretDataFile);
         
-        void modeButtonGroupButtonClicked(QAbstractButton* button);
-        
-        void classWidgetClassComboBoxActivated(int index);
-        
-        void nameWidgetNameComboBoxActivated(int index);
-        
     private:
-        enum class SelectionMode {
-            CLASS,
-            NAME
-        };
-        
-        enum class ToolTip {
-            MODE_CLASS_BUTTON,
-            MODE_NAME_BUTTON,
-            CLASS_SELECTION_CLASS_COMBO_BOX,
-            CLASS_SELECTION_NAME_COMBO_BOX,
-            NAME_SELECTION_NAME_COMBO_BOX,
-            NAME_SELECTION_CLASS_COMBO_BOX
-        };
-        
-        QWidget* createClassAndNameSelectionWidget();
-        
-        QWidget* createModeSelectionWidget();
-        
-        void loadComboBox(QComboBox* comboBox,
-                          const std::vector<AString>& itemNames);
-        
-        void setToolTipText(QWidget* widget,
-                            const ToolTip toolTip) const;
-                
-        void setComboBox(QComboBox* comboBox,
-                         const QString& text);
+        const DataFileEditorItem* getSelectedItem() const;
         
         const FileMode m_fileMode;
-        
-        SelectionMode m_selectionMode = SelectionMode::CLASS;
         
         DataFileTypeEnum::Enum m_dataFileType = DataFileTypeEnum::UNKNOWN;
         
@@ -124,38 +106,11 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_fileSelectionComboBox;
         
-        QLineEdit* m_classLineEdit;
-        
-        QLineEdit* m_nameLineEdit;
-        
-        QButtonGroup* m_modeButtonGroup;
-        
-        QRadioButton* m_modeNameRadioButton;
-        
-        QRadioButton* m_modeClassRadioButton;
-        
-        QStackedWidget* m_classOrNameStackedWidget;
-        
-        QWidget* m_classWidget;
-        
-        QComboBox* m_classWidgetClassSelectionComboBox;
-        
-        QComboBox* m_classWidgetNameSelectionComboBox;
-        
-        QWidget* m_nameWidget;
-        
-        QComboBox* m_nameWidgetClassSelectionComboBox;
-        
-        QComboBox* m_nameWidgetNameSelectionComboBox;
+        QTreeView* m_treeView;
         
         BorderFile* m_borderFile = NULL;
         
         FociFile* m_fociFile = NULL;
-        
-        std::vector<AString> m_allNames;
-        
-        std::vector<AString> m_allClassNames;
-        
         
         // ADD_NEW_MEMBERS_HERE
 

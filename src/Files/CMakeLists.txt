@@ -113,7 +113,9 @@ CziNonLinearTransform.h
 CziPixelCoordSpaceEnum.h
 CziUtilities.h
 DataFileColorModulateSelector.h
+DataFileEditorColumnContent.h
 DataFileEditorItem.h
+DataFileEditorItemTypeEnum.h
 DataFileEditorModel.h
 DingOntologyTermsFile.h
 EventCaretDataFilesGet.h
@@ -302,7 +304,9 @@ CziNonLinearTransform.cxx
 CziPixelCoordSpaceEnum.cxx
 CziUtilities.cxx
 DataFileColorModulateSelector.cxx
+DataFileEditorColumnContent.cxx
 DataFileEditorItem.cxx
+DataFileEditorItemTypeEnum.cxx
 DataFileEditorModel.cxx
 DingOntologyTermsFile.cxx
 EventCaretDataFilesGet.cxx

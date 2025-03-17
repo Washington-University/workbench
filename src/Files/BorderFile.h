@@ -24,6 +24,7 @@
 
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
+#include "DataFileEditorColumnContent.h"
 #include "DisplayGroupEnum.h"
 #include "FunctionResult.h"
 #include "GroupAndNameHierarchyUserInterface.h"
@@ -187,7 +188,7 @@ namespace caret {
         
         AString getObsoleteMultiStructureFormatMessage();
         
-        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
+        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel(const DataFileEditorColumnContent& modelContent) const;
         
         FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
         

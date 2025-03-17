@@ -2892,17 +2892,35 @@ AnnotationFile::updateSpacerAnnotationsAfterTileTabsModification(const EventTile
  * Export the content of a border file to a DataFileEditorModel
  * @return The DataFileEditorModel containing border data.
  * Caller takes ownership of returned model.
+ * @param modelContent
+ *    Describes content of the model
  */
 FunctionResultValue<DataFileEditorModel*>
-AnnotationFile::exportToDataFileEditorModel() const
+AnnotationFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelContent) const
 {
+    if (isEmpty()) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         ("There are no annotations to export from "
+                                                          + getFileNameNoPath()),
+                                                         false);
+    }
+    const int32_t numColumns(modelContent.getNumberOfColumns());
+    if (numColumns <= 0) {
+        return FunctionResultValue<DataFileEditorModel*>(NULL,
+                                                         "Model content is empty",
+                                                         false);
+    }
+
     std::vector<AnnotationGroup*> groups;
     getAllAnnotationGroups(groups);
     
     DataFileEditorModel* dataFileEditorModel(new DataFileEditorModel());
-    dataFileEditorModel->setColumnCount(2);
-    const int32_t groupColumnIndex(1);
-    dataFileEditorModel->setDefaultSortingColumnIndex(groupColumnIndex);
+    
+    /*
+     * Setup column titles and default sorting
+     */
+    dataFileEditorModel->setNumberOfColumnsAndColumnTitles(modelContent);
+
     
     for (AnnotationGroup* ag : groups) {
         std::vector<Annotation*> annotations;
@@ -2934,36 +2952,47 @@ AnnotationFile::exportToDataFileEditorModel() const
                  * Create a row and add it to model
                  */
                 QList<QStandardItem*> rowItems;
-                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::NAME,
-                                                          annShared,
-                                                          ann->getName(),
-                                                          nameRGBA));
                 
-                const float invalidRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
-                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::CLASS,
-                                                          annShared,
-                                                          ag->getName(),
-                                                          invalidRGBA));
-                
-                AString xyzText;
-                if (ann->getNumberOfCoordinates() > 0) {
-                    xyzText = ann->getCoordinate(0)->toStringForCoordinateSpace(ann->getCoordinateSpace());
+                float emptyRGBA[4] { 0.0, 0.0, 0.0, 0.0 };
+                for (int32_t iCol = 0; iCol < numColumns; iCol++) {
+                    switch (modelContent.getColumnDataType(iCol)) {
+                        case DataFileEditorItemTypeEnum::CLASS_NAME:
+                            CaretAssert(0);
+                            break;
+                        case DataFileEditorItemTypeEnum::COORDINATES:
+                        {
+                            AString xyzText;
+                            if (ann->getNumberOfCoordinates() > 0) {
+                                xyzText = ann->getCoordinate(0)->toStringForCoordinateSpace(ann->getCoordinateSpace());
+                            }
+                            rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
+                                                                      annShared,
+                                                                      xyzText,
+                                                                      emptyRGBA));
+                        }
+                            break;
+                        case DataFileEditorItemTypeEnum::GROUP_NAME:
+                            rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::GROUP_NAME,
+                                                                      annShared,
+                                                                      ag->getName(),
+                                                                      emptyRGBA));
+                            break;
+                        case DataFileEditorItemTypeEnum::IDENTIFIER:
+                            CaretAssert(0);
+                            break;
+                        case DataFileEditorItemTypeEnum::NAME:
+                            rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
+                                                                      annShared,
+                                                                      ann->getName(),
+                                                                      nameRGBA));
+                            break;
+                    }
                 }
-                rowItems.push_back(new DataFileEditorItem(DataFileEditorItem::ItemType::XYZ,
-                                                          annShared,
-                                                          xyzText,
-                                                          invalidRGBA));
+                
                 dataFileEditorModel->appendRow(rowItems);
             }
         }
     }
-
-    /*
-     * Titles for columns
-     */
-    QList<QString> columnTitles;
-    columnTitles << "Name" << "Group" << "Coordinate";
-    dataFileEditorModel->setHorizontalHeaderLabels(columnTitles);
     
     return  FunctionResultValue<DataFileEditorModel*>(dataFileEditorModel,
                                                       "",

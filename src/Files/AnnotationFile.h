@@ -31,6 +31,7 @@
 #include "CaretDataFile.h"
 #include "CaretPointer.h"
 #include "DataFileContentCopyMoveInterface.h"
+#include "DataFileEditorColumnContent.h"
 #include "DisplayGroupAndTabItemInterface.h"
 #include "EventAnnotationGrouping.h"
 #include "EventListenerInterface.h"
@@ -186,7 +187,7 @@ namespace caret {
         
         virtual bool isItemSelectedForEditingInWindow(const int32_t windowIndex);
         
-        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel() const;
+        FunctionResultValue<DataFileEditorModel*> exportToDataFileEditorModel(const DataFileEditorColumnContent& modelContent) const;
         
         FunctionResult importFromDataFileEditorModel(const DataFileEditorModel& dataFileEditorModel);
         
