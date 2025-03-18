@@ -603,7 +603,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
                      [=](const QString& text) { m_sampleMetaData->setSampleNumber(text); loadLocalSampleID(); });
 
     m_localSampleIdLineEdit = addLineEdit(AnnotationSampleMetaData::getLocalSampleIdLabelText(),
-                                          "",
+                                          "Note: ??? appear for missing components",
                                           gridLayout);
     m_localSampleIdLineEdit->setReadOnly(true);
     
@@ -1066,10 +1066,6 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                                                  selections.getClassName());
                 m_sampleMetaData->setBorderName(focusBorderIndex,
                                                 selections.getName());
-                
-                m_borderFileNameLineEdits[focusBorderIndex]->setText(selections.getFileName());
-                m_borderClassLineEdits[focusBorderIndex]->setText(selections.getClassName());
-                m_borderNameLineEdits[focusBorderIndex]->setText(selections.getName());
             }
         }
             break;
@@ -1085,9 +1081,6 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                 
                 m_sampleMetaData->setHmbaParcelDingAbbreviation(shorthandID);
                 m_sampleMetaData->setHmbaParcelDingFullName(description);
-                
-                m_hmbaParcelDingAbbreviationLineEdit->setText(shorthandID);
-                m_hmbaParcelDingFullNameLineEdit->setText(description);
             }
         }
             break;
@@ -1109,7 +1102,6 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                 const AString focusID(selections.getIdentifer().trimmed());
                 m_sampleMetaData->setFocusID(focusBorderIndex,
                                              focusID);
-                m_focusIdLineEdits[focusBorderIndex]->setText(focusID);
                 /*
                  * If focus ID is not blank, copy to sample number
                  */
@@ -1117,9 +1109,6 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                     m_sampleMetaData->setSampleNumber(focusID);
                     m_sampleNumberLineEdit->setText(focusID);
                 }
-                m_focusFileNameLineEdits[focusBorderIndex]->setText(selections.getFileName());
-                m_focusClassLineEdits[focusBorderIndex]->setText(selections.getClassName());
-                m_focusNameLineEdits[focusBorderIndex]->setText(selections.getName());
             }
         }
             break;
@@ -1128,11 +1117,12 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
             const AString text(getLabelFileAndMap());
             if ( ! text.isEmpty()) {
                 m_sampleMetaData->setPrimaryParcellation(text);
-                m_primaryParcellationLineEdit->setText(text);
             }
         }
             break;
     }
+    
+    loadMetaDataIntoDialog();
 }
 
 /**

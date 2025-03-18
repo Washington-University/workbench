@@ -792,8 +792,10 @@ AnnotationSampleMetaData::getLocalSampleID(const AnnotationPolyhedron* polyhedro
 {
     const AString separator(".");
     std::vector<AString> components;
-    components.push_back(getLocalSlabID());
-    components.push_back(get(SAMPLES_SAMPLE_NUMBER));
+    components.push_back(getAllenLocalName());
+    components.push_back(getAllenTissueType());
+    components.push_back(getAllenSlabNumber());
+    components.push_back(getHmbaParcelDingAbbreviation());
     switch (polyhedron->getPolyhedronType()) {
         case AnnotationPolyhedronTypeEnum::INVALID:
             break;
@@ -804,6 +806,7 @@ AnnotationSampleMetaData::getLocalSampleID(const AnnotationPolyhedron* polyhedro
             components.push_back("D");
             break;
     }
+    components.push_back(getSampleNumber());
     const AString valueOut = assembleCompositeElementComponents(components,
                                                                 separator);
     return valueOut;
