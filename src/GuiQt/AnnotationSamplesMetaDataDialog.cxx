@@ -1106,13 +1106,20 @@ AnnotationSamplesMetaDataDialog::chooseButtonClicked(const ChooseButtonEnum choo
                                                 selections.getClassName());
                 m_sampleMetaData->setFocusName(focusBorderIndex,
                                                selections.getName());
+                const AString focusID(selections.getIdentifer().trimmed());
                 m_sampleMetaData->setFocusID(focusBorderIndex,
-                                             selections.getIdentifer());
-                
+                                             focusID);
+                m_focusIdLineEdits[focusBorderIndex]->setText(focusID);
+                /*
+                 * If focus ID is not blank, copy to sample number
+                 */
+                if ( ! focusID.isEmpty()) {
+                    m_sampleMetaData->setSampleNumber(focusID);
+                    m_sampleNumberLineEdit->setText(focusID);
+                }
                 m_focusFileNameLineEdits[focusBorderIndex]->setText(selections.getFileName());
                 m_focusClassLineEdits[focusBorderIndex]->setText(selections.getClassName());
                 m_focusNameLineEdits[focusBorderIndex]->setText(selections.getName());
-                m_focusIdLineEdits[focusBorderIndex]->setText(selections.getIdentifer());
             }
         }
             break;
