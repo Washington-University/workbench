@@ -162,6 +162,9 @@ AnnotationSampleMetaData::validateMetaData(AString& errorMessageOut) const
     if (getSampleType().trimmed().isEmpty()) {
         errorMessageOut.appendWithNewLine("Sample Type is empty.");
     }
+    if (getSampleName().trimmed().isEmpty()) {
+        errorMessageOut.appendWithNewLine("Sample Name is empty.");
+    }
     if ( getSampleNumber().trimmed().isEmpty()) {
         errorMessageOut.appendWithNewLine("Sample Number is empty.");
     }

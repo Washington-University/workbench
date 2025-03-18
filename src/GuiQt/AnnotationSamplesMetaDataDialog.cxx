@@ -584,7 +584,7 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QObject::connect(m_hmbaParcelDingFullNameLineEdit, &QLineEdit::textEdited,
                      [=](const QString& text) { m_sampleMetaData->setHmbaParcelDingFullName(text); });
 
-    m_sampleNameLineEdit = addLineEdit(AnnotationSampleMetaData::getSampleNameLabelText(),
+    m_sampleNameLineEdit = addLineEdit(AnnotationSampleMetaData::getSampleNameLabelText() + "*",
                                        "",
                                        gridLayout);
     QObject::connect(m_sampleNameLineEdit, &QLineEdit::textEdited,
