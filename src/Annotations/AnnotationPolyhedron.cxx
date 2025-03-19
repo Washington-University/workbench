@@ -132,6 +132,9 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
     /* Do not add font attribute to scene since it is written to file */
     m_fontAttributes.reset(new AnnotationFontAttributes(m_attributeDefaultType));
     
+    /* no background color */
+    m_fontAttributes->setTextBackgroundColor(CaretColorEnum::NONE);
+    
     m_sceneAssistant.reset(new SceneClassAssistant());
     if (testProperty(Property::SCENE_CONTAINS_ATTRIBUTES)) {
     }
