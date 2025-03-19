@@ -28,11 +28,11 @@
 #include <QComboBox>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QDialogButtonBox>
 #include <QHeaderView>
 #include <QItemSelectionModel>
 #include <QLabel>
 #include <QLineEdit>
-#include <QDialogButtonBox>
 #include <QRadioButton>
 #include <QToolButton>
 #include <QTreeView>
@@ -136,8 +136,12 @@ m_fileMode(fileMode)
         m_fileSelectionModel->setSelectedFile(firstDataFile);
         dataFileSelected(firstDataFile);
     }
-//    setSizePolicy(QSizePolicy::Fixed,
-//                  QSizePolicy::Fixed);
+    
+    /*
+     * Needed for sizeHint() to work.
+     */
+    setSizePolicy(QSizePolicy::Preferred,
+                  QSizePolicy::Preferred);
 }
 
 /**
@@ -146,6 +150,27 @@ m_fileMode(fileMode)
 ChooseBorderFocusFromFileDialog::~ChooseBorderFocusFromFileDialog()
 {
 }
+
+/**
+ * @return A size hint for this dialog
+ */
+QSize
+ChooseBorderFocusFromFileDialog::sizeHint() const
+{
+    /*
+     * Make dialog a little larger than the header of the tree view
+     */
+    const QHeaderView* header(m_treeView->header());
+    CaretAssert(header);
+    
+    int32_t dialogWidth(header->width() + 20);
+    if (dialogWidth < 400) {
+        dialogWidth = 400;
+    }
+    const QSize dialogSize(dialogWidth, 300);
+    return dialogSize;
+}
+
 
 void
 ChooseBorderFocusFromFileDialog::done(int result)
@@ -299,28 +324,45 @@ ChooseBorderFocusFromFileDialog::setSelections(const AString& filename,
 {
     const CaretDataFile* caretDataFile(NULL);
     Brain* brain(GuiManager::get()->getBrain());
-    CaretDataFile* defaultCaretDataFile(NULL);
     CaretAssert(brain);
     switch (m_fileMode) {
         case FileMode::BORDER:
             caretDataFile = brain->getBorderFileMatchingToName(filename);
-            if (brain->getNumberOfBorderFiles() > 0) {
-                defaultCaretDataFile = brain->getBorderFile(0);
+            if (caretDataFile == NULL) {
+                if (brain->getNumberOfBorderFiles() > 0) {
+                    caretDataFile = brain->getBorderFile(0);
+                }
             }
             break;
         case FileMode::FOCUS:
             caretDataFile = brain->getFociFileMatchingToName(filename);
-            if (brain->getNumberOfFociFiles() > 0) {
-                defaultCaretDataFile = brain->getFociFile(0);
+            if (caretDataFile == NULL) {
+                if (brain->getNumberOfFociFiles() > 0) {
+                    caretDataFile = brain->getFociFile(0);
+                }
             }
             break;
     }
     
-    if (caretDataFile == NULL) {
-        caretDataFile = defaultCaretDataFile;
-    }
     if (caretDataFile != NULL) {
         m_fileSelectionModel->setSelectedFile(const_cast<CaretDataFile*>(caretDataFile));
+        m_fileSelectionComboBox->updateComboBox(m_fileSelectionModel);
         dataFileSelected(m_fileSelectionModel->getSelectedFile());
+    }
+    
+    QAbstractItemModel* model(m_treeView->model());
+    if (model != NULL) {
+        DataFileEditorModel* dataFileEditorModel(dynamic_cast<DataFileEditorModel*>(model));
+        if (dataFileEditorModel != NULL) {
+            QModelIndex modelIndex(dataFileEditorModel->findItemsWithText(name,
+                                                                          className));
+            if (modelIndex.isValid()) {
+                QItemSelectionModel* sm(m_treeView->selectionModel());
+                sm->select(modelIndex,
+                           QItemSelectionModel::Select);
+                m_treeView->setCurrentIndex(modelIndex);
+                m_treeView->scrollTo(modelIndex);
+            }
+        }
     }
 }

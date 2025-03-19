@@ -59,6 +59,9 @@ namespace caret {
         
         void setNumberOfColumnsAndColumnTitles(const DataFileEditorColumnContent& modelContent);
         
+        QModelIndex findItemsWithText(const AString& firstText,
+                                      const AString& secondText) const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

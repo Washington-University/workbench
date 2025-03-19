@@ -147,3 +147,33 @@ DataFileEditorModel::setNumberOfColumnsAndColumnTitles(const DataFileEditorColum
         setDefaultSortingColumnIndex(sortingColumnIndex);
     }
 }
+
+/**
+ * @return The model index of an item matching the given texts
+ * @param firstText
+ *    First text to look for
+ * @param secondText
+ *    Look for this if first text not found
+ */
+QModelIndex
+DataFileEditorModel::findItemsWithText(const AString& firstText,
+                                       const AString& secondText) const
+{
+    QModelIndex mi;
+    
+    QList<QStandardItem*> items;
+    if ( ! firstText.isEmpty()) {
+        items = findItems(firstText);
+    }
+    if (items.empty()) {
+        if ( ! secondText.isEmpty()) {
+            items = findItems(secondText);
+        }
+    }
+    if ( ! items.empty()) {
+        mi = items.at(0)->index();
+    }
+    
+    return mi;
+}
+

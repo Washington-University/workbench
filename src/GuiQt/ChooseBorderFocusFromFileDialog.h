@@ -90,6 +90,8 @@ namespace caret {
         
         virtual void done(int result) override;
         
+        virtual QSize sizeHint() const override;
+        
         // ADD_NEW_METHODS_HERE
 
     private slots:
