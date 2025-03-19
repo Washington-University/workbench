@@ -322,7 +322,7 @@ LabelSelectionViewHierarchyController::showTreeViewContextMenu(const QPoint& pos
 void
 LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelectionItem* labelItem,
                                                             const QPoint& pos,
-                                                            const bool infoButtonFlag)
+                                                            const bool /*infoButtonFlag*/)
 {
     CaretAssert(labelItem);
     const QString name(labelItem->text());

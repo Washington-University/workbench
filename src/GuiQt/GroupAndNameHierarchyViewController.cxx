@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPushButton>
 #include <QToolButton>
 #include <QTreeWidget>
@@ -53,6 +54,7 @@
 #include "LabelFile.h"
 #include "VolumeFile.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQTreeWidget.h"
 #include "WuQtUtilities.h"
 
@@ -642,14 +644,21 @@ GroupAndNameHierarchyViewController::updateSelectedAndExpandedCheckboxesInOtherV
 void
 GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
 {
-//    const QModelIndex modelIndex(m_treeView->indexAt(pos));
-//    LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(modelIndex));
-//    if (labelItem != NULL) {
-//        const bool infoButtonFlag(false);
-//        showSelectedItemMenu(labelItem,
-//                             m_treeView->mapToGlobal(pos),
-//                             infoButtonFlag);
-//    }
+    if (m_modelTreeWidget != NULL) {
+        const QModelIndex selectedIndex(m_modelTreeWidget->indexAt(pos));
+        if (selectedIndex.isValid()) {
+            const QTreeWidgetItem* item(m_modelTreeWidget->itemFromIndex(selectedIndex));
+            if (item != NULL) {
+                const GroupAndNameHierarchyTreeWidgetItem* gnhItem(dynamic_cast<const GroupAndNameHierarchyTreeWidgetItem*>(item));
+                if (gnhItem != NULL) {
+                    const bool infoButtonFlag(false);
+                    showSelectedItemMenu(gnhItem,
+                                         m_modelTreeWidget->mapToGlobal(pos),
+                                         infoButtonFlag);
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -664,72 +673,34 @@ GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
 void
 GroupAndNameHierarchyViewController::showSelectedItemMenu(const GroupAndNameHierarchyTreeWidgetItem* item,
                                                             const QPoint& pos,
-                                                            const bool infoButtonFlag)
+                                                            const bool /*infoButtonFlag*/)
 {
-//    CaretAssert(labelItem);
-//    const QString name(labelItem->text());
-//    
-//    QMenu menu(this);
-//    
-//    QAction* infoAction(menu.addAction("Info..."));
-//    menu.addSeparator();
-//    
-//    /*
-//     * My clusters
-//     */
-//    std::vector<QAction*> clusterActions;
-//    std::vector<Vector3D> clusterXYZs;
-//    const LabelSelectionItem::CogSet* allCogSet(labelItem->getMyAndChildrenCentersOfGravity());
-//    if (allCogSet != NULL) {
-//        const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
-//        for (const LabelSelectionItem::COG* c : cogs) {
-//            QAction* a(menu.addAction(c->getTitle()));
-//            clusterActions.push_back(a);
-//            clusterXYZs.push_back(c->getXYZ());
-//        }
-//        CaretAssert(clusterActions.size() == clusterXYZs.size());
-//    }
-//    const LabelSelectionItem::CogSet* cogSet(labelItem->getCentersOfGravity());
-//    if (cogSet != NULL) {
-//        if ( ! clusterActions.empty()) {
-//            menu.addSeparator();
-//        }
-//        const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
-//        for (const LabelSelectionItem::COG* c : cogs) {
-//            QAction* a(menu.addAction(c->getTitle()));
-//            clusterActions.push_back(a);
-//            clusterXYZs.push_back(c->getXYZ());
-//        }
-//        CaretAssert(clusterActions.size() == clusterXYZs.size());
-//    }
-//    
-//    if ( ! menu.actions().isEmpty()) {
-//        QAction* selectedAction(menu.exec(pos));
-//        if (selectedAction != NULL) {
-//            if (selectedAction == infoAction) {
-//                WuQMessageBoxTwo::information(this,
-//                                              "Info",
-//                                              labelItem->getTextForInfoDisplay());
-//            }
-//            else {
-//                for (int32_t i = 0; i < static_cast<int32_t>(clusterActions.size()); i++) {
-//                    if (selectedAction == clusterActions[i]) {
-//                        CaretAssertVectorIndex(clusterXYZs, i);
-//                        const Vector3D cogXYZ(clusterXYZs[i]);
-//                        EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
-//                                                                               cogXYZ,
-//                                                                               cogXYZ,
-//                                                                               EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
-//                        EventManager::get()->sendEvent(highlightLocation.getPointer());
-//                        break;
-//                    }
-//                }
-//            }
-//            
-//            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-//            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-//        }
-//    }
+    const bool showMenuFlag(false);
+    if ( ! showMenuFlag) {
+        /* Until this is needed */
+        return;
+    }
+    if (item == NULL) {
+        return;
+    }
+    
+    QMenu menu(this);
+    
+    QAction* infoAction(menu.addAction("Info..."));
+    menu.addSeparator();
+    if ( ! menu.actions().isEmpty()) {
+        QAction* selectedAction(menu.exec(pos));
+        if (selectedAction != NULL) {
+            if (selectedAction == infoAction) {
+                WuQMessageBoxTwo::information(this,
+                                              "Info",
+                                              item->text(0));
+            }
+            
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        }
+    }
 }
 
 /**
@@ -740,17 +711,9 @@ GroupAndNameHierarchyViewController::showSelectedItemMenu(const GroupAndNameHier
  *    The check state
  */
 void
-GroupAndNameHierarchyViewController::setCheckedStatusOfAllChildren(GroupAndNameHierarchyTreeWidgetItem* item,
-                                                                     const Qt::CheckState checkState)
+GroupAndNameHierarchyViewController::setCheckedStatusOfAllChildren(GroupAndNameHierarchyTreeWidgetItem* /*item*/,
+                                                                     const Qt::CheckState /*checkState*/)
 {
-//    CaretAssert(item);
-//    const int32_t numChildren(item->rowCount());
-//    for (int32_t iRow = 0; iRow < numChildren; iRow++) {
-//        QStandardItem* child(item->child(iRow));
-//        child->setCheckState(checkState);
-//        setCheckedStatusOfAllChildren(child,
-//                                      checkState);
-//    }
 }
 
 /**
@@ -795,21 +758,21 @@ GroupAndNameHierarchyViewController::allOffActionTriggered()
 void
 GroupAndNameHierarchyViewController::infoActionTriggered()
 {
-//    const QModelIndex selectedIndex(m_treeView->currentIndex());
-//    if (selectedIndex.isValid()) {
-//        if (m_labelHierarchyModel != NULL) {
-//            QStandardItem* item(m_labelHierarchyModel->itemFromIndex(selectedIndex));
-//            if (item != NULL) {
-//                const LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(item));
-//                if (labelItem != NULL) {
-//                    const bool infoButtonFlag(true);
-//                    showSelectedItemMenu(labelItem,
-//                                         mapToGlobal(m_infoToolButton->pos()),
-//                                         infoButtonFlag);
-//                }
-//            }
-//        }
-//    }
+    if (m_modelTreeWidget != NULL) {
+        const QModelIndex selectedIndex(m_modelTreeWidget->currentIndex());
+        if (selectedIndex.isValid()) {
+            const QTreeWidgetItem* item(m_modelTreeWidget->currentItem());
+            if (item != NULL) {
+                const GroupAndNameHierarchyTreeWidgetItem* gnhItem(dynamic_cast<const GroupAndNameHierarchyTreeWidgetItem*>(item));
+                if (gnhItem != NULL) {
+                    const bool infoButtonFlag(true);
+                    showSelectedItemMenu(gnhItem,
+                                         mapToGlobal(m_infoToolButton->pos()), 
+                                         infoButtonFlag);
+                }
+            }
+        }
+    }
 }
 
 /**
@@ -897,7 +860,7 @@ GroupAndNameHierarchyViewController::findTextLineEditTextChanged(const QString& 
  *     Model index that is
  */
 void
-GroupAndNameHierarchyViewController::treeItemDoubleClicked(const QModelIndex& modelIndex)
+GroupAndNameHierarchyViewController::treeItemDoubleClicked(const QModelIndex& /*modelIndex*/)
 {
 }
 
@@ -907,15 +870,6 @@ GroupAndNameHierarchyViewController::treeItemDoubleClicked(const QModelIndex& mo
  *     Model index that is
  */
 void
-GroupAndNameHierarchyViewController::treeItemClicked(const QModelIndex& modelIndex)
+GroupAndNameHierarchyViewController::treeItemClicked(const QModelIndex& /*modelIndex*/)
 {
-//    LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(modelIndex));
-//    if (labelItem != NULL) {
-//        const auto checkState(labelItem->checkState());
-//        labelItem->setAllChildrenChecked(checkState == Qt::Checked);
-//        
-//        m_infoAction->setEnabled(true);
-//    }
-//    
-//    processSelectionChanges();
 }
