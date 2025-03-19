@@ -41,16 +41,19 @@ namespace caret {
         DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Annotation> annotation,
                            const AString& text,
+                           const AString& sortingKeyText,
                            const float iconRGBA[4]);
         
         DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Focus> focus,
                            const AString& text,
-                           const float iconRGBA[4]);        
+                           const AString& sortingKeyText,
+                           const float iconRGBA[4]);
 
         DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                            std::shared_ptr<Border> border,
                            const AString& text,
+                           const AString& sortingKeyText,
                            const float iconRGBA[4]);
         
         virtual ~DataFileEditorItem();
@@ -95,6 +98,11 @@ namespace caret {
          */
         std::shared_ptr<Focus> m_focus;
 
+        /*
+         * Text used for sorting this item
+         */
+        AString m_sortingKeyText;
+        
         static QCollator* s_collator;
         
         // ADD_NEW_MEMBERS_HERE

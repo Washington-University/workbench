@@ -45,18 +45,24 @@ using namespace caret;
  *    Type of the data item
  * @param annotation
  *    Annotation for display in the editor.
- * @param colorTable
- *    Color table for coloring by name
+ * @param text
+ *    Text displayed by this item
+ * @param sortingKeyText
+ *    Text used when sorting by this item
+ * @param iconRGBA
+ *    Color used for this item's optional icon
  */
 DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Annotation> annotation,
                                        const AString& text,
+                                       const AString& sortingKeyText,
                                        const float iconRGBA[4])
 : QStandardItem(),
 m_dataItemType(dataItemType)
 {
     m_annotation = annotation;
     setText(text);
+    m_sortingKeyText = sortingKeyText;
     
     switch (m_dataItemType) {
         case DataFileEditorItemTypeEnum::CLASS_NAME:
@@ -71,16 +77,6 @@ m_dataItemType(dataItemType)
             setIcon(createIcon(iconRGBA));
             break;
     }
-
-//    switch (m_dataItemType) {
-//        case ItemType::NAME:
-//            setIcon(createIcon(iconRGBA));
-//            break;
-//        case ItemType::CLASS:
-//            break;
-//        case ItemType::XYZ:
-//            break;
-//    }
 }
 
 /**
@@ -89,18 +85,24 @@ m_dataItemType(dataItemType)
  *    Type of the data item
  * @param border
  *    Border for display in the editor.
- * @param colorTable
- *    Color table for coloring by name
+ * @param text
+ *    Text displayed by this item
+ * @param sortingKeyText
+ *    Text used when sorting by this item
+ * @param iconRGBA
+ *    Color used for this item's optional icon
  */
 DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Border> border,
                                        const AString& text,
+                                       const AString& sortingKeyText,
                                        const float iconRGBA[4])
 : QStandardItem(),
 m_dataItemType(dataItemType)
 {
     m_border = border;
     setText(text);
+    m_sortingKeyText = sortingKeyText;
     
     switch (m_dataItemType) {
         case DataFileEditorItemTypeEnum::CLASS_NAME:
@@ -116,16 +118,6 @@ m_dataItemType(dataItemType)
             setIcon(createIcon(iconRGBA));
             break;
     }
-//    switch (m_dataItemType) {
-//        case ItemType::NAME:
-//            setIcon(createIcon(iconRGBA));
-//            break;
-//        case ItemType::CLASS:
-//            setIcon(createIcon(iconRGBA));
-//            break;
-//        case ItemType::XYZ:
-//            break;
-//    }
 }
 
 /**
@@ -134,18 +126,24 @@ m_dataItemType(dataItemType)
  *    Type of the data item
  * @param focus
  *    Focus for display in the editor.
- * @param colorTable
- *    Color table for coloring by name
+ * @param text
+ *    Text displayed by this item
+ * @param sortingKeyText
+ *    Text used when sorting by this item
+ * @param iconRGBA
+ *    Color used for this item's optional icon
  */
 DataFileEditorItem::DataFileEditorItem(const DataFileEditorItemTypeEnum::Enum dataItemType,
                                        std::shared_ptr<Focus> focus,
                                        const AString& text,
+                                       const AString& sortingKeyText,
                                        const float iconRGBA[4])
 : QStandardItem(),
 m_dataItemType(dataItemType)
 {
     m_focus = focus;
     setText(text);
+    m_sortingKeyText = sortingKeyText;
 
     switch (m_dataItemType) {
         case DataFileEditorItemTypeEnum::CLASS_NAME:
@@ -161,16 +159,6 @@ m_dataItemType(dataItemType)
             setIcon(createIcon(iconRGBA));
             break;
     }
-//    switch (m_dataItemType) {
-//        case ItemType::NAME:
-//            setIcon(createIcon(iconRGBA));
-//            break;
-//        case ItemType::CLASS:
-//            setIcon(createIcon(iconRGBA));
-//            break;
-//        case ItemType::XYZ:
-//            break;
-//    }
 }
 
 /**
@@ -210,19 +198,6 @@ m_dataItemType(obj.m_dataItemType)
     if ( ! icon().isNull()) {
         setIcon(icon());
     }
-
-//    switch (m_dataItemType) {
-//        case ItemType::NAME:
-//            setIcon(icon());
-//            break;
-//        case ItemType::CLASS:
-//            if ( ! icon().isNull()) {
-//                setIcon(icon());
-//            }
-//            break;
-//        case ItemType::XYZ:
-//            break;
-//    }
 
     if (obj.m_annotation) {
         m_annotation.reset(obj.m_annotation->clone());
@@ -267,227 +242,16 @@ DataFileEditorItem::operator<(const QStandardItem &other) const
         s_collator->setNumericMode(true);
         s_collator->setCaseSensitivity(Qt::CaseSensitive);
     }
+    CaretAssert(s_collator);
     
-    const Annotation* annotation(m_annotation.get());
-    if (annotation != NULL) {
-        const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
-        CaretAssert(otherItem);
-        const Annotation* otherAnnotation(otherItem->m_annotation.get());
-        CaretAssert(otherAnnotation);
-        
-        CaretAssert(s_collator);
-        switch (m_dataItemType) {
-            case DataFileEditorItemTypeEnum::CLASS_NAME:
-                break;
-            case DataFileEditorItemTypeEnum::COORDINATES:
-            {
-                return (AnnotationCoordinateSpaceEnum::toGuiName(annotation->getCoordinateSpace())
-                        < AnnotationCoordinateSpaceEnum::toGuiName(otherAnnotation->getCoordinateSpace()));
-            }
-                break;
-            case DataFileEditorItemTypeEnum::GROUP_NAME:
-            {
-            }
-                break;
-            case DataFileEditorItemTypeEnum::IDENTIFIER:
-                break;
-            case DataFileEditorItemTypeEnum::NAME:
-            {
-                
-                /*
-                 * Sort by name and then class
-                 */
-                const int32_t nameResult(s_collator->compare(annotation->getName(),
-                                                             otherAnnotation->getName()));
-                if (nameResult < 0) {
-                    return true;
-                }
-                else if (nameResult > 0) {
-                    return false;
-                }
-            }
-                break;
-        }
+    const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
+    CaretAssert(otherItem);
+    
+    const int32_t result(s_collator->compare(m_sortingKeyText,
+                                             otherItem->m_sortingKeyText));
+    if (result < 0) {
+        return true;
     }
-    
-    const Border* border(m_border.get());
-    if (border != NULL) {
-        const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
-        CaretAssert(otherItem);
-        const Border* otherBorder(otherItem->m_border.get());
-        CaretAssert(otherBorder);
-        
-        CaretAssert(s_collator);
-        switch (m_dataItemType) {
-            case DataFileEditorItemTypeEnum::CLASS_NAME:
-            {
-                /*
-                 * Sort by class and then name
-                 */
-                const int32_t classResult(s_collator->compare(border->getClassName(),
-                                                              otherBorder->getClassName()));
-                if (classResult < 0) {
-                    return true;
-                }
-                else if (classResult > 0) {
-                    return false;
-                }
-                return (border->getName() < otherBorder->getName());
-            }
-                break;
-            case DataFileEditorItemTypeEnum::COORDINATES:
-            {
-                /*
-                 * Sort by XYZ
-                 */
-                if ((border->getNumberOfPoints() > 0)
-                    && (otherItem->m_border->getNumberOfPoints() > 0)) {
-                    Vector3D xyz;
-                    m_border->getPoint(0)->getStereotaxicXYZ(xyz);
-                    Vector3D otherXyz;
-                    otherBorder->getPoint(0)->getStereotaxicXYZ(otherXyz);
-                    return (xyz < otherXyz);
-                }
-            }
-                break;
-            case DataFileEditorItemTypeEnum::GROUP_NAME:
-                break;
-            case DataFileEditorItemTypeEnum::IDENTIFIER:
-                break;
-            case DataFileEditorItemTypeEnum::NAME:
-            {
-                
-                /*
-                 * Sort by name and then class
-                 */
-                const int32_t nameResult(s_collator->compare(border->getName(),
-                                                             otherBorder->getName()));
-                if (nameResult < 0) {
-                    return true;
-                }
-                else if (nameResult > 0) {
-                    return false;
-                }
-                return (border->getClassName() < otherBorder->getClassName());
-            }
-                break;
-        }
-    }
-    
-    const Focus* focus(m_focus.get());
-    if (focus != NULL) {
-        const DataFileEditorItem* otherItem(dynamic_cast<const DataFileEditorItem*>(&other));
-        CaretAssert(otherItem);
-        const Focus* otherFocus(otherItem->m_focus.get());
-        CaretAssert(focus);
-        
-        CaretAssert(s_collator);
-        switch (m_dataItemType) {
-            case DataFileEditorItemTypeEnum::CLASS_NAME:
-            {
-                /*
-                 * Sort by class and then name
-                 */
-                const int32_t classResult(s_collator->compare(focus->getClassName(),
-                                                              otherFocus->getClassName()));
-                if (classResult < 0) {
-                    return true;
-                }
-                else if (classResult > 0) {
-                    return false;
-                }
-                return (focus->getName() < otherFocus->getName());
-            }
-                break;
-            case DataFileEditorItemTypeEnum::COORDINATES:
-            {
-                /*
-                 * Sort by XYZ
-                 */
-                if ((m_focus->getNumberOfProjections() > 0)
-                    && (otherItem->m_focus->getNumberOfProjections() > 0)) {
-                    Vector3D xyz;
-                    m_focus->getProjection(0)->getStereotaxicXYZ(xyz);
-                    Vector3D otherXyz;
-                    otherFocus->getProjection(0)->getStereotaxicXYZ(otherXyz);
-                    return (xyz < otherXyz);
-                }
-            }
-                break;
-            case DataFileEditorItemTypeEnum::GROUP_NAME:
-                break;
-            case DataFileEditorItemTypeEnum::IDENTIFIER:
-                break;
-            case DataFileEditorItemTypeEnum::NAME:
-            {
-                
-                /*
-                 * Sort by name and then class
-                 */
-                const int32_t nameResult(s_collator->compare(focus->getName(),
-                                                             otherFocus->getName()));
-                if (nameResult < 0) {
-                    return true;
-                }
-                else if (nameResult > 0) {
-                    return false;
-                }
-                return (focus->getClassName() < otherFocus->getClassName());
-            }
-                break;
-        }
-//        switch (m_dataItemType) {
-//            case ItemType::NAME:
-//            {
-//                
-//                /*
-//                 * Sort by name and then class
-//                 */
-//                const int32_t nameResult(s_collator->compare(focus->getName(),
-//                                                             otherFocus->getName()));
-//                if (nameResult < 0) {
-//                    return true;
-//                }
-//                else if (nameResult > 0) {
-//                    return false;
-//                }
-//                return (focus->getClassName() < otherFocus->getClassName());
-//            }
-//                break;
-//            case ItemType::CLASS:
-//            {
-//                /*
-//                 * Sort by class and then name
-//                 */
-//                const int32_t classResult(s_collator->compare(focus->getClassName(),
-//                                                              otherFocus->getClassName()));
-//                if (classResult < 0) {
-//                    return true;
-//                }
-//                else if (classResult > 0) {
-//                    return false;
-//                }
-//                return (focus->getName() < otherFocus->getName());
-//            }
-//                break;
-//            case ItemType::XYZ:
-//            {
-//                /*
-//                 * Sort by XYZ
-//                 */
-//                if ((m_focus->getNumberOfProjections() > 0)
-//                    && (otherItem->m_focus->getNumberOfProjections() > 0)) {
-//                    Vector3D xyz;
-//                    m_focus->getProjection(0)->getStereotaxicXYZ(xyz);
-//                    Vector3D otherXyz;
-//                    otherFocus->getProjection(0)->getStereotaxicXYZ(otherXyz);
-//                    return (xyz < otherXyz);
-//                }
-//            }
-//                break;
-//        }
-    }
-    
     return false;
 }
 

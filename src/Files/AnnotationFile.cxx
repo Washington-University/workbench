@@ -2968,6 +2968,7 @@ AnnotationFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& m
                             rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
                                                                       annShared,
                                                                       xyzText,
+                                                                      xyzText,
                                                                       emptyRGBA));
                         }
                             break;
@@ -2975,6 +2976,7 @@ AnnotationFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& m
                             rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::GROUP_NAME,
                                                                       annShared,
                                                                       ag->getName(),
+                                                                      (ag->getName() + ann->getName()),
                                                                       emptyRGBA));
                             break;
                         case DataFileEditorItemTypeEnum::IDENTIFIER:
@@ -2984,6 +2986,7 @@ AnnotationFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& m
                             rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
                                                                       annShared,
                                                                       ann->getName(),
+                                                                      (ann->getName() + ag->getName()),
                                                                       nameRGBA));
                             break;
                     }

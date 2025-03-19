@@ -2752,11 +2752,13 @@ BorderFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& model
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::CLASS_NAME,
                                                               borderShared,
                                                               border->getClassName(),
+                                                              (border->getClassName() + border->getName()),
                                                               classRGBA));
                     break;
                 case DataFileEditorItemTypeEnum::COORDINATES:
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
                                                               borderShared,
+                                                              xyzText,
                                                               xyzText,
                                                               emptyRGBA));
                     break;
@@ -2770,6 +2772,7 @@ BorderFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& model
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
                                                               borderShared,
                                                               border->getName(),
+                                                              (border->getName() + border->getClassName()),
                                                               nameRGBA));
                     break;
             }

@@ -1018,11 +1018,13 @@ FociFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelCo
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::CLASS_NAME,
                                                               focusShared,
                                                               focus->getClassName(),
+                                                              (focus->getClassName() + focus->getName()),
                                                               classRGBA));
                     break;
                 case DataFileEditorItemTypeEnum::COORDINATES:
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::COORDINATES,
                                                               focusShared,
+                                                              xyzText,
                                                               xyzText,
                                                               emptyRGBA));
                     break;
@@ -1033,12 +1035,14 @@ FociFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelCo
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::IDENTIFIER,
                                                               focusShared,
                                                               focus->getFocusID(),
+                                                              focus->getFocusID(),
                                                               nameRGBA));
                     break;
                 case DataFileEditorItemTypeEnum::NAME:
                     rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::NAME,
                                                               focusShared,
                                                               focus->getName(),
+                                                              (focus->getName() + focus->getClassName()),
                                                               nameRGBA));
                     break;
             }
