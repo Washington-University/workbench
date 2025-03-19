@@ -332,8 +332,8 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
     /*
      * Save dates and restore at end of this method
      */
-    const AString actualDate(getActualSampleEditDate());
-    const AString desiredDate(getDesiredSampleEditDate());
+    const AString retrospectiveDate(getRetrospectiveSampleEditDate());
+    const AString prospectiveDate(getProspectiveSampleEditDate());
     
     copyMetaData(obj);
     
@@ -349,8 +349,8 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
     setSampleNumber("");
     setSampleType("");
     
-    setActualSampleEditDate(actualDate);
-    setDesiredSampleEditDate(desiredDate);
+    setRetrospectiveSampleEditDate(retrospectiveDate);
+    setProspectiveSampleEditDate(prospectiveDate);
     
     m_metadata->setModified();
 }
@@ -367,13 +367,17 @@ AnnotationSampleMetaData::copyMetaDataForNewAnnotation(const AnnotationSampleMet
 AString
 AnnotationSampleMetaData::get(const AString& currentMetaDataName,
                               const AString& previousMetaDataNameOne,
-                              const AString& previousMetaDataNameTwo) const
+                              const AString& previousMetaDataNameTwo,
+                              const AString& previousMetaDataNameThree) const
 {
     AString valueOut(m_metadata->get(currentMetaDataName).trimmed());
     if (valueOut.isEmpty()) {
         valueOut = m_metadata->get(previousMetaDataNameOne).trimmed();
         if (valueOut.isEmpty()) {
             valueOut = m_metadata->get(previousMetaDataNameTwo).trimmed();
+            if (valueOut.isEmpty()) {
+                valueOut = m_metadata->get(previousMetaDataNameThree);
+            }
         }
     }
     
@@ -518,23 +522,24 @@ AnnotationSampleMetaData::setInt(const AString& currentMetaDataName,
 }
 
 /**
- * @return actual sample edit date
+ * @return retrospective sample edit date
  */
 AString
-AnnotationSampleMetaData::getActualSampleEditDate() const
+AnnotationSampleMetaData::getRetrospectiveSampleEditDate() const
 {
-    return get(SAMPLES_ACTUAL_SAMPLE_EDIT_DATE);
+    return get(SAMPLES_RETROSPECTIVE_SAMPLE_EDIT_DATE,
+               "Retrospective Sample Edit Date");
 }
 
 /**
- * Set actual sample edit date
+ * Set retrospective sample edit date
  * @param value
  *    New value
  */
 void 
-AnnotationSampleMetaData::setActualSampleEditDate(const AString& value)
+AnnotationSampleMetaData::setRetrospectiveSampleEditDate(const AString& value)
 {
-    set(SAMPLES_ACTUAL_SAMPLE_EDIT_DATE,
+    set(SAMPLES_RETROSPECTIVE_SAMPLE_EDIT_DATE,
         value);
 }
 
@@ -694,25 +699,26 @@ AnnotationSampleMetaData::setComment(const AString& value)
 }
 
 /**
- * @return desired sample edit date
+ * @return prospective sample edit date
  */
 AString
-AnnotationSampleMetaData::getDesiredSampleEditDate() const
+AnnotationSampleMetaData::getProspectiveSampleEditDate() const
 {
-    return get(SAMPLES_DESIRED_SAMPLE_ENTRY_DATE,
+    return get(SAMPLES_PROSPECTIVE_SAMPLE_ENTRY_DATE,
+               "Desired Sample Entry Date",
                SAMPLES_OBSOLETE_ENTRY_DATE,
                SAMPLES_OBSOLETE_DISSECTION_DATE);
 }
 
 /**
- * Set desired sample edit date
+ * Set prospective sample edit date
  * @param value
  *    New value
  */
 void 
-AnnotationSampleMetaData::setDesiredSampleEditDate(const AString& value)
+AnnotationSampleMetaData::setProspectiveSampleEditDate(const AString& value)
 {
-    set(SAMPLES_DESIRED_SAMPLE_ENTRY_DATE,
+    set(SAMPLES_PROSPECTIVE_SAMPLE_ENTRY_DATE,
         value);
 }
 
@@ -785,7 +791,7 @@ AnnotationSampleMetaData::setHmbaParcelDingFullName(const AString& value)
 /**
  * @return local sample ID that is a composite of other metadata items
  * @param polyhedron
- *    Polyhedron for getting type of polyhedron (actual / desired)
+ *    Polyhedron for getting type of polyhedron (retrospective / prospective)
  */
 AString
 AnnotationSampleMetaData::getLocalSampleID(const AnnotationPolyhedron* polyhedron) const
@@ -796,16 +802,7 @@ AnnotationSampleMetaData::getLocalSampleID(const AnnotationPolyhedron* polyhedro
     components.push_back(getAllenTissueType());
     components.push_back(getAllenSlabNumber());
     components.push_back(getHmbaParcelDingAbbreviation());
-    switch (polyhedron->getPolyhedronType()) {
-        case AnnotationPolyhedronTypeEnum::INVALID:
-            break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-            components.push_back("A");
-            break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-            components.push_back("D");
-            break;
-    }
+    components.push_back(AnnotationPolyhedronTypeEnum::toAbbreviation(polyhedron->getPolyhedronType()));
     components.push_back(getSampleNumber());
     const AString valueOut = assembleCompositeElementComponents(components,
                                                                 separator);
@@ -1318,7 +1315,7 @@ AnnotationSampleMetaData::updateMetaDataWithNameChanges()
         oldNewNamesMap.emplace(SAMPLES_OBSOLETE_SLAB_FACE,
                                SAMPLES_SLAB_FACE);
         oldNewNamesMap.emplace(SAMPLES_OBSOLETE_DISSECTION_DATE,
-                               SAMPLES_ACTUAL_SAMPLE_EDIT_DATE);
+                               SAMPLES_RETROSPECTIVE_SAMPLE_EDIT_DATE);
         oldNewNamesMap.emplace(SAMPLES_OBSOLETE_SHORTHAND_ID,
                                SAMPLES_DING_ABBREVIATION);
         oldNewNamesMap.emplace(SAMPLES_OBSOLETE_DING_DESCRIPTION,
@@ -1371,7 +1368,7 @@ AnnotationSampleMetaData::addToDataFileContentInformation(const AnnotationPolyhe
 /**
  * @return The metadata  in an HTML table format
  * @param polyhedron
- *    Polyhedron for getting type of polyhedron (actual / desired)
+ *    Polyhedron for getting type of polyhedron (retrospective / prospective)
  */
 AString
 AnnotationSampleMetaData::toFormattedHtml(const AnnotationPolyhedron* polyhedron) const
@@ -1396,7 +1393,7 @@ AnnotationSampleMetaData::toFormattedHtml(const AnnotationPolyhedron* polyhedron
 /**
  * Get all metadata names and values
  * @param polyhedron
- *    Polyhedron for getting type of polyhedron (actual / desired)
+ *    Polyhedron for getting type of polyhedron (retrospective / prospective)
  * @param namesAndValuesOut
  *    Pairs with names and values
  */
@@ -1422,9 +1419,9 @@ AnnotationSampleMetaData::getAllMetaDataNamesAndValues(const AnnotationPolyhedro
     
     namesAndValuesOut.emplace_back(getSampleTypeLabelText(), getSampleType());
     
-    namesAndValuesOut.emplace_back(getDesiredSampleEditDateLabelText(), getDesiredSampleEditDate());
+    namesAndValuesOut.emplace_back(getProspectiveSampleEditDateLabelText(), getProspectiveSampleEditDate());
     
-    namesAndValuesOut.emplace_back(getActualSampleEditDateLabelText(), getActualSampleEditDate());
+    namesAndValuesOut.emplace_back(getRetrospectiveSampleEditDateLabelText(), getRetrospectiveSampleEditDate());
     
     namesAndValuesOut.emplace_back(getHmbaParcelDingAbbreviationLabelText(), getHmbaParcelDingAbbreviation());
     

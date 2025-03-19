@@ -141,8 +141,8 @@ AnnotationPolyhedron::initializeMembersAnnotationPolyhedron()
      * Initialize metadata with invalid dates
      */
     m_sampleMetaData.reset(new AnnotationSampleMetaData(getMetaData()));
-    m_sampleMetaData->setActualSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
-    m_sampleMetaData->setDesiredSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
+    m_sampleMetaData->setRetrospectiveSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
+    m_sampleMetaData->setProspectiveSampleEditDate(AnnotationSampleMetaData::getInvalidDateInString());
     
     m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
     m_linkedPolyhedronIdentifier.clear();
@@ -175,15 +175,15 @@ AnnotationPolyhedron::getMetaData()
     switch (m_polyhedronType) {
         case AnnotationPolyhedronTypeEnum::INVALID:
             break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
             if ( ! m_linkedPolyhedronIdentifier.isEmpty()) {
                 EventAnnotationPolyhedronGetByLinkedIdentifier linkEvent(NULL,
-                                                                         AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                                                                         AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE,
                                                                          m_linkedPolyhedronIdentifier);
                 EventManager::get()->sendEvent(linkEvent.getPointer());
-                AnnotationPolyhedron* desiredPolyhedron(linkEvent.getPolyhedron());
-                if (desiredPolyhedron != NULL) {
-                    return desiredPolyhedron->getMetaData();
+                AnnotationPolyhedron* prospectivePolyhedron(linkEvent.getPolyhedron());
+                if (prospectivePolyhedron != NULL) {
+                    return prospectivePolyhedron->getMetaData();
                 }
                 else {
                     CaretLogSevere("Failed to find matching polyhedron with link identifier="
@@ -191,7 +191,7 @@ AnnotationPolyhedron::getMetaData()
                 }
             }
             break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
             break;
     }
     return Annotation::getMetaData();
@@ -210,7 +210,7 @@ AnnotationPolyhedron::getMetaData() const
 
 /**
  * @return The linked polyhedron identifier
- * A desired sample is linked to an actual sample and vice versa
+ * A prospective sample is linked to an retrospective sample and vice versa
  */
 AString
 AnnotationPolyhedron::getLinkedPolyhedronIdentifier() const
@@ -220,7 +220,7 @@ AnnotationPolyhedron::getLinkedPolyhedronIdentifier() const
 
 /**
  * Set the linked polyhedron identifier
- * A desired sample is linked to an actual sample and vice versa
+ * A prospective sample is linked to an retrospective sample and vice versa
  * @param linkedPolyhedonIdentifier
  *    The identifier
  */
@@ -272,11 +272,11 @@ AnnotationPolyhedron::setPolyhedronType(const AnnotationPolyhedronTypeEnum::Enum
     switch (m_polyhedronType) {
         case AnnotationPolyhedronTypeEnum::INVALID:
             break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
             break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
             /*
-             * Set linked identifier for DESIRED SAMPLE to date/time
+             * Set linked identifier for PROSPECTIVE SAMPLE to date/time
              */
             if (m_linkedPolyhedronIdentifier.isEmpty()) {
                 m_linkedPolyhedronIdentifier = QUuid::createUuid().toString();

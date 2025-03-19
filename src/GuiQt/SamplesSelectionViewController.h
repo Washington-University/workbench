@@ -113,7 +113,7 @@ namespace caret {
         
         QCheckBox* m_displaySamplesNumberCheckBox;
         
-        QCheckBox* m_displaySamplesActualDesiredSuffixCheckBox;
+        QCheckBox* m_displaySamplesProspectiveRetrospectiveSuffixCheckBox;
         
         EnumComboBoxTemplate* m_samplesColorModeEnumComboBox;;
         

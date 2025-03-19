@@ -273,11 +273,11 @@ AnnotationFile::initializeAnnotationFile()
 }
 
 /**
- * Get the samples actual or desired annotation group.  If the group does not exist,
+ * Get the samples retrospective or prospective annotation group.  If the group does not exist,
  * it will be created
  * @param annotation
  *    The annotation SHOULD BE POLYHEDRON
- * @return Group or NULL if annotation is neither actual nor desired polyhedron
+ * @return Group or NULL if annotation is neither retrospective nor prospective polyhedron
  */
 AnnotationGroup*
 AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
@@ -288,27 +288,27 @@ AnnotationFile::getSamplesAnnotationGroup(const Annotation* annotation)
     if (polyhedron != NULL) {
         switch (polyhedron->getPolyhedronType()) {
             case AnnotationPolyhedronTypeEnum::INVALID:
-                CaretLogSevere("Requesting samples annotation group for polyhedron that is neither actual nor desired");
+                CaretLogSevere("Requesting samples annotation group for polyhedron that is neither retrospective nor prospective");
                 break;
-            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
             {
                 for (auto ag : m_annotationGroups) {
-                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_ACTUAL) {
+                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE) {
                         return ag.data();
                     }
                 }
-                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_ACTUAL);
+                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE);
                 m_annotationGroups.emplace_back(group);
             }
                 break;
-            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
             {
                 for (auto ag : m_annotationGroups) {
-                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_DESIRED) {
+                    if (ag->getGroupType() == AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE) {
                         return ag.data();
                     }
                 }
-                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_DESIRED);
+                group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE);
                 m_annotationGroups.emplace_back(group);
             }
                 break;
@@ -337,14 +337,14 @@ AnnotationFile::getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::En
     AnnotationGroupTypeEnum::Enum groupType(AnnotationGroupTypeEnum::INVALID);
     switch (polyhedronType) {
         case AnnotationPolyhedronTypeEnum::INVALID:
-            CaretLogSevere("Requesting linked samples annotation group for polyhedron that is neither actual nor desired");
+            CaretLogSevere("Requesting linked samples annotation group for polyhedron that is neither retrospective nor prospective");
             return NULL;
             break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-            groupType = AnnotationGroupTypeEnum::SAMPLES_ACTUAL;
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
+            groupType = AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE;
             break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-            groupType = AnnotationGroupTypeEnum::SAMPLES_DESIRED;
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+            groupType = AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE;
             break;
     }
     
@@ -354,8 +354,8 @@ AnnotationFile::getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::En
         case AnnotationPolyhedronTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
         {
             for (auto ag : m_annotationGroups) {
                 if (ag->getGroupType() == groupType) {
@@ -387,7 +387,7 @@ AnnotationFile::getLinkedSampleAnnotation(const AnnotationPolyhedronTypeEnum::En
 /**
  * @return A new Annotation Group for the given samples group type
  * @param groupType
- *    The type of the group (must be SAMPLES_ACTUAL or SAMPLES_DESIRED)
+ *    The type of the group (must be SAMPLES_PROSPECTIVE or SAMPLES_RETROSPECTIVE)
  */
 AnnotationGroup*
 AnnotationFile::createSamplesAnnotationGroup(const AnnotationGroupTypeEnum::Enum groupType)
@@ -396,9 +396,9 @@ AnnotationFile::createSamplesAnnotationGroup(const AnnotationGroupTypeEnum::Enum
         case AnnotationGroupTypeEnum::INVALID:
             CaretAssert(0);
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+        case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+        case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
             break;
         case AnnotationGroupTypeEnum::SPACE:
             CaretAssert(0);
@@ -704,13 +704,13 @@ AnnotationFile::receiveEvent(Event* event)
                 switch (group->getGroupType()) {
                     case AnnotationGroupTypeEnum::INVALID:
                         break;
-                    case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE) {
+                    case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE) {
                             polyGroup = group.data();
                         }
                         break;
-                    case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE) {
+                    case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+                        if (polyEvent->getPolyhedronType() == AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE) {
                             polyGroup = group.data();
                         }
                         break;
@@ -1016,35 +1016,35 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
         && (coordinateSpace == AnnotationCoordinateSpaceEnum::STEREOTAXIC)) {
         /*
          * Before sample polyhedrons were split into two types
-         * (Actual and Desired) the polyhedrons were in a stereotaxic
-         * space group.  Detect this and then move them to a desired
+         * (Prospective and Retrospective) the polyhedrons were in a stereotaxic
+         * space group.  Detect this and then move them to a prospective
          * sample group.
          */
         if ( ! annotations.empty()) {
-            bool allDesiredSamplesFlag(true);
+            bool allProsepctiveSamplesFlag(true);
             for (Annotation* ann : annotations) {
-                bool desiredSampleFlag(false);
+                bool prospectiveSampleFlag(false);
                 const AnnotationPolyhedron* polyhedron(ann->castToPolyhedron());
                 if (polyhedron != NULL) {
                     switch (polyhedron->getPolyhedronType()) {
                         case AnnotationPolyhedronTypeEnum::INVALID:
                             break;
-                        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
                             break;
-                        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                            desiredSampleFlag = true;
+                        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+                            prospectiveSampleFlag = true;
                             break;
                     }
                 }
                 
-                if ( ! desiredSampleFlag) {
-                    allDesiredSamplesFlag = false;
+                if ( ! prospectiveSampleFlag) {
+                    allProsepctiveSamplesFlag = false;
                     break;
                 }
             }
             
-            if (allDesiredSamplesFlag) {
-                groupType = AnnotationGroupTypeEnum::SAMPLES_DESIRED;
+            if (allProsepctiveSamplesFlag) {
+                groupType = AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE;
             }
         }
     }
@@ -1053,9 +1053,9 @@ AnnotationFile::addAnnotationGroupDuringFileReading(const AnnotationGroupTypeEnu
         case AnnotationGroupTypeEnum::INVALID:
             throw DataFileException("INVALID group type is not allowed while annotation file.");
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+        case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+        case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
             break;
         case AnnotationGroupTypeEnum::SPACE:
             break;
@@ -1800,9 +1800,9 @@ AnnotationFile::processRegroupingAnnotations(EventAnnotationGrouping* groupingEv
         switch (group->getGroupType()) {
             case  AnnotationGroupTypeEnum::INVALID:
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
                 break;
             case AnnotationGroupTypeEnum::SPACE:
             {
@@ -2013,7 +2013,7 @@ AnnotationFile::reuseUniqueKeyOrGenerateNewUniqueKey(const int32_t reuseUniqueKe
     
     /*
      * Search the groups and the annotations within the groups to
-     * see if the desired unique key is already used.
+     * see if the prospective unique key is already used.
      */
     for (AnnotationGroupIterator groupIter = m_annotationGroups.begin();
          groupIter != m_annotationGroups.end();
@@ -2364,11 +2364,11 @@ AnnotationFile::appendContentFromDataFile(const DataFileContentCopyMoveParameter
             switch (groupToCopy->getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_ACTUAL);
+                case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE);
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_DESIRED);
+                case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+                    group = createSamplesAnnotationGroup(AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE);
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     /*

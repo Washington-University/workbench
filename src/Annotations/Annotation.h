@@ -573,8 +573,8 @@ namespace caret {
         AString m_name;
         
         /*
-         * Shared pointer is used because a related pair of actual 
-         * and desired samples share one instance of metadata.
+         * Shared pointer is used because a related pair of retrospective
+         * and prospective samples share one instance of metadata.
          */
         std::shared_ptr<GiftiMetaData> m_metaData;
         

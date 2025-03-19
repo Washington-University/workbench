@@ -153,15 +153,15 @@ SamplesFile::generateSampleNumberFromSlabID(std::vector<SamplesFile*> samplesFil
 
 /**
  * @return All annotations for drawing (may be override by subclass
- * to change order of drawing).  This method returns the desired samples
- * followed by the actual samples so that actual samples are drawn on
- * top of desired samples.
+ * to change order of drawing).  This method returns the prospective samples
+ * followed by the retrospective samples so that retrospective samples are drawn on
+ * top of prospective samples.
  */
 std::vector<Annotation*>
 SamplesFile::getAllAnnotationsForDrawing() const
 {
-    std::vector<Annotation*> actualSamples;
-    std::vector<Annotation*> desiredSamples;
+    std::vector<Annotation*> retrospectiveSamples;
+    std::vector<Annotation*> prospectiveSamples;
     std::vector<Annotation*> otherSamples;
 
     std::vector<Annotation*> allAnnotations;
@@ -174,11 +174,11 @@ SamplesFile::getAllAnnotationsForDrawing() const
                 case AnnotationPolyhedronTypeEnum::INVALID:
                     otherSamples.push_back(ann);
                     break;
-                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-                    actualSamples.push_back(ann);
+                case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
+                    retrospectiveSamples.push_back(ann);
                     break;
-                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                    desiredSamples.push_back(ann);
+                case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+                    prospectiveSamples.push_back(ann);
                     break;
             }
         }
@@ -187,11 +187,11 @@ SamplesFile::getAllAnnotationsForDrawing() const
     std::vector<Annotation*> annotations(otherSamples.begin(),
                                          otherSamples.end());
     annotations.insert(annotations.end(),
-                       desiredSamples.begin(),
-                       desiredSamples.end());
+                       prospectiveSamples.begin(),
+                       prospectiveSamples.end());
     annotations.insert(annotations.end(),
-                       actualSamples.begin(),
-                       actualSamples.end());
+                       retrospectiveSamples.begin(),
+                       retrospectiveSamples.end());
 
     return annotations;
 }

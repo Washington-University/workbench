@@ -241,7 +241,7 @@ namespace caret {
         AnnotationPolyhedronTypeEnum::Enum m_polyhedronType = AnnotationPolyhedronTypeEnum::INVALID;
         
         /**
-         * A desired sample is linked to an actual sample and vice versa
+         * A prospective sample is linked to an retrospective sample and vice versa
          */
         AString m_linkedPolyhedronIdentifier;
                

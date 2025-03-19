@@ -58,9 +58,9 @@ namespace caret {
         
         void setDisplaySampleNumbers(const bool status);
         
-        bool isDisplaySampleActualDesiredSuffix() const;
+        bool isDisplaySampleProspectiveRetrospectiveSuffix() const;
         
-        void setDisplaySampleActualDesiredSuffix(const bool status);
+        void setDisplaySampleProspectiveRetrospectiveSuffix(const bool status);
         
         SamplesColorModeEnum::Enum getColorMode() const;
         
@@ -101,7 +101,7 @@ namespace caret {
         
         bool m_displaySampleNumbers;
         
-        bool m_displaySampleActualDesiredSuffix;
+        bool m_displaySampleProspectiveRetrospectiveSuffix;
         
         SamplesColorModeEnum::Enum m_colorMode = SamplesColorModeEnum::SAMPLE;
         

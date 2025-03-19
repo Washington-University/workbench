@@ -1017,15 +1017,15 @@ AnnotationFileXmlReader::readMultiPairedCoordinateAnnotation(AnnotationFile* ann
                         }
                         else {
                             /*
-                             * If polyhedron type is missing, it was created before desired
-                             * actual samples were added and should be treated as a
-                             * desired sample.
+                             * If polyhedron type is missing, it was created before prospective
+                             * and retrospective samples were added and should be treated as a
+                             * prospective sample.
                              */
-                            polyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE);
+                            polyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE);
                         }
                         
                         /*
-                         * Older files before actual/desired type was added also do not have
+                         * Older files before prospective/retrospective type was added also do not have
                          * a linked identifier.  Only set the linked identifier if it is valid.
                          * Note: calling setPolyhedronType() will initialize the linked
                          * identifier so we don't want overwrite it with an empty identifier.

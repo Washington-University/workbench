@@ -72,9 +72,9 @@ using namespace caret;
 switch (value) {
     case AnnotationPolyhedronTypeEnum::INVALID:
         break;
-    case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+    case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
         break;
-    case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+    case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
         break;
 }
 */
@@ -122,13 +122,13 @@ AnnotationPolyhedronTypeEnum::initialize()
                                     "INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(AnnotationPolyhedronTypeEnum(ACTUAL_SAMPLE, 
-                                    "ACTUAL_SAMPLE", 
-                                    "Actual Sample"));
+    enumData.push_back(AnnotationPolyhedronTypeEnum(PROSPECTIVE_SAMPLE,
+                                                    "PROSPECTIVE_SAMPLE",
+                                                    "Prospective Sample"));
     
-    enumData.push_back(AnnotationPolyhedronTypeEnum(DESIRED_SAMPLE, 
-                                    "DESIRED_SAMPLE", 
-                                    "Desired Sample"));
+    enumData.push_back(AnnotationPolyhedronTypeEnum(RETROSPECTIVE_SAMPLE,
+                                    "RETROSPECTIVE_SAMPLE",
+                                    "Retrospective Sample"));
     
 }
 
@@ -157,6 +157,31 @@ AnnotationPolyhedronTypeEnum::findData(const Enum enumValue)
 
 /**
  * Get a string representation of the enumerated type.
+ * @param enumValue
+ *     Enumerated value.
+ * @return
+ *     String representing enumerated value.
+ */
+AString
+AnnotationPolyhedronTypeEnum::toAbbreviation(Enum enumValue)
+{
+    AString text;
+    switch (enumValue) {
+        case INVALID:
+            text = "I";
+            break;
+        case PROSPECTIVE_SAMPLE:
+            text = "P";
+            break;
+        case RETROSPECTIVE_SAMPLE:
+            text = "R";
+            break;
+    }
+    return text;
+}
+
+/**
+ * Get a string representation of the enumerated type.
  * @param enumValue 
  *     Enumerated value.
  * @return 
@@ -181,10 +206,20 @@ AnnotationPolyhedronTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationPolyhedronTypeEnum::Enum 
-AnnotationPolyhedronTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationPolyhedronTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
+    /*
+     * Watch for older names of sample types
+     */
+    AString name(nameIn);
+    if (name == "ACTUAL_SAMPLE") {
+        name = toName(RETROSPECTIVE_SAMPLE);
+    }
+    else if (name == "DESIRED_SAMPLE") {
+        name = toName(PROSPECTIVE_SAMPLE);
+    }
     bool validFlag = false;
     Enum enumValue = AnnotationPolyhedronTypeEnum::enumData[0].enumValue;
     

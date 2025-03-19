@@ -1830,7 +1830,7 @@ AnnotationCoordinateInformation::createCoordinateInformationForPasting(const Mou
  * @param mouseEvent
  *    The mouse event
  * @param annotationSpace
- *    Desired annotation space
+ *    The annotation space
  * @return
  *    An annotaiton coordinate or NULL if it could not be created
  */

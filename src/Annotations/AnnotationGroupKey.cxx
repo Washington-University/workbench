@@ -43,7 +43,7 @@ using namespace caret;
  * and each window).  A user may create 'User' groups to group
  * annotation that are in the same space.
  *
- * SAMPLES_ACTUAL and SAMPLES_DESIRED are used
+ * SAMPLES_RETROSPECTIVE and SAMPLES_PROSPECTIVE are used
  * by the SamplesFiles to group polyhedron samples.
  *
  * Creating a user group:
@@ -71,8 +71,8 @@ m_annotationFile(NULL),
 m_groupType(AnnotationGroupTypeEnum::INVALID),
 m_spaceGroupUniqueKey(-1),
 m_userGroupUniqueKey(-1),
-m_samplesActualGroupUniqueKey(-1),
-m_samplesDesiredGroupUniqueKey(-1)
+m_samplesRetrospectiveGroupUniqueKey(-1),
+m_samplesProspectiveGroupUniqueKey(-1)
 {
     reset();
 }
@@ -124,8 +124,8 @@ AnnotationGroupKey::copyHelperAnnotationGroupKey(const AnnotationGroupKey& obj)
     m_groupType           = obj.m_groupType;
     m_spaceGroupUniqueKey = obj.m_spaceGroupUniqueKey;
     m_userGroupUniqueKey  = obj.m_userGroupUniqueKey;
-    m_samplesActualGroupUniqueKey  = obj.m_samplesActualGroupUniqueKey;
-    m_samplesDesiredGroupUniqueKey = obj.m_samplesDesiredGroupUniqueKey;
+    m_samplesRetrospectiveGroupUniqueKey  = obj.m_samplesRetrospectiveGroupUniqueKey;
+    m_samplesProspectiveGroupUniqueKey = obj.m_samplesProspectiveGroupUniqueKey;
 }
 
 /**
@@ -138,8 +138,8 @@ AnnotationGroupKey::reset()
     m_groupType           = AnnotationGroupTypeEnum::INVALID;
     m_spaceGroupUniqueKey = -1;
     m_userGroupUniqueKey  = -1;
-    m_samplesActualGroupUniqueKey  = -1;
-    m_samplesDesiredGroupUniqueKey = -1;
+    m_samplesRetrospectiveGroupUniqueKey  = -1;
+    m_samplesProspectiveGroupUniqueKey = -1;
 }
 
 
@@ -166,13 +166,13 @@ AnnotationGroupKey::operator==(const AnnotationGroupKey& groupKey) const
                 case AnnotationGroupTypeEnum::INVALID:
                     CaretAssertMessage(0, "Should never get here.");
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-                    if (m_samplesActualGroupUniqueKey == groupKey.m_samplesActualGroupUniqueKey) {
+                case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+                    if (m_samplesRetrospectiveGroupUniqueKey == groupKey.m_samplesRetrospectiveGroupUniqueKey) {
                         return true;
                     }
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-                    if (m_samplesDesiredGroupUniqueKey == groupKey.m_samplesDesiredGroupUniqueKey) {
+                case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+                    if (m_samplesProspectiveGroupUniqueKey == groupKey.m_samplesProspectiveGroupUniqueKey) {
                         return true;
                     }
                     break;
@@ -217,11 +217,11 @@ AnnotationGroupKey::operator<(const AnnotationGroupKey& groupKey) const
                     CaretAssertMessage(0, "Should never get here.");
                     lessThanFlag = false;
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-                    lessThanFlag = (m_samplesActualGroupUniqueKey < groupKey.m_samplesActualGroupUniqueKey);
+                case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+                    lessThanFlag = (m_samplesRetrospectiveGroupUniqueKey < groupKey.m_samplesRetrospectiveGroupUniqueKey);
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-                    lessThanFlag = (m_samplesDesiredGroupUniqueKey < groupKey.m_samplesDesiredGroupUniqueKey);
+                case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+                    lessThanFlag = (m_samplesProspectiveGroupUniqueKey < groupKey.m_samplesProspectiveGroupUniqueKey);
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     lessThanFlag = (m_spaceGroupUniqueKey < groupKey.m_spaceGroupUniqueKey);
@@ -318,21 +318,21 @@ AnnotationGroupKey::getUserGroupUniqueKey() const
 }
 
 /**
- * @return The samples actual group unique key.
+ * @return The samples retrospective group unique key.
  */
 int32_t
-AnnotationGroupKey::getSamplesActualUniqueKey() const
+AnnotationGroupKey::getSamplesRetrospectiveUniqueKey() const
 {
-    return m_samplesActualGroupUniqueKey;
+    return m_samplesRetrospectiveGroupUniqueKey;
 }
 
 /**
- * @return The samples desired group unique key.
+ * @return The samples prospective group unique key.
  */
 int32_t
-AnnotationGroupKey::getSamplesDesiredUniqueKey() const
+AnnotationGroupKey::getSamplesProspectiveUniqueKey() const
 {
-    return m_samplesDesiredGroupUniqueKey;
+    return m_samplesProspectiveGroupUniqueKey;
 }
 
 /**
@@ -348,27 +348,27 @@ AnnotationGroupKey::setUserGroupUniqueKey(const int32_t userGroupUniqueKey)
 }
 
 /**
- * Set the samles actual group unique key.
+ * Set the samles retrospective group unique key.
  *
- * @param samplesActualUniqueKey
- *     The samples actual group unique key.
+ * @param samplesRetrospectiveUniqueKey
+ *     The samples retrospective group unique key.
  */
 void
-AnnotationGroupKey::setSamplesActualUniqueKey(const int32_t samplesActualUniqueKey)
+AnnotationGroupKey::setSamplesRetrospectiveUniqueKey(const int32_t samplesRetrospectiveUniqueKey)
 {
-    m_samplesActualGroupUniqueKey = samplesActualUniqueKey;
+    m_samplesRetrospectiveGroupUniqueKey = samplesRetrospectiveUniqueKey;
 }
 
 /**
- * Set the samples desired group unique key.
+ * Set the samples prospective group unique key.
  *
- * @param samplesDesiredUniqueKey
- *     The samples desired group unique key.
+ * @param samplesProspectiveUniqueKey
+ *     The samples prospective group unique key.
  */
 void
-AnnotationGroupKey::setSamplesDesiredUniqueKey(const int32_t samplesDesiredUniqueKey)
+AnnotationGroupKey::setSamplesProspectiveUniqueKey(const int32_t samplesProspectiveUniqueKey)
 {
-    m_samplesDesiredGroupUniqueKey = samplesDesiredUniqueKey;
+    m_samplesProspectiveGroupUniqueKey = samplesProspectiveUniqueKey;
 }
 
 /**
@@ -383,7 +383,7 @@ AnnotationGroupKey::toString() const
             + AnnotationGroupTypeEnum::toName(m_groupType)
             + " spaceKey=" + AString::number(m_spaceGroupUniqueKey)
             + " userGroupKey=" + AString::number(m_userGroupUniqueKey)
-            + " samplesActualGroupKey=" + AString::number(m_samplesActualGroupUniqueKey)
-            + " samplesDesiredGroupKey=" + AString::number(m_samplesDesiredGroupUniqueKey));
+            + " samplesRetrospectiveGroupKey=" + AString::number(m_samplesRetrospectiveGroupUniqueKey)
+            + " samplesProspectiveGroupKey=" + AString::number(m_samplesProspectiveGroupUniqueKey));
 }
 

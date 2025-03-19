@@ -73,9 +73,9 @@ namespace caret {
         
         void saveFileActionTriggered();
         
-        void newActualSampleActionTriggered();
+        void newRetrospectiveSampleActionTriggered();
         
-        void newDesiredSampleActionTriggered();
+        void newProspectiveSampleActionTriggered();
         
         void samplesDrawingModeEnumComboBoxItemActivated();
         
@@ -95,7 +95,7 @@ namespace caret {
         
         std::vector<AnnotationPolyhedron*> getAllPolyhedrons();
 
-        std::vector<AnnotationPolyhedron*> getSelectedDesiredSamples();
+        std::vector<AnnotationPolyhedron*> getSelectedProspectiveSamples();
         
         bool isVolumeSliceMontageEnabledInSelectedTab(QWidget* parent) const;
         
@@ -109,13 +109,13 @@ namespace caret {
         
         const int32_t m_browserWindowIndex;
         
-        QToolButton* m_newActualSampleToolButton = NULL;
+        QToolButton* m_newRetrospectiveSampleToolButton = NULL;
         
-        QAction* m_newActualSampleAction = NULL;
+        QAction* m_newRetrospectiveSampleAction = NULL;
         
-        QToolButton* m_newDesiredSampleToolButton = NULL;
+        QToolButton* m_newProspectiveSampleToolButton = NULL;
         
-        QAction* m_newDesiredSampleAction = NULL;
+        QAction* m_newProspectiveSampleAction = NULL;
         
         EnumComboBoxTemplate* m_samplesDrawingModeEnumComboBox = NULL;
         

@@ -5237,10 +5237,10 @@ UserInputModeAnnotations::NewUserSpaceAnnotation::finishSamplesAnnotation()
         switch (polyhedron->getPolyhedronType()) {
             case AnnotationPolyhedronTypeEnum::INVALID:
                 break;
-            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
                 std::cout << "Polyhedron link: " << polyhedron->getLinkedPolyhedronIdentifier() << std::endl;
                 break;
-            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+            case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
                 break;
         }
         

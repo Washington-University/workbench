@@ -2095,11 +2095,11 @@ Annotation::setAnnotationGroupKey(const AnnotationGroupKey& annotationGroupKey)
                                "Do not call this method with invalid key.  "
                                "Instead call invalidateAnnotationGroupKey().");
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-            CaretAssert(newGroupKeyForAnnotation.getSamplesActualUniqueKey() > 0);
+        case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+            CaretAssert(newGroupKeyForAnnotation.getSamplesRetrospectiveUniqueKey() > 0);
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-            CaretAssert(newGroupKeyForAnnotation.getSamplesDesiredUniqueKey() > 0);
+        case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+            CaretAssert(newGroupKeyForAnnotation.getSamplesProspectiveUniqueKey() > 0);
             break;
         case AnnotationGroupTypeEnum::SPACE:
             CaretAssert(newGroupKeyForAnnotation.getSpaceGroupUniqueKey() > 0);
@@ -2222,17 +2222,7 @@ Annotation::getName() const
             if ( ! polyhedron->getSampleMetaData()->getSampleNumber().isEmpty()) {
                 textComponents.push_back(polyhedron->getSampleMetaData()->getSampleNumber());
             }
-            switch (polyhedron->getPolyhedronType()) {
-                case AnnotationPolyhedronTypeEnum::INVALID:
-                    break;
-                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-                    textComponents.push_back("A");
-                    break;
-                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                    textComponents.push_back("D");
-                    break;
-            }
-
+            textComponents.push_back(AnnotationPolyhedronTypeEnum::toAbbreviation(polyhedron->getPolyhedronType()));
             nameOut = AString::join(textComponents, ".");
         }
             break;
@@ -2293,16 +2283,9 @@ Annotation::getNameForGraphicsDrawing() const
                     textComponents.push_back(polyhedron->getSampleMetaData()->getSampleNumber());
                 }
             }
-            if (nameCompEvent.isShowActualDesiredSuffix()) {
-                switch (polyhedron->getPolyhedronType()) {
-                    case AnnotationPolyhedronTypeEnum::INVALID:
-                        break;
-                    case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-                        textComponents.push_back("A");
-                        break;
-                    case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                        textComponents.push_back("D");
-                        break;
+            if (nameCompEvent.isShowProspectiveRetrospectiveSuffix()) {
+                if (polyhedron->getPolyhedronType() != AnnotationPolyhedronTypeEnum::INVALID) {
+                    textComponents.push_back(AnnotationPolyhedronTypeEnum::toAbbreviation(polyhedron->getPolyhedronType()));
                 }
             }
             

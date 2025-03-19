@@ -137,61 +137,61 @@ UserInputModeSamplesEdit::deleteSelectedAnnotations()
             
             if ( ! polyhedronsToDelete.empty()) {
                 /*
-                 * If user has an Actual Sample selected but its corresponding
-                 * Desired Sample is NOT selected, this will contain the
-                 * corresponding Desired Samples that are NOT selected
+                 * If user has an Retrospective Sample selected but its corresponding
+                 * Prospective Sample is NOT selected, this will contain the
+                 * corresponding Prospective Samples that are NOT selected
                  */
-                std::set<AnnotationPolyhedron*> desiredPolyhedronsNotSelected;
+                std::set<AnnotationPolyhedron*> prospectivePolyhedronsNotSelected;
                 
                 /*
-                 * If user has a Desired Sample selected but its corresponding
-                 * Actual Sample is NOT selected, this will contain the
-                 * corresponding Actual Samples that are NOT selected
+                 * If user has a Prospective Sample selected but its corresponding
+                 * retrospective Sample is NOT selected, this will contain the
+                 * corresponding retrospective Samples that are NOT selected
                  */
-                std::set<AnnotationPolyhedron*> actualPolyhedronsNotSelected;
+                std::set<AnnotationPolyhedron*> retrospectivePolyhedronsNotSelected;
                 
                 for (AnnotationPolyhedron* poly : polyhedronsToDelete) {
                     switch (poly->getPolyhedronType()) {
                         case AnnotationPolyhedronTypeEnum::INVALID:
                             break;
-                        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
                         {
                             EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
-                                                                                     AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+                                                                                     AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE,
                                                                                      poly->getLinkedPolyhedronIdentifier());
                             EventManager::get()->sendEvent(polyEvent.getPointer());
-                            AnnotationPolyhedron* desiredPolyedron(polyEvent.getPolyhedron());
-                            if (desiredPolyedron != NULL) {
+                            AnnotationPolyhedron* prospectivePolyedron(polyEvent.getPolyhedron());
+                            if (prospectivePolyedron != NULL) {
                                 if (std::find(polyhedronsToDelete.begin(),
                                               polyhedronsToDelete.end(),
-                                              desiredPolyedron) == polyhedronsToDelete.end()) {
-                                    desiredPolyhedronsNotSelected.insert(desiredPolyedron);
+                                              prospectivePolyedron) == polyhedronsToDelete.end()) {
+                                    prospectivePolyhedronsNotSelected.insert(prospectivePolyedron);
                                 }
                                 else {
                                     /*
-                                     * If here, the desiredPolyedron is one of
+                                     * If here, the prospectivePolyedron is one of
                                      * the selected annotations for deletion.
                                      */
                                 }
                             }
                         }
                             break;
-                        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
                         {
                             EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
-                                                                                     AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+                                                                                     AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE,
                                                                                      poly->getLinkedPolyhedronIdentifier());
                             EventManager::get()->sendEvent(polyEvent.getPointer());
-                            AnnotationPolyhedron* actualPolyedron(polyEvent.getPolyhedron());
-                            if (actualPolyedron != NULL) {
+                            AnnotationPolyhedron* retrospectivePolyedron(polyEvent.getPolyhedron());
+                            if (retrospectivePolyedron != NULL) {
                                 if (std::find(polyhedronsToDelete.begin(),
                                               polyhedronsToDelete.end(),
-                                              actualPolyedron) == polyhedronsToDelete.end()) {
-                                    actualPolyhedronsNotSelected.insert(actualPolyedron);
+                                              retrospectivePolyedron) == polyhedronsToDelete.end()) {
+                                    retrospectivePolyhedronsNotSelected.insert(retrospectivePolyedron);
                                 }
                                 else {
                                     /*
-                                     * If here, the actualPolyhedron is one of
+                                     * If here, the Restrospective Polyhedron is one of
                                      * the selected annotations for deletion.
                                      */
                                 }
@@ -202,17 +202,17 @@ UserInputModeSamplesEdit::deleteSelectedAnnotations()
                 }
                 
                 AString msg;
-                if ( ! actualPolyhedronsNotSelected.empty()) {
-                    msg.appendWithNewLine("Actual sample(s) corresponding to the selected desired sample(s) will also be deleted.");
+                if ( ! retrospectivePolyhedronsNotSelected.empty()) {
+                    msg.appendWithNewLine("Retrospective sample(s) corresponding to the selected prospective sample(s) will also be deleted.");
                 }
                 
-                if ( ! desiredPolyhedronsNotSelected.empty()) {
-                    msg.appendWithNewLine("Do you also want to delete the desired sample(s) corresponding to the "
-                                          "selected actual sample(s)?");
+                if ( ! prospectivePolyhedronsNotSelected.empty()) {
+                    msg.appendWithNewLine("Do you also want to delete the prospective sample(s) corresponding to the "
+                                          "selected retrospective sample(s)?");
                     
                 }
                 
-                if ( ! desiredPolyhedronsNotSelected.empty()) {
+                if ( ! prospectivePolyhedronsNotSelected.empty()) {
                     WuQMessageBoxTwo::StandardButton button
                     = WuQMessageBoxTwo::warning(bbw, 
                                                 "Warning",
@@ -222,20 +222,20 @@ UserInputModeSamplesEdit::deleteSelectedAnnotations()
                                                                                    WuQMessageBoxTwo::StandardButton::Cancel),
                                                 WuQMessageBoxTwo::StandardButton::Cancel);
                     if (button == WuQMessageBoxTwo::StandardButton::Yes) {
-                        polyhedronsToDelete.insert(desiredPolyhedronsNotSelected.begin(),
-                                                   desiredPolyhedronsNotSelected.end());
-                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
-                                                   actualPolyhedronsNotSelected.end());
+                        polyhedronsToDelete.insert(prospectivePolyhedronsNotSelected.begin(),
+                                                   prospectivePolyhedronsNotSelected.end());
+                        polyhedronsToDelete.insert(retrospectivePolyhedronsNotSelected.begin(),
+                                                   retrospectivePolyhedronsNotSelected.end());
                     }
                     else if (button == WuQMessageBoxTwo::StandardButton::No) {
-                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
-                                                   actualPolyhedronsNotSelected.end());
+                        polyhedronsToDelete.insert(retrospectivePolyhedronsNotSelected.begin(),
+                                                   retrospectivePolyhedronsNotSelected.end());
                     }
                     else {
                         polyhedronsToDelete.clear();
                     }
                 }
-                else if ( ! actualPolyhedronsNotSelected.empty()) {
+                else if ( ! retrospectivePolyhedronsNotSelected.empty()) {
                     WuQMessageBoxTwo::StandardButton button
                      = WuQMessageBoxTwo::warning(bbw,
                                                  "Warning",
@@ -244,8 +244,8 @@ UserInputModeSamplesEdit::deleteSelectedAnnotations()
                                                                                     WuQMessageBoxTwo::StandardButton::Cancel),
                                                  WuQMessageBoxTwo::StandardButton::Cancel);
                     if (button == WuQMessageBoxTwo::StandardButton::Ok) {
-                        polyhedronsToDelete.insert(actualPolyhedronsNotSelected.begin(),
-                                                   actualPolyhedronsNotSelected.end());
+                        polyhedronsToDelete.insert(retrospectivePolyhedronsNotSelected.begin(),
+                                                   retrospectivePolyhedronsNotSelected.end());
                     }
                     else {
                         polyhedronsToDelete.clear();

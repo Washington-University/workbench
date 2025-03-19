@@ -139,33 +139,33 @@ m_volumeSliceThickness(volumeSliceThickness)
         switch (m_polyhedron->getPolyhedronType()) {
             case AnnotationPolyhedronTypeEnum::INVALID:
                 break;
-            case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+            case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
             {
                 const AString identifer(samplesDrawingSettings->getLinkedPolyhedronIdentifier());
                 if (identifer.isEmpty()) {
-                    setWindowTitle("New Actual Sample");
+                    setWindowTitle("New Retrospective Sample");
                 }
                 else {
                     m_polyhedron->setLinkedPolyhedronIdentifier(identifer);
                     
                     /*
                      * Do not copy metadata from previously created sample
-                     * since this actual polyhedron shares its metadata
-                     * with a desired polyhedron
+                     * since this retrospective polyhedron shares its metadata
+                     * with a prospective polyhedron
                      */
                     copyMetaDataFlag = false;
                     
-                    setWindowTitle("Add Actual Sample to Desired Sample");
+                    setWindowTitle("Add Retrospective Sample to Prospective Sample");
                 }
-                m_polyhedron->getSampleMetaData()->setActualSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
+                m_polyhedron->getSampleMetaData()->setRetrospectiveSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
                 
                 /* Clear identifier to prevent it from being used again */
                 samplesDrawingSettings->setLinkedPolyhedronIdentifier("");
             }
                 break;
-            case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-                setWindowTitle("New Desired Sample");
-                m_polyhedron->getSampleMetaData()->setDesiredSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
+            case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+                setWindowTitle("New Prospective Sample");
+                m_polyhedron->getSampleMetaData()->setProspectiveSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
                 break;
         }
     }
@@ -217,11 +217,11 @@ m_volumeSliceThickness(0.0)
     switch (m_polyhedron->getPolyhedronType()) {
         case AnnotationPolyhedronTypeEnum::INVALID:
             break;
-        case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
-            setWindowTitle("Edit Actual Sample Metadata");
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
+            setWindowTitle("Edit Retrospective Sample Metadata");
             break;
-        case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
-            setWindowTitle("Edit Desired Sample Metadata");
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+            setWindowTitle("Edit Prospective Sample Metadata");
             break;
     }
     /*
@@ -554,20 +554,20 @@ AnnotationSamplesMetaDataDialog::createPrimaryTabWidget()
     QObject::connect(m_sampleTypeComboBox, &QComboBox::currentTextChanged,
                      [=](const QString& text) { m_sampleMetaData->setSampleType(text); });
 
-    m_desiredSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getDesiredSampleEditDateLabelText(),
+    m_prospectiveSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getProspectiveSampleEditDateLabelText(),
                                                "Format is dd/mm/yyyy",
                                                gridLayout);
-    QObject::connect(m_desiredSampleEntryDateEdit, &QDateEdit::dateChanged,
+    QObject::connect(m_prospectiveSampleEntryDateEdit, &QDateEdit::dateChanged,
                      [=](QDate date) {
-        m_sampleMetaData->setDesiredSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
+        m_sampleMetaData->setProspectiveSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
     });
     
-    m_actualSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getActualSampleEditDateLabelText(),
+    m_retrospectiveSampleEntryDateEdit = addDateEdit(AnnotationSampleMetaData::getRetrospectiveSampleEditDateLabelText(),
                                               "Format is dd/mm/yyyy",
                                               gridLayout);
-    QObject::connect(m_actualSampleEntryDateEdit, &QDateEdit::dateChanged,
+    QObject::connect(m_retrospectiveSampleEntryDateEdit, &QDateEdit::dateChanged,
                      [=](QDate date) {
-        m_sampleMetaData->setActualSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
+        m_sampleMetaData->setRetrospectiveSampleEditDate(date.toString(AnnotationSampleMetaData::getDateFormat()));
     });
 
     
@@ -889,10 +889,10 @@ AnnotationSamplesMetaDataDialog::loadMetaDataIntoDialog()
     QSignalBlocker sampleTypeBlocker(m_sampleTypeComboBox);
     setComboBoxSelection(m_sampleTypeComboBox, m_sampleMetaData->getSampleType());
 
-    QSignalBlocker desiredDateBlocker(m_desiredSampleEntryDateEdit);
-    setDateEditSelection(m_desiredSampleEntryDateEdit, m_sampleMetaData->getDesiredSampleEditDate());
-    QSignalBlocker actualDateBlocker(m_actualSampleEntryDateEdit);
-    setDateEditSelection(m_actualSampleEntryDateEdit, m_sampleMetaData->getActualSampleEditDate());
+    QSignalBlocker prospectiveDateBlocker(m_prospectiveSampleEntryDateEdit);
+    setDateEditSelection(m_prospectiveSampleEntryDateEdit, m_sampleMetaData->getProspectiveSampleEditDate());
+    QSignalBlocker retrospectiveDateBlocker(m_retrospectiveSampleEntryDateEdit);
+    setDateEditSelection(m_retrospectiveSampleEntryDateEdit, m_sampleMetaData->getRetrospectiveSampleEditDate());
     m_hmbaParcelDingAbbreviationLineEdit->setText(m_sampleMetaData->getHmbaParcelDingAbbreviation());
     m_hmbaParcelDingFullNameLineEdit->setText(m_sampleMetaData->getHmbaParcelDingFullName());
     
@@ -968,8 +968,8 @@ AnnotationSamplesMetaDataDialog::readMetaDataFromDialog()
     m_sampleMetaData->setAllenSlabNumber(m_allenSlabNumberLineEdit->text().trimmed());
     m_sampleMetaData->setSlabFace(m_slabFaceComboBox->currentText());
     m_sampleMetaData->setSampleType(m_sampleTypeComboBox->currentText());
-    m_sampleMetaData->setDesiredSampleEditDate(getDateAsText(m_desiredSampleEntryDateEdit));
-    m_sampleMetaData->setActualSampleEditDate(getDateAsText(m_actualSampleEntryDateEdit));
+    m_sampleMetaData->setProspectiveSampleEditDate(getDateAsText(m_prospectiveSampleEntryDateEdit));
+    m_sampleMetaData->setRetrospectiveSampleEditDate(getDateAsText(m_retrospectiveSampleEntryDateEdit));
     m_sampleMetaData->setHmbaParcelDingAbbreviation(m_hmbaParcelDingAbbreviationLineEdit->text().trimmed());
     m_sampleMetaData->setHmbaParcelDingFullName(m_hmbaParcelDingFullNameLineEdit->text().trimmed());
     

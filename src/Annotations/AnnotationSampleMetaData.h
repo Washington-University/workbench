@@ -89,9 +89,9 @@ namespace caret {
         
         static AString getLocationLabelText() { return "Location"; }
         
-        static AString getDesiredSampleEditDateLabelText() { return "Desired Sample Edit Date"; }
+        static AString getProspectiveSampleEditDateLabelText() { return "Prospective Sample Edit Date"; }
         
-        static AString getActualSampleEditDateLabelText() { return "Actual Sample Edit Date"; }
+        static AString getRetrospectiveSampleEditDateLabelText() { return "Retrospective Sample Edit Date"; }
         
         static AString getHmbaParcelDingAbbreviationLabelText() { return "Hmba Parcel Ding Abbreviation"; }
         
@@ -139,9 +139,9 @@ namespace caret {
         
         void copyMetaDataForNewAnnotation(const AnnotationSampleMetaData& obj);
         
-        AString getActualSampleEditDate() const;
+        AString getRetrospectiveSampleEditDate() const;
         
-        void setActualSampleEditDate(const AString& value);
+        void setRetrospectiveSampleEditDate(const AString& value);
         
         AString getAllenLocalName() const;
         
@@ -171,9 +171,9 @@ namespace caret {
         
         void setComment(const AString& value);
         
-        AString getDesiredSampleEditDate() const;
+        AString getProspectiveSampleEditDate() const;
         
-        void setDesiredSampleEditDate(const AString& value);
+        void setProspectiveSampleEditDate(const AString& value);
         
         AString getHemisphere() const;
         
@@ -284,7 +284,8 @@ namespace caret {
         
         AString get(const AString& currentMetaDataName,
                     const AString& previousMetaDataNameOne = "",
-                    const AString& previousMetaDataNameTwo = "") const;
+                    const AString& previousMetaDataNameTwo = "",
+                    const AString& previousMetaDataNameThree = "") const;
         
         AString getArray(const int32_t index,
                          const AString& currentMetaDataName,
@@ -315,7 +316,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
-        static const AString SAMPLES_ACTUAL_SAMPLE_EDIT_DATE;
+        static const AString SAMPLES_RETROSPECTIVE_SAMPLE_EDIT_DATE;
         
         static const AString SAMPLES_ALLEN_LOCAL_NAME;
         
@@ -331,7 +332,7 @@ namespace caret {
         
         static const AString SAMPLES_COMMENT;
         
-        static const AString SAMPLES_DESIRED_SAMPLE_ENTRY_DATE;
+        static const AString SAMPLES_PROSPECTIVE_SAMPLE_ENTRY_DATE;
         
         static const AString SAMPLES_DING_ABBREVIATION;
         
@@ -433,7 +434,7 @@ namespace caret {
     };
     
 #ifdef __ANNOTATION_SAMPLE_META_DATA_DECLARE__
-    const AString AnnotationSampleMetaData::SAMPLES_ACTUAL_SAMPLE_EDIT_DATE = "Actual Sample Edit Date";
+    const AString AnnotationSampleMetaData::SAMPLES_RETROSPECTIVE_SAMPLE_EDIT_DATE = "Retrospective Sample Edit Date";
 
     const AString AnnotationSampleMetaData::SAMPLES_ALLEN_LOCAL_NAME = "Allen Local Name";
     
@@ -449,7 +450,7 @@ namespace caret {
     
     const AString AnnotationSampleMetaData::SAMPLES_COMMENT = "Comment";
     
-    const AString AnnotationSampleMetaData::SAMPLES_DESIRED_SAMPLE_ENTRY_DATE = "Desired Sample Entry Date";
+    const AString AnnotationSampleMetaData::SAMPLES_PROSPECTIVE_SAMPLE_ENTRY_DATE = "Prospective Sample Entry Date";
     
     const AString AnnotationSampleMetaData::SAMPLES_DING_ABBREVIATION = "Ding Abbreviation";
     

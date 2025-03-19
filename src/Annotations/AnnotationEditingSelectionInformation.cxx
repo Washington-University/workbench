@@ -180,9 +180,9 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
                 switch (groupKey.getGroupType()) {
                     case AnnotationGroupTypeEnum::INVALID:
                         break;
-                    case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                    case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
                         break;
-                    case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                    case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
                         break;
                     case AnnotationGroupTypeEnum::SPACE:
                         /*
@@ -215,9 +215,9 @@ AnnotationEditingSelectionInformation::update(const std::vector<Annotation*>& se
             switch (groupKey.getGroupType()) {
                 case AnnotationGroupTypeEnum::INVALID:
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+                case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
                     break;
-                case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+                case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
                     break;
                 case AnnotationGroupTypeEnum::SPACE:
                     /*

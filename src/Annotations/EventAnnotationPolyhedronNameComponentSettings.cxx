@@ -71,12 +71,12 @@ EventAnnotationPolyhedronNameComponentSettings::isShowNumber() const
 }
 
 /**
- * @return Show show actual/desired suffix
+ * @return Show show Prospective / Retrospective suffix
  */
 bool
-EventAnnotationPolyhedronNameComponentSettings::isShowActualDesiredSuffix() const
+EventAnnotationPolyhedronNameComponentSettings::isShowProspectiveRetrospectiveSuffix() const
 {
-    return m_showActualDesiredSuffixFlag;
+    return m_showProspectiveRetrospectiveSuffixFlag;
 }
 
 /**
@@ -102,12 +102,12 @@ EventAnnotationPolyhedronNameComponentSettings::setShowNumber(const bool status)
 }
 
 /**
- * Show actual/desired suffix
+ * Show Prospective Retrospective suffix
  * @param status
  *    New status
  */
 void
-EventAnnotationPolyhedronNameComponentSettings::setShowActualDesiredSuffix(const bool status)
+EventAnnotationPolyhedronNameComponentSettings::setShowProspectiveRetrospectiveSuffix(const bool status)
 {
-    m_showActualDesiredSuffixFlag = status;
+    m_showProspectiveRetrospectiveSuffixFlag = status;
 }

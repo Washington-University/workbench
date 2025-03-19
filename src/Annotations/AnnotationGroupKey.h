@@ -54,9 +54,9 @@ namespace caret {
         
         int32_t getUserGroupUniqueKey() const;
         
-        int32_t getSamplesActualUniqueKey() const;
+        int32_t getSamplesRetrospectiveUniqueKey() const;
         
-        int32_t getSamplesDesiredUniqueKey() const;
+        int32_t getSamplesProspectiveUniqueKey() const;
         
         // ADD_NEW_METHODS_HERE
 
@@ -75,9 +75,9 @@ namespace caret {
         
         void setUserGroupUniqueKey(const int32_t userGroupUniqueKey);
         
-        void setSamplesActualUniqueKey(const int32_t samplesActualUniqueKey);
+        void setSamplesRetrospectiveUniqueKey(const int32_t samplesRetrospectiveUniqueKey);
         
-        void setSamplesDesiredUniqueKey(const int32_t samplesDesiredUniqueKey);
+        void setSamplesProspectiveUniqueKey(const int32_t samplesProspectiveUniqueKey);
         
         AnnotationFile* m_annotationFile;
         
@@ -87,9 +87,9 @@ namespace caret {
         
         int32_t m_userGroupUniqueKey;
         
-        int32_t m_samplesActualGroupUniqueKey;
+        int32_t m_samplesRetrospectiveGroupUniqueKey;
         
-        int32_t m_samplesDesiredGroupUniqueKey;
+        int32_t m_samplesProspectiveGroupUniqueKey;
         
         friend class Annotation;
         friend class AnnotationFile;

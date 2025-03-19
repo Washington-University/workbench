@@ -140,7 +140,7 @@ SamplesDrawingSettings::setPolyhedronDrawingType(const AnnotationPolyhedronTypeE
 
 /**
  * @return The linked polyhedron identifier
- * A desired sample is linked to an actual sample and vice versa
+ * A prospective sample is linked to an retrospective sample and vice versa
  */
 AString
 SamplesDrawingSettings::getLinkedPolyhedronIdentifier() const
@@ -150,7 +150,7 @@ SamplesDrawingSettings::getLinkedPolyhedronIdentifier() const
 
 /**
  * Set the linked polyhedron identifier
- * A desired sample is linked to an actual sample and vice versa
+ * A prospective sample is linked to an retrospective sample and vice versa
  * @param linkedPolyhedonIdentifier
  *    The identifier
  */

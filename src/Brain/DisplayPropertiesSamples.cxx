@@ -62,8 +62,8 @@ m_parentBrain(parentBrain)
                           &m_displaySampleNames);
     m_sceneAssistant->add("m_displaySampleNumbers",
                           &m_displaySampleNumbers);
-    m_sceneAssistant->add("m_displaySampleActualDesiredSuffix",
-                          &m_displaySampleActualDesiredSuffix);
+    m_sceneAssistant->add("m_displaySampleActualDesiredSuffix", /* keep using old name so older scenes will work */
+                          &m_displaySampleProspectiveRetrospectiveSuffix);
     m_sceneAssistant->add<SamplesColorModeEnum, SamplesColorModeEnum::Enum>("m_colorMode",
                                                                             &m_colorMode);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
@@ -94,7 +94,7 @@ DisplayPropertiesSamples::receiveEvent(Event* event)
         CaretAssert(settingsEvent);
         settingsEvent->setShowName(isDisplaySampleNames());
         settingsEvent->setShowNumber(isDisplaySampleNumbers());
-        settingsEvent->setShowActualDesiredSuffix(isDisplaySampleActualDesiredSuffix());
+        settingsEvent->setShowProspectiveRetrospectiveSuffix(isDisplaySampleProspectiveRetrospectiveSuffix());
         settingsEvent->setEventProcessed();
     }
 }
@@ -154,7 +154,7 @@ DisplayPropertiesSamples::resetPrivate()
     m_displaySamples = true;
     m_displaySampleNames = true;
     m_displaySampleNumbers = true;
-    m_displaySampleActualDesiredSuffix = true;
+    m_displaySampleProspectiveRetrospectiveSuffix = true;
     m_colorMode = SamplesColorModeEnum::SAMPLE;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -245,24 +245,24 @@ DisplayPropertiesSamples::setDisplaySampleNumbers(const bool status)
 }
 
 /**
- * @return Status for displaying sample actual desired suffix
+ * @return Status for displaying sample prospective retrospective suffix
  */
 bool
-DisplayPropertiesSamples::isDisplaySampleActualDesiredSuffix() const
+DisplayPropertiesSamples::isDisplaySampleProspectiveRetrospectiveSuffix() const
 {
-    return m_displaySampleActualDesiredSuffix;
+    return m_displaySampleProspectiveRetrospectiveSuffix;
 }
 
 /**
- * Set the display status for samples actual desired suffix
+ * Set the display status for samples prospective retrospective suffix
  *
  * @param status
  *     New display status.
  */
 void
-DisplayPropertiesSamples::setDisplaySampleActualDesiredSuffix(const bool status)
+DisplayPropertiesSamples::setDisplaySampleProspectiveRetrospectiveSuffix(const bool status)
 {
-    m_displaySampleActualDesiredSuffix = status;
+    m_displaySampleProspectiveRetrospectiveSuffix = status;
 }
 
 /**

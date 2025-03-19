@@ -209,9 +209,9 @@ namespace caret {
         
         QComboBox* m_sampleTypeComboBox;
         
-        QDateEdit* m_desiredSampleEntryDateEdit;
+        QDateEdit* m_prospectiveSampleEntryDateEdit;
         
-        QDateEdit* m_actualSampleEntryDateEdit;
+        QDateEdit* m_retrospectiveSampleEntryDateEdit;
         
         QLineEdit* m_hmbaParcelDingAbbreviationLineEdit;
         

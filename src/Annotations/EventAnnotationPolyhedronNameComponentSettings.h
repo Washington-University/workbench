@@ -46,13 +46,13 @@ namespace caret {
         
         bool isShowNumber() const;
         
-        bool isShowActualDesiredSuffix() const;
+        bool isShowProspectiveRetrospectiveSuffix() const;
         
         void setShowName(const bool status);
         
         void setShowNumber(const bool status);
         
-        void setShowActualDesiredSuffix(const bool status);
+        void setShowProspectiveRetrospectiveSuffix(const bool status);
         
         // ADD_NEW_METHODS_HERE
         
@@ -61,7 +61,7 @@ namespace caret {
         
         bool m_showNumberFlag = true;
         
-        bool m_showActualDesiredSuffixFlag = true;
+        bool m_showProspectiveRetrospectiveSuffixFlag = true;
         
         // ADD_NEW_MEMBERS_HERE
 

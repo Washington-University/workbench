@@ -129,14 +129,14 @@ m_browserWindowIndex(browserWindowIndex)
 
     QLabel* newLabel(new QLabel("New "));
     
-    m_newDesiredSampleAction = new QAction();
-    m_newDesiredSampleAction->setText("Desired");
-    m_newDesiredSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE));
-    QObject::connect(m_newDesiredSampleAction, &QAction::triggered,
-                     this, &AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered);
-    m_newDesiredSampleToolButton = new QToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newDesiredSampleToolButton);
-    m_newDesiredSampleToolButton->setDefaultAction(m_newDesiredSampleAction);
+    m_newProspectiveSampleAction = new QAction();
+    m_newProspectiveSampleAction->setText("Prospective");
+    m_newProspectiveSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE));
+    QObject::connect(m_newProspectiveSampleAction, &QAction::triggered,
+                     this, &AnnotationSamplesInsertNewWidget::newProspectiveSampleActionTriggered);
+    m_newProspectiveSampleToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newProspectiveSampleToolButton);
+    m_newProspectiveSampleToolButton->setDefaultAction(m_newProspectiveSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
@@ -144,14 +144,14 @@ m_browserWindowIndex(browserWindowIndex)
     QObject::connect(m_samplesDrawingModeEnumComboBox, &EnumComboBoxTemplate::itemActivated,
                      this, &AnnotationSamplesInsertNewWidget::samplesDrawingModeEnumComboBoxItemActivated);
     
-    m_newActualSampleAction = new QAction();
-    m_newActualSampleAction->setText("Actual");
-    m_newActualSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE));
-    QObject::connect(m_newActualSampleAction, &QAction::triggered,
-                     this, &AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered);
-    m_newActualSampleToolButton = new QToolButton();
-    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newActualSampleToolButton);
-    m_newActualSampleToolButton->setDefaultAction(m_newActualSampleAction);
+    m_newRetrospectiveSampleAction = new QAction();
+    m_newRetrospectiveSampleAction->setText("Retrospective");
+    m_newRetrospectiveSampleAction->setToolTip(getNewSampleToolTip(AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE));
+    QObject::connect(m_newRetrospectiveSampleAction, &QAction::triggered,
+                     this, &AnnotationSamplesInsertNewWidget::newRetrospectiveSampleActionTriggered);
+    m_newRetrospectiveSampleToolButton = new QToolButton();
+    WuQtUtilities::setToolButtonStyleForQt5Mac(m_newRetrospectiveSampleToolButton);
+    m_newRetrospectiveSampleToolButton->setDefaultAction(m_newRetrospectiveSampleAction);
     
     m_samplesDrawingModeEnumComboBox = new EnumComboBoxTemplate(this);
     m_samplesDrawingModeEnumComboBox->setToolTip(SamplesDrawingModeEnum::getToolTip());
@@ -196,8 +196,8 @@ m_browserWindowIndex(browserWindowIndex)
     QHBoxLayout* samplesLayout(new QHBoxLayout(samplesWidget));
     WuQtUtilities::setLayoutSpacingAndMargins(samplesLayout, 2, 0);
     samplesLayout->addWidget(newLabel);
-    samplesLayout->addWidget(m_newDesiredSampleToolButton);
-    samplesLayout->addWidget(m_newActualSampleToolButton);
+    samplesLayout->addWidget(m_newProspectiveSampleToolButton);
+    samplesLayout->addWidget(m_newRetrospectiveSampleToolButton);
     samplesLayout->addWidget(m_samplesDrawingModeEnumComboBox->getWidget());
     samplesLayout->addSpacing(4);
     samplesLayout->addWidget(m_upperSliceOffsetLabel);
@@ -375,31 +375,31 @@ AnnotationSamplesInsertNewWidget::newFileActionTriggered()
 }
 
 /**
- * Called when new actual sample action triggered
+ * Called when new retrospective sample action triggered
  */
 void
-AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
+AnnotationSamplesInsertNewWidget::newRetrospectiveSampleActionTriggered()
 {
-    if ( ! isVolumeSliceMontageEnabledInSelectedTab(m_newActualSampleToolButton)) {
+    if ( ! isVolumeSliceMontageEnabledInSelectedTab(m_newRetrospectiveSampleToolButton)) {
         return;
     }
     
     SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile == NULL) {
-        WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+        WuQMessageBoxTwo::warning(m_newRetrospectiveSampleToolButton,
                                   "Warning",
                                   "No Samples File is selcted");
         return;
     }
     
-    const std::vector<AnnotationPolyhedron*> selectedDesiredPolyhedrons(getSelectedDesiredSamples());
-    const int32_t numDesiredPolygonsSelected(selectedDesiredPolyhedrons.size());
-    if (numDesiredPolygonsSelected == 0) {
-        const AString msg("No Desired Sample is selected.  Do you want to create an Actual "
-                          "Sample that is not associated with a Desired Sample.   If not, "
-                          "click No to close this dialog, select a Desired Sample, and "
-                          "click the Actual button again.");
-        const WuQMessageBoxTwo::StandardButton button(WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+    const std::vector<AnnotationPolyhedron*> selectedProspectivePolyhedrons(getSelectedProspectiveSamples());
+    const int32_t numProspectivePolygonsSelected(selectedProspectivePolyhedrons.size());
+    if (numProspectivePolygonsSelected == 0) {
+        const AString msg("No Prospective Sample is selected.  Do you want to create a Retrospective "
+                          "Sample that is not associated with a Prospective Sample.   If not, "
+                          "click No to close this dialog, select a Prospective Sample, and "
+                          "click the Retrospective button again.");
+        const WuQMessageBoxTwo::StandardButton button(WuQMessageBoxTwo::warning(m_newRetrospectiveSampleToolButton,
                                                                                 "Warning",
                                                                                 msg,
                                                                                 ((int)WuQMessageBoxTwo::StandardButton::Yes
@@ -407,46 +407,46 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
                                                                                 WuQMessageBoxTwo::StandardButton::No));
         if (button == WuQMessageBoxTwo::StandardButton::Yes) {
             AnnotationPolyhedron* linkedPolyhedron(NULL);
-            createNewSample(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
+            createNewSample(AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE,
                             linkedPolyhedron);
         }
     }
-    else if (numDesiredPolygonsSelected == 1) {
-        CaretAssertVectorIndex(selectedDesiredPolyhedrons, 0);
-        AnnotationPolyhedron* desiredPolyhedron(selectedDesiredPolyhedrons[0]);
-        CaretAssert(desiredPolyhedron);
+    else if (numProspectivePolygonsSelected == 1) {
+        CaretAssertVectorIndex(selectedProspectivePolyhedrons, 0);
+        AnnotationPolyhedron* prospectivePolyhedron(selectedProspectivePolyhedrons[0]);
+        CaretAssert(prospectivePolyhedron);
 
-        const AString desiredPolyLinkedIdentifier(desiredPolyhedron->getLinkedPolyhedronIdentifier());
+        const AString prospectivePolyLinkedIdentifier(prospectivePolyhedron->getLinkedPolyhedronIdentifier());
         EventAnnotationPolyhedronGetByLinkedIdentifier polyEvent(NULL,
-                                                                 AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
-                                                                 desiredPolyLinkedIdentifier);
+                                                                 AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE,
+                                                                 prospectivePolyLinkedIdentifier);
         EventManager::get()->sendEvent(polyEvent.getPointer());
         if (polyEvent.getPolyhedron() != NULL) {
-            const AString msg("There is an ACTUAL SAMPLE linked to the selected DESIRED SAMPLE.  "
-                              "Only one ACTUAL SAMPLE may be linked to a DESIRED SAMPLE.  Name of "
-                              "the existing ACTUAL SAMPLE is \""
+            const AString msg("There is an RETROSPECTIVE SAMPLE linked to the selected PROSPECTIVE SAMPLE.  "
+                              "Only one RETROSPECTIVE SAMPLE may be linked to a PROSPECTIVE SAMPLE.  Name of "
+                              "the existing RETROSPECTIVE SAMPLE is \""
                               + polyEvent.getPolyhedron()->getName() + "\"");
             WuQMessageBoxTwo::critical(this, "ERROR", msg);
             return;
         }
         
         QMenu menu(this);
-        QAction* copyAction = menu.addAction("Create as Copy of Desired Sample Polyhedron");
-        QAction* drawAction = menu.addAction("Draw Actual Sample as New Polyhedron");
-        QAction* actionSelected(menu.exec(m_newActualSampleToolButton->mapToGlobal(QPoint(0, 0))));
+        QAction* copyAction = menu.addAction("Create as Copy of Prospective Sample Polyhedron");
+        QAction* drawAction = menu.addAction("Draw Retrospective Sample as New Polyhedron");
+        QAction* actionSelected(menu.exec(m_newRetrospectiveSampleToolButton->mapToGlobal(QPoint(0, 0))));
         if (actionSelected == copyAction) {
-            AnnotationPolyhedron* actualPolyhedron(new AnnotationPolyhedron(*desiredPolyhedron));
-            actualPolyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE);
-            actualPolyhedron->setLinkedPolyhedronIdentifier(desiredPolyLinkedIdentifier);
-            actualPolyhedron->getSampleMetaData()->setActualSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
+            AnnotationPolyhedron* retrospectivePolyhedron(new AnnotationPolyhedron(*prospectivePolyhedron));
+            retrospectivePolyhedron->setPolyhedronType(AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE);
+            retrospectivePolyhedron->setLinkedPolyhedronIdentifier(prospectivePolyLinkedIdentifier);
+            retrospectivePolyhedron->getSampleMetaData()->setRetrospectiveSampleEditDate(AnnotationSampleMetaData::getCurrentDateInString());
             CaretAssert(samplesFile);
             EventAnnotationAddToRemoveFromFile addEvent(EventAnnotationAddToRemoveFromFile::MODE_CREATE,
                                                         samplesFile,
-                                                        actualPolyhedron);
+                                                        retrospectivePolyhedron);
             EventManager::get()->sendEvent(addEvent.getPointer());
             
             AnnotationManager* annMan(GuiManager::get()->getBrain()->getAnnotationManager(UserInputModeEnum::Enum::SAMPLES_EDITING));
-            std::vector<Annotation*> selectedAnnotations { actualPolyhedron };
+            std::vector<Annotation*> selectedAnnotations { retrospectivePolyhedron };
             annMan->setAnnotationsForEditing(m_browserWindowIndex,
                                              selectedAnnotations);
             
@@ -454,29 +454,29 @@ AnnotationSamplesInsertNewWidget::newActualSampleActionTriggered()
             EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
         else if (actionSelected == drawAction) {
-            createNewSample(AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE,
-                            desiredPolyhedron);
+            createNewSample(AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE,
+                            prospectivePolyhedron);
         }
     }
     else {
-        const AString msg("There is more than one Desired Sample selected.  There must be exactly one "
-                          "selected Desired Sample when creating an associated Actual Sample or no "
-                          "selected Desired Sample to create an unassociated Actual Sample.");
-        WuQMessageBoxTwo::warning(m_newActualSampleToolButton,
+        const AString msg("There is more than one Prospective Sample selected.  There must be exactly one "
+                          "selected Prospective Sample when creating an associated Retrospective Sample or no "
+                          "selected Prospective Sample to create an unassociated Retrospective Sample.");
+        WuQMessageBoxTwo::warning(m_newRetrospectiveSampleToolButton,
                                   "Warning",
                                   msg);
     }
 }
 
 /**
- * Called when new desired sample action triggered
+ * Called when new prospective sample action triggered
  */
 void
-AnnotationSamplesInsertNewWidget::newDesiredSampleActionTriggered()
+AnnotationSamplesInsertNewWidget::newProspectiveSampleActionTriggered()
 {
-    if (isVolumeSliceMontageEnabledInSelectedTab(m_newDesiredSampleToolButton)) {
+    if (isVolumeSliceMontageEnabledInSelectedTab(m_newProspectiveSampleToolButton)) {
         AnnotationPolyhedron* linkedPolyhedron(NULL);
-        createNewSample(AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE,
+        createNewSample(AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE,
                         linkedPolyhedron);
     }
 }
@@ -691,10 +691,10 @@ AnnotationSamplesInsertNewWidget::getAllPolyhedrons()
 }
 
 /**
- * @return All selected desired samples
+ * @return All selected prospective samples
  */
 std::vector<AnnotationPolyhedron*>
-AnnotationSamplesInsertNewWidget::getSelectedDesiredSamples()
+AnnotationSamplesInsertNewWidget::getSelectedProspectiveSamples()
 {
     std::vector<AnnotationPolyhedron*> polyhedrons;
     
@@ -706,9 +706,9 @@ AnnotationSamplesInsertNewWidget::getSelectedDesiredSamples()
             switch (ap->getPolyhedronType()) {
                 case AnnotationPolyhedronTypeEnum::INVALID:
                     break;
-                case AnnotationPolyhedronTypeEnum::ACTUAL_SAMPLE:
+                case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
                     break;
-                case AnnotationPolyhedronTypeEnum::DESIRED_SAMPLE:
+                case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
                     polyhedrons.push_back(ap);
                     break;
             }
@@ -778,11 +778,27 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
 AString
 AnnotationSamplesInsertNewWidget::getNewSampleToolTip(const AnnotationPolyhedronTypeEnum::Enum polyhedronType)
 {
+    AString retroText;
+    switch (polyhedronType) {
+        case AnnotationPolyhedronTypeEnum::INVALID:
+            break;
+        case AnnotationPolyhedronTypeEnum::PROSPECTIVE_SAMPLE:
+            break;
+        case AnnotationPolyhedronTypeEnum::RETROSPECTIVE_SAMPLE:
+            retroText = ("<ul>"
+                         "<li> To create a Retrospective Sample that <b>is linked</b> to an existing Prospective Sample,"
+                         " first select the Prospective Sample and then click this button "
+                         "<li> To create a Retrospective Sample that <b>is NOT linked</b> to an existing Prospective Sample,"
+                         " ensure that no samples are selected and then click this button "
+                         "</ul>");
+            break;
+    }
     const AString typeString(AnnotationPolyhedronTypeEnum::toGuiName(polyhedronType));
     const AString sampleToolTipText("<html>"
                                     "Click this button to initiate the drawing of a " + typeString + " polyhedron.<br>"
                                     "Use the <b>Slice</b> controls to exclude slices from drawing (a large 'X' "
-                                    "will appear over the excluded slices).  <br><br>"
+                                    "will appear over the excluded slices)."
+                                    + retroText +
                                     "To draw a sample polyhedron:"
                                     "<ul>"
                                     "<li> <i>Click</i> the mouse to insert coordinates and create straight, possibly longer lines"

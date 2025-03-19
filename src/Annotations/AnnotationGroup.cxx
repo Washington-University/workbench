@@ -95,11 +95,11 @@ SceneableInterface()
         case AnnotationGroupTypeEnum::INVALID:
             CaretAssertMessage(0, "Should never get here");
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-            m_groupKey.setSamplesActualUniqueKey(uniqueKey);
+        case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+            m_groupKey.setSamplesRetrospectiveUniqueKey(uniqueKey);
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-            m_groupKey.setSamplesDesiredUniqueKey(uniqueKey);
+        case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+            m_groupKey.setSamplesProspectiveUniqueKey(uniqueKey);
             break;
         case AnnotationGroupTypeEnum::SPACE:
             m_groupKey.setSpaceGroupUniqueKey(uniqueKey);
@@ -336,11 +336,11 @@ AnnotationGroup::getName() const
             case AnnotationGroupTypeEnum::INVALID:
                 CaretAssertMessage(0, "Should never get here");
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-                m_name.append("Actual");
+            case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+                m_name.append("Retrospective");
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-                m_name.append("Desired");
+            case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+                m_name.append("Prospective");
                 break;
             case AnnotationGroupTypeEnum::SPACE:
                 m_name.append(spaceName);
@@ -405,11 +405,11 @@ AnnotationGroup::getUniqueKey() const
         case AnnotationGroupTypeEnum::INVALID:
             CaretAssertMessage(0, "Should never get here");
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
-            uniqueKey = m_groupKey.getSamplesActualUniqueKey();
+        case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
+            uniqueKey = m_groupKey.getSamplesRetrospectiveUniqueKey();
             break;
-        case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
-            uniqueKey = m_groupKey.getSamplesDesiredUniqueKey();
+        case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
+            uniqueKey = m_groupKey.getSamplesProspectiveUniqueKey();
             break;
         case AnnotationGroupTypeEnum::SPACE:
             uniqueKey = m_groupKey.getSpaceGroupUniqueKey();

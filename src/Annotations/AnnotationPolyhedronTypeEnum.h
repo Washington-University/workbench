@@ -37,15 +37,17 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
-        /** Actual Sample */
-        ACTUAL_SAMPLE,
-        /** Desired Sample */
-        DESIRED_SAMPLE
+        /** Prospective Sample */
+        PROSPECTIVE_SAMPLE,
+        /** Retrospective Sample */
+        RETROSPECTIVE_SAMPLE
     };
 
 
     ~AnnotationPolyhedronTypeEnum();
 
+    static AString toAbbreviation(Enum enumValue);
+    
     static AString toName(Enum enumValue);
     
     static Enum fromName(const AString& name, bool* isValidOut);

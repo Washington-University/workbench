@@ -196,10 +196,10 @@ AnnotationClipboard::setContent(const std::vector<AnnotationAndFile>& annotation
             case AnnotationGroupTypeEnum::INVALID:
                 allInUserGroupFlag = false;
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_ACTUAL:
+            case AnnotationGroupTypeEnum::SAMPLES_RETROSPECTIVE:
                 allInUserGroupFlag = false;
                 break;
-            case AnnotationGroupTypeEnum::SAMPLES_DESIRED:
+            case AnnotationGroupTypeEnum::SAMPLES_PROSPECTIVE:
                 allInUserGroupFlag = false;
                 break;
             case AnnotationGroupTypeEnum::SPACE:

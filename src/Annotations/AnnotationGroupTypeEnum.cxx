@@ -116,13 +116,13 @@ AnnotationGroupTypeEnum::initialize()
                                     "INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_ACTUAL,
-                                               "SAMPLES_ACTUAL",
-                                               "Actual Sample Polyhedrons"));
+    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_RETROSPECTIVE,
+                                               "SAMPLES_RETROSPECTIVE",
+                                               "Retrospective Sample Polyhedrons"));
     
-    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_DESIRED,
-                                               "SAMPLES_DESIRED",
-                                               "Desired Sample Polyhedrons"));
+    enumData.push_back(AnnotationGroupTypeEnum(SAMPLES_PROSPECTIVE,
+                                               "SAMPLES_PROSPECTIVE",
+                                               "Prospective Sample Polyhedrons"));
     
     enumData.push_back(AnnotationGroupTypeEnum(SPACE,
                                     "SPACE", 
@@ -183,10 +183,17 @@ AnnotationGroupTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 AnnotationGroupTypeEnum::Enum 
-AnnotationGroupTypeEnum::fromName(const AString& name, bool* isValidOut)
+AnnotationGroupTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
+    AString name(nameIn);
+    if (name == "SAMPLES_ACTUAL") {
+        name = "SAMPLES_RETROSPECTIVE";
+    }
+    else if (name == "SAMPLES_DESIRED") {
+        name = "SAMPLES_PROSPECTIVE";
+    }
     bool validFlag = false;
     Enum enumValue = AnnotationGroupTypeEnum::enumData[0].enumValue;
     

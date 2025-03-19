@@ -122,9 +122,9 @@ m_browserWindowIndex(browserWindowIndex)
     m_displaySamplesNumberCheckBox->setObjectName(objectNamePrefix
                                                   + "Enable display of sample numbers");
     
-    m_displaySamplesActualDesiredSuffixCheckBox = new QCheckBox("Display Sample Actual/Desired Suffix");
-    m_displaySamplesActualDesiredSuffixCheckBox->setToolTip("Disables/enables display of actual/desired suffix in all windows");
-    QObject::connect(m_displaySamplesActualDesiredSuffixCheckBox, &QCheckBox::clicked,
+    m_displaySamplesProspectiveRetrospectiveSuffixCheckBox = new QCheckBox("Display Sample Prospective/Retrospective Suffix");
+    m_displaySamplesProspectiveRetrospectiveSuffixCheckBox->setToolTip("Disables/enables display of prospective/retrospective suffix in all windows");
+    QObject::connect(m_displaySamplesProspectiveRetrospectiveSuffixCheckBox, &QCheckBox::clicked,
                      this, &SamplesSelectionViewController::checkBoxToggled);
     
     QLabel* colorModeLabel(new QLabel("Color Source"));
@@ -145,7 +145,7 @@ m_browserWindowIndex(browserWindowIndex)
     layout->addWidget(m_displaySamplesCheckBox);
     layout->addWidget(m_displaySampleNamesCheckBox);
     layout->addWidget(m_displaySamplesNumberCheckBox);
-    layout->addWidget(m_displaySamplesActualDesiredSuffixCheckBox);
+    layout->addWidget(m_displaySamplesProspectiveRetrospectiveSuffixCheckBox);
     layout->addLayout(colorModeLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
@@ -229,7 +229,7 @@ SamplesSelectionViewController::updateSampleSelections()
     m_displaySamplesCheckBox->setChecked(dpa->isDisplaySamples());
     m_displaySampleNamesCheckBox->setChecked(dpa->isDisplaySampleNames());
     m_displaySamplesNumberCheckBox->setChecked(dpa->isDisplaySampleNumbers());
-    m_displaySamplesActualDesiredSuffixCheckBox->setChecked(dpa->isDisplaySampleActualDesiredSuffix());
+    m_displaySamplesProspectiveRetrospectiveSuffixCheckBox->setChecked(dpa->isDisplaySampleProspectiveRetrospectiveSuffix());
     m_samplesColorModeEnumComboBox->setSelectedItem<SamplesColorModeEnum,SamplesColorModeEnum::Enum>(dpa->getColorMode());
 
     Brain* brain = GuiManager::get()->getBrain();
@@ -372,7 +372,7 @@ SamplesSelectionViewController::checkBoxToggled()
     dpa->setDisplaySamples(m_displaySamplesCheckBox->isChecked());
     dpa->setDisplaySampleNames(m_displaySampleNamesCheckBox->isChecked());
     dpa->setDisplaySampleNumbers(m_displaySamplesNumberCheckBox->isChecked());
-    dpa->setDisplaySampleActualDesiredSuffix(m_displaySamplesActualDesiredSuffixCheckBox->isChecked());
+    dpa->setDisplaySampleProspectiveRetrospectiveSuffix(m_displaySamplesProspectiveRetrospectiveSuffixCheckBox->isChecked());
     
     updateOtherSampleViewControllers();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
