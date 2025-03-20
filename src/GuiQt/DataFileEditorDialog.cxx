@@ -359,9 +359,9 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
                 if (annotationFile != NULL) {
                     DataFileEditorColumnContent modelContent;
                     modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
-                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAME, "Group");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAMED, "Group");
                     modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "Coordinate");
-                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAME);
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAMED);
                     FunctionResultValue<DataFileEditorModel*> result = annotationFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();
@@ -422,9 +422,9 @@ DataFileEditorDialog::fileSelected(const EditorIndex editorIndex,
                 if (samplesFile != NULL) {
                     DataFileEditorColumnContent modelContent;
                     modelContent.addColumn(DataFileEditorItemTypeEnum::NAME, "Name");
-                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAME, "Group");
+                    modelContent.addColumn(DataFileEditorItemTypeEnum::GROUP_NAMED, "Group");
                     modelContent.addColumn(DataFileEditorItemTypeEnum::COORDINATES, "Coordinate");
-                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAME);
+                    modelContent.setDefaultSortingColumnDataType(DataFileEditorItemTypeEnum::GROUP_NAMED);
                     FunctionResultValue<DataFileEditorModel*> result = samplesFile->exportToDataFileEditorModel(modelContent);
                     if (result.isOk()) {
                         model = result.getValue();

@@ -2972,8 +2972,8 @@ AnnotationFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& m
                                                                       emptyRGBA));
                         }
                             break;
-                        case DataFileEditorItemTypeEnum::GROUP_NAME:
-                            rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::GROUP_NAME,
+                        case DataFileEditorItemTypeEnum::GROUP_NAMED:
+                            rowItems.push_back(new DataFileEditorItem(DataFileEditorItemTypeEnum::GROUP_NAMED,
                                                                       annShared,
                                                                       ag->getName(),
                                                                       (ag->getName() + ann->getName()),

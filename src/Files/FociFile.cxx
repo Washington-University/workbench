@@ -1028,7 +1028,7 @@ FociFile::exportToDataFileEditorModel(const DataFileEditorColumnContent& modelCo
                                                               xyzText,
                                                               emptyRGBA));
                     break;
-                case DataFileEditorItemTypeEnum::GROUP_NAME:
+                case DataFileEditorItemTypeEnum::GROUP_NAMED:
                     CaretAssert(0);
                     break;
                 case DataFileEditorItemTypeEnum::IDENTIFIER:

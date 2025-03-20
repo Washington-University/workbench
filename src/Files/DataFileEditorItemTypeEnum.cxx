@@ -76,7 +76,7 @@ switch (value) {
         break;
     case DataFileEditorItemTypeEnum::COORDINATES:
         break;
-    case DataFileEditorItemTypeEnum::GROUP_NAME:
+    case DataFileEditorItemTypeEnum::GROUP_NAMED:
         break;
     case DataFileEditorItemTypeEnum::IDENTIFIER:
         break;
@@ -133,8 +133,8 @@ DataFileEditorItemTypeEnum::initialize()
                                     "COORDINATES", 
                                     "Coordinates"));
     
-    enumData.push_back(DataFileEditorItemTypeEnum(GROUP_NAME, 
-                                    "GROUP_NAME", 
+    enumData.push_back(DataFileEditorItemTypeEnum(GROUP_NAMED,
+                                    "GROUP_NAMED", 
                                     "Group Name"));
     
     enumData.push_back(DataFileEditorItemTypeEnum(IDENTIFIER, 

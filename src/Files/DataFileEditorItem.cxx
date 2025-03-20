@@ -69,7 +69,7 @@ m_dataItemType(dataItemType)
             break;
         case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case DataFileEditorItemTypeEnum::GROUP_NAME:
+        case DataFileEditorItemTypeEnum::GROUP_NAMED:
             break;
         case DataFileEditorItemTypeEnum::IDENTIFIER:
             break;
@@ -110,7 +110,7 @@ m_dataItemType(dataItemType)
             break;
         case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case DataFileEditorItemTypeEnum::GROUP_NAME:
+        case DataFileEditorItemTypeEnum::GROUP_NAMED:
             break;
         case DataFileEditorItemTypeEnum::IDENTIFIER:
             break;
@@ -151,7 +151,7 @@ m_dataItemType(dataItemType)
             break;
         case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case DataFileEditorItemTypeEnum::GROUP_NAME:
+        case DataFileEditorItemTypeEnum::GROUP_NAMED:
             break;
         case DataFileEditorItemTypeEnum::IDENTIFIER:
             break;
@@ -184,7 +184,7 @@ m_dataItemType(obj.m_dataItemType)
             break;
         case DataFileEditorItemTypeEnum::COORDINATES:
             break;
-        case DataFileEditorItemTypeEnum::GROUP_NAME:
+        case DataFileEditorItemTypeEnum::GROUP_NAMED:
             break;
         case DataFileEditorItemTypeEnum::IDENTIFIER:
             break;

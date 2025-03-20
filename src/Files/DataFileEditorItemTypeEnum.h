@@ -39,8 +39,8 @@ public:
         CLASS_NAME,
         /** Coordinates */
         COORDINATES,
-        /** Group Name */
-        GROUP_NAME,
+        /** Group Name - note 'GROUP_NAME' is not allowed on Windows  - causes illegal token on right side of '::'*/
+        GROUP_NAMED,
         /** Identifier such as Focus ID*/
         IDENTIFIER,
         /** Name */
