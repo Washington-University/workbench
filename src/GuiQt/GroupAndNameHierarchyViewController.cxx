@@ -473,13 +473,20 @@ GroupAndNameHierarchyViewController::createTreeWidget()
     
     m_modelTreeWidget = new WuQTreeWidget();
     m_modelTreeWidget->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
-                     this, SLOT(itemWasCollapsed(QTreeWidgetItem*)));
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
-                     this, SLOT(itemWasExpanded(QTreeWidgetItem*)));
-    QObject::connect(m_modelTreeWidget, SIGNAL(itemChanged(QTreeWidgetItem*, int)),
-                     this, SLOT(itemWasChanged(QTreeWidgetItem*, int)));
-    
+    m_modelTreeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemCollapsed,
+                     this, &GroupAndNameHierarchyViewController::itemWasCollapsed);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemExpanded,
+                     this, &GroupAndNameHierarchyViewController::itemWasExpanded);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemChanged,
+                     this, &GroupAndNameHierarchyViewController::itemWasChanged);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemClicked,
+                     this, &GroupAndNameHierarchyViewController::treeItemClicked);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::itemDoubleClicked,
+                     this, &GroupAndNameHierarchyViewController::treeItemDoubleClicked);
+    QObject::connect(m_modelTreeWidget, &WuQTreeWidget::customContextMenuRequested,
+                     this, &GroupAndNameHierarchyViewController::showTreeViewContextMenu);
+
     m_modelTreeWidgetLayout->addWidget(m_modelTreeWidget, 0);
     
     m_modelTreeWidget->blockSignals(false);
@@ -644,6 +651,15 @@ GroupAndNameHierarchyViewController::updateSelectedAndExpandedCheckboxesInOtherV
 void
 GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
 {
+    /*
+     * Note: GroupAndNameHierarchyTreeWidgetItem do not correspond to individual
+     * borders and foci but to the aggreggated names and classes of the foci.
+     * Since they are not individual borders or foci, info or editing is not possible.
+     */
+    const bool showMenuFlag(false);
+    if ( ! showMenuFlag) {
+        return;
+    }
     if (m_modelTreeWidget != NULL) {
         const QModelIndex selectedIndex(m_modelTreeWidget->indexAt(pos));
         if (selectedIndex.isValid()) {
@@ -675,15 +691,6 @@ GroupAndNameHierarchyViewController::showSelectedItemMenu(const GroupAndNameHier
                                                             const QPoint& pos,
                                                             const bool /*infoButtonFlag*/)
 {
-    const bool showMenuFlag(false);
-    if ( ! showMenuFlag) {
-        /* Until this is needed */
-        return;
-    }
-    if (item == NULL) {
-        return;
-    }
-    
     QMenu menu(this);
     
     QAction* infoAction(menu.addAction("Info..."));
@@ -856,20 +863,24 @@ GroupAndNameHierarchyViewController::findTextLineEditTextChanged(const QString& 
 
 /**
  * Called when tree item is double clicked
- * @param modelIndex
- *     Model index that is
+ * @param item
+ *     Item that was clicked
+ * @param column
+ *     Column of click
  */
 void
-GroupAndNameHierarchyViewController::treeItemDoubleClicked(const QModelIndex& /*modelIndex*/)
+GroupAndNameHierarchyViewController::treeItemDoubleClicked(QTreeWidgetItem* item, int column)
 {
 }
 
 /**
- * Called when tree item is clicked
- * @param modelIndex
- *     Model index that is
+ * Called when tree item is  clicked
+ * @param item
+ *     Item that was clicked
+ * @param column
+ *     Column of click
  */
 void
-GroupAndNameHierarchyViewController::treeItemClicked(const QModelIndex& /*modelIndex*/)
+GroupAndNameHierarchyViewController::treeItemClicked(QTreeWidgetItem* item, int column)
 {
 }

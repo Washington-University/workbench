@@ -83,9 +83,9 @@ namespace caret {
 //        
 //        void processSelectionChanges();
         
-        void treeItemClicked(const QModelIndex& modelIndex);
+        void treeItemClicked(QTreeWidgetItem* item, int column);
         
-        void treeItemDoubleClicked(const QModelIndex& modelIndex);
+        void treeItemDoubleClicked(QTreeWidgetItem* item, int column);
         
         void collapseAllActionTriggered();
         
