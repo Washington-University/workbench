@@ -39,6 +39,8 @@ namespace caret {
         
         QModelIndex getIndexFromItem(const QTreeWidgetItem *item, int column = 0) const;
         
+        QTreeWidgetItem*    getItemFromIndex(const QModelIndex &index) const;
+        
     private slots:
         void itemExpandedOrCollapsed(QTreeWidgetItem*);
         

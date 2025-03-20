@@ -647,7 +647,7 @@ GroupAndNameHierarchyViewController::showTreeViewContextMenu(const QPoint& pos)
     if (m_modelTreeWidget != NULL) {
         const QModelIndex selectedIndex(m_modelTreeWidget->indexAt(pos));
         if (selectedIndex.isValid()) {
-            const QTreeWidgetItem* item(m_modelTreeWidget->itemFromIndex(selectedIndex));
+            const QTreeWidgetItem* item(m_modelTreeWidget->getItemFromIndex(selectedIndex));
             if (item != NULL) {
                 const GroupAndNameHierarchyTreeWidgetItem* gnhItem(dynamic_cast<const GroupAndNameHierarchyTreeWidgetItem*>(item));
                 if (gnhItem != NULL) {
