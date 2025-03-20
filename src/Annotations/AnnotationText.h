@@ -317,7 +317,7 @@ namespace caret {
     
     float AnnotationText::s_userDefaultCustomColorText[4] = { 1.0, 1.0, 1.0, 1.0 };
     
-    CaretColorEnum::Enum AnnotationText::s_userDefaultColorTextBackground = CaretColorEnum::WHITE;
+    CaretColorEnum::Enum AnnotationText::s_userDefaultColorTextBackground = CaretColorEnum::NONE;
     
     float AnnotationText::s_userDefaultCustomColorTextBackground[4] = { 0.0, 0.0, 0.0, 1.0 };
     
