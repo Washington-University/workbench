@@ -32,7 +32,6 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QSpinBox>
-#include <QTextEdit>
 #include <QToolButton>
 #include <QVBoxLayout>
 
@@ -68,6 +67,7 @@
 #include "SelectionItemVoxel.h"
 #include "WuQtUtilities.h"
 #include "WuQMessageBox.h"
+#include "WuQTextEditWithToolBarWidget.h"
 
 using namespace caret;
 
@@ -651,8 +651,8 @@ AnnotationCreateDialog::getAnnotationThatWasCreated()
 QWidget*
 AnnotationCreateDialog::createTextWidget()
 {
-    m_textEdit = new QTextEdit();
-    m_textEdit->setText("");
+    m_textEdit = new WuQTextEditWithToolBarWidget();
+    m_textEdit->setPlainText("");
     m_textEdit->selectAll();
     
     QGroupBox* groupBox = new QGroupBox("Text");

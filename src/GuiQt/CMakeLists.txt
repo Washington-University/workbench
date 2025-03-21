@@ -315,6 +315,7 @@ ELSE()
         WuQTabBar.h
         WuQTabWidget.h
         WuQTabWidgetWithSizeHint.h
+	WuQTextEditWithToolBarWidget.h
         WuQTextEditorDialog.h
         WuQTimedMessageDisplay.h
 	WuQToolTipHelper.h
@@ -679,6 +680,7 @@ WuQSpinBoxOddValue.h
 WuQTabBar.h
 WuQTabWidget.h
 WuQTabWidgetWithSizeHint.h
+WuQTextEditWithToolBarWidget.h
 WuQTextEditorDialog.h
 WuQTimedMessageDisplay.h
 WuQToolTipHelper.h
@@ -1027,6 +1029,7 @@ WuQSpinBoxOddValue.cxx
 WuQTabBar.cxx
 WuQTabWidget.cxx
 WuQTabWidgetWithSizeHint.cxx
+WuQTextEditWithToolBarWidget.cxx
 WuQTextEditorDialog.cxx
 WuQTimedMessageDisplay.cxx
 WuQToolTipHelper.cxx

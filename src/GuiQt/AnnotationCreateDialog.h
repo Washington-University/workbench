@@ -34,7 +34,6 @@ class QButtonGroup;
 class QCheckBox;
 class QDoubleSpinBox;
 class QSpinBox;
-class QTextEdit;
 
 namespace caret {
     class Annotation;
@@ -44,6 +43,7 @@ namespace caret {
     class MouseEvent;
     class Plane;
     class SelectionItemVoxel;
+    class WuQTextEditWithToolBarWidget;
 
     class AnnotationCreateDialog : public WuQDialogModal {
         
@@ -184,7 +184,7 @@ namespace caret {
         
         QButtonGroup* m_annotationSpaceButtonGroup = NULL;
         
-        QTextEdit* m_textEdit = NULL;
+        WuQTextEditWithToolBarWidget* m_textEdit = NULL;
         
         QLabel* m_imageFileNameLabel = NULL;
         
