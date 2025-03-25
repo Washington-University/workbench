@@ -208,6 +208,7 @@ VolumeMontageCoordinateDisplayTypeEnum.h
 VolumeSliceViewAllPlanesLayoutEnum.h
 VoxelColorUpdate.h
 VoxelIJK.h
+WorkbenchInstallationAssistant.h
 WorkbenchQtMessageHandler.h
 WorkbenchSpecialVersionEnum.h
 WuQMacro.h
@@ -368,6 +369,7 @@ VectorOperation.cxx
 VolumeMontageCoordinateDisplayTypeEnum.cxx
 VolumeSliceViewAllPlanesLayoutEnum.cxx
 VoxelColorUpdate.cxx
+WorkbenchInstallationAssistant.cxx
 WorkbenchQtMessageHandler.cxx
 WorkbenchSpecialVersionEnum.cxx
 WuQMacro.cxx

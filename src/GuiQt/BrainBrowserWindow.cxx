@@ -123,6 +123,7 @@
 #include "TileTabsLayoutManualConfiguration.h"
 #include "TileTabsGridConfigurationModifier.h"
 #include "WindowTabAspectRatios.h"
+#include "WorkbenchInstallationAssistantDialog.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQDoubleSpinBox.h"
 #include "WuQMacroManager.h"
@@ -1901,6 +1902,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processHcpUsersGroup()));
 
+    m_helpWorkbenchInstallationAssistantAction =
+    WuQtUtilities::createAction("Installation Assistant (Set Path)...",
+                                "Help with ",
+                                this,
+                                this,
+                                SLOT(processHelpWorkbenchInstallationAssistant()));
+
     m_helpHcpFeatureRequestAction =
     WuQtUtilities::createAction("Submit HCP Software Feature Request...",
                                 "Go to HCP Feature Request Website in your computer's web browser",
@@ -3062,6 +3070,8 @@ BrainBrowserWindow::createMenuHelp()
     menu->addAction(helpAction->text(),
                     this, SLOT(processShowHelpInformation()));
     menu->addAction(m_helpHcpUsersAction);
+    menu->addSeparator();
+    menu->addAction(m_helpWorkbenchInstallationAssistantAction);
     menu->addSeparator();
     menu->addAction(m_helpHcpWebsiteAction);
     menu->addAction(m_helpWorkbenchBugReportAction);
@@ -5088,6 +5098,19 @@ BrainBrowserWindow::processHcpUsersGroup()
 {
     QUrl url("https://groups.google.com/a/humanconnectome.org/g/hcp-users");
     QDesktopServices::openUrl(url);
+}
+
+/**
+ * Display Workbench Installation Assistant (setting path)
+ */
+void
+BrainBrowserWindow::processHelpWorkbenchInstallationAssistant()
+{
+    WorkbenchInstallationAssistantDialog* dialog(new WorkbenchInstallationAssistantDialog(this));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
 }
 
 /**

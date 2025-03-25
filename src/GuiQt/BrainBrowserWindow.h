@@ -243,6 +243,7 @@ namespace caret {
         void processHcpUsersGroup();
         void processHcpFeatureRequestWebsiteInBrowser();
         void processReportWorkbenchBug();
+        void processHelpWorkbenchInstallationAssistant();
         
         void processShowSurfacePropertiesDialog();
         void processShowVolumePropertiesDialog();
@@ -450,6 +451,7 @@ namespace caret {
         QAction* m_helpHcpUsersAction;
         QAction* m_helpHcpFeatureRequestAction;
         QAction* m_helpWorkbenchBugReportAction;
+        QAction* m_helpWorkbenchInstallationAssistantAction;
         
         QAction* m_developMenuAction;
         QAction* m_developerGraphicsTimingAction;

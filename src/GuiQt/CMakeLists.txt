@@ -276,6 +276,7 @@ ELSE()
         VolumeSurfaceOutlineViewController.h
 	WbMacroHelper.h
 	WbMacroWidgetActionsManager.h
+	WorkbenchInstallationAssistantDialog.h
         WuQCollapsibleWidget.h
 	WuQColorEditorWidget.h
         WuQDataEntryDialog.h
@@ -637,6 +638,7 @@ WbMacroCustomOperationTypeEnum.h
 WbMacroHelper.h
 WbMacroWidgetActionNames.h
 WbMacroWidgetActionsManager.h
+WorkbenchInstallationAssistantDialog.h
 WuQCollapsibleWidget.h
 WuQColorEditorWidget.h
 WuQDataEntryDialog.h
@@ -989,6 +991,7 @@ WbMacroCustomOperationSurfaceDefaultColor.cxx
 WbMacroCustomOperationTypeEnum.cxx
 WbMacroHelper.cxx
 WbMacroWidgetActionsManager.cxx
+WorkbenchInstallationAssistantDialog.cxx
 WuQCollapsibleWidget.cxx
 WuQColorEditorWidget.cxx
 WuQDataEntryDialog.cxx

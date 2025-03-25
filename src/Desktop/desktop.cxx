@@ -65,6 +65,7 @@
 #include "SceneDialog.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
+#include "WorkbenchInstallationAssistant.h"
 #include "WorkbenchQtMessageHandler.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -176,6 +177,11 @@ main(int argc, char* argv[])
         * Log the command parameters.
         */
         CaretLogFine("Running: " + caret_global_commandLine);
+        
+        /*
+         * Provide the application file path needed by the installation assistant
+         */
+        WorkbenchInstallationAssistant::setApplicationFilePath(argv[0]);
         
         /*
          * Setup OpenGL if using Qt 5's QOpenGLWidget.
