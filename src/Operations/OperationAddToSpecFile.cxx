@@ -34,7 +34,7 @@ AString OperationAddToSpecFile::getCommandSwitch()
 
 AString OperationAddToSpecFile::getShortDescription()
 {
-    return "ADD A FILE TO A SPECIFICATION FILE";
+    return "DEPRECATED: use -spec-file-modify";
 }
 
 OperationParameters* OperationAddToSpecFile::getParameters()
@@ -43,8 +43,9 @@ OperationParameters* OperationAddToSpecFile::getParameters()
     ret->addStringParameter(1, "specfile", "the specification file to add to");
     ret->addStringParameter(2, "structure", "the structure of the data file");
     ret->addStringParameter(3, "filename", "the path to the file");
-    AString myText = AString("The resulting spec file overwrites the existing spec file.  If the spec file doesn't exist, ") +
-        "it is created with default metadata.  The structure argument must be one of the following:\n\n";
+    AString myText = AString("DEPRECATED: this command may be removed in a future release, use -spec-file-modify.\n\n") +
+        "The resulting spec file overwrites the existing spec file.  If the spec file doesn't exist, " +
+        "it is created with default metadata.  The structure argument must be one of the following (you can use INVALID for cifti or volume files):\n\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)

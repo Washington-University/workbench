@@ -71,6 +71,9 @@ namespace caret {
         bool removeCaretDataFileByName(const AString& filename,
                                  const bool logSevereIfFailureToRemoveFileFlag = true);
         
+        bool removeFileFromSpecByName(const AString& filename,
+                                 const bool logSevereIfFailureToRemoveFileFlag = true);
+        
         SpecFileDataFile* changeFileName(SpecFileDataFile* specFileDataFile,
                             const AString& newFileName);
         

@@ -207,6 +207,7 @@
 #include "OperationShowScene.h"
 #include "OperationShowSceneTwo.h"
 #include "OperationSpecFileMerge.h"
+#include "OperationSpecFileModify.h"
 #include "OperationSpecFileRelocate.h"
 #include "OperationSurfaceClosestVertex.h"
 #include "OperationSurfaceCoordinatesToMetric.h"
@@ -411,7 +412,6 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeVectorOperation()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldAffineRegression()));
     
-    this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageDenseROI()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBackendAverageROICorrelation()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationBorderExportColorTable()));
@@ -469,6 +469,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationShowSceneTwo()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileMerge()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileModify()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSpecFileRelocate()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceClosestVertex()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSurfaceCoordinatesToMetric()));
@@ -510,15 +511,17 @@ CommandOperationManager::CommandOperationManager()
 #endif // WORKBENCH_HAVE_C11X
     this->commandOperations.push_back(new CommandUnitTest());
     
+    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
+    
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiConvertToScalar()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiCopyMapping()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationCiftiSeparateAll()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationMetricVertexSum()));
-    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationShowScene()));
     this->deprecatedOperations.push_back(new CommandParser(new AutoOperationSetMapName()));
-    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeAffineResample()));
-    this->deprecatedOperations.push_back(new CommandParser(new AutoAlgorithmVolumeWarpfieldResample()));
+    this->deprecatedOperations.push_back(new CommandParser(new AutoOperationShowScene()));
 }
 
 /**

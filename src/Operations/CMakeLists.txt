@@ -86,6 +86,7 @@ OperationSetStructure.h
 OperationShowScene.h
 OperationShowSceneTwo.h
 OperationSpecFileMerge.h
+OperationSpecFileModify.h
 OperationSpecFileRelocate.h
 OperationSurfaceClosestVertex.h
 OperationSurfaceCoordinatesToMetric.h
@@ -183,6 +184,7 @@ OperationSetStructure.cxx
 OperationShowScene.cxx
 OperationShowSceneTwo.cxx
 OperationSpecFileMerge.cxx
+OperationSpecFileModify.cxx
 OperationSpecFileRelocate.cxx
 OperationSurfaceClosestVertex.cxx
 OperationSurfaceCoordinatesToMetric.cxx

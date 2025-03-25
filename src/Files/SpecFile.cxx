@@ -389,7 +389,7 @@ SpecFile::addCaretDataFile(CaretDataFile* caretDataFile)
  *
  * @param If there is a a spec file entry with the given caret data file
  * remove it.  Note: file has likely already been deleted so use only the
- * the caret data file pointer but to not deference it.
+ * caret data file pointer but do not deference it.
  *
  * @param caretDataFile
  *    Caret data file that is removed from a spec file entry.
@@ -461,11 +461,12 @@ SpecFile::removeAllNonLoadedFiles()
 }
 
 /**
- * Remove a Caret Data File by its name.
+ * Remove a Caret Data File by its name, when this spec file is written to a scene.
  *
  * If there is a a spec file entry with the given caret data file
- * remove it.  Note: file has likely already been deleted so use only the
- * the caret data file pointer but to not deference it.
+ * set it to be removed when a scene file using this spec file is written.  Note: file has
+ * likely already been deleted so use only the caret data file pointer but
+ * do not deference it.
  *
  * @param filename
  *    Name of file.
@@ -534,6 +535,45 @@ SpecFile::removeCaretDataFileByName(const AString& filename,
     return false;
 }
 
+/**
+ * Immediately Remove a File by its name.
+ *
+ * If there is a a spec file entry with the given data file name,
+ * mark it as not a member.  Note: file has likely not been loaded or has been deleted already,
+ * so use only the caret data file pointer but do not deference it.
+ *
+ * @param filename
+ *    Name of file (exact).
+ * @param logSevereIfFailureToRemoveFileFlag
+ *   If true, log a message if failure to remove file
+ */
+bool
+SpecFile::removeFileFromSpecByName(const AString& filename,
+                                    const bool logSevereIfFailureToRemoveFileFlag)
+{
+    //exact match only
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+            iter != dataFileTypeGroups.end();
+            iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            SpecFileDataFile* sfdf = dataFileTypeGroup->getFileInformation(i);
+            if (sfdf->getFileName() == filename) {
+                sfdf->setCaretDataFile(NULL);
+                sfdf->setSpecFileMember(false);
+                return true;
+            }
+        }
+    }
+    
+    if (logSevereIfFailureToRemoveFileFlag) {
+        CaretLogSevere("Failed to remove CaretDataFile by exact name from SpecFile: "
+                        + filename);
+    }
+    
+    return false;
+}
 
 /**
  * Add a data file to this spec file.
@@ -645,6 +685,9 @@ SpecFile::addDataFilePrivate(const DataFileTypeEnum::Enum dataFileType,
                     }
                     if (fileSavingSelectionStatus) {
                         sfdf->setSavingSelected(fileSavingSelectionStatus);
+                    }
+                    if (specFileMemberStatus) {
+                        sfdf->setSpecFileMember(specFileMemberStatus);
                     }
                     return sfdf;
                 }
