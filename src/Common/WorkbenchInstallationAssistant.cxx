@@ -66,7 +66,22 @@ WorkbenchInstallationAssistant::setApplicationFilePath(const AString& applicatio
 WorkbenchInstallationAssistant::WorkbenchInstallationAssistant()
 : CaretObject()
 {
+    m_operatingSystem = OperatingSystem::OS_UNKNOWN;
+#ifdef CARET_OS_LINUX
+    m_operatingSystem = OperatingSystem::OS_LINUX;
+    m_pathSeparator = ":";
+#endif // CARET_OS_MACOSX
     
+#ifdef CARET_OS_MACOSX
+    m_operatingSystem = OperatingSystem::OS_MACOSX;
+    m_pathSeparator = ":";
+#endif // CARET_OS_MACOSX
+    
+#ifdef CARET_OS_WINDOWS
+    m_operatingSystem = OperatingSystem::OS_WINDOWS;
+    m_pathSeparator = ";";
+#endif // CARET_OS_MACOSX
+
 }
 
 /**
@@ -84,6 +99,8 @@ WorkbenchInstallationAssistant::~WorkbenchInstallationAssistant()
 FunctionResultString
 WorkbenchInstallationAssistant::findBinDirectory() const
 {
+    FunctionResultString result("", "", false);
+    
     try {
         if (s_applicationFilePath.isEmpty()) {
             return FunctionResultString("",
@@ -98,53 +115,152 @@ WorkbenchInstallationAssistant::findBinDirectory() const
         const QDir appDirPath(fileInfo.dir());
         verifyExists(appDirPath, "Application directory path");
 
-        
-#ifdef CARET_OS_LINUX
-        return findBinDirectoryLinux(appDirPath);
-#endif // CARET_OS_MACOSX
-        
-#ifdef CARET_OS_MACOSX
-        return findBinDirectoryMacos(appDirPath);
-#endif // CARET_OS_MACOSX
-        
-#ifdef CARET_OS_WINDOWS
-        return findBinDirectoryWindows(appDirPath);
-#endif // CARET_OS_MACOSX
-        
+        switch (m_operatingSystem) {
+            case OperatingSystem::OS_UNKNOWN:
+                throw CaretException("Unrecognized operating: system not Linux, nor macOS, nor Windows");
+                break;
+            case OperatingSystem::OS_LINUX:
+                result = findBinDirectoryLinux(appDirPath);
+                break;
+            case OperatingSystem::OS_MACOSX:
+                result = findBinDirectoryMacos(appDirPath);
+                break;
+            case OperatingSystem::OS_WINDOWS:
+                result = findBinDirectoryWindows(appDirPath);
+                break;
+        }
     }
     catch (const CaretException& caretException) {
         return FunctionResultString("",
                                     caretException.whatString(),
                                     false);
     }
-    return FunctionResultString("",
-                                "Unrecognized operating: system not Linux, nor macOS, nor Windows",
-                                false);
+    
+    return result;
 }
 
 /**
- * @return True if the given bin directory is in the user's PATH
+ * @return Result of testing if the bin directory is in the user's path
  */
-bool
-WorkbenchInstallationAssistant::isBinDirectoryInUsersPath(const AString& binDirectory) const
+FunctionResultString
+WorkbenchInstallationAssistant::testBinDirectoryInUsersPath(const AString& binDirectory) const
 {
     if (binDirectory.isEmpty()) {
-        return false;
+        return FunctionResultString("", "Bin directory is empty", false);
     }
     
     const AString usersPath(qEnvironmentVariable("PATH"));
-    if (m_debugFlag) std::cout << "PATH: " << usersPath << std::endl;
-    if ( ! usersPath.isEmpty()) {
-        if (usersPath.contains(binDirectory)) {
-            return true;
-        }
+    if (usersPath.isEmpty()) {
+        return FunctionResultString("", "User's PATH is empty", false);
     }
     
-    return false;
+    if (m_debugFlag) std::cout << "PATH: " << usersPath << std::endl;
+
+    AString pathText;
+    pathText.appendWithNewLine("User's PATH: "
+                               + usersPath);
+    
+    bool inPathFlag(false);
+    if (usersPath.startsWith(binDirectory
+                             + m_pathSeparator)) {
+        inPathFlag =  true;
+    }
+    if (usersPath.contains(m_pathSeparator
+                           + binDirectory
+                           + m_pathSeparator)) {
+        inPathFlag =  true;
+    }
+    if (usersPath.endsWith(m_pathSeparator
+                           + binDirectory)) {
+        inPathFlag = true;
+    }
+    
+    pathText.append("\n");
+    if (inPathFlag) {
+        pathText.appendWithNewLine("bin directory is in user's PATH");
+    }
+    else {
+        pathText.appendWithNewLine("bin directory is in NOT user's PATH");
+    }
+
+    return FunctionResultString(pathText, "", true);
 }
 
+/**
+ * @return Instructions for updating PATH environment in the user's shell if the bin directory
+ * was found, otherwise error.
+ */
+FunctionResultString
+WorkbenchInstallationAssistant::getShellPathUpdateInstructions() const
+{
+    const FunctionResultString binDirResult(findBinDirectory());
+    if (binDirResult.isError()) {
+        return binDirResult;
+    }
+    const AString binDirectory(binDirResult.getValue());
 
-//FunctionResultString testRunWbCommand() const;
+    bool unixFlag(false);
+    bool windowsFlag(false);
+    switch (m_operatingSystem) {
+        case OperatingSystem::OS_UNKNOWN:
+            break;
+        case OperatingSystem::OS_LINUX:
+            unixFlag = true;
+            break;
+        case OperatingSystem::OS_MACOSX:
+            unixFlag = true;
+            break;
+        case OperatingSystem::OS_WINDOWS:
+            windowsFlag = true;
+            break;
+    }
+    
+    AString instructionsText;
+    
+    if (unixFlag) {
+        const AString bashText("echo 'export PATH=\""
+                               + binDirectory
+                               + ":$PATH\"' >> ~/.bash_profile");
+        const AString tcshText("echo 'set PATH = ("
+                               + binDirectory
+                               + " $PATH)' >> ~/.cshrc");
+        const AString zshText("echo 'export PATH=\""
+                               + binDirectory
+                               + ":$PATH\"' >> ~/.zprofile");
+        
+        
+        const AString shellName(qEnvironmentVariable("SHELL"));
+        
+        instructionsText.appendWithNewLine("User's Shell: " + shellName);
+        instructionsText.append("\n");
+        instructionsText.appendWithNewLine(bashText);
+        instructionsText.append("\n");
+        instructionsText.appendWithNewLine(tcshText);
+        instructionsText.append("\n");
+        instructionsText.appendWithNewLine(zshText);
+
+        if (shellName == "/bin/bash") {
+        }
+        else if ((shellName == "/bin/csh")
+                 || (shellName == "/bin/tcsh")) {
+
+        }
+        else if (shellName == "/bin/zsh") {
+        }
+        else {
+            
+        }
+    }
+    if (windowsFlag) {
+        instructionsText = ("Add "
+                            + binDirectory);
+    }
+    
+    FunctionResultString result(instructionsText, "", true);
+    
+
+    return result;
+}
 
 
 /**
@@ -297,12 +413,18 @@ WorkbenchInstallationAssistant::findBinDirectoryWindows(const QDir& appDirPath) 
     /*
      * Scripts are in same directory as executables on Windows
      */
-    const AString binDirectoryName(appDirPath.absolutePath());
+    AString binDirectoryName(appDirPath.absolutePath());
     AString errorMessage;
     const FunctionResult scriptsResult(binDirectoryContainsScripts(binDirectoryName));
     if (scriptsResult.isError()) {
         errorMessage = scriptsResult.getErrorMessage();
     }
+    
+    /*
+     * Convert to window's backslashes
+     */
+    binDirectoryName = binDirectoryName.replace("/", "\\");
+                                                
     return FunctionResultString(binDirectoryName,
                                 errorMessage,
                                 errorMessage.isEmpty());

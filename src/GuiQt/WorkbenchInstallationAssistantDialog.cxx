@@ -50,6 +50,8 @@ WorkbenchInstallationAssistantDialog::WorkbenchInstallationAssistantDialog(QWidg
     
     m_pathTextEdit = new QTextEdit();
     m_pathTextEdit->setReadOnly(true);
+    m_pathTextEdit->setWordWrapMode(QTextOption::NoWrap);
+    m_pathTextEdit->setMinimumWidth(600);
     
     QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Close);
     QObject::connect(buttonBox, SIGNAL(rejected()),
@@ -83,11 +85,23 @@ WorkbenchInstallationAssistantDialog::loadPathInformation()
         text.appendWithNewLine("Bin Directory: " + result.getValue());
         
         text.append("\n");
-        if (assistant.isBinDirectoryInUsersPath(result.getValue())) {
-            text.appendWithNewLine("bin directory is in user's path");
+        
+        const FunctionResultString pathResult(assistant.testBinDirectoryInUsersPath(result.getValue()));
+        if (pathResult.isOk()) {
+            text.appendWithNewLine(pathResult.getValue());
         }
         else {
-            text.appendWithNewLine("bin directory is NOT in user's path");
+            text.appendWithNewLine(pathResult.getErrorMessage());
+        }
+        
+        text.append("\n");
+        
+        const FunctionResultString shellTextResult(assistant.getShellPathUpdateInstructions());
+        if (shellTextResult.isOk()) {
+            text.appendWithNewLine(shellTextResult.getValue());
+        }
+        else {
+            text.appendWithNewLine(shellTextResult.getErrorMessage());
         }
     }
     else {

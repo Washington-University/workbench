@@ -41,9 +41,9 @@ namespace caret {
         
         FunctionResultString findBinDirectory() const;
         
-        bool isBinDirectoryInUsersPath(const AString& binDirectory) const;
+        FunctionResultString testBinDirectoryInUsersPath(const AString& binDirectory) const;
         
-//        FunctionResultString testRunWbCommand() const;
+        FunctionResultString getShellPathUpdateInstructions() const;
         
         static void setApplicationFilePath(const AString& applicationFilePath);
         
@@ -56,6 +56,13 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        enum class OperatingSystem {
+            OS_UNKNOWN,
+            OS_LINUX,
+            OS_MACOSX,
+            OS_WINDOWS
+        };
+        
         void moveDown(QDir& dir,
                       const AString& subDirectoryName) const;
         
@@ -75,7 +82,11 @@ namespace caret {
         
         FunctionResultString findBinDirectoryWindows(const QDir& appDirPath) const;
         
+        OperatingSystem m_operatingSystem = OperatingSystem::OS_UNKNOWN;
+        
         bool m_debugFlag = false;
+        
+        AString m_pathSeparator = ":";
         
         static AString s_applicationFilePath;
         
