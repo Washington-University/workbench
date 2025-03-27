@@ -158,6 +158,14 @@ AnnotationSizingHandleTypeEnum::initialize()
                                                       "ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE",
                                                       "Editable Coordinate in a Poly Line"));
 
+    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE,
+                                                      "ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_ONE",
+                                                      "Polyhedron text coordinate one"));
+
+    enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO,
+                                                      "ANNOTATION_SIZING_HANDLE_POLYHEDRON_TEXT_COORDINATE_TWO",
+                                                      "Polyhedron text coordinate two"));
+
     enumData.push_back(AnnotationSizingHandleTypeEnum(ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE,
                                                       "ANNOTATION_SIZING_HANDLE_NOT_EDITABLE_POLY_LINE_COORDINATE",
                                                       "NOT Editable Coordinate in a Poly Line"));
