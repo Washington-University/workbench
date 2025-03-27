@@ -5688,7 +5688,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawMultiPairedCoordinateShape(Annota
                 if (drawEditableSizingHandlesFlag) {
                     sizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_EDITABLE_POLY_LINE_COORDINATE;
                     if (drawingSelectionModeFlag) {
-                        const float minSelectionPixelSize(8.0);
+                        const float minSelectionPixelSize(12.0);
                         if (sizeHandleWidthInPixels < minSelectionPixelSize) {
                             sizeHandleWidthInPixels = minSelectionPixelSize;
                         }
