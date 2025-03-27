@@ -464,6 +464,8 @@ namespace caret {
         bool mouseEventToStereotaxicCoordinate(const MouseEvent& mouseEvent,
                                                Vector3D& xyzOut) const;
         
+        SelectionItemAnnotation* performIdentificationAnnotations(const MouseEvent& mouseEvent);
+        
         UserInputModeAnnotationsWidget* m_annotationToolsWidget;
         
         Mode m_mode;

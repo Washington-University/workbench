@@ -3183,14 +3183,10 @@ void
 UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
                                                   SelectionItemAnnotation* annotationIDIn)
 {
-    m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
-    
-    
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
     SelectionItemAnnotation* annotationID = annotationIDIn;
     if (annotationID == NULL) {
-        annotationID = openGLWidget->performIdentificationAnnotations(mouseEvent.getX(),
-                                                                      mouseEvent.getY());
+        annotationID = performIdentificationAnnotations(mouseEvent);
     }
 
     if (annotationID->isValid()) {
@@ -3201,6 +3197,7 @@ UserInputModeAnnotations::setAnnotationUnderMouse(const MouseEvent& mouseEvent,
     }
     else {
         m_annotationUnderMouse = NULL; 
+        m_annotationUnderMouseSizeHandleType = AnnotationSizingHandleTypeEnum::ANNOTATION_SIZING_HANDLE_NONE;
     }
     
     openGLWidget->updateCursor();
@@ -3403,8 +3400,7 @@ UserInputModeAnnotations::mouseLeftDoubleClick(const MouseEvent& mouseEvent)
     const int32_t mouseY = mouseEvent.getY();
     
     BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
-                                                                            mouseY);
+    SelectionItemAnnotation* annotationID(performIdentificationAnnotations(mouseEvent));
     if (annotationID->isValid()) {
         Annotation* annotation = annotationID->getAnnotation();
         if (annotation != NULL) {
@@ -3585,6 +3581,21 @@ UserInputModeAnnotations::selectAnnotation(Annotation* annotation)
     m_annotationUnderMouse   = annotation;
 }
 
+/**
+ * Perform annotation identification
+ * @param mouseEvent
+ *    The mouse event (uses mouse x/y)
+ * @return
+ *    Annotation selection information
+ */
+SelectionItemAnnotation* 
+UserInputModeAnnotations::performIdentificationAnnotations(const MouseEvent& mouseEvent)
+{
+    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
+    return openGLWidget->performIdentificationAnnotations(mouseEvent.getX(),
+                                                          mouseEvent.getY());
+}
+
 
 /**
  * Process a mouse left click for selection mode.
@@ -3604,10 +3615,6 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
     AnnotationManager* annotationManager = GuiManager::get()->getBrain()->getAnnotationManager(getUserInputMode());
     const std::vector<Annotation*> previousSelectedAnnotations(annotationManager->getAnnotationsSelectedForEditing(getBrowserWindowIndex()));
 
-    BrainOpenGLWidget* openGLWidget = mouseEvent.getOpenGLWidget();
-    const int mouseX = mouseEvent.getX();
-    const int mouseY = mouseEvent.getY();
-    
     /*
      * NOTE: When selecting annotations:
      *    (A) When the mouse is clicked WITHOUT the SHIFT key down, the user is in
@@ -3617,8 +3624,7 @@ UserInputModeAnnotations::processMouseSelectAnnotation(const MouseEvent& mouseEv
      *        'multi-annotation-selection-mode' and any number of annotation will
      *        be selected when this method completes.
      */
-    SelectionItemAnnotation* annotationID = openGLWidget->performIdentificationAnnotations(mouseX,
-                                                                                           mouseY);
+    SelectionItemAnnotation* annotationID(performIdentificationAnnotations(mouseEvent));
     Annotation* selectedAnnotation = annotationID->getAnnotation();
     
     /*
