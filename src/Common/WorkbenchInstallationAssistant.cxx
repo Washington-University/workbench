@@ -25,6 +25,10 @@
 
 #include <QDir>
 #include <QFileInfo>
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+#include <QtEnvironmentVariables>
+#endif
+#include <QtGlobal>
 
 #include "CaretAssert.h"
 #include "CaretException.h"
@@ -149,10 +153,11 @@ WorkbenchInstallationAssistant::testBinDirectoryInUsersPath(const AString& binDi
         return FunctionResultString("", "Bin directory is empty", false);
     }
     
-    const AString usersPath(qEnvironmentVariable("PATH"));
-    if (usersPath.isEmpty()) {
-        return FunctionResultString("", "User's PATH is empty", false);
+    const FunctionResultString pathResult(getEnvironmentVariable("PATH"));
+    if (pathResult.isError()) {
+        return pathResult;
     }
+    const AString usersPath(pathResult.getValue());
     
     if (m_debugFlag) std::cout << "PATH: " << usersPath << std::endl;
 
@@ -228,8 +233,11 @@ WorkbenchInstallationAssistant::getShellPathUpdateInstructions() const
                                + binDirectory
                                + ":$PATH\"' >> ~/.zprofile");
         
-        
-        const AString shellName(qEnvironmentVariable("SHELL"));
+        const FunctionResultString shellResult(getEnvironmentVariable("SHELL"));
+        if (shellResult.isError()) {
+            return shellResult;
+        }
+        const AString shellName(shellResult.getValue());
         
         instructionsText.appendWithNewLine("User's Shell: " + shellName);
         instructionsText.append("\n");
@@ -550,6 +558,33 @@ WorkbenchInstallationAssistant::binDirectoryContainsScripts(const AString& binDi
     }
     return FunctionResult::error(binDirectoryName
                                  + " is missing one or both of wb_view and wb_command");
+}
+
+/**
+ * @returns FunctionResult with value of variable.  If variable does not exist or its values is empy
+ * an error is returned.
+ */
+FunctionResultString
+WorkbenchInstallationAssistant::getEnvironmentVariable(const AString& name) const
+{
+    AString value;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    if (qEnvironmentVariableIsSet(name.toLatin1())) {
+        value = qEnvironmentVariable(name.toLatin1());
+    }
+#else
+    const QByteArray byteArray = qgetenv(name.toLatin1());
+    if ( ! byteArray.isNull()) {
+        value = QString::fromLocal8Bit(byteArray);
+    }
+#endif
+        
+    if ( ! value.isEmpty()) {
+        return FunctionResultString(value, "", true);
+    }
+    else {
+        return FunctionResultString("", ("Environment variable " + name + " is not set or empty"), false);
+    }
 }
 
 

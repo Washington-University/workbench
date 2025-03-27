@@ -52,6 +52,7 @@ namespace caret {
 
         WorkbenchInstallationAssistant& operator=(const WorkbenchInstallationAssistant&) = delete;
         
+        FunctionResultString getEnvironmentVariable(const AString& name) const;
 
         // ADD_NEW_METHODS_HERE
 
