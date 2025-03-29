@@ -189,6 +189,9 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
     const double nearValue(-100.0);
     const double farValue(100.0);
     
+    if (m_browserTabContent->isHistologyFlipXEnabled()) {
+        std::swap(orthoLeftOut, orthoRightOut);
+    }
     orthographicsProjectionOut.set(orthoLeftOut,
                                    orthoRightOut,
                                    orthoBottomOut,
@@ -464,6 +467,7 @@ BrainOpenGLHistologySliceDrawing::drawModelLayers(const GraphicsOrthographicProj
         }
 
 
+        glDisable(GL_CULL_FACE);
         GraphicsPrimitiveV3fT2f* primitive(mediaFile->getGraphicsPrimitiveForPlaneXyzDrawing(drawingData.m_tabIndex,
                                                                                              drawingData.m_overlayIndex));
         if (primitive != NULL) {

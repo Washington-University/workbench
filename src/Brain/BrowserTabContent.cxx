@@ -164,6 +164,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_identificationUpdatesVolumeSlices = prefs->isVolumeIdentificationDefaultedOn();
     m_identificationUpdatesHistologySlices = prefs->isHistologyIdentificationDefaultedOn();
     m_displayHistologyAxesCrosshairs = true;
+    m_histologyFlipXAxisFlag = false;
     
     m_displayVolumeAxesCrosshairs = prefs->isVolumeAxesCrosshairsDisplayed();
     m_displayVolumeAxesCrosshairLabels = prefs->isVolumeAxesLabelsDisplayed();
@@ -275,6 +276,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_identificationUpdatesHistologySlices);
     m_sceneClassAssistant->add("m_displayHistologyAxesCrosshairs",
                                &m_displayHistologyAxesCrosshairs);
+    m_sceneClassAssistant->add("m_histologyFlipXAxisFlag",
+                               &m_histologyFlipXAxisFlag);
     
     m_sceneClassAssistant->add("m_displayVolumeAxesCrosshairs",
                                &m_displayVolumeAxesCrosshairs);
@@ -455,6 +458,7 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_identificationUpdatesVolumeSlices = tabToClone->m_identificationUpdatesVolumeSlices;
     m_identificationUpdatesHistologySlices = tabToClone->m_identificationUpdatesHistologySlices;
     m_displayHistologyAxesCrosshairs = tabToClone->m_displayHistologyAxesCrosshairs;
+    m_histologyFlipXAxisFlag = tabToClone->m_histologyFlipXAxisFlag;
     
     m_displayVolumeAxesCrosshairs = tabToClone->m_displayVolumeAxesCrosshairs;
     m_displayVolumeAxesCrosshairLabels = tabToClone->m_displayVolumeAxesCrosshairLabels;
@@ -7909,6 +7913,28 @@ BrowserTabContent::setHistologyAxesCrosshairsDisplayed(const bool displayed)
 }
 
 /**
+ * @return Is flip about X axis enabled for histology
+ */
+bool
+BrowserTabContent::isHistologyFlipXEnabled() const
+{
+    return m_histologyFlipXAxisFlag;
+}
+
+/**
+ * Set  flip about X axis enabled for histology
+ *
+ * @param status
+ *     New status
+ */
+void
+BrowserTabContent::setHistologyFlipXEnabled(const bool status)
+{
+    m_histologyFlipXAxisFlag = status;
+    updateBrainModelYokedBrowserTabs();
+}
+
+/**
  * @return Is lighting enabled ?
  */
 bool
@@ -8505,6 +8531,7 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_identificationUpdatesVolumeSlices = btc->m_identificationUpdatesVolumeSlices;
                 m_identificationUpdatesHistologySlices = btc->m_identificationUpdatesHistologySlices;
                 m_displayHistologyAxesCrosshairs = btc->m_displayHistologyAxesCrosshairs;
+                m_histologyFlipXAxisFlag = btc->m_histologyFlipXAxisFlag;
                 
                 m_displayVolumeAxesCrosshairs = btc->m_displayVolumeAxesCrosshairs;
                 m_displayVolumeAxesCrosshairLabels = btc->m_displayVolumeAxesCrosshairLabels;
@@ -8662,6 +8689,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_identificationUpdatesVolumeSlices = m_identificationUpdatesVolumeSlices;
                 btc->m_identificationUpdatesHistologySlices = m_identificationUpdatesHistologySlices;
                 btc->m_displayHistologyAxesCrosshairs = m_displayHistologyAxesCrosshairs;
+                btc->m_histologyFlipXAxisFlag = m_histologyFlipXAxisFlag;
                 btc->m_displayVolumeAxesCrosshairs = m_displayVolumeAxesCrosshairs;
                 btc->m_displayVolumeAxesCrosshairLabels = m_displayVolumeAxesCrosshairLabels;
                 btc->m_displayVolumeMontageAxesCoordinates = m_displayVolumeMontageAxesCoordinates;

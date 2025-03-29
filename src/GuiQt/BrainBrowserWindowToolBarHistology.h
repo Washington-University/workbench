@@ -76,6 +76,8 @@ namespace caret {
         
         void axisCrosshairActionTriggered(bool checked);
         
+        void flipXCheckboxClicked(bool checked);
+        
     private:
         HistologySlicesFile* getHistologySlicesFile(BrowserTabContent* browserTabContent);
         
@@ -113,6 +115,7 @@ namespace caret {
         
         QLabel* m_rotationAngleZLabel;
         
+        QCheckBox* m_flipXCheckBox;
 };
     
     

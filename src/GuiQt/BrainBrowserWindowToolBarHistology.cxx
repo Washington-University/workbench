@@ -228,6 +228,19 @@ m_parentToolBar(parentToolBar)
     m_rotationAngleZLabel->setAlignment(Qt::AlignRight);
 
     /*
+     * Mirror flip
+     */
+    m_flipXCheckBox = new QCheckBox("Flip");
+    m_flipXCheckBox->setToolTip("Flip about X-Axis (left on right)");
+    m_flipXCheckBox->setObjectName(objectNamePrefix
+                                              + "FlipX");
+    macroManager->addMacroSupportToObject(m_flipXCheckBox,
+                                          "Flip X of Histology Display");
+    
+    QObject::connect(m_flipXCheckBox, &QCheckBox::clicked,
+                     this, &BrainBrowserWindowToolBarHistology::flipXCheckboxClicked);
+    
+    /*
      * Layout widgets
      */
     int columnIndex(0);
@@ -277,6 +290,8 @@ m_parentToolBar(parentToolBar)
                               row, columnSliceLabels, Qt::AlignRight);
     controlsLayout->addWidget(identificationMovesSlicesToolButton,
                               row, columnSliceSpinBoxes, Qt::AlignLeft);
+    controlsLayout->addWidget(m_flipXCheckBox,
+                              row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(moveToCenterToolButton,
                               row, columnStereotaxicSpinBoxes, Qt::AlignHCenter);
     ++row;
@@ -442,6 +457,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
         m_yokeOrientationCheckBox->setChecked(m_browserTabContent->isHistologyOrientationAppliedToYoking());
         m_showAxisCrosshairsAction->setChecked(m_browserTabContent->isHistologyAxesCrosshairsDisplayed());
+        m_flipXCheckBox->setChecked(m_browserTabContent->isHistologyFlipXEnabled());
     }
     
     setEnabled(histologySlicesFile != NULL);
@@ -832,3 +848,17 @@ BrainBrowserWindowToolBarHistology::axisCrosshairActionTriggered(bool checked)
     }
 }
 
+/**
+ * Called when the Flip-X checkbox is clicked
+ * @param checked
+ *    New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::flipXCheckboxClicked(bool checked)
+{
+    if (m_browserTabContent != NULL) {
+        m_browserTabContent->setHistologyFlipXEnabled(checked);
+        updateGraphicsWindowAndYokedWindows();
+        updateUserInterface();
+    }
+}
