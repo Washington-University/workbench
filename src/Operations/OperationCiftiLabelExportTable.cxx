@@ -21,6 +21,7 @@
 #include "OperationCiftiLabelExportTable.h"
 #include "OperationException.h"
 
+#include "CaretHierarchy.h"
 #include "CiftiFile.h"
 #include "GiftiLabel.h" //we should rename these to not imply that they are gifti-specific
 #include "GiftiLabelTable.h"
@@ -49,6 +50,9 @@ OperationParameters* OperationCiftiLabelExportTable::getParameters()
     ret->addStringParameter(2, "map", "the number or name of the label map to use");
     
     ret->addStringParameter(3, "table-out", "output - the output text file");//fake output formatting
+    
+    OptionalParameter* hierOpt = ret->createOptionalParameter(4, "-hierarchy", "export the hierarchy as json");
+    hierOpt->addStringParameter(1, "json-out", "output - filename to write hierarchy to"); //fake the output formatting
     
     ret->setHelpText(
         AString("Takes the label table from the cifti label map, and writes it to a text format matching what is expected by -cifti-label-import.")
@@ -88,5 +92,10 @@ void OperationCiftiLabelExportTable::useParameters(OperationParameters* myParams
             << floatTo255(thisLabel->getBlue()) << " "
             << floatTo255(thisLabel->getAlpha()) << endl;
         if (!outFile) throw OperationException("error writing to output text file");
+    }
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(4);
+    if (hierOpt->m_present)
+    {
+        myTable->getHierarchy().writeJsonFile(hierOpt->getString(1));
     }
 }

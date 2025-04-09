@@ -21,6 +21,7 @@
 #include "OperationLabelExportTable.h"
 #include "OperationException.h"
 
+#include "CaretHierarchy.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
@@ -48,6 +49,9 @@ OperationParameters* OperationLabelExportTable::getParameters()
     ret->addLabelParameter(1, "label-in", "the input label file");
     
     ret->addStringParameter(2, "table-out", "output - the output text file");//fake output formatting
+    
+    OptionalParameter* hierOpt = ret->createOptionalParameter(3, "-hierarchy", "export the hierarchy as json");
+    hierOpt->addStringParameter(1, "json-out", "output - filename to write hierarchy to"); //fake the output formatting
     
     ret->setHelpText(
         AString("Takes the label table from the gifti label file, and writes it to a text format matching what is expected by -metric-label-import.")
@@ -81,5 +85,10 @@ void OperationLabelExportTable::useParameters(OperationParameters* myParams, Pro
             << floatTo255(thisLabel->getBlue()) << " "
             << floatTo255(thisLabel->getAlpha()) << endl;
         if (!outFile) throw OperationException("error writing to output text file");
+    }
+    OptionalParameter* hierOpt = myParams->getOptionalParameter(3);
+    if (hierOpt->m_present)
+    {
+        myTable->getHierarchy().writeJsonFile(hierOpt->getString(1));
     }
 }

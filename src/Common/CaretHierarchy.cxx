@@ -22,6 +22,8 @@
 
 #include "CaretAssert.h"
 #include "CaretException.h"
+
+#include "CaretBinaryFile.h"
 #include "CaretPointer.h"
 #include "CaretLogger.h"
 
@@ -293,6 +295,27 @@ namespace
             recurseJsonArrayish(hierarchyOut, thisobj.value("children"), toAdd.name);
         }
     }
+    
+    QJsonArray writeJsonHelper(const CaretHierarchy::Item& localroot)
+    {//handles children array, name and extradata of localroot are taken care of by caller
+        QJsonArray ret;
+        for (auto child : localroot.children)
+        {
+            QJsonObject childObj;
+            childObj.insert("name", child.name);
+            auto extraVec = child.extraInfo.getAllData();
+            for (auto item : extraVec)
+            {
+                childObj.insert(item.first, item.second);//everything is a string now, we didn't store the types
+            }
+            if (child.children.size() > 0)
+            {
+                childObj.insert("children", writeJsonHelper(child));
+            }
+            ret.push_back(childObj);
+        }
+        return ret;
+    }
 }
 
 void CaretHierarchy::readJsonFile(const AString& filename)
@@ -305,6 +328,16 @@ void CaretHierarchy::readJsonFile(const AString& filename)
     recurseJsonArrayish(*this, QJsonValue::fromVariant(myjson.toVariant()));
 }
 
+void CaretHierarchy::writeJsonFile(const AString& filename) const
+{
+    QJsonArray myArray = writeJsonHelper(m_root);
+    QJsonDocument myDoc;
+    myDoc.setArray(myArray);
+    CaretBinaryFile jsonfile(filename, CaretBinaryFile::READ_WRITE_TRUNCATE);
+    QByteArray outBytes = myDoc.toJson();
+    jsonfile.write(outBytes.constData(), outBytes.size());
+}
+
 void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
 {
     for (int index = 0; index < int(children.size()); ++index)
@@ -312,8 +345,6 @@ void CaretHierarchy::Item::QSIModelHelper(QStandardItem* qsiOut) const
         const Item& child = children[index];
         auto node = new QStandardItem(child.name);
         qsiOut->setChild(index, node);
-        //FIXME: "id" is defunct, figure out how best to stuff vector<pair<AString, AString> > into a QVariant
-        //node->setData(QVariant(QString("defunct")));
         child.QSIModelHelper(node);
     }
 }

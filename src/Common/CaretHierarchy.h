@@ -56,6 +56,7 @@ namespace caret
         
         QString writeXMLToString() const;
         void writeXML(QXmlStreamWriter& xml) const;
+        void writeJsonFile(const AString& filename) const;
         
         QStandardItemModel* buildQSIModel() const; //NOTE: allocates a new, unowned object
         
@@ -103,7 +104,6 @@ namespace caret
             bool add(const Item& toAdd, const AString parent, OrderedKVStore** extraInfoOut); //search for parent and add to its children - reverse depth first for parsing to be somewhat efficient
             
             AString name;
-            //AString id; //NOTE: defunct
             OrderedKVStore extraInfo;
             std::vector<Item> children;
             
