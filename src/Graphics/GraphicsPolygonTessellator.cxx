@@ -397,7 +397,7 @@ GraphicsPolygonTessellator::combineCallbackData(GLdouble coords[3],
             }
         }
         
-        if (maxWeightIndex >= 0) {
+        if (maxWeightIndex > 0) {
             const Vertex* polygonVertexPtr(static_cast<Vertex*>(vertexData[i]));
             CaretAssert(polygonVertexPtr);
             
