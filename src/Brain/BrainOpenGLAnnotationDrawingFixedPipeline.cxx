@@ -5812,9 +5812,14 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawPolyhedronName(AnnotationFile* an
             }
         }
         else {
+            /*
+             * Note: Use 2D drawing method since is does not do depth testing.
+             * When drawing on histology slices, the 3D coord might be slightly
+             * 'behind' the histology slice and text would not be displayed if
+             * the 3D text drawing method is used.
+             */
             m_brainOpenGLFixedPipeline->getTextRenderer()->drawTextAtViewportCoords(viewportXYZ[0],
                                                                                     viewportXYZ[1],
-                                                                                    viewportXYZ[2],
                                                                                     annText,
                                                                                     flags);
             
