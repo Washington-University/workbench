@@ -1301,6 +1301,19 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
         dataFileInformation.addNameAndValue("Polyhedron Volume Failed"
                                             ,errorMessage);
     }
+    
+    const FunctionResultFloat curlVolumeResult(computePolyhedronVolumeCurlTheorem());
+    if (curlVolumeResult.isOk()) {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Curl Theorem)",
+                                            curlVolumeResult.getValue());
+        dataFileInformation.addNameAndValue("Curl Theorem",
+                                            "https://mathworld.wolfram.com/PolyhedronVolume.html");
+    }
+    else {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (curl theorem)",
+                                            curlVolumeResult.getErrorMessage());
+    }
+    
     getSampleMetaData()->addToDataFileContentInformation(this,
                                                          dataFileInformation);
 }
@@ -1458,6 +1471,107 @@ AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
     volumeOut = volume;
     
     return true;
+}
+
+/**
+ * @return Function result containing compution of polyhedron volume using curl theorem
+ * as described at https://mathworld.wolfram.com/PolyhedronVolume.html
+ */
+FunctionResultFloat
+AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
+{
+    float volume(0.0);
+    AString errorMessage;
+    
+    const int32_t numCoordinates(getNumberOfCoordinates());
+    if (numCoordinates >= 6) {
+        /*
+         * Find Center of Gravity of all coordinates
+         */
+        Vector3D cog(0.0, 0.0, 0.0);
+        for (int32_t i = 0; i < numCoordinates; i++) {
+            cog += getCoordinate(i)->getXYZ();
+        }
+        cog /= static_cast<float>(numCoordinates);
+            
+        /*
+         * Get the triangles (tessellators convert the
+         * polygon ends into triangles).  Also includes
+         * triangles formed by connecting the two
+         * polygon ends.
+         */
+        std::vector<Edge> edges;
+        std::vector<Triangle> triangles;
+        getEdgesAndTriangles(edges,
+                             triangles);
+        
+        /*
+         * Compute the volume as described at 
+         * https://mathworld.wolfram.com/PolyhedronVolume.html
+         *
+         * Formula => (1 / 6) * (Summation of each triangle 'a dot n')
+         *    where 'a' is first vertex in triangle and 'n' is the
+         *    normal vector defined as (b - a) X (c - a).
+         */
+        const int32_t numTriangles(triangles.size());
+        for (int32_t i = 0; i < numTriangles; i++) {
+            /*
+             * Vertices of triangle
+             */
+            CaretAssertVectorIndex(triangles, i);
+            Vector3D a(triangles[i].m_v1);
+            Vector3D b(triangles[i].m_v2);
+            Vector3D c(triangles[i].m_v3);
+            
+            /*
+             * Normal vector of triangle
+             */
+            const Vector3D bma(b - a);
+            const Vector3D cma(c - a);
+            Vector3D normal(bma.cross(cma));
+            
+            /*
+             * Compute normal vector pointing from center of polyhedron
+             * through triangle's center-of-gravity (average of a, b, c)
+             * This normal vector should point in roughly the same
+             * direction as the triangle's normal vector.
+             */
+            const Vector3D triangleCOG((a + b + c) / 3.0);
+            const Vector3D triangleCogNormal((triangleCOG - cog).normal());
+            
+            /*
+             * The normal vector of the triangle should point OUT
+             * of the polyhedron.
+             *
+             * If dot product is less than zero the triangle is oriented
+             * incorrectly (pointing into the polyhedron) so
+             * swap 'a' and 'c' and invert the triangle normal vector.
+             */
+            const float dotProd(normal.dot(triangleCogNormal));
+            if (dotProd < 0) {
+                std::swap(a, c);
+                normal *= -1.0;
+            }
+            
+            /*
+             * Add to volume summation
+             */
+            volume += (a.dot(normal));
+        }
+        
+        /*
+         * Finalize volume
+         */
+        volume /= 6.0;
+    }
+    else {
+        errorMessage = "Polyhedon contains less than 6 coordinates";
+    }
+    
+    FunctionResultFloat result(volume,
+                               errorMessage,
+                               errorMessage.isEmpty());
+    return result;
 }
 
 /**

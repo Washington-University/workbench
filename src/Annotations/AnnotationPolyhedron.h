@@ -24,6 +24,7 @@
 #include "AnnotationFontAttributesInterface.h"
 #include "AnnotationMultiPairedCoordinateShape.h"
 #include "AnnotationPolyhedronTypeEnum.h"
+#include "FunctionResult.h"
 #include "GraphicsPolygonTessellator.h"
 #include "Plane.h"
 #include "Vector3D.h"
@@ -189,7 +190,8 @@ namespace caret {
                                      float& endToEndDistanceOut,
                                      AString& warningMessageOut,
                                      AString& errorMessageOut) const;
-               
+        FunctionResultFloat computePolyhedronVolumeCurlTheorem() const;
+        
        Vector3D getPlaneOneNameStereotaxicXYZ() const;
        
        Vector3D getPlaneTwoNameStereotaxicXYZ() const;
