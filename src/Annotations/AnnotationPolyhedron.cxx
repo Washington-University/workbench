@@ -37,6 +37,7 @@
 #include "DataFileContentInformation.h"
 #include "EventAnnotationPolyhedronGetByLinkedIdentifier.h"
 #include "EventManager.h"
+#include "GraphicsUtilitiesOpenGL.h"
 #include "HtmlStringBuilder.h"
 #include "HtmlTableBuilder.h"
 #include "MathFunctions.h"
@@ -47,8 +48,6 @@
 
 using namespace caret;
 
-static bool debugFlag = false;
-    
 /**
  * \class caret::AnnotationPolyhedron
  * \brief An annotation poly line
@@ -1077,78 +1076,62 @@ AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                                       getCoordinate(iNext + farOffset)->getXYZ()));
         }
 
+        
         /*
          * Ends of polyhedron
          */
-        std::vector<GraphicsPolygonTessellator::Vertex> verticesEndOne;
-        std::vector<GraphicsPolygonTessellator::Vertex> verticesEndTwo;
+        std::vector<Vector3D> verticesEndOne;
+        std::vector<Vector3D> verticesEndTwo;
         for (int32_t i = 0; i < halfNumCoords; i++) {
-            verticesEndOne.emplace_back(i, getCoordinate(i)->getXYZ());
-            verticesEndTwo.emplace_back((i + halfNumCoords),
-                                   getCoordinate(i + halfNumCoords)->getXYZ());
+            verticesEndOne.push_back(getCoordinate(i)->getXYZ());
+            verticesEndTwo.push_back(getCoordinate(i + halfNumCoords)->getXYZ());
         }
         
+        const Vector3D endOneAvg(Vector3D::average(verticesEndOne));
+        const Vector3D endTwoAvg(Vector3D::average(verticesEndTwo));
+        const Vector3D endOneNormalVector((endOneAvg - endTwoAvg).normal());
+        const Vector3D endTwoNormalVector(-endOneNormalVector);
         
         {
-            std::vector<Triangle> triangles;
-            tessellatePolygon(verticesEndOne, triangles);
-            m_tessellatedTriangles.insert(m_tessellatedTriangles.end(),
-                                triangles.begin(),
-                                triangles.end());
+            std::vector<Vector3D> triangleVertices;
+            const FunctionResult result(GraphicsUtilitiesOpenGL::tesselatePolygon(verticesEndOne,
+                                                                                  endOneNormalVector,
+                                                                                  triangleVertices));
+            if (result.isOk()) {
+                const int32_t numTriangles(triangleVertices.size() / 3);
+                for (int32_t i = 0; i < numTriangles; i++) {
+                    const int32_t i3(i*3);
+                    m_tessellatedTriangles.emplace_back(triangleVertices[i3],
+                                                        triangleVertices[i3+1],
+                                                        triangleVertices[i3+2]);
+                }
+            }
+            else {
+                CaretLogSevere(result.getErrorMessage());
+            }
         }
         
         {
-            std::vector<Triangle> triangles;
-            tessellatePolygon(verticesEndTwo, triangles);
-            m_tessellatedTriangles.insert(m_tessellatedTriangles.end(),
-                                triangles.begin(),
-                                triangles.end());
+            std::vector<Vector3D> triangleVertices;
+            const FunctionResult result(GraphicsUtilitiesOpenGL::tesselatePolygon(verticesEndTwo,
+                                                                                  endTwoNormalVector,
+                                                                                  triangleVertices));
+            if (result.isOk()) {
+                const int32_t numTriangles(triangleVertices.size() / 3);
+                for (int32_t i = 0; i < numTriangles; i++) {
+                    const int32_t i3(i*3);
+                    m_tessellatedTriangles.emplace_back(triangleVertices[i3],
+                                                        triangleVertices[i3+1],
+                                                        triangleVertices[i3+2]);
+                }
+            }
+            else {
+                CaretLogSevere(result.getErrorMessage());
+            }
         }
     }
     
     trianglesOut = m_tessellatedTriangles;
-}
-
-/**
- * Tessellate vertices in the polygon into triangles
- * @param polygon
- *    The input polygon
- * @param trianglesOut
- *    Output with triangles
- */
-void
-AnnotationPolyhedron::tessellatePolygon(const std::vector<GraphicsPolygonTessellator::Vertex>& polygon,
-                                        std::vector<Triangle>& trianglesOut) const
-{
-    trianglesOut.clear();
-    
-    AString errorMessage;
-    GraphicsPolygonTessellator tess(polygon,
-                                    m_planeOne.getNormalVector());
-    std::vector<GraphicsPolygonTessellator::Vertex> triangleVertices;
-    if (tess.tessellate(triangleVertices,
-                        errorMessage)) {
-        const int32_t numTriangles(triangleVertices.size() / 3);
-        CaretAssert(static_cast<int32_t>(triangleVertices.size()) == (numTriangles * 3));
-        for (int32_t i = 0; i < numTriangles; i++) {
-            const int32_t i3(i * 3);
-            trianglesOut.push_back(Triangle(triangleVertices[i3].m_xyz,
-                                            triangleVertices[i3+1].m_xyz,
-                                            triangleVertices[i3+2].m_xyz));
-        }
-        
-        if (debugFlag) {
-            std::cout << "Back from tessellator: " << std::endl;
-            for (auto v : triangleVertices) {
-                std::cout << v.m_vertexIndex << " " << v.m_xyz.toString() << std::endl;
-            }
-            std::cout << std::endl;
-        }
-    }
-    else {
-        CaretLogSevere("Tessellator Failed: "
-                       + errorMessage);
-    }
 }
 
 /**
@@ -1331,7 +1314,7 @@ AnnotationPolyhedron::getPolyhedronInformationHtml() const
 }
 
 /**
- * Compute the volume and other measurements of the polyhedron
+ * Compute the volume and other measurements of the polyhedron VERSION 1
  * @param volumeOut
  *    Output containing the volume of the polyhedron
  * @param endOneAreaOut
@@ -1378,22 +1361,12 @@ AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
     }
     
     /*
-     * Get matrix that rotates plane to align with the Z-axis
-     */
-    const Vector3D zAxis(0.0, 0.0, 1.0);
-    const Matrix4x4 matrix(Matrix4x4::rotationTo(m_planeOne.getNormalVector(),
-                                                 zAxis));
-    
-    /*
-     * Rotate coordinates to align with Z-axis
-     * and split coordinates into the two "end" polygons
+     * Split coordinates into the two "end" polygons
      */
     std::vector<Vector3D> polygonOne;
     std::vector<Vector3D> polygonTwo;
     for (int32_t i = 0; i < numCoords; i++) {
-        const Vector3D xyzOrig(getCoordinate(i)->getXYZ());
-        Vector3D xyz(xyzOrig);
-        matrix.multiplyPoint3(xyz);
+        const Vector3D xyz(getCoordinate(i)->getXYZ());
         
         if (i < numCoordPairs) {
             polygonOne.push_back(xyz);
@@ -1414,61 +1387,80 @@ AnnotationPolyhedron::computePolyhedronVolume(float& volumeOut,
     }
     
     /*
-     * Absolute distance between ends
+     * Normal vector for polyhedon end one to two
      */
-    const float absDeltaZ(std::fabs(polygonTwo[0][2] - polygonOne[0][2]));
-    
-    const int32_t numSteps(static_cast<int32_t>(absDeltaZ * 50.0));
-    const float stepPercentage(1.0 / static_cast<float>(numSteps));
-    
-    /*
-     * Z-coordinates should be same in each polygon
-     */
-    const float stepDelta(absDeltaZ / static_cast<float>(numSteps));
+    const Vector3D polyOneAvgXYZ(Vector3D::average(polygonOne));
+    const Vector3D polyTwoAvgXYZ(Vector3D::average(polygonTwo));
+    const Vector3D polyOneToTwoNormalVector((polyTwoAvgXYZ - polyOneAvgXYZ).normal());
     
     /*
-     * Compute the step, in XYZ, for each vertex
-     * between the two "end" polygons
+     * Area of each end of polyhedron
      */
-    std::vector<Vector3D> stepXYZ;
+    endOneAreaOut = GraphicsUtilitiesOpenGL::computePolygonArea3D(polygonOne,
+                                                                  polyOneToTwoNormalVector);
+    endTwoAreaOut = GraphicsUtilitiesOpenGL::computePolygonArea3D(polygonTwo,
+                                                                  polyOneToTwoNormalVector);
+
+    /*
+     * Step distance between each corresponding pair of coordiantes
+     */
+    const float numStepsFloat(250.0);
+    std::vector<Vector3D> polygonStep;
     for (int32_t i = 0; i < numCoordPairs; i++) {
         CaretAssertVectorIndex(polygonOne, i);
         CaretAssertVectorIndex(polygonTwo, i);
-        const Vector3D dxyz(polygonTwo[i] - polygonOne[i]);
-        const float stepDistance(dxyz.length() * stepPercentage);
-        stepXYZ.push_back(dxyz.normal() * stepDistance);
+        polygonStep.push_back((polygonTwo[i] - polygonOne[i]) / numStepsFloat);
+        if (i == 0) {
+            endToEndDistanceOut = (polygonTwo[i] - polygonOne[i]).length();
+        }
     }
+    CaretAssert(numCoordPairs == static_cast<int32_t>(polygonStep.size()));
     
-    endOneAreaOut = MathFunctions::polygonArea(polygonOne);
-    endTwoAreaOut = MathFunctions::polygonArea(polygonTwo);
-    endToEndDistanceOut = absDeltaZ;
     
     /*
      * Increment through the poyhedron from end to end
      * and compute volume of each sliver.
      */
-    float volume(0.0);
+    float polyhedronVolume(0.0);
+    const int32_t numSteps(static_cast<int32_t>(numStepsFloat));
     for (int32_t iStep = 0; iStep < numSteps; iStep++) {
+        /*
+         * Coordinates for a 'slice' of the polyhedon
+         */
         std::vector<Vector3D> p1;
         std::vector<Vector3D> p2;
         for (int32_t iCoord = 0; iCoord < numCoordPairs; iCoord++) {
             CaretAssertVectorIndex(polygonOne, iCoord);
-            CaretAssertVectorIndex(stepXYZ, iCoord);
+            CaretAssertVectorIndex(polygonStep, iCoord);
             const Vector3D v1(polygonOne[iCoord]
-                              + (iStep * stepXYZ[iCoord]));
-            const Vector3D v2(v1 + stepXYZ[iCoord]);
+                              + (iStep * polygonStep[iCoord]));
+            const Vector3D v2(v1 + polygonStep[iCoord]);
             p1.push_back(v1);
             p2.push_back(v2);
         }
         
-        const float areaOne(MathFunctions::polygonArea(p1));
-        const float areaTwo(MathFunctions::polygonArea(p2));
-        const float stepVolume(((areaOne + areaTwo) / 2.0)
-                               * stepDelta);
-        volume += stepVolume;
+        /*
+         * Thickness of the 'slice'
+         */
+        const Vector3D polygonOneAverageXYZ(Vector3D::average(p1));
+        const Vector3D polygonTwoAverageXYZ(Vector3D::average(p2));
+        const float thickness((polygonOneAverageXYZ - polygonTwoAverageXYZ).length());
+        
+        if (thickness > 0.0) {
+            /*
+             * Compute volume of 'slice' and add to polyhedron volume
+             */
+            const float areaOne(GraphicsUtilitiesOpenGL::computePolygonArea3D(p1,
+                                                                              polyOneToTwoNormalVector));
+            const float areaTwo(GraphicsUtilitiesOpenGL::computePolygonArea3D(p2,
+                                                                              polyOneToTwoNormalVector));
+            const float sliceVolume(((areaOne + areaTwo) / 2.0)
+                                    * thickness);
+            polyhedronVolume += sliceVolume;
+        }
     }
     
-    volumeOut = volume;
+    volumeOut = polyhedronVolume;
     
     return true;
 }
@@ -1524,11 +1516,34 @@ AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
             Vector3D c(triangles[i].m_v3);
             
             /*
-             * Normal vector of triangle
+             * Test to force backwards oriented triangles
+             */
+            const bool testFlag(false);
+            if (testFlag) {
+                if ((i == 0) || (i == 4)) {
+                    std::swap(a, c);
+                }
+            }
+            /*
+             * Test triangle has no area
+             * (all vertices coincident)
+             */
+            const float distAB((a - b).length());
+            const float distBC((b - c).length());
+            const float tolerance(0.001);
+            if ((distAB <= tolerance)
+                && (distBC <= tolerance)) {
+                continue;
+            }
+            
+            /*
+             * While the web page refers to it this as a 'normal' it
+             * is just the cross product.  If one were to normalize
+             * this value, the algorithm will fail.
              */
             const Vector3D bma(b - a);
             const Vector3D cma(c - a);
-            Vector3D normal(bma.cross(cma));
+            Vector3D crossProduct(bma.cross(cma));
             
             /*
              * Compute normal vector pointing from center of polyhedron
@@ -1547,16 +1562,17 @@ AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
              * incorrectly (pointing into the polyhedron) so
              * swap 'a' and 'c' and invert the triangle normal vector.
              */
-            const float dotProd(normal.dot(triangleCogNormal));
+            const Vector3D normalVector(crossProduct.normal());
+            const float dotProd(normalVector.dot(triangleCogNormal));
             if (dotProd < 0) {
                 std::swap(a, c);
-                normal *= -1.0;
+                crossProduct *= -1.0;
             }
             
             /*
              * Add to volume summation
              */
-            volume += (a.dot(normal));
+            volume += (a.dot(crossProduct));
         }
         
         /*

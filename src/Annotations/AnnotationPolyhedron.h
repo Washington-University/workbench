@@ -25,7 +25,6 @@
 #include "AnnotationMultiPairedCoordinateShape.h"
 #include "AnnotationPolyhedronTypeEnum.h"
 #include "FunctionResult.h"
-#include "GraphicsPolygonTessellator.h"
 #include "Plane.h"
 #include "Vector3D.h"
 
@@ -190,6 +189,7 @@ namespace caret {
                                      float& endToEndDistanceOut,
                                      AString& warningMessageOut,
                                      AString& errorMessageOut) const;
+        
         FunctionResultFloat computePolyhedronVolumeCurlTheorem() const;
         
        Vector3D getPlaneOneNameStereotaxicXYZ() const;
@@ -219,9 +219,6 @@ namespace caret {
         
         void initializeMembersAnnotationPolyhedron();
         
-        void tessellatePolygon(const std::vector<GraphicsPolygonTessellator::Vertex>& polygon,
-                               std::vector<Triangle>& trianglesOut) const;
-               
         std::unique_ptr<SceneClassAssistant> m_sceneAssistant;
 
         Plane m_planeOne;
