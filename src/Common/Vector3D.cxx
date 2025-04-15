@@ -18,6 +18,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <cmath>
 
 #include <QStringList>
@@ -364,4 +365,16 @@ Vector3D::fromString(const AString& s,
     }
 
     return xyz;
+}
+
+/// Average of vectors
+Vector3D
+Vector3D::average(const std::vector<Vector3D>& xyzs)
+{
+    Vector3D avg(0.0, 0.0, 0.0);
+    if ( ! xyzs.empty()) {
+        avg = std::accumulate(xyzs.begin(), xyzs.end(), Vector3D(0.0, 0.0, 0.0));
+        avg /= static_cast<float>(xyzs.size());
+    }
+    return avg;
 }
