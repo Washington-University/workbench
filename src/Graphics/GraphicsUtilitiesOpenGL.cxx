@@ -30,9 +30,11 @@
 #include "CaretLogger.h"
 #include "CaretOpenGLInclude.h"
 #include "GraphicsOpenGLError.h"
+#include "GraphicsPolygonTessellator.h"
 #include "EventManager.h"
 #include "EventOpenGLObjectToWindowTransform.h"
 #include "MathFunctions.h"
+
 using namespace caret;
 
 
@@ -622,3 +624,107 @@ GraphicsUtilitiesOpenGL::unproject(const float windowX,
     return false;
 }
 
+/**
+ * Note: Computation of the polygon area uses the OpenGL tessellator.  The tessellator breaks
+ * the polygon up into triangles.  The area of each triangle is computed and summed to create
+ * the area of the polygon.
+ *
+ * It is assumed that the coordinates of the polygon are coplanar.
+ *
+ * @return A function result containing the area of a polygon made up of the given coordinates
+ * @param polygonXYZ
+ *    Coordinates that form the polygon
+ * @param normalVector
+ *    Normal vector for the polygon
+ */
+float
+GraphicsUtilitiesOpenGL::computePolygonArea3D(const std::vector<Vector3D>& polygonXYZ,
+                                              const Vector3D& normalVector)
+{
+    const int32_t numXYZ(polygonXYZ.size());
+    if (numXYZ < 3) {
+        CaretLogSevere("Cannot find polygon area with "
+                       + AString::number(numXYZ)
+                       + " coordinates");
+        return 0.0;
+    }
+    
+    std::vector<GraphicsPolygonTessellator::Vertex> polygon;
+    for (int32_t i = 0; i < numXYZ; i++) {
+        CaretAssertVectorIndex(polygonXYZ, i);
+        polygon.emplace_back(i, polygonXYZ[i]);
+    }
+    
+    float polygonArea(0.0);
+    AString errorMessage;
+    GraphicsPolygonTessellator tess(polygon,
+                                    normalVector);
+    std::vector<GraphicsPolygonTessellator::Vertex> triangleVertices;
+    if (tess.tessellate(triangleVertices,
+                        errorMessage)) {
+        const int32_t numTriangles(triangleVertices.size() / 3);
+        CaretAssert(static_cast<int32_t>(triangleVertices.size()) == (numTriangles * 3));
+        for (int32_t i = 0; i < numTriangles; i++) {
+            const int32_t i3(i * 3);
+            const float area(MathFunctions::triangleArea(triangleVertices[i3].m_xyz,
+                                                         triangleVertices[i3+1].m_xyz,
+                                                         triangleVertices[i3+2].m_xyz));
+            polygonArea += area;
+        }
+    }
+    else {
+        CaretLogSevere("Polygon Area Tessellation Error: " + errorMessage);
+    }
+    
+    return polygonArea;
+}
+
+/**
+ * Tessellate a polygon into triangles.
+ * @param polygonXYZ
+ * @param normalVector
+ * @param triangleXYZOut
+ * @return
+ *    True if successful, else false.
+ */
+FunctionResult
+GraphicsUtilitiesOpenGL::tesselatePolygon(const std::vector<Vector3D>& polygonXYZ,
+                                          const Vector3D& normalVector,
+                                          std::vector<Vector3D>& triangleXYZOut)
+{
+    triangleXYZOut.clear();
+    
+    const int32_t numPolygonXYZ(polygonXYZ.size());
+    if (numPolygonXYZ < 3) {
+        return FunctionResult("Cannot tessllate polygon area with "
+                              + AString::number(numPolygonXYZ)
+                              + " coordinates",
+                              false);
+    }
+    else if (numPolygonXYZ == 3) {
+        triangleXYZOut = polygonXYZ;
+        return FunctionResult("", true);
+    }
+    
+    std::vector<GraphicsPolygonTessellator::Vertex> polygon;
+    for (int32_t i = 0; i < numPolygonXYZ; i++) {
+        CaretAssertVectorIndex(polygonXYZ, i);
+        polygon.emplace_back(i, polygonXYZ[i]);
+    }
+    
+    AString errorMessage;
+    GraphicsPolygonTessellator tess(polygon,
+                                    normalVector);
+    std::vector<GraphicsPolygonTessellator::Vertex> triangleVertices;
+    if (tess.tessellate(triangleVertices,
+                        errorMessage)) {
+        for (const GraphicsPolygonTessellator::Vertex& tv : triangleVertices) {
+            triangleXYZOut.push_back(tv.m_xyz);
+        }
+        
+        return FunctionResult("", true);
+    }
+    
+    return FunctionResult("Polygon Area Tessellation Error: " + errorMessage,
+                          false);
+}

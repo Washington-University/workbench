@@ -28,6 +28,7 @@
 
 #include "CaretObject.h"
 #include "CaretOpenGLInclude.h"
+#include "FunctionResult.h"
 
 namespace caret {
 
@@ -81,6 +82,12 @@ namespace caret {
                               const float windowY,
                               float modelXyzOut[3]);
         
+        static float computePolygonArea3D(const std::vector<Vector3D>& polygonXYZ,
+                                          const Vector3D& normalVector);
+
+        static FunctionResult tesselatePolygon(const std::vector<Vector3D>& polygonXYZ,
+                                               const Vector3D& normalVector,
+                                               std::vector<Vector3D>& triangleXYZOut);
     private:
         GraphicsUtilitiesOpenGL();
         
