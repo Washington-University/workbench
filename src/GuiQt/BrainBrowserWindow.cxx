@@ -3946,9 +3946,15 @@ BrainBrowserWindow::loadRecentScene(const AString& sceneFileName,
         return;
     }
 
+    /*
+     * NO parent for progress dialog.  If a browser window is used
+     * it could be closed if it was not open when the scene was
+     * created.  If browser window is closed its children are closed
+     * and that would include this progress window.
+     */
     ProgressReportingDialog progressDialog("Loading " + sceneName,
                                            "Initializing",
-                                           this);
+                                           NULL);
     
     const bool showSceneDialogFlag(false);
     GuiManager::get()->processShowSceneDialogAndScene(this,
