@@ -34,6 +34,7 @@
 #include "CaretUndoCommand.h"
 #include "CaretPointer.h"
 #include "EventListenerInterface.h"
+#include "FunctionResult.h"
 #include "SceneableInterface.h"
 #include "UserInputModeEnum.h"
 
@@ -51,7 +52,9 @@ namespace caret {
     class BrowserTabContent;
     class CaretUndoStack;
     class EventGetDisplayedDataFiles;
+    class SamplesFile;
     class SceneClassAssistant;
+    class Surface;
 
     class AnnotationManager : public CaretObject, public EventListenerInterface, public SceneableInterface {
         
@@ -156,6 +159,8 @@ namespace caret {
                                                          AString& errorMessageOut);
 
         std::vector<Annotation*> getAnnotationsInSameSpace(const Annotation* annotation);
+        
+        FunctionResultValue<std::vector<Surface*>> exportAllSamplesToSurfaces(const SamplesFile* samplesFile) const;
         
         // ADD_NEW_METHODS_HERE
 

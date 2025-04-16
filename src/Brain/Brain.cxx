@@ -27,6 +27,7 @@
 
 #include "AnnotationFile.h"
 #include "AnnotationManager.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationTextSubstitutionLayerSet.h"
 #include "AnnotationTextSubstitutionFile.h"
 #include "Border.h"
@@ -5502,6 +5503,33 @@ Brain::addReadOrReloadSamplesFile(const FileModeAddReadReload fileMode,
     
     return sf;
 }
+
+/**
+ * Copy all samples in the given samples file to surfaces
+ * @param samplesFile
+ *    The samples file
+ */
+FunctionResult
+Brain::copySamplesToSurfaces(const SamplesFile* samplesFile)
+{
+    CaretAssert(samplesFile);
+    
+    FunctionResultValue<std::vector<Surface*>> surfacesResult(m_samplesAnnotationsManager->exportAllSamplesToSurfaces(samplesFile));
+    std::vector<Surface*> allSurfaces(surfacesResult.getValue());
+    
+    for (Surface* ss : allSurfaces) {
+        const bool modifiedFlag(true);
+        addReadOrReloadSurfaceFile(FILE_MODE_ADD,
+                                   ss,
+                                   ss->getFileName(),
+                                   ss->getStructure(),
+                                   modifiedFlag);
+    }
+    
+    return FunctionResult(surfacesResult.getErrorMessage(),
+                          surfacesResult.isOk());
+}
+
 
 /**
  * @return Number of scene files.

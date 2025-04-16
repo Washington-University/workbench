@@ -33,6 +33,7 @@
 #include "FiberOrientationSamplesLoader.h"
 #include "FiberOrientationSamplesVector.h"
 #include "FileInformation.h"
+#include "FunctionResult.h"
 #include "SceneableInterface.h"
 #include "StructureEnum.h"
 #include "UserInputModeEnum.h"
@@ -534,6 +535,8 @@ namespace caret {
         const Scene* getActiveScene() const;
         
         SamplesMetaDataManager* getSamplesMetaDataManager() const;
+        
+        FunctionResult copySamplesToSurfaces(const SamplesFile* samplesFile);
         
     private:
         /**

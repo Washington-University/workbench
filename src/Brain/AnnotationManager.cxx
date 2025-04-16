@@ -33,6 +33,7 @@
 #include "AnnotationTwoCoordinateShape.h"
 #include "AnnotationRedoUndoCommand.h"
 #include "AnnotationEditingSelectionInformation.h"
+#include "AnnotationPolyhedron.h"
 #include "AnnotationScaleBar.h"
 #include "AnnotationStackingOrderOperation.h"
 #include "AnnotationOneCoordinateShape.h"
@@ -55,6 +56,7 @@
 #include "SamplesFile.h"
 #include "SceneClass.h"
 #include "SceneClassAssistant.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -1535,3 +1537,92 @@ AnnotationManager::shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector
     
     return false;
 }
+
+/**
+ * Export all samples to a surfaces
+ * @param samplesFile
+ *    Samples files containing the samples
+ * @return
+ *    FunctionResult containing surfaces
+ */
+FunctionResultValue<std::vector<Surface*>>
+AnnotationManager::exportAllSamplesToSurfaces(const SamplesFile* samplesFile) const
+{
+    CaretAssert(samplesFile);
+    
+    AString errorMessage;
+    std::vector<Surface*> allSurfaces;
+
+    /*
+     * All files use the same number of coordinates so that they
+     * can be in the same structure even though the extra coordinates
+     * are not used in any triangles.
+     */
+    const int32_t surfaceFileNumCoords(2000);
+    const Vector3D wayOutXYZ(999999.0, 999999.0, 999999.0);
+    
+    std::vector<Annotation*> allAnnotations;
+    samplesFile->getAllAnnotations(allAnnotations);
+    
+    for (Annotation* ann : allAnnotations) {
+        AnnotationPolyhedron* polyhedron(ann->castToPolyhedron());
+        if (polyhedron != NULL) {
+            const int32_t numCoords(polyhedron->getNumberOfCoordinates());
+            if (numCoords >= 6) {
+                std::vector<Vector3D> coordinates;
+                std::vector<AnnotationPolyhedron::Triangle> triangles;
+                polyhedron->getCoordinatesAndTriangles(coordinates, triangles);
+                const int32_t sampleNumCoords(coordinates.size());
+                const int32_t numTriangles(triangles.size());
+                
+                if (numTriangles >= 5) {
+                    std::unique_ptr<Surface> surface(new Surface());
+                    surface->setNumberOfNodesAndTriangles(surfaceFileNumCoords, numTriangles);
+                    for (int32_t i = 0; i < sampleNumCoords; i++) {
+                        surface->setCoordinate(i, polyhedron->getCoordinate(i)->getXYZ());
+                    }
+                    for (int32_t i = sampleNumCoords; i < surfaceFileNumCoords; i++) {
+                        surface->setCoordinate(i, wayOutXYZ);
+                    }
+                    bool validFlag(true);
+                    for (int32_t i = 0; i < numTriangles; i++) {
+                        CaretAssertVectorIndex(triangles, i);
+                        const int32_t n1(surface->closestNode(triangles[i].m_v1));
+                        const int32_t n2(surface->closestNode(triangles[i].m_v2));
+                        const int32_t n3(surface->closestNode(triangles[i].m_v3));
+                        if ((n1 >= 0)
+                            && (n2 >= 0)
+                            && (n3 >= 0)) {
+                            surface->setTriangle(i,
+                                                     n1, n2, n3);
+                        }
+                        else {
+                            errorMessage = "Failed to find a closest node";
+                            validFlag = false;
+                        }
+                    }
+                    if (validFlag) {
+                        surface->computeNormals();
+                        surface->setStructure(StructureEnum::CEREBELLUM);
+                        surface->setFileName(polyhedron->getName());
+                        surface->setSurfaceType(SurfaceTypeEnum::ANATOMICAL);
+                        allSurfaces.push_back(surface.release());
+                    }
+                }
+                else {
+                    errorMessage = ("A Polyhedron must have at least 5 triangles but has "
+                                    + AString::number(numTriangles));
+                }
+            }
+            else {
+                errorMessage = ("A Polyhedron must have at least 6 coordintes but has "
+                                + AString::number(numCoords));
+            }
+        }
+    }
+
+    return FunctionResultValue<std::vector<Surface*>>(allSurfaces,
+                                                      errorMessage,
+                                                      errorMessage.isEmpty());
+}
+

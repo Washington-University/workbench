@@ -1007,7 +1007,7 @@ AnnotationPolyhedron::setFontTooSmallWhenLastDrawn(const bool tooSmallFontFlag) 
  *    Contains all edges from the polyhedron.  Edges connect a pair of vertices,
  *    one at each end of the polyhedron (connect the polygons)
  * @param trianglesOut
- *    Contains all triangles that form the ends of the polyhedron (the two polygons)
+ *    Contains all triangles that form the polyhedron
  */
 void
 AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
@@ -1132,6 +1132,29 @@ AnnotationPolyhedron::getEdgesAndTriangles(std::vector<Edge>& edgesOut,
     }
     
     trianglesOut = m_tessellatedTriangles;
+}
+
+/**
+ * Get all coordinates and triangles (could be used to make a surface)
+ * @param coordinatesOut
+ *    Contains all coordinates from polygon
+ * @param trianglesOut
+ *    Contains all triangles that form the polyhedron
+ */
+void
+AnnotationPolyhedron::getCoordinatesAndTriangles(std::vector<Vector3D>& coordinatesOut,
+                                                 std::vector<Triangle>& trianglesOut) const
+{
+    coordinatesOut.clear();
+    trianglesOut.clear();
+    
+    std::vector<AnnotationPolyhedron::Edge> edges;
+    getEdgesAndTriangles(edges, trianglesOut);
+    
+    const int32_t numCoords(getNumberOfCoordinates());
+    for (int32_t i = 0; i < numCoords; i++) {
+        coordinatesOut.push_back(getCoordinate(i)->getXYZ());
+    }
 }
 
 /**
@@ -1297,6 +1320,18 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
                                             curlVolumeResult.getErrorMessage());
     }
     
+    const FunctionResultFloat divergenceVolumeResult(computePolyhedronVolumeDivergenceTheorem());
+    if (divergenceVolumeResult.isOk()) {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Divergence Theorem)",
+                                            divergenceVolumeResult.getValue());
+        dataFileInformation.addNameAndValue("Divergence Theorem",
+                                            "https://en.wikipedia.org/wiki/Polyhedron#Volume");
+    }
+    else {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (divergence theorem)",
+                                            divergenceVolumeResult.getErrorMessage());
+    }
+
     getSampleMetaData()->addToDataFileContentInformation(this,
                                                          dataFileInformation);
 }
@@ -1565,8 +1600,9 @@ AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
             const Vector3D normalVector(crossProduct.normal());
             const float dotProd(normalVector.dot(triangleCogNormal));
             if (dotProd < 0) {
-                std::swap(a, c);
-                crossProduct *= -1.0;
+                std::cout << "Need to swap " << getName() << std::endl;
+//                std::swap(a, c);
+//                crossProduct *= -1.0;
             }
             
             /*
@@ -1579,6 +1615,105 @@ AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
          * Finalize volume
          */
         volume /= 6.0;
+    }
+    else {
+        errorMessage = "Polyhedon contains less than 6 coordinates";
+    }
+    
+    FunctionResultFloat result(volume,
+                               errorMessage,
+                               errorMessage.isEmpty());
+    return result;
+}
+
+/**
+ * @return Function result containing compution of polyhedron volume using divergence theorem
+ * as described a thttps://en.wikipedia.org/wiki/Polyhedron#Volume
+ */
+FunctionResultFloat
+AnnotationPolyhedron::computePolyhedronVolumeDivergenceTheorem() const
+{
+    float volume(0.0);
+    AString errorMessage;
+    
+    const int32_t numCoordinates(getNumberOfCoordinates());
+    if (numCoordinates >= 6) {
+//        /*
+//         * Find Center of Gravity of all coordinates
+//         */
+//        Vector3D cog(0.0, 0.0, 0.0);
+//        for (int32_t i = 0; i < numCoordinates; i++) {
+//            cog += getCoordinate(i)->getXYZ();
+//        }
+//        cog /= static_cast<float>(numCoordinates);
+        
+        /*
+         * Get the triangles (tessellators convert the
+         * polygon ends into triangles).  Also includes
+         * triangles formed by connecting the two
+         * polygon ends.
+         */
+        std::vector<Edge> edges;
+        std::vector<Triangle> triangles;
+        getEdgesAndTriangles(edges,
+                             triangles);
+        
+        /*
+         * Compute the volume as described at
+         * https://mathworld.wolfram.com/PolyhedronVolume.html
+         *
+         * Formula => (1 / 6) * (Summation of each triangle 'a dot n')
+         *    where 'a' is first vertex in triangle and 'n' is the
+         *    normal vector defined as (b - a) X (c - a).
+         */
+        const int32_t numTriangles(triangles.size());
+        for (int32_t i = 0; i < numTriangles; i++) {
+            /*
+             * Vertices of triangle
+             */
+            CaretAssertVectorIndex(triangles, i);
+            Vector3D a(triangles[i].m_v1);
+            Vector3D b(triangles[i].m_v2);
+            Vector3D c(triangles[i].m_v3);
+            
+//            /*
+//             * Test triangle has no area
+//             * (all vertices coincident)
+//             */
+//            const float distAB((a - b).length());
+//            const float distBC((b - c).length());
+//            const float tolerance(0.001);
+//            if ((distAB <= tolerance)
+//                && (distBC <= tolerance)) {
+//                continue;
+//            }
+            
+            /*
+             * Normal vector
+             */
+            Vector3D NF;
+            MathFunctions::normalVector(a, b, c, NF);
+            
+            /*
+             * Point on face
+             */
+            const Vector3D QF(a);
+            
+            /*
+             * Area of triangle
+             */
+            const float area(MathFunctions::triangleAreaSigned3D(NF, a, b, c));
+            
+            /*
+             * Add to volume
+             */
+            volume += (QF.dot(NF) * area);
+        }
+        
+        /*
+         * Finalize volume
+         */
+        volume /= 3.0;
     }
     else {
         errorMessage = "Polyhedon contains less than 6 coordinates";

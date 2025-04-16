@@ -113,6 +113,9 @@ namespace caret {
         void getEdgesAndTriangles(std::vector<Edge>& edgesOut,
                                   std::vector<Triangle>& trianglesOut) const;
         
+        void getCoordinatesAndTriangles(std::vector<Vector3D>& coordinatesOut,
+                                        std::vector<Triangle>& trianglesOut) const;
+        
         static float slicesToMillimeters(const float sliceThickness,
                                          const float numberOfSlices);
         
@@ -191,6 +194,8 @@ namespace caret {
                                      AString& errorMessageOut) const;
         
         FunctionResultFloat computePolyhedronVolumeCurlTheorem() const;
+        
+        FunctionResultFloat computePolyhedronVolumeDivergenceTheorem() const;
         
        Vector3D getPlaneOneNameStereotaxicXYZ() const;
        

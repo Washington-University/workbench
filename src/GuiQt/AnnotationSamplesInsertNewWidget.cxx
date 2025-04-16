@@ -729,9 +729,11 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
     QMenu menu(this);
     
     QAction* samplesFileInfoAction(NULL);
+    QAction* copyToSurfacesAction(NULL);
     SamplesFile* samplesFile(getSelectedSamplesFile());
     if (samplesFile != NULL) {
         samplesFileInfoAction = menu.addAction("Show Samples File Information...");
+        copyToSurfacesAction  = menu.addAction("Copy Samples to Surface Files");
         menu.addSeparator();
     }
     
@@ -756,6 +758,19 @@ AnnotationSamplesInsertNewWidget::selectActionTriggered()
                                              WuQTextEditorDialog::TextMode::HTML,
                                              WuQTextEditorDialog::WrapMode::NO,
                                              this);
+        }
+        else if (actionSelected == copyToSurfacesAction) {
+            Brain* brain(GuiManager::get()->getBrain());
+            CaretAssert(brain);
+            CaretAssert(samplesFile);
+            FunctionResult result(brain->copySamplesToSurfaces(samplesFile));
+            if (result.isError()) {
+                WuQMessageBoxTwo::critical(this,
+                                           "Error", 
+                                           result.getErrorMessage());
+            }
+            EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         }
         else {
             for (const auto& ap : menuActionSamples) {
