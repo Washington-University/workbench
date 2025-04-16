@@ -1600,9 +1600,9 @@ AnnotationPolyhedron::computePolyhedronVolumeCurlTheorem() const
             const Vector3D normalVector(crossProduct.normal());
             const float dotProd(normalVector.dot(triangleCogNormal));
             if (dotProd < 0) {
-                std::cout << "Need to swap " << getName() << std::endl;
-//                std::swap(a, c);
-//                crossProduct *= -1.0;
+//                std::cout << "Need to swap " << getName() << std::endl;
+                std::swap(a, c);
+                crossProduct *= -1.0;
             }
             
             /*
@@ -1638,14 +1638,14 @@ AnnotationPolyhedron::computePolyhedronVolumeDivergenceTheorem() const
     
     const int32_t numCoordinates(getNumberOfCoordinates());
     if (numCoordinates >= 6) {
-//        /*
-//         * Find Center of Gravity of all coordinates
-//         */
-//        Vector3D cog(0.0, 0.0, 0.0);
-//        for (int32_t i = 0; i < numCoordinates; i++) {
-//            cog += getCoordinate(i)->getXYZ();
-//        }
-//        cog /= static_cast<float>(numCoordinates);
+        /*
+         * Find Center of Gravity of all coordinates
+         */
+        Vector3D cog(0.0, 0.0, 0.0);
+        for (int32_t i = 0; i < numCoordinates; i++) {
+            cog += getCoordinate(i)->getXYZ();
+        }
+        cog /= static_cast<float>(numCoordinates);
         
         /*
          * Get the triangles (tessellators convert the
@@ -1675,24 +1675,36 @@ AnnotationPolyhedron::computePolyhedronVolumeDivergenceTheorem() const
             Vector3D a(triangles[i].m_v1);
             Vector3D b(triangles[i].m_v2);
             Vector3D c(triangles[i].m_v3);
-            
-//            /*
-//             * Test triangle has no area
-//             * (all vertices coincident)
-//             */
-//            const float distAB((a - b).length());
-//            const float distBC((b - c).length());
-//            const float tolerance(0.001);
-//            if ((distAB <= tolerance)
-//                && (distBC <= tolerance)) {
-//                continue;
-//            }
-            
+                        
             /*
-             * Normal vector
+             * Normal vector of triangle
              */
             Vector3D NF;
             MathFunctions::normalVector(a, b, c, NF);
+            
+            /*
+             * Compute normal vector pointing from center of polyhedron
+             * through triangle's center-of-gravity (average of a, b, c)
+             * This normal vector should point in roughly the same
+             * direction as the triangle's normal vector.
+             */
+            const Vector3D triangleCOG((a + b + c) / 3.0);
+            const Vector3D triangleCogNormal((triangleCOG - cog).normal());
+
+            /*
+             * The normal vector of the triangle should point OUT
+             * of the polyhedron.
+             *
+             * If dot product is less than zero the triangle is oriented
+             * incorrectly (pointing into the polyhedron) so
+             * swap 'a' and 'c' and invert the triangle normal vector.
+             */
+            const float dotProd(NF.dot(triangleCogNormal));
+            if (dotProd < 0) {
+                //std::cout << "Need to swap divergence" << getName() << std::endl;
+                std::swap(a, c);
+                MathFunctions::normalVector(a, b, c, NF);
+            }
             
             /*
              * Point on face
