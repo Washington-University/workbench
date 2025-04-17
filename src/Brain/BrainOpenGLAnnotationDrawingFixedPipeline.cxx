@@ -7386,6 +7386,7 @@ BrainOpenGLAnnotationDrawingFixedPipeline::isDrawnWithDepthTesting(const Annotat
         case AnnotationCoordinateSpaceEnum::CHART:
             break;
         case AnnotationCoordinateSpaceEnum::HISTOLOGY:
+            depthTestFlag = false;
             break;
         case AnnotationCoordinateSpaceEnum::MEDIA_FILE_NAME_AND_PIXEL:
             depthTestFlag = false;
