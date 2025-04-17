@@ -1604,8 +1604,12 @@ AnnotationManager::exportAllSamplesToSurfaces(const SamplesFile* samplesFile) co
                     if (validFlag) {
                         surface->computeNormals();
                         surface->setStructure(StructureEnum::CEREBELLUM);
-                        surface->setFileName(polyhedron->getName());
+                        const AString filename(FileInformation::assembleFileComponents(surface->getFilePath(),
+                                                                                       polyhedron->getName(),
+                                                                                       DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SURFACE)));
+                        surface->setFileName(filename);
                         surface->setSurfaceType(SurfaceTypeEnum::ANATOMICAL);
+                        surface->setModified();
                         allSurfaces.push_back(surface.release());
                     }
                 }

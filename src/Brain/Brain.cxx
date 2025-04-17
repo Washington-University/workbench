@@ -5519,11 +5519,13 @@ Brain::copySamplesToSurfaces(const SamplesFile* samplesFile)
     
     for (Surface* ss : allSurfaces) {
         const bool modifiedFlag(true);
-        addReadOrReloadSurfaceFile(FILE_MODE_ADD,
-                                   ss,
-                                   ss->getFileName(),
-                                   ss->getStructure(),
-                                   modifiedFlag);
+        addReadOrReloadDataFile(FILE_MODE_ADD,
+                                ss,
+                                DataFileTypeEnum::Enum::SURFACE,
+                                ss->getStructure(),
+                                ss->getFileName(),
+                                modifiedFlag);
+        ss->setModified();
     }
     
     return FunctionResult(surfacesResult.getErrorMessage(),
