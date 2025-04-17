@@ -5406,7 +5406,12 @@ BrowserTabContent::applyMouseTranslation(BrainOpenGLViewportContent* viewportCon
         const float scaleY((coordHeight / modelViewport[3]) * zoom);
         
         const float accelerate(1.0);
-        txyz[0] += ((mouseDX * scaleX) * accelerate);
+        if (isHistologyFlipXEnabled()) {
+            txyz[0] -= ((mouseDX * scaleX) * accelerate);
+        }
+        else {
+            txyz[0] += ((mouseDX * scaleX) * accelerate);
+        }
         txyz[1] += ((mouseDY * scaleY) * accelerate);
         m_histologyViewingTransformation->setTranslation(txyz);
     }
