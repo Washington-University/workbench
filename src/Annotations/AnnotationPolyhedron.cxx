@@ -1284,6 +1284,29 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
     AString warningMessage;
     AString errorMessage;
     
+    const FunctionResultFloat curlVolumeResult(computePolyhedronVolumeCurlTheorem());
+    if (curlVolumeResult.isOk()) {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Curl Theorem)",
+                                            curlVolumeResult.getValue());
+        dataFileInformation.addNameAndValue("Curl Theorem",
+                                            "https://mathworld.wolfram.com/PolyhedronVolume.html");
+    }
+    else {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Curl Theorem)",
+                                            curlVolumeResult.getErrorMessage());
+    }
+    
+    const FunctionResultFloat divergenceVolumeResult(computePolyhedronVolumeDivergenceTheorem());
+    if (divergenceVolumeResult.isOk()) {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Divergence Theorem)",
+                                            divergenceVolumeResult.getValue());
+        dataFileInformation.addNameAndValue("Divergence Theorem",
+                                            "https://en.wikipedia.org/wiki/Polyhedron#Volume");
+    }
+    else {
+        dataFileInformation.addNameAndValue("Polyhedron Volume (Divergence Theorem)",
+                                            divergenceVolumeResult.getErrorMessage());
+    }
     if (computePolyhedronVolume(polyhedronVolume,
                                 endOnePolygonArea,
                                 endTwoPolygonArea,
@@ -1308,30 +1331,6 @@ AnnotationPolyhedron::addToDataFileContentInformation(DataFileContentInformation
                                             ,errorMessage);
     }
     
-    const FunctionResultFloat curlVolumeResult(computePolyhedronVolumeCurlTheorem());
-    if (curlVolumeResult.isOk()) {
-        dataFileInformation.addNameAndValue("Polyhedron Volume (Curl Theorem)",
-                                            curlVolumeResult.getValue());
-        dataFileInformation.addNameAndValue("Curl Theorem",
-                                            "https://mathworld.wolfram.com/PolyhedronVolume.html");
-    }
-    else {
-        dataFileInformation.addNameAndValue("Polyhedron Volume (curl theorem)",
-                                            curlVolumeResult.getErrorMessage());
-    }
-    
-    const FunctionResultFloat divergenceVolumeResult(computePolyhedronVolumeDivergenceTheorem());
-    if (divergenceVolumeResult.isOk()) {
-        dataFileInformation.addNameAndValue("Polyhedron Volume (Divergence Theorem)",
-                                            divergenceVolumeResult.getValue());
-        dataFileInformation.addNameAndValue("Divergence Theorem",
-                                            "https://en.wikipedia.org/wiki/Polyhedron#Volume");
-    }
-    else {
-        dataFileInformation.addNameAndValue("Polyhedron Volume (divergence theorem)",
-                                            divergenceVolumeResult.getErrorMessage());
-    }
-
     getSampleMetaData()->addToDataFileContentInformation(this,
                                                          dataFileInformation);
 }
