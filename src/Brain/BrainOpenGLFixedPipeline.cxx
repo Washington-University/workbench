@@ -4337,33 +4337,36 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
 
                 switch (drawingProjectionType) {
                     case FociDrawingProjectionTypeEnum::PROJECTED:
-                        if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
-                                                      xyz,
-                                                      isPasteOntoSurface)) {
-                            const StructureEnum::Enum focusStructure = spi->getStructure();
-                            if (focusStructure == surfaceStructure) {
-                                drawIt = true;
-                            }
-                            else if (focusStructure == StructureEnum::INVALID) {
-                                drawIt = true;
-                            }
-                            else if (isContralateralEnabled) {
-                                if (focusStructure == surfaceContralateralStructure) {
+                        if ((surfaceStructure    == StructureEnum::CORTEX_LEFT)
+                            || (surfaceStructure == StructureEnum::CORTEX_RIGHT)) {
+                            if (spi->getProjectedPosition(surface, /* NULL is okay for this method */
+                                                          xyz,
+                                                          isPasteOntoSurface)) {
+                                const StructureEnum::Enum focusStructure = spi->getStructure();
+                                if (focusStructure == surfaceStructure) {
                                     drawIt = true;
                                 }
-                            }
-                            else if (surface == NULL) {
-                                /*
-                                 * This is a special case for ALL view with
-                                 * neither surfaces nor volumes displayed
-                                 */
-                                drawIt = true;
-                            }
-                            
-                            if (doClipping) {
-                                if ( ! isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
-                                                                                    xyz)) {
-                                    drawIt = false;
+                                else if (focusStructure == StructureEnum::INVALID) {
+                                    drawIt = true;
+                                }
+                                else if (isContralateralEnabled) {
+                                    if (focusStructure == surfaceContralateralStructure) {
+                                        drawIt = true;
+                                    }
+                                }
+                                else if (surface == NULL) {
+                                    /*
+                                     * This is a special case for ALL view with
+                                     * neither surfaces nor volumes displayed
+                                     */
+                                    drawIt = true;
+                                }
+                                
+                                if (doClipping) {
+                                    if ( ! isCoordinateInsideClippingPlanesForStructure(surfaceStructure,
+                                                                                        xyz)) {
+                                        drawIt = false;
+                                    }
                                 }
                             }
                         }
