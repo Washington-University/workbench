@@ -363,11 +363,14 @@ vector<vector<float> > NiftiHeader::getSForm() const
                 }
             }
         }
-        if (plumb)
+        for (int i = 1; i < 4; ++i)//check for broken spacing info or whether FSL will complain about changed pixdim (which is probably all they check)
         {
-            for (int i = 1; i < 4; ++i)//check for whether FSL will complain about changed pixdim (which is probably all they check)
-            {//assume nifti-1, so convert to float before checking equality
-                if (float(pixdimd[i]) != m_header.pixdim[i])
+            const float PIXDIMTOL = 1.0001f; //4 significant digits should be generous for rounding error, particularly since our computation uses doubles
+            if (pixdimd[i] / m_header.pixdim[i] > PIXDIMTOL || m_header.pixdim[i] / pixdimd[i] > PIXDIMTOL)
+            {
+                CaretLogWarning("nontrivial mismatch between qform and sform voxel sizes in '" + m_filename + "', recommend examining and copying the valid spacing info to the other");
+            } else {//assume nifti-1, so convert to float before checking equality
+                if (plumb && float(pixdimd[i]) != m_header.pixdim[i]) //trips a lot on non-plumb volumes, so stop warning about them
                 {
                     CaretLogWarning("recomputed pixdim doesn't exactly match the original header in file '" + m_filename + "', FSL may complain about output file(s)");
                     break;
