@@ -722,6 +722,18 @@ GraphicsUtilitiesOpenGL::tesselatePolygon(const std::vector<Vector3D>& polygonXY
             triangleXYZOut.push_back(tv.m_xyz);
         }
         
+        const int32_t numTriangles(triangleXYZOut.size() / 3);
+        for (int32_t i = 0; i < numTriangles; i++) {
+            const int32_t i3(i * 3);
+            Vector3D triangleNormal;
+            MathFunctions::normalVector(triangleXYZOut[i3],
+                                        triangleXYZOut[i3 + 1],
+                                        triangleXYZOut[i3 + 2],
+                                        triangleNormal);
+            if (normalVector.dot(triangleNormal) < 0) {
+                CaretLogWarning("Tessellator output triangle with normal opposite of input normal vector");
+            }
+        }
         return FunctionResult("", true);
     }
     
