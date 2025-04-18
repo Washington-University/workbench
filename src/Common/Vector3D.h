@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include "CaretAssert.h"
+#include <vector>
 
 namespace caret {
     

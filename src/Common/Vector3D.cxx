@@ -24,7 +24,6 @@
 #include <QStringList>
 
 #include "MathFunctions.h"
-#include "Vector3D.h"
 
 using namespace std;
 using namespace caret;
@@ -369,7 +368,7 @@ Vector3D::fromString(const AString& s,
 
 /// Average of vectors
 Vector3D
-Vector3D::average(const std::vector<Vector3D>& xyzs)
+Vector3D::average(const vector<Vector3D>& xyzs)
 {
     Vector3D avg(0.0, 0.0, 0.0);
     if ( ! xyzs.empty()) {
