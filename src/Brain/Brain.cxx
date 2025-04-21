@@ -5514,7 +5514,7 @@ Brain::copySamplesToSurfaces(const SamplesFile* samplesFile)
 {
     CaretAssert(samplesFile);
     
-    FunctionResultValue<std::vector<Surface*>> surfacesResult(m_samplesAnnotationsManager->exportAllSamplesToSurfaces(samplesFile));
+    FunctionResultValue<std::vector<Surface*>> surfacesResult(AnnotationManager::exportAllSamplesToSurfaces(samplesFile));
     std::vector<Surface*> allSurfaces(surfacesResult.getValue());
     
     for (Surface* ss : allSurfaces) {

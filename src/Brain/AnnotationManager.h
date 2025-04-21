@@ -160,7 +160,7 @@ namespace caret {
 
         std::vector<Annotation*> getAnnotationsInSameSpace(const Annotation* annotation);
         
-        FunctionResultValue<std::vector<Surface*>> exportAllSamplesToSurfaces(const SamplesFile* samplesFile) const;
+        static FunctionResultValue<std::vector<Surface*>> exportAllSamplesToSurfaces(const SamplesFile* samplesFile);
         
         // ADD_NEW_METHODS_HERE
 

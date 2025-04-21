@@ -1546,7 +1546,7 @@ AnnotationManager::shrinkAndExpandSelectedBrowserTabAnnotation(const std::vector
  *    FunctionResult containing surfaces
  */
 FunctionResultValue<std::vector<Surface*>>
-AnnotationManager::exportAllSamplesToSurfaces(const SamplesFile* samplesFile) const
+AnnotationManager::exportAllSamplesToSurfaces(const SamplesFile* samplesFile)
 {
     CaretAssert(samplesFile);
     
