@@ -851,6 +851,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
@@ -930,6 +932,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;
@@ -1265,6 +1269,8 @@ GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDat
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
@@ -1385,6 +1391,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;

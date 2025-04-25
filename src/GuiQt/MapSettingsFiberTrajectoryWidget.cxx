@@ -35,6 +35,7 @@
 #include <QVBoxLayout>
 
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "EventManager.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -295,11 +296,21 @@ MapSettingsFiberTrajectoryWidget::processAttributesChanges()
     if (m_updateInProgress) {
         return;
     }
-    if (m_fiberTrajectoryFile == NULL) {
+    if ((m_fiberTrajectoryFile == NULL)
+        && (m_fiberTrajectorMapFile == NULL)) {
         return;
     }
     
-    FiberTrajectoryMapProperties* ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
+    FiberTrajectoryMapProperties* ftmp(NULL);
+    if (m_fiberTrajectoryFile != NULL) {
+        ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
+    }
+    else if (m_fiberTrajectorMapFile != NULL) {
+        ftmp = m_fiberTrajectorMapFile->getFiberTrajectoryMapProperties();
+    }
+    else {
+        CaretAssert(0);
+    }
     
     const int32_t selectedColorIndex = m_colorSelectionComboBox->currentIndex();
     if (selectedColorIndex >= 0) {
@@ -331,20 +342,36 @@ MapSettingsFiberTrajectoryWidget::processAttributesChanges()
 }
 
 /**
- * Update with the given fiber trajectory file.
+ * Update with the ONE of the given fiber trajectory and map file.
+ * @param fiberTrajectoryFile
+ *    The fiber trajectory file
+ * @param fiberTrajectorMapFile
+ *    The fiber trajectory map file
  */
 void
-MapSettingsFiberTrajectoryWidget::updateEditor(CiftiFiberTrajectoryFile* fiberTrajectoryFile)
+MapSettingsFiberTrajectoryWidget::updateEditor(CiftiFiberTrajectoryFile* fiberTrajectoryFile,
+                                               CiftiFiberTrajectoryMapFile* fiberTrajectorMapFile)
 {
-    m_fiberTrajectoryFile = fiberTrajectoryFile;
+    m_fiberTrajectoryFile   = fiberTrajectoryFile;
+    m_fiberTrajectorMapFile = fiberTrajectorMapFile;
     
-    if (m_fiberTrajectoryFile == NULL) {
+    if ((m_fiberTrajectoryFile == NULL)
+        && (m_fiberTrajectorMapFile == NULL)) {
         return;
     }
 
     m_updateInProgress = true;
     
-    FiberTrajectoryMapProperties* ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
+    FiberTrajectoryMapProperties* ftmp(NULL);
+    if (fiberTrajectoryFile != NULL) {
+        ftmp = m_fiberTrajectoryFile->getFiberTrajectoryMapProperties();
+    }
+    else if (fiberTrajectorMapFile != NULL) {
+        ftmp = fiberTrajectorMapFile->getFiberTrajectoryMapProperties();
+    }
+    else {
+        CaretAssert(0);
+    }
     
     FiberTrajectoryColorModel* colorModel = ftmp->getFiberTrajectoryColorModel();
     std::vector<FiberTrajectoryColorModel::Item*> colorItems = colorModel->getValidItems();
@@ -402,5 +429,6 @@ MapSettingsFiberTrajectoryWidget::updateEditor(CiftiFiberTrajectoryFile* fiberTr
 void
 MapSettingsFiberTrajectoryWidget::updateWidget()
 {
-    updateEditor(m_fiberTrajectoryFile);
+    updateEditor(m_fiberTrajectoryFile,
+                 m_fiberTrajectorMapFile);
 }

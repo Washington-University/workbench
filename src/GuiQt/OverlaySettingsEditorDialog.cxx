@@ -34,6 +34,7 @@
 #include "CaretMappableDataFile.h"
 #include "ChartTwoOverlay.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "EventChartTwoOverlayValidate.h"
 #include "EventDataFileDelete.h"
@@ -379,12 +380,15 @@ OverlaySettingsEditorDialog::updateDialogContentPrivate(Overlay* brainordinateOv
                                                m_selectedMapFileIndex);
                 
                 CiftiFiberTrajectoryFile* trajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(m_caretMappableDataFile);
-                if (trajFile != NULL) {
+                CiftiFiberTrajectoryMapFile* trajMapFile(dynamic_cast<CiftiFiberTrajectoryMapFile*>(m_caretMappableDataFile));
+                if ((trajFile != NULL)
+                    || (trajMapFile != NULL)) {
                     /*
                      * Update trajectory
                      */
                     isFiberTrajectoryValid = true;
-                    m_fiberTrajectoryWidget->updateEditor(trajFile);
+                    m_fiberTrajectoryWidget->updateEditor(trajFile,
+                                                          trajMapFile);
                 }
                 
                 CiftiConnectivityMatrixParcelFile* parcelsFile = dynamic_cast<CiftiConnectivityMatrixParcelFile*>(m_caretMappableDataFile);

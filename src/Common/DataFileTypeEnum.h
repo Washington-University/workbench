@@ -57,6 +57,8 @@ public:
         CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY,
         /** Connectivity - Fiber Trajectory TEMPORARY */
         CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY,
+        /** Connectivity - Fiber Trajectory Maps */
+        CONNECTIVITY_FIBER_TRAJECTORY_MAPS,
         /** Connectivity - Parcel */
         CONNECTIVITY_PARCEL,
         /** Connectivity - Parcel Dense*/

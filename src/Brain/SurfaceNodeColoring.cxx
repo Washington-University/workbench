@@ -424,6 +424,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 {
                     CiftiMappableConnectivityMatrixDataFile* cmf = dynamic_cast<CiftiMappableConnectivityMatrixDataFile*>(selectedMapFile);

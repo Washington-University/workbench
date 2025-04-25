@@ -869,6 +869,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                     haveConnFiles = true;
                     break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                    haveConnFiles = true;
+                    break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                     haveConnFiles = true;
                     break;

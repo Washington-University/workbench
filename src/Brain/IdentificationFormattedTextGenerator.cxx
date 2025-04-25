@@ -1030,6 +1030,8 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             parcelDataFlag = true;
             break;

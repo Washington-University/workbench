@@ -42,6 +42,7 @@
 #include "CiftiParcelSeriesFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "CiftiScalarDataSeriesFile.h"
 #include "CziImageFile.h"
 #include "FileInformation.h"
@@ -341,6 +342,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             caretDataFile = new CiftiFiberTrajectoryFile();
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            caretDataFile = new CiftiFiberTrajectoryMapFile();
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             caretDataFile = new CiftiConnectivityMatrixParcelFile();

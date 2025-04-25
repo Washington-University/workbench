@@ -40,6 +40,7 @@ namespace caret {
     class CiftiConnectivityMatrixParcelDynamicFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiFiberTrajectoryMapFile;
     class MetricDynamicConnectivityFile;
     class VolumeDynamicConnectivityFile;
     
@@ -84,6 +85,7 @@ namespace caret {
                             CiftiConnectivityMatrixDenseDynamicFile* &ciftiDenseDynConnFileOut,
                             CiftiConnectivityMatrixParcelDynamicFile* &ciftiParcelDynConnFileOut,
                             CiftiFiberTrajectoryFile* &ciftiTrajFileOut,
+                            CiftiFiberTrajectoryMapFile* &ciftiTrajMapFileOut,
                             MetricDynamicConnectivityFile* &metricDynConnFileOut,
                             VolumeDynamicConnectivityFile* &volDynConnFileOut);
         

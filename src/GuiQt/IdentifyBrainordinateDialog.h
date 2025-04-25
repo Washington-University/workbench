@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <map>
+#include <memory>
 
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
@@ -165,7 +166,7 @@ namespace caret {
         
         CaretDataFileSelectionComboBox* m_ciftiRowFileComboBox;
 
-        CaretDataFileSelectionModel* m_ciftiRowFileSelectionModel;
+        std::unique_ptr<CaretDataFileSelectionModel> m_ciftiRowFileSelectionModel;
         
         QLabel* m_ciftiRowFileIndexLabel;
         
@@ -191,7 +192,7 @@ namespace caret {
         
         QWidget* m_imagePixelWidget;
         
-        CaretDataFileSelectionModel* m_imageFileSelectionModel;
+        std::unique_ptr<CaretDataFileSelectionModel> m_imageFileSelectionModel;
         
         CaretDataFileSelectionComboBox* m_imageFileSelectionComboBox;
         

@@ -35,6 +35,7 @@ class QRadioButton;
 namespace caret {
     class CaretMappableDataFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiFiberTrajectoryMapFile;
 
     class MapSettingsFiberTrajectoryWidget : public QWidget {
         
@@ -45,7 +46,8 @@ namespace caret {
         
         virtual ~MapSettingsFiberTrajectoryWidget();
         
-        void updateEditor(CiftiFiberTrajectoryFile* fiberTrajectoryFile);
+        void updateEditor(CiftiFiberTrajectoryFile* fiberTrajectoryFile,
+                          CiftiFiberTrajectoryMapFile* fiberTrajectorMapFile);
         
         void updateWidget();
         // ADD_NEW_METHODS_HERE
@@ -65,6 +67,8 @@ namespace caret {
         QWidget* createDataMappingWidget();
         
         CiftiFiberTrajectoryFile* m_fiberTrajectoryFile;
+        
+        CiftiFiberTrajectoryMapFile* m_fiberTrajectorMapFile;
         
         QComboBox* m_colorSelectionComboBox;
         

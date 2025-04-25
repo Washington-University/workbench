@@ -168,6 +168,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                isMappableFile = true;
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 isMappableFile = true;
                 break;

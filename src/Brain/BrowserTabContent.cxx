@@ -2854,6 +2854,8 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                         break;
+                    case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                        break;
                     case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                         break;
                     case DataFileTypeEnum::CZI_IMAGE_FILE:

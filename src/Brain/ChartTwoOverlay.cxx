@@ -1374,6 +1374,8 @@ ChartTwoOverlay::isAllMapsSupported() const
                             break;
                         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                             break;
+                        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                            break;
                         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                             supportedFlag = true;
                             break;

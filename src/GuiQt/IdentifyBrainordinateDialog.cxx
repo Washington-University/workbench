@@ -43,6 +43,7 @@ using namespace caret;
 #include "CaretDataFileSelectionModel.h"
 #include "CaretLogger.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "CaretMappableDataFile.h"
 #include "ChartableTwoFileDelegate.h"
 #include "ChartableTwoFileLineSeriesChart.h"
@@ -165,6 +166,9 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                ciftiRowFlag = true;
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                 ciftiRowFlag = true;
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
@@ -316,9 +320,6 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
 IdentifyBrainordinateDialog::~IdentifyBrainordinateDialog()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    
-    delete m_ciftiRowFileSelectionModel;
-    m_ciftiRowFileSelectionModel = NULL;
 }
 
 /**
@@ -418,7 +419,7 @@ IdentifyBrainordinateDialog::createCiftiRowWidget(const std::vector<DataFileType
      * CIFTI Row selection
      */
     m_ciftiRowFileLabel = new QLabel("File");
-    m_ciftiRowFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes);
+    m_ciftiRowFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes));
     m_ciftiRowFileComboBox = new CaretDataFileSelectionComboBox(this);
     
     m_ciftiRowFileIndexLabel = new QLabel("Row Index");
@@ -613,7 +614,7 @@ QWidget*
 IdentifyBrainordinateDialog::createImagePixelWidget(const std::vector<DataFileTypeEnum::Enum>& supportedFileTypes)
 {
     QLabel* imageFileLabel = new QLabel("File");
-    m_imageFileSelectionModel = CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes);
+    m_imageFileSelectionModel.reset(CaretDataFileSelectionModel::newInstanceForCaretDataFileTypes(supportedFileTypes));
     m_imageFileSelectionComboBox = new CaretDataFileSelectionComboBox(this);
     
     QLabel* pixelLabel = new QLabel("Pixel");
@@ -736,7 +737,7 @@ IdentifyBrainordinateDialog::updateDialog()
     }
     
     
-    m_ciftiRowFileComboBox->updateComboBox(m_ciftiRowFileSelectionModel);
+    m_ciftiRowFileComboBox->updateComboBox(m_ciftiRowFileSelectionModel.get());
     
     m_vertexStructureComboBox->listOnlyValidStructures();
     
@@ -746,7 +747,7 @@ IdentifyBrainordinateDialog::updateDialog()
                                           allDataFileTypes.end(),
                                           DataFileTypeEnum::SURFACE) != allDataFileTypes.end());
     
-    m_imageFileSelectionComboBox->updateComboBox(m_imageFileSelectionModel);
+    m_imageFileSelectionComboBox->updateComboBox(m_imageFileSelectionModel.get());
     
     m_ciftiParcelWidget->setEnabled(parcelsMapValidFlag);
     m_ciftiRowWidget->setEnabled(m_ciftiRowFileSelectionModel->getSelectedFile() != NULL);
@@ -1035,6 +1036,7 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
     if (dataFile != NULL) {
         CiftiMappableDataFile*    ciftiMapFile  = dynamic_cast<CiftiMappableDataFile*>(dataFile);
         CiftiFiberTrajectoryFile* ciftiTrajFile = dynamic_cast<CiftiFiberTrajectoryFile*>(dataFile);
+        CiftiFiberTrajectoryMapFile* ciftiTrajMapFile = dynamic_cast<CiftiFiberTrajectoryMapFile*>(dataFile);
         CiftiScalarDataSeriesFile* ciftiSdsFile = dynamic_cast<CiftiScalarDataSeriesFile*>(dataFile);
         
         const int32_t selectedCiftiRowIndex = m_ciftiRowFileIndexSpinBox->value() - m_ciftiRowFileIndexSpinBox->minimum();
@@ -1091,6 +1093,16 @@ IdentifyBrainordinateDialog::processCiftiRowWidget(AString& errorMessageOut)
                                                                 voxelIJK,
                                                                 voxelXYZ,
                                                                 voxelValid);
+                }
+                else if (ciftiTrajMapFile != NULL) {
+                    ciftiTrajMapFile->getBrainordinateFromRowIndex(selectedCiftiRowIndex,
+                                                                   surfaceStructure,
+                                                                   surfaceNodeIndex,
+                                                                   surfaceNumberOfNodes,
+                                                                   surfaceNodeValid,
+                                                                   voxelIJK,
+                                                                   voxelXYZ,
+                                                                   voxelValid);
                 }
                 else {
                     errorMessageOut = "Neither CIFTI Mappable nor CIFTI Trajectory file.  Has new file type been added?";

@@ -57,6 +57,7 @@
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
 #include "CiftiFiberOrientationFile.h"
 #include "CiftiFiberTrajectoryFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
 #include "CiftiConnectivityMatrixParcelDenseFile.h"
 #include "CiftiParcelLabelFile.h"
@@ -764,6 +765,10 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_connectivityFiberTrajectoryFiles.clear();
     
+    for (CiftiFiberTrajectoryMapFile* cftmf : m_connectivityFiberTrajectoryMapFiles) {
+        delete cftmf;
+    }
+    m_connectivityFiberTrajectoryMapFiles.clear();
 
     for (std::vector<CiftiConnectivityMatrixParcelFile*>::iterator clfi = m_connectivityMatrixParcelFiles.begin();
          clfi != m_connectivityMatrixParcelFiles.end();
@@ -934,6 +939,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
@@ -2811,6 +2818,9 @@ Brain::updateFiberTrajectoryMatchingFiberOrientationFiles()
         CiftiFiberTrajectoryFile* trajFile = *iter;
         trajFile->updateMatchingFiberOrientationFileFromList(m_connectivityFiberOrientationFiles);
     }
+    for (CiftiFiberTrajectoryMapFile* cftmf : m_connectivityFiberTrajectoryMapFiles) {
+        cftmf->updateMatchingFiberOrientationFileFromList(m_connectivityFiberOrientationFiles);
+    }
 }
 
 
@@ -3517,6 +3527,83 @@ Brain::addReadOrReloadConnectivityFiberTrajectoryFile(const FileModeAddReadReloa
     }
     
     return cftf;
+}
+
+/**
+ * Read a connectivity fiber trajectory map file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+CiftiFiberTrajectoryMapFile*
+Brain::addReadOrReloadConnectivityFiberTrajectoryMapFile(const FileModeAddReadReload fileMode,
+                                                         CaretDataFile* caretDataFile,
+                                                         const AString& filename)
+{
+    CiftiFiberTrajectoryMapFile* cftmf = NULL;
+    if (caretDataFile != NULL) {
+        cftmf = dynamic_cast<CiftiFiberTrajectoryMapFile*>(caretDataFile);
+        CaretAssert(cftmf);
+    }
+    else {
+        cftmf = new CiftiFiberTrajectoryMapFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                cftmf->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (const DataFileException& dfe) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete cftmf;
+            }
+            throw dfe;
+        }
+    }
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_connectivityFiberTrajectoryMapFiles,
+                                      cftmf);
+        m_connectivityFiberTrajectoryMapFiles.push_back(cftmf);
+    }
+    
+    return cftmf;
 }
 
 /**
@@ -4625,6 +4712,52 @@ Brain::getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*
 }
 
 /**
+ * @return Number of connectivity fiber trajectory map files.
+ */
+int32_t
+Brain::getNumberOfConnectivityFiberTrajectoryMapFiles() const
+{
+    return m_connectivityFiberTrajectoryMapFiles.size();
+}
+
+/**
+ * Get the connectivity fiber trajectory map file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber trajectory map file at index.
+ */
+CiftiFiberTrajectoryMapFile*
+Brain::getConnectivityFiberTrajectoryMapFile(int32_t indx)
+{
+    CaretAssertVectorIndex(m_connectivityFiberTrajectoryMapFiles, indx);
+    return m_connectivityFiberTrajectoryMapFiles[indx];
+}
+
+/**
+ * Get the connectivity fiber trajectory map file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity fiber trajectory map file at index.
+ */
+const CiftiFiberTrajectoryMapFile*
+Brain::getConnectivityFiberTrajectoryMapFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(m_connectivityFiberTrajectoryMapFiles, indx);
+    return m_connectivityFiberTrajectoryMapFiles[indx];
+}
+
+/**
+ * Get ALL connectivity fiber trajectory map files.
+ * @param connectivityFiberTrajectoryMapFilesOut
+ *   Contains all connectivity fiber trajectory map files on exit.
+ */
+void
+Brain::getConnectivityFiberTrajectoryMapFiles(std::vector<CiftiFiberTrajectoryMapFile*>& connectivityFiberTrajectoryMapFilesOut) const
+{
+    connectivityFiberTrajectoryMapFilesOut = m_connectivityFiberTrajectoryMapFiles;
+}
+
+/**
  * @return Number of cifti parcel files.
  */
 int32_t
@@ -4883,6 +5016,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
             CiftiFiberTrajectoryFile* file = dynamic_cast<CiftiFiberTrajectoryFile*>(caretDataFile);
             CaretAssert(file);
             m_connectivityFiberTrajectoryFiles.push_back(file);
+        }
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+        {
+            CiftiFiberTrajectoryMapFile* file = dynamic_cast<CiftiFiberTrajectoryMapFile*>(caretDataFile);
+            CaretAssert(file);
+            m_connectivityFiberTrajectoryMapFiles.push_back(file);
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
@@ -6087,6 +6227,8 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
@@ -6398,6 +6540,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                 caretDataFileRead  = addReadOrReloadConnectivityFiberTrajectoryFile(fileMode,
                                                                         caretDataFile,
                                                                         dataFileName);
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                caretDataFileRead = addReadOrReloadConnectivityFiberTrajectoryMapFile(fileMode,
+                                                                                      caretDataFile,
+                                                                                      dataFileName);
                 break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 caretDataFileRead  = addReadOrReloadConnectivityMatrixParcelFile(fileMode,
@@ -7908,6 +8055,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
                            m_connectivityFiberTrajectoryFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           m_connectivityFiberTrajectoryMapFiles.begin(),
+                           m_connectivityFiberTrajectoryMapFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            m_connectivityMatrixParcelFiles.begin(),
                            m_connectivityMatrixParcelFiles.end());
     
@@ -8091,6 +8242,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
@@ -8206,6 +8359,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
@@ -8408,6 +8563,14 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
                                                                                              caretDataFile);
     if (connFiberTrajectoryIterator != m_connectivityFiberTrajectoryFiles.end()) {
         m_connectivityFiberTrajectoryFiles.erase(connFiberTrajectoryIterator);
+        return true;
+    }
+    
+    std::vector<CiftiFiberTrajectoryMapFile*>::iterator connFiberTrajectoryMapIterator(std::find(m_connectivityFiberTrajectoryMapFiles.begin(),
+                                                                                                 m_connectivityFiberTrajectoryMapFiles.end(),
+                                                                                                 caretDataFile));
+    if (connFiberTrajectoryMapIterator != m_connectivityFiberTrajectoryMapFiles.end()) {
+        m_connectivityFiberTrajectoryMapFiles.erase(connFiberTrajectoryMapIterator);
         return true;
     }
     
@@ -9058,6 +9221,14 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
         trajFile->finishRestorationOfScene();
     }
 
+    /*
+     * Fiber trajectory map files need special handling after restoring a scene.
+     */
+    updateFiberTrajectoryMatchingFiberOrientationFiles();
+    for (CiftiFiberTrajectoryMapFile* cftmf : m_connectivityFiberTrajectoryMapFiles) {
+        cftmf->finishRestorationOfScene();
+    }
+    
     /*
      * Some files are sorted by name
      */

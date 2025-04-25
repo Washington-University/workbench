@@ -1,5 +1,5 @@
-#ifndef __CIFTI_FIBER_TRAJECTORY_FILE__H_
-#define __CIFTI_FIBER_TRAJECTORY_FILE__H_
+#ifndef __CIFTI_FIBER_TRAJECTORY_MAP_FILE__H_
+#define __CIFTI_FIBER_TRAJECTORY_MAP_FILE__H_
 
 /*LICENSE_START*/
 /*
@@ -36,12 +36,12 @@ namespace caret {
     class FiberTrajectoryMapProperties;
     class GiftiMetaData;
     
-    class CiftiFiberTrajectoryFile : public CaretMappableDataFile {
+    class CiftiFiberTrajectoryMapFile : public CaretMappableDataFile {
         
     public:
-        CiftiFiberTrajectoryFile();
+        CiftiFiberTrajectoryMapFile();
         
-        virtual ~CiftiFiberTrajectoryFile();
+        virtual ~CiftiFiberTrajectoryMapFile();
         
         virtual void clear();
         
@@ -140,7 +140,7 @@ namespace caret {
         
         void loadDataForRowIndex(const int64_t rowIndex);
         
-        const std::vector<FiberOrientationTrajectory*>* getLoadedFiberOrientationTrajectories() const;
+        const std::vector<FiberOrientationTrajectory*>* getFiberOrientationTrajectoriesForMap(const int32_t mapIndex);
         
         void clearLoadedFiberOrientations();
         
@@ -166,8 +166,8 @@ namespace caret {
         
         bool supportsWriting() const;
         
-        CiftiFiberTrajectoryFile* newFiberTrajectoryFileFromLoadedRowData(const AString& destinationDirectory,
-                                                                          AString& errorMessageOut) const;
+        CiftiFiberTrajectoryMapFile* newFiberTrajectoryMapFileFromLoadedRowData(const AString& destinationDirectory,
+                                                                                AString& errorMessageOut) const;
         
         void addToDataFileContentInformation(DataFileContentInformation& dataFileInformation);
         
@@ -183,9 +183,9 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
         
     private:
-        CiftiFiberTrajectoryFile(const CiftiFiberTrajectoryFile&);
+        CiftiFiberTrajectoryMapFile(const CiftiFiberTrajectoryMapFile&);
 
-        CiftiFiberTrajectoryFile& operator=(const CiftiFiberTrajectoryFile&);
+        CiftiFiberTrajectoryMapFile& operator=(const CiftiFiberTrajectoryMapFile&);
         
     protected:
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
@@ -210,7 +210,7 @@ namespace caret {
         
         void clearPrivate();
         
-        void validateAssignedMatchingFiberOrientationFile();
+        bool validateAssignedMatchingFiberOrientationFile();
         
         void finishFiberOrientationTrajectoriesAveraging();
        
@@ -227,7 +227,7 @@ namespace caret {
         AString m_matchingFiberOrientationFileName;
         AString m_matchingFiberOrientationFileNameFromRestoredScene;
         
-        std::vector<FiberOrientationTrajectory*> m_fiberOrientationTrajectories;
+        std::vector<std::vector<FiberOrientationTrajectory*>> m_mapFiberOrientationTrajectories;
 
         FiberTrajectoryMapProperties* m_fiberTrajectoryMapProperties;
         
@@ -239,13 +239,17 @@ namespace caret {
         ConnectivityDataLoaded* m_connectivityDataLoaded;
         
         SceneClassAssistant* m_sceneAssistant;
+        
+        
+        int32_t m_numberOfMaps = 0;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
-#ifdef __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
+#ifdef __CIFTI_FIBER_TRAJECTORY_MAP_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CIFTI_FIBER_TRAJECTORY_FILE_DECLARE__
+#endif // __CIFTI_FIBER_TRAJECTORY_MAP_FILE_DECLARE__
 
 } // namespace
-#endif  //__CIFTI_FIBER_TRAJECTORY_FILE__H_
+#endif  //__CIFTI_FIBER_TRAJECTORY_MAP_FILE__H_

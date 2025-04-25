@@ -443,6 +443,8 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                                 break;
+                            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                                break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                                 break;
                             case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
@@ -610,6 +612,8 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                    break;
+                case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                     break;
                 case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                     break;

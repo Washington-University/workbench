@@ -34,7 +34,6 @@
 #include "CiftiBrainordinateLabelFile.h"
 #include "CiftiBrainordinateScalarFile.h"
 #include "CiftiConnectivityMatrixParcelFile.h"
-#include "CiftiFiberTrajectoryFile.h"
 #include "CiftiFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
@@ -47,6 +46,7 @@
 #include "CiftiXML.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
+#include "DataFileException.h"
 #include "EventManager.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -245,6 +245,7 @@ VolumeMappableInterface()
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
         case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::FOCI:
         case DataFileTypeEnum::HISTOLOGY_SLICES:
@@ -832,6 +833,7 @@ CiftiMappableDataFile::validateMappingTypes(const AString& filename)
         case DataFileTypeEnum::BORDER:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
         case DataFileTypeEnum::CZI_IMAGE_FILE:
         case DataFileTypeEnum::FOCI:
         case DataFileTypeEnum::HISTOLOGY_SLICES:
@@ -2509,6 +2511,8 @@ CiftiMappableDataFile::getMatrixForChartingRGBA(int32_t& numberOfRowsOut,
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:
             break;
@@ -5969,6 +5973,9 @@ CiftiMappableDataFile::getSurfaceNodeIdentificationForMaps(const std::vector<int
             CaretAssert(0);
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            CaretAssert(0);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
             CaretAssert(0);
             break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:

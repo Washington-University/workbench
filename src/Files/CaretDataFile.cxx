@@ -85,6 +85,9 @@ SceneableInterface()
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            supportsIdentificationAttributesFlag = true;
+            break;
         case DataFileTypeEnum::CONNECTIVITY_PARCEL:
             supportsIdentificationAttributesFlag = true;
             break;

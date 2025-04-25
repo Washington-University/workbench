@@ -1982,6 +1982,8 @@ SpecFile::isDataFileTypeAllowedInSpecFile(const DataFileTypeEnum::Enum dataFileT
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
             break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+            break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;
         case DataFileTypeEnum::CZI_IMAGE_FILE:

@@ -110,6 +110,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_PARCEL:
                 m_matrixDataFileType = MatrixDataFileType::PARCEL;
                 break;

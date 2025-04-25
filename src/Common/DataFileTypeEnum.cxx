@@ -238,6 +238,13 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "trajTEMP.wbsparse"));
     
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_FIBER_TRAJECTORY_MAPS,
+                                        "CONNECTIVITY_FIBER_TRAJECTORY_MAPS",
+                                        "CIFTI - Fiber Trajectory Maps",
+                                        "FIBER TRAJECTORY Maps",
+                                        false,
+                                        "trajMaps.wbsparse"));
+    
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_PARCEL,
                                         "CONNECTIVITY_PARCEL",
                                         "CIFTI - Parcel",
@@ -850,6 +857,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                 break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 break;
             case DataFileTypeEnum::CZI_IMAGE_FILE:
@@ -1192,6 +1201,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
                 break;
             case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                 break;
@@ -1572,6 +1583,8 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
         case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
             break;
         case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
             break;
         case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
             break;

@@ -69,6 +69,7 @@ namespace caret {
     class CiftiConnectivityMatrixParcelDynamicFile;
     class CiftiFiberOrientationFile;
     class CiftiFiberTrajectoryFile;
+    class CiftiFiberTrajectoryMapFile;
     class CiftiMappableDataFile;
     class CiftiMappableConnectivityMatrixDataFile;
     class CiftiParcelLabelFile;
@@ -372,6 +373,14 @@ namespace caret {
         const CiftiFiberTrajectoryFile* getConnectivityFiberTrajectoryFile(int32_t indx) const;
         
         void getConnectivityFiberTrajectoryFiles(std::vector<CiftiFiberTrajectoryFile*>& ciftiFiberTrajectoryFilesOut) const;
+        
+        int32_t getNumberOfConnectivityFiberTrajectoryMapFiles() const;
+        
+        CiftiFiberTrajectoryMapFile* getConnectivityFiberTrajectoryMapFile(int32_t indx);
+        
+        const CiftiFiberTrajectoryMapFile* getConnectivityFiberTrajectoryMapFile(int32_t indx) const;
+        
+        void getConnectivityFiberTrajectoryMapFiles(std::vector<CiftiFiberTrajectoryMapFile*>& ciftiFiberTrajectoryMapFilesOut) const;
         
         int32_t getNumberOfConnectivityMatrixParcelFiles() const;
         
@@ -825,6 +834,10 @@ namespace caret {
                                                                       CaretDataFile* caretDataFile,
                                                                       const AString& filename);
         
+        CiftiFiberTrajectoryMapFile* addReadOrReloadConnectivityFiberTrajectoryMapFile(const FileModeAddReadReload fileMode,
+                                                                                       CaretDataFile* caretDataFile,
+                                                                                       const AString& filename);
+        
         CiftiConnectivityMatrixParcelFile* addReadOrReloadConnectivityMatrixParcelFile(const FileModeAddReadReload fileMode,
                                                                             CaretDataFile* caretDataFile,
                                                                             const AString& filename);
@@ -946,6 +959,8 @@ namespace caret {
         std::vector<CiftiFiberOrientationFile*> m_connectivityFiberOrientationFiles;
         
         std::vector<CiftiFiberTrajectoryFile*> m_connectivityFiberTrajectoryFiles;
+        
+        std::vector<CiftiFiberTrajectoryMapFile*> m_connectivityFiberTrajectoryMapFiles;
         
         std::vector<CiftiConnectivityMatrixParcelFile*> m_connectivityMatrixParcelFiles;
         
