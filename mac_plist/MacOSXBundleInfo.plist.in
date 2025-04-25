@@ -31,8 +31,11 @@
 			<string>foci</string>
 			<string>wb_foci</string>
 			<string>gii</string>
+			<string>meta_image</string>
 			<string>nii</string>
 			<string>palette</string>
+			<string>wb_samples</string>
+			<string>wb_sparse</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
 			<string>data_file.icns</string>
