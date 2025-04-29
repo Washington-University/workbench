@@ -119,6 +119,12 @@ DeveloperFlagsEnum::initialize()
                                                 "Developer Flag Unused",
                                                 CheckableEnum::YES,
                                                 false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF,
+                                                "DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF",
+                                                "Drawing: Disable depth testing for drawing surfaces\n in all view (may improve transparency)",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA,
                                                 "DEVELOPER_FLAG_FLIP_PALETTE_NOT_DATA",
                                                 "Drawing: Flip Palette Not Data",
@@ -276,6 +282,9 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
     AString toolTip;
     
     switch (enumValue) {
+        case DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF:
+            toolTip = ("Disable depth testing for surfaces in ALL view");
+            break;
         case DELELOPER_FLAG_TEXTURE_ANATOMY_VOLUME_SMOOTH:
             toolTip = ("Smooth MPR volume anatomy volume drawing voxels");
             break;

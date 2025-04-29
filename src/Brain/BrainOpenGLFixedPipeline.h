@@ -236,7 +236,8 @@ namespace caret {
                          const float surfaceScaling,
                          const int32_t viewportHeight,
                          const float* nodeColoringRGBA,
-                         const bool drawAnnotationsInModelSpaceFlag);
+                         const bool drawAnnotationsInModelSpaceFlag,
+                         const bool depthTestingEnabled);
         
         void drawSurfaceNodes(Surface* surface,
                               const float* nodeColoringRGBA);

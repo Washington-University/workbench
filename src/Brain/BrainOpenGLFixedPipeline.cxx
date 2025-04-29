@@ -2788,12 +2788,14 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
     
     setupScaleBarDrawingInformation(browserTabContent);
     
+    const bool depthTestingEnabled(true);
     this->drawSurface(surface,
                       SurfaceTabType::SINGLE_SURFACE,
                       browserTabContent->getScaling(),
                       viewport[3], /* height */
                       nodeColoringRGBA,
-                      true);
+                      true,
+                      depthTestingEnabled);
 }
 
 /**
@@ -2832,6 +2834,8 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  *    RGBA coloring for the nodes.
  * @param drawAnnotationsInModelSpaceFlag
  *    If true, draw annotations in model space.
+ * @param depthTestingEnabled
+ *    If true, enable depth testing
  */
 void 
 BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
@@ -2839,7 +2843,8 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
                                       const float surfaceScaling,
                                       const int32_t viewportHeight,
                                       const float* nodeColoringRGBA,
-                                      const bool drawAnnotationsInModelSpaceFlag)
+                                      const bool drawAnnotationsInModelSpaceFlag,
+                                      const bool depthTestingEnabled)
 {
     glPushAttrib(GL_COLOR_BUFFER_BIT);
 
@@ -2847,7 +2852,9 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
     
     glMatrixMode(GL_MODELVIEW);
     
-    glEnable(GL_DEPTH_TEST);
+    if (depthTestingEnabled) {
+        glEnable(GL_DEPTH_TEST);
+    }
     
     applyClippingPlanes(BrainOpenGLFixedPipeline::CLIPPING_DATA_TYPE_SURFACE,
                         surface->getStructure());
@@ -7037,12 +7044,14 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             setupScaleBarDrawingInformation(browserTabContent);
         }
         
+        const bool depthTestingEnabled(true);
         this->drawSurface(mvp->getSurface(),
                           SurfaceTabType::SURFACE_MONTAGE,
                           browserTabContent->getScaling(),
                           subViewportHeight,
                           nodeColoringRGBA,
-                          true);
+                          true,
+                          depthTestingEnabled);
     }
     
     glViewport(savedVP[0],
@@ -7316,9 +7325,18 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     drawSurfaceFiberOrientations(StructureEnum::ALL);
     drawSurfaceFiberTrajectories(StructureEnum::ALL);
 
+    bool depthTestingEnabled(true);
+    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF)) {
+        depthTestingEnabled = false;
+    }
+
     /*
      * Draw surfaces last so that opacity works.
      */
+    glPushAttrib(GL_DEPTH_WRITEMASK);
+    if ( ! depthTestingEnabled) {
+        glDepthMask(GL_FALSE);
+    }
     std::set<StructureEnum::Enum> uniqueStructuresToDraw;
     std::vector<Surface*> surfacesToDraw;
     const int32_t numberOfBrainStructures = m_brain->getNumberOfBrainStructures();
@@ -7435,10 +7453,13 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
                               browserTabContent->getScaling(),
                               viewport[3], /* height */
                               nodeColoringRGBA,
-                              drawModelSpaceAnnotationsFlag);
+                              drawModelSpaceAnnotationsFlag,
+                              depthTestingEnabled);
             glPopMatrix();
         }
     }
+    
+    glPopAttrib();
     
     /*
      * Special case to draw foci when surfaces are not displayed
