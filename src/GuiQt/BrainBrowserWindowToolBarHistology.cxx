@@ -627,59 +627,65 @@ BrainBrowserWindowToolBarHistology::sliceIndexValueChanged(int sliceIndexIn)
                                                                     BrowserTabContent::MoveYokedVolumeSlices::MOVE_YES);
                 
                 /*
-                 * Changing to an adjacent slice
+                 * Attempt to place new slice in alignment with previous slice
+                 * DISABLE 29 April 2025 - It is causing big jumps when slices
+                 * are changed (maybe the data set has bad transforms) and
+                 * it overrides the panning in the Custom View dialog
                  */
-                const bool anyStepFlag(true);
-                const int32_t sliceStep(std::abs(sliceIndex -  previousSliceIndex));
-                if ((sliceStep == 1)
-                    || anyStepFlag) {
-                    if (previousValidFlag) {
-                        /*
-                         * Get the new slice
-                         */
-                        const HistologySlice* histologySlice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
-                        if (histologySlice != NULL) {
+                const bool keepSlicesAlignedFlag(false);
+                if (keepSlicesAlignedFlag) {
+                    const bool anyStepFlag(true);
+                    const int32_t sliceStep(std::abs(sliceIndex -  previousSliceIndex));
+                    if ((sliceStep == 1)
+                        || anyStepFlag) {
+                        if (previousValidFlag) {
                             /*
-                             * MUST redraw and wait until done
+                             * Get the new slice
                              */
-                            EventGraphicsPaintNowOneWindow graphicsUpdateOneWindow(m_parentToolBar->browserWindowIndex);
-                            EventManager::get()->sendEvent(graphicsUpdateOneWindow.getPointer());
-                            
-                            /*
-                             * Project stereotaxic coord to new slice to get plane coordinate at
-                             * same location as stereotaxic coordinate
-                             */
-                            Vector3D planeXYZ;
-                            Vector3D newCenterStereotaxicXYZ;
-                            float distanceToSlice(0.0);
-                            if (histologySlice->projectStereotaxicXyzToSlice(centerStereotaxicXYZ,
-                                                                             newCenterStereotaxicXYZ,
-                                                                             distanceToSlice,
-                                                                             planeXYZ)) {
-                                if (debugFlag) std::cout << "  New stereotaxic: " << newCenterStereotaxicXYZ.toString(5) << std::endl;
-                                if (debugFlag) std::cout << "   New plane center should be: " << planeXYZ.toString(5) << std::endl;
-
+                            const HistologySlice* histologySlice(histologySlicesFile->getHistologySliceByIndex(sliceIndex));
+                            if (histologySlice != NULL) {
                                 /*
-                                 * Get the plane coordinate at the center of the viewport
+                                 * MUST redraw and wait until done
                                  */
-                                Vector3D centerPlaneXYZ;
-                                if (getPlaneCoordinateAtViewportCenter(centerPlaneXYZ)) {
-                                    if (debugFlag) std::cout << "   Plane at center of screen: " << centerPlaneXYZ.toString(5) << std::endl;
+                                EventGraphicsPaintNowOneWindow graphicsUpdateOneWindow(m_parentToolBar->browserWindowIndex);
+                                EventManager::get()->sendEvent(graphicsUpdateOneWindow.getPointer());
+                                
+                                /*
+                                 * Project stereotaxic coord to new slice to get plane coordinate at
+                                 * same location as stereotaxic coordinate
+                                 */
+                                Vector3D planeXYZ;
+                                Vector3D newCenterStereotaxicXYZ;
+                                float distanceToSlice(0.0);
+                                if (histologySlice->projectStereotaxicXyzToSlice(centerStereotaxicXYZ,
+                                                                                 newCenterStereotaxicXYZ,
+                                                                                 distanceToSlice,
+                                                                                 planeXYZ)) {
+                                    if (debugFlag) std::cout << "  New stereotaxic: " << newCenterStereotaxicXYZ.toString(5) << std::endl;
+                                    if (debugFlag) std::cout << "   New plane center should be: " << planeXYZ.toString(5) << std::endl;
                                     
                                     /*
-                                     * Difference in the plane coordinates is amount to use for translation with zoom.
-                                     * This moves the point in the new slice that corresponds to the
-                                     * point in the previous slice that was at the center of the viewport
+                                     * Get the plane coordinate at the center of the viewport
                                      */
-                                    const Vector3D diffPlaneXYZ(centerPlaneXYZ - planeXYZ);
-                                    if (debugFlag) std::cout << "   Diff Plane XYZ: " << diffPlaneXYZ.toString(5) << std::endl;
-                                    
-                                    const float zoom(m_browserTabContent->getScaling());
-                                    float translation[3];
-                                    m_browserTabContent->getTranslation(translation);
-                                    translation[0] += (diffPlaneXYZ[0] * zoom);
-                                    translation[1] -= (diffPlaneXYZ[1] * zoom);
-                                    m_browserTabContent->setTranslation(translation);
+                                    Vector3D centerPlaneXYZ;
+                                    if (getPlaneCoordinateAtViewportCenter(centerPlaneXYZ)) {
+                                        if (debugFlag) std::cout << "   Plane at center of screen: " << centerPlaneXYZ.toString(5) << std::endl;
+                                        
+                                        /*
+                                         * Difference in the plane coordinates is amount to use for translation with zoom.
+                                         * This moves the point in the new slice that corresponds to the
+                                         * point in the previous slice that was at the center of the viewport
+                                         */
+                                        const Vector3D diffPlaneXYZ(centerPlaneXYZ - planeXYZ);
+                                        if (debugFlag) std::cout << "   Diff Plane XYZ: " << diffPlaneXYZ.toString(5) << std::endl;
+                                        
+                                        const float zoom(m_browserTabContent->getScaling());
+                                        float translation[3];
+                                        m_browserTabContent->getTranslation(translation);
+                                        translation[0] += (diffPlaneXYZ[0] * zoom);
+                                        translation[1] -= (diffPlaneXYZ[1] * zoom);
+                                        m_browserTabContent->setTranslation(translation);
+                                    }
                                 }
                             }
                         }
