@@ -119,9 +119,15 @@ DeveloperFlagsEnum::initialize()
                                                 "Developer Flag Unused",
                                                 CheckableEnum::YES,
                                                 false));
+    checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_ALL_VIEW_DRAW_FIBERS_LAST,
+                                                "DEVELOPER_FLAG_ALL_VIEW_DRAW_FIBERS_LAST",
+                                                "All View: Draw fibers last with depth buffer cleared\n(may improve transparency)",
+                                                CheckableEnum::YES,
+                                                false));
+    
     checkableItems.push_back(DeveloperFlagsEnum(DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF,
                                                 "DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF",
-                                                "Drawing: Disable depth testing for drawing surfaces\n in all view (may improve transparency)",
+                                                "All View: Disable depth testing for drawing surfaces\n(may improve transparency)",
                                                 CheckableEnum::YES,
                                                 false));
     
@@ -282,6 +288,9 @@ DeveloperFlagsEnum::toToolTip(Enum enumValue)
     AString toolTip;
     
     switch (enumValue) {
+        case DEVELOPER_FLAG_ALL_VIEW_DRAW_FIBERS_LAST:
+            toolTip = ("Draw fibers with depth testing disabled last in ALL view");
+            break;
         case DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF:
             toolTip = ("Disable depth testing for surfaces in ALL view");
             break;

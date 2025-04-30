@@ -6600,12 +6600,14 @@ BrainOpenGLFixedPipeline::drawFiberTrajectories(const Plane* plane,
                     }
                 }
                 if (drawCount > 0) {
-                    orientation->m_fibers[0]->m_opacityForDrawing = fiberOpacities[0];
-                    orientation->m_fibers[1]->m_opacityForDrawing = fiberOpacities[1];
-                    orientation->m_fibers[2]->m_opacityForDrawing = fiberOpacities[2];
-                    
-                    addFiberOrientationForDrawing(&fiberOrientDispInfo,
-                                                  orientation);
+                    if (orientation->m_fibers.size() >= 3) {
+                        orientation->m_fibers[0]->m_opacityForDrawing = fiberOpacities[0];
+                        orientation->m_fibers[1]->m_opacityForDrawing = fiberOpacities[1];
+                        orientation->m_fibers[2]->m_opacityForDrawing = fiberOpacities[2];
+                        
+                        addFiberOrientationForDrawing(&fiberOrientDispInfo,
+                                                      orientation);
+                    }
                 }
             }
             
@@ -7322,8 +7324,11 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
         }
     }
     
-    drawSurfaceFiberOrientations(StructureEnum::ALL);
-    drawSurfaceFiberTrajectories(StructureEnum::ALL);
+    const bool drawFibersLastFlag(DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_DRAW_FIBERS_LAST));
+    if ( ! drawFibersLastFlag) {
+        drawSurfaceFiberOrientations(StructureEnum::ALL);
+        drawSurfaceFiberTrajectories(StructureEnum::ALL);
+    }
 
     bool depthTestingEnabled(true);
     if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF)) {
@@ -7461,6 +7466,21 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     
     glPopAttrib();
     
+    if (drawFibersLastFlag) {
+        /*
+         * Clear the depth buffer but use the scissor test to only clear
+         * the depth buffer for this tab.
+         */
+        glPushAttrib(GL_SCISSOR_BIT);
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glPopAttrib();
+        
+        drawSurfaceFiberOrientations(StructureEnum::ALL);
+        drawSurfaceFiberTrajectories(StructureEnum::ALL);
+    }
+
     /*
      * Special case to draw foci when surfaces are not displayed
      */
