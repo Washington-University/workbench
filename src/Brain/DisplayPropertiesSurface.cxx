@@ -48,6 +48,7 @@ DisplayPropertiesSurface::DisplayPropertiesSurface()
     m_nodeSize = 2.0;
     m_surfaceDrawingType = SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES;
     m_opacity = 1.0;
+    m_backfaceCullingEnabled = false;
     resetDefaultColorRGB();
     
     m_sceneAssistant->add("m_displayNormalVectors",
@@ -64,7 +65,8 @@ DisplayPropertiesSurface::DisplayPropertiesSurface()
                                &m_defaultColorRGB[0],
                                m_defaultColorRGB.size(),
                                178);
-    
+    m_sceneAssistant->add("m_backfaceCullingEnabled",
+                          &m_backfaceCullingEnabled);
 }
 
 /**
