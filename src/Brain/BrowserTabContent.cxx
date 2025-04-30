@@ -54,6 +54,8 @@
 #include "CiftiBrainordinateDataSeriesFile.h"
 #include "CiftiConnectivityMatrixDenseDynamicFile.h"
 #include "CiftiConnectivityMatrixParcelDynamicFile.h"
+#include "CiftiFiberOrientationFile.h"
+#include "CiftiFiberTrajectoryMapFile.h"
 #include "CiftiParcelSeriesFile.h"
 #include "ClippingPlaneGroup.h"
 #include "GroupAndNameHierarchyGroup.h"
@@ -2855,6 +2857,11 @@ BrowserTabContent::getFilesDisplayedInTab(std::vector<CaretDataFile*>& displayed
                     case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                    {
+                        CiftiFiberTrajectoryMapFile* trajMapFile = dynamic_cast<CiftiFiberTrajectoryMapFile*>(overlayDataFile);
+                        CaretAssert(trajMapFile);
+                        displayedDataFiles.insert(trajMapFile->getMatchingFiberOrientationFile());
+                    }
                         break;
                     case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
                         break;
