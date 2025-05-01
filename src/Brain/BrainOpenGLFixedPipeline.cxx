@@ -2788,6 +2788,17 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
     
     setupScaleBarDrawingInformation(browserTabContent);
     
+    const DisplayPropertiesFiberOrientation* dpf(m_brain->getDisplayPropertiesFiberOrientation());
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
+    const bool drawFiberTrajectoriesInFrontFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                                 tabIndex));
+    const StructureEnum::Enum structure(surface->getStructure());
+    drawSurfaceFiberOrientations(structure);
+    if ( ! drawFiberTrajectoriesInFrontFlag) {
+        drawSurfaceFiberTrajectories(structure);
+    }
+    
     const bool depthTestingEnabled(true);
     this->drawSurface(surface,
                       SurfaceTabType::SINGLE_SURFACE,
@@ -2796,6 +2807,20 @@ BrainOpenGLFixedPipeline::drawSurfaceModel(BrowserTabContent* browserTabContent,
                       nodeColoringRGBA,
                       true,
                       depthTestingEnabled);
+
+    if (drawFiberTrajectoriesInFrontFlag) {
+        /*
+         * Clear the depth buffer but use the scissor test to only clear
+         * the depth buffer for this tab.
+         */
+        glPushAttrib(GL_SCISSOR_BIT);
+        glEnable(GL_SCISSOR_TEST);
+        glScissor(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glPopAttrib();
+        
+        drawSurfaceFiberTrajectories(structure);
+    }
 }
 
 /**
@@ -7046,6 +7071,17 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             setupScaleBarDrawingInformation(browserTabContent);
         }
         
+        const DisplayPropertiesFiberOrientation* dpf(m_brain->getDisplayPropertiesFiberOrientation());
+        const int32_t tabIndex = browserTabContent->getTabNumber();
+        const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
+        const bool drawFiberTrajectoriesInFrontFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                                     tabIndex));
+        const StructureEnum::Enum structure(mvp->getSurface()->getStructure());
+        drawSurfaceFiberOrientations(structure);
+        if ( ! drawFiberTrajectoriesInFrontFlag) {
+            drawSurfaceFiberTrajectories(structure);
+        }
+
         const bool depthTestingEnabled(true);
         this->drawSurface(mvp->getSurface(),
                           SurfaceTabType::SURFACE_MONTAGE,
@@ -7054,6 +7090,20 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                           nodeColoringRGBA,
                           true,
                           depthTestingEnabled);
+
+        if (drawFiberTrajectoriesInFrontFlag) {
+            /*
+             * Clear the depth buffer but use the scissor test to only clear
+             * the depth buffer for this tab.
+             */
+            glPushAttrib(GL_SCISSOR_BIT);
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(m_tabViewport[0], m_tabViewport[1], m_tabViewport[2], m_tabViewport[3]);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glPopAttrib();
+
+            drawSurfaceFiberTrajectories(structure);
+        }
     }
     
     glViewport(savedVP[0],
@@ -7328,10 +7378,10 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     const int32_t tabIndex = browserTabContent->getTabNumber();
     const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
 
-    const bool drawFiberTrajectoriesLastFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+    const bool drawFiberTrajectoriesInFrontFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
                                                                       tabIndex));
     drawSurfaceFiberOrientations(StructureEnum::ALL);
-    if ( ! drawFiberTrajectoriesLastFlag) {
+    if ( ! drawFiberTrajectoriesInFrontFlag) {
         drawSurfaceFiberTrajectories(StructureEnum::ALL);
     }
 
@@ -7464,7 +7514,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     
     glPopAttrib();
     
-    if (drawFiberTrajectoriesLastFlag) {
+    if (drawFiberTrajectoriesInFrontFlag) {
         /*
          * Clear the depth buffer but use the scissor test to only clear
          * the depth buffer for this tab.

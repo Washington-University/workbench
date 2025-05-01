@@ -392,7 +392,7 @@ CiftiFiberTrajectoryMapFile::getFileMetaData() const
 bool
 CiftiFiberTrajectoryMapFile::isSurfaceMappable() const
 {
-    return false;
+    return true;
 }
 
 /**
