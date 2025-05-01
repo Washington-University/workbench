@@ -7339,7 +7339,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
      * Draw surfaces last so that opacity works.
      */
     glPushAttrib(GL_DEPTH_WRITEMASK);
-    glDepthMask(GL_FALSE);
     std::set<StructureEnum::Enum> uniqueStructuresToDraw;
     std::vector<Surface*> surfacesToDraw;
     const int32_t numberOfBrainStructures = m_brain->getNumberOfBrainStructures();
