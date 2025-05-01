@@ -88,6 +88,11 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     QObject::connect(m_displayFibersCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processSelectionChanges()));
     
+    m_drawFiberTrajectoriesInFrontCheckBox = new QCheckBox("Draw Fiber Trajectories in Front");
+    m_drawFiberTrajectoriesInFrontCheckBox->setToolTip("Draw last so trajectories are in front of everything else");
+    QObject::connect(m_drawFiberTrajectoriesInFrontCheckBox, &QCheckBox::clicked,
+                     this, &FiberOrientationSelectionViewController::processSelectionChanges);
+
     m_tabWidget = new WuQTabWidget(WuQTabWidget::TAB_ALIGN_LEFT,
                                                this);
     m_tabWidget->addTab(attributesWidget,
@@ -103,6 +108,7 @@ FiberOrientationSelectionViewController::FiberOrientationSelectionViewController
     layout->addLayout(groupLayout);
     layout->addSpacing(10);
     layout->addWidget(m_displayFibersCheckBox);
+    layout->addWidget(m_drawFiberTrajectoriesInFrontCheckBox);
     layout->addWidget(m_tabWidget->getWidget(), 0, Qt::AlignLeft);
     layout->addStretch();
     
@@ -434,6 +440,8 @@ FiberOrientationSelectionViewController::updateViewController()
      */
     m_displayFibersCheckBox->setChecked(dpfo->isDisplayed(displayGroup,
                                                         browserTabIndex));
+    m_drawFiberTrajectoriesInFrontCheckBox->setChecked(dpfo->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                                            browserTabIndex));
     m_aboveLimitSpinBox->setValue(dpfo->getAboveLimit(displayGroup,
                                                       browserTabIndex));
     m_belowLimitSpinBox->setValue(dpfo->getBelowLimit(displayGroup,
@@ -488,6 +496,9 @@ FiberOrientationSelectionViewController::processSelectionChanges()
     dpfo->setDisplayed(displayGroup,
                        browserTabIndex,
                        m_displayFibersCheckBox->isChecked());
+    dpfo->setDrawFiberTrajectoriesInFront(displayGroup,
+                                          browserTabIndex,
+                                          m_drawFiberTrajectoriesInFrontCheckBox->isChecked());
     
     const int32_t numberOfFiberOrientFiles = brain->getNumberOfConnectivityFiberOrientationFiles();
     CaretAssert(numberOfFiberOrientFiles <= static_cast<int32_t>(m_fileSelectionCheckBoxes.size()));

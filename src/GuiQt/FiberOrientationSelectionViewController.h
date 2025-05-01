@@ -88,6 +88,8 @@ namespace caret {
         
         QCheckBox* m_displayFibersCheckBox;
         
+        QCheckBox* m_drawFiberTrajectoriesInFrontCheckBox;
+        
         std::vector<QCheckBox*> m_fileSelectionCheckBoxes;
         
         QDoubleSpinBox* m_aboveLimitSpinBox;

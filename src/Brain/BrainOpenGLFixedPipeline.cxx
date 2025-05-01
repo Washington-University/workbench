@@ -7324,24 +7324,22 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
         }
     }
     
-    const bool drawFibersLastFlag(DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_DRAW_FIBERS_LAST));
-    if ( ! drawFibersLastFlag) {
-        drawSurfaceFiberOrientations(StructureEnum::ALL);
-        drawSurfaceFiberTrajectories(StructureEnum::ALL);
-    }
+    const DisplayPropertiesFiberOrientation* dpf(m_brain->getDisplayPropertiesFiberOrientation());
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    const DisplayGroupEnum::Enum displayGroup = dpf->getDisplayGroupForTab(tabIndex);
 
-    bool depthTestingEnabled(true);
-    if (DeveloperFlagsEnum::isFlag(DeveloperFlagsEnum::DEVELOPER_FLAG_ALL_VIEW_SURFACE_DEPTH_TESTING_OFF)) {
-        depthTestingEnabled = false;
+    const bool drawFiberTrajectoriesLastFlag(dpf->isDrawFiberTrajectoriesInFront(displayGroup,
+                                                                      tabIndex));
+    drawSurfaceFiberOrientations(StructureEnum::ALL);
+    if ( ! drawFiberTrajectoriesLastFlag) {
+        drawSurfaceFiberTrajectories(StructureEnum::ALL);
     }
 
     /*
      * Draw surfaces last so that opacity works.
      */
     glPushAttrib(GL_DEPTH_WRITEMASK);
-    if ( ! depthTestingEnabled) {
-        glDepthMask(GL_FALSE);
-    }
+    glDepthMask(GL_FALSE);
     std::set<StructureEnum::Enum> uniqueStructuresToDraw;
     std::vector<Surface*> surfacesToDraw;
     const int32_t numberOfBrainStructures = m_brain->getNumberOfBrainStructures();
@@ -7453,6 +7451,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
             
             glPushMatrix();
             glTranslatef(dx, dy, dz);
+            const bool depthTestingEnabled(true);
             this->drawSurface(surface,
                               SurfaceTabType::WHOLE_BRAIN,
                               browserTabContent->getScaling(),
@@ -7466,7 +7465,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
     
     glPopAttrib();
     
-    if (drawFibersLastFlag) {
+    if (drawFiberTrajectoriesLastFlag) {
         /*
          * Clear the depth buffer but use the scissor test to only clear
          * the depth buffer for this tab.
@@ -7477,7 +7476,6 @@ BrainOpenGLFixedPipeline::drawWholeBrainModel(const BrainOpenGLViewportContent* 
         glClear(GL_DEPTH_BUFFER_BIT);
         glPopAttrib();
         
-        drawSurfaceFiberOrientations(StructureEnum::ALL);
         drawSurfaceFiberTrajectories(StructureEnum::ALL);
     }
 

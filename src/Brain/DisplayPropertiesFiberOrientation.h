@@ -33,6 +33,7 @@ namespace caret {
 
     class Brain;
     
+    class DisplayPropertyDataBoolean;
     class DisplayPropertyDataFloat;
     
     class DisplayPropertiesFiberOrientation : public DisplayProperties {
@@ -58,6 +59,13 @@ namespace caret {
                           const int32_t tabIndex,
                           const bool displayStatus);
         
+        bool isDrawFiberTrajectoriesInFront(const DisplayGroupEnum::Enum displayGroup,
+                                            const int32_t tabIndex) const;
+        
+        void setDrawFiberTrajectoriesInFront(const DisplayGroupEnum::Enum displayGroup,
+                                             const int32_t tabIndex,
+                                             const bool displayStatus);
+
         bool isDrawWithMagnitude(const DisplayGroupEnum::Enum displayGroup,
                                       const int32_t tabIndex) const;
         
@@ -192,6 +200,8 @@ namespace caret {
         
         std::unique_ptr<DisplayPropertyDataFloat> m_maximumUncertainty;
 
+        std::unique_ptr<DisplayPropertyDataBoolean> m_drawFiberTrajectoriesInFront;
+        
         static constexpr float s_defaultMaximumUncertainty = 10.0f;
     };
     

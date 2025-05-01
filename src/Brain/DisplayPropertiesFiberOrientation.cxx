@@ -26,6 +26,7 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "CiftiFiberOrientationFile.h"
+#include "DisplayPropertyDataBoolean.h"
 #include "DisplayPropertyDataFloat.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -96,6 +97,11 @@ m_brain(brain)
         m_displaySphereOrientationsInDisplayGroup[i] = displaySphereOrientions;
     }
 
+    m_drawFiberTrajectoriesInFront.reset(new DisplayPropertyDataBoolean(false));
+    m_sceneAssistant->add("m_drawFiberTrajectoriesInFront",
+                          "DisplayPropertyDataBoolean",
+                          m_drawFiberTrajectoriesInFront.get());
+    
     m_maximumUncertainty.reset(new DisplayPropertyDataFloat(s_defaultMaximumUncertainty));
     m_sceneAssistant->add("m_maximumUncertainty",
                           "DisplayPropertyDataFloat",
@@ -184,6 +190,7 @@ void
 DisplayPropertiesFiberOrientation::reset()
 {
     m_maximumUncertainty->setAllValues(s_defaultMaximumUncertainty);
+    m_drawFiberTrajectoriesInFront->setAllValues(false);
 }
 
 /**
@@ -218,6 +225,7 @@ DisplayPropertiesFiberOrientation::copyDisplayProperties(const int32_t sourceTab
     m_fiberColoringTypeInTab[targetTabIndex] = m_fiberColoringTypeInTab[sourceTabIndex];
     m_fanMultiplierInTab[targetTabIndex] = m_fanMultiplierInTab[sourceTabIndex];
     m_maximumUncertainty->copyValues(sourceTabIndex, targetTabIndex);
+    m_drawFiberTrajectoriesInFront->copyValues(sourceTabIndex, targetTabIndex);
 }
 
 /**
@@ -269,6 +277,40 @@ DisplayPropertiesFiberOrientation::setDisplayed(const DisplayGroupEnum::Enum  di
     else {
         m_displayStatusInDisplayGroup[displayGroup] = displayStatus;
     }
+}
+
+/**
+ * @return  Draw fiber trajectories in front
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ */
+bool
+DisplayPropertiesFiberOrientation::isDrawFiberTrajectoriesInFront(const DisplayGroupEnum::Enum  displayGroup,
+                                               const int32_t tabIndex) const
+{
+    return m_drawFiberTrajectoriesInFront->getValue(displayGroup, 
+                                                    tabIndex);
+}
+
+/**
+ * Set draw fiber trajectories in front
+ * @param displayGroup
+ *    The display group.
+ * @param tabIndex
+ *    Index of browser tab.
+ * @param displayStatus
+ *    New status.
+ */
+void
+DisplayPropertiesFiberOrientation::setDrawFiberTrajectoriesInFront(const DisplayGroupEnum::Enum  displayGroup,
+                                                const int32_t tabIndex,
+                                                const bool displayStatus)
+{
+    m_drawFiberTrajectoriesInFront->setValue(displayGroup,
+                                             tabIndex,
+                                             displayStatus);
 }
 
 /**
