@@ -217,6 +217,26 @@ m_parentToolBar(parentToolBar)
     WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairsToolButton);
 
     /*
+     * Axis labels
+     */
+    m_showAxisCrosshairLabelsAction = new QAction("", this);
+    m_showAxisCrosshairLabelsAction->setCheckable(true);
+    m_showAxisCrosshairLabelsAction->setToolTip("Show axis labels");
+    QObject::connect(m_showAxisCrosshairLabelsAction, &QAction::triggered,
+                     this, &BrainBrowserWindowToolBarHistology::showAxisCrosshairLabelsTriggered);
+    m_showAxisCrosshairLabelsAction->setObjectName(objectNamePrefix
+                                                               + "ShowAxisSliceLabels");
+    macroManager->addMacroSupportToObject(m_showAxisCrosshairLabelsAction,
+                                          "Show axis labels");
+    
+    QToolButton* showCrosshairLabelsToolButton = new QToolButton();
+    showCrosshairLabelsToolButton->setDefaultAction(m_showAxisCrosshairLabelsAction);
+    QPixmap labelsPixmap = BrainBrowserWindowToolBarSlicePlane::createCrosshairLabelsIcon(showCrosshairLabelsToolButton);
+    m_showAxisCrosshairLabelsAction->setIcon(QIcon(labelsPixmap));
+    showCrosshairLabelsToolButton->setIconSize(labelsPixmap.size());
+    WuQtUtilities::setToolButtonStyleForQt5Mac(showCrosshairLabelsToolButton);
+    
+    /*
      * Angles
      */
     QLabel* anglesLabel(new QLabel("Angles"));
@@ -286,10 +306,23 @@ m_parentToolBar(parentToolBar)
     controlsLayout->addWidget(m_rotationAngleZLabel,
                               row, columnAngles);
     ++row;
-    controlsLayout->addWidget(showCrosshairsToolButton,
-                              row, columnSliceLabels, Qt::AlignRight);
-    controlsLayout->addWidget(identificationMovesSlicesToolButton,
-                              row, columnSliceSpinBoxes, Qt::AlignLeft);
+    
+    QHBoxLayout* crosshairsLayout(new QHBoxLayout());
+    crosshairsLayout->setContentsMargins(0, 0, 0, 0);
+    crosshairsLayout->addStretch();
+    crosshairsLayout->addWidget(showCrosshairsToolButton);
+    crosshairsLayout->addWidget(showCrosshairLabelsToolButton);
+    crosshairsLayout->addWidget(identificationMovesSlicesToolButton);
+    crosshairsLayout->addStretch();
+
+    controlsLayout->addLayout(crosshairsLayout,
+                              row, columnSliceLabels, 1, 2);
+//    controlsLayout->addWidget(showCrosshairsToolButton,
+//                              row, columnSliceLabels, Qt::AlignRight);
+//    controlsLayout->addWidget(showCrosshairLabelsToolButton,
+//                              row, columnSlicesLabels, Qt::AlignRight);
+//    controlsLayout->addWidget(identificationMovesSlicesToolButton,
+//                              row, columnSliceSpinBoxes, Qt::AlignLeft);
     controlsLayout->addWidget(m_flipXCheckBox,
                               row, columnPlaneSpinBoxes);
     controlsLayout->addWidget(moveToCenterToolButton,
@@ -457,6 +490,7 @@ BrainBrowserWindowToolBarHistology::updateContent(BrowserTabContent* browserTabC
         m_identificationMovesSlicesAction->setChecked(m_browserTabContent->isIdentificationUpdateHistologySlices());
         m_yokeOrientationCheckBox->setChecked(m_browserTabContent->isHistologyOrientationAppliedToYoking());
         m_showAxisCrosshairsAction->setChecked(m_browserTabContent->isHistologyAxesCrosshairsDisplayed());
+        m_showAxisCrosshairLabelsAction->setChecked(m_browserTabContent->isHistologyAxesCrosshairsLabelsDisplayed());
         m_flipXCheckBox->setChecked(m_browserTabContent->isHistologyFlipXEnabled());
     }
     
@@ -849,6 +883,22 @@ BrainBrowserWindowToolBarHistology::axisCrosshairActionTriggered(bool checked)
 {
     if (m_browserTabContent != NULL) {
         m_browserTabContent->setHistologyAxesCrosshairsDisplayed(checked);
+        updateGraphicsWindowAndYokedWindows();
+        updateUserInterface();
+    }
+}
+
+/**
+ * Called when axis crosshair labels button triggered
+ *
+ * @param checked
+ *     New checked status
+ */
+void
+BrainBrowserWindowToolBarHistology::showAxisCrosshairLabelsTriggered(bool checked)
+{
+    if (m_browserTabContent != NULL) {
+        m_browserTabContent->setHistologyAxesCrosshairsLabelsDisplayed(checked);
         updateGraphicsWindowAndYokedWindows();
         updateUserInterface();
     }

@@ -121,6 +121,12 @@ namespace caret {
         
         bool createOverlapMaskingTextures(AString& errorMessageOut);
         
+        void getAxisLabels(const bool flipLeftRightFlag,
+                           AString& leftScreenLabelTextOut,
+                           AString& rightScreenLabelTextOut,
+                           AString& bottomScreenLabelTextOut,
+                           AString& topScreenLabelTextOut) const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;

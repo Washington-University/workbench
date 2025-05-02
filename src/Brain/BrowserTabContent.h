@@ -616,6 +616,10 @@ namespace caret {
         
         void setHistologyAxesCrosshairsDisplayed(const bool displayed);
         
+        bool isHistologyAxesCrosshairsLabelsDisplayed() const;
+        
+        void setHistologyAxesCrosshairsLabelsDisplayed(const bool displayed);
+        
         bool isHistologyFlipXEnabled() const;
         
         void setHistologyFlipXEnabled(const bool status);
@@ -1009,6 +1013,9 @@ namespace caret {
         
         /** display crosshairs on histology slices */
         bool m_displayHistologyAxesCrosshairs;
+        
+        /** display crosshairs  labelson histology slices */
+        bool m_displayHistologyAxesCrosshairsLabels;
         
         /** flip about X axis enabled for histology */
         bool m_histologyFlipXAxisFlag;

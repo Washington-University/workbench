@@ -46,6 +46,8 @@ namespace caret {
         
         static QPixmap createCrosshairsIcon(const QWidget* widget);
         
+        static QPixmap createCrosshairLabelsIcon(const QWidget* widget);
+        
         // ADD_NEW_METHODS_HERE
         
     private slots:
@@ -66,8 +68,6 @@ namespace caret {
         QMenu* createViewAllSlicesLayoutMenu(const QString& objectNamePrefix);
         
         void updateViewAllSlicesLayoutMenu(BrowserTabContent* browserTabContent);
-        
-        QPixmap createCrosshairLabelsIcon(const QWidget* widget);
         
         QMenu* createCrosshairMenu(const QString& objectNamePrefix);
         

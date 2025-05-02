@@ -910,3 +910,114 @@ HistologySlice::getSliceRotationAngles(Vector3D& rotationsOut) const
     rotationsOut = m_mprVolumeRotationAngles;
     return m_mprVolumeRotationAnglesValidFlag;
 }
+
+/**
+ * Get the orientation labels for the slice..  The rotation of the slice's axis are compared
+ * to the standard orientations to determine the text (or no text) that is displayed.
+ * @param leftScreenLabelTextOut
+ *    Label for left side
+ * @param rightScreenLabelTextOut
+ *    Label for right side
+ * @param bottomScreenLabelTextOut
+ *    Label for bottom side
+ * @param topScreenLabelTextOut
+ *    Label for top side
+ */
+void
+HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
+                              AString& leftScreenLabelTextOut,
+                              AString& rightScreenLabelTextOut,
+                              AString& bottomScreenLabelTextOut,
+                              AString& topScreenLabelTextOut) const
+{
+    leftScreenLabelTextOut   = "";
+    rightScreenLabelTextOut  = "";
+    bottomScreenLabelTextOut = "";
+    topScreenLabelTextOut    = "";
+    
+    const int32_t numImages(getNumberOfHistologySliceImages());
+    if (numImages < 1) {
+        return;
+    }
+    const HistologySliceImage* hsi(getHistologySliceImage(0));
+    CaretAssert(hsi);
+    const MediaFile* mediaFile(hsi->getMediaFile());
+    CaretAssert(mediaFile);
+    
+    Vector3D topLeftXYZ(mediaFile->getStereotaxicXyzTopLeft());
+    Vector3D botLeftXYZ(mediaFile->getStereotaxicXyzBottomLeft());
+    Vector3D topRightXYZ(mediaFile->getStereotaxicXyzTopRight());
+    Vector3D botRightXYZ(mediaFile->getStereotaxicXyzBottomRight());
+    if (flipLeftRightFlag) {
+        std::swap(topLeftXYZ,
+                  topRightXYZ);
+        std::swap(botLeftXYZ,
+                  botRightXYZ);
+    }
+    
+    /*
+     * Normal will be 1.0 if valid; zero if invalid
+     */
+    const Vector3D botLeftToTopLeftNormal((topLeftXYZ - botLeftXYZ).normal());
+    const Vector3D botLeftToBotRightNormal((botRightXYZ - botLeftXYZ).normal());
+    if ((botLeftToTopLeftNormal.length() <= 0.98)
+        && (botLeftToBotRightNormal.length() <= 0.98)) {
+        return;
+    }
+
+    class VectorAndLabel {
+    public:
+        VectorAndLabel(const AString& label,
+                       const AString& oppositeLabel,
+                       const float x,
+                       const float y,
+                       const float z)
+        : m_label(label),
+        m_oppositeLabel(oppositeLabel),
+        m_vector(x, y, z) { }
+        
+        AString m_label;
+        AString m_oppositeLabel;
+        Vector3D m_vector;
+    };
+    
+    std::vector<VectorAndLabel> vectorsAndLabels;
+    vectorsAndLabels.emplace_back("L", "R",  1.0,  0.0,  0.0);
+    vectorsAndLabels.emplace_back("R", "L", -1.0,  0.0,  0.0);
+    vectorsAndLabels.emplace_back("A", "P",  0.0, -1.0,  0.0);
+    vectorsAndLabels.emplace_back("P", "A",  0.0,  1.0,  0.0);
+    vectorsAndLabels.emplace_back("I", "S",  0.0,  0.0,  1.0);
+    vectorsAndLabels.emplace_back("S", "I",  0.0,  0.0, -1.0);
+    
+    
+    const int32_t numAxes(vectorsAndLabels.size());
+    
+    for (int32_t i = 0; i < numAxes; i++) {
+        Vector3D normal;
+        switch (i) {
+            case 0:
+                normal = botLeftToTopLeftNormal;
+                break;
+            case 1:
+                normal = botLeftToBotRightNormal;
+                break;
+        }
+        for (int32_t j = 0; j < numAxes; j++) {
+            CaretAssertVectorIndex(vectorsAndLabels, j);
+            const float dotValue(vectorsAndLabels[j].m_vector.dot(normal));
+            AString labelTemp;
+            if (dotValue > 0.95) {
+                switch (i) {
+                    case 0:
+                        bottomScreenLabelTextOut = vectorsAndLabels[j].m_label;
+                        topScreenLabelTextOut    = vectorsAndLabels[j].m_oppositeLabel;
+                        break;
+                    case 1:
+                        leftScreenLabelTextOut  = vectorsAndLabels[j].m_label;
+                        rightScreenLabelTextOut = vectorsAndLabels[j].m_oppositeLabel;
+                        break;
+                }
+            }
+        }
+    }
+}
