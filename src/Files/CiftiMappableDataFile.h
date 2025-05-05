@@ -259,6 +259,8 @@ namespace caret {
         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
         
+        virtual const ClusterContainer* getMapLabelTableClusters(const int32_t mapIndex) const override;
+        
         virtual void updateScalarColoringForAllMaps() override;
         
         virtual void updateScalarColoringForMap(const int32_t mapIndex) override;
@@ -942,6 +944,8 @@ namespace caret {
         mutable bool m_matrixDimensionsTooLargeLoggedFlag = false;
         
         bool m_blockInvalidateColorsInAllMapsFlag = false;
+        
+        mutable std::map<int32_t, std::unique_ptr<ClusterContainer>> m_mapLabelClusterContainers;
         
         // ADD_NEW_MEMBERS_HERE
         

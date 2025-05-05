@@ -268,6 +268,7 @@ LabelSelectionItemModel::buildModel(const ClusterContainer* clusterContainer)
         invisibleRootItem()->appendRow(item);
     }
     
+    CaretAssert(clusterContainer);
     const std::set<int32_t> keysNotInClusters(clusterContainer->getKeysThatAreNotInAnyClusters());
     for (auto& keyItem : m_labelKeyToLabelSelectionItem) {
         const int32_t key(keyItem.first);

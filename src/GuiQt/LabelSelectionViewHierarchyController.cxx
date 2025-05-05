@@ -88,7 +88,10 @@ m_objectNamePrefix(parentObjectName
 {
     m_browserWindowIndex = browserWindowIndex;
     
-    std::vector<DataFileTypeEnum::Enum> dataFileTypes { DataFileTypeEnum::VOLUME };
+    std::vector<DataFileTypeEnum::Enum> dataFileTypes {
+        DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+        DataFileTypeEnum::VOLUME
+    };
     std::vector<SubvolumeAttributes::VolumeType> volumeTypes { SubvolumeAttributes::LABEL };
     std::vector<StructureEnum::Enum> structures;
     

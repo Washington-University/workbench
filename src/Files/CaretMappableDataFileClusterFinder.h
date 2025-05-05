@@ -43,6 +43,7 @@ namespace caret {
          * Mode for searchinhg
          */
         enum class FindMode {
+            CIFTI_DENSE_LABEL,
             VOLUME_LABEL
         };
         

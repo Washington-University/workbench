@@ -37,6 +37,7 @@
 #include "CiftiFile.h"
 #include "CiftiMappableConnectivityMatrixDataFile.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
+#include "CaretMappableDataFileClusterFinder.h"
 #include "CiftiParcelLabelFile.h"
 #include "CiftiParcelReordering.h"
 #include "CiftiParcelScalarFile.h"
@@ -44,6 +45,7 @@
 #include "CiftiScalarDataSeriesFile.h"
 #include "CaretTemporaryFile.h"
 #include "CiftiXML.h"
+#include "ClusterContainer.h"
 #include "ConnectivityDataLoaded.h"
 #include "DataFileContentInformation.h"
 #include "DataFileException.h"
@@ -505,6 +507,8 @@ CiftiMappableDataFile::clearPrivate()
     m_brainordinateMapping.reset();
     m_brainordinateMappingCachedFlag = false;
     
+    m_mapLabelClusterContainers.clear();
+
     m_graphicsPrimitiveManager->clear();
 }
 
@@ -3128,6 +3132,42 @@ CiftiMappableDataFile::getMapLabelTable(const int32_t mapIndex) const
             break;
         case COLOR_MAPPING_METHOD_PALETTE:
             break;
+    }
+    
+    return NULL;
+}
+
+/**
+ * @return The clusters for the given map's label table (may be NULL)
+ * @param mapIndex
+ *    Index of the map
+ */
+const ClusterContainer*
+CiftiMappableDataFile::getMapLabelTableClusters(const int32_t mapIndex) const
+{
+    if (isMappedWithLabelTable()) {
+        /*
+         * If it does not exist, no attempt has been made to create it
+         */
+        if (m_mapLabelClusterContainers.find(mapIndex) == m_mapLabelClusterContainers.end()) {
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::CIFTI_DENSE_LABEL,
+                                                      this,
+                                                      mapIndex);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(finder.takeClusterContainer());
+            }
+            else {
+                CaretLogWarning(result->getErrorDescription());
+                ClusterContainer* nullPointer(NULL);
+                /*
+                 * Putting a NULL in here, prevents running find clusters again
+                 */
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(nullPointer);
+            }
+        }
+        
+        return m_mapLabelClusterContainers[mapIndex].get();
     }
     
     return NULL;

@@ -157,6 +157,7 @@ CaretMappableDataFileLabelSelectionDelegate::createModel(const DisplayGroupEnum:
     const bool logMismatchedLabelsFlag( ! m_modelHasBeenCreatedFlag);
     
     const ClusterContainer* labelClusterContainer(m_mapFile->getMapLabelTableClusters(m_mapIndex));
+    CaretAssert(labelClusterContainer);
     LabelSelectionItemModel* modelOut(new LabelSelectionItemModel(filenameAndMap,
                                                                   labelTable,
                                                                   labelClusterContainer,

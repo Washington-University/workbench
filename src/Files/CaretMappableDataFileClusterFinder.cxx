@@ -24,6 +24,7 @@
 #undef __CARET_MAPPABLE_DATA_FILE_CLUSTER_FINDER_DECLARE__
 
 #include "CaretLogger.h"
+#include "CiftiBrainordinateLabelFile.h"
 #include "Cluster.h"
 #include "ClusterContainer.h"
 #include "GiftiLabel.h"
@@ -92,6 +93,23 @@ CaretMappableDataFileClusterFinder::findClusters()
     std::unique_ptr<CaretResult> result;
     
     switch (m_findMode) {
+        case FindMode::CIFTI_DENSE_LABEL:
+        {
+            const CiftiBrainordinateLabelFile* ciftiLabelsFile(dynamic_cast<const CiftiBrainordinateLabelFile*>(m_mapFile));
+            if (ciftiLabelsFile == NULL) {
+                return CaretResult::newInstanceError(m_mapFile->getFileName()
+                                                     + " is not a CIFTI Labels file");
+            }
+            if ( ! ciftiLabelsFile->isMappedWithLabelTable()) {
+                return CaretResult::newInstanceError(m_mapFile->getFileName()
+                                                     + " is not a label mapped file");
+            }
+            
+            CaretLogWarning("Label clusters not supported for Cifti Label File.");
+            
+            result = CaretResult::newInstanceSuccess();
+        }
+            break;
         case FindMode::VOLUME_LABEL:
         {
             const VolumeFile* volumeFile(dynamic_cast<const VolumeFile*>(m_mapFile));
