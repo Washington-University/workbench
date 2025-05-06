@@ -270,8 +270,10 @@ public:
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Invalidate volume coloring */
         EVENT_VOLUME_COLORING_INVALIDATE,
-        /** Get surfaces */
+        /** Get surfaces (Surface instance) */
         EVENT_SURFACES_GET,
+        /** Get surface files with structure and number of nodes */
+        EVENT_SURFACE_FILE_GET,
         /** Get valid surface strucutures and their number of nodes */
         EVENT_SURFACE_STRUCTURES_VALID_GET,
         /** Tile tabs modification */

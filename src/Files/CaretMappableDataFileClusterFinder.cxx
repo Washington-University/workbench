@@ -25,12 +25,18 @@
 
 #include "CaretLogger.h"
 #include "CiftiBrainordinateLabelFile.h"
+#include "CiftiLabelsMap.h"
+#include "CiftiXML.h"
 #include "Cluster.h"
 #include "ClusterContainer.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventSurfaceFileGet.h"
 #include "StringTableModel.h"
+#include "SurfaceFile.h"
+#include "TopologyHelper.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -107,7 +113,7 @@ CaretMappableDataFileClusterFinder::findClusters()
             
             CaretLogWarning("Label clusters not supported for Cifti Label File.");
             
-            result = CaretResult::newInstanceSuccess();
+            result = findLabelCiftiClusters(ciftiLabelsFile);
         }
             break;
         case FindMode::VOLUME_LABEL:
@@ -327,3 +333,147 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     return CaretResult::newInstanceSuccess();
 }
 
+/**
+ * Find clusters in a cifti label file
+ * @param ciftiLabelFile
+ *    CIFTI label file that is searched
+ * @return The result
+ */
+std::unique_ptr<CaretResult>
+CaretMappableDataFileClusterFinder::findLabelCiftiClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile)
+{
+    /* Disable until finished */
+    return CaretResult::newInstanceSuccess();
+
+    CaretAssert(ciftiLabelFile);
+    
+    const CiftiXML& ciftiXML(ciftiLabelFile->getCiftiXML());
+    const CiftiBrainModelsMap& brainModelsMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN));
+    const CiftiLabelsMap& ciftiLabelsMap(ciftiXML.getLabelsMap(CiftiXML::ALONG_ROW));
+
+    if (brainModelsMap.hasVolumeData()) {
+        const int64_t* dimPtr(brainModelsMap.getVolumeSpace().getDims());
+        if (dimPtr != NULL) {
+            int64_t dims[3] { dimPtr[0], dimPtr[1], dimPtr[2] };
+            const int64_t numVolumeVoxels(dims[0] * dims[1] * dims[2]);
+            if (numVolumeVoxels > 0) {
+                
+            }
+        }
+    }
+    
+    const std::vector<StructureEnum::Enum> surfaceStructures(brainModelsMap.getSurfaceStructureList());
+    for (const StructureEnum::Enum structure : surfaceStructures) {
+        findLabelCiftiSurfaceClusters(ciftiLabelFile,
+                                      structure);
+        std::cout << "Maps to structures: " << StructureEnum::toName(structure) << std::endl;
+    }
+    return CaretResult::newInstanceSuccess();
+}
+
+/**
+ * Find surface clusters for the given structure in a cifti label file
+ * @param ciftiLabelFile
+ *    CIFTI label file that is searched
+ * @return The result
+ */
+std::unique_ptr<CaretResult>
+CaretMappableDataFileClusterFinder::findLabelCiftiSurfaceClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile,
+                                                                  const StructureEnum::Enum structure)
+{
+    const CiftiXML& ciftiXML(ciftiLabelFile->getCiftiXML());
+    const CiftiBrainModelsMap& brainModelsMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN));
+    const int32_t numberOfNodes(brainModelsMap.getSurfaceNumberOfNodes(structure));
+    if (numberOfNodes < 0) {
+        return CaretResult::newInstanceSuccess(); /* ignore structure */
+    }
+    
+    /*
+     * Get surface file so that we can use its topology helper
+     */
+    EventSurfaceFileGet surfaceFileEvent(structure, numberOfNodes);
+    EventManager::get()->sendEvent(surfaceFileEvent.getPointer());
+    const int32_t numSurfacesFound(surfaceFileEvent.getNumberOfSurfaceFiles());
+    if (numSurfacesFound <= 0) {
+        return CaretResult::newInstanceSuccess();
+    }
+    const SurfaceFile* surfaceFile(surfaceFileEvent.getSurfaceFile(0));
+    CaretPointer<TopologyHelper> topologyHelper(surfaceFile->getTopologyHelper());
+    
+    
+    /*
+     * Get data values (label indices) for the map
+     */
+    std::vector<float> mapValuesFloat;
+    ciftiLabelFile->getMapData(m_mapIndex, mapValuesFloat);
+    std::cout << "Map length: " << mapValuesFloat.size() << std::endl;
+    
+    /*
+     * Get the values for the nodes in the current surface
+     */
+    std::vector<int32_t> nodeValues(numberOfNodes, -1);
+    std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMaps(brainModelsMap.getSurfaceMap(structure));
+    for (CiftiBrainModelsMap::SurfaceMap sm : surfaceMaps) {
+        CaretAssertVectorIndex(mapValuesFloat, sm.m_ciftiIndex);
+        CaretAssertVectorIndex(nodeValues, sm.m_surfaceNode);
+        nodeValues[sm.m_surfaceNode] = mapValuesFloat[sm.m_ciftiIndex];
+    }
+
+    /*
+     * Loop through all nodes until all have been searchedc
+     */
+    std::vector<bool> nodeVisited(numberOfNodes, 0);
+    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
+        if ( ! nodeVisited[iNode]) {
+            nodeVisited[iNode] = true;
+            
+            if (nodeValues[iNode] > 0) {
+                std::vector<int32_t> neighborNodesToSearch;
+                neighborNodesToSearch.reserve(500); /* avoid reallocations*/
+                
+                /*
+                 * Label key for current node
+                 */
+                const int32_t labelKey(nodeValues[iNode]);
+                
+                /*
+                 * Get unsearched neighbors of current node
+                 */
+                const std::vector<int32_t> neighborNodes(topologyHelper->getNodeNeighbors(nodeValues[iNode]));
+                for (const int32_t neighNode : neighborNodes) {
+                    if ( ! nodeVisited[neighNode]) {
+                        if (nodeValues[neighNode] == labelKey) {
+                            neighborNodesToSearch.push_back(neighNode);
+                        }
+                    }
+                }
+                
+                /*
+                 * Search neighbors of neighbors
+                 */
+                for (int32_t iNeigh = 0; iNeigh < neighborNodesToSearch.size(); iNeigh) {
+                    if ( ! nodeVisited[iNeigh]) {
+                        if (nodeValues[iNeigh] == labelKey) {
+                            neighborNodesToSearch.push_back(iNeigh);
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+    
+    return CaretResult::newInstanceSuccess();
+}
+
+/**
+ * Find volume clusters in a cifti label file
+ * @param ciftiLabelFile
+ *    CIFTI label file that is searched
+ * @return The result
+ */
+std::unique_ptr<CaretResult>
+CaretMappableDataFileClusterFinder::findLabelCiftiVolumeClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile)
+{
+    return CaretResult::newInstanceSuccess();
+}

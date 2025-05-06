@@ -130,6 +130,7 @@ EventMapYokingSelectMap.h
 EventMapYokingValidation.h
 EventMediaFilesGet.h
 EventSurfaceColoringInvalidate.h
+EventSurfaceFileGet.h
 EventSurfaceStructuresValidGet.h
 EventVolumeColoringInvalidate.h
 Fiber.h
@@ -322,6 +323,7 @@ EventMapYokingSelectMap.cxx
 EventMapYokingValidation.cxx
 EventMediaFilesGet.cxx
 EventSurfaceColoringInvalidate.cxx
+EventSurfaceFileGet.cxx
 EventSurfaceStructuresValidGet.cxx
 EventVolumeColoringInvalidate.cxx
 Fiber.cxx

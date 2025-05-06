@@ -28,11 +28,13 @@
 
 #include "CaretObject.h"
 #include "CaretResult.h"
+#include "StructureEnum.h"
 #include "Vector3D.h"
 
 namespace caret {
 
     class CaretMappableDataFile;
+    class CiftiBrainordinateLabelFile;
     class ClusterContainer;
     class VolumeFile;
     
@@ -70,6 +72,14 @@ namespace caret {
     private:
         std::unique_ptr<CaretResult> findLabelVolumeClusters(const VolumeFile* volumeFile);
         
+        std::unique_ptr<CaretResult> findLabelCiftiClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile);
+        
+        std::unique_ptr<CaretResult> findLabelCiftiSurfaceClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile,
+                                                                   const StructureEnum::Enum structure);
+        
+        std::unique_ptr<CaretResult> findLabelCiftiVolumeClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile);
+        
+
         const FindMode m_findMode;
         
         const CaretMappableDataFile* m_mapFile;

@@ -36,6 +36,7 @@
 #include "DescriptiveStatistics.h"
 #include "FastStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventSurfaceFileGet.h"
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GraphicsPrimitiveV3fN3fC4f.h"
@@ -61,6 +62,7 @@ SurfaceFile::SurfaceFile()
                               //which is used by setNumberOfNodesAndTriangles, which temporarily puts it the triangles into an invalid state, which is why this flag exists
     this->initializeMembersSurfaceFile();
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_FILE_GET);
 }
 
 /**
@@ -1937,7 +1939,17 @@ SurfaceFile::receiveEvent(Event* event)
         invalidateEvent->setEventProcessed();
         
         this->invalidateNodeColoringForBrowserTabs();
-    }    
+    }  
+    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_FILE_GET) {
+        EventSurfaceFileGet* surfaceFileEvent(dynamic_cast<EventSurfaceFileGet*>(event));
+        CaretAssert(surfaceFileEvent);
+        
+        if ((getNumberOfNodes() == surfaceFileEvent->getNumberOfVertices())
+            && (getStructure()  == surfaceFileEvent->getStructure())) {
+            surfaceFileEvent->addSurfaceFile(this);
+            surfaceFileEvent->setEventProcessed();
+        }
+    }
 }
 
 bool SurfaceFile::matchesTopology(const SurfaceFile& rhs) const
