@@ -992,22 +992,22 @@ HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
     
     const int32_t numAxes(vectorsAndLabels.size());
     
-    for (int32_t i = 0; i < numAxes; i++) {
-        Vector3D normal;
-        switch (i) {
+    for (int32_t iNormal = 0; iNormal < 2; iNormal++) {
+        Vector3D sliceAxisNormalVector;
+        switch (iNormal) {
             case 0:
-                normal = botLeftToTopLeftNormal;
+                sliceAxisNormalVector = botLeftToTopLeftNormal;
                 break;
             case 1:
-                normal = botLeftToBotRightNormal;
+                sliceAxisNormalVector = botLeftToBotRightNormal;
                 break;
         }
         for (int32_t j = 0; j < numAxes; j++) {
             CaretAssertVectorIndex(vectorsAndLabels, j);
-            const float dotValue(vectorsAndLabels[j].m_vector.dot(normal));
+            const float dotValue(vectorsAndLabels[j].m_vector.dot(sliceAxisNormalVector));
             AString labelTemp;
-            if (dotValue > 0.95) {
-                switch (i) {
+            if (dotValue >= 0.866) {  /* cosine(30 degrees) = 0.866 */
+                switch (iNormal) {
                     case 0:
                         bottomScreenLabelTextOut = vectorsAndLabels[j].m_label;
                         topScreenLabelTextOut    = vectorsAndLabels[j].m_oppositeLabel;
