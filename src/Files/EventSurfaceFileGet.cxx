@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "EventTypeEnum.h"
+#include "SurfaceFile.h"
 
 using namespace caret;
 
@@ -109,3 +110,28 @@ EventSurfaceFileGet::getSurfaceFile(const int32_t index) const
     CaretAssertVectorIndex(m_surfaceFiles, index);
     return m_surfaceFiles[index];
 }
+
+/**
+ * @return SurfaceFile that is midthickness or if midthickness not found, an anatomical surface
+ */
+const SurfaceFile*
+EventSurfaceFileGet::getMidthicknessAnatomicalSurface() const
+{
+    const SurfaceFile* surfaceFileOut(NULL);
+    
+    for (const SurfaceFile* sf : m_surfaceFiles) {
+        if (sf->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
+            if (surfaceFileOut == NULL) {
+                surfaceFileOut = sf;
+            }
+            
+            if (sf->getFileNameNoPath().toLower().contains("midthick")) {
+                surfaceFileOut = sf;
+                break;
+            }
+        }
+    }
+    
+    return surfaceFileOut;
+}
+

@@ -54,6 +54,8 @@ namespace caret {
         
         const SurfaceFile* getSurfaceFile(const int32_t index) const;
         
+        const SurfaceFile* getMidthicknessAnatomicalSurface() const;
+        
         // ADD_NEW_METHODS_HERE
 
     private:

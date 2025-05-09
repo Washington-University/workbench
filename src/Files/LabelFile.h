@@ -63,6 +63,8 @@ namespace caret {
         
         const GiftiLabelTable* getLabelTable() const;
         
+        virtual const ClusterContainer* getMapLabelTableClusters(const int32_t mapIndex) const override;
+        
         int32_t getLabelKey(const int32_t nodeIndex,
                             const int32_t columnIndex) const;
         
@@ -109,6 +111,9 @@ namespace caret {
         
         /** Points to actual data in each Gifti Data Array */
         std::vector<int32_t*> columnDataPointers;
+
+        mutable std::map<int32_t, std::unique_ptr<ClusterContainer>> m_mapLabelClusterContainers;
+        
 
         /** Holds class and name hierarchy used for display selection */
         mutable GroupAndNameHierarchyModel* m_classNameHierarchy;

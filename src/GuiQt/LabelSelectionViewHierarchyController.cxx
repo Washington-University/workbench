@@ -90,6 +90,7 @@ m_objectNamePrefix(parentObjectName
     
     std::vector<DataFileTypeEnum::Enum> dataFileTypes {
         DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+        DataFileTypeEnum::LABEL,
         DataFileTypeEnum::VOLUME
     };
     std::vector<SubvolumeAttributes::VolumeType> volumeTypes { SubvolumeAttributes::LABEL };

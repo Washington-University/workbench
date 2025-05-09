@@ -20,6 +20,8 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFileClusterFinder.h"
+#include "ClusterContainer.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
@@ -102,6 +104,7 @@ LabelFile::clear()
     GiftiTypeFile::clear();
     this->columnDataPointers.clear();
     m_classNameHierarchy->clear();
+    m_mapLabelClusterContainers.clear();
 }
 
 /** 
@@ -403,6 +406,43 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
     this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
     this->setModified();
     m_forceUpdateOfGroupAndNameHierarchy = true;
+}
+
+/**
+ * @return The clusters for the given map's label table (may be NULL)
+ * @param mapIndex
+ *    Index of the map
+ */
+const ClusterContainer*
+LabelFile::getMapLabelTableClusters(const int32_t mapIndex) const
+{
+    if (isMappedWithLabelTable()) {
+        /*
+         * If it does not exist, no attempt has been made to create it
+         */
+        if (m_mapLabelClusterContainers.find(mapIndex) == m_mapLabelClusterContainers.end()) {
+            CaretAssert(getDataFileType() == DataFileTypeEnum::LABEL);
+            CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::GIFTI_LABEL,
+                                                      this,
+                                                      mapIndex);
+            const auto result(finder.findClusters());
+            if (result->isSuccess()) {
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(finder.takeClusterContainer());
+            }
+            else {
+                CaretLogWarning(result->getErrorDescription());
+                ClusterContainer* nullPointer(NULL);
+                /*
+                 * Putting a NULL in here, prevents running find clusters again
+                 */
+                m_mapLabelClusterContainers[mapIndex] = std::unique_ptr<ClusterContainer>(nullPointer);
+            }
+        }
+        
+        return m_mapLabelClusterContainers[mapIndex].get();
+    }
+    
+    return NULL;
 }
 
 /**

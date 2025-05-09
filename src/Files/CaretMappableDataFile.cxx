@@ -1658,6 +1658,7 @@ CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapI
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
+            supportsHierarchyFlag = true;
             break;
         case DataFileTypeEnum::METRIC:
             break;

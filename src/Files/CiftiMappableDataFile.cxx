@@ -3150,6 +3150,7 @@ CiftiMappableDataFile::getMapLabelTableClusters(const int32_t mapIndex) const
          * If it does not exist, no attempt has been made to create it
          */
         if (m_mapLabelClusterContainers.find(mapIndex) == m_mapLabelClusterContainers.end()) {
+            CaretAssert(getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL);
             CaretMappableDataFileClusterFinder finder(CaretMappableDataFileClusterFinder::FindMode::CIFTI_DENSE_LABEL,
                                                       this,
                                                       mapIndex);

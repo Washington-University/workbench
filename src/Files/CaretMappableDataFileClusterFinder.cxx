@@ -34,6 +34,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventSurfaceFileGet.h"
+#include "LabelFile.h"
 #include "StringTableModel.h"
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
@@ -101,34 +102,120 @@ CaretMappableDataFileClusterFinder::findClusters()
     switch (m_findMode) {
         case FindMode::CIFTI_DENSE_LABEL:
         {
-            const CiftiBrainordinateLabelFile* ciftiLabelsFile(dynamic_cast<const CiftiBrainordinateLabelFile*>(m_mapFile));
-            if (ciftiLabelsFile == NULL) {
+            const CiftiBrainordinateLabelFile* ciftiLabelFile(dynamic_cast<const CiftiBrainordinateLabelFile*>(m_mapFile));
+            if (ciftiLabelFile == NULL) {
                 return CaretResult::newInstanceError(m_mapFile->getFileName()
                                                      + " is not a CIFTI Labels file");
             }
-            if ( ! ciftiLabelsFile->isMappedWithLabelTable()) {
+            if ( ! ciftiLabelFile->isMappedWithLabelTable()) {
+                return CaretResult::newInstanceError(m_mapFile->getFileName()
+                                                     + " is not a label mapped file");
+            }
+  
+            const CiftiXML& ciftiXML(ciftiLabelFile->getCiftiXML());
+            const CiftiBrainModelsMap& brainModelsMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN));
+            const std::vector<StructureEnum::Enum> allStructures(brainModelsMap.getSurfaceStructureList());
+            
+            /*
+             * Get data values (label indices) for the map
+             * Applies to all structures
+             */
+            std::vector<float> mapValuesFloat;
+            ciftiLabelFile->getMapData(m_mapIndex, mapValuesFloat);
+
+            for (const StructureEnum::Enum structure : allStructures) {
+                const int32_t surfaceNumberOfNodes(brainModelsMap.getSurfaceNumberOfNodes(structure));
+                
+                
+                const GiftiLabelTable* labelTable(ciftiLabelFile->getMapLabelTable(m_mapIndex));
+                CaretAssert(labelTable);
+                                
+                /*
+                 * Allocate data to number of nodes in surface and initialize
+                 * with the unassigned label
+                 */
+                m_numData = surfaceNumberOfNodes;
+                m_dataStorage.resize(m_numData);
+                m_dataPointer = &m_dataStorage[0];
+                const int32_t unassignedLabelKey(labelTable->getUnassignedLabelKey());
+                std::fill(m_dataStorage.begin(), m_dataStorage.end(), unassignedLabelKey);
+
+                /*
+                 * Load vertex label indices into data storage
+                 */
+                std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMaps(brainModelsMap.getSurfaceMap(structure));
+                for (CiftiBrainModelsMap::SurfaceMap sm : surfaceMaps) {
+                    CaretAssertVectorIndex(mapValuesFloat, sm.m_ciftiIndex);
+                    CaretAssertVectorIndex(m_dataStorage, sm.m_surfaceNode);
+                    m_dataStorage[sm.m_surfaceNode] = mapValuesFloat[sm.m_ciftiIndex];
+                }
+
+                result = findClustersInFile(structure);
+                if (result->isError()) {
+                    return result;
+                }
+            }
+        }
+            break;
+        case FindMode::GIFTI_LABEL:
+        {
+            const LabelFile* labelFile(dynamic_cast<const LabelFile*>(m_mapFile));
+            if (labelFile == NULL) {
+                return CaretResult::newInstanceError(m_mapFile->getFileName()
+                                                     + " is not a CIFTI Labels file");
+            }
+            if ( ! labelFile->isMappedWithLabelTable()) {
                 return CaretResult::newInstanceError(m_mapFile->getFileName()
                                                      + " is not a label mapped file");
             }
             
-            CaretLogWarning("Label clusters not supported for Cifti Label File.");
+            const int32_t* dataPtr(labelFile->getLabelKeyPointerForColumn(m_mapIndex));
+            CaretAssert(dataPtr);
             
-            result = findLabelCiftiClusters(ciftiLabelsFile);
+            const StructureEnum::Enum structure(labelFile->getStructure());
+            const int32_t surfaceNumberOfNodes(labelFile->getNumberOfNodes());
+            
+            /*
+             * Allocate data to number of nodes in surface and initialize
+             * with the unassigned label
+             */
+            m_numData = surfaceNumberOfNodes;
+            m_dataStorage.resize(m_numData);
+            m_dataPointer = &m_dataStorage[0];
+
+            for (int32_t i = 0; i < surfaceNumberOfNodes; i++) {
+                CaretAssertVectorIndex(m_dataStorage, i);
+                m_dataStorage[i] = dataPtr[i];
+            }
+            
+            result = findClustersInFile(structure);
         }
             break;
         case FindMode::VOLUME_LABEL:
         {
-            const VolumeFile* volumeFile(dynamic_cast<const VolumeFile*>(m_mapFile));
-            if (volumeFile == NULL) {
+            m_volumeFile = dynamic_cast<const VolumeFile*>(m_mapFile);
+            if (m_volumeFile == NULL) {
                 return CaretResult::newInstanceError(m_mapFile->getFileName()
                                                      + " is not a volume file");
             }
-            if ( ! volumeFile->isMappedWithLabelTable()) {
+            if ( ! m_volumeFile->isMappedWithLabelTable()) {
                 return CaretResult::newInstanceError(m_mapFile->getFileName()
                                                      + " is not a label volume file");
             }
             
-            result = findLabelVolumeClusters(volumeFile);
+            int64_t dimComp, dimMaps;
+            m_volumeFile->getDimensions(m_volumeDimI, m_volumeDimJ, m_volumeDimK, dimMaps, dimComp);
+            m_numData = (m_volumeDimI * m_volumeDimJ * m_volumeDimK);
+            if (m_numData <= 0) {
+                return CaretResult::newInstanceSuccess(); /* ignore empty volume*/
+            }
+            m_dataPointer = m_volumeFile->getFrame();
+            CaretAssert(m_dataPointer);
+            
+            const VolumeSpace& volumeSpaceReference(m_volumeFile->getVolumeSpace());
+            m_volumeSpace = &volumeSpaceReference;
+
+            result = findClustersInFile(StructureEnum::INVALID);
         }
             break;
     }
@@ -170,96 +257,169 @@ CaretMappableDataFileClusterFinder::getClustersInFormattedString() const
 }
 
 /**
- * Find clusters in a label volume
- * @param volumeFile
- *    Volume that is searched
+ * Find clusters in a label type file
+ * @param surfaceStructure
+ *    Structure for surface data
  * @return The result
  */
 std::unique_ptr<CaretResult>
-CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* volumeFile)
+CaretMappableDataFileClusterFinder::findClustersInFile(const StructureEnum::Enum surfaceStructure)
 {
-    int64_t dimI, dimJ, dimK, dimComp, dimMaps;
-    volumeFile->getDimensions(dimI, dimJ, dimK, dimMaps, dimComp);
+    m_labelTable = m_mapFile->getMapLabelTable(m_mapIndex);
+    CaretAssert(m_labelTable);
+    CaretAssert(m_dataPointer);
+    CaretAssert(m_numData > 0);
     
-    const GiftiLabelTable* labelTable(volumeFile->getMapLabelTable(m_mapIndex));
-    
-    const int64_t numVoxels(dimI * dimJ * dimK);
-    std::vector<char> voxelHasBeenSearchedFlags(numVoxels, 0);
-    
-    const float* voxelData(volumeFile->getFrame(m_mapIndex));
-    CaretAssert(voxelData);
-
     /*
      * Set unassiged labels as searched
      */
-    const int32_t unassignedLabelKey(labelTable->getUnassignedLabelKey());
-    for (int64_t m = 0; m < numVoxels; m++) {
-        if (static_cast<int32_t>(voxelData[m]) == unassignedLabelKey) {
-            CaretAssertVectorIndex(voxelHasBeenSearchedFlags, m);
-            voxelHasBeenSearchedFlags[m] = 1;
+    std::vector<char> dataHasBeenSearchedFlags(m_numData, 0);
+    const int32_t unassignedLabelKey(m_labelTable->getUnassignedLabelKey());
+    for (int64_t m = 0; m < m_numData; m++) {
+        if (static_cast<int32_t>(m_dataPointer[m]) == unassignedLabelKey) {
+            CaretAssertVectorIndex(dataHasBeenSearchedFlags, m);
+            dataHasBeenSearchedFlags[m] = 1;
         }
     }
-            
-    const VolumeSpace& volumeSpace(volumeFile->getVolumeSpace());
     
     std::set<int32_t> labelKeysWithClusters;
     
-    const int32_t debugKey(-1);
-    
+    const SurfaceFile* surfaceFile;
+    CaretPointer<TopologyHelper> topologyHelper;
+    switch (m_findMode) {
+        case FindMode::CIFTI_DENSE_LABEL:
+        case FindMode::GIFTI_LABEL:
+            {
+                /*
+                 * Get surface file so that we can use its topology helper
+                 */
+                EventSurfaceFileGet surfaceFileEvent(surfaceStructure,
+                                                     m_numData);
+                EventManager::get()->sendEvent(surfaceFileEvent.getPointer());
+
+                surfaceFile = surfaceFileEvent.getMidthicknessAnatomicalSurface();
+                if (surfaceFile == NULL) {
+                    return CaretResult::newInstanceError("Anatomical surface with structure="
+                                                         + StructureEnum::toName(surfaceStructure)
+                                                         + " not found for finding surface clusters.");
+                }
+                CaretAssert(surfaceFile);
+                topologyHelper = surfaceFile->getTopologyHelper();
+            }
+            break;
+        case FindMode::VOLUME_LABEL:
+            CaretAssert(m_volumeFile);
+            CaretAssert(m_volumeSpace);
+            break;
+    }
+
     /*
-     * Loop through all voxels
+     * Loop through data
      */
-    for (int64_t i = 0; i < dimI; i++) {
-        for (int64_t j = 0; j < dimJ; j++) {
-            for (int64_t k = 0; k < dimK; k++) {
-                const int64_t voxelOffset(volumeSpace.getIndex(i, j, k));
-                CaretAssertVectorIndex(voxelHasBeenSearchedFlags, voxelOffset);
-                if ( ! voxelHasBeenSearchedFlags[voxelOffset]) {
-                    voxelHasBeenSearchedFlags[voxelOffset] = 1;
-                    
-                    /*
-                     * Search for connected voxels with 'labelKey'
-                     */
-                    const float labelKey(volumeFile->getValue(i, j, k, m_mapIndex, 0));
-                    if (labelTable->getLabel(labelKey) == NULL) {
-                        CaretLogInfo("Finding clusters, skipping label key="
-                                     + AString::number(labelKey)
-                                     + " that does not have a label");
-                        continue;
-                    }
-                    
-                    labelKeysWithClusters.insert(labelKey);
-                    
-                    const VoxelIJK voxelIJK(i, j, k);
-                    Vector3D voxelXYZ;
-                    volumeSpace.indexToSpace(voxelIJK, voxelXYZ);
-                    
-                    if (debugKey == labelKey) {
-                        std::cout << "Debug: Starting search for key=" << labelKey
-                        << " Name=" << labelTable->getLabelName(labelKey)
-                        << " Voxel=(" << i << ", " << j << ", " << k << ")"
-                        << " XYZ=" << voxelXYZ.toString() << std::endl;
-                    }
-                    
-                    /*
-                     * Sum is used to compute cluster's center of gravity
-                     */
-                    std::vector<Vector3D> clusterCoordsXYZ;
-                    clusterCoordsXYZ.push_back(voxelXYZ);
-                    
-                    std::vector<VoxelIJK> neighboringVoxelIJKsToSearch;
+    for (int64_t iData = 0; iData < m_numData; iData++) {
+        CaretAssertVectorIndex(dataHasBeenSearchedFlags, iData);
+        if ( ! dataHasBeenSearchedFlags[iData]) {
+            dataHasBeenSearchedFlags[iData] = 1;
+            
+            /*
+             * Search for connected voxels with 'labelKey'
+             */
+            const float labelKey(m_dataPointer[iData]);
+            if (m_labelTable->getLabel(labelKey) == NULL) {
+                CaretLogInfo("Finding clusters, skipping label key="
+                             + AString::number(labelKey)
+                             + " that does not have a label");
+                continue;
+            }
+            
+            labelKeysWithClusters.insert(labelKey);
+            
+            /*
+             * XYZ of brainordinate
+             */
+            VoxelIJK voxelIJK;
+            Vector3D dataXYZ;
+            switch (m_findMode) {
+                case FindMode::CIFTI_DENSE_LABEL:
+                case FindMode::GIFTI_LABEL:
+                    surfaceFile->getCoordinate(iData,
+                                               dataXYZ);
+                    break;
+                case FindMode::VOLUME_LABEL:
+                {
+                    int64_t voxelI, voxelJ, voxelK;
+                    ijkFromIndex(iData, voxelI, voxelJ, voxelK);
+                    voxelIJK = VoxelIJK(voxelI, voxelJ, voxelK);
+                    m_volumeSpace->indexToSpace(voxelIJK, dataXYZ);
+                }
+                    break;
+            }
+            
+            /*
+             * Get neighbors
+             */
+            std::vector<int64_t> surfaceVertexIndicesToSearch;
+            surfaceVertexIndicesToSearch.reserve(500); /* avoid reallocations */
+            std::vector<VoxelIJK> neighboringVoxelIJKsToSearch;
+            switch (m_findMode) {
+                case FindMode::CIFTI_DENSE_LABEL:
+                case FindMode::GIFTI_LABEL:
+                {
+                    std::vector<int32_t> surfaceVertexIndices = getSurfaceNeighbors(topologyHelper,
+                                                                                    iData,
+                                                                                    dataHasBeenSearchedFlags);
+                    surfaceVertexIndicesToSearch.insert(surfaceVertexIndicesToSearch.end(),
+                                                        surfaceVertexIndices.begin(),
+                                                        surfaceVertexIndices.end());
+                }
+                    break;
+                case FindMode::VOLUME_LABEL:
+                {
                     neighboringVoxelIJKsToSearch.reserve(500); /* avoid reallocations for small clusters */
                     
                     /*
                      * Get neighbors of current voxel
                      */
-                    volumeFile->getNeigbors26(voxelIJK,
-                                              voxelData,
-                                              labelKey,
-                                              labelKey,
-                                              voxelHasBeenSearchedFlags,
-                                              neighboringVoxelIJKsToSearch);
-                    
+                    m_volumeFile->getNeigbors26(voxelIJK,
+                                                m_dataPointer,
+                                                labelKey,
+                                                labelKey,
+                                                dataHasBeenSearchedFlags,
+                                                neighboringVoxelIJKsToSearch);
+                }
+                    break;
+            }
+            
+            /*
+             * Sum is used to compute cluster's center of gravity
+             */
+            std::vector<Vector3D> clusterCoordsXYZ;
+            clusterCoordsXYZ.push_back(dataXYZ);
+            
+            /*
+             * Loop through the neighbors
+             */
+            switch (m_findMode) {
+                case FindMode::CIFTI_DENSE_LABEL:
+                case FindMode::GIFTI_LABEL:
+                    for (int64_t index = 0; index < static_cast<int64_t>(surfaceVertexIndicesToSearch.size()); index++) {
+                        CaretAssertVectorIndex(surfaceVertexIndicesToSearch, index);
+                        const int64_t vertexIndex(surfaceVertexIndicesToSearch[index]);
+                        Vector3D vertexXYZ;
+                        surfaceFile->getCoordinate(vertexIndex,
+                                                   vertexXYZ);
+                        clusterCoordsXYZ.push_back(vertexXYZ);
+                        
+                        std::vector<int32_t> surfaceVertexIndices = getSurfaceNeighbors(topologyHelper,
+                                                                                        vertexIndex,
+                                                                                        dataHasBeenSearchedFlags);
+                        surfaceVertexIndicesToSearch.insert(surfaceVertexIndicesToSearch.end(),
+                                                            surfaceVertexIndices.begin(),
+                                                            surfaceVertexIndices.end());
+                    }
+                    break;
+                case FindMode::VOLUME_LABEL:
+                {
                     /*
                      * Loop through neighbors
                      * 'neighboringVoxelIJKsToSearch' will increase as neighbors of neighbors are added
@@ -267,49 +427,47 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
                     for (int64_t index = 0; index < static_cast<int64_t>(neighboringVoxelIJKsToSearch.size()); index++) {
                         CaretAssertVectorIndex(neighboringVoxelIJKsToSearch, index);
                         const VoxelIJK vijk(neighboringVoxelIJKsToSearch[index]); //TSC: needs to be a copy in case a large cluster reallocates and invalidates all references
-                        clusterCoordsXYZ.push_back(volumeSpace.indexToSpace(vijk));
+                        clusterCoordsXYZ.push_back(m_volumeSpace->indexToSpace(vijk));
                         
-                        volumeFile->getNeigbors26(vijk,
-                                                  voxelData,
-                                                  labelKey,
-                                                  labelKey,
-                                                  voxelHasBeenSearchedFlags,
-                                                  neighboringVoxelIJKsToSearch);
-                    }
-                    
-                    /*
-                     * Save the cluster
-                     */
-                    CaretAssert( ! clusterCoordsXYZ.empty());
-                    Cluster* cluster(new Cluster(labelTable->getLabelName(labelKey),
-                                                 labelKey,
-                                                 clusterCoordsXYZ));
-                    m_clusterContainer->addCluster(cluster);
-                    
-                    if (debugKey == labelKey) {
-                        std::cout << "   Cluster: " << cluster->toString() << std::endl << std::flush;
+                        m_volumeFile->getNeigbors26(vijk,
+                                                    m_dataPointer,
+                                                    labelKey,
+                                                    labelKey,
+                                                    dataHasBeenSearchedFlags,
+                                                    neighboringVoxelIJKsToSearch);
                     }
                 }
+                    break;
             }
+            
+            
+            /*
+             * Save the cluster
+             */
+            CaretAssert( ! clusterCoordsXYZ.empty());
+            Cluster* cluster(new Cluster(m_labelTable->getLabelName(labelKey),
+                                         labelKey,
+                                         clusterCoordsXYZ));
+            m_clusterContainer->addCluster(cluster);
         }
     }
-    
-    const std::set<int32_t> allKeys(labelTable->getKeys());
+        
+    const std::set<int32_t> allKeys(m_labelTable->getKeys());
     std::set<AString> labelNames;
     for (const int32_t key : allKeys) {
         if (labelKeysWithClusters.find(key) == labelKeysWithClusters.end()) {
             if (key != unassignedLabelKey) {
                 m_clusterContainer->addKeyThatIsNotInAnyCluster(key);
-                labelNames.insert(labelTable->getLabelName(key));
+                labelNames.insert(m_labelTable->getLabelName(key));
             }
         }
     }
     if ( ! labelNames.empty()) {
         AString text("File: "
-                     + volumeFile->getFileNameNoPath()
+                     + m_mapFile->getFileNameNoPath()
                      + " map: "
-                     + volumeFile->getMapName(m_mapIndex)
-                     + "   \nLabels are not used by any voxels:");
+                     + m_mapFile->getMapName(m_mapIndex)
+                     + "   \nLabels are not used by any brainordinates:");
         for (const AString& name : labelNames) {
             text.appendWithNewLine("      " + name);
         }
@@ -324,7 +482,7 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
         std::cout << std::endl << "MERGED" << std::endl;
         std::cout << mergedContainer->getClustersInFormattedString() << std::endl;
     }
-
+    
     /*
      * Combine left (right) clusters with other left (right) clusters for each key
      */
@@ -333,147 +491,82 @@ CaretMappableDataFileClusterFinder::findLabelVolumeClusters(const VolumeFile* vo
     return CaretResult::newInstanceSuccess();
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
- * Find clusters in a cifti label file
- * @param ciftiLabelFile
- *    CIFTI label file that is searched
- * @return The result
+ * @return Unvisited neighbors with same data value as the given node.
+ * @param topologyHelper
+ *    The topology helper for getting neighbors
+ * @param nodeNumber
+ *    Number of node to get neighbors for
+ * @param nodeVisited
+ *    Visisted status of all nodes, will get updated
+ * @return
+ *    A vector containing the surface vertex neighbors
  */
-std::unique_ptr<CaretResult>
-CaretMappableDataFileClusterFinder::findLabelCiftiClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile)
+std::vector<int32_t>
+CaretMappableDataFileClusterFinder::getSurfaceNeighbors(const TopologyHelper* topologyHelper,
+                                                        const int32_t nodeNumber,
+                                                        std::vector<char>& nodeVisited)
 {
-    /* Disable until finished */
-    return CaretResult::newInstanceSuccess();
-
-    CaretAssert(ciftiLabelFile);
+    std::vector<int32_t> neighborsOut;
     
-    const CiftiXML& ciftiXML(ciftiLabelFile->getCiftiXML());
-    const CiftiBrainModelsMap& brainModelsMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN));
-    const CiftiLabelsMap& ciftiLabelsMap(ciftiXML.getLabelsMap(CiftiXML::ALONG_ROW));
-
-    if (brainModelsMap.hasVolumeData()) {
-        const int64_t* dimPtr(brainModelsMap.getVolumeSpace().getDims());
-        if (dimPtr != NULL) {
-            int64_t dims[3] { dimPtr[0], dimPtr[1], dimPtr[2] };
-            const int64_t numVolumeVoxels(dims[0] * dims[1] * dims[2]);
-            if (numVolumeVoxels > 0) {
-                
+    CaretAssertVectorIndex(m_dataStorage, nodeNumber);
+    const int32_t labelKey(m_dataStorage[nodeNumber]);
+    
+    const std::vector<int32_t> neighborNodes(topologyHelper->getNodeNeighbors(nodeNumber));
+    for (const int32_t neighNode : neighborNodes) {
+        CaretAssertVectorIndex(nodeVisited, neighNode);
+        if ( ! nodeVisited[neighNode]) {
+            CaretAssertVectorIndex(m_dataStorage, neighNode);
+            if (m_dataStorage[neighNode] == labelKey) {
+                nodeVisited[neighNode] = 1;
+                neighborsOut.push_back(neighNode);
             }
         }
     }
     
-    const std::vector<StructureEnum::Enum> surfaceStructures(brainModelsMap.getSurfaceStructureList());
-    for (const StructureEnum::Enum structure : surfaceStructures) {
-        findLabelCiftiSurfaceClusters(ciftiLabelFile,
-                                      structure);
-        std::cout << "Maps to structures: " << StructureEnum::toName(structure) << std::endl;
-    }
-    return CaretResult::newInstanceSuccess();
+    return neighborsOut;
 }
 
 /**
- * Find surface clusters for the given structure in a cifti label file
- * @param ciftiLabelFile
- *    CIFTI label file that is searched
- * @return The result
+ * Convert a data index to a volume IJK for volume file searches.
+ * @param index
+ *    The data index (flat index)
+ * @param iOut
+ *    Output with voxel I-index
+ * @param jOut
+ *    Output with voxel J-index
+ * @param kOut
+ *    Output with voxel K-index
  */
-std::unique_ptr<CaretResult>
-CaretMappableDataFileClusterFinder::findLabelCiftiSurfaceClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile,
-                                                                  const StructureEnum::Enum structure)
+void
+CaretMappableDataFileClusterFinder::ijkFromIndex(const int64_t index,
+                                                 int64_t& iOut,
+                                                 int64_t& jOut,
+                                                 int64_t& kOut) const
 {
-    const CiftiXML& ciftiXML(ciftiLabelFile->getCiftiXML());
-    const CiftiBrainModelsMap& brainModelsMap(ciftiXML.getBrainModelsMap(CiftiXML::ALONG_COLUMN));
-    const int32_t numberOfNodes(brainModelsMap.getSurfaceNumberOfNodes(structure));
-    if (numberOfNodes < 0) {
-        return CaretResult::newInstanceSuccess(); /* ignore structure */
-    }
-    
-    /*
-     * Get surface file so that we can use its topology helper
-     */
-    EventSurfaceFileGet surfaceFileEvent(structure, numberOfNodes);
-    EventManager::get()->sendEvent(surfaceFileEvent.getPointer());
-    const int32_t numSurfacesFound(surfaceFileEvent.getNumberOfSurfaceFiles());
-    if (numSurfacesFound <= 0) {
-        return CaretResult::newInstanceSuccess();
-    }
-    const SurfaceFile* surfaceFile(surfaceFileEvent.getSurfaceFile(0));
-    CaretPointer<TopologyHelper> topologyHelper(surfaceFile->getTopologyHelper());
-    
-    
-    /*
-     * Get data values (label indices) for the map
-     */
-    std::vector<float> mapValuesFloat;
-    ciftiLabelFile->getMapData(m_mapIndex, mapValuesFloat);
-    std::cout << "Map length: " << mapValuesFloat.size() << std::endl;
-    
-    /*
-     * Get the values for the nodes in the current surface
-     */
-    std::vector<int32_t> nodeValues(numberOfNodes, -1);
-    std::vector<CiftiBrainModelsMap::SurfaceMap> surfaceMaps(brainModelsMap.getSurfaceMap(structure));
-    for (CiftiBrainModelsMap::SurfaceMap sm : surfaceMaps) {
-        CaretAssertVectorIndex(mapValuesFloat, sm.m_ciftiIndex);
-        CaretAssertVectorIndex(nodeValues, sm.m_surfaceNode);
-        nodeValues[sm.m_surfaceNode] = mapValuesFloat[sm.m_ciftiIndex];
-    }
-
-    /*
-     * Loop through all nodes until all have been searchedc
-     */
-    std::vector<bool> nodeVisited(numberOfNodes, 0);
-    for (int32_t iNode = 0; iNode < numberOfNodes; iNode++) {
-        if ( ! nodeVisited[iNode]) {
-            nodeVisited[iNode] = true;
-            
-            if (nodeValues[iNode] > 0) {
-                std::vector<int32_t> neighborNodesToSearch;
-                neighborNodesToSearch.reserve(500); /* avoid reallocations*/
-                
-                /*
-                 * Label key for current node
-                 */
-                const int32_t labelKey(nodeValues[iNode]);
-                
-                /*
-                 * Get unsearched neighbors of current node
-                 */
-                const std::vector<int32_t> neighborNodes(topologyHelper->getNodeNeighbors(nodeValues[iNode]));
-                for (const int32_t neighNode : neighborNodes) {
-                    if ( ! nodeVisited[neighNode]) {
-                        if (nodeValues[neighNode] == labelKey) {
-                            neighborNodesToSearch.push_back(neighNode);
-                        }
-                    }
-                }
-                
-                /*
-                 * Search neighbors of neighbors
-                 */
-                for (int32_t iNeigh = 0; iNeigh < neighborNodesToSearch.size(); iNeigh) {
-                    if ( ! nodeVisited[iNeigh]) {
-                        if (nodeValues[iNeigh] == labelKey) {
-                            neighborNodesToSearch.push_back(iNeigh);
-                        }
-                    }
-
-                }
-            }
-        }
-    }
-    
-    return CaretResult::newInstanceSuccess();
-}
-
-/**
- * Find volume clusters in a cifti label file
- * @param ciftiLabelFile
- *    CIFTI label file that is searched
- * @return The result
- */
-std::unique_ptr<CaretResult>
-CaretMappableDataFileClusterFinder::findLabelCiftiVolumeClusters(const CiftiBrainordinateLabelFile* ciftiLabelFile)
-{
-    return CaretResult::newInstanceSuccess();
+    const int64_t dimIJ(m_volumeDimI * m_volumeDimJ);
+    kOut = (index / dimIJ);
+    const int64_t remainderOne(index - (kOut * dimIJ));
+    jOut = (remainderOne / m_volumeDimI);
+    iOut = (remainderOne - (jOut * m_volumeDimI));
 }
