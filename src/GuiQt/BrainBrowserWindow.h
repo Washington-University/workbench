@@ -190,6 +190,7 @@ namespace caret {
         void processDuplicateTab();
         void processDataFileLocationOpen();
         void processDataFileOpen();
+        void processDataFileOpenQuickly();
         void processOmeZarrDirectoryOpen();
         void processOpenRecent();
         void processManageSaveLoadedFiles();
@@ -342,6 +343,8 @@ namespace caret {
         
         void openSpecFile(const AString& specFileName);
         
+        void openDataFiles(const QStringList& selectedFiles);
+        
         void processViewFullScreen(bool showFullScreenDisplay,
                                    const bool saveRestoreWindowStatus);
         
@@ -388,6 +391,8 @@ namespace caret {
         QAction* m_openOmeZarrDirectoryAction;
         
         QAction* m_openFileAction;
+        
+        QAction* m_openFileQuicklyAction;
         
         QAction* m_openLocationAction;
         

@@ -99,6 +99,7 @@
 #include "ModelSurface.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
+#include "OpenFileQuicklyDialog.h"
 #include "PlainTextStringBuilder.h"
 #include "ProgressReportingDialog.h"
 #include "RecentFilesDialog.h"
@@ -1641,7 +1642,16 @@ BrainBrowserWindow::createActions()
                                 SLOT(processDataFileOpen()));
     m_openFileAction->setShortcutContext(Qt::ApplicationShortcut);
     
-    m_openLocationAction = 
+    m_openFileQuicklyAction =
+    WuQtUtilities::createAction("Open File Quickly...",
+                                "Open a file by entering path of the file",
+                                QKeySequence(Qt::CTRL | Qt::META | Qt::Key_O),
+                                this,
+                                this,
+                                SLOT(processDataFileOpenQuickly()));
+    m_openFileQuicklyAction->setShortcutContext(Qt::ApplicationShortcut);
+
+    m_openLocationAction =
     WuQtUtilities::createAction("Open Location...", 
                                 "Open a data file including a spec file located on a web server (http)",
                                 QKeySequence(Qt::CTRL | Qt::Key_L),
@@ -2133,6 +2143,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_openRecentAction);
     menu->addMenu(new RecentSceneMenu(RecentSceneMenu::MenuLocation::FILE_MENU,
                                       this));
+    menu->addAction(m_openFileQuicklyAction);
     menu->addAction(m_openLocationAction);
     menu->addAction(m_manageFilesAction);
     menu->addAction(m_closeSpecFileAction);
@@ -3681,82 +3692,93 @@ BrainBrowserWindow::processDataFileOpen()
     if (fd.exec() == CaretFileDialog::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
         if ( ! selectedFiles.empty()) {
-            /*
-             * Load the files.
-             */
-            std::vector<AString> filenamesVector;
-            QStringListIterator nameIter(selectedFiles);
-            while (nameIter.hasNext()) {
-                const QString name = nameIter.next();
-                filenamesVector.push_back(name);
-            }
-            
-            std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
-            loadFiles(this,
-                      filenamesVector,
-                      dataFileTypesDummyNotUsed,
-                      LOAD_SPEC_FILE_WITH_DIALOG,
-                      "",
-                      "");
-            
-            std::vector<AString> sceneFileNames;
-            for (auto name : filenamesVector) {
-                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-                prefs->addToRecentFilesAndOrDirectories(name);
-                
-                bool validFlag(false);
-                const DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::fromName(name,
-                                                                                     &validFlag));
-                if (validFlag) {
-                    if (dataFileType == DataFileTypeEnum::SCENE) {
-                        sceneFileNames.push_back(name);
-                    }
-                }
-            }
-            
-            if ( ! sceneFileNames.empty()) {
-                Brain* brain(GuiManager::get()->getBrain());
-                CaretAssert(brain);
-                const int32_t numSceneFiles(brain->getNumberOfSceneFiles());
-                if (numSceneFiles > 0) {
-                    SceneFile* sceneFile(NULL);
-                    /*
-                     * Find scene file by name
-                     */
-                    for (int32_t i = 0; i < numSceneFiles; i++) {
-                        sceneFile = brain->getSceneFileWithName(sceneFileNames[i]);
-                        if (sceneFile != NULL) {
-                            break;
-                        }
-                    }
-                    /*
-                     * If scene file not found by name, use last scene file
-                     * since it should be the most recently loaded scene file
-                     */
-                    if (sceneFile == NULL) {
-                        sceneFile = brain->getSceneFile(numSceneFiles - 1);
-                    }
-                    if (sceneFile != NULL) {
-                        const int32_t numScenes(sceneFile->getNumberOfScenes());
-                        if (numScenes > 0) {
-                            /*
-                             * Select the recently loaded scene file in the scene dialog
-                             */
-                            Scene* scene(sceneFile->getSceneAtIndex(0));
-                            CaretAssert(scene);
-                            const bool showSceneDialogFlag(false);
-                            GuiManager::get()->processShowSceneDialogAndScene(this,
-                                                                              sceneFile,
-                                                                              scene,
-                                                                              showSceneDialogFlag);
-                        }
-                    }
-                }
-            }
+            openDataFiles(selectedFiles);
         }
         s_previousOpenFileNameFilter = fd.selectedNameFilter();
         s_previousOpenFileDirectory  = fd.directory().absolutePath();
         s_previousOpenFileGeometry   = fd.saveGeometry();
+    }
+}
+
+/**
+ * Open the given list of data files
+ * @param selectedFiles
+ *    Files to open
+ */
+void
+BrainBrowserWindow::openDataFiles(const QStringList& selectedFiles)
+{
+    /*
+     * Load the files.
+     */
+    std::vector<AString> filenamesVector;
+    QStringListIterator nameIter(selectedFiles);
+    while (nameIter.hasNext()) {
+        const QString name = nameIter.next();
+        filenamesVector.push_back(name);
+    }
+    
+    std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
+    loadFiles(this,
+              filenamesVector,
+              dataFileTypesDummyNotUsed,
+              LOAD_SPEC_FILE_WITH_DIALOG,
+              "",
+              "");
+    
+    std::vector<AString> sceneFileNames;
+    for (auto name : filenamesVector) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->addToRecentFilesAndOrDirectories(name);
+        
+        bool validFlag(false);
+        const DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::fromName(name,
+                                                                             &validFlag));
+        if (validFlag) {
+            if (dataFileType == DataFileTypeEnum::SCENE) {
+                sceneFileNames.push_back(name);
+            }
+        }
+    }
+    
+    if ( ! sceneFileNames.empty()) {
+        Brain* brain(GuiManager::get()->getBrain());
+        CaretAssert(brain);
+        const int32_t numSceneFiles(brain->getNumberOfSceneFiles());
+        if (numSceneFiles > 0) {
+            SceneFile* sceneFile(NULL);
+            /*
+             * Find scene file by name
+             */
+            for (int32_t i = 0; i < numSceneFiles; i++) {
+                sceneFile = brain->getSceneFileWithName(sceneFileNames[i]);
+                if (sceneFile != NULL) {
+                    break;
+                }
+            }
+            /*
+             * If scene file not found by name, use last scene file
+             * since it should be the most recently loaded scene file
+             */
+            if (sceneFile == NULL) {
+                sceneFile = brain->getSceneFile(numSceneFiles - 1);
+            }
+            if (sceneFile != NULL) {
+                const int32_t numScenes(sceneFile->getNumberOfScenes());
+                if (numScenes > 0) {
+                    /*
+                     * Select the recently loaded scene file in the scene dialog
+                     */
+                    Scene* scene(sceneFile->getSceneAtIndex(0));
+                    CaretAssert(scene);
+                    const bool showSceneDialogFlag(false);
+                    GuiManager::get()->processShowSceneDialogAndScene(this,
+                                                                      sceneFile,
+                                                                      scene,
+                                                                      showSceneDialogFlag);
+                }
+            }
+        }
     }
 }
 
@@ -3846,6 +3868,19 @@ BrainBrowserWindow::loadFilesFromNetwork(QWidget* parentForDialogs,
     return successFlag;
 }
 
+/**
+ * Open a file by user entering the absolute path of the file
+ */
+void
+BrainBrowserWindow::processDataFileOpenQuickly()
+{
+    OpenFileQuicklyDialog dialog;
+    if (dialog.exec() == OpenFileQuicklyDialog::Accepted) {
+        QStringList filenames;
+        filenames.push_back(dialog.getFilename());
+        openDataFiles(filenames);
+    }
+}
 
 /**
  * Load the files that were specified on the command line.
