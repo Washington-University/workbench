@@ -34,7 +34,9 @@
 #include "BorderSelectionViewController.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#define __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
 #include "BrainBrowserWindowOrientedToolBox.h"
+#undef  __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
@@ -114,6 +116,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             toggleViewAction()->setText("Features Toolbox");
             toolboxTypeName = "Features";
             typeSuffix = "Features";
+            if (s_combineFeaturesAndOverlayToolBoxFlag) {
+                isOverlayToolBox = true;
+            }
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             orientation = Qt::Horizontal;
@@ -126,6 +131,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
             isOverlayToolBox = true;
             toolboxTypeName = "OverlayVertical";
             typeSuffix = "ToolBoxV";
+            if (s_combineFeaturesAndOverlayToolBoxFlag) {
+                isFeaturesToolBox = true;
+            }
             break;
     }
     
@@ -162,6 +170,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     m_volumeSurfaceOutlineSetViewController = NULL;
 
     m_tabWidget = new WuQTabWidgetWithSizeHint();
+    if (s_combineFeaturesAndOverlayToolBoxFlag) {
+        m_tabWidget->setUsesScrollButtons(true);
+    }
 #if QT_VERSION < 0x050600
     /*
      * Versions of Qt prior to 5.7 do not have QMainWindow::resizeDocks().
@@ -331,7 +342,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     switch (toolBoxType) {
         case TOOL_BOX_FEATURES:
-            setWidget(m_tabWidget);
+            if (s_combineFeaturesAndOverlayToolBoxFlag) {
+                setWidget(createSplitterAndIdentificationWidget(Qt::Vertical));
+            }
+            else {
+                setWidget(m_tabWidget);
+            }
             break;
         case TOOL_BOX_OVERLAYS_HORIZONTAL:
             setWidget(createSplitterAndIdentificationWidget(Qt::Horizontal));
@@ -1125,9 +1141,35 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 }
             }
         }
+
+        /*
+         * Hide disabled tabs
+         */
+        if (s_combineFeaturesAndOverlayToolBoxFlag) {
+            /*
+             * This causes a crash when the Qt draws the window
+             * so disable at this time
+             */
+            const bool hideDisabledTabsFlag(false);
+            if (hideDisabledTabsFlag) {
+                for (int32_t i = 0; i < m_tabWidget->count(); i++) {
+                    m_tabWidget->setTabVisible(i, m_tabWidget->isTabEnabled(i));
+                }
+            }
+        }
     }
     else {
     }
 }
 
+/**
+ * Set flag to combine the vertical feature and overlay toolbox into one toolbox
+ * @param status
+ *    New status
+ */
+void
+BrainBrowserWindowOrientedToolBox::setCombineFeaturesAndOverlayToolBox(const bool status)
+{
+    s_combineFeaturesAndOverlayToolBoxFlag = status;
+}
 

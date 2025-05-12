@@ -60,6 +60,8 @@ namespace caret {
             TOOL_BOX_OVERLAYS_VERTICAL,
         };
         
+        static void setCombineFeaturesAndOverlayToolBox(const bool status);
+        
         BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
                                           const QString& title,
                                           const ToolBoxType toolBoxType,
@@ -176,8 +178,12 @@ namespace caret {
         QSize m_minimumSizeAfterSceneRestored;
         QSize m_maximumSizeAfterSceneRestored;
         
+        static bool s_combineFeaturesAndOverlayToolBoxFlag;
     };
-}
 
+#ifdef __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
+    bool BrainBrowserWindowOrientedToolBox::s_combineFeaturesAndOverlayToolBoxFlag = false;
+#endif  __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
 #endif // __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_H__
+}
 
