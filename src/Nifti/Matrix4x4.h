@@ -173,6 +173,8 @@ public:
     
     Vector3D getBasisVector(const int32_t columnIndex) const;
     
+    Vector3D getBasisVectorNormalized(const int32_t columnIndex) const;
+    
     double getMatrixElement(
             const int32_t i,
             const int32_t j) const;

@@ -1840,6 +1840,11 @@ Matrix4x4::setMatrixElement(
     this->setModified();
 }
 
+/**
+ * @return The basis vector from the given column.  Vector is NOT normalized.
+ * @param columnIndex
+ *    Index of the column
+ */
 Vector3D
 Matrix4x4::getBasisVector(const int32_t columnIndex) const
 {
@@ -1850,12 +1855,22 @@ Matrix4x4::getBasisVector(const int32_t columnIndex) const
                    this->matrix[2][columnIndex]);
         return v;
     }
-    else {
-        CaretLogSevere("Invalid column index="
-                       + AString::number(columnIndex)
-                       + " for basis vector.  Must be in range [0, 2]");
-    }
+    CaretLogSevere("Invalid column index="
+                   + AString::number(columnIndex)
+                   + " for basis vector.  Must be in range [0, 2]");
     return Vector3D();
+}
+
+/**
+ * @return The basis vector from the given column.  Vector IS normalized.
+ * @param columnIndex
+ *    Index of the column
+ */
+Vector3D
+Matrix4x4::getBasisVectorNormalized(const int32_t columnIndex) const
+{
+    Vector3D bv(getBasisVector(columnIndex));
+    return bv.normal();
 }
 
 /**
