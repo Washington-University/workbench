@@ -56,12 +56,14 @@ namespace caret {
     private:
         QLineEdit* m_filenameLineEdit;
         
+        static AString s_lastFilenameLineEditText;
+        
         // ADD_NEW_MEMBERS_HERE
 
     };
     
 #ifdef __OPEN_FILE_QUICKLY_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    AString OpenFileQuicklyDialog::s_lastFilenameLineEditText;
 #endif // __OPEN_FILE_QUICKLY_DIALOG_DECLARE__
 
 } // namespace

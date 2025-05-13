@@ -54,6 +54,8 @@ OpenFileQuicklyDialog::OpenFileQuicklyDialog(QWidget* parent)
     QLabel* instructionsLabel(new QLabel("Enter absolute path to file:"));
     
     m_filenameLineEdit = new QLineEdit();
+    m_filenameLineEdit->setClearButtonEnabled(true);
+    m_filenameLineEdit->setText(s_lastFilenameLineEditText);
     
     QDialogButtonBox* buttonBox(new QDialogButtonBox(QDialogButtonBox::Open
                                                      | QDialogButtonBox::Cancel));
@@ -91,6 +93,8 @@ OpenFileQuicklyDialog::done(int r)
             return;
         }
     }
+    
+    s_lastFilenameLineEditText = getFilename();
     
     QDialog::done(r);
 }
