@@ -944,27 +944,17 @@ HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
     const MediaFile* mediaFile(hsi->getMediaFile());
     CaretAssert(mediaFile);
     
-    Vector3D topLeftXYZ(mediaFile->getStereotaxicXyzTopLeft());
-    Vector3D botLeftXYZ(mediaFile->getStereotaxicXyzBottomLeft());
-    Vector3D topRightXYZ(mediaFile->getStereotaxicXyzTopRight());
-    Vector3D botRightXYZ(mediaFile->getStereotaxicXyzBottomRight());
-    if (flipLeftRightFlag) {
-        std::swap(topLeftXYZ,
-                  topRightXYZ);
-        std::swap(botLeftXYZ,
-                  botRightXYZ);
-    }
-    
     /*
-     * Normal will be 1.0 if valid; zero if invalid
+     * Get the basis vector.
+     * May need to flip the first vector if slice is left/right flipped
+     * Flip second vector since plane Y origin is at top
      */
-    const Vector3D botLeftToTopLeftNormal((topLeftXYZ - botLeftXYZ).normal());
-    const Vector3D botLeftToBotRightNormal((botRightXYZ - botLeftXYZ).normal());
-    if ((botLeftToTopLeftNormal.length() <= 0.98)
-        && (botLeftToBotRightNormal.length() <= 0.98)) {
-        return;
-    }
-
+    std::array<Vector3D, 2> allBasisVectors {
+        (m_planeToMillimetersMatrix.getBasisVectorNormalized(0)
+         * (flipLeftRightFlag ? -1.0 : 1.0)),
+        (m_planeToMillimetersMatrix.getBasisVectorNormalized(1) * -1.0)
+    };
+    
     class VectorAndLabel {
     public:
         VectorAndLabel(const AString& label,
@@ -981,40 +971,31 @@ HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
         Vector3D m_vector;
     };
     
-    std::vector<VectorAndLabel> vectorsAndLabels;
-    vectorsAndLabels.emplace_back("L", "R",  1.0,  0.0,  0.0);
-    vectorsAndLabels.emplace_back("R", "L", -1.0,  0.0,  0.0);
-    vectorsAndLabels.emplace_back("A", "P",  0.0, -1.0,  0.0);
-    vectorsAndLabels.emplace_back("P", "A",  0.0,  1.0,  0.0);
-    vectorsAndLabels.emplace_back("I", "S",  0.0,  0.0,  1.0);
-    vectorsAndLabels.emplace_back("S", "I",  0.0,  0.0, -1.0);
+    std::vector<VectorAndLabel> allVectorsAndLabels;
+    allVectorsAndLabels.emplace_back("L", "R",  1.0,  0.0,  0.0);
+    allVectorsAndLabels.emplace_back("R", "L", -1.0,  0.0,  0.0);
+    allVectorsAndLabels.emplace_back("A", "P",  0.0, -1.0,  0.0);
+    allVectorsAndLabels.emplace_back("P", "A",  0.0,  1.0,  0.0);
+    allVectorsAndLabels.emplace_back("I", "S",  0.0,  0.0,  1.0);
+    allVectorsAndLabels.emplace_back("S", "I",  0.0,  0.0, -1.0);
     
     
-    const int32_t numAxes(vectorsAndLabels.size());
-    
-    for (int32_t iNormal = 0; iNormal < 2; iNormal++) {
-        Vector3D sliceAxisNormalVector;
-        switch (iNormal) {
-            case 0:
-                sliceAxisNormalVector = botLeftToTopLeftNormal;
-                break;
-            case 1:
-                sliceAxisNormalVector = botLeftToBotRightNormal;
-                break;
-        }
-        for (int32_t j = 0; j < numAxes; j++) {
-            CaretAssertVectorIndex(vectorsAndLabels, j);
-            const float dotValue(vectorsAndLabels[j].m_vector.dot(sliceAxisNormalVector));
+    for (int32_t iBasis = 0; iBasis < static_cast<int32_t>(allBasisVectors.size()); iBasis++) {
+        CaretAssertVectorIndex(allBasisVectors, iBasis);
+        const Vector3D& basisVector(allBasisVectors[iBasis]);
+        std::cout << "Basis " << iBasis << ": " << basisVector.toString() << std::endl;
+        for (const VectorAndLabel& vectorAndLabel : allVectorsAndLabels) {
+            const float dotValue(vectorAndLabel.m_vector.dot(basisVector));
             AString labelTemp;
             if (dotValue >= 0.866) {  /* cosine(30 degrees) = 0.866 */
-                switch (iNormal) {
+                switch (iBasis) {
                     case 0:
-                        bottomScreenLabelTextOut = vectorsAndLabels[j].m_label;
-                        topScreenLabelTextOut    = vectorsAndLabels[j].m_oppositeLabel;
+                        leftScreenLabelTextOut  = vectorAndLabel.m_label;
+                        rightScreenLabelTextOut = vectorAndLabel.m_oppositeLabel;
                         break;
                     case 1:
-                        leftScreenLabelTextOut  = vectorsAndLabels[j].m_label;
-                        rightScreenLabelTextOut = vectorsAndLabels[j].m_oppositeLabel;
+                        bottomScreenLabelTextOut = vectorAndLabel.m_label;
+                        topScreenLabelTextOut    = vectorAndLabel.m_oppositeLabel;
                         break;
                 }
             }
