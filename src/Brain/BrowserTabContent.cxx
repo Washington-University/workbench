@@ -7882,19 +7882,28 @@ BrowserTabContent::applyHistologyOrientationYoking()
                             const HistologyCoordinate histologyCoordinate(getHistologySelectedCoordinate(selectionData.m_selectedFile));
                             if (histologyCoordinate.isValid()) {
                                 int32_t selectedSliceIndex(histologyCoordinate.getSliceIndex());
-                                const HistologySlice* histologySlice(selectedFile->getHistologySliceByIndex(selectedSliceIndex));
-                                if (histologySlice != NULL) {
-                                    Vector3D rotationAngles;
-                                    if (histologySlice->getSliceRotationAngles(rotationAngles)) {
-                                        /*
-                                         * Need to invert rotation angles (may have to do with quaternions)
-                                         */
-                                        rotationAngles = -rotationAngles;
-                                        
-                                        setMprThreeRotationAnglesForYokingGroup(getBrainModelYokingGroup(),
-                                                                                rotationAngles);
-                                        return getBrainModelYokingGroup();
+                                if ((selectedSliceIndex >= 0)
+                                    && (selectedSliceIndex < selectedFile->getNumberOfHistologySlices())) {
+                                    const HistologySlice* histologySlice(selectedFile->getHistologySliceByIndex(selectedSliceIndex));
+                                    if (histologySlice != NULL) {
+                                        Vector3D rotationAngles;
+                                        if (histologySlice->getSliceRotationAngles(rotationAngles)) {
+                                            /*
+                                             * Need to invert rotation angles (may have to do with quaternions)
+                                             */
+                                            rotationAngles = -rotationAngles;
+                                            
+                                            setMprThreeRotationAnglesForYokingGroup(getBrainModelYokingGroup(),
+                                                                                    rotationAngles);
+                                            return getBrainModelYokingGroup();
+                                        }
                                     }
+                                }
+                                else {
+                                    CaretLogWarning("Yoking Slice index="
+                                                    + AString::number(selectedSliceIndex)
+                                                    + " out of range for histology file: "
+                                                    + selectedFile->getFileName());
                                 }
                             }
                         }
