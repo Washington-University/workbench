@@ -183,7 +183,7 @@ namespace caret {
 
 #ifdef __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
     bool BrainBrowserWindowOrientedToolBox::s_combineFeaturesAndOverlayToolBoxFlag = false;
-#endif  __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
+#endif  // __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_DEFINE__
 #endif // __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_H__
 }
 

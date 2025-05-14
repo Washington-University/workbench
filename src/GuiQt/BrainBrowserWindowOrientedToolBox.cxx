@@ -1141,22 +1141,6 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 }
             }
         }
-
-        /*
-         * Hide disabled tabs
-         */
-        if (s_combineFeaturesAndOverlayToolBoxFlag) {
-            /*
-             * This causes a crash when the Qt draws the window
-             * so disable at this time
-             */
-            const bool hideDisabledTabsFlag(false);
-            if (hideDisabledTabsFlag) {
-                for (int32_t i = 0; i < m_tabWidget->count(); i++) {
-                    m_tabWidget->setTabVisible(i, m_tabWidget->isTabEnabled(i));
-                }
-            }
-        }
     }
     else {
     }
