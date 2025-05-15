@@ -253,11 +253,6 @@ IF (WORKBENCH_USE_QT6)
     ENDIF (WORKBENCH_USE_QT5)
     
     #
-    # Minimum required version of CMAKE for Qt 6
-    #
-    CMAKE_MINIMUM_REQUIRED (VERSION 3.19.6)
-    
-    #
     # Qt 6 requires C++17 compiler
     #
     SET(CMAKE_CXX_STANDARD 17)
