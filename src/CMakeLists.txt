@@ -1,7 +1,7 @@
 #
 # Minimum required version of CMAKE
 #
-CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.5...4.0)
 
 #
 # Project name
