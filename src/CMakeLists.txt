@@ -1,7 +1,7 @@
 #
 # Minimum required version of CMAKE
 #
-CMAKE_MINIMUM_REQUIRED (VERSION 3.0)
+CMAKE_MINIMUM_REQUIRED (VERSION 3.19.6)
 
 #
 # Project name
@@ -251,11 +251,6 @@ IF (WORKBENCH_USE_QT6)
     IF (WORKBENCH_USE_QT5)
         MESSAGE(SEND_ERROR "Both QT5 and QT6 are selected.  Choose only one of them.")
     ENDIF (WORKBENCH_USE_QT5)
-    
-    #
-    # Minimum required version of CMAKE for Qt 6
-    #
-    CMAKE_MINIMUM_REQUIRED (VERSION 3.19.6)
     
     #
     # Qt 6 requires C++17 compiler
