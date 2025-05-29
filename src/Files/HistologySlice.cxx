@@ -983,7 +983,6 @@ HistologySlice::getAxisLabels(const bool flipLeftRightFlag,
     for (int32_t iBasis = 0; iBasis < static_cast<int32_t>(allBasisVectors.size()); iBasis++) {
         CaretAssertVectorIndex(allBasisVectors, iBasis);
         const Vector3D& basisVector(allBasisVectors[iBasis]);
-        std::cout << "Basis " << iBasis << ": " << basisVector.toString() << std::endl;
         for (const VectorAndLabel& vectorAndLabel : allVectorsAndLabels) {
             const float dotValue(vectorAndLabel.m_vector.dot(basisVector));
             AString labelTemp;
