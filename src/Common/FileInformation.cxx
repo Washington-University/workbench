@@ -25,6 +25,7 @@
 #include "FileInformation.h"
 #undef __FILE_INFORMATION_DECLARE__
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFile.h"
 #include "DataFileTypeEnum.h"
@@ -408,9 +409,10 @@ FileInformation::getFileNameNoExtension() const
     AString name = getFileName();
     const AString ext = getFileExtension();
     if ( ! ext.isEmpty()) {
-        const int32_t extStartIndex = name.indexOf(ext);
-        if (extStartIndex > 0) {
-            name = name.left(extStartIndex - 1);
+        CaretAssert(name.endsWith(ext));
+        const int32_t newLength(name.length() - ext.length() - 1);
+        if (newLength > 0) {
+            name.resize(newLength);
         }
     }
     
