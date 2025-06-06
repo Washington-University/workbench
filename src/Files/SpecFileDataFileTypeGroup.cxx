@@ -238,6 +238,22 @@ SpecFileDataFileTypeGroup::setAllFilesSelectedForSaving(bool selectionStatus)
 }
 
 /**
+ * Set the spec file member status of all files.
+ * @param memberStatus
+ *   New in spec file member status
+ */
+void
+SpecFileDataFileTypeGroup::setAllFilesSpecFileMemberStatus(bool memberStatus)
+{
+    for (std::vector<SpecFileDataFile*>::iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        SpecFileDataFile* file = *iter;
+        file->setSpecFileMember(memberStatus);
+    }
+}
+
+/**
  * Set the save status to on for any files that are modified.
  */
 void

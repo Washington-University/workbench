@@ -130,6 +130,7 @@ ELSE()
         CaretFileDialog.h
         CaretFileDialogExtendable.h
         CaretFileRemoteDialog.h
+	CaretFiveFileImportDialog.h
         CaretMappableDataFileAndMapSelector.h
         CaretMappableDataFileAndMapSelectorObject.h
         ChartHistoryViewController.h
@@ -423,6 +424,7 @@ CaretDataFileSelectionComboBox.h
 CaretFileDialog.h
 CaretFileDialogExtendable.h
 CaretFileRemoteDialog.h
+CaretFiveFileImportDialog.h
 CaretMappableDataFileAndMapSelector.h
 CaretMappableDataFileAndMapSelectorObject.h
 CaretResultDialog.h
@@ -779,6 +781,7 @@ CaretDataFileSelectionComboBox.cxx
 CaretFileDialog.cxx
 CaretFileDialogExtendable.cxx
 CaretFileRemoteDialog.cxx
+CaretFiveFileImportDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
 CaretMappableDataFileAndMapSelectorObject.cxx
 CaretResultDialog.cxx

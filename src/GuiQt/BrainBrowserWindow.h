@@ -258,6 +258,8 @@ namespace caret {
         void processDevelopOmeZarrOpenTesting();
         void developerMenuAboutToShow();
         
+        void processMenuItemImportCaretFiveFiles();
+        
         void processEditAnnotations();
         void processEditBorders();
         void processEditFoci();
@@ -465,6 +467,7 @@ namespace caret {
         QAction* m_developerCziFileTransformTestingAction;
         QAction* m_developerOpenMPTestingAction;
         QAction* m_developerOmeZarrOpenAction;
+        QAction* m_importCaretFiveFilesAction;
         
         QAction* m_overlayToolBoxAction;
         

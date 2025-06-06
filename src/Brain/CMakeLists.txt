@@ -67,6 +67,7 @@ BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
 BrowserWindowContent.h
+CaretFiveDataFileImporter.h
 ChartTwoOverlay.h
 ChartTwoOverlayActiveModeEnum.h
 ChartTwoOverlaySet.h
@@ -306,6 +307,7 @@ BrainStructure.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 BrowserWindowContent.cxx
+CaretFiveDataFileImporter.cxx
 ChartTwoOverlay.cxx
 ChartTwoOverlayActiveModeEnum.cxx
 ChartTwoOverlaySet.cxx

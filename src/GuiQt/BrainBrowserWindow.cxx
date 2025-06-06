@@ -62,6 +62,8 @@
 #include "CaretDataFileSelectionComboBox.h"
 #include "CaretFileDialog.h"
 #include "CaretFileRemoteDialog.h"
+#include "CaretFiveFileImportDialog.h"
+#include "CaretFiveFileTypeEnum.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "CziImageFile.h"
@@ -72,6 +74,7 @@
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "EventDataFileAdd.h"
 #include "EventGetViewportSize.h"
 #include "EventBrowserTabReopenAvailable.h"
 #include "EventBrowserWindowCreateTabs.h"
@@ -1994,6 +1997,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDevelopOmeZarrOpenTesting()));
+    
+    m_importCaretFiveFilesAction  =
+    WuQtUtilities::createAction("Import Caret5 Files into Workbench...",
+                                "Convert Caret5 data files to Workbench format",
+                                this,
+                                this,
+                                SLOT(processMenuItemImportCaretFiveFiles()));
 }
 
 /**
@@ -2138,7 +2148,9 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(m_duplicateTabAction);
     menu->addAction(m_reopenLastClosedTabAction);
     menu->addSeparator();
+    menu->addAction(m_importCaretFiveFilesAction);
     menu->addAction(m_openOmeZarrDirectoryAction);
+    menu->addSeparator();
     menu->addAction(m_openFileAction);
     menu->addAction(m_openFileQuicklyAction);
     menu->addAction(m_openRecentAction);
@@ -3361,6 +3373,16 @@ BrainBrowserWindow::processDevelopOmeZarrOpenTesting()
     catch (const DataFileException& e) {
         WuQMessageBox::errorOk(this, e.whatString());
     }
+}
+
+/**
+ * Convert Caret 5 files to Workbench format
+ */
+void
+BrainBrowserWindow::processMenuItemImportCaretFiveFiles()
+{
+    CaretFiveFileImportDialog dialog(this);
+    dialog.exec();
 }
 
 /**

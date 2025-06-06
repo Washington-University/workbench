@@ -547,6 +547,13 @@ namespace caret {
         
         FunctionResult copySamplesToSurfaces(const SamplesFile* samplesFile);
         
+        bool importCaretFiveDataFile(const AString& caretFiveDataFileName,
+                                     const AString& outputDirectory,
+                                     const AString& convertedFileNamePrefix,
+                                     const bool saveConvertedFilesFlag,
+                                     AString& errorMessagesOut,
+                                     AString& warningMessagesOut);
+
     private:
         /**
          * Reset the brain scene file mode

@@ -71,6 +71,7 @@ CaretCommandLine.h
 CaretCompact3DLookup.h
 CaretCompactLookup.h
 CaretException.h
+CaretFiveFileTypeEnum.h
 CaretFunctionName.h
 CaretHeap.h
 CaretHierarchy.h
@@ -248,6 +249,7 @@ CaretColor.cxx
 CaretColorEnum.cxx
 CaretCommandLine.cxx
 CaretException.cxx
+CaretFiveFileTypeEnum.cxx
 CaretHierarchy.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx

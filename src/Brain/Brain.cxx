@@ -39,6 +39,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretDataFileHelper.h"
+#include "CaretFiveDataFileImporter.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
@@ -6965,6 +6966,197 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     CaretDataFile::setFileReadingUsernameAndPassword("",
                                                      "");
+}
+
+/**
+ * Import the files in the given Caret Five Spec File
+ * @param caretFiveDataFileName
+ *    Name of Caret Five Data File
+ * @param outputDirectory
+ *    Directory for converted files
+ * @param convertedFileNamePrefix
+ *    Prefix that is added to the name of converted data files
+ * @param errorMessagesOut
+ *    Contains any errors on exit
+ * @param warningMessagesOut
+ *    Contains any warnings on exit
+ * @return
+ *    True if successful, else false.
+ */
+bool
+Brain::importCaretFiveDataFile(const AString& caretFiveDataFileName,
+                               const AString& outputDirectory,
+                               const AString& convertedFileNamePrefix,
+                               const bool saveConvertedFilesFlag,
+                               AString& errorMessagesOut,
+                               AString& warningMessagesOut)
+{
+    errorMessagesOut.clear();
+    warningMessagesOut.clear();
+    
+    try {
+        const bool specFileFlag(caretFiveDataFileName.endsWith(".spec"));
+        if (specFileFlag) {
+            resetBrain();
+        }
+        
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->invalidateSceneDataValues();
+        prefs->setBackgroundAndForegroundColorsSceneOverrideMode(CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES);
+        
+        try  {
+            m_specFile->clear();
+        }
+        catch (const DataFileException& e) {
+            CaretLogSevere("SPEC FILE TODO: "
+                           + e.whatString());
+        }
+        
+        if (specFileFlag) {
+            m_isSpecFileBeingRead = true;
+            
+            
+            FileInformation fileInfo(caretFiveDataFileName);
+            setCurrentDirectory(fileInfo.getPathName());
+        }
+        
+        AString auxiliaryFileName;
+        CaretFiveDataFileImporter importer;
+        importer.importFile(outputDirectory,
+                            convertedFileNamePrefix,
+                            caretFiveDataFileName,
+                            auxiliaryFileName);
+        if (importer.hasErrors()) {
+            errorMessagesOut.appendWithNewLine(importer.getErrorMessage());
+        }
+        if (importer.hasWarnings()) {
+            warningMessagesOut.appendWithNewLine(importer.getWarningMessage());
+        }
+        bool writeSpecFileFlag(false);
+        if (specFileFlag) {
+            const AString workbenchSpecFileName(importer.getOutputSpecFileName());
+            if ( ! workbenchSpecFileName.isEmpty()) {
+                m_specFile->setFileName(workbenchSpecFileName);
+                writeSpecFileFlag = true;
+            }
+        }
+        bool haveBorderFilesFlag(false);
+        bool haveFociFilesFlag(false);
+        std::vector<CaretDataFile*> files(importer.takeImportedFiles());
+        for (CaretDataFile* cdf : files) {
+            addDataFile(cdf);
+            if (cdf->getDataFileType() == DataFileTypeEnum::BORDER) {
+                haveBorderFilesFlag = true;
+            }
+            else if (cdf->getDataFileType() == DataFileTypeEnum::FOCI) {
+                haveFociFilesFlag = true;
+            }
+            if (saveConvertedFilesFlag) {
+                try {
+                    writeDataFile(cdf);
+                }
+                catch (const DataFileException& dfe) {
+                    errorMessagesOut.appendWithNewLine(dfe.whatString());
+                }
+            }
+        }
+        if (writeSpecFileFlag) {
+            m_specFile->setModified();
+            m_specFile->setAllFilesSpecFileMemberStatus(true);
+            m_specFile->setAllFilesSelectedForSaving(true);
+            if (saveConvertedFilesFlag) {
+                try {
+                    writeDataFile(m_specFile);
+                }
+                catch (const DataFileException& dfe) {
+                    errorMessagesOut.appendWithNewLine(dfe.whatString());
+                }
+            }
+        }
+        
+        
+        if (specFileFlag) {
+            m_paletteFile->setFileName(convertFilePathNameToAbsolutePathName(m_paletteFile->getFileNameNoPath()));
+            m_paletteFile->clearModified();
+            
+            sortDataFilesByFileNameNoPath();
+            
+            /*
+             * Reset the primary anatomical surfaces since they can get set
+             * incorrectly when loading files
+             */
+            for (std::vector<BrainStructure*>::iterator bsi = m_brainStructures.begin();
+                 bsi != m_brainStructures.end();
+                 bsi++) {
+                BrainStructure* bs = *bsi;
+                bs->setPrimaryAnatomicalSurface(NULL);
+            }
+            
+            /*
+             * Initialize the overlay for ALL models
+             */
+            EventModelGetAll getAllModels;
+            EventManager::get()->sendEvent(getAllModels.getPointer());
+            std::vector<Model*> allModels = getAllModels.getModels();
+            for (std::vector<Model*>::iterator iter = allModels.begin();
+                 iter != allModels.end();
+                 iter++) {
+                Model* mdc = *iter;
+                mdc->initializeSelectedSurfaces();
+                mdc->initializeOverlays();
+            }
+            
+            /*
+             * Initialize overlays for brain structures
+             */
+            for (std::vector<BrainStructure*>::iterator iter = m_brainStructures.begin();
+                 iter != m_brainStructures.end();
+                 iter++) {
+                BrainStructure* bs = *iter;
+                bs->initializeOverlays();
+            }
+            
+            /*
+             * Turn on display of foci
+             */
+            if (haveBorderFilesFlag
+                || haveFociFilesFlag) {
+                std::vector<DisplayGroupEnum::Enum> displayGroups;
+                DisplayGroupEnum::getAllEnumsExceptTab(displayGroups);
+                DisplayPropertiesBorders* dsb(getDisplayPropertiesBorders());
+                DisplayPropertiesFoci* dsf(getDisplayPropertiesFoci());
+                for (auto dg : displayGroups) {
+                    const int32_t tabIndex(0);
+                    if (haveBorderFilesFlag) {
+                        dsb->setDisplayed(dg, tabIndex, true);
+                    }
+                    if (haveFociFilesFlag) {
+                        dsf->setDisplayed(dg, tabIndex, true);
+                        dsf->setFociSizePercentage(dg, tabIndex, 1.0);
+                        dsf->setFociSymbolSizeType(dg, tabIndex, IdentificationSymbolSizeTypeEnum::PERCENTAGE);
+                    }
+                }
+                for (int32_t iTab = 0; iTab < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; iTab++) {
+                    if (haveBorderFilesFlag) {
+                        dsb->setDisplayed(DisplayGroupEnum::DISPLAY_GROUP_TAB, iTab, true);
+                    }
+                    if (haveFociFilesFlag) {
+                        dsf->setDisplayed(DisplayGroupEnum::DISPLAY_GROUP_TAB, iTab, true);
+                        dsf->setFociSizePercentage(DisplayGroupEnum::DISPLAY_GROUP_TAB, iTab, 1.0);
+                        dsf->setFociSymbolSizeType(DisplayGroupEnum::DISPLAY_GROUP_TAB, iTab, IdentificationSymbolSizeTypeEnum::PERCENTAGE);
+                    }
+                }
+            }
+        }
+        
+        m_isSpecFileBeingRead = false;
+    }
+    catch (const DataFileException& dfe) {
+        errorMessagesOut.insert(0, dfe.whatString() + "\n");
+        return false;
+    }
+
+    return true;
 }
 
 /**

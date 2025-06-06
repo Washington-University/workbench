@@ -1463,6 +1463,19 @@ SpecFile::setAllFilesSelectedForSaving(bool selectionStatus)
 }
 
 /**
+ * Set the spec file member status for all files in the spec file
+ * @param memberStatus
+ *    New member status.
+ */
+void
+SpecFile::setAllFilesSpecFileMemberStatus(bool memberStatus)
+{
+    for (SpecFileDataFileTypeGroup* sfdftg : dataFileTypeGroups) {
+        sfdftg->setAllFilesSpecFileMemberStatus(memberStatus);
+    }
+}
+
+/**
  * Set all scene files selected and all other files not selected.
  */
 void 

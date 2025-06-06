@@ -142,6 +142,8 @@ namespace caret {
         
         void setModifiedFilesSelectedForSaving();
         
+        void setAllFilesSpecFileMemberStatus(bool memberStatus);
+        
         static float getFileVersion();
         
         static AString getFileVersionAsString();

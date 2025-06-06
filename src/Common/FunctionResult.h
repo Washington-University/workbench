@@ -165,6 +165,17 @@ namespace caret {
         m_value(value)
         { }
         
+        /**
+         * Constructor for success.
+         * @param value
+         *    Value that is being returned
+         */
+        FunctionResultValue(const T& value)
+        :  FunctionResult("",    /* no error message */
+                          true), /* OK */
+        m_value(value)
+        { }
+        
         virtual ~FunctionResultValue() { }
         
         /**
