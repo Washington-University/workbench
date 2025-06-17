@@ -398,7 +398,7 @@ ZarrV2ArrayJsonFile::readContentFromJson(const nlohmann::json& json)
             if (elem.second.is_object()) {
                 const nlohmann::json::object_t compressorObject(elem.second);
                 ZarrCompressorTypeEnum::Enum compressorType(ZarrCompressorTypeEnum::NO_COMPRESSOR);
-                typeof(m_compressorParametersMap) paramsMap;
+                std::map<AString, AString> paramsMap;
                 bool compressorTypeValidFlag(false);
                 for (const auto& compElem: compressorObject) {
                     const auto& key(compElem.first);
