@@ -506,6 +506,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_VOLUME_COLORING_INVALIDATE:
         case EventTypeEnum::EVENT_SURFACES_GET:
         case EventTypeEnum::EVENT_SURFACE_FILE_GET:
+        case EventTypeEnum::EVENT_SURFACE_NODES_GET_NEAR_XYZ:
         case EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET:
         case EventTypeEnum::EVENT_TILE_TABS_MODIFICATION:
         case EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY:

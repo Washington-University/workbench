@@ -274,6 +274,8 @@ public:
         EVENT_SURFACES_GET,
         /** Get surface files with structure and number of nodes */
         EVENT_SURFACE_FILE_GET,
+        /** Get surface nodes within some distance of XYZ */
+        EVENT_SURFACE_NODES_GET_NEAR_XYZ,
         /** Get valid surface strucutures and their number of nodes */
         EVENT_SURFACE_STRUCTURES_VALID_GET,
         /** Tile tabs modification */

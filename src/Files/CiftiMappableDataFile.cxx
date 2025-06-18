@@ -52,6 +52,7 @@
 #include "EventManager.h"
 #include "EventCaretPreferencesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventSurfaceNodesGetNearXYZ.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
 #include "GiftiLabel.h"
@@ -8642,8 +8643,46 @@ CiftiMappableDataFile::getDataForSelector(const MapFileDataSelector& mapFileData
         {
             float xyz[3];
             mapFileDataSelector.getVolumeVoxelXYZ(xyz);
-            getSeriesDataForVoxelAtCoordinate(xyz,
-                                              dataOut);
+            
+            /*
+             * If file does not have an volume data (VolumeSpace), an exception
+             * is thrown by CiftiBrainModelsMap
+             */
+            bool dataValidFlag(false);
+            try {
+                dataValidFlag = getSeriesDataForVoxelAtCoordinate(xyz,
+                                                                  dataOut);
+            }
+            catch (const DataFileException& dfe) {
+                dataValidFlag = false;
+                dataOut.clear();
+            }
+            
+            if ( ! dataValidFlag) {
+                /*
+                 * Look for nearby surface nodes
+                 * 'maxDist' is maximum distance a coordinate may be
+                 * from the query (XYZ).
+                 */
+                const float maxDist(2.0);
+                EventSurfaceNodesGetNearXYZ nearbyNodesEvent(xyz,
+                                                             maxDist);
+                EventManager::get()->sendEvent(nearbyNodesEvent.getPointer());
+                const int32_t numNearbyNodes(nearbyNodesEvent.getNumberOfNearbyNodes());
+                for (int32_t i = 0; i < numNearbyNodes; i++) {
+                    const EventSurfaceNodesGetNearXYZ::NodeInfo nodeInfo(nearbyNodesEvent.getNearbyNode(i));
+                    dataValidFlag = getSeriesDataForSurfaceNode(nodeInfo.getStructure(),
+                                                                nodeInfo.getNodeIndex(),
+                                                                dataOut);
+                    if (dataValidFlag) {
+                        break;
+                    }
+                }
+            }
+            
+            if ( ! dataValidFlag) {
+                dataOut.clear();
+            }
         }
             break;
     }

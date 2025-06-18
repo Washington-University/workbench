@@ -535,9 +535,13 @@ EventTypeEnum::initialize()
                                      "EVENT_SURFACE_FILE_GET",
                                      "Get surface files with structure and number of nodes"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SURFACE_NODES_GET_NEAR_XYZ,
+                                     "EVENT_SURFACE_NODES_GET_NEAR_XYZ",
+                                     "Get surface nodes within some distance of XYZ "));
+
     enumData.push_back(EventTypeEnum(EVENT_SURFACE_STRUCTURES_VALID_GET,
                                      "EVENT_SURFACE_STRUCTURES_VALID_GET",
-                                     "GGet valid surface strucutures and their number of node"));
+                                     "Get valid surface strucutures and their number of node"));
 
     enumData.push_back(EventTypeEnum(EVENT_TILE_TABS_MODIFICATION,
                                      "EVENT_TILE_TABS_MODIFICATION",

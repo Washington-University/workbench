@@ -39,6 +39,7 @@
 #include "EventModelAdd.h"
 #include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
+#include "EventSurfaceNodesGetNearXYZ.h"
 #include "EventSurfaceStructuresValidGet.h"
 #include "GroupAndNameHierarchyModel.h"
 #include "IdentificationManager.h"
@@ -55,6 +56,7 @@
 #include "ScenePathName.h"
 #include "SessionManager.h"
 #include "Surface.h"
+#include "TopologyHelper.h"
 
 using namespace caret;
 
@@ -89,6 +91,8 @@ BrainStructure::BrainStructure(Brain* brain,
                                           EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_SURFACES_GET);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_SURFACE_NODES_GET_NEAR_XYZ);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_SURFACE_STRUCTURES_VALID_GET);
 }
@@ -1152,6 +1156,41 @@ BrainStructure::receiveEvent(Event* event)
         CaretAssert(structEvent);
 
         structEvent->addStructure(m_structure, getNumberOfNodes());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_NODES_GET_NEAR_XYZ) {
+        EventSurfaceNodesGetNearXYZ* nodesEvent(dynamic_cast<EventSurfaceNodesGetNearXYZ*>(event));
+        CaretAssert(nodesEvent);
+        nodesEvent->setEventProcessed();
+        
+        const Surface* anatSurface(getPrimaryAnatomicalSurface());
+        if (anatSurface != NULL) {
+            if (anatSurface->getSurfaceType() != SurfaceTypeEnum::ANATOMICAL) {
+                CaretLogWarning("Primary anatomical surface used for finding nearby nodes is not "
+                                "of type anatomical: "
+                                + anatSurface->getFileNameNoPath());
+            }
+            
+            const Vector3D queryXYZ(nodesEvent->getXYZ());
+            const float maxDist(nodesEvent->getMaximumDistanceFromXYZ());
+            const float maxDistSquared(maxDist * maxDist);
+            const StructureEnum::Enum structure(anatSurface->getStructure());
+            const auto topoHelper(anatSurface->getTopologyHelper());
+            const int32_t numNodes(anatSurface->getNumberOfNodes());
+            for (int32_t i = 0; i < numNodes; i++) {
+                if (topoHelper->getNodeHasNeighbors(i)) {
+                    Vector3D xyz;
+                    anatSurface->getCoordinate(i, xyz);
+                    const float distSQ(MathFunctions::distanceSquared3D(xyz,
+                                                                        queryXYZ));
+                    if (distSQ <= maxDistSquared) {
+                        nodesEvent->addNearbyNode(structure, 
+                                                  xyz,
+                                                  std::sqrt(distSQ),
+                                                  i);
+                    }
+                }
+            }
+        }
     }
 }
 

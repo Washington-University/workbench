@@ -131,6 +131,7 @@ EventPaletteGetByName.h
 EventProgressUpdate.h
 EventRecentFilesSystemAccessMode.h
 EventResetView.h
+EventSurfaceNodesGetNearXYZ.h
 EventTileTabsGridConfigurationModification.h
 EventTypeEnum.h
 FastStatistics.h
@@ -302,6 +303,7 @@ EventPaletteGetByName.cxx
 EventProgressUpdate.cxx
 EventRecentFilesSystemAccessMode.cxx
 EventResetView.cxx
+EventSurfaceNodesGetNearXYZ.cxx
 EventTileTabsGridConfigurationModification.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx
