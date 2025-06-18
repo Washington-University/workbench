@@ -19,6 +19,7 @@
 /*LICENSE_END*/
 
 #include <algorithm>
+#include <cmath>
 #include <limits>
 
 
