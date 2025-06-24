@@ -83,6 +83,7 @@ AlgorithmMetricFalseCorrelation.h
 AlgorithmMetricFillHoles.h
 AlgorithmMetricFindClusters.h
 AlgorithmMetricGradient.h
+AlgorithmMetricInterpolateGaps.h
 AlgorithmMetricReduce.h
 AlgorithmMetricRegression.h
 AlgorithmMetricRemoveIslands.h
@@ -204,6 +205,7 @@ AlgorithmMetricFalseCorrelation.cxx
 AlgorithmMetricFillHoles.cxx
 AlgorithmMetricFindClusters.cxx
 AlgorithmMetricGradient.cxx
+AlgorithmMetricInterpolateGaps.cxx
 AlgorithmMetricReduce.cxx
 AlgorithmMetricRegression.cxx
 AlgorithmMetricRemoveIslands.cxx

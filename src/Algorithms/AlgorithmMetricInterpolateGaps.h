@@ -1,9 +1,9 @@
-#ifndef __ALGORITHM_METRIC_DILATE_H__
-#define __ALGORITHM_METRIC_DILATE_H__
+#ifndef __ALGORITHM_METRIC_INTERPOLATE_GAPS_H__
+#define __ALGORITHM_METRIC_INTERPOLATE_GAPS_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2014  Washington University School of Medicine
+ *  Copyright (C) 2025  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,33 +23,30 @@
 
 #include "AbstractAlgorithm.h"
 
+#include "AlgorithmMetricDilate.h"
+
+#include <vector>
+
 namespace caret {
     
-    class AlgorithmMetricDilate : public AbstractAlgorithm
+    class AlgorithmMetricInterpolateGaps : public AbstractAlgorithm
     {
-        AlgorithmMetricDilate();
+        AlgorithmMetricInterpolateGaps();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        enum Method
-        {
-            NEAREST,
-            WEIGHTED,
-            LINEAR
-        };
-        AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, const float& distance,
-                              MetricFile* myMetricOut, const MetricFile* badNodeRoi = NULL, const MetricFile* dataRoi = NULL, const int& columnNum = -1,
-                              const Method& myMethod = WEIGHTED, const float& exponent = 6.0f, const MetricFile* corrAreas = NULL,
-                              const bool legacyCutoff = false, const bool matchBadNodeMaps = false);
+        AlgorithmMetricInterpolateGaps(ProgressObject* myProgObj, const std::vector<const MetricFile*> inputMetrics, const SurfaceFile* mySurf, float distLimit, MetricFile* myMetricOut,
+                                                               const std::vector<const MetricFile*> badRois, const MetricFile* dataROI = NULL, const MetricFile* corrAreas = NULL,
+                                                               const float dilExponent = 6.0f, const AlgorithmMetricDilate::Method dilMethod = AlgorithmMetricDilate::WEIGHTED);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricDilate> AutoAlgorithmMetricDilate;
+    typedef TemplateAutoOperation<AlgorithmMetricInterpolateGaps> AutoAlgorithmMetricInterpolateGaps;
 
 }
 
-#endif //__ALGORITHM_METRIC_DILATE_H__
+#endif //__ALGORITHM_METRIC_INTERPOLATE_GAPS_H__
