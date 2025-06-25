@@ -64,9 +64,13 @@ OperationParameters* OperationConvertMatrix4ToWorkbenchSparse::getParameters()
     volumeOpt->addCiftiParameter(1, "cifti-template", "cifti file to use the volume mappings from");
     volumeOpt->addStringParameter(2, "direction", "dimension along the cifti file to take the mapping from, ROW or COLUMN");
     
+    OptionalParameter* ciftiOpt = ret->createOptionalParameter(9, "-cifti-seeds", "use a cifti file's entire brain models mapping as the seed space");
+    ciftiOpt->addCiftiParameter(1, "cifti-template", "cifti file to use the brain models mapping from");
+    ciftiOpt->addStringParameter(2, "direction", "dimension along the cifti file to take the mapping from, ROW or COLUMN");
+    
     ret->setHelpText(
         AString("Converts the matrix 4 output of probtrackx to workbench sparse file format.  ") +
-        "Exactly one of -surface-seeds and -volume-seeds must be specified."
+        "Exactly one of -surface-seeds, -volume-seeds, or -cifti-seeds must be specified."
     );
     return ret;
 }
@@ -84,7 +88,11 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
     const int64_t* sparseDims = inFile.getDimensions();
     OptionalParameter* surfaceOpt = myParams->getOptionalParameter(7);
     OptionalParameter* volumeOpt = myParams->getOptionalParameter(8);
-    if (surfaceOpt->m_present == volumeOpt->m_present) throw OperationException("you must specify exactly one of -surface-seeds and -volume-seeds");//use == on booleans as xnor
+    OptionalParameter* ciftiOpt = myParams->getOptionalParameter(9);
+    if ((surfaceOpt->m_present && volumeOpt->m_present) ||
+        (surfaceOpt->m_present && ciftiOpt->m_present) ||
+        (volumeOpt->m_present && ciftiOpt->m_present) ||
+        !(surfaceOpt->m_present || volumeOpt->m_present || ciftiOpt->m_present)) throw OperationException("you must specify exactly one of -surface-seeds, -volume-seeds, or -cifti-seeds");
     const CiftiXML& orientXML = orientationFile->getCiftiXML();
     if (orientXML.getMappingType(CiftiXML::ALONG_COLUMN) != CiftiMappingType::BRAIN_MODELS) throw OperationException("orientation file must have brain models mapping along column");
     CiftiXML myXML;
@@ -138,6 +146,25 @@ void OperationConvertMatrix4ToWorkbenchSparse::useParameters(OperationParameters
         }
         if (tempMap.getLength() != sparseDims[1]) throw OperationException("volume models in template cifti file do not match the dimension of the input file");
         myXML.setMap(CiftiXML::ALONG_COLUMN, tempMap);
+    }
+    if (ciftiOpt->m_present)
+    {
+        CiftiFile* myTemplate = ciftiOpt->getCifti(1);
+        AString directionName = ciftiOpt->getString(2);
+        int myDir = -1;
+        if (directionName == "ROW")
+        {
+            myDir = CiftiXML::ALONG_ROW;
+        } else if (directionName == "COLUMN")
+        {
+            myDir = CiftiXML::ALONG_COLUMN;
+        } else {
+            throw OperationException("direction must be ROW or COLUMN");
+        }
+        const CiftiXML& templateXML = myTemplate->getCiftiXML();
+        if (templateXML.getMappingType(myDir) != CiftiMappingType::BRAIN_MODELS) throw OperationException("template cifti file must have brain models along specified direction");
+        if (templateXML.getMap(myDir)->getLength() != sparseDims[1]) throw OperationException("brain models dimension in template cifti file does not match the dimension of the input file");
+        myXML.setMap(CiftiXML::ALONG_COLUMN, *templateXML.getMap(myDir));
     }
     CaretAssert(myXML.getDimensionLength(CiftiXML::ALONG_COLUMN) == sparseDims[1]);
     fstream voxelFile(voxelFileName.toLocal8Bit().constData(), fstream::in);
