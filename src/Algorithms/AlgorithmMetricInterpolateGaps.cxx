@@ -144,7 +144,7 @@ AlgorithmMetricInterpolateGaps::AlgorithmMetricInterpolateGaps(ProgressObject* m
     }
     if (dataROI != NULL && dataROI->getNumberOfNodes() != numNodes) throw AlgorithmException("data roi has a different number of vertices than the data");
     if (corrAreas != NULL && corrAreas->getNumberOfNodes() != numNodes) throw AlgorithmException("vertex area metric has a different number of vertices than the data");
-    myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+    myMetricOut->setNumberOfNodesAndColumns(numNodes, numMaps);
     myMetricOut->setStructure(mySurf->getStructure());
     //don't need match maps anymore
     //AlgorithmMetricDilate(NULL, myMetric, mySurf, distLimit, &dilOut, badROI, dataROI, -1, dilMethod, dilExponent, corrAreas, false, true);
@@ -201,7 +201,7 @@ AlgorithmMetricInterpolateGaps::AlgorithmMetricInterpolateGaps(ProgressObject* m
                 float targetDist = 0.0f;
                 int32_t targetNode = myGeoHelp->getClosestNodeInRoi(node, charDataRois[input].data(), distLimit, targetDist, true);
                 bool blocked = false;
-                if (targetNode > 0)
+                if (targetNode >= 0)
                 {
                     vector<int32_t> targetPath;
                     vector<float> pathDists;

@@ -2255,7 +2255,7 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
                                                                 &coordinate,
                                                                 &options);
                 }
-                catch (const std::logic_error logicError) {
+                catch (const std::logic_error& logicError) {
                     const AString msg("When reading data from singleChannelTileAccessor: "
                                       + QString(logicError.what()));
                     CaretLogSevere(msg);
