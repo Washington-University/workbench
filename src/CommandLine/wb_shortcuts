@@ -781,6 +781,50 @@ function metric_concatenate ()
     wb_command -metric-merge "$1" "${merge_arg_array[@]}"
 }
 
+create_function "-scene-add-files" "ADD FILES TO BE LOADED IN A SCENE"
+function scene_add_files ()
+{
+    local function_switch="$1"
+    shift
+    if (($# < 1))
+    then
+        echo "`switch_to_descrip $function_switch`"
+        echo "   $global_script_name $function_switch"
+        echo "      <input-scene-file>"
+        echo "      <scene-number-or-name>"
+        echo "      <output-scene-file>"
+        echo "      <data-file-to-add>"
+        echo "      ..."
+        echo
+        #wrap guide for 80 columns                                                           |
+        echo "      Additional data files may be specified after the mandatory data file."
+        echo "      Data files are passed as -data-file-add arguments to -scene-file-update,"
+        echo "      so text files (with the extension .txt) containing a list of data files"
+        echo "      are supported."
+        echo
+        return 0
+    fi
+    if (($# < 4))
+    then
+        error "function requires 4 or more arguments"
+    fi
+    local input="$1"
+    local sceneid="$2"
+    local output="$3"
+    shift 3
+    local -a fileargs=()
+    for file in "$@"
+    do
+        fileargs+=(-data-file-add "$file")
+    done
+    #WARNING: this command doesn't have the output file last among the mandatory arguments
+    wb_command -scene-file-update \
+        "$input" \
+        "$output" \
+        "$sceneid" \
+        "${fileargs[@]}"
+}
+
 create_function "-scene-file-concatenate" "MERGE SCENES OF SCENE FILES"
 function scene_file_concatenate ()
 {
