@@ -2025,6 +2025,7 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
             useChartTwoFlag = true;
             break;
         case ModelTypeEnum::MODEL_TYPE_HISTOLOGY:
+            useOverlayFlag = true;
             break;
         case  ModelTypeEnum::MODEL_TYPE_MULTI_MEDIA:
             break;
