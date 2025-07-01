@@ -70,9 +70,6 @@ namespace caret {
                                      const float dataY,
                                      const bool dataXYValidFlag);
 
-        virtual void setHistologyScaling(const GraphicsObjectToWindowTransform* transform,
-                                         const float scaling);
-        
         virtual void setMediaScaling(const GraphicsObjectToWindowTransform* transform,
                                      const float scaling);
         

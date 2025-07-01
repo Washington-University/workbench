@@ -729,13 +729,12 @@ UserInputModeView::mouseLeftDragWithCtrl(const MouseEvent& mouseEvent)
                 m_histologyLeftDragWithCtrlModelXYZValidFlag = true;
             }
         }
-        browserTabContent->applyHistologyMouseScaling(viewportContent,
-                                                      mouseEvent.getPressedX(),
-                                                      mouseEvent.getPressedY(),
-                                                      mouseEvent.getDy(),
-                                                      m_histologyLeftDragWithCtrlModelXYZ[0],
-                                                      m_histologyLeftDragWithCtrlModelXYZ[1],
-                                                      m_histologyLeftDragWithCtrlModelXYZValidFlag);
+        
+        browserTabContent->applyMouseScaling(viewportContent,
+                                             mouseEvent.getPressedX() - modelViewport[0],
+                                             mouseEvent.getPressedY() - modelViewport[1],
+                                             mouseEvent.getDx(),
+                                             mouseEvent.getDy());
     }
     else if (browserTabContent->isMediaDisplayed()) {
         if (mouseEvent.isFirstDragging()) {
@@ -1077,38 +1076,7 @@ UserInputModeView::gestureEvent(const GestureEvent& gestureEvent)
                     scaleFactor = -2.0;
                 }
                 if (scaleFactor != 0.0) {
-                    if (browserTabContent->isHistologyDisplayed()) {
-                        const bool enableHistologyesturesFlag(false);
-                        /* Needs separate modes for each histology drawing mode */
-                        if (enableHistologyesturesFlag) {
-                            BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
-                            bool modelXyzValidFlag(false);
-                            double modelXYZ[3];
-                            {
-                                SelectionItemHistologyCoordinate* histologyID = openGLWidget->performIdentificationHistologyPlaneCoordinate(gestureEvent.getStartCenterX(),
-                                                                                                                                            gestureEvent.getStartCenterY());
-                                CaretAssert(histologyID);
-                                if (histologyID->isValid()) {
-                                    const HistologyCoordinate coordinate(histologyID->getCoordinate());
-                                    const Vector3D planeXYZ(coordinate.getPlaneXYZ());
-                                    modelXYZ[0] = planeXYZ[0];
-                                    modelXYZ[1] = planeXYZ[1];
-                                    modelXYZ[2] = planeXYZ[2];
-                                    modelXyzValidFlag = true;
-                                }
-                                if (modelXyzValidFlag) {
-                                    browserTabContent->applyHistologyMouseScaling(viewportContent,
-                                                                                  gestureEvent.getStartCenterX(),
-                                                                                  gestureEvent.getStartCenterX(),
-                                                                                  deltaY,
-                                                                                  modelXYZ[0],
-                                                                                  modelXYZ[1],
-                                                                                  true);
-                                }
-                            }
-                        }
-                    }
-                    else if (browserTabContent->isMediaDisplayed()) {
+                    if (browserTabContent->isMediaDisplayed()) {
                         const bool enableMediaGesturesFlag(false);
                         if (enableMediaGesturesFlag) {
                             BrainOpenGLWidget* openGLWidget = gestureEvent.getOpenGLWidget();
