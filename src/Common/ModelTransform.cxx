@@ -72,14 +72,16 @@ ModelTransform::setToIdentity()
     for (int32_t i = 0; i < 4; i++) {
         for (int32_t j = 0; j < 4; j++) {
             if (i == j) {
-                this->rotation[i][j]        = 1.0;
-                this->obliqueRotation[i][j] = 1.0;
-                this->flatRotation[i][j]    = 1.0;
+                this->rotation[i][j]          = 1.0;
+                this->obliqueRotation[i][j]   = 1.0;
+                this->flatRotation[i][j]      = 1.0;
+                this->histologyRotation[i][j] = 1.0;
             }
             else {
-                this->rotation[i][j]        = 0.0;
-                this->obliqueRotation[i][j] = 0.0;
-                this->flatRotation[i][j]    = 0.0;
+                this->rotation[i][j]          = 0.0;
+                this->obliqueRotation[i][j]   = 0.0;
+                this->flatRotation[i][j]      = 0.0;
+                this->histologyRotation[i][j] = 0.0;
             }
         }
     }
@@ -280,6 +282,22 @@ ModelTransform::getFlatRotation(float flatRotation[4][4]) const
 }
 
 /**
+ * Get the histology rotation matrix.
+ * @param histologyRotation
+ *   Histology rotation matrix.
+ */
+void
+ModelTransform::getHistologyRotation(float histologyRotation[4][4]) const
+{
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            histologyRotation[i][j] = this->histologyRotation[i][j];
+        }
+    }
+}
+
+
+/**
  * @return The scaling.
  */
 float 
@@ -432,6 +450,20 @@ ModelTransform::setFlatRotation(const float flatRotation[4][4])
     }
 }
 
+/**
+ * Set the histology rotation
+ * @param histologyRotation
+ *    New value for histology rotation
+ */
+void
+ModelTransform::setHistologyRotation(const float histologyRotation[4][4])
+{
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            this->histologyRotation[i][j] = histologyRotation[i][j];
+        }
+    }
+}
 
 /**
  * Set the offset for drawing the right cortex flat map.
@@ -546,6 +578,19 @@ ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
     }
     s.appendWithNewLine(" ");
 
+    matrixForCalculations.setMatrix(this->histologyRotation);
+    matrixForCalculations.getRotation(rotXYZ[0], rotXYZ[1], rotXYZ[2]);
+    
+    s.appendWithNewLine("Histology Rotation Angles: "
+                        + AString::fromNumbers(rotXYZ, 3));
+    s.appendWithNewLine(" " );
+    
+    s.appendWithNewLine("Histology Rotation:");
+    for (int32_t i = 0; i < 4; i++) {
+        s.appendWithNewLine(AString::fromNumbers(this->histologyRotation[i], 4));
+    }
+    s.appendWithNewLine(" ");
+    
     s.appendWithNewLine("Right Cortex Flat Map Offset: "
                         + AString::fromNumbers(this->rightCortexFlatMapOffsetXY, 2));
     s.appendWithNewLine(" ");
@@ -609,7 +654,14 @@ ModelTransform::getAsString() const
         }
     }
 
-    /* 60 + 3 = 63 */
+    /* 60 + 16 = 76 */
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            s += (s_separatorInPreferences + AString::number(this->histologyRotation[i][j]));
+        }
+    }
+    
+    /* 76 + 3 = 79 */
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[0]));
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[1]));
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapZoomFactor));
@@ -632,6 +684,7 @@ ModelTransform::setFromString(const AString& s)
     bool hasMprAngles = false;
     bool hasMprThreeAngles = false;
     bool hasFlatRotation = false;
+    bool hasHistologyRotation = false;
     bool hasRightFlatMapOffset = false;
     bool hasRightFlatMapZoomFactor = false;
     
@@ -646,7 +699,17 @@ ModelTransform::setFromString(const AString& s)
 #endif
         const int numElements = sl.count();
         
-        if (numElements == 63) {
+        if (numElements == 79) {
+            hasComment = true;
+            hasObliqueRotation = true;
+            hasMprAngles = true;
+            hasMprThreeAngles = true;
+            hasFlatRotation = true;
+            hasHistologyRotation = true;
+            hasRightFlatMapOffset = true;
+            hasRightFlatMapZoomFactor = true;
+        }
+        else if (numElements == 63) {
             hasComment = true;
             hasObliqueRotation = true;
             hasMprAngles = true;
@@ -792,6 +855,26 @@ ModelTransform::setFromString(const AString& s)
         }
     }
     
+    if (hasHistologyRotation) {
+        for (int32_t i = 0; i < 4; i++) {
+            for (int32_t j = 0; j < 4; j++) {
+                this->histologyRotation[i][j] = sl.at(ctr++).toFloat();
+            }
+        }
+    }
+    else {
+        for (int32_t i = 0; i < 4; i++) {
+            for (int32_t j = 0; j < 4; j++) {
+                if (i == j) {
+                    this->histologyRotation[i][j] = 1.0;
+                }
+                else {
+                    this->histologyRotation[i][j] = 0.0;
+                }
+            }
+        }
+    }
+    
     if (hasRightFlatMapOffset) {
         this->rightCortexFlatMapOffsetXY[0] = sl.at(ctr++).toFloat();
         this->rightCortexFlatMapOffsetXY[1] = sl.at(ctr++).toFloat();
@@ -830,6 +913,7 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
             this->rotation[i][j]        = modelTransform.rotation[i][j];
             this->obliqueRotation[i][j] = modelTransform.obliqueRotation[i][j];
             this->flatRotation[i][j]    = modelTransform.flatRotation[i][j];
+            this->histologyRotation[i][j] = modelTransform.histologyRotation[i][j];
         }
     }
     
@@ -866,8 +950,10 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
  *    The MPR two rotation angles
  * @param mprThreeRotationAngles
  *    The MPR three rotation angles
- * @param floatRotationMatrixArray
+ * @param flatRotationMatrixArray
  *    The flat rotation matrix
+ * @param histologyRotationMatrixArray
+ *    The histology rotation matrix
  * @param zoom
  *    Zooming.
  * @param rightCortexFlatMapOffsetX
@@ -885,7 +971,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
                                                 const float obliqueRotationMatrix[4][4],
                                                 const float mprTwoRotationAngles[3],
                                                 const float mprThreeRotationAngles[3],
-                                                const float floatRotationMatrixArray[4][4],
+                                                const float flatRotationMatrixArray[4][4],
+                                                const float histologyRotationMatrixArray[4][4],
                                                 const float zoom,
                                                 const float rightCortexFlatMapOffsetX,
                                                 const float rightCortexFlatMapOffsetY,
@@ -901,7 +988,9 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
     
     setMprThreeRotationAngles(mprThreeRotationAngles);
     
-    this->setFlatRotation(floatRotationMatrixArray);
+    this->setFlatRotation(flatRotationMatrixArray);
+    
+    this->setHistologyRotation(histologyRotationMatrixArray);
     
     this->setScaling(zoom);
     
@@ -926,8 +1015,10 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
  *    The MPR two rotation angles
  * @param mprThreeRotationAngles
  *    The MPR three rotation angles
- * @param floatRotationMatrixArray
+ * @param flatRotationMatrixArray
  *    The flat rotation matrix
+ * @param histologyRotationMatrixArray
+ *    The histology rotation matrix
  * @param zoom
  *    Zooming.
  * @param rightCortexFlatMapOffsetX
@@ -945,7 +1036,8 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
                                                 float obliqueRotationMatrix[4][4],
                                                 float mprTwoRotationAngles[3],
                                                 float mprThreeRotationAngles[3],
-                                                float floatRotationMatrixArray[4][4],
+                                                float flatRotationMatrixArray[4][4],
+                                                float histologyRotationMatrixArray[4][4],
                                                 float& zoom,
                                                 float& rightCortexFlatMapOffsetX,
                                                 float& rightCortexFlatMapOffsetY,
@@ -963,7 +1055,9 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
     
     getMprThreeRotationAngles(mprThreeRotationAngles);
     
-    getFlatRotation(floatRotationMatrixArray);
+    getFlatRotation(flatRotationMatrixArray);
+    
+    getHistologyRotation(histologyRotationMatrixArray);
     
     zoom = getScaling();
     

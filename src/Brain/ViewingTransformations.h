@@ -90,6 +90,10 @@ namespace caret {
         
         void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
         
+        Matrix4x4 getHistologyRotationMatrix() const;
+        
+        void setHistologyRotationMatrix(const Matrix4x4& histologyRotationMatrix);
+        
         float getRightCortexFlatMapZoomFactor() const;
         
         void setRightCortexFlatMapZoomFactor(const float rightCortexFlatMapZoomFactor);
@@ -132,6 +136,9 @@ namespace caret {
         
         /** Rotation matrix for flat surface */
         Matrix4x4* m_flatRotationMatrix;
+        
+        /** Rotation matrix for histology slices */
+        Matrix4x4* m_histologyRotationMatrix;
         
         /** Offset for right cortex flat map */
         float m_rightCortexFlatMapOffset[2];

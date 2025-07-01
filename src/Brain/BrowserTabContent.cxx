@@ -3159,16 +3159,45 @@ BrowserTabContent::setObliqueVolumeRotationMatrix(const Matrix4x4& obliqueRotati
     updateBrainModelYokedBrowserTabs();
 }
 
+/**
+ * @return The flat rotation matrix
+ */
 Matrix4x4
 BrowserTabContent::getFlatRotationMatrix() const
 {
     return getViewingTransformation()->getFlatRotationMatrix();
 }
 
+/**
+ * Set the flat rotation matrix
+ * @param flatRotationMatrix
+ *    New flat rotation matrix.
+ */
 void
 BrowserTabContent::setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix)
 {
     getViewingTransformation()->setFlatRotationMatrix(flatRotationMatrix);
+    updateYokedModelBrowserTabs();
+}
+
+/**
+ * @return The histology rotation matrix
+ */
+Matrix4x4
+BrowserTabContent::getHistologyRotationMatrix() const
+{
+    return getViewingTransformation()->getHistologyRotationMatrix();
+}
+
+/**
+ * Set the flat histology matrix
+ * @param histologyRotationMatrix
+ *    New flat histology matrix.
+ */
+void
+BrowserTabContent::setHistologyRotationMatrix(const Matrix4x4& histologyRotationMatrix)
+{
+    getViewingTransformation()->setHistologyRotationMatrix(histologyRotationMatrix);
     updateYokedModelBrowserTabs();
 }
 
@@ -4183,6 +4212,80 @@ BrowserTabContent::applyMouseRotation(BrainOpenGLViewportContent* viewportConten
     else if (isChartOneDisplayed()
              || isChartTwoDisplayed()) {
         /* no rotation for chart */
+    }
+    else if (isHistologyDisplayed()) {
+        float rotateFlat = mouseDeltaY;
+        if (rotateFlat != 0.0) {
+            int viewport[4];
+            viewportContent->getModelViewport(viewport);
+            if ((viewport[2] > 0)
+                && (viewport[3] > 0)) {
+                if ((mouseDeltaX != 0)
+                    || (mouseDeltaY != 0)) {
+                    const int previousMouseX = mouseX - mouseDeltaX;
+                    const int previousMouseY = mouseY - mouseDeltaY;
+                    
+                    /*
+                     * Need to account for the quadrants!!!!
+                     */
+                    float viewportCenter[3] = {
+                        (float)(viewport[0] + viewport[2] / 2),
+                        ((float)viewport[1] + viewport[3] / 2),
+                        0.0
+                    };
+                    
+                    /*
+                     * Use selected plane coord as rotation center
+                     */
+                    const GraphicsObjectToWindowTransform* objTrans(viewportContent->getHistologyGraphicsObjectToWindowTransform());
+                    CaretAssert(objTrans);
+                    const HistologySlicesFile* underlayFile(getHistologyOverlaySet()->getBottomMostHistologySlicesFile());
+                    if (underlayFile != NULL) {
+                        const HistologyCoordinate hc(getHistologySelectedCoordinate(underlayFile));
+                        if (hc.isPlaneXYValid()) {
+                            objTrans->transformPoint(hc.getPlaneXYZ(), viewportCenter);
+                        }
+                    }
+                    const float oldPos[3] = {
+                        (float)previousMouseX,
+                        (float)previousMouseY,
+                        0.0
+                    };
+                    
+                    const float newPos[3] = {
+                        (float)mouseX,
+                        (float)mouseY,
+                        0.0
+                    };
+                    
+                    /*
+                     * Compute normal vector from viewport center to
+                     * old mouse position to new mouse position.
+                     * If normal-Z is positive, mouse has been moved
+                     * in a counter clockwise motion relative to center.
+                     * If normal-Z is negative, mouse has moved clockwise.
+                     */
+                    float normalDirection[3];
+                    MathFunctions::normalVectorDirection(viewportCenter,
+                                                         oldPos,
+                                                         newPos,
+                                                         normalDirection);
+                    rotateFlat = std::fabs(rotateFlat);
+                    if (normalDirection[2] > 0.0) {
+                        /* mouse moved counter-clockwise */
+                        rotateFlat = -rotateFlat;
+                    }
+                    else if (normalDirection[2] < 0.0) {
+                        /* mouse moved clockwise */
+                    }
+                    
+                    ViewingTransformations* viewingTransform = getViewingTransformation();
+                    Matrix4x4 histologyRotationMatrix = viewingTransform->getHistologyRotationMatrix();
+                    histologyRotationMatrix.rotateZ(rotateFlat);
+                    viewingTransform->setHistologyRotationMatrix(histologyRotationMatrix);
+                }
+            }
+        }
     }
     else if (isMediaDisplayed()) {
         /* no rotation for media */
@@ -5995,6 +6098,11 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     flatRotationMatrix.getMatrix(fm);
     modelTransform.setFlatRotation(fm);
     
+    const Matrix4x4 histologyRotationMatrix = getHistologyRotationMatrix();
+    float hm[4][4];
+    histologyRotationMatrix.getMatrix(hm);
+    modelTransform.setHistologyRotation(hm);
+    
     float rightFlatX, rightFlatY;
     getRightCortexFlatMapOffset(rightFlatX, rightFlatY);
     modelTransform.setRightCortexFlatMapOffset(rightFlatX, rightFlatY);
@@ -6086,6 +6194,12 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
     Matrix4x4 flatRotationMatrix;
     flatRotationMatrix.setMatrix(fm);
     setFlatRotationMatrix(flatRotationMatrix);
+    
+    float hm[4][4];
+    modelTransform.getHistologyRotation(hm);
+    Matrix4x4 histologyRotationMatrix;
+    histologyRotationMatrix.setMatrix(hm);
+    setHistologyRotationMatrix(histologyRotationMatrix);
     
     const float scale = modelTransform.getScaling();
     setScaling(scale);

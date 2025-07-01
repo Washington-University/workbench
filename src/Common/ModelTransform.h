@@ -54,6 +54,8 @@ namespace caret {
         
         void getFlatRotation(float flatRotation[4][4]) const;
         
+        void getHistologyRotation(float histologyRotation[4][4]) const;
+        
         void getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
                                          float& rightCortexFlatMapOffsetY) const;
         
@@ -83,6 +85,8 @@ namespace caret {
         
         void setFlatRotation(const float flatRotation[4][4]);
         
+        void setHistologyRotation(const float histologyRotation[4][4]);
+        
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
                                          const float rightCortexFlatMapOffsetY);
         
@@ -98,6 +102,7 @@ namespace caret {
                                              const float mprTwoRotationAngles[3],
                                              const float mprThreeRotationAngles[3],
                                              const float flatRotationMatrix[4][4],
+                                             const float histologyRotationMatrix[4][4],
                                              const float zoom,
                                              const float rightCortexFlatMapOffsetX,
                                              const float rightCortexFlatMapOffsetY,
@@ -111,6 +116,7 @@ namespace caret {
                                              float mprTwoRotationAngles[3],
                                              float mprThreeRotationAngles[3],
                                              float flatRotationMatrix[4][4],
+                                             float histologyRotationMarix[4][4],
                                              float& zoom,
                                              float& rightCortexFlatMapOffsetX,
                                              float& rightCortexFlatMapOffsetY,
@@ -150,6 +156,8 @@ namespace caret {
         float mprThreeRotationAngles[3];
         
         float flatRotation[4][4];
+        
+        float histologyRotation[4][4];
         
         float scaling;
         

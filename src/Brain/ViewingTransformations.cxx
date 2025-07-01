@@ -53,6 +53,7 @@ ViewingTransformations::ViewingTransformations()
     m_translation[2] = 0.0;
     m_scaling = 1.0;
     m_flatRotationMatrix = new Matrix4x4();
+    m_histologyRotationMatrix = new Matrix4x4();
     
     m_rightCortexFlatMapOffset[0] = 0.0;
     m_rightCortexFlatMapOffset[1] = 0.0;
@@ -80,6 +81,7 @@ ViewingTransformations::~ViewingTransformations()
 {
     delete m_rotationMatrix;
     delete m_flatRotationMatrix;
+    delete m_histologyRotationMatrix;
     delete m_sceneAssistant;
 }
 
@@ -140,6 +142,7 @@ ViewingTransformations::copyHelperViewingTransformations(const ViewingTransforma
     m_translation[2]  = obj.m_translation[2];
     m_scaling         = obj.m_scaling;
     *m_flatRotationMatrix = *obj.m_flatRotationMatrix;
+    *m_histologyRotationMatrix = *obj.m_histologyRotationMatrix;
     m_rightCortexFlatMapOffset[0]  = obj.m_rightCortexFlatMapOffset[0];
     m_rightCortexFlatMapOffset[1]  = obj.m_rightCortexFlatMapOffset[1];
     m_rightCortexFlatMapZoomFactor = obj.m_rightCortexFlatMapZoomFactor;
@@ -329,6 +332,26 @@ ViewingTransformations::setFlatRotationMatrix(const Matrix4x4& flatRotationMatri
 }
 
 /**
+ * @return The histology rotation matrix
+ */
+Matrix4x4
+ViewingTransformations::getHistologyRotationMatrix() const
+{
+    return *m_histologyRotationMatrix;
+}
+
+/**
+ * Set the histology rotation matrix
+ * @param histologyRotationMatrix
+ *    New  histology rotation matrix
+ */
+void
+ViewingTransformations::setHistologyRotationMatrix(const Matrix4x4& histologyRotationMatrix)
+{
+    *m_histologyRotationMatrix = histologyRotationMatrix;
+}
+
+/**
  * Get the offset for the right cortex flat map.
  *
  * @param rightCortexFlatMapOffsetX
@@ -392,6 +415,7 @@ ViewingTransformations::resetView()
     m_rotationMatrix->identity();
     setScaling(1.0);
     m_flatRotationMatrix->identity();
+    m_histologyRotationMatrix->identity();
     setRightCortexFlatMapOffset(0.0, 0.0);
     setRightCortexFlatMapZoomFactor(1.0);
     leftView();
@@ -500,6 +524,13 @@ ViewingTransformations::saveToScene(const SceneAttributes* sceneAttributes,
      */
     m_flatRotationMatrix->getMatrix(matrix);
     sceneClass->addFloatArray("m_flatRotationMatrix", (float*)matrix, 16);
+
+    /*
+     * Save histology rotation matrices.
+     */
+    m_histologyRotationMatrix->getMatrix(matrix);
+    sceneClass->addFloatArray("m_histologyRotationMatrix", (float*)matrix, 16);
+    
     return sceneClass;
 }
 
@@ -544,6 +575,16 @@ ViewingTransformations::restoreFromScene(const SceneAttributes* sceneAttributes,
     }
     else {
         m_flatRotationMatrix->identity();
+    }
+    
+    /*
+     * Restore histology rotation matrices.
+     */
+    if (sceneClass->getFloatArrayValue("m_histologyRotationMatrix", (float*)matrix, 16) == 16) {
+        m_histologyRotationMatrix->setMatrix(matrix);
+    }
+    else {
+        m_histologyRotationMatrix->identity();
     }
     
 }

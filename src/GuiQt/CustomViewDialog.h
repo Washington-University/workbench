@@ -114,6 +114,7 @@ namespace caret {
                                             double& mprThreeRotY,
                                             double& mprThreeRotZ,
                                             double& flatRotate,
+                                            double& histologyRotate,
                                             double& zoom,
                                             double& rightFlatX,
                                             double& rightFlatY,
@@ -135,6 +136,7 @@ namespace caret {
                                             const double mprThreeRotY,
                                             const double mprThreeRotZ,
                                             const double flatRotate,
+                                            const double histologyRotate,
                                             const double zoom,
                                             const double rightFlatX,
                                             const double rightFlatY,
@@ -198,6 +200,8 @@ namespace caret {
         QDoubleSpinBox* m_zMprThreeRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_flatRotationDoubleSpinBox;
+        
+        QDoubleSpinBox* m_histologyRotationDoubleSpinBox;
         
         QDoubleSpinBox* m_zoomDoubleSpinBox;
 

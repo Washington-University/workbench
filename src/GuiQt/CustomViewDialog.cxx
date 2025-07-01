@@ -334,7 +334,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
     double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
     double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
-    double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
+    double flatRotate, histologyRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
                                    panZ,
@@ -351,6 +351,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                    mprThreeRotY,
                                    mprThreeRotZ,
                                    flatRotate,
+                                   histologyRotate,
                                    zoom,
                                    rightFlatX,
                                    rightFlatY,
@@ -375,6 +376,12 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
     flatRotationMatrix.setRotation(0.0, 0.00, flatRotate);
     float flatRotationMatrixArray[4][4];
     flatRotationMatrix.getMatrix(flatRotationMatrixArray);
+    
+    Matrix4x4 histologyRotationMatrix;
+    histologyRotationMatrix.setRotation(0.0, 0.0, histologyRotate);
+    float histologyRotationMatrixArray[4][4];
+    histologyRotationMatrix.getMatrix(histologyRotationMatrixArray);
+    
     modelTransform.setPanningRotationMatrixAndZoom(panX,
                                                    panY,
                                                    panZ,
@@ -383,6 +390,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                                    mprTwoRotationAngles,
                                                    mprThreeRotationAngles,
                                                    flatRotationMatrixArray,
+                                                   histologyRotationMatrixArray,
                                                    zoom,
                                                    rightFlatX,
                                                    rightFlatY,
@@ -405,6 +413,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
         float panX, panY, panZ, rotationMatrixArray[4][4],
         mprTwoRotationAngles[3], mprThreeRotationAngles[3],
               obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
+        histologyRotationMatrixArray[4][4],
         rightFlatX, rightFlatY, rightFlatZoom;
 
         modelTransform.getPanningRotationMatrixAndZoom(panX,
@@ -415,6 +424,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
                                                        mprTwoRotationAngles,
                                                        mprThreeRotationAngles,
                                                        flatRotationMatrixArray,
+                                                       histologyRotationMatrixArray,
                                                        zoom,
                                                        rightFlatX,
                                                        rightFlatY,
@@ -437,6 +447,11 @@ CustomViewDialog::copyToTransformPushButtonClicked()
         double flatRotX, flatRotY, flatRotZ;
         flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
         
+        Matrix4x4 histologyRotationMatrix;
+        histologyRotationMatrix.setMatrix(histologyRotationMatrixArray);
+        double histRotX, histRotY, histRotZ;
+        histologyRotationMatrix.getRotation(histRotX, histRotY, histRotZ);
+        
         const double mprTwoRotX = mprTwoRotationAngles[0];
         const double mprTwoRotY = mprTwoRotationAngles[1];
         const double mprTwoRotZ = mprTwoRotationAngles[2];
@@ -454,7 +469,9 @@ CustomViewDialog::copyToTransformPushButtonClicked()
                                        mprThreeRotX,
                                        mprThreeRotY,
                                        mprThreeRotZ,
-                                       flatRotZ, zoom,
+                                       flatRotZ, 
+                                       histRotZ,
+                                       zoom,
                                        rightFlatX, rightFlatY, rightFlatZoom);
         
         updateViewInBrowserTabContent(BrowserTabContent::MprThreeRotationUpdateType::REPLACE);
@@ -720,6 +737,21 @@ CustomViewDialog::createTransformsWidget()
                      this, SLOT(transformValueChanged()));
     
     /*
+     * Histology rotation
+     */
+    QLabel* histologyRotateLabel = new QLabel("Histology Rotation");
+    m_histologyRotationDoubleSpinBox = new QDoubleSpinBox;
+    m_histologyRotationDoubleSpinBox->setWrapping(true);
+    m_histologyRotationDoubleSpinBox->setMinimum(rotationMinimum);
+    m_histologyRotationDoubleSpinBox->setMaximum(rotationMaximum);
+    m_histologyRotationDoubleSpinBox->setSingleStep(rotateStep);
+    m_histologyRotationDoubleSpinBox->setDecimals(2);
+    m_histologyRotationDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_histologyRotationDoubleSpinBox->setKeyboardTracking(false);
+    QObject::connect(m_histologyRotationDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(transformValueChanged()));
+    
+    /*
      * Zoom
      */
     const double zoomStep = 0.01;
@@ -782,6 +814,7 @@ CustomViewDialog::createTransformsWidget()
     m_transformWidgetGroup->add(m_yMprThreeRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_zMprThreeRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_flatRotationDoubleSpinBox);
+    m_transformWidgetGroup->add(m_histologyRotationDoubleSpinBox);
     m_transformWidgetGroup->add(m_zoomDoubleSpinBox);
     m_transformWidgetGroup->add(m_xRightFlatMapSpinBox);
     m_transformWidgetGroup->add(m_yRightFlatMapSpinBox);
@@ -900,6 +933,14 @@ CustomViewDialog::createTransformsWidget()
                           row,
                           COLUMN_LABEL);
     gridLayout->addWidget(m_flatRotationDoubleSpinBox,
+                          row,
+                          COLUMN_X);
+    row++;
+    
+    gridLayout->addWidget(histologyRotateLabel,
+                          row,
+                          COLUMN_LABEL);
+    gridLayout->addWidget(m_histologyRotationDoubleSpinBox,
                           row,
                           COLUMN_X);
     row++;
@@ -1053,7 +1094,7 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
     double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
     double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
-    double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
+    double flatRotate, histologyRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
                                    panZ,
@@ -1070,6 +1111,7 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
                                    mprThreeRotY,
                                    mprThreeRotZ,
                                    flatRotate,
+                                   histologyRotate,
                                    zoom,
                                    rightFlatX,
                                    rightFlatY,
@@ -1099,12 +1141,19 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
                 float flatRotationMatrixArray[4][4];
                 flatRotationMatrix.getMatrix(flatRotationMatrixArray);
                 
+                Matrix4x4 histologyRotationMatrix;
+                histologyRotationMatrix.setRotation(0.0, 0.0, histologyRotate);
+                float histologyRotationMatrixArray[4][4];
+                histologyRotationMatrix.getMatrix(histologyRotationMatrixArray);
+                
                 ModelTransform modelTransform;
                 modelTransform.setPanningRotationMatrixAndZoom(panX, panY, panZ,
                                                                rotationMatrixArray, obliqueRotationMatrixArray,
                                                                mprTwoRotationAngles,
                                                                mprThreeRotationAngles,
-                                                               flatRotationMatrixArray, zoom,
+                                                               flatRotationMatrixArray, 
+                                                               histologyRotationMatrixArray,
+                                                               zoom,
                                                                rightFlatX, rightFlatY, rightFlatZoom);
                 btc->setTransformationsFromModelTransform(modelTransform,
                                                           mprThreeRotationUpdateType);
@@ -1182,7 +1231,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 float panX, panY, panZ, rotationMatrixArray[4][4],
                 mprTwoRotationAngles[3],
                 mprThreeRotationAngles[3],
-                obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
+                obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], 
+                histologyRotationMatrixArray[4][4], zoom,
                 rightFlatX, rightFlatY, rightFlatZoom;
                 modelTransform.getPanningRotationMatrixAndZoom(panX,
                                                                panY,
@@ -1192,6 +1242,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                                mprTwoRotationAngles,
                                                                mprThreeRotationAngles,
                                                                flatRotationMatrixArray,
+                                                               histologyRotationMatrixArray,
                                                                zoom,
                                                                rightFlatX,
                                                                rightFlatY,
@@ -1214,6 +1265,11 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 double flatRotX, flatRotY, flatRotZ;
                 flatRotationMatrix.getRotation(flatRotX, flatRotY, flatRotZ);
                 
+                Matrix4x4 histologyRotationMatrix;
+                histologyRotationMatrix.setMatrix(histologyRotationMatrixArray);
+                double histRotX, histRotY, histRotZ;
+                histologyRotationMatrix.getRotation(histRotX, histRotY, histRotZ);
+                
                 const double mprTwoRotX = mprTwoRotationAngles[0];
                 const double mprTwoRotY = mprTwoRotationAngles[1];
                 const double mprTwoRotZ = mprTwoRotationAngles[2];
@@ -1231,7 +1287,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                mprThreeRotX,
                                                mprThreeRotY,
                                                mprThreeRotZ,
-                                               flatRotZ, zoom,
+                                               flatRotZ, histRotZ, zoom,
                                                rightFlatX, rightFlatY, rightFlatZoom);
                 
                 const BrainOpenGLViewportContent* vpc(bbw->getViewportContentForSelectedTab());
@@ -1293,6 +1349,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
  *    MPR Three rotation Z
  * @param flatRotation
  *    Flat rotation
+ * @param histologyRotation
+ *    Histology rotation
  * @param zoom
  *    Zooming
  * @param rightFlatX
@@ -1319,6 +1377,7 @@ CustomViewDialog::getTransformationControlValues(double& panX,
                                                  double& mprThreeRotY,
                                                  double& mprThreeRotZ,
                                                  double& flatRotation,
+                                                 double& histologyRotation,
                                                  double& zoom,
                                                  double& rightFlatX,
                                                  double& rightFlatY,
@@ -1354,6 +1413,7 @@ CustomViewDialog::getTransformationControlValues(double& panX,
     }
     
     flatRotation = m_flatRotationDoubleSpinBox->value();
+    histologyRotation = m_histologyRotationDoubleSpinBox->value();
     
     zoom = m_zoomDoubleSpinBox->value();
     
@@ -1395,6 +1455,8 @@ CustomViewDialog::getTransformationControlValues(double& panX,
  *    MPR Three Rotation Z
  * @param flatRotation
  *    Flat rotation
+ * @param histologyRotate
+ *    Histology rotation
  * @param zoom
  *    Zooming
  * @param rightFlatX
@@ -1421,6 +1483,7 @@ CustomViewDialog::setTransformationControlValues(const double panX,
                                                  const double mprThreeRotY,
                                                  const double mprThreeRotZ,
                                                  const double flatRotation,
+                                                 const double histologyRotation,
                                                  const double zoom,
                                                  const double rightFlatX,
                                                  const double rightFlatY,
@@ -1462,7 +1525,7 @@ CustomViewDialog::setTransformationControlValues(const double panX,
     }
     
     updateSpinBoxValue(m_flatRotationDoubleSpinBox, flatRotation);
-    
+    updateSpinBoxValue(m_histologyRotationDoubleSpinBox, histologyRotation);
     updateSpinBoxValue(m_zoomDoubleSpinBox, zoom);
     
     updateSpinBoxValue(m_xRightFlatMapSpinBox, rightFlatX);

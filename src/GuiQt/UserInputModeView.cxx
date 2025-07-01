@@ -531,7 +531,14 @@ UserInputModeView::mouseLeftDrag(const MouseEvent& mouseEvent)
         }
     }
     else if (browserTabContent->isHistologyDisplayed()) {
-        /* Nothing, selection box handled at beginning of function */
+        browserTabContent->applyMouseRotation(viewportContent,
+                                              mprCrosshairAxis,
+                                              mouseEvent.getPressedX(),
+                                              mouseEvent.getPressedY(),
+                                              mouseEvent.getX(),
+                                              mouseEvent.getY(),
+                                              mouseEvent.getDx(),
+                                              mouseEvent.getDy());
     }
     else if (browserTabContent->isMediaDisplayed()) {
         /* Nothing, selection box handled at beginning of function */
