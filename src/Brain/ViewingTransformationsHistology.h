@@ -48,10 +48,10 @@ namespace caret {
                                              const float otherImageWidthHeight[2],
                                              const float myImageWidthHeight[2]);
         
-        virtual bool setMediaViewToBounds(const MouseEvent* mouseEvent,
-                                          const GraphicsRegionSelectionBox* selectionRegion,
-                                          const GraphicsObjectToWindowTransform* transform,
-                                          const HistologySlice* histologySlice);
+        virtual bool setHistologyViewToBounds(const MouseEvent* mouseEvent,
+                                              const GraphicsRegionSelectionBox* selectionRegion,
+                                              const GraphicsObjectToWindowTransform* transform,
+                                              const HistologySlice* histologySlice);
         virtual void resetView();
         
         // ADD_NEW_METHODS_HERE
