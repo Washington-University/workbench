@@ -992,15 +992,29 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawAnnotationsInternal(const Drawing
                                                            + AnnotationCoordinateSpaceEnum::toName(drawingCoordinateSpace)));
     
     /*
-     * Draw annotations from all files.
-     * NOTE: iFile == numAnnFiles, the annotation colorbars and scale bars
-     * and annotation chart labels are drawn
+     * This comments applies to two situtations:
+     * (1) When drawing tab space annotations and tab space color and scalar bars
+     * (2) When drawing window space annotions and window space color and scalar bars
+     *
+     * If color and and scale bars are drawn first they are under annotations
+     * in the same space.  When color and scale bars are drawn last they
+     * are on top of annotations in the same space.
      */
+    const bool drawColorAndScaleBarsLastFlag(false);
     const int32_t numAnnFiles = static_cast<int32_t>(allAnnotationFiles.size());
-    for (int32_t iFile = 0; iFile <= numAnnFiles; iFile++) {
+    const int32_t drawColorAndScaleBarsFileIndex(drawColorAndScaleBarsLastFlag
+                                                 ? numAnnFiles
+                                                 : -1);
+    const int32_t iFirst(drawColorAndScaleBarsLastFlag
+                         ? 0
+                         : -1);
+    const int32_t iLastInclusive(drawColorAndScaleBarsLastFlag
+                                 ? numAnnFiles
+                                 : numAnnFiles - 1);
+    for (int32_t iFile = iFirst; iFile <= iLastInclusive; iFile++) {
         AnnotationFile* annotationFile = NULL;
         std::vector<Annotation*> annotationsFromFile;
-        if (iFile == numAnnFiles) {
+        if (iFile == drawColorAndScaleBarsFileIndex) {
             /*
              * Use the dummy file when drawing annotation color
              * bars since they do not belong to a file.
