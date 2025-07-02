@@ -352,10 +352,6 @@ namespace caret {
         
         void setFlatRotationMatrix(const Matrix4x4& flatRotationMatrix);
         
-        Matrix4x4 getHistologyRotationMatrix() const;
-        
-        void setHistologyRotationMatrix(const Matrix4x4& flatRotationMatrix);
-        
         void resetMprRotations();
 
         float getMprRotationX() const;

@@ -243,7 +243,6 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
      */
     bool firstFlag(true);
     Vector3D underlayStereotaxicXYZ;
-    HistologyCoordinate underlayHistologyCoordinate;
     for (int32_t iOverlay = (numberOfOverlays - 1); iOverlay >= 0; iOverlay--) {
         HistologyOverlay* overlay = overlaySet->getOverlay(iOverlay);
         CaretAssert(overlay);
@@ -255,12 +254,9 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
                 const HistologyCoordinate histologyCoordinate(browserTabContent->getHistologySelectedCoordinate(selectionData.m_selectedFile));
                 int32_t selectedSliceIndex(histologyCoordinate.getSliceIndex());
                 if (firstFlag) {
-                    if (histologyCoordinate.isValid()) {
-                        if (histologyCoordinate.isStereotaxicXYZValid()) {
-                            firstFlag = false;
-                            underlayHistologyCoordinate = histologyCoordinate;
-                            underlayStereotaxicXYZ      = histologyCoordinate.getStereotaxicXYZ();
-                        }
+                    if (histologyCoordinate.isStereotaxicXYZValid()) {
+                        underlayStereotaxicXYZ = histologyCoordinate.getStereotaxicXYZ();
+                        firstFlag = false;
                     }
                 }
                 else {
@@ -356,26 +352,6 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     float translation[3];
     m_browserTabContent->getTranslation(translation);
     glTranslatef(translation[0], -translation[1], 0.0);
-
-    if (underlayHistologyCoordinate.isValid()) {
-        const Vector3D planeXYZ(underlayHistologyCoordinate.getPlaneXYZ());
-        
-        const Vector3D t(planeXYZ[0],
-                         planeXYZ[1],
-                         0.0);
-        
-        glTranslated(t[0],
-                     t[1],
-                     0.0);
-        
-        const Matrix4x4 flatRotMatrix(m_browserTabContent->getHistologyRotationMatrix());
-        float m[16];
-        flatRotMatrix.getMatrixForOpenGL(m);
-        glMultMatrixf(m);
-
-
-        glTranslated(-t[0], -t[1], 0.0);
-    }
     
     const float scaling = m_browserTabContent->getScaling();
     glScalef(scaling, scaling, 1.0);
