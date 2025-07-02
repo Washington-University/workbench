@@ -190,10 +190,10 @@ ViewingTransformationsHistology::resetView()
  *    True if outputs are valid, else false.
  */
 bool
-ViewingTransformationsHistology::setHistologyViewToBounds(const MouseEvent* mouseEvent,
-                                                          const GraphicsRegionSelectionBox* selectionRegion,
-                                                          const GraphicsObjectToWindowTransform* transform,
-                                                          const HistologySlice* histologySlice)
+ViewingTransformationsHistology::setMediaViewToBounds(const MouseEvent* mouseEvent,
+                                                  const GraphicsRegionSelectionBox* selectionRegion,
+                                                  const GraphicsObjectToWindowTransform* transform,
+                                                  const HistologySlice* histologySlice)
 {
     CaretAssert(mouseEvent);
     CaretAssert(transform);
@@ -207,9 +207,9 @@ ViewingTransformationsHistology::setHistologyViewToBounds(const MouseEvent* mous
     ViewingTransformationToFitRegion transformFitToRegion(viewportContent,
                                                           selectionRegion,
                                                           browserTabContent);
-    if (transformFitToRegion.applyToHistologySlice(transform,
-                                                   translation,
-                                                   zoom)) {
+    if (transformFitToRegion.applyToMediaImage(transform,
+                                               translation,
+                                               zoom)) {
         ViewingTransformations undoViewTrans;
         undoViewTrans.copyFromOther(*this);
         setScaling(zoom);

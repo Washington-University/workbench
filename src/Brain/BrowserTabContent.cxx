@@ -5135,10 +5135,10 @@ BrowserTabContent::setViewToBounds(const std::vector<const BrainOpenGLViewportCo
         updateBrainModelYokedBrowserTabs();
 
         const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
-        if (m_histologyViewingTransformation->setHistologyViewToBounds(mouseEvent,
-                                                                       selectionBounds,
-                                                                       xform,
-                                                                       histologySlice)) {
+        if (m_histologyViewingTransformation->setMediaViewToBounds(mouseEvent,
+                                                                   selectionBounds,
+                                                                   xform,
+                                                                   histologySlice)) {
             if (getBrainModelYokingGroup() != YokingGroupEnum::YOKING_GROUP_OFF) {
                 setVolumeSliceViewsToHistologyRegion(getBrainModelYokingGroup(),
                                                      histologySlice,

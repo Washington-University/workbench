@@ -69,10 +69,6 @@ namespace caret {
                               Vector3D& translationOut,
                               float& zoomOut);
 
-        bool applyToHistologySlice(const GraphicsObjectToWindowTransform* transform,
-                                   Vector3D& translationOut,
-                                   float& zoomOut);
-        
         bool applyToMediaImage(const GraphicsObjectToWindowTransform* transform,
                                Vector3D& translationOut,
                                float& zoomOut);
