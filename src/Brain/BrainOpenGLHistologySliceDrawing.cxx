@@ -158,8 +158,6 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
     if (imageAspectRatio > viewportAspectRatio) {
-        orthoBottomOut = boundingBox.getMinY() - marginSizePixels;
-        orthoTopOut    = boundingBox.getMaxY() + marginSizePixels;
         if (originTopLeftFlag) {
             std::swap(orthoBottomOut, orthoTopOut);
         }
@@ -333,6 +331,7 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     if ( ! getOrthoBounds(orthographicProjection)) {
         return;
     }
+    std::cout << "Ortho: " << orthographicProjection.toString() << std::endl;
 
     setupScaleBars(orthographicProjection);
     
