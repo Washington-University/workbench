@@ -120,7 +120,6 @@
 #include "VolumeFile.h"
 #include "ViewingTransformations.h"
 #include "ViewingTransformationsCerebellum.h"
-#include "ViewingTransformationsHistology.h"
 #include "ViewingTransformationsMedia.h"
 #include "ViewingTransformationsVolume.h"
 #include "VolumeDynamicConnectivityFile.h"
@@ -190,7 +189,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     m_cerebellumViewingTransformation  = new ViewingTransformationsCerebellum();
     m_flatSurfaceViewingTransformation = new ViewingTransformations();
     m_viewingTransformation            = new ViewingTransformations();
-    m_histologyViewingTransformation   = new ViewingTransformationsHistology();
+    m_histologyViewingTransformation   = new ViewingTransformationsMedia();
     m_mediaViewingTransformation       = new ViewingTransformationsMedia();
     m_volumeSliceViewingTransformation = new ViewingTransformationsVolume();
     m_chartTwoMatrixViewingTranformation  = new ViewingTransformations();
@@ -4991,6 +4990,50 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
  *    True if mouseDX
  */
 void
+BrowserTabContent::applyHistologyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                              const int32_t mousePressX,
+                                              const int32_t mousePressY,
+                                              const int32_t mouseDY,
+                                              const float dataX,
+                                              const float dataY,
+                                              const bool dataXYValidFlag)
+{
+    if (isHistologyDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        getViewingTransformation()->scaleAboutMouse(xform,
+                                                    mousePressX,
+                                                    mousePressY,
+                                                    mouseDY,
+                                                    dataX,
+                                                    dataY,
+                                                    dataXYValidFlag);
+    }
+    else {
+        CaretAssertMessage(0, "HISTOLOGY ONLY");
+    }
+    updateYokedModelBrowserTabs();
+}
+
+
+/**
+ * Apply mouse scaling to the displayed model.
+ *
+ * @param viewportContent
+ *    Content of the viewport
+ * @param mousePressX
+ *    X coordinate of where mouse was pressed.
+ * @param mousePressY
+ *    X coordinate of where mouse was pressed.
+ * @param mouseDY
+ *    Change in mouse Y coordinate.
+ * @param dataX
+ *    X-coordinate of data at mouse press
+ * @param dataY
+ *    Y-coordinate of data at mouse press
+ * @param dataXYValidFlag
+ *    True if mouseDX
+ */
+void
 BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                           const int32_t mousePressX,
                                           const int32_t mousePressY,
@@ -5014,6 +5057,29 @@ BrowserTabContent::applyMediaMouseScaling(BrainOpenGLViewportContent* viewportCo
     }
     updateYokedModelBrowserTabs();
 }
+
+/**
+ * Set the scaling for histology from GUI
+ * @param viewportContent
+ *    Content of the viewport
+ * @param scaling
+ *    New scaling (zoom) value
+ */
+void
+BrowserTabContent::setHistologyScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                              const float scaling)
+{
+    if (isHistologyDisplayed()) {
+        const GraphicsObjectToWindowTransform* xform = viewportContent->getHistologyGraphicsObjectToWindowTransform();
+        getViewingTransformation()->setHistologyScaling(xform,
+                                                        scaling);
+    }
+    else {
+        CaretAssertMessage(0, "MEDIA ONLY");
+    }
+    updateYokedModelBrowserTabs();
+}
+
 
 /**
  * Set the scaling for media from GUI
@@ -5270,6 +5336,9 @@ BrowserTabContent::applyMouseScaling(BrainOpenGLViewportContent* viewportContent
                                               mouseDY);
             }
         }
+    }
+    else if (isHistologyDisplayed()) {
+        CaretAssertMessage(0, "Use applyHistologyMouseScaling() when scaling media data");
     }
     else if (isMediaDisplayed()) {
         CaretAssertMessage(0, "Use applyMediaMouseScaling() when scaling media data");

@@ -89,8 +89,6 @@ public:
                              const float y,
                              const float z);
 
-    void expandAboutCenter(const float scaleFactor);
-    
     const float* getBounds() const;
 
     void getBounds(float bounds[6]) const;

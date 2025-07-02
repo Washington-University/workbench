@@ -99,7 +99,6 @@ namespace caret {
     class Surface;
     class ViewingTransformations;
     class ViewingTransformationsCerebellum;
-    class ViewingTransformationsHistology;
     class ViewingTransformationsMedia;
     class ViewingTransformationsVolume;
     class VolumeMappableInterface;
@@ -417,6 +416,14 @@ namespace caret {
                                 const int32_t mouseDeltaX,
                                 const int32_t mouseDeltaY);
 
+        void applyHistologyMouseScaling(BrainOpenGLViewportContent* viewportContent,
+                                        const int32_t mousePressX,
+                                        const int32_t mousePressY,
+                                        const int32_t mouseDY,
+                                        const float dataX,
+                                        const float dataY,
+                                        const bool dataXYValidFlag);
+
         void applyMediaMouseScaling(BrainOpenGLViewportContent* viewportContent,
                                     const int32_t mousePressX,
                                     const int32_t mousePressY,
@@ -424,6 +431,9 @@ namespace caret {
                                     const float dataX,
                                     const float dataY,
                                     const bool dataXYValidFlag);
+        
+        void setHistologyScalingFromGui(BrainOpenGLViewportContent* viewportContent,
+                                        const float scaling);
         
         void setMediaScalingFromGui(BrainOpenGLViewportContent* viewportContent,
                                     const float scaling);
@@ -933,8 +943,8 @@ namespace caret {
         /** Transformation for surface/all viewing */
         ViewingTransformations* m_flatSurfaceViewingTransformation;
         
-        /** Transformation for histology */
-        ViewingTransformationsHistology* m_histologyViewingTransformation;
+        /** Transformation for media */
+        ViewingTransformationsMedia* m_histologyViewingTransformation;
         
         /** Transformation for media viewing */
         ViewingTransformationsMedia* m_mediaViewingTransformation;

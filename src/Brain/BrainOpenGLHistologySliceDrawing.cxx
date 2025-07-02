@@ -105,7 +105,7 @@ bool
 BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection& orthographicsProjectionOut)
 {
     orthographicsProjectionOut.resetToInvalid();
-
+        
     BoundingBox boundingBox;
     
     bool firstFlag(true);
@@ -125,14 +125,6 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
                 boundingBox.unionOperation(bb);
             }
         }
-    }
-    
-    const float scaleFactor((m_browserTabContent != NULL)
-                            ? m_browserTabContent->getScaling()
-                            : 1.0);
-    if ((scaleFactor > 0.0)
-        && (scaleFactor != 1.0)) {
-        boundingBox.expandAboutCenter(1.0 / scaleFactor);
     }
     
     const double viewportWidth(m_viewport.getWidthF());
@@ -158,6 +150,8 @@ BrainOpenGLHistologySliceDrawing::getOrthoBounds(GraphicsOrthographicProjection&
     const double marginPercent(0.02);
     const double marginSizePixels = imageHeight * marginPercent;
     if (imageAspectRatio > viewportAspectRatio) {
+        orthoBottomOut = boundingBox.getMinY() - marginSizePixels;
+        orthoTopOut    = boundingBox.getMaxY() + marginSizePixels;
         if (originTopLeftFlag) {
             std::swap(orthoBottomOut, orthoTopOut);
         }
@@ -331,7 +325,6 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
     if ( ! getOrthoBounds(orthographicProjection)) {
         return;
     }
-    std::cout << "Ortho: " << orthographicProjection.toString() << std::endl;
 
     setupScaleBars(orthographicProjection);
     
@@ -384,6 +377,9 @@ BrainOpenGLHistologySliceDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         glTranslated(-t[0], -t[1], 0.0);
     }
     
+    const float scaling = m_browserTabContent->getScaling();
+    glScalef(scaling, scaling, 1.0);
+
     GraphicsObjectToWindowTransform* transform = new GraphicsObjectToWindowTransform();
     fixedPipelineDrawing->loadObjectToWindowTransform(transform, orthographicProjection, 0.0, true);
     viewportContent->setHistologyGraphicsObjectToWindowTransform(transform);

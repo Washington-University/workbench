@@ -434,30 +434,6 @@ BoundingBox::getBounds() const
 }
 
 /**
- * Expand about the center with the given percentage
- * @param scaleFactor
- *    Scale Factor.  Less than one make box smaller,
- *    one is no change, greater than one is larger..
- */
-void
-BoundingBox::expandAboutCenter(const float scaleFactor)
-{
-    const float xh = (getDifferenceX() * scaleFactor * 0.5);
-    const float yh = (getDifferenceY() * scaleFactor * 0.5);
-    const float zh = (getDifferenceZ() * scaleFactor * 0.5);
-    const float cx(getCenterX());
-    const float cy(getCenterY());
-    const float cz(getCenterZ());
-    
-    this->boundingBox[0] = cx - xh;
-    this->boundingBox[1] = cx + xh;
-    this->boundingBox[2] = cy - yh;
-    this->boundingBox[3] = cy + yh;
-    this->boundingBox[4] = cz - zh;
-    this->boundingBox[5] = cz + zh;
-}
-
-/**
  * Get the bounds in an array.
  * @param Output array of six containing minX, maxX, minY, maxY, minZ, maxZ.
  *

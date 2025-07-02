@@ -246,7 +246,6 @@ UserInputModeEnum.h
 ViewingTransformationToFitRegion.h
 ViewingTransformations.h
 ViewingTransformationsCerebellum.h
-ViewingTransformationsHistology.h
 ViewingTransformationsMedia.h
 ViewingTransformationsUndoCommand.h
 ViewingTransformationsVolume.h
@@ -485,7 +484,6 @@ UserInputModeEnum.cxx
 ViewingTransformationToFitRegion.cxx
 ViewingTransformations.cxx
 ViewingTransformationsCerebellum.cxx
-ViewingTransformationsHistology.cxx
 ViewingTransformationsMedia.cxx
 ViewingTransformationsUndoCommand.cxx
 ViewingTransformationsVolume.cxx
