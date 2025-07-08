@@ -32,6 +32,8 @@
 
 namespace caret {
 
+    class SurfaceFile;
+    
     class EventSurfaceNodesGetNearXYZ : public Event {
         
     public:
@@ -48,17 +50,22 @@ namespace caret {
              * @param nodeIndex
              *    Index of node
              */
-            NodeInfo(const StructureEnum::Enum structure,
+            NodeInfo(const SurfaceFile* surfaceFile,
+                     const StructureEnum::Enum structure,
                      const Vector3D& xyz,
                      const float distance,
                      const int32_t nodeIndex)
-            : m_structure(structure),
+            : m_surfaceFile(const_cast<SurfaceFile*>(surfaceFile)),
+            m_structure(structure),
             m_xyz(xyz),
             m_distance(distance),
             m_nodeIndex(nodeIndex) { }
             
             /** @return True if this instance is closer to query XYZ than the given instance */
             bool operator<(const NodeInfo& nodeInfo) const { return (m_distance < nodeInfo.m_distance); }
+            
+            /** @return Pointer to surface file containing node */
+            const SurfaceFile* getSurfaceFile() const { return m_surfaceFile; }
             
             /** @return Structure that owns node */
             StructureEnum::Enum getStructure() const { return m_structure; }
@@ -70,6 +77,7 @@ namespace caret {
             int32_t getNodeIndex() const { return m_nodeIndex; }
             
         private:
+            SurfaceFile* m_surfaceFile;
             StructureEnum::Enum m_structure;
             Vector3D  m_xyz;
             float m_distance;
@@ -89,7 +97,8 @@ namespace caret {
         
         float getMaximumDistanceFromXYZ() const;
 
-        void addNearbyNode(const StructureEnum::Enum structure,
+        void addNearbyNode(const SurfaceFile* surfaceFile,
+                           const StructureEnum::Enum structure,
                            const Vector3D& xyz,
                            const float distance,
                            const int32_t nodeInde);

@@ -81,6 +81,8 @@ EventSurfaceNodesGetNearXYZ::getMaximumDistanceFromXYZ() const
 
 /**
  * Add a nearby node
+ * @param surfaceFile
+ *    SurfaceFile containing the node
  * @param structure
  *    Structure that owns node
  * @param xyz
@@ -92,12 +94,14 @@ EventSurfaceNodesGetNearXYZ::getMaximumDistanceFromXYZ() const
 
  */
 void
-EventSurfaceNodesGetNearXYZ::addNearbyNode(const StructureEnum::Enum structure,
-                 const Vector3D& xyz,
-                 const float distance,
-                 const int32_t nodeIndex)
+EventSurfaceNodesGetNearXYZ::addNearbyNode(const SurfaceFile* surfaceFile,
+                                           const StructureEnum::Enum structure,
+                                           const Vector3D& xyz,
+                                           const float distance,
+                                           const int32_t nodeIndex)
 {
-    m_nodeInfo.emplace_back(structure,
+    m_nodeInfo.emplace_back(surfaceFile,
+                            structure,
                             xyz,
                             distance,
                             nodeIndex);

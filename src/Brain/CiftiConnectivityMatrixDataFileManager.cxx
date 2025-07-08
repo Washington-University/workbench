@@ -31,6 +31,7 @@
 #include "EventGetDisplayedDataFiles.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventSurfaceNodesGetNearXYZ.h"
 #include "HtmlTableBuilder.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -427,6 +428,31 @@ CiftiConnectivityMatrixDataFileManager::loadDataForVoxelAtCoordinate(Brain* brai
                                                   + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
                 htmlTableBuilder.addRow(("Column Index: " + AString::number(columnIndex + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI())),
                                          cmf->getFileNameNoPath());
+            }
+            else {
+                /*
+                 * Look for nearby surface nodes
+                 * 'maxDist' is maximum distance a coordinate may be
+                 * from the query (XYZ).
+                 */
+                const float maxDist(2.0);
+                EventSurfaceNodesGetNearXYZ nearbyNodesEvent(xyz,
+                                                             maxDist);
+                EventManager::get()->sendEvent(nearbyNodesEvent.getPointer());
+                const int32_t numNearbyNodes(nearbyNodesEvent.getNumberOfNearbyNodes());
+                for (int32_t i = 0; i < numNearbyNodes; i++) {
+                    const EventSurfaceNodesGetNearXYZ::NodeInfo nodeInfo(nearbyNodesEvent.getNearbyNode(i));
+                    
+                    const bool dataValidFlag = loadDataForSurfaceNode(brain,
+                                                                      nodeInfo.getSurfaceFile(),
+                                                                      nodeInfo.getNodeIndex(),
+                                                                      rowColumnInformationOut,
+                                                                      htmlTableBuilder);
+                    if (dataValidFlag) {
+                        break;
+                    }
+                }
+
             }
         }
     }

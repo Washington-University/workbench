@@ -1184,7 +1184,8 @@ BrainStructure::receiveEvent(Event* event)
                     const float distSQ(MathFunctions::distanceSquared3D(xyz,
                                                                         queryXYZ));
                     if (distSQ <= maxDistSquared) {
-                        nodesEvent->addNearbyNode(structure, 
+                        nodesEvent->addNearbyNode(anatSurface,
+                                                  structure,
                                                   xyz,
                                                   std::sqrt(distSQ),
                                                   i);
