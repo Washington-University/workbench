@@ -207,13 +207,23 @@ namespace caret {
          *     Second dimension (j).
          * @param indexIn3
          *     Third dimension (k).
-         * @return coordOut
+         * @return
          *     The XYZ coordinate.
          */
         Vector3D indexToSpace(const float& indexIn1,
                               const float& indexIn2,
                               const float& indexIn3) const;
 
+        /**
+         * Convert an index to space (coordinates).
+         *
+         * @param voxelIJK
+         *     The voxel IJK
+         * @return
+         *     The XYZ coordinate.
+         */
+        Vector3D indexToSpace(const VoxelIJK& voxelIJK) const;
+        
        /**
          * Convert an index to space (coordinates).
          *
@@ -501,6 +511,26 @@ namespace caret {
          * Get the volume space object, so we have access to all functions associated with volume spaces
          */
         virtual const VolumeSpace& getVolumeSpace() const = 0;
+        
+        bool isSingleSlice() const;
+        
+        int32_t getSingleSliceDimensionIndex() const;
+        
+        VolumeSliceViewPlaneEnum::Enum getSingleSliceViewPlane() const;
+        
+        void getSingleSliceCornersXYZ(Vector3D& bottomLeftXYZ,
+                                      Vector3D& bottomRightXYZ,
+                                      Vector3D& topRightXYZ,
+                                      Vector3D& topLeftXYZ) const;
+        
+        void getSingleSliceCornersIJK(VoxelIJK& bottomLeftIJK,
+                                      VoxelIJK& bottomRightIJK,
+                                      VoxelIJK& topRightIJK,
+                                      VoxelIJK& topLeftIJK) const;
+        
+        Vector3D getSingleSliceCenterXYZ() const;
+        
+        Vector3D getSingleSliceNormalVector() const;
     };
     
 #ifdef __VOLUME_MAPPABLE_INTERFACE_DECLARE__

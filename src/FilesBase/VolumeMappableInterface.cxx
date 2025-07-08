@@ -288,3 +288,260 @@ VolumeMappableInterface::indexToSpace(const float& indexIn1,
     return xyz;
 }
 
+/**
+ * Convert an index to space (coordinates).
+ *
+ * @param voxelIJK
+ *     The voxel IJK
+ * @return
+ *     The XYZ coordinate.
+ */
+Vector3D 
+VolumeMappableInterface::indexToSpace(const VoxelIJK& voxelIJK) const
+{
+    return indexToSpace(voxelIJK.i(),
+                        voxelIJK.j(),
+                        voxelIJK.k());
+}
+
+/**
+ * @return True if the volume is a single slice (one of the voxel dimensions is one
+ * and the other two dimensions are greater than one)
+ */
+bool 
+VolumeMappableInterface::isSingleSlice() const
+{
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    if ((dimI == 1)
+        || (dimJ == 1)
+        || (dimK == 1)) {
+        return true;
+    }
+//    return (getSingleSliceDimensionIndex() > 0);
+    return false;
+}
+
+/**
+ * @return 0, 1, 2 indicate dimension that is single slice.
+ * -1 indicates volume IS NOT a single slice.
+ */
+int32_t 
+VolumeMappableInterface::getSingleSliceDimensionIndex() const
+{
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    
+    int32_t singleSliceDimension(2);
+    
+    if (dimI == 1) {
+        if ((dimJ > 1) && (dimK > 1)) {
+            singleSliceDimension = 0;
+        }
+    }
+    else if (dimJ == 1) {
+        if ((dimI > 1) && (dimK > 1)) {
+            singleSliceDimension = 1;
+        }
+    }
+    else if (dimK == 1) {
+        if ((dimI > 1) && (dimJ > 1)) {
+            singleSliceDimension = 2;
+        }
+    }
+    
+    return singleSliceDimension;
+}
+
+/**
+ * @return Slice view plane for viewing single slice.
+ * Returns ALL if volume IS NOT a single slice.
+ */
+VolumeSliceViewPlaneEnum::Enum 
+VolumeMappableInterface::getSingleSliceViewPlane() const
+{
+    VolumeSliceViewPlaneEnum::Enum sliceViewPlane(VolumeSliceViewPlaneEnum::ALL);
+    
+    const int32_t singleSliceDim(getSingleSliceDimensionIndex());
+    switch (singleSliceDim) {
+        case 0:
+            sliceViewPlane = VolumeSliceViewPlaneEnum::PARASAGITTAL;
+            break;
+        case 1:
+            sliceViewPlane = VolumeSliceViewPlaneEnum::CORONAL;
+            break;
+        case 2:
+            sliceViewPlane = VolumeSliceViewPlaneEnum::AXIAL;
+            break;
+        default:
+            sliceViewPlane = VolumeSliceViewPlaneEnum::ALL;
+            break;
+    }
+    
+    return sliceViewPlane;
+}
+
+/**
+ * Get the single slice volume corners for drawing
+ * @param bottomLeftIJK
+ *    Output with IJK at bottom left
+ * @param bottomRightIJK
+ *    Output with IJK at bottom right
+ * @param topRightIJK
+ *    Output with IJK at top right
+ * @param topLeftIJK
+ *    Output with IJK at top left
+ */
+void
+VolumeMappableInterface::getSingleSliceCornersIJK(VoxelIJK& bottomLeftIJK,
+                                                  VoxelIJK& bottomRightIJK,
+                                                  VoxelIJK& topRightIJK,
+                                                  VoxelIJK& topLeftIJK) const
+{
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    const int64_t iMax(dimI - 1);
+    const int64_t jMax(dimJ - 1);
+    const int64_t kMax(dimK - 1);
+    
+    Vector3D xyzBL, xyzBR, xyzTL, xyzTR;
+    switch (getSingleSliceDimensionIndex()) {
+        case 0:
+            bottomLeftIJK  = VoxelIJK(0, 0, 0);
+            bottomRightIJK = VoxelIJK(0, jMax, 0);
+            topLeftIJK     = VoxelIJK(0, 0, kMax);
+            topRightIJK    = VoxelIJK(0, jMax, kMax);
+            break;
+        case 1:
+            bottomLeftIJK  = VoxelIJK(0, 0, 0);
+            bottomRightIJK = VoxelIJK(iMax, 0, 0);
+            topLeftIJK     = VoxelIJK(0, 0, kMax);
+            topRightIJK    = VoxelIJK(iMax, 0, kMax);
+            break;
+        case 2:
+        default:
+            bottomLeftIJK  = VoxelIJK(0, 0, 0);
+            bottomRightIJK = VoxelIJK(iMax, 0, 0);
+            topLeftIJK     = VoxelIJK(0, jMax, 0);
+            topRightIJK    = VoxelIJK(iMax, jMax, 0);
+            break;
+//        default:
+//            CaretAssert(0);
+            break;
+    }
+}
+
+
+/**
+ * Get the single slice volume corners for drawing
+ * @param bottomLeftXYZ
+ *    Output with XYZ at bottom left
+ * @param bottomRightXYZ
+ *    Output with XYZ at bottom right
+ * @param topRightXYZ
+ *    Output with XYZ at top right
+ * @param topLeftXYZ
+ *    Output with XYZ at top left
+ */
+void
+VolumeMappableInterface::getSingleSliceCornersXYZ(Vector3D& bottomLeftXYZ,
+                                                  Vector3D& bottomRightXYZ,
+                                                  Vector3D& topRightXYZ,
+                                                  Vector3D& topLeftXYZ) const
+{
+//    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+//    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+//    const int64_t iMax(dimI - 1);
+//    const int64_t jMax(dimJ - 1);
+//    const int64_t kMax(dimK - 1);
+//
+//    Vector3D xyzBL, xyzBR, xyzTL, xyzTR;
+//    switch (getSingleSliceDimensionIndex()) {
+//        case 0:
+//            xyzBL = indexToSpace(0, 0, 0);
+//            xyzBR = indexToSpace(0, jMax, 0);
+//            xyzTL = indexToSpace(0, 0, kMax);
+//            xyzTR = indexToSpace(0, jMax, kMax);
+//            break;
+//        case 1:
+//            xyzBL = indexToSpace(0, 0, 0);
+//            xyzBR = indexToSpace(iMax, 0, 0);
+//            xyzTL = indexToSpace(0, 0, kMax);
+//            xyzTR = indexToSpace(iMax, 0, kMax);
+//            break;
+//        case 2:
+//            xyzBL = indexToSpace(0, 0, 0);
+//            xyzBR = indexToSpace(iMax, 0, 0);
+//            xyzTL = indexToSpace(0, jMax, 0);
+//            xyzTR = indexToSpace(iMax, jMax, 0);
+//            break;
+//        default:
+//            CaretAssert(0);
+//            break;
+//    }
+//    
+//    std::vector<Vector3D> cornersXYZ;
+//    cornersXYZ.push_back(xyzBL);
+//    cornersXYZ.push_back(xyzBR);
+//    cornersXYZ.push_back(xyzTR);
+//    cornersXYZ.push_back(xyzTL);
+//    return cornersXYZ;
+    
+    VoxelIJK bottomLeftIJK;
+    VoxelIJK bottomRightIJK;
+    VoxelIJK topRightIJK;
+    VoxelIJK topLeftIJK;
+    getSingleSliceCornersIJK(bottomLeftIJK, 
+                             bottomRightIJK,
+                             topRightIJK,
+                             topLeftIJK);
+    topLeftXYZ     = indexToSpace(topLeftIJK);
+    topRightXYZ    = indexToSpace(topRightIJK);
+    bottomRightXYZ = indexToSpace(bottomRightIJK);
+    bottomLeftXYZ  = indexToSpace(bottomLeftIJK);
+}
+
+/**
+ * @return Normal vector for a single-slice volume
+ */
+Vector3D
+VolumeMappableInterface::getSingleSliceNormalVector() const
+{
+    Vector3D bottomLeftXYZ;
+    Vector3D bottomRightXYZ;
+    Vector3D topRightXYZ;
+    Vector3D topLeftXYZ;
+    
+    getSingleSliceCornersXYZ(bottomLeftXYZ,
+                             bottomRightXYZ,
+                             topRightXYZ,
+                             topLeftXYZ);
+    
+    const Vector3D v1(topLeftXYZ - bottomLeftXYZ);
+    const Vector3D v2(bottomRightXYZ - bottomLeftXYZ);
+    const Vector3D normalVector(v1.cross(v2).normal());
+    return normalVector;
+}
+
+/**
+ * @return XYZ at center of slice
+ */
+Vector3D
+VolumeMappableInterface::getSingleSliceCenterXYZ() const
+{
+    Vector3D centerXYZ(0.0, 0.0, 0.0);
+    
+    int64_t dimI, dimJ, dimK, dimTime, dimComponents;
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComponents);
+    if ((dimI >= 1) && (dimJ >= 1) && (dimK >= 1)) {
+        const int64_t indexI(dimI / 2);
+        const int64_t indexJ(dimJ / 2);
+        const int64_t indexK(dimK / 2);
+        if (indexValid(indexI, indexJ, indexK)) {
+            centerXYZ = indexToSpace(indexI, indexJ, indexK);
+        }
+    }
+
+    
+    return centerXYZ;
+}
