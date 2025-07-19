@@ -192,7 +192,7 @@ AlgorithmVolumeResample::AlgorithmVolumeResample(ProgressObject* myProgObj, cons
     {
         if (myMethod != VolumeFile::ENCLOSING_VOXEL)
         {
-            CaretLogWarning("using interpolation type other than ENCLOSING_VOXEL on a label volume");
+            CaretLogWarning("using interpolation type other than ENCLOSING_VOXEL on label volume " + inVol->getFileName());
         }
         for (int64_t i = 0; i < numMaps; ++i)
         {
