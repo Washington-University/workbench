@@ -472,6 +472,8 @@ IdentificationSimpleTextGenerator::generateVolumeIdentificationText(Identificati
                                 break;
                             case DataFileTypeEnum::LABEL:
                                 break;
+                            case DataFileTypeEnum::META_VOLUME:
+                                break;
                             case DataFileTypeEnum::METRIC:
                                 break;
                             case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -641,6 +643,8 @@ IdentificationSimpleTextGenerator::generateSurfaceIdentificationText(Identificat
                 case DataFileTypeEnum::IMAGE:
                     break;
                 case DataFileTypeEnum::LABEL:
+                    break;
+                case DataFileTypeEnum::META_VOLUME:
                     break;
                 case DataFileTypeEnum::METRIC:
                     break;

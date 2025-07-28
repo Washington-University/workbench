@@ -865,6 +865,8 @@ GiftiTypeFile::isMappedWithPalette() const
             break;
         case DataFileTypeEnum::LABEL:
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
         case DataFileTypeEnum::METRIC:
             paletteFlag = true;
             break;
@@ -958,6 +960,8 @@ GiftiTypeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormaliz
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
             break;
         case DataFileTypeEnum::METRIC:
             modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
@@ -1296,6 +1300,8 @@ GiftiTypeFile::getBrainordinateMappingMatchImplementation(const CaretMappableDat
         case DataFileTypeEnum::LABEL:
             giftiFlag = true;
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
         case DataFileTypeEnum::METRIC:
             giftiFlag = true;
             break;
@@ -1440,6 +1446,8 @@ GiftiTypeFile::getSurfaceNodeIdentificationForMaps(const std::vector<int32_t>& m
                     textOut = valuesText;
                 }
             }
+                break;
+            case DataFileTypeEnum::META_VOLUME:
                 break;
             case DataFileTypeEnum::METRIC:
             case DataFileTypeEnum::METRIC_DYNAMIC: // subclass of METRIC

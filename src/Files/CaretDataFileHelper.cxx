@@ -50,6 +50,7 @@
 #include "HistologySlicesFile.h"
 #include "ImageFile.h"
 #include "LabelFile.h"
+#include "MetaVolumeFile.h"
 #include "MetricFile.h"
 #include "OmeZarrImageFile.h"
 #include "PaletteFile.h"
@@ -381,6 +382,9 @@ CaretDataFileHelper::createCaretDataFileForFileType(const DataFileTypeEnum::Enum
             break;
         case DataFileTypeEnum::LABEL:
             caretDataFile = new LabelFile();
+            break;
+        case DataFileTypeEnum::META_VOLUME:
+            caretDataFile = new MetaVolumeFile();
             break;
         case DataFileTypeEnum::METRIC:
             caretDataFile = new MetricFile();

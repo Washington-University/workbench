@@ -25,6 +25,7 @@
 
 namespace caret
 {
+    class DataSliceArray;
     
     ///this class does statistics that are linear in complexity only, NO SORTING, this means its percentiles are approximate, using interpolation from a histogram
     class FastStatistics
@@ -48,6 +49,10 @@ namespace caret
         
         ///statistics and display are really not that related, so for now, only include a continuous clipping range, excluding the middle from data will do weird things to standard deviation
         void update(const float* data, const int64_t& dataCount, const float& minThreshInclusive, const float& maxThreshInclusive);
+        
+        void update(const DataSliceArray& dataSliceArray);
+
+        void update(const DataSliceArray& dataSliceArray, const float& minThreshInclusive, const float& maxThreshInclusive);
         
         float getApproxPositivePercentile(const float& percent) const;
         

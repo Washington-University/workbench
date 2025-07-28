@@ -203,6 +203,9 @@ CaretMappableDataFileAndMapSelectionModel::validateDataFileTypes()
             case DataFileTypeEnum::LABEL:
                 isMappableFile = true;
                 break;
+            case DataFileTypeEnum::META_VOLUME:
+                isMappableFile = true;
+                break;
             case DataFileTypeEnum::METRIC:
                 isMappableFile = true;
                 break;

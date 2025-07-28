@@ -21,6 +21,7 @@
 
 #include "FastStatistics.h"
 #include "CaretPointer.h"
+#include "DataSliceArray.h"
 
 #include <algorithm>
 #include <cmath>
@@ -159,6 +160,32 @@ void FastStatistics::update(const float* data, const int64_t& dataCount)
     {
         m_leastAbs = 0.0;
         m_mostAbs  = 0.0;
+    }
+}
+
+void FastStatistics::update(const DataSliceArray& dataSliceArray)
+{
+    reset();
+    std::vector<float> data;
+    dataSliceArray.getAllData(data);
+    const int64_t numData(data.size());
+    if (numData > 0) {
+        update(&data[0],
+               numData);
+    }
+}
+
+void FastStatistics::update(const DataSliceArray& dataSliceArray, const float& minThreshInclusive, const float& maxThreshInclusive)
+{
+    reset();
+    std::vector<float> data;
+    dataSliceArray.getAllData(data);
+    const int64_t numData(data.size());
+    if (numData > 0) {
+        update(&data[0],
+               numData,
+               minThreshInclusive,
+               maxThreshInclusive);
     }
 }
 

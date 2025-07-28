@@ -83,6 +83,8 @@ public:
         IMAGE,
         /** Labels */
         LABEL,
+        /** Meta-Volume File*/
+        META_VOLUME,
         /** Metric */
         METRIC,
         /** Metric Dynamic Connectivity */

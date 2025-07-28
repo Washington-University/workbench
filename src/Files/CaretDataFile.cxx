@@ -123,6 +123,9 @@ SceneableInterface()
         case DataFileTypeEnum::LABEL:
             supportsIdentificationAttributesFlag = true;
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            supportsIdentificationAttributesFlag = true;
+            break;
         case DataFileTypeEnum::METRIC:
             supportsIdentificationAttributesFlag = true;
             break;

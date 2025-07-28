@@ -305,6 +305,24 @@ VolumeMappableInterface::indexToSpace(const VoxelIJK& voxelIJK) const
 }
 
 /**
+ * @return True if this volume is thin
+ * (a spatial dimension is 2 or fewer slices).
+ */
+bool 
+VolumeMappableInterface::isThin() const
+{
+    int64_t dimI(0), dimJ(0), dimK(0), dimTime(0), dimComp(0);
+    getDimensions(dimI, dimJ, dimK, dimTime, dimComp);
+    if ((dimI <= 2)
+        || (dimJ <= 2)
+        || (dimK <= 2)) {
+        return true;
+    }
+    return false;
+}
+
+
+/**
  * @return True if the volume is a single slice (one of the voxel dimensions is one
  * and the other two dimensions are greater than one)
  */
@@ -318,7 +336,7 @@ VolumeMappableInterface::isSingleSlice() const
         || (dimK == 1)) {
         return true;
     }
-//    return (getSingleSliceDimensionIndex() > 0);
+
     return false;
 }
 

@@ -26,6 +26,7 @@
 
 namespace caret
 {
+    class DataSliceArray;
     
     class Histogram
     {
@@ -53,6 +54,8 @@ namespace caret
         
         void update(const float* data, const int64_t& dataCount);
         
+//        void update(const DataSliceArray& dataSliceArray);
+
     public:
         Histogram(const int& numBuckets = 100);
         
@@ -61,6 +64,8 @@ namespace caret
         Histogram(const int& numBuckets, const float* data, const int64_t& dataCount);
         
         void update(const int& numBuckets, const float* data, const int64_t& dataCount);
+        
+        void update(const int& numBuckets, const DataSliceArray& dataSliceArray);
         
         void update(const int32_t& numBuckets,
                     const float* data,

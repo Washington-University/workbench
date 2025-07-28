@@ -98,6 +98,7 @@ namespace caret {
     class IdentificationManager;
     class ImageFile;
     class LabelFile;
+    class MetaVolumeFile;
     class MetricFile;
     class MetricDynamicConnectivityFile;
     class ModelChart;
@@ -247,6 +248,12 @@ namespace caret {
         VolumeFile* getVolumeFile(const int32_t volumeFileIndex);
         
         const VolumeFile* getVolumeFile(const int32_t volumeFileIndex) const;
+        
+        int32_t getNumberOfMetaVolumeFiles() const;
+        
+        MetaVolumeFile* getMetaVolumeFile(const int32_t volumeFileIndex);
+        
+        const MetaVolumeFile* getMetaVolumeFile(const int32_t volumeFileIndex) const;
         
         void getVolumeDynamicConnectivityFiles(std::vector<VolumeDynamicConnectivityFile*>& volumeDynamicConnectivityFilesOut) const;
         
@@ -789,6 +796,10 @@ namespace caret {
                                    CaretDataFile* caretDataFile,
                                    const AString& filename);
                             
+        MetaVolumeFile* addReadOrReloadMetaVolumeFile(const FileModeAddReadReload fileMode,
+                                                      CaretDataFile* caretDataFile,
+                                                      const AString& filename);
+        
         AnnotationFile* addReadOrReloadAnnotationFile(const FileModeAddReadReload fileMode,
                                    CaretDataFile* caretDataFile,
                                    const AString& filename);
@@ -980,6 +991,8 @@ namespace caret {
         mutable AString m_currentDirectory;
         
         SpecFile* m_specFile;
+        
+        std::vector<MetaVolumeFile*> m_metaVolumeFiles;
         
         std::vector<VolumeFile*> m_volumeFiles;
         

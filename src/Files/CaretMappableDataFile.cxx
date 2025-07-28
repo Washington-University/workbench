@@ -1660,6 +1660,8 @@ CaretMappableDataFile::getLabelSelectionHierarchyForMapAndTab(const int32_t mapI
         case DataFileTypeEnum::LABEL:
             supportsHierarchyFlag = true;
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:

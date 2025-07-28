@@ -42,6 +42,7 @@
 namespace caret {
     
     class GroupAndNameHierarchyModel;
+    class MetaVolumeFile;
     class VolumeDynamicConnectivityFile;
     class VolumeFileEditorDelegate;
     class VolumeFileVoxelColorizer;
@@ -146,6 +147,10 @@ namespace caret {
         double m_minScalingVal, m_maxScalingVal;
         
         mutable std::map<int32_t, std::unique_ptr<ClusterContainer>> m_mapLabelClusterContainers;
+        
+        MetaVolumeFile* m_parentMetaVolumeFile = NULL;
+        
+        void setParentMetaVolumeFile(MetaVolumeFile* parentMetaVolumeFile);
         
     protected:
         VolumeFile(const DataFileTypeEnum::Enum dataFileType);
@@ -475,7 +480,9 @@ namespace caret {
                            std::vector<char>& voxelHasBeenSearchedFlags,
                            std::vector<VoxelIJK>& neighborIJKs) const;
         
+        bool isMetaVolumeFileChild() const;
 
+        friend class MetaVolumeFile;
     };
 
 }

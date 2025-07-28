@@ -174,6 +174,11 @@ ChartableTwoFileDelegate::updateAfterFileChanged()
             break;
         case DataFileTypeEnum::LABEL:
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
+            //lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;
+            //lineSeriesType = ChartTwoLineSeriesContentTypeEnum::LINE_SERIES_CONTENT_BRAINORDINATE_DATA;
+            break;
         case DataFileTypeEnum::METRIC:
             histogramType = ChartTwoHistogramContentTypeEnum::HISTOGRAM_CONTENT_TYPE_MAP_DATA;
             lineLayerType = ChartTwoLineLayerContentTypeEnum::LINE_LAYER_CONTENT_BRAINORDINATE_DATA;

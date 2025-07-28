@@ -67,6 +67,9 @@ void OperationMetadataRemoveProvenance::useParameters(OperationParameters* myPar
     }
     switch (myType)
     {
+        case DataFileTypeEnum::META_VOLUME:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::METRIC:
         {
             MetricFile myMetric;

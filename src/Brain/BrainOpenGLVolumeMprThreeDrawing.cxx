@@ -1432,6 +1432,17 @@ BrainOpenGLVolumeMprThreeDrawing::drawVolumeSliceViewProjection(const BrainOpenG
                         sliceThickness = spaceX;
                         break;
                 }
+                
+                if (m_volumeDrawInfo[0].volumeFile->isThin()) {
+                    /*
+                     * Thin volumes can cause problems with identification symbol drawing
+                     * which uses half of the slice thickness.  In this case the
+                     * symbol may be just outside of the half slice thickness.  So
+                     * increase the slice thickness so that identification symbols
+                     * are drawn.
+                     */
+                    sliceThickness *= 2.0;
+                }
             }
             
             CaretAssertVectorIndex(m_volumeDrawInfo, 0);
@@ -3198,7 +3209,7 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                             /*
                              * Must be a volume file
                              */
-                            const VolumeFile* vf(dynamic_cast<VolumeFile*>(vdi.mapFile));
+                            const VolumeFile* vf(dynamic_cast<VolumeFile*>(vdi.volumeFile));
                             CaretAssert(vf);
                             switch (vf->getType()) {
                                 case SubvolumeAttributes::ANATOMY:

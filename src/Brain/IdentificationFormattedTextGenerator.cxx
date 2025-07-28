@@ -66,6 +66,7 @@
 #include "IdentifiedItemUniversal.h"
 #include "MapFileDataSelector.h"
 #include "MediaFile.h"
+#include "MetaVolumeFile.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "OverlaySet.h"
 #include "SelectionItemBorderSurface.h"
@@ -757,214 +758,235 @@ IdentificationFormattedTextGenerator::generateVolumeDataIdentificationText(HtmlT
                                           mapIndicesSet.end());
     const int32_t numMapIndices = static_cast<int32_t>(mapIndices.size());
     
-    /*
-     * In first loop, show values for 'idVolumeFile' (the underlay volume)
-     * In second loop, show values for all other volume files
-     */
     const VolumeMappableInterface* volumeInterfaceFile = dynamic_cast<VolumeMappableInterface*>(mapFile);
+    
+    /*
+     * For meta-volume file, need to find child volume at ID location
+     */
+    AString metaVolumeFileName;
+    const MetaVolumeFile* mvf(dynamic_cast<MetaVolumeFile*>(mapFile));
+    if (mvf != NULL) {
+        if (numMapIndices > 0) {
+            const int32_t mapIndex(mapIndices[0]);
+            float voxelValue(0.0);
+            const VolumeFile* vf(mvf->getVolumeFileContainingXYZ(mapIndex,
+                                                                 xyz,
+                                                                 voxelValue));
+            if (vf != NULL) {
+                metaVolumeFileName = mvf->getFileNameNoPath();
+                volumeInterfaceFile = vf;
+            }
+        }
+    }
+    
     if (volumeInterfaceFile != NULL) {
-            const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeInterfaceFile);
-            const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeInterfaceFile);
-            CaretAssert((volumeFile != NULL)
-                        || (ciftiFile != NULL));
+        const VolumeFile* volumeFile = dynamic_cast<const VolumeFile*>(volumeInterfaceFile);
+        const CiftiMappableDataFile* ciftiFile = dynamic_cast<const CiftiMappableDataFile*>(volumeInterfaceFile);
+        CaretAssert((volumeFile != NULL)
+                    || (ciftiFile != NULL));
 
-            int64_t vfI, vfJ, vfK;
-            volumeInterfaceFile->enclosingVoxel(x, y, z,
-                                                vfI, vfJ, vfK);
+        int64_t vfI, vfJ, vfK;
+        volumeInterfaceFile->enclosingVoxel(x, y, z,
+                                            vfI, vfJ, vfK);
 
-            if (volumeInterfaceFile->indexValid(vfI, vfJ, vfK)) {
-                if (volumeFile != NULL) {
-                    AString ijkText("IJK ("
-                                     + AString::number(vfI)
-                                     + ", "
-                                     + AString::number(vfJ)
-                                     + ", "
-                                     + AString::number(vfK)
-                                     + ")  ");
+        if (volumeInterfaceFile->indexValid(vfI, vfJ, vfK)) {
+            if (volumeFile != NULL) {
+                AString ijkText("IJK ("
+                                 + AString::number(vfI)
+                                 + ", "
+                                 + AString::number(vfJ)
+                                 + ", "
+                                 + AString::number(vfK)
+                                 + ")  ");
 
-                    AString text;
-                    
-                    for (int32_t k = 0; k < numMapIndices; k++) {
-                        CaretAssertVectorIndex(mapIndices, k);
-                        const int32_t mapIndex = mapIndices[k];
-                        if (k > 0) {
-                            text += " ";
-                        }
-                        if (volumeFile != NULL) {
-                            if (volumeFile->getType() == SubvolumeAttributes::LABEL) {
-                                const int32_t labelIndex = static_cast<int32_t>(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
-                                const GiftiLabelTable* glt = volumeFile->getMapLabelTable(mapIndex);
-                                const GiftiLabel* gl = glt->getLabel(labelIndex);
-                                if (gl != NULL) {
-                                    text += gl->getName();
-                                    text += (" ("
-                                             + volumeFile->getMapName(mapIndex)
-                                             + ")");
-                                }
-                                else {
-                                    text += ("LABLE_MISSING_FOR_INDEX="
-                                             + AString::number(labelIndex));
-                                }
-                            }
-                            else if (volumeFile->getType() == SubvolumeAttributes::RGB) {
-                                if (volumeFile->getNumberOfComponents() == 4) {
-                                    text += ("RGBA("
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
-                                             + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
-                                             + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
-                                             + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 3) * 255.0, 'f', 0)
-                                             + ")");
-                                }
-                                else if (volumeFile->getNumberOfComponents() == 3) {
-                                    text += ("RGB("
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
-                                             + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
-                                             + ","
-                                             + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
-                                             + ")");
-                                }
+                AString text;
+                
+                for (int32_t k = 0; k < numMapIndices; k++) {
+                    CaretAssertVectorIndex(mapIndices, k);
+                    const int32_t mapIndex = mapIndices[k];
+                    if (k > 0) {
+                        text += " ";
+                    }
+                    if (volumeFile != NULL) {
+                        if (volumeFile->getType() == SubvolumeAttributes::LABEL) {
+                            const int32_t labelIndex = static_cast<int32_t>(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
+                            const GiftiLabelTable* glt = volumeFile->getMapLabelTable(mapIndex);
+                            const GiftiLabel* gl = glt->getLabel(labelIndex);
+                            if (gl != NULL) {
+                                text += gl->getName();
+                                text += (" ("
+                                         + volumeFile->getMapName(mapIndex)
+                                         + ")");
                             }
                             else {
-                                text += dataValueToText(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
+                                text += ("LABLE_MISSING_FOR_INDEX="
+                                         + AString::number(labelIndex));
                             }
                         }
-                        else if (ciftiFile != NULL) {
-
-                        }
-                    }
-
-                    AString filename;
-                    if (dynamic_cast<const VolumeDynamicConnectivityFile*>(volumeFile) != NULL) {
-                        filename.append(DataFileTypeEnum::toOverlayTypeName(DataFileTypeEnum::VOLUME_DYNAMIC) + " ");
-                    }
-                    filename.append(volumeFile->getFileNameNoPath());
-                    if (volumeFile->isMappedWithLabelTable()) {
-                        labelHtmlTableBuilder.addRow(text,
-                                                     filename);
-                    }
-                    else if (volumeFile->isMappedWithPalette()) {
-                        scalarHtmlTableBuilder.addRow(text,
-                                                      filename,
-                                                      "");
-                    }
-                    else if (volumeFile->isMappedWithRGBA()) {
-                        rgbaHtmlTableBuilder.addRow(text,
-                                                    filename,
-                                                    "");
-                    }
-                }
-                else if (ciftiFile != NULL) {
-                    if (ciftiFile->isEmpty() == false) {
-                        /*
-                         * Does file have both label and scalar data
-                         */
-                        const bool parcelDataFlag(isParcelAndScalarTypeFile(ciftiFile->getDataFileType()));
-
-                        AString textValue;
-                        int64_t voxelIJK[3];
-                        const QString separator("<br>");
-                        if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
-                                                                           xyz,
-                                                                           separator,
-                                                                           s_dataValueDigitsRightOfDecimal,
-                                                                           voxelIJK,
-                                                                           textValue)) {
-                            AString typeIJKText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
-                                                + " "
-                                                + "IJK ("
-                                                + AString::number(voxelIJK[0])
-                                                + ", "
-                                                + AString::number(voxelIJK[1])
-                                                + ", "
-                                                + AString::number(voxelIJK[2])
-                                                + ")  ");
-                            
-                            
-                            AString labelText;
-                            if (ciftiFile->isMappedWithLabelTable()) {
-                                labelText = textValue;
+                        else if (volumeFile->getType() == SubvolumeAttributes::RGB) {
+                            if (volumeFile->getNumberOfComponents() == 4) {
+                                text += ("RGBA("
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
+                                         + ","
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
+                                         + ","
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
+                                         + ","
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 3) * 255.0, 'f', 0)
+                                         + ")");
                             }
-                            AString scalarText;
-                            if (ciftiFile->isMappedWithPalette()) {
-                                scalarText = textValue;
-                            }
-                            if (parcelDataFlag) {
-                                /*
-                                 * Parcel data has parcel name, separator, scalar value 1, separator, scalar value 2, etc.
-                                 * Display parcel name in label table, and scalar
-                                 * value in the scalar table
-                                 */
-                                QStringList parcelAndValue = textValue.split(separator);
-                                if (parcelAndValue.size() == static_cast<int>(mapIndices.size() + 1)) {
-                                    labelText  = parcelAndValue.at(0);
-                                    parcelAndValue.removeAt(0);
-                                    scalarText = parcelAndValue.join(separator);
-                                }
-                            }
-                            
-                            if ( ! labelText.isEmpty()) {
-                                labelHtmlTableBuilder.addRow(labelText,
-                                                             ciftiFile->getFileNameNoPath());
-                            }
-                            if ( ! scalarText.isEmpty()) {
-                                AString rowColumnIndex;
-                                int64_t rowIndex(-1), columnIndex(-1);
-                                if (ciftiFile->getRowColumnIndexFromVolumeXYZ(xyz,
-                                                                              rowIndex,
-                                                                              columnIndex)) {
-                                    if (rowIndex >= 0) {
-                                        rowColumnIndex = ("Row "
-                                                          + AString::number(rowIndex
-                                                                            + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                                    }
-                                    if (columnIndex >= 0) {
-                                        if ( ! rowColumnIndex.isEmpty()) {
-                                            rowColumnIndex.append("<br>");
-                                        }
-                                        rowColumnIndex.append("Column "
-                                                              + AString::number(columnIndex
-                                                                                + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
-                                    }
-                                }
-                                scalarHtmlTableBuilder.addRow(scalarText,
-                                                              ciftiFile->getFileNameNoPath(),
-                                                              rowColumnIndex);
+                            else if (volumeFile->getNumberOfComponents() == 3) {
+                                text += ("RGB("
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 0) * 255.0, 'f', 0)
+                                         + ","
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 1) * 255.0, 'f', 0)
+                                         + ","
+                                         + AString::number(volumeFile->getValue(vfI, vfJ, vfK, mapIndex, 2) * 255.0, 'f', 0)
+                                         + ")");
                             }
                         }
                         else {
-                            /* no data */
-                            AString labelText;
-                            if (ciftiFile->isMappedWithLabelTable()) {
-                                labelHtmlTableBuilder.addRow(m_noDataText,
-                                                             ciftiFile->getFileNameNoPath());
+                            text += dataValueToText(volumeFile->getValue(vfI, vfJ, vfK, mapIndex));
+                        }
+                    }
+                    else if (ciftiFile != NULL) {
+
+                    }
+                }
+
+                AString filename;
+                if (dynamic_cast<const VolumeDynamicConnectivityFile*>(volumeFile) != NULL) {
+                    filename.append(DataFileTypeEnum::toOverlayTypeName(DataFileTypeEnum::VOLUME_DYNAMIC) + " ");
+                }
+                filename.append(volumeFile->getFileNameNoPath());
+                if ( ! metaVolumeFileName.isEmpty()) {
+                    filename.append("<br> ("
+                                    + metaVolumeFileName
+                                    + ")");
+                }
+                if (volumeFile->isMappedWithLabelTable()) {
+                    labelHtmlTableBuilder.addRow(text,
+                                                 filename);
+                }
+                else if (volumeFile->isMappedWithPalette()) {
+                    scalarHtmlTableBuilder.addRow(text,
+                                                  filename,
+                                                  "");
+                }
+                else if (volumeFile->isMappedWithRGBA()) {
+                    rgbaHtmlTableBuilder.addRow(text,
+                                                filename,
+                                                "");
+                }
+            }
+            else if (ciftiFile != NULL) {
+                if (ciftiFile->isEmpty() == false) {
+                    /*
+                     * Does file have both label and scalar data
+                     */
+                    const bool parcelDataFlag(isParcelAndScalarTypeFile(ciftiFile->getDataFileType()));
+
+                    AString textValue;
+                    int64_t voxelIJK[3];
+                    const QString separator("<br>");
+                    if (ciftiFile->getVolumeVoxelIdentificationForMaps(mapIndices,
+                                                                       xyz,
+                                                                       separator,
+                                                                       s_dataValueDigitsRightOfDecimal,
+                                                                       voxelIJK,
+                                                                       textValue)) {
+                        AString typeIJKText = (DataFileTypeEnum::toOverlayTypeName(ciftiFile->getDataFileType())
+                                            + " "
+                                            + "IJK ("
+                                            + AString::number(voxelIJK[0])
+                                            + ", "
+                                            + AString::number(voxelIJK[1])
+                                            + ", "
+                                            + AString::number(voxelIJK[2])
+                                            + ")  ");
+                        
+                        
+                        AString labelText;
+                        if (ciftiFile->isMappedWithLabelTable()) {
+                            labelText = textValue;
+                        }
+                        AString scalarText;
+                        if (ciftiFile->isMappedWithPalette()) {
+                            scalarText = textValue;
+                        }
+                        if (parcelDataFlag) {
+                            /*
+                             * Parcel data has parcel name, separator, scalar value 1, separator, scalar value 2, etc.
+                             * Display parcel name in label table, and scalar
+                             * value in the scalar table
+                             */
+                            QStringList parcelAndValue = textValue.split(separator);
+                            if (parcelAndValue.size() == static_cast<int>(mapIndices.size() + 1)) {
+                                labelText  = parcelAndValue.at(0);
+                                parcelAndValue.removeAt(0);
+                                scalarText = parcelAndValue.join(separator);
                             }
-                            if (ciftiFile->isMappedWithPalette()) {
-                                scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                              ciftiFile->getFileNameNoPath());
+                        }
+                        
+                        if ( ! labelText.isEmpty()) {
+                            labelHtmlTableBuilder.addRow(labelText,
+                                                         ciftiFile->getFileNameNoPath());
+                        }
+                        if ( ! scalarText.isEmpty()) {
+                            AString rowColumnIndex;
+                            int64_t rowIndex(-1), columnIndex(-1);
+                            if (ciftiFile->getRowColumnIndexFromVolumeXYZ(xyz,
+                                                                          rowIndex,
+                                                                          columnIndex)) {
+                                if (rowIndex >= 0) {
+                                    rowColumnIndex = ("Row "
+                                                      + AString::number(rowIndex
+                                                                        + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                                }
+                                if (columnIndex >= 0) {
+                                    if ( ! rowColumnIndex.isEmpty()) {
+                                        rowColumnIndex.append("<br>");
+                                    }
+                                    rowColumnIndex.append("Column "
+                                                          + AString::number(columnIndex
+                                                                            + CiftiMappableDataFile::getCiftiFileRowColumnIndexBaseForGUI()));
+                                }
                             }
+                            scalarHtmlTableBuilder.addRow(scalarText,
+                                                          ciftiFile->getFileNameNoPath(),
+                                                          rowColumnIndex);
+                        }
+                    }
+                    else {
+                        /* no data */
+                        AString labelText;
+                        if (ciftiFile->isMappedWithLabelTable()) {
+                            labelHtmlTableBuilder.addRow(m_noDataText,
+                                                         ciftiFile->getFileNameNoPath());
+                        }
+                        if (ciftiFile->isMappedWithPalette()) {
+                            scalarHtmlTableBuilder.addRow(m_noDataText,
+                                                          ciftiFile->getFileNameNoPath());
                         }
                     }
                 }
             }
-            else {
-                if (mapFile->isMappedWithLabelTable()) {
-                    labelHtmlTableBuilder.addRow(m_noDataText,
-                                                 mapFile->getFileNameNoPath());
-                }
-                if (mapFile->isMappedWithRGBA()) {
-                    rgbaHtmlTableBuilder.addRow(m_noDataText,
-                                                mapFile->getFileNameNoPath());
-                }
-                if (mapFile->isMappedWithPalette()) {
-                    scalarHtmlTableBuilder.addRow(m_noDataText,
-                                                  mapFile->getFileNameNoPath());
-                }
+        }
+        else {
+            if (mapFile->isMappedWithLabelTable()) {
+                labelHtmlTableBuilder.addRow(m_noDataText,
+                                             mapFile->getFileNameNoPath());
+            }
+            if (mapFile->isMappedWithRGBA()) {
+                rgbaHtmlTableBuilder.addRow(m_noDataText,
+                                            mapFile->getFileNameNoPath());
+            }
+            if (mapFile->isMappedWithPalette()) {
+                scalarHtmlTableBuilder.addRow(m_noDataText,
+                                              mapFile->getFileNameNoPath());
             }
         }
+    }
 }
 
 /**
@@ -1059,6 +1081,8 @@ IdentificationFormattedTextGenerator::isParcelAndScalarTypeFile(const DataFileTy
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
             break;
         case DataFileTypeEnum::METRIC:
             break;

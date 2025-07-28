@@ -21,6 +21,7 @@
 
 #include "Histogram.h"
 #include "CaretAssert.h"
+#include "DataSliceArray.h"
 #include <cmath>
 
 using namespace caret;
@@ -182,6 +183,18 @@ void Histogram::update(const float* data, const int64_t& dataCount)
         }
     }
 }
+
+void 
+Histogram::update(const int& numBuckets, const DataSliceArray& dataSliceArray)
+{
+    std::vector<float> data;
+    dataSliceArray.getAllData(data);
+    const int64_t numData(data.size());
+    if (numData > 0) {
+        update(numBuckets, &data[0], numData);
+    }
+}
+
 
 void Histogram::update(const int32_t& numBuckets,
                        const float* data, const int64_t& dataCount, float mostPositiveValueInclusive,

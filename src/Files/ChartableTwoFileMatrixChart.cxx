@@ -141,6 +141,8 @@ m_validRowColumnSelectionDimensions(validRowColumnSelectionDimensions)
                 break;
             case DataFileTypeEnum::LABEL:
                 break;
+            case DataFileTypeEnum::META_VOLUME:
+                break;
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:

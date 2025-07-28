@@ -331,8 +331,15 @@ DataFileTypeEnum::initialize()
                                         true,
                                         "label.gii"));
     
-    enumData.push_back(DataFileTypeEnum(METRIC, 
-                                        "METRIC", 
+    enumData.push_back(DataFileTypeEnum(META_VOLUME, 
+                                        "META_VOLUME",
+                                        "MetaVolume",
+                                        "META_VOLUME",
+                                        false,
+                                        "meta-volume"));
+    
+    enumData.push_back(DataFileTypeEnum(METRIC,
+                                        "METRIC",
                                         "Metric",
                                         "METRIC",
                                         true,
@@ -871,6 +878,8 @@ DataFileTypeEnum::getFilesExtensionsForEveryFile(const bool includeNonWritableFi
                 break;
             case DataFileTypeEnum::LABEL:
                 break;
+            case DataFileTypeEnum::META_VOLUME:
+                break;
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -1215,6 +1224,8 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
             case DataFileTypeEnum::IMAGE:
                 break;
             case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::META_VOLUME:
                 break;
             case DataFileTypeEnum::METRIC:
                 break;
@@ -1597,6 +1608,8 @@ DataFileTypeEnum::getDialogFilterShowType(const Enum enumValue)
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
             break;
         case DataFileTypeEnum::METRIC:
             break;

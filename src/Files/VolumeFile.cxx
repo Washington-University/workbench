@@ -48,6 +48,7 @@
 #include "Histogram.h"
 #include "ImageFile.h"
 #include "MapFileDataSelector.h"
+#include "MetaVolumeFile.h"
 #include "MultiDimIterator.h"
 #include "NiftiIO.h"
 #include "Palette.h"
@@ -1066,6 +1067,10 @@ void VolumeFile::checkStatisticsValid()
 
 const FastStatistics* VolumeFile::getMapFastStatistics(const int32_t mapIndex)
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getMapFastStatistics(mapIndex);
+    }
+    
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
     const int64_t* dimensions = getDimensionsPtr();
@@ -1078,6 +1083,10 @@ const FastStatistics* VolumeFile::getMapFastStatistics(const int32_t mapIndex)
 
 const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getMapHistogram(mapIndex);
+    }
+    
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
     const int64_t* dimensions = getDimensionsPtr();
@@ -1134,6 +1143,15 @@ VolumeFile::getMapHistogram(const int32_t mapIndex,
                                              const float mostNegativeValueInclusive,
                                              const bool includeZeroValues)
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getMapHistogram(mapIndex,
+                                                       mostPositiveValueInclusive,
+                                                       leastPositiveValueInclusive,
+                                                       leastNegativeValueInclusive,
+                                                       mostNegativeValueInclusive,
+                                                       includeZeroValues);
+    }
+    
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     checkStatisticsValid();
     const int64_t* dimensions = getDimensionsPtr();
@@ -1215,6 +1233,10 @@ VolumeFile::getDataSizeUncompressedInBytes() const
 const FastStatistics*
 VolumeFile::getFileFastStatistics()
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getFileFastStatistics();
+    }
+    
     if (m_fileFastStatistics == NULL) {
         std::vector<float> fileData;
         getFileData(fileData);
@@ -1240,6 +1262,10 @@ VolumeFile::getFileFastStatistics()
 const Histogram*
 VolumeFile::getFileHistogram()
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getFileHistogram();
+    }
+    
     const int32_t numBuckets = getFileHistogramNumberOfBuckets();
     bool updateHistogramFlag = false;
     if (m_fileHistogram != NULL) {
@@ -1295,6 +1321,14 @@ VolumeFile::getFileHistogram(const float mostPositiveValueInclusive,
                                            const float mostNegativeValueInclusive,
                                            const bool includeZeroValues)
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getFileHistogram(mostPositiveValueInclusive,
+                                                        leastPositiveValueInclusive,
+                                                        leastNegativeValueInclusive,
+                                                        mostNegativeValueInclusive,
+                                                        includeZeroValues);
+    }
+    
     const int32_t numberOfBuckets = getFileHistogramNumberOfBuckets();
     bool updateHistogramFlag = false;
     if (m_fileHistorgramLimitedValues != NULL) {
@@ -1446,6 +1480,11 @@ VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizati
 {
     modesSupportedOut.clear();
     
+    if (m_parentMetaVolumeFile != NULL) {
+        m_parentMetaVolumeFile->getPaletteNormalizationModesSupported(modesSupportedOut);
+        return;
+    }
+
     if (getDataFileType() == DataFileTypeEnum::VOLUME) {
         modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_SELECTED_MAP_DATA);
         modesSupportedOut.push_back(PaletteNormalizationModeEnum::NORMALIZATION_ALL_MAP_DATA);
@@ -1467,6 +1506,10 @@ VolumeFile::getPaletteNormalizationModesSupported(std::vector<PaletteNormalizati
 PaletteColorMapping* 
 VolumeFile::getMapPaletteColorMapping(const int32_t mapIndex)
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getMapPaletteColorMapping(mapIndex);
+    }
+    
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex] != NULL);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex]->m_palette != NULL);
@@ -1485,6 +1528,10 @@ VolumeFile::getMapPaletteColorMapping(const int32_t mapIndex)
 const PaletteColorMapping* 
 VolumeFile::getMapPaletteColorMapping(const int32_t mapIndex) const
 {
+    if (m_parentMetaVolumeFile != NULL) {
+        return m_parentMetaVolumeFile->getMapPaletteColorMapping(mapIndex);
+    }
+    
     CaretAssertVectorIndex(m_caretVolExt.m_attributes, mapIndex);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex] != NULL);
     CaretAssert(m_caretVolExt.m_attributes[mapIndex]->m_palette != NULL);
@@ -3270,5 +3317,25 @@ VolumeFile::getNeigbors26(const VoxelIJK& voxelIJK,
             }
         }
     }
+}
+
+/**
+ * Set the parent meta data volume file when this instance is in a meta-volume file
+ * @param parentMetaVolumeFile
+ *    The parent meta-volume file
+ */
+void
+VolumeFile::setParentMetaVolumeFile(MetaVolumeFile* parentMetaVolumeFile)
+{
+    m_parentMetaVolumeFile = parentMetaVolumeFile;
+}
+
+/**
+ * @return True if this volume file is a child of a meta-volume file
+ */
+bool 
+VolumeFile::isMetaVolumeFileChild() const
+{
+    return (m_parentMetaVolumeFile != NULL);
 }
 

@@ -920,6 +920,9 @@ BrainBrowserWindowOrientedToolBox::receiveEvent(Event* event)
                 case DataFileTypeEnum::LABEL:
                     haveLabels = true;
                     break;
+                case DataFileTypeEnum::META_VOLUME:
+                    haveVolumes = true;
+                    break;
                 case DataFileTypeEnum::METRIC:
                     break;
                 case DataFileTypeEnum::METRIC_DYNAMIC:

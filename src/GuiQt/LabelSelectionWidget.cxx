@@ -28,6 +28,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CiftiBrainordinateLabelFile.h"
 #include "GiftiLabelTableSelectionComboBox.h"
 #include "CaretMappableDataFileAndMapSelectionModel.h"
@@ -35,6 +36,7 @@
 #include "CiftiParcelLabelFile.h"
 #include "GuiManager.h"
 #include "LabelFile.h"
+#include "MetaVolumeFile.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -129,6 +131,17 @@ m_saveRestoreStateName(saveRestoreStateName)
                 break;
             case DataFileTypeEnum::LABEL:
                 caretDataFile = df;
+                break;
+            case DataFileTypeEnum::META_VOLUME:
+            {
+                MetaVolumeFile* mvf(dynamic_cast<MetaVolumeFile*>(df));
+                CaretAssert(mvf);
+                if (mvf->isMappedWithLabelTable()) {
+                    const AString msg("Label Selection has not been implemented for MetaVolumeFile");
+                    CaretLogSevere(msg);
+                    CaretAssertMessage(0, msg);
+                }
+            }
                 break;
             case DataFileTypeEnum::METRIC:
                 break;

@@ -176,6 +176,10 @@ MediaDisplayCoordinateModeEnum.h
 MediaFile.h
 MediaFileChannelInfo.h
 MediaFileTransforms.h
+MetaVolumeFile.h
+MetaVolumeFileXmlStreamBase.h
+MetaVolumeFileXmlStreamReader.h
+MetaVolumeFileXmlStreamWriter.h
 MetricDynamicConnectivityFile.h
 MetricFile.h
 MetricSmoothingObject.h
@@ -368,6 +372,10 @@ MediaDisplayCoordinateModeEnum.cxx
 MediaFile.cxx
 MediaFileChannelInfo.cxx
 MediaFileTransforms.cxx
+MetaVolumeFile.cxx
+MetaVolumeFileXmlStreamBase.cxx
+MetaVolumeFileXmlStreamReader.cxx
+MetaVolumeFileXmlStreamWriter.cxx
 MetricDynamicConnectivityFile.cxx
 MetricFile.cxx
 MetricSmoothingObject.cxx

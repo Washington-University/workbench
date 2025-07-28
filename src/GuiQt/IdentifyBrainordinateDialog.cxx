@@ -187,6 +187,8 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
             case DataFileTypeEnum::IMAGE:
                 imageFlag = true;
                 break;
+            case DataFileTypeEnum::META_VOLUME:
+                break;
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:

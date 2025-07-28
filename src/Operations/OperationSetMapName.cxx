@@ -72,6 +72,9 @@ void OperationSetMapName::useParameters(OperationParameters* myParams, ProgressO
     }
     switch (myType)
     {
+        case DataFileTypeEnum::META_VOLUME:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::METRIC:
         {
             MetricFile myMetric;

@@ -22,6 +22,7 @@
 #include "DataFile.h"
 #include "FileInformation.h"
 #include "HistologySlicesFile.h"
+#include "MetaVolumeFile.h"
 #include "OperationZipSpecFile.h"
 #include "OperationException.h"
 #include "SpecFile.h"
@@ -317,16 +318,99 @@ OperationZipSpecFile::addChildDataFiles(const AString& dataFileName,
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(dataFileName,
                                                                                     &validFlag);
     if (validFlag) {
-        if (dataFileType == DataFileTypeEnum::HISTOLOGY_SLICES) {
-            try {
-                HistologySlicesFile hsf;
-                hsf.readFile(dataFileName);
-                childDataFileNamesOut = hsf.getChildDataFilePathNames();
-            }
-            catch (const DataFileException& dfe) {
-                CaretLogWarning("Error reading Histology Slices File to get child data files: "
-                                + dfe.whatString());
-            }
+        switch (dataFileType) {
+            case DataFileTypeEnum::ANNOTATION:
+                break;
+            case DataFileTypeEnum::ANNOTATION_TEXT_SUBSTITUTION:
+                break;
+            case DataFileTypeEnum::BORDER:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_ORIENTATIONS_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_TEMPORARY:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_FIBER_TRAJECTORY_MAPS:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DENSE:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_DYNAMIC:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_LABEL:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SCALAR:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_PARCEL_SERIES:
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_SCALAR_DATA_SERIES:
+                break;
+            case DataFileTypeEnum::CZI_IMAGE_FILE:
+                break;
+            case DataFileTypeEnum::FOCI:
+                break;
+            case DataFileTypeEnum::HISTOLOGY_SLICES:
+                try {
+                    HistologySlicesFile hsf;
+                    hsf.readFile(dataFileName);
+                    childDataFileNamesOut = hsf.getChildDataFilePathNames();
+                }
+                catch (const DataFileException& dfe) {
+                    CaretLogWarning("Error reading Histology Slices File to get child data files: "
+                                    + dfe.whatString());
+                }
+                break;
+            case DataFileTypeEnum::IMAGE:
+                break;
+            case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::META_VOLUME:
+                try {
+                    MetaVolumeFile mvf;
+                    mvf.readFile(dataFileName);
+                    childDataFileNamesOut = mvf.getChildDataFilePathNames();
+                }
+                catch (const DataFileException& dfe) {
+                    CaretLogWarning("Error reading Meta-Volume File to get child data files: "
+                                    + dfe.whatString());
+                }
+                break;
+            case DataFileTypeEnum::METRIC:
+                break;
+            case DataFileTypeEnum::METRIC_DYNAMIC:
+                break;
+            case DataFileTypeEnum::OME_ZARR_IMAGE_FILE:
+                break;
+            case DataFileTypeEnum::PALETTE:
+                break;
+            case DataFileTypeEnum::RGBA:
+                break;
+            case DataFileTypeEnum::SAMPLES:
+                break;
+            case DataFileTypeEnum::SCENE:
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                break;
+            case DataFileTypeEnum::SURFACE:
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                break;
+            case DataFileTypeEnum::VOLUME:
+                break;
+            case DataFileTypeEnum::VOLUME_DYNAMIC:
+                break;
         }
     }
 }

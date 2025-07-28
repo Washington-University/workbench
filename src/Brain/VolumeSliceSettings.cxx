@@ -609,9 +609,6 @@ VolumeSliceSettings::getSlicesParasagittalCoronalAxial(const VolumeMappableInter
         int64_t indices[3];
         volumeInterface->enclosingVoxel(xyz[0], xyz[1], xyz[2],
                                         indices[0], indices[1], indices[2]);
-        CaretAssert((indices[0] >= 0) && (indices[0] < dimensions[0]));
-        CaretAssert((indices[1] >= 0) && (indices[1] < dimensions[1]));
-        CaretAssert((indices[2] >= 0) && (indices[2] < dimensions[2]));
         
         parasagittalIndexOut = indices[0];
         coronalIndexOut      = indices[1];

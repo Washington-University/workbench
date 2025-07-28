@@ -58,6 +58,7 @@
 #include "HistologySlicesFile.h"
 #include "HistologySliceImage.h"
 #include "ImageFile.h"
+#include "MetaVolumeFile.h"
 #include "ModelHistology.h"
 #include "HistologyOverlaySet.h"
 #include "Overlay.h"
@@ -1044,15 +1045,26 @@ BrainOpenGLHistologySliceDrawing::drawVolumeOverlays()
                                       mapIndex);
             
             if (mapFile != NULL) {
-                VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(mapFile));
-                if (vmi != NULL) {
-                    volumeDrawingInfo.emplace_back(overlay,
-                                                   vmi,
-                                                   mapIndex);
+                MetaVolumeFile* metaVolumeFile(dynamic_cast<MetaVolumeFile*>(mapFile));
+                if (metaVolumeFile != NULL) {
+                    const int32_t numVolumeFiles(metaVolumeFile->getNumberOfVolumeFiles());
+                    for (int32_t i = 0; i < numVolumeFiles; i++) {
+                        volumeDrawingInfo.emplace_back(overlay,
+                                                       metaVolumeFile->getVolumeFile(i),
+                                                       mapIndex);
+                    }
                 }
                 else {
-                    CaretLogSevere("File for drawing volume is not a volume mappable file: "
-                                   + mapFile->getFileName());
+                    VolumeMappableInterface* vmi(dynamic_cast<VolumeMappableInterface*>(mapFile));
+                    if (vmi != NULL) {
+                        volumeDrawingInfo.emplace_back(overlay,
+                                                       vmi,
+                                                       mapIndex);
+                    }
+                    else {
+                        CaretLogSevere("File for drawing volume is not a volume mappable file: "
+                                       + mapFile->getFileName());
+                    }
                 }
             }
         }

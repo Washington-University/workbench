@@ -512,6 +512,8 @@ namespace caret {
          */
         virtual const VolumeSpace& getVolumeSpace() const = 0;
         
+        bool isThin() const;
+        
         bool isSingleSlice() const;
         
         int32_t getSingleSliceDimensionIndex() const;

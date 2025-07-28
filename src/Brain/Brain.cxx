@@ -112,6 +112,7 @@
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "MathFunctions.h"
+#include "MetaVolumeFile.h"
 #include "MetricDynamicConnectivityFile.h"
 #include "MetricFile.h"
 #include "ModelChart.h"
@@ -621,6 +622,11 @@ Brain::resetBrain(const ResetBrainKeepSceneFiles keepSceneFiles,
     }
     m_volumeFiles.clear();
     
+    for (MetaVolumeFile* mvf : m_metaVolumeFiles) {
+        delete mvf;
+    }
+    m_metaVolumeFiles.clear();
+    
     m_brainStructures.clear();
     
     for (std::vector<AnnotationFile*>::iterator afi = m_annotationFiles.begin();
@@ -966,6 +972,8 @@ Brain::resetBrainKeepSceneFiles()
             case DataFileTypeEnum::IMAGE:
                 break;
             case DataFileTypeEnum::LABEL:
+                break;
+            case DataFileTypeEnum::META_VOLUME:
                 break;
             case DataFileTypeEnum::METRIC:
                 break;
@@ -1408,6 +1416,8 @@ Brain::addReadOrReloadLabelFile(const FileModeAddReadReload fileMode,
  *    Name of the file.
  * @param structureIn
  *    Structure of label file.
+ * @param markDataFileAsModified
+ *    If true, set the data file as modified
  * @throws DataFileException
  *    If reading failed.
  * @return Pointer to file that was read.
@@ -1869,7 +1879,6 @@ Brain::initializeVolumeFile(VolumeFile* volumeFile)
     }
 }
 
-
 /**
  * Get the volume file at the given index.
  * @param volumeFileIndex
@@ -1882,6 +1891,131 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
 {
     CaretAssertVectorIndex(m_volumeFiles, volumeFileIndex);
     return m_volumeFiles[volumeFileIndex];
+}
+
+/**
+ * @return  Number of meta volume files.
+ */
+int32_t
+Brain::getNumberOfMetaVolumeFiles() const
+{
+    return m_metaVolumeFiles.size();
+}
+
+/**
+ * Get the meta volume file at the given index.
+ * @param fileIndex
+ *    Index of the  file.
+ * @return
+ *    Meta-volume file at the given index.
+ */
+MetaVolumeFile*
+Brain::getMetaVolumeFile(const int32_t fileIndex)
+{
+    CaretAssertVectorIndex(m_metaVolumeFiles, fileIndex);
+    return m_metaVolumeFiles[fileIndex];
+}
+
+/**
+ * Get the meta volume file at the given index (const method)
+ * @param fileIndex
+ *    Index of the  file.
+ * @return
+ *    Meta-volume file at the given index.
+ */
+const MetaVolumeFile*
+Brain::getMetaVolumeFile(const int32_t fileIndex) const
+{
+    CaretAssertVectorIndex(m_metaVolumeFiles, fileIndex);
+    return m_metaVolumeFiles[fileIndex];
+}
+
+/**
+ * Read a meta volume file.
+ *
+ * @param fileMode
+ *    Mode for file adding, reading, or reloading.
+ * @param caretDataFile
+ *    File that is added or reloaded (MUST NOT BE NULL).  If NULL,
+ *    the mode must be READING.
+ * @param filename
+ *    Name of the file.
+ * @return
+ *    File that was read.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+MetaVolumeFile*
+Brain::addReadOrReloadMetaVolumeFile(const FileModeAddReadReload fileMode,
+                                     CaretDataFile* caretDataFile,
+                                     const AString& filename)
+{
+    MetaVolumeFile* mvf = NULL;
+    if (caretDataFile != NULL) {
+        mvf = dynamic_cast<MetaVolumeFile*>(caretDataFile);
+        CaretAssert(mvf);
+    }
+    else {
+        mvf = new MetaVolumeFile();
+    }
+    
+    bool addFlag  = false;
+    bool readFlag = false;
+    switch (fileMode) {
+        case FILE_MODE_ADD:
+            addFlag = true;
+            break;
+        case FILE_MODE_READ:
+            addFlag = true;
+            readFlag = true;
+            break;
+        case FILE_MODE_RELOAD:
+            readFlag = true;
+            break;
+    }
+    
+    if (readFlag) {
+        try {
+            try {
+                mvf->readFile(filename);
+            }
+            catch (const std::bad_alloc&) {
+                /*
+                 * This DataFileException will be caught
+                 * in the outer try/catch and it will
+                 * clean up to avoid memory leaks.
+                 */
+                throw DataFileException(filename,
+                                        CaretDataFileHelper::createBadAllocExceptionMessage(filename));
+            }
+        }
+        catch (const DataFileException& e) {
+            if (caretDataFile != NULL) {
+                removeAndDeleteDataFile(caretDataFile);
+            }
+            else {
+                delete mvf;
+            }
+            throw e;
+        }
+    }
+    
+    mvf->clearModified();
+    
+    ElapsedTimer timer;
+    timer.start();
+    mvf->updateScalarColoringForAllMaps();
+    CaretLogInfo("Time to color meta volume data is "
+                 + AString::number(timer.getElapsedTimeSeconds(), 'f', 3)
+                 + " seconds.");
+    
+    if (addFlag) {
+        updateDataFileNameIfDuplicate(m_metaVolumeFiles,
+                                      mvf);
+        m_metaVolumeFiles.push_back(mvf);
+    }
+    
+    return mvf;
 }
 
 /**
@@ -5116,6 +5250,13 @@ Brain::addDataFile(CaretDataFile* caretDataFile)
                                          true);
         }
             break;
+        case DataFileTypeEnum::META_VOLUME:
+        {
+            MetaVolumeFile* file = dynamic_cast<MetaVolumeFile*>(caretDataFile);
+            CaretAssert(file);
+            m_metaVolumeFiles.push_back(file);
+        }
+            break;
         case DataFileTypeEnum::METRIC:
         {
             MetricFile* file = dynamic_cast<MetricFile*>(caretDataFile);
@@ -6255,6 +6396,9 @@ Brain::getReloadableDataFiles() const
                 break;
             case DataFileTypeEnum::LABEL:
                 break;
+            case DataFileTypeEnum::META_VOLUME:
+                loadFirstFlag = true;
+                break;
             case DataFileTypeEnum::METRIC:
                 break;
             case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -6606,6 +6750,11 @@ Brain::addReadOrReloadDataFile(const FileModeAddReadReload fileMode,
                                                   dataFileName,
                                                   structure,
                                                   markDataFileAsModified);
+                break;
+            case DataFileTypeEnum::META_VOLUME:
+                caretDataFileRead  = addReadOrReloadMetaVolumeFile(fileMode,
+                                                                   caretDataFile,
+                                                                   dataFileName);
                 break;
             case DataFileTypeEnum::METRIC:
                 caretDataFileRead  = addReadOrReloadMetricFile(fileMode,
@@ -8292,6 +8441,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut,
         }
     }
     
+    for (auto& mvf : m_metaVolumeFiles) {
+        allDataFilesOut.push_back(mvf);
+    }
+    
     for (auto& ome : m_omeZarrImageFiles) {
         VolumeFile* vf(ome->getImagesAsRgbaVolumeFile());
         if (vf != NULL) {
@@ -8460,6 +8613,8 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
             break;
         case DataFileTypeEnum::LABEL:
             break;
+        case DataFileTypeEnum::META_VOLUME:
+            break;
         case DataFileTypeEnum::METRIC:
             break;
         case DataFileTypeEnum::METRIC_DYNAMIC:
@@ -8565,6 +8720,8 @@ Brain::removeWithoutDeleteDataFile(const CaretDataFile* caretDataFile)
         case DataFileTypeEnum::IMAGE:
             break;
         case DataFileTypeEnum::LABEL:
+            break;
+        case DataFileTypeEnum::META_VOLUME:
             break;
         case DataFileTypeEnum::METRIC:
             break;
@@ -8850,6 +9007,15 @@ Brain::removeWithoutDeleteDataFilePrivate(const CaretDataFile* caretDataFile)
               caretDataFile);
     if (volumeIterator != m_volumeFiles.end()) {
         m_volumeFiles.erase(volumeIterator);
+        return true;
+    }
+    
+    std::vector<MetaVolumeFile*>::iterator metaVolumeIterator =
+    std::find(m_metaVolumeFiles.begin(),
+              m_metaVolumeFiles.end(),
+              caretDataFile);
+    if (metaVolumeIterator != m_metaVolumeFiles.end()) {
+        m_metaVolumeFiles.erase(metaVolumeIterator);
         return true;
     }
     
@@ -9453,6 +9619,9 @@ Brain::restoreFromScene(const SceneAttributes* sceneAttributes,
      */
     for (auto vf : m_volumeFiles) {
         vf->updateScalarColoringForAllMaps();
+    }
+    for (auto mvf : m_metaVolumeFiles) {
+        mvf->updateScalarColoringForAllMaps();
     }
 
     /*

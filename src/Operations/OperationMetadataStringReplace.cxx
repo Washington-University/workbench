@@ -81,6 +81,9 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
     }
     switch (myType)
     {
+        case DataFileTypeEnum::META_VOLUME:
+            CaretAssertToDoFatal();
+            break;
         case DataFileTypeEnum::METRIC:
         {
             MetricFile myMetric;

@@ -503,6 +503,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const DisplayPropertiesLabels* displayPro
                                                                 numNodes, 
                                                                 overlayRGBV);
                     break;
+                case DataFileTypeEnum::META_VOLUME:
+                    break;
                 case DataFileTypeEnum::METRIC:
                 case DataFileTypeEnum::METRIC_DYNAMIC: // same as metric
                     isColoringValid = this->assignMetricColoring(brainStructure,

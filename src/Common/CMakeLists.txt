@@ -106,6 +106,8 @@ DataFileContentInformation.h
 DataFileException.h
 DataFileInterface.h
 DataFileTypeEnum.h
+DataSlice.h
+DataSliceArray.h
 DescriptiveStatistics.h
 DeveloperFlagsEnum.h
 DisplayGroupAndTabItemInterface.h 
@@ -278,6 +280,8 @@ DataFileContentCopyMoveParameters.cxx
 DataFileContentInformation.cxx
 DataFileException.cxx
 DataFileTypeEnum.cxx
+DataSlice.cxx
+DataSliceArray.cxx
 DescriptiveStatistics.cxx
 DeveloperFlagsEnum.cxx
 DisplayGroupAndTabItemInterface.cxx
