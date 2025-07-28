@@ -21,6 +21,7 @@
 #include "OperationSetMapName.h"
 #include "OperationException.h"
 #include "DataFileTypeEnum.h"
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -73,7 +74,7 @@ void OperationSetMapName::useParameters(OperationParameters* myParams, ProgressO
     switch (myType)
     {
         case DataFileTypeEnum::META_VOLUME:
-            CaretAssertToDoFatal();
+            CaretLogSevere("Not implemented for Meta-Volume File");
             break;
         case DataFileTypeEnum::METRIC:
         {

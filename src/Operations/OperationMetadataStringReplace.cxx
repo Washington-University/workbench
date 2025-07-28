@@ -21,6 +21,7 @@
 #include "OperationMetadataStringReplace.h"
 #include "OperationException.h"
 
+#include "CaretLogger.h"
 #include "CiftiFile.h"
 #include "DataFileTypeEnum.h"
 #include "LabelFile.h"
@@ -82,7 +83,7 @@ void OperationMetadataStringReplace::useParameters(OperationParameters* myParams
     switch (myType)
     {
         case DataFileTypeEnum::META_VOLUME:
-            CaretAssertToDoFatal();
+            CaretLogSevere("Not implemented for Meta-Volume File");
             break;
         case DataFileTypeEnum::METRIC:
         {

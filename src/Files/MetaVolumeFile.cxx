@@ -891,7 +891,6 @@ void
 MetaVolumeFile::getMapData(const int32_t index,
                            std::vector<float>& dataOut) const
 {
-    CaretAssertToDoFatal();
     dataOut.clear();
     
     std::unique_ptr<DataSliceArray> dataSliceArray(getDataSliceArrayForMap(index));
