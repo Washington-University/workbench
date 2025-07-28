@@ -161,8 +161,9 @@ MetaVolumeFileXmlStreamReader::readFileContent(const AString& metaVolumeFilePath
     std::vector<AString> volumeFileNames;
     std::vector<AString> missingVolumeFileNames;
     
-    std::map<int32_t, std::unique_ptr<GiftiMetaData>> metadataRead;
-    
+    std::map<int32_t, GiftiMetaData*> metadataRead;
+//    std::map<int32_t, std::unique_ptr<GiftiMetaData>> metadataRead;
+
     /*
      * Set when ending  element is found
      */
@@ -242,8 +243,10 @@ MetaVolumeFileXmlStreamReader::readFileContent(const AString& metaVolumeFilePath
             for (int32_t iMap = 0; iMap < numMaps; iMap++) {
                 const auto iter(metadataRead.find(iMap));
                 if (iter != metadataRead.end()) {
-                    const std::unique_ptr<GiftiMetaData>& md(iter->second);
-                    if (md) {
+                    GiftiMetaData* md(iter->second);
+                    if (md != NULL) {
+//                    const std::unique_ptr<GiftiMetaData>& md(iter->second);
+//                    if (md) {
                         /*
                          * Extract the palette color mapping from the metadata that was read
                          * and then remove palette color mapping from this metadata
@@ -263,7 +266,9 @@ MetaVolumeFileXmlStreamReader::readFileContent(const AString& metaVolumeFilePath
                         }
                         
                         GiftiMetaData* mapMetaData(metaVolumeFile->getMapMetaData(iMap));
-                        *mapMetaData = *md.get();
+//                        *mapMetaData = *md.get();
+                        *mapMetaData = *md;
+                        delete md;
                     }
                 }
             }
@@ -281,7 +286,8 @@ MetaVolumeFileXmlStreamReader::readFileContent(const AString& metaVolumeFilePath
  */
 void
 MetaVolumeFileXmlStreamReader::readMapInfo(QXmlStreamReader& xmlReader,
-                                           std::map<int32_t, std::unique_ptr<GiftiMetaData>>& metadataOut)
+                                           std::map<int32_t, GiftiMetaData*>& metadataOut)
+//std::map<int32_t, std::unique_ptr<GiftiMetaData>>& metadataOut)
 {
     metadataOut.clear();
     
