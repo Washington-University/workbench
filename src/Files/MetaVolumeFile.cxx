@@ -381,19 +381,48 @@ MetaVolumeFile::getMapName(const int32_t mapIndex) const
 {
     AString name;
     
-    if ( ! m_volumeFiles.empty()) {
-        const VolumeFile* vf(m_volumeFiles[0].get());
-        if ((mapIndex >= 0)
-            && (mapIndex < vf->getNumberOfMaps())) {
-            name = vf->getMapName(mapIndex);
+    /*
+     * m_mapInfo[].m_mapName is only set if the default
+     * map name is overwritten by the user
+     */
+    CaretAssertVectorIndex(m_mapInfo, mapIndex);
+    if ( ! m_mapInfo[mapIndex]->getMapName().isEmpty()) {
+        name = m_mapInfo[mapIndex]->getMapName();
+    }
+    
+    if (name.isEmpty()) {
+        /*
+         * Use map name from first file
+         */
+        if ( ! m_volumeFiles.empty()) {
+            const VolumeFile* vf(m_volumeFiles[0].get());
+            if ((mapIndex >= 0)
+                && (mapIndex < vf->getNumberOfMaps())) {
+                name = vf->getMapName(mapIndex);
+            }
         }
     }
     
     if (name.isEmpty()) {
+        /*
+         * Generic map name is index of map
+         */
         name = ("Map " + AString::number(mapIndex + 1));
     }
     
     return name;
+}
+
+/**
+ * @return The map name from in 'MapInfo'.  This is used only when the
+ * MetaVolumeFile is written.  This map name in MapInfo is normally empty
+ * and is only non-empty if the user has overwritten the map name.
+ */
+AString
+MetaVolumeFile::getMapNameFromMapInfo(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_mapInfo, mapIndex);
+    return m_mapInfo[mapIndex]->getMapName();
 }
 
 /**
@@ -408,14 +437,14 @@ MetaVolumeFile::getMapName(const int32_t mapIndex) const
  *    New name for the map.
  */
 void 
-MetaVolumeFile::setMapName(const int32_t /*mapIndex*/,
-                           const AString& /*mapName*/)
+MetaVolumeFile::setMapName(const int32_t mapIndex,
+                           const AString& mapName)
 {
-    /*
-     * Map names come from first file.  Probably would want
-     * to set name of map in just first file or all files???
-     */
-    CaretLogSevere("Setting map names not supported for MetaVolumeFile.");
+    CaretAssertVectorIndex(m_mapInfo, mapIndex);
+    if (mapName != getMapName(mapIndex)) {
+        m_mapInfo[mapIndex]->setMapName(mapName);
+        setModified();
+    }
 }
 
 /**
@@ -962,6 +991,7 @@ m_mapIndex(mapIndex)
     m_histogramLimitedValues.reset();
     m_paletteColorMapping.reset(new PaletteColorMapping());
     m_metadata.reset(new GiftiMetaData());
+    m_mapName.clear();
 }
 
 /**
@@ -978,6 +1008,7 @@ MetaVolumeFile::MapInfo::~MapInfo()
 void
 MetaVolumeFile::MapInfo::clearModified()
 {
+    CaretObjectTracksModification::clearModified();
     m_metadata->clearModified();
     m_paletteColorMapping->clearModified();
 }
@@ -1204,5 +1235,30 @@ const PaletteColorMapping*
 MetaVolumeFile::MapInfo::getPaletteColorMapping() const
 {
     return m_paletteColorMapping.get();
+}
+
+/**
+ * @return The map name
+ */
+AString
+MetaVolumeFile::MapInfo::getMapName() const
+{
+    return m_mapName;
+}
+
+/*
+ * Set the map name
+ * @param mapName
+ *
+ * @param mapName
+ * New name for map
+ */
+void
+MetaVolumeFile::MapInfo::setMapName(const AString& mapName)
+{
+    if (mapName != m_mapName) {
+        m_mapName = mapName;
+        setModified();
+    }
 }
 

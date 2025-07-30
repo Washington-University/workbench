@@ -56,6 +56,8 @@ namespace caret {
         
         static const QString METADATA_NAME_PALETTE_COLOR_MAPPING;
         
+        static const QString METADATA_NAME_MAP_NAME;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
@@ -80,6 +82,8 @@ namespace caret {
     
     const QString MetaVolumeFileXmlStreamBase::METADATA_NAME_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
 
+    const QString MetaVolumeFileXmlStreamBase::METADATA_NAME_MAP_NAME = "MapName";
+    
 #endif // __META_VOLUME_FILE_XML_STREAM_BASE_DECLARE__
 
 } // namespace

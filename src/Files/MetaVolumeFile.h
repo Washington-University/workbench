@@ -85,6 +85,10 @@ namespace caret {
             
             const PaletteColorMapping* getPaletteColorMapping() const;
             
+            AString getMapName() const;
+            
+            void setMapName(const AString& mapName);
+            
         private:
             /** Parent meta-volume file */
             MetaVolumeFile* m_parentMetaVolumeFile;
@@ -97,6 +101,9 @@ namespace caret {
             
             /** Palette color mapping for map. Points to data in CiftiFile so DO NOT delete  */
             std::unique_ptr<PaletteColorMapping> m_paletteColorMapping;
+            
+            /** Name of map */
+            AString m_mapName;
             
             /** fast statistics for map */
             mutable std::unique_ptr<FastStatistics> m_fastStatistics;
@@ -228,6 +235,8 @@ namespace caret {
         // ADD_NEW_METHODS_HERE
 
     private:
+        AString getMapNameFromMapInfo(const int32_t mapIndex) const;
+        
         void getMapData(const int32_t index,
                         std::vector<float>& dataOut) const;
         
@@ -246,6 +255,7 @@ namespace caret {
         
         // ADD_NEW_MEMBERS_HERE
 
+        friend class MetaVolumeFileXmlStreamWriter;
     };
     
 #ifdef __META_VOLUME_FILE_DECLARE__

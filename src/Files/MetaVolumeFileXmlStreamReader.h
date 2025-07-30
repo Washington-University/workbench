@@ -56,8 +56,6 @@ namespace caret {
                              QXmlStreamReader& xmlReader,
                              MetaVolumeFile* metaVolumeFile);
         
-//        void readMapInfo(QXmlStreamReader& xmlReader,
-//                         std::map<int32_t, std::unique_ptr<GiftiMetaData>>& metadataOut);
         void readMapInfo(QXmlStreamReader& xmlReader,
                          std::map<int32_t, GiftiMetaData*>& metadataOut);
 

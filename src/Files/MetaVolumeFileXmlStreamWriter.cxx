@@ -187,6 +187,11 @@ MetaVolumeFileXmlStreamWriter::writeMapInfoDirectory(QXmlStreamWriter& xmlWriter
                    pcm->encodeInXML());
         }
 
+        if ( ! metaVolumeFile->getMapNameFromMapInfo(i).isEmpty()) {
+            md.set(METADATA_NAME_MAP_NAME,
+                   metaVolumeFile->getMapNameFromMapInfo(i));
+        }
+        
         md.writeSceneFile3(xmlWriter);
         xmlWriter.writeEndElement();
     }
