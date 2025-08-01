@@ -615,7 +615,10 @@ bool Border::isClosed() const
 
 void Border::setClosed(const bool& closed)
 {
-    m_closed = closed;
+    if (closed != m_closed) {
+        m_closed = closed;
+        setModified();
+    }
 }
 
 /**
