@@ -1629,7 +1629,12 @@ Border::writeAsXML(XmlWriter& xmlWriter)
     }
     const int32_t numPoints = getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
-        m_points[i]->writeAsXML(xmlWriter);    
+        m_points[i]->writeAsXML(xmlWriter);
+    }
+    //TSC: the only way version 1 knows a border is closed is repeating the first point
+    if (isClosed())
+    {
+        m_points[0]->writeAsXML(xmlWriter);
     }
     
     xmlWriter.writeEndElement();
