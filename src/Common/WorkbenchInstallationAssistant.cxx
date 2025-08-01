@@ -25,7 +25,7 @@
 
 #include <QDir>
 #include <QFileInfo>
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
 #include <QtEnvironmentVariables>
 #endif
 #include <QtGlobal>
