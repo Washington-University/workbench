@@ -3901,6 +3901,9 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
     
     bool lastPointForLineValidFlag = false;
     float lastPointForLineXYZ[3] = { 0.0f, 0.0f, 0.0f };
+    float linesFirstPointXYZ[3] = { 0.0f, 0.0f, 0.0f };
+    bool  linesFirstPointXYZValidFlag = false;
+    
     /*
      * Find points valid for this surface
      */
@@ -4068,8 +4071,26 @@ BrainOpenGLFixedPipeline::drawBorder(const BorderDrawInfo& borderDrawInfo)
             if (linesPrimitive) {
                 if (drawLineSegments) {
                     if (lastPointForLineValidFlag) {
+                        /* may need first point later for closed border */
+                        if (linesPrimitive->getNumberOfVertices() == 0) {
+                            linesFirstPointXYZ[0] = lastPointForLineXYZ[0];
+                            linesFirstPointXYZ[1] = lastPointForLineXYZ[1];
+                            linesFirstPointXYZ[2] = lastPointForLineXYZ[2];
+                            linesFirstPointXYZValidFlag = true;
+                        }
+                        
                         linesPrimitive->addVertex(lastPointForLineXYZ);
                         linesPrimitive->addVertex(xyz);
+                        
+                        /** closed borders need to connect last point to first point*/
+                        if (i == (numBorderPoints - 1)) {
+                            if (borderDrawInfo.border->isClosed()) {
+                                if (linesFirstPointXYZValidFlag) {
+                                    linesPrimitive->addVertex(xyz);
+                                    linesPrimitive->addVertex(linesFirstPointXYZ);
+                                }
+                            }
+                        }
                     }
                 }
                 else {

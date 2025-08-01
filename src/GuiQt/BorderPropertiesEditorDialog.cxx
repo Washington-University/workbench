@@ -185,7 +185,6 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     QLabel* nameLabel = new QLabel("Name");
     m_nameComboBox = new GiftiLabelTableSelectionComboBox(this);
     m_nameComboBox->setUnassignedLabelTextOverride("Select Name");
-//    m_nameLineEdit->setText(borderName);
     QAction* displayNameColorEditorAction = WuQtUtilities::createAction("Add/Edit...",
                                                                     "Add and/or edit name colors",
                                                                     this,
@@ -218,14 +217,21 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      */
     m_closedCheckBox = new QCheckBox("Closed Border");
     WuQtUtilities::setToolTipAndStatusTip(m_closedCheckBox, 
-                                          "If checked, additional points will be added\n"
-                                          "to the border so that the border forms a loop\n"
-                                          "with the last point adjacent to the first point.");
-    if (s_previousClosedSelected) {
-        m_closedCheckBox->setChecked(true);
-    }
-    else {
-        m_closedCheckBox->setChecked(false);
+                                          "If checked, a border drawn as lines will\n"
+                                          "have a line segment that connects the last\n"
+                                          "point to the first point.");
+    switch (m_mode) {
+        case MODE_EDIT:
+            m_closedCheckBox->setChecked(border->isClosed());
+            break;
+        case MODE_FINISH_DRAWING:
+            if (s_previousClosedSelected) {
+                m_closedCheckBox->setChecked(true);
+            }
+            else {
+                m_closedCheckBox->setChecked(false);
+            }
+            break;
     }
     
     /*
@@ -268,6 +274,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     bool showReverseOptionFlag = false;
     switch (m_mode) {
         case MODE_EDIT:
+            showClosedOptionFlag = true;
             showReverseOptionFlag = true;
             break;
         case MODE_FINISH_DRAWING:
@@ -522,18 +529,12 @@ BorderPropertiesEditorDialog::okButtonClicked()
     borderBeingEdited->setName(name);
     borderBeingEdited->setClassName(className);
     
+    /*
+     * Close border
+     */
+    borderBeingEdited->setClosed(m_closedCheckBox->isChecked());
+
     if (finishModeFlag) {
-        /*
-         * Close border
-         */
-        if (m_closedCheckBox->isChecked()) {
-            borderBeingEdited->addPointsToCloseBorderWithGeodesic(m_finishBorderSurfaceFile);
-            borderBeingEdited->setClosed(true);
-        }
-        else {
-            borderBeingEdited->setClosed(false);
-        }
-        
         /*
          * Add border to border file
          */
