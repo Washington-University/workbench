@@ -7311,6 +7311,17 @@ BrowserTabContent::setVolumeMprParasagittalSliceThicknessEnabled(const bool enab
 VolumeSliceViewPlaneEnum::Enum
 BrowserTabContent::getVolumeSliceViewPlane() const
 {
+    CaretAssert(getOverlaySet());
+    const VolumeMappableInterface* vmi(getOverlaySet()->getUnderlayVolume());
+    if (vmi != NULL) {
+        if (vmi->isSingleSlice()) {
+            /*
+             * For volume that is a single slice, always use an 'AXIAL' view
+             */
+            return VolumeSliceViewPlaneEnum::AXIAL;
+        }
+    }
+    
     return m_volumeSliceSettings->getSliceViewPlane();
 }
 
