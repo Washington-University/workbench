@@ -4705,6 +4705,15 @@ CiftiMappableDataFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex
                                                                        tabDrawingInfo);
 }
 
+GraphicsPrimitiveV3fT2f*
+CiftiMappableDataFile::getSingleSliceVolumeDrawingPrimitive(const int32_t /*mapIndex*/,
+                                                            const TabDrawingInfo& /*tabDrawingInfo*/) const
+{
+    CaretLogSevere("Single slice volume not supported for CIFTI files");
+    return NULL;
+}
+
+
 /**
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex

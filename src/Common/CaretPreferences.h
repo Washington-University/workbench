@@ -281,6 +281,10 @@ namespace caret {
         
         void setDynamicConnectivityDefaultedOn(const bool defaultedOn);
         
+        bool isSingleSliceVolumeDynamicConnectivityDefaultedOn() const;
+        
+        void setSingleSliceVolumeDynamicConnectivityDefaultedOn(const bool defaultedOn);
+        
         bool isGuiGesturesEnabled() const;
         
         void setGuiGesturesEnabled(const bool status);
@@ -511,6 +515,8 @@ namespace caret {
         
         bool dynamicConnectivityDefaultedOn;
         
+        std::unique_ptr<CaretPreferenceDataValue> m_singleSliceVolumeDynamicConnectivityDefaultedOn;
+
         bool yokingDefaultedOn;
         
         bool dataToolTipsEnabled;

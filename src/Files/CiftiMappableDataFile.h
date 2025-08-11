@@ -413,6 +413,9 @@ namespace caret {
                                                                           const float volumeSliceThickness,
                                                                           AString& errorMessageOut) const override;
         
+        virtual GraphicsPrimitiveV3fT2f* getSingleSliceVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                              const TabDrawingInfo& tabDrawingInfo) const;
+        
         virtual std::vector<GraphicsPrimitive*> getHistologySliceIntersectionPrimitive(const int32_t mapIndex,
                                                                                        const TabDrawingInfo& tabDrawingInfo,
                                                                                        const HistologySlice* histologySlice,

@@ -33,6 +33,7 @@ namespace caret {
     class HistologySlice;
     class MediaFile;
     class GraphicsPrimitive;
+    class GraphicsPrimitiveV3fT2f;
     class GraphicsPrimitiveV3fT3f;
     class TabDrawingInfo;
 
@@ -484,6 +485,9 @@ namespace caret {
                                         const int64_t tabIndex,
                                         uint8_t rgbaOut[4]) const = 0;
         
+        virtual GraphicsPrimitiveV3fT2f* getSingleSliceVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                              const TabDrawingInfo& tabDrawingInfo) const = 0;
+        
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTriangleStripPrimitive(const int32_t mapIndex,
                                                                                 const TabDrawingInfo& tabDrawingInfo) const = 0;
         
@@ -533,6 +537,7 @@ namespace caret {
         Vector3D getSingleSliceCenterXYZ() const;
         
         Vector3D getSingleSliceNormalVector() const;
+
     };
     
 #ifdef __VOLUME_MAPPABLE_INTERFACE_DECLARE__

@@ -177,6 +177,14 @@ namespace caret {
                                            const float mouseX,
                                            const float mouseY);
 
+        void performSingleSliceIdentification(const GraphicsPrimitiveV3fT2f* slicePrimitive,
+                                              const VolumeMprVirtualSliceView& mprSliceView,
+                                              VolumeMappableInterface* volumeInterface,
+                                              const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                              const GraphicsViewport& viewport,
+                                              const float mouseX,
+                                              const float mouseY);
+
         void performViewportSliceIdentification(const VolumeMprVirtualSliceView& mprSliceView,
                                                 const VolumeMprViewportSlice& mprViewportSlice,
                                                 VolumeMappableInterface* volumeInterface,
@@ -315,6 +323,8 @@ namespace caret {
         Vector3D m_coronalSliceNormalVector;
         
         Vector3D m_parasagittalSliceNormalVector;
+        
+        bool m_underlayIsSingleSliceVolumeFlag = false;
         
         static float s_idNumRows;
         

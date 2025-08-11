@@ -381,6 +381,9 @@ namespace caret {
         virtual GraphicsPrimitiveV3fT3f* getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
                                                                             const TabDrawingInfo& tabDrawingInfo) const override;
 
+        virtual GraphicsPrimitiveV3fT2f* getSingleSliceVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                                              const TabDrawingInfo& tabDrawingInfo) const;
+
         virtual GraphicsPrimitive* getHistologyImageIntersectionPrimitive(const int32_t mapIndex,
                                                                           const TabDrawingInfo& tabDrawingInfo,
                                                                           const MediaFile* mediaFile,

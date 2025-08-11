@@ -72,7 +72,9 @@ namespace caret {
                                                                  const int32_t mapIndex,
                                                                  const TabDrawingInfo& tabDrawingInfo) const;
 
-
+        GraphicsPrimitiveV3fT2f* getSingleSliceVolumeDrawingTrianglesPrimitiveForMap(const int32_t mapIndex,
+                                                                                     const TabDrawingInfo& tabDrawingInfo) const;
+        
         GraphicsPrimitiveV3fT2f* getImageIntersectionDrawingPrimitiveForMap(const MediaFile* mediaFile,
                                                                             const int32_t mapIndex,
                                                                             const TabDrawingInfo& tabDrawingInfo,
@@ -166,6 +168,10 @@ namespace caret {
                                                  const TabDrawingInfo& tabDrawingInfo,
                                                  AString& errorMessageOut) const;
 
+        GraphicsPrimitiveV3fT2f* createPrimitiveSingleSlice(const int32_t mapIndex,
+                                                            const TabDrawingInfo& tabDrawingInfo,
+                                                            AString& errorMessageOut) const;
+
         void updateNumberOfVoxelColorUpdates(const int32_t mapIndex) const;
         
         void clearIntersectionImagePrimitives();
@@ -179,6 +185,8 @@ namespace caret {
         mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTriangleStripPrimitives;
         
         mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT3f>> m_mapGraphicsTrianglesPrimitives;
+        
+        mutable std::map<PrimitiveKey, std::unique_ptr<GraphicsPrimitiveV3fT2f>> m_mapGraphicsSingleSlicePrimitives;
         
         mutable std::vector<VoxelColorUpdate> m_voxelColorUpdates;
         

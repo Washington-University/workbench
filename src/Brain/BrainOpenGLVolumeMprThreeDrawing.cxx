@@ -166,10 +166,26 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
         m_mprViewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
     }
     
+    m_volumeDrawInfo = volumeDrawInfo;
+
+    /*
+     * Test if underlay is a single slice volume file
+     */
+    m_underlayIsSingleSliceVolumeFlag = false;
+    if ( ! m_volumeDrawInfo.empty()) {
+        CaretAssertVectorIndex(m_volumeDrawInfo, 0);
+        if (m_volumeDrawInfo[0].volumeFile->isSingleSlice()) {
+            /*
+             * Intensity modes will not work with single slice volume file
+             */
+            m_mprViewMode = VolumeMprViewModeEnum::MULTI_PLANAR_RECONSTRUCTION;
+            m_underlayIsSingleSliceVolumeFlag = true;
+        }
+    }
+    
     /*
      * Filter the volume drawing info
      */
-    m_volumeDrawInfo = volumeDrawInfo;
     filterVolumeDrawInfo(m_volumeDrawInfo);
     
     const int32_t numberOfVolumes = static_cast<int32_t>(m_volumeDrawInfo.size());
@@ -194,7 +210,11 @@ BrainOpenGLVolumeMprThreeDrawing::draw(BrainOpenGLFixedPipeline* fixedPipelineDr
             break;
     }
     
-    const VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getVolumeSliceDrawingType();
+    VolumeSliceDrawingTypeEnum::Enum sliceDrawingType = m_browserTabContent->getVolumeSliceDrawingType();
+    if (m_underlayIsSingleSliceVolumeFlag) {
+        /* No montage with underlay single slice volume file */
+        sliceDrawingType = VolumeSliceDrawingTypeEnum::VOLUME_SLICE_DRAW_SINGLE;
+    }
 
     m_axialCoronalParaSliceViewFlag = false;
     if (m_browserTabContent->isWholeBrainDisplayed()) {
@@ -240,6 +260,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceView(const BrainOpenGLViewportContent
     const VolumeMappableInterface* underlayVolume(m_volumeDrawInfo[0].volumeFile);
 
     VolumeSliceViewPlaneEnum::Enum sliceViewPlane(browserTabContent->getVolumeSliceViewPlane());
+    if (m_underlayIsSingleSliceVolumeFlag) {
+        /* only one view for single slice volume file */
+        sliceViewPlane = VolumeSliceViewPlaneEnum::AXIAL;
+    }
     switch (sliceViewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
         {
@@ -376,6 +400,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationThreeAxes(const int32_t vie
     
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
         case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_SINGLE_SLICE_FIXED_CAMERA:
             break;
         case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
@@ -632,6 +658,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawAllViewRotationAxes(const int32_t viewport
     
     switch (VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView()) {
         case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
+            break;
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_SINGLE_SLICE_FIXED_CAMERA:
             break;
         case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             break;
@@ -1584,12 +1612,15 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     Vector3D volumeCenterXYZ;
     boundingBox.getCenter(volumeCenterXYZ);
     
-    const VolumeMprVirtualSliceView::ViewType viewType(VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView());
+    const VolumeMprVirtualSliceView::ViewType viewType(m_underlayIsSingleSliceVolumeFlag
+                                                       ? VolumeMprVirtualSliceView::getViewTypeForVolumeSingleSliceView()
+                                                       : VolumeMprVirtualSliceView::getViewTypeForVolumeSliceView());
     
     /*
      * Compute the normal vector for each slice
      */
-    const VolumeMprVirtualSliceView axialMprSliceView(viewType,
+    const VolumeMprVirtualSliceView axialMprSliceView(underlayVolume,
+                                                      viewType,
                                                       volumeCenterXYZ,
                                                       sliceCoordinates,
                                                       boundingBox.getMaximumDifferenceOfXYZ(),
@@ -1598,7 +1629,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                       m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::AXIAL));
     m_axialSliceNormalVector = axialMprSliceView.getVirtualPlane().getNormalVector();
     
-    const VolumeMprVirtualSliceView coronalMprSliceView(viewType,
+    const VolumeMprVirtualSliceView coronalMprSliceView(underlayVolume,
+                                                        viewType,
                                                         volumeCenterXYZ,
                                                         sliceCoordinates,
                                                         boundingBox.getMaximumDifferenceOfXYZ(),
@@ -1607,7 +1639,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                         m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::CORONAL));
     m_coronalSliceNormalVector = coronalMprSliceView.getVirtualPlane().getNormalVector();
     
-    const VolumeMprVirtualSliceView paraMprSliceView(viewType,
+    const VolumeMprVirtualSliceView paraMprSliceView(underlayVolume,
+                                                     viewType,
                                                      volumeCenterXYZ,
                                                      sliceCoordinates,
                                                      boundingBox.getMaximumDifferenceOfXYZ(),
@@ -1621,7 +1654,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     /*
      * Info for slice that is being drawn
      */
-    VolumeMprVirtualSliceView mprSliceView(viewType,
+    VolumeMprVirtualSliceView mprSliceView(underlayVolume,
+                                           viewType,
                                            volumeCenterXYZ,
                                            sliceCoordinates,
                                            boundingBox.getMaximumDifferenceOfXYZ(),
@@ -1654,18 +1688,20 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
     /*
      * Verify that the slices remain orthogonal
      */
-    AString orthoMessage;
-    if ( ! Plane::arePlanesOrthogonal(m_parasagittalSliceNormalVector,
-                                      m_coronalSliceNormalVector,
-                                      m_axialSliceNormalVector,
-                                      &orthoMessage)) {
-        AString rotateMsg("MPR Separate Rotation"
-                          + AString(" failed orthogonal planes test (\"Toolbar -> Reset\" will fix this)"));
-        rotateMsg.appendWithNewLine(orthoMessage);
-        rotateMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
-        rotateMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
-        rotateMsg.appendWithNewLine("   Axial Normal: " + m_axialSliceNormalVector.toString());
-        CaretLogSevere(rotateMsg);
+    if ( ! underlayVolume->isSingleSlice()) {
+        AString orthoMessage;
+        if ( ! Plane::arePlanesOrthogonal(m_parasagittalSliceNormalVector,
+                                          m_coronalSliceNormalVector,
+                                          m_axialSliceNormalVector,
+                                          &orthoMessage)) {
+            AString rotateMsg("MPR Separate Rotation"
+                              + AString(" failed orthogonal planes test (\"Toolbar -> Reset\" will fix this)"));
+            rotateMsg.appendWithNewLine(orthoMessage);
+            rotateMsg.appendWithNewLine("   Parasagittal Normal: " + m_parasagittalSliceNormalVector.toString());
+            rotateMsg.appendWithNewLine("   Coronal Normal: " + m_coronalSliceNormalVector.toString());
+            rotateMsg.appendWithNewLine("   Axial Normal: " + m_axialSliceNormalVector.toString());
+            CaretLogSevere(rotateMsg);
+        }
     }
     
     return mprSliceView;
@@ -3047,6 +3083,10 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
         case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
             useTriangleIdentFlag = true;
             break;
+        case VolumeMprVirtualSliceView::ViewType::VOLUME_SINGLE_SLICE_FIXED_CAMERA:
+            mprViewportSlice.reset(new VolumeMprViewportSlice(viewport,
+                                                              mprSliceView.getVirtualPlane()));
+            break;
         case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
             mprViewportSlice.reset(new VolumeMprViewportSlice(viewport,
                                                               mprSliceView.getVirtualPlane()));
@@ -3176,14 +3216,34 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                                                 m_displayGroup,
                                                 m_labelViewMode,
                                                 m_tabIndex);
-            GraphicsPrimitiveV3fT3f* primitive(volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
-                                                                                                   tabDrawingInfo));
+            
+            GraphicsPrimitive* primitive(NULL);
+            GraphicsPrimitiveV3fT3f* primitive3(NULL);
+            GraphicsPrimitiveV3fT2f* primitive2(NULL);
+            if (volumeInterface->isSingleSlice()) {
+                primitive2 = volumeInterface->getSingleSliceVolumeDrawingPrimitive(vdi.mapIndex,
+                                                                                   tabDrawingInfo);
+                primitive = primitive2;
+            }
+            else {
+                primitive3 = volumeInterface->getVolumeDrawingTrianglesPrimitive(vdi.mapIndex,
+                                                                                 tabDrawingInfo);
+                primitive = primitive3;
+            }
+            CaretAssert(primitive);
+            
             if (primitive != NULL) {
                 const Vector3D sliceOffset(0.0, 0.0, 0.0);
 
-                const bool validPrimitiveFlag(setPrimitiveCoordinates(mprSliceView,
-                                                                      volumeInterface,
-                                                                      primitive));
+                bool validPrimitiveFlag(false);
+                if (primitive3 != NULL) {
+                    validPrimitiveFlag = setPrimitiveCoordinates(mprSliceView,
+                                                                 volumeInterface,
+                                                                 primitive3);
+                }
+                else if (primitive2 != NULL) {
+                    validPrimitiveFlag = true;
+                }
 
                 if (validPrimitiveFlag) {
                     bool discreteFlag(false);
@@ -3292,13 +3352,27 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                         GraphicsEngineDataOpenGL::draw(primitive);
                         
                         if (useTriangleIdentFlag) {
-                            performTriangleIdentification(primitive,
-                                                          mprSliceView,
-                                                          volumeInterface,
-                                                          sliceViewPlane,
-                                                          viewport,
-                                                          m_fixedPipelineDrawing->mouseX,
-                                                          m_fixedPipelineDrawing->mouseY);
+                            if (primitive2 != NULL) {
+                                performSingleSliceIdentification(primitive2,
+                                                                 mprSliceView,
+                                                                 volumeInterface,
+                                                                 sliceViewPlane,
+                                                                 viewport,
+                                                                 m_fixedPipelineDrawing->mouseX,
+                                                                 m_fixedPipelineDrawing->mouseY);
+                            }
+                            else if (primitive3 != NULL) {
+                                performTriangleIdentification(primitive3,
+                                                              mprSliceView,
+                                                              volumeInterface,
+                                                              sliceViewPlane,
+                                                              viewport,
+                                                              m_fixedPipelineDrawing->mouseX,
+                                                              m_fixedPipelineDrawing->mouseY);
+                            }
+                            else {
+                                CaretAssert(0);
+                            }
                         }
                         else {
                             CaretAssert(mprViewportSlice);
@@ -3313,7 +3387,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawSliceWithPrimitive(const VolumeMprVirtualS
                     }
                     else {
                         if (drawIntensitySliceBackgroundFlag) {
-                            drawIntensityBackgroundSlice(primitive);
+                            CaretAssert(primitive3);
+                            drawIntensityBackgroundSlice(primitive3);
                         }
                         
                         /*
@@ -3860,6 +3935,281 @@ BrainOpenGLVolumeMprThreeDrawing::performTriangleIdentification(const GraphicsPr
 }
 
 /**
+ * Perform voxel identification for single slice volume
+ * @param slicePrimitive
+ *    Primitve used to draw virtual slice
+ * @param mprSliceView
+ *    Info about the slice being drawan
+ * @param volumeInterface
+ *    The volume
+ * @param sliceViewPlane
+ *    Plane being viewed
+ * @param viewport
+ *    Viewport of drawing region
+ * @param mouseX
+ *    X location of mouse click
+ * @param mouseY
+ *    Y location of mouse click
+ */
+void
+BrainOpenGLVolumeMprThreeDrawing::performSingleSliceIdentification(const GraphicsPrimitiveV3fT2f* slicePrimitive,
+                                                                   const VolumeMprVirtualSliceView& mprSliceView,
+                                                                   VolumeMappableInterface* volume,
+                                                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
+                                                                   const GraphicsViewport& viewport,
+                                                                   const float mouseX,
+                                                                   const float mouseY)
+{
+    CaretAssert(slicePrimitive);
+    if (slicePrimitive->getPrimitiveType() != GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES) {
+        return;
+    }
+    const int32_t numTriangles(slicePrimitive->getNumberOfVertices() / 3);
+    if (numTriangles <= 0) {
+        CaretLogSevere("Primitive for identification contains no triangles");
+        return;
+    }
+    
+    float mouseNormX(0.0);
+    float mouseNormY(0.0);
+    getMouseViewportNormalizedXY(viewport,
+                                 mouseX,
+                                 mouseY,
+                                 mouseNormX,
+                                 mouseNormY);
+    
+    bool swapNormXValueFlag(false);
+    switch (sliceViewPlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            swapNormXValueFlag = true;
+            break;
+    }
+    mouseNormX = (swapNormXValueFlag
+                  ? (1.0 - mouseNormX)
+                  : mouseNormX);
+    if (m_debugFlag) {
+        std::cout << "   Mouse Norm X/Y: " << mouseNormX << ", " << mouseNormY << std::endl << std::flush;
+    }
+    
+    if ((mouseNormX >= 0.0)
+        && (mouseNormX <= 1.0)
+        && (mouseNormY >= 0.0)
+        && (mouseNormY <= 1.0)) {
+        /* Mouse in viewport */
+    }
+    else {
+        /* Mouse NOT in viewport */
+        return;
+    }
+    
+    /*
+     * Get the stereotaxic coordinates (primitive are ???)
+     */
+    std::vector<Vector3D> stereotaxicXYZ;
+    const std::vector<float>& xyz = slicePrimitive->getFloatXYZ();
+    const int32_t numVertices(xyz.size() / 3);
+    for (int32_t i = 0; i < numVertices; i++) {
+        const int32_t i3(i * 3);
+        CaretAssertVectorIndex(xyz, i3 + 2);
+        stereotaxicXYZ.emplace_back(xyz[i3], xyz[i3+1], xyz[i3+2]);
+    }
+    const int32_t numStereotaxicTriangles(stereotaxicXYZ.size() / 3);
+    if (numTriangles != numStereotaxicTriangles) {
+        CaretLogSevere("Stereotaxic coords count != primitive count");
+        return;
+    }
+    
+    /*
+     * Saves glPixelStore parameters
+     */
+    glPushClientAttrib(GL_CLIENT_PIXEL_STORE_BIT);  /* Pixel storage */
+    glPushAttrib(GL_COLOR_BUFFER_BIT     /* clear color */
+                 | GL_LIGHTING_BIT       /* lighting and shade model */
+                 | GL_PIXEL_MODE_BIT); /* glReadBuffer */
+    
+    glShadeModel(GL_SMOOTH);  /* need shading so that colors are interpolated */
+    glDisable(GL_LIGHTING);
+    
+    /*
+     * Must clear color and depth buffers
+     */
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT
+            | GL_DEPTH_BUFFER_BIT);
+    
+    Vector3D selectedXYZ;
+    bool selectedXYZValid(false);
+    
+    /*
+     * Colors for each triangle vertex
+     */
+    const float v1RGBA[4] { 1.0, 0.0, 0.0, 1.0 };
+    const float v2RGBA[4] { 0.0, 1.0, 0.0, 1.0 };
+    const float v3RGBA[4] { 0.0, 0.0, 1.0, 1.0 };
+    
+    for (int32_t iTriangle = 0; iTriangle < numTriangles; iTriangle++) {
+        /*
+         * Draw each of the triangles one at a time with red, green, and blue
+         * colors at the triangle's vertices.  After drawing the triangle
+         * get the color buffer's RGBA values at the location of the cursor.
+         * If the alpha value is not zero, the RGB components (that are floats)
+         * represent the percentage of each vertex contributing to the pixel's
+         * color and allows computation of the stereotaxic coordinate at
+         * the cursor.
+         */
+        std::unique_ptr<GraphicsPrimitiveV3fC4f> primitive(GraphicsPrimitive::newPrimitiveV3fC4f(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES));
+        
+        const int32_t vertexIndex(iTriangle * 3);
+        CaretAssertVectorIndex(stereotaxicXYZ, vertexIndex + 2);
+        primitive->addVertex(stereotaxicXYZ[vertexIndex],     v1RGBA);
+        primitive->addVertex(stereotaxicXYZ[vertexIndex + 1], v2RGBA);
+        primitive->addVertex(stereotaxicXYZ[vertexIndex + 2], v3RGBA);
+
+        /*
+         * Must clear color and depth buffers for each triangle.
+         * Otherwise, colors from previous triangle remain in buffer
+         */
+        glClear(GL_COLOR_BUFFER_BIT
+                | GL_DEPTH_BUFFER_BIT);
+        
+        GraphicsEngineDataOpenGL::draw(primitive.get());
+        
+        glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+        glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1); /* bytes */
+        
+#ifdef WORKBENCH_USE_QT5_QOPENGL_WIDGET
+        /* do not call glReadBuffer() */
+#else
+        glReadBuffer(GL_BACK);
+#endif
+        
+        /*
+         * Read the RGB color at location of mouse
+         */
+        float pixelRGBA[4];
+        glReadPixels(m_fixedPipelineDrawing->mouseX,
+                     m_fixedPipelineDrawing->mouseY,
+                     1,
+                     1,
+                     GL_RGBA,
+                     GL_FLOAT,
+                     pixelRGBA);
+        
+        /*
+         * Red ranges 0 (bottom) to 1 (top)
+         * Green ranges 0 (bottom) to 1 (top)
+         */
+        const float redPct(pixelRGBA[0]);
+        const float greenPct(pixelRGBA[1]);
+        const float bluePct(pixelRGBA[2]);
+        const float alphaPct(pixelRGBA[3]);
+        
+        if (alphaPct >= 1.0) {
+            /*
+             * Use the stereotaxic coordinates
+             */
+            selectedXYZ = ((stereotaxicXYZ[vertexIndex] * redPct)
+                           + (stereotaxicXYZ[vertexIndex + 1] * greenPct)
+                           + (stereotaxicXYZ[vertexIndex + 2] * bluePct));
+            selectedXYZValid = true;
+        }
+    }
+    
+    if (selectedXYZValid) {
+        int64_t ijk[3];
+        volume->enclosingVoxel(selectedXYZ[0], selectedXYZ[1], selectedXYZ[2],
+                               ijk[0], ijk[1], ijk[2]);
+        if (volume->indexValid(ijk[0], ijk[1], ijk[2])) {
+            SelectionItemVoxel* voxelID = m_brain->getSelectionManager()->getVoxelIdentification();
+            if (voxelID->isEnabledForSelection()) {
+                if ( ! voxelID->isValid()) {
+                    /*
+                     * Get depth from depth buffer
+                     */
+                    glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float */
+                    float selectedPrimitiveDepth(0.0);
+                    glReadPixels(mouseX,
+                                 mouseY,
+                                 1,
+                                 1,
+                                 GL_DEPTH_COMPONENT,
+                                 GL_FLOAT,
+                                 &selectedPrimitiveDepth);
+                    
+                    /*
+                     * Voxel identification
+                     */
+                    if (voxelID->isOtherScreenDepthCloserToViewer(selectedPrimitiveDepth)) {
+                        voxelID->setVoxelIdentification(m_brain,
+                                                        volume,
+                                                        ijk,
+                                                        selectedXYZ,
+                                                        mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                        selectedPrimitiveDepth);
+                        
+                        m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelID,
+                                                                         selectedXYZ);
+                        CaretLogFinest("Selected Voxel (3D): " + AString::fromNumbers(ijk, 3, ","));
+                    }
+                }
+            }
+            
+            /*
+             * Voxel editing identification
+             */
+            SelectionItemVoxelEditing* voxelEditID = m_brain->getSelectionManager()->getVoxelEditingIdentification();
+            if (voxelEditID->isEnabledForSelection()) {
+                if (voxelEditID->getVolumeFileForEditing() == volume) {
+                    /*
+                     * Get depth from depth buffer
+                     */
+                    glPixelStorei(GL_PACK_ALIGNMENT, 4); /* float */
+                    float selectedPrimitiveDepth(0.0);
+                    glReadPixels(mouseX,
+                                 mouseY,
+                                 1,
+                                 1,
+                                 GL_DEPTH_COMPONENT,
+                                 GL_FLOAT,
+                                 &selectedPrimitiveDepth);
+                    Vector3D xyz;
+                    volume->indexToSpace(ijk, xyz);
+                    voxelEditID->setVoxelIdentification(m_brain,
+                                                        volume,
+                                                        ijk,
+                                                        xyz,
+                                                        mprSliceView.getMontageTopLeftSliceDirectionPlane(),
+                                                        selectedPrimitiveDepth);
+                    const float floatDiffXYZ[3] { 0.0, 0.0, 0.0 };
+                    voxelEditID->setVoxelDiffXYZ(floatDiffXYZ);
+                    
+                    m_fixedPipelineDrawing->setSelectedItemScreenXYZ(voxelEditID,
+                                                                     xyz);
+                    CaretLogFinest("Selected Voxel Editing (3D): Indices ("
+                                   + AString::fromNumbers(ijk, 3, ",")
+                                   + ") Diff XYZ ("
+                                   + AString::fromNumbers(floatDiffXYZ, 3, ",")
+                                   + ")");
+                }
+            }
+        }
+    }
+    
+    /*
+     * Restore OpenGL settings
+     */
+    glPopAttrib();
+    glPopClientAttrib();
+}
+
+/**
  * Draw the layers type data.
  *
  * @param mprSliceView
@@ -3936,6 +4286,8 @@ BrainOpenGLVolumeMprThreeDrawing::drawLayers(const VolumeMprVirtualSliceView& mp
             bool displayTransformMatrixValidFlag(false);
             switch (mprSliceView.getViewType()) {
                 case VolumeMprVirtualSliceView::ViewType::ALL_VIEW_SLICES:
+                    break;
+                case VolumeMprVirtualSliceView::ViewType::VOLUME_SINGLE_SLICE_FIXED_CAMERA:
                     break;
                 case VolumeMprVirtualSliceView::ViewType::VOLUME_VIEW_FIXED_CAMERA:
                     break;

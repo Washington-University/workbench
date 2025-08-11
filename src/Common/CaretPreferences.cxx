@@ -187,6 +187,12 @@ CaretPreferences::CaretPreferences()
                                                                             CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                             VolumeMontageCoordinateDisplayTypeEnum::toName(VolumeMontageCoordinateDisplayTypeEnum::OFFSET)));
     
+    m_singleSliceVolumeDynamicConnectivityDefaultedOn.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                                         "m_singleSliceVolumeDynamicConnectivityDefaultedOn",
+                                                                                         CaretPreferenceDataValue::DataType::BOOLEAN,
+                                                                                         CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                                         false));
+
     m_colorsMode = CaretPreferenceValueSceneOverrideModeEnum::USER_PREFERENCES;
 }
 
@@ -1405,6 +1411,26 @@ CaretPreferences::setDynamicConnectivityDefaultedOn(const bool defaultedOn)
                      defaultedOn);
 }
 
+/**
+ * @return Is dynamic connectivity defaulted on for single slice volume files?
+ */
+bool
+CaretPreferences::isSingleSliceVolumeDynamicConnectivityDefaultedOn() const
+{
+    return m_singleSliceVolumeDynamicConnectivityDefaultedOn->getValue().toBool();
+}
+
+/**
+ * Set dynamic connectivity defaulted on for single slice volume files
+ *
+ * @param defaultedOn
+ *     New status.
+ */
+void
+CaretPreferences::setSingleSliceVolumeDynamicConnectivityDefaultedOn(const bool defaultedOn)
+{
+    m_singleSliceVolumeDynamicConnectivityDefaultedOn->setValue(defaultedOn);
+}
 
 /**
  * @return The image capture method.

@@ -1875,7 +1875,12 @@ Brain::initializeVolumeFile(VolumeFile* volumeFile)
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     VolumeDynamicConnectivityFile* volDynConn = volumeFile->getVolumeDynamicConnectivityFile();
     if (volDynConn != NULL) {
-        volDynConn->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+        if (volumeFile->isSingleSlice()) {
+            volDynConn->setEnabledAsLayer(prefs->isSingleSliceVolumeDynamicConnectivityDefaultedOn());
+        }
+        else {
+            volDynConn->setEnabledAsLayer(prefs->isDynamicConnectivityDefaultedOn());
+        }
     }
 }
 

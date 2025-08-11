@@ -509,7 +509,7 @@ QWidget*
 PreferencesDialog::createMiscellaneousWidget()
 {
     /*
-     * Dynamic connectivity defautl
+     * Dynamic connectivity default
      */
     m_dynamicConnectivityComboBox = new WuQTrueFalseComboBox("On",
                                                              "Off",
@@ -520,6 +520,18 @@ PreferencesDialog::createMiscellaneousWidget()
     m_dynamicConnectivityComboBox->setToolTip("Sets default (checked or unchecked) for dynamic connectivity files "
                                               "on the Overlay ToolBox --> Connectivity tab.");
     
+    /*
+     * Single slice volume dynamic connectivity default
+     */
+    m_singleSliceVolumeDynamicConnectivityComboBox = new WuQTrueFalseComboBox("On",
+                                                                              "Off",
+                                                                              this);
+    QObject::connect(m_singleSliceVolumeDynamicConnectivityComboBox, &WuQTrueFalseComboBox::statusChanged,
+                     this, &PreferencesDialog::miscSingleSliceVolumeDynamicConnectivityComboBoxChanged);
+    m_allWidgets->add(m_singleSliceVolumeDynamicConnectivityComboBox);
+    m_singleSliceVolumeDynamicConnectivityComboBox->setToolTip("Sets default (checked or unchecked) for single slice "
+                                                               "volume files on the Overlay ToolBox --> Connectivity tab.");
+
     /*
      * Logging Level
      */
@@ -627,6 +639,9 @@ PreferencesDialog::createMiscellaneousWidget()
                       "Dynconn As Layer Default: ",
                       m_dynamicConnectivityComboBox->getWidget());
     addWidgetToLayout(gridLayout,
+                      "Single Slice Volume Dynconn as Layer Default: ",
+                      m_singleSliceVolumeDynamicConnectivityComboBox->getWidget());
+    addWidgetToLayout(gridLayout,
                       "Logging Level: ",
                       m_miscLoggingLevelComboBox);
     addWidgetToLayout(gridLayout,
@@ -669,6 +684,7 @@ void
 PreferencesDialog::updateMiscellaneousWidget(CaretPreferences* prefs)
 {
     m_dynamicConnectivityComboBox->setStatus(prefs->isDynamicConnectivityDefaultedOn());
+    m_singleSliceVolumeDynamicConnectivityComboBox->setStatus(prefs->isSingleSliceVolumeDynamicConnectivityDefaultedOn());
     
     const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
     int indx = m_miscLoggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
@@ -1552,6 +1568,18 @@ void PreferencesDialog::miscDynamicConnectivityComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setDynamicConnectivityDefaultedOn(value);
+}
+
+/**
+ * Called when single slice volume dynamic connectivity option changed.
+ * @param value
+ *   New value.
+ */
+void
+PreferencesDialog::miscSingleSliceVolumeDynamicConnectivityComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs(SessionManager::get()->getCaretPreferences());
+    prefs->setSingleSliceVolumeDynamicConnectivityDefaultedOn(value);
 }
 
 /**

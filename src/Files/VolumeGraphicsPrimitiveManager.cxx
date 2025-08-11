@@ -79,6 +79,7 @@ VolumeGraphicsPrimitiveManager::clear()
     m_mapGraphicsTriangleFanPrimitives.clear();
     m_mapGraphicsTriangleStripPrimitives.clear();
     m_mapGraphicsTrianglesPrimitives.clear();
+    m_mapGraphicsSingleSlicePrimitives.clear();
     clearIntersectionImagePrimitives();
 }
 
@@ -109,15 +110,8 @@ VolumeGraphicsPrimitiveManager::invalidateAllColoring()
     m_mapGraphicsTrianglesPrimitives.clear();
     m_mapGraphicsTriangleFanPrimitives.clear();
     m_mapGraphicsTriangleStripPrimitives.clear();
-//    for (auto& p : m_mapGraphicsTriangleFanPrimitives) {
-//        p.reset();
-//    }
-//    for (auto& p : m_mapGraphicsTriangleStripPrimitives) {
-//        p.reset();
-//    }
-//    for (auto& p : m_mapGraphicsTrianglesPrimitives) {
-//        p.reset();
-//    }
+    m_mapGraphicsSingleSlicePrimitives.clear();
+    
     clearIntersectionImagePrimitives();
 }
 
@@ -162,6 +156,16 @@ VolumeGraphicsPrimitiveManager::invalidateColoringForMap(const int32_t mapIndex)
         }
     }
         
+    {
+        std::vector<PrimitiveKey> removeKeys;
+        for (auto& m : m_mapGraphicsSingleSlicePrimitives) {
+            if (m.first.m_mapIndex == mapIndex)
+                removeKeys.push_back(m.first);
+        }
+        for (auto key : removeKeys) {
+            m_mapGraphicsSingleSlicePrimitives.erase(key);
+        }
+    }
     /*
      * Remove any items with key that contains map index
      * (1) Get the key while avoiding invalidating the iterator
@@ -293,6 +297,80 @@ VolumeGraphicsPrimitiveManager::getVolumeDrawingPrimitiveForMap(const PrimitiveS
     
     return primitiveOut;
 }
+
+/**
+ * Get the graphics primitive for drawing a single slice  volume
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
+ * @return
+ *    Graphics primitive or NULL if unable to draw
+ */
+GraphicsPrimitiveV3fT2f*
+VolumeGraphicsPrimitiveManager::getSingleSliceVolumeDrawingTrianglesPrimitiveForMap(const int32_t mapIndex,
+                                                                                    const TabDrawingInfo& tabDrawingInfo) const
+{
+    /*
+     * Each map in a volume requires its own primitive since each map is
+     * colored differently.
+     *
+     * For label volume types: Display of particular labels is performed in each tab
+     * and may be unique for each tab.  Therefore if this is a label volume,
+     * we must also have a unique primitive for each tab.
+     *
+     * For all other volume types: Coloring is the same in all tabs so use
+     * 'tabZeroIndex' for this volume types.
+     */
+    const bool labelVolumeFlag(tabDrawingInfo.getMapFile()->isMappedWithLabelTable());
+    const int32_t tabZeroIndex(0);
+    PrimitiveKey key(tabDrawingInfo.getMapIndex(),
+                     (labelVolumeFlag ? tabDrawingInfo.getTabIndex() : tabZeroIndex));
+    
+    GraphicsPrimitiveV3fT2f* primitiveOut(NULL);
+    auto iter(m_mapGraphicsSingleSlicePrimitives.find(key));
+    if (iter != m_mapGraphicsSingleSlicePrimitives.end()) {
+        primitiveOut = iter->second.get();
+    }
+
+    if (primitiveOut != NULL) {
+        const VoxelColorUpdate* voxelColorUpdate(getVoxelColorUpdate(mapIndex));
+        if (voxelColorUpdate != NULL) {
+            if (voxelColorUpdate->isValid()) {
+                /*
+                 * Put the voxel color update in the graphics primitive
+                 * that will get used next time the primitive is drawn
+                 */
+                primitiveOut->setVoxelColorUpdate(*voxelColorUpdate);
+            }
+            
+            /*
+             * Data has been used so reset it
+             */
+            resetVoxelColorUpdate(mapIndex);
+        }
+    }
+    
+    if (primitiveOut == NULL) {
+        AString errorMessage;
+        primitiveOut = VolumeGraphicsPrimitiveManager::createPrimitiveSingleSlice(mapIndex,
+                                                                                  tabDrawingInfo,
+                                                                                  errorMessage);
+        if (primitiveOut != NULL) {
+            std::unique_ptr<GraphicsPrimitiveV3fT2f> ptr(primitiveOut);
+            m_mapGraphicsSingleSlicePrimitives.insert(std::make_pair(key,
+                                                                     std::move(ptr)));
+        }
+        else {
+            CaretLogSevere(m_mapDataFile->getFileNameNoPath()
+                           + errorMessage);
+        }
+    }
+    
+    return primitiveOut;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -465,6 +543,172 @@ VolumeGraphicsPrimitiveManager::createPrimitive(const PrimitiveShape primitiveSh
     for (int32_t i = 0; i < numVertices; i++) {
         primitiveOut->addVertex(xyz, str);
     }
+
+    return primitiveOut;
+}
+
+/**
+ * Generate a graphics primitive for drawing the single slice volume
+ * @param mapIndex
+ *    Map index for creating the primitive
+ * @param tabDrawingInfo
+ *    Info for drawing tab.
+ * @param errorMessageOut
+ *    Contains information if error occurs
+ * @return
+ *    Pointer to graphics primitive or NULL if failure
+ */GraphicsPrimitiveV3fT2f*
+VolumeGraphicsPrimitiveManager::createPrimitiveSingleSlice(const int32_t mapIndex,
+                                                           const TabDrawingInfo& tabDrawingInfo,
+                                                           AString& errorMessageOut) const
+{
+    CaretAssert(m_volumeInterface);
+    CaretAssert(m_volumeInterface->isSingleSlice());
+    errorMessageOut.clear();
+    
+    std::vector<int64_t> dims(5);
+    m_volumeInterface->getDimensions(dims);
+    
+    /*
+     * Make sure volume dimension is withing OpenGL Texture Range
+     */
+    const int64_t maxTextureSize(GraphicsUtilitiesOpenGL::getTextureWidthHeightMaximumDimension());
+    AString sizeMsg;
+    for (int32_t i = 0; i < 3; i++) {
+        if (dims[i] > maxTextureSize) {
+            sizeMsg.appendWithNewLine("Volume Dimension="
+                                      + AString::number(i)
+                                      + " lenghth="
+                                      + AString::number(dims[i])
+                                      + " exceeds 2D Texture maximum="
+                                      + AString::number(maxTextureSize));
+        }
+    }
+    if ( ! sizeMsg.isEmpty()) {
+        errorMessageOut = sizeMsg;
+        return NULL;
+    }
+
+    
+    /*
+     * Allocate storage for rgba data that is used by the graphics primitive
+     */
+    int64_t numberOfTextureBytes(0);
+    std::shared_ptr<uint8_t> imageRgbaData = GraphicsTextureSettings::allocateImageRgbaData(dims[0],
+                                                                                            dims[1],
+                                                                                            dims[2],
+                                                                                            &numberOfTextureBytes);
+    uint8_t* imageRgbaPtr(imageRgbaData.get()); /* simplify access for loading */    int64_t rgbaIndex4(0);
+    for (int64_t k = 0; k < dims[2]; k++) {
+        for (int64_t j = 0; j < dims[1]; j++) {
+            for (int64_t i = 0; i < dims[0]; i++) {
+                CaretAssert(rgbaIndex4 < numberOfTextureBytes);
+                m_volumeInterface->getVoxelColorInMap(i, j, k,
+                                                      mapIndex, tabDrawingInfo,
+                                                      &imageRgbaPtr[rgbaIndex4]);
+                rgbaIndex4 += 4;
+            }
+        }
+    }
+//    uint8_t* imageRgbaPtr(imageRgbaData.get()); /* simplify access for loading */
+//
+////    const CiftiMappableDataFile* ciftiFile(dynamic_cast<const CiftiMappableDataFile*>(m_volumeInterface()));
+////    const VolumeFile* volumeFile(dynamic_cast<const VolumeFile*>
+    int64_t numberOfSlices(1);
+    int64_t numberOfRows(0);
+    int64_t numberOfColumns(0);
+//    int64_t firstVoxelIJK[3] = { 0, 0, 0 };
+//    int64_t rowStepIJK[3] = { 0, 0, 0 };
+//    int64_t columnStepIJK[3] = { 0, 0, 0 };
+//
+    switch (m_volumeInterface->getSingleSliceDimensionIndex()) {
+        case 0:
+            numberOfColumns = dims[1];
+            numberOfRows    = dims[2];
+//            rowStepIJK[0]    = 1;
+//            columnStepIJK[1] = 1;
+            break;
+        case 1:
+            numberOfColumns = dims[0];
+            numberOfRows    = dims[2];
+//            rowStepIJK[0]    = 1;
+//            columnStepIJK[1] = 1;
+            break;
+        case 2:
+            numberOfColumns  = dims[0];
+            numberOfRows     = dims[1];
+//            rowStepIJK[0]    = 1;
+//            columnStepIJK[1] = 1;
+            break;
+        default:
+            CaretAssert(0);
+            return NULL;
+            break;
+    }
+    
+    Vector3D botLeftXYZ, botRightXYZ, topRightXYZ, topLeftXYZ;
+    m_volumeInterface->getSingleSliceCornersXYZ(botLeftXYZ, botRightXYZ, topRightXYZ, topLeftXYZ);
+    
+    const bool useMipMaps(true);
+    GraphicsTextureSettings::MipMappingType mipMap(GraphicsTextureSettings::MipMappingType::DISABLED);
+    GraphicsTextureMagnificationFilterEnum::Enum magFilter(GraphicsTextureMagnificationFilterEnum::LINEAR);
+    GraphicsTextureMinificationFilterEnum::Enum minFilter(GraphicsTextureMinificationFilterEnum::LINEAR);
+    if (useMipMaps) {
+        mipMap    = GraphicsTextureSettings::MipMappingType::ENABLED;
+        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR_MIPMAP_LINEAR;
+        
+        /*
+         * 31 March 2023 Disable mip maps until I (John H) can test on Linux and Windows
+         */
+        mipMap    = GraphicsTextureSettings::MipMappingType::DISABLED;
+        minFilter = GraphicsTextureMinificationFilterEnum::LINEAR;
+    }
+    
+    if (m_mapDataFile->isMappedWithRGBA()
+        || m_mapDataFile->isMappedWithLabelTable()) {
+        mipMap    = GraphicsTextureSettings::MipMappingType::DISABLED;
+        magFilter  = GraphicsTextureMagnificationFilterEnum::NEAREST;
+        minFilter  = GraphicsTextureMinificationFilterEnum::NEAREST;
+    }
+    std::array<float, 4> backgroundColor { 0.0, 0.0, 0.0, 0.0 };
+    GraphicsTextureSettings textureSettings(imageRgbaData,
+                                            numberOfColumns,
+                                            numberOfRows,
+                                            numberOfSlices,
+                                            GraphicsTextureSettings::DimensionType::FLOAT_STR_2D,
+                                            GraphicsTextureSettings::PixelFormatType::RGBA,
+                                            GraphicsTextureSettings::PixelOrigin::BOTTOM_LEFT,
+                                            GraphicsTextureSettings::WrappingType::CLAMP_TO_BORDER,
+                                            mipMap,
+                                            GraphicsTextureSettings::CompressionType::DISABLED,
+                                            magFilter,
+                                            minFilter,
+                                            backgroundColor);
+    
+//    GraphicsPrimitive::PrimitiveType primType(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLE_STRIP);
+//    
+//    GraphicsPrimitiveV3fT2f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT2f(primType,
+//                                                                                textureSettings));
+//    CaretAssert(primitiveOut);
+//    
+//    primitiveOut->addVertex(botLeftXYZ, 0.0, 0.0);
+//    primitiveOut->addVertex(topLeftXYZ, 0.0, 1.0);
+//    primitiveOut->addVertex(botRightXYZ, 1.0, 0.0);
+//    primitiveOut->addVertex(topRightXYZ, 1.0, 1.0);
+    
+    GraphicsPrimitive::PrimitiveType primType(GraphicsPrimitive::PrimitiveType::OPENGL_TRIANGLES);
+    
+    GraphicsPrimitiveV3fT2f* primitiveOut(GraphicsPrimitive::newPrimitiveV3fT2f(primType,
+                                                                                textureSettings));
+    CaretAssert(primitiveOut);
+    
+    primitiveOut->addVertex(botLeftXYZ, 0.0, 0.0);
+    primitiveOut->addVertex(botRightXYZ, 1.0, 0.0);
+    primitiveOut->addVertex(topLeftXYZ, 0.0, 1.0);
+
+    primitiveOut->addVertex(topLeftXYZ, 0.0, 1.0);
+    primitiveOut->addVertex(botRightXYZ, 1.0, 0.0);
+    primitiveOut->addVertex(topRightXYZ, 1.0, 1.0);
 
     return primitiveOut;
 }

@@ -2038,6 +2038,14 @@ VolumeFile::getVolumeDrawingTrianglesPrimitive(const int32_t mapIndex,
                                                                        tabDrawingInfo);
 }
 
+GraphicsPrimitiveV3fT2f*
+VolumeFile::getSingleSliceVolumeDrawingPrimitive(const int32_t mapIndex,
+                                                 const TabDrawingInfo& tabDrawingInfo) const
+{
+    return m_graphicsPrimitiveManager->getSingleSliceVolumeDrawingTrianglesPrimitiveForMap(mapIndex,
+                                                                                           tabDrawingInfo);
+}
+
 /**
  * Create a graphics primitive for showing part of volume that intersects with an image from histology
  * @param mapIndex

@@ -47,10 +47,16 @@ namespace caret {
              */
             ALL_VIEW_SLICES,
             /*
+             * Single slice volume viewing
+             */
+            VOLUME_SINGLE_SLICE_FIXED_CAMERA,
+            /*
              * Cameras are fixed, volume coordinates are transformed
              */
             VOLUME_VIEW_FIXED_CAMERA
         };
+        
+        static ViewType getViewTypeForVolumeSingleSliceView();
         
         static ViewType getViewTypeForVolumeSliceView();
         
@@ -58,7 +64,8 @@ namespace caret {
         
         VolumeMprVirtualSliceView();
         
-        VolumeMprVirtualSliceView(const ViewType viewType,
+        VolumeMprVirtualSliceView(const VolumeMappableInterface* underlayVolume,
+                                  const ViewType viewType,
                                   const Vector3D& volumeCenterXYZ,
                                   const Vector3D& selectedSlicesXYZ,
                                   const float sliceWidthHeight,
@@ -154,6 +161,8 @@ namespace caret {
         void initializeModeAllViewSlices();
         
         void initializeModeVolumeViewFixedCamera();
+        
+        void initializeModeVolumeSingleSliceFixedCamera(const VolumeMappableInterface* underlayVolume);
         
         std::vector<Vector3D> createVirtualSliceTriangles(const VolumeMappableInterface* volume) const;
                 

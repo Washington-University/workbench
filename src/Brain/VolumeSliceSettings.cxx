@@ -513,23 +513,49 @@ VolumeSliceSettings::selectSlicesAtOrigin(const VolumeMappableInterface* volumeI
     m_sliceCoordinateCoronal      = 0.0;
     m_sliceCoordinateParasagittal = 0.0;
     
-    /*
-     * If (0, 0, 0) is not within the volume
-     * set selected slices to "middle" of the volume.
-     */
     if (volumeInterface != NULL) {
-        int64_t indexI(0), indexJ(0), indexK(0);
-        volumeInterface->enclosingVoxel(0.0, 0.0, 0.0, indexI, indexJ, indexK);
-        if ( ! volumeInterface->indexValid(indexI, indexJ, indexK)) {
+        /*
+         * Single slice volume is a special case.
+         * Set selected slices to middle of volume.
+         */
+        if (volumeInterface->isSingleSlice()) {
+            int64_t indexI(0), indexJ(0), indexK(0);
+            
             int64_t dimI, dimJ, dimK, dimTime, dimCompontents;
             volumeInterface->getDimensions(dimI, dimJ, dimK, dimTime, dimCompontents);
-            if ((dimI > 1) && (dimJ > 1) && (dimK > 1)) {
+            
+            if (dimI > 1) {
                 indexI = dimI / 2;
+            }
+            if (dimJ > 1) {
                 indexJ = dimJ / 2;
+            }
+            if (dimK > 1) {
                 indexK = dimK / 2;
-                if (volumeInterface->indexValid(indexI, indexJ, indexK)) {
-                    volumeInterface->indexToSpace((float)indexI, (float)indexJ, (float)indexK,
-                                                  m_sliceCoordinateParasagittal, m_sliceCoordinateCoronal, m_sliceCoordinateAxial);
+            }
+            if (volumeInterface->indexValid(indexI, indexJ, indexK)) {
+                volumeInterface->indexToSpace((float)indexI, (float)indexJ, (float)indexK,
+                                              m_sliceCoordinateParasagittal, m_sliceCoordinateCoronal, m_sliceCoordinateAxial);
+            }
+        }
+        else {
+            /*
+             * If (0, 0, 0) is not within the volume
+             * set selected slices to "middle" of the volume.
+             */
+            int64_t indexI(0), indexJ(0), indexK(0);
+            volumeInterface->enclosingVoxel(0.0, 0.0, 0.0, indexI, indexJ, indexK);
+            if ( ! volumeInterface->indexValid(indexI, indexJ, indexK)) {
+                int64_t dimI, dimJ, dimK, dimTime, dimCompontents;
+                volumeInterface->getDimensions(dimI, dimJ, dimK, dimTime, dimCompontents);
+                if ((dimI > 1) && (dimJ > 1) && (dimK > 1)) {
+                    indexI = dimI / 2;
+                    indexJ = dimJ / 2;
+                    indexK = dimK / 2;
+                    if (volumeInterface->indexValid(indexI, indexJ, indexK)) {
+                        volumeInterface->indexToSpace((float)indexI, (float)indexJ, (float)indexK,
+                                                      m_sliceCoordinateParasagittal, m_sliceCoordinateCoronal, m_sliceCoordinateAxial);
+                    }
                 }
             }
         }

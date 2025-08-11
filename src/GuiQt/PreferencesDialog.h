@@ -66,6 +66,7 @@ namespace caret {
         void miscGuiGesturesEnabledComboBoxChanged(bool value);
         void miscCrossAtViewportCenterEnabledComboBoxChanged(bool value);
         void miscDynamicConnectivityComboBoxChanged(bool value);
+        void miscSingleSliceVolumeDynamicConnectivityComboBoxChanged(bool value);
         void miscWindowToolBarWidthModeComboBoxItemActivated();
         void miscFileOpenFromOpSysTypeComboBoxItemActivated();
         void openGLDrawingMethodEnumComboBoxItemActivated();
@@ -190,7 +191,8 @@ namespace caret {
         WuQTrueFalseComboBox* m_openGLGraphicsTimingEnabledComboBox;
         
         WuQTrueFalseComboBox* m_dynamicConnectivityComboBox;
-        
+        WuQTrueFalseComboBox* m_singleSliceVolumeDynamicConnectivityComboBox;
+
         EnumComboBoxTemplate* m_volumeAllSlicePlanesLayoutComboBox;
         WuQTrueFalseComboBox* m_volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* m_volumeAxesLabelsComboBox;
