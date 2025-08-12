@@ -71,7 +71,8 @@ namespace caret {
                                   const float sliceWidthHeight,
                                   const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                   const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
-                                  const Matrix4x4& sliceRotationMatrix);
+                                  const Matrix4x4& sliceRotationMatrix,
+                                  const float singleSliceRotationAngle);
 
         virtual ~VolumeMprVirtualSliceView();
         
@@ -186,6 +187,8 @@ namespace caret {
         VolumeMprOrientationModeEnum::Enum m_mprOrientationMode;
 
         Matrix4x4 m_sliceRotationMatrix;
+        
+        float m_singleSliceRotationAngle;
         
         Matrix4x4 m_transformationMatrix;
         

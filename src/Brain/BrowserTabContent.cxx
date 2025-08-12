@@ -326,6 +326,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                &m_mprRotationY);
     m_sceneClassAssistant->add("m_mprRotationZ",
                                &m_mprRotationZ);
+    m_sceneClassAssistant->add("m_mprThreeSingleSliceVolumeRotationAngle",
+                               &m_mprThreeSingleSliceVolumeRotationAngle);
     
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
@@ -489,6 +491,8 @@ BrowserTabContent::cloneBrowserTabContent(BrowserTabContent* tabToClone)
     m_mprThreeAxialInverseRotationQuaternion = tabToClone->m_mprThreeAxialInverseRotationQuaternion;
     m_mprThreeCoronalInverseRotationQuaternion = tabToClone->m_mprThreeCoronalInverseRotationQuaternion;
     m_mprThreeParasagittalInverseRotationQuaternion = tabToClone->m_mprThreeParasagittalInverseRotationQuaternion;
+    
+    m_mprThreeSingleSliceVolumeRotationAngle = tabToClone->m_mprThreeSingleSliceVolumeRotationAngle;
     
     Model* model = getModelForDisplay();
     
@@ -3222,6 +3226,8 @@ BrowserTabContent::resetMprRotations()
     m_mprThreeAxialInverseRotationQuaternion = QQuaternion();
     m_mprThreeCoronalInverseRotationQuaternion = QQuaternion();
     m_mprThreeParasagittalInverseRotationQuaternion = QQuaternion();
+    
+    m_mprThreeSingleSliceVolumeRotationAngle = 0.0;
 }
 
 /**
@@ -3525,6 +3531,15 @@ BrowserTabContent::getMprThreeRotationVectorForSlicePlane(const VolumeSliceViewP
 }
 
 /**
+ * @return The MPR three single slice rotation angle
+ */
+float
+BrowserTabContent::getMprThreeSingleSliceVolumeRotationAngle() const
+{
+    return m_mprThreeSingleSliceVolumeRotationAngle;
+}
+
+/**
  * Set the vector for rotating in the given slice plane
  * @param slicePlane
  *    The slice plane
@@ -3549,6 +3564,17 @@ BrowserTabContent::setMprThreeRotationVectorForSlicePlane(const VolumeSliceViewP
             m_mprThreeParasagittalRotationVector = rotationVector;
             break;
     }
+}
+
+/**
+ * Set the MPR three single slice rotation angles
+ * @param angle
+ *    New rotation angle
+ */
+void
+BrowserTabContent::setMprThreeSingleSliceVolumeRotationAngle(const float angle)
+{
+    m_mprThreeSingleSliceVolumeRotationAngle = angle;
 }
 
 /**
@@ -4729,142 +4755,152 @@ BrowserTabContent::applyMouseRotationMprThree(BrainOpenGLViewportContent* viewpo
             break;
     }
 
-    /*
-     * Separate rotation matrices
-     */
-    {
-        if (rotateTransformFlag) {
-            const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                               -rotationAngleCCW));
-
-            m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
-            m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
-            m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
-            m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
-            
-            const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                       rotationAngleCCW));
-            
-            /*
-             * Pre-multiplying seems to result in slice remaining
-             * static (not rotating)
-             */
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    m_mprThreeAxialSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    m_mprThreeCoronalSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    m_mprThreeParasagittalSeparateRotationQuaternion *= oppositeRotationQuaternion;
-                    break;
+    CaretAssert(getOverlaySet());
+    const VolumeMappableInterface* vmi(getOverlaySet()->getUnderlayVolume());
+    const bool singleSliceVolumeViewFlag((vmi != NULL)
+                                         ? vmi->isSingleSlice()
+                                         : false);
+    if (singleSliceVolumeViewFlag) {
+        m_mprThreeSingleSliceVolumeRotationAngle += rotationAngleCCW;
+    }
+    else {
+        /*
+         * Separate rotation matrices
+         */
+        {
+            if (rotateTransformFlag) {
+                const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                   -rotationAngleCCW));
+                
+                m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
+                m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
+                m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
+                m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
+                
+                const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                           rotationAngleCCW));
+                
+                /*
+                 * Pre-multiplying seems to result in slice remaining
+                 * static (not rotating)
+                 */
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        m_mprThreeAxialSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        m_mprThreeCoronalSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        m_mprThreeParasagittalSeparateRotationQuaternion *= oppositeRotationQuaternion;
+                        break;
+                }
+            }
+            else if (rotateSliceFlag) {
+                const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                   rotationAngleCCW));
+                
+                m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
+                        break;
+                }
             }
         }
-        else if (rotateSliceFlag) {
+        
+        /*
+         * Inverse rotations
+         */
+        {
+            /*
+             * From https://www.mathworks.com/help/fusion/ug/rotations-orientation-and-quaternions.html
+             * "The quaternion class, and this example, use the "right-hand
+             * rule" convention to define rotations. That is, positive
+             * rotations are clockwise around the axis of rotation when
+             * viewed from the origin (looking from negative axis to
+             * positive axis).
+             *
+             * Neurological convention views the brain from the back of
+             * the head (left side of the brain is on the left side of the
+             * screen).
+             *
+             * Radiological convention views the brain from the front of
+             * the head (right side of the brain is on the left side of
+             * the screen).
+             *
+             *       Neurological  Screen Screen        Looking    Positive
+             * Axis  Radiological  Left   Right Up Down From       Rotation
+             *  P       N/A         +Y     -Y   +Z  -Z  Left         CW
+             *  C        N          -X     +X   +Z  -Z  Posterior    CW
+             *  C        R          +X     -Y   +Z  -Z  Anterior     CCW
+             *  A        N          -X     +X   +Z  -Z  Superior     CCW
+             *  A        R          +X     -X   +Z  -Z  Inferior     CW
+             *
+             * Other references:
+             * - https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
+             * - https://danceswithcode.net/engineeringnotes/rotations_in_3d/rotations_in_3d_part1.html
+             */
+            
             const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
                                                                                rotationAngleCCW));
-
-            m_mprThreeRotationSeparateQuaternion *= rotationQuaternion;
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    m_mprThreeAxialSeparateRotationQuaternion *= rotationQuaternion;
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    m_mprThreeCoronalSeparateRotationQuaternion *= rotationQuaternion;
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    m_mprThreeParasagittalSeparateRotationQuaternion *= rotationQuaternion;
-                    break;
-            }
-        }
-    }
-    
-    /*
-     * Inverse rotations
-     */
-    {
-        /*
-         * From https://www.mathworks.com/help/fusion/ug/rotations-orientation-and-quaternions.html
-         * "The quaternion class, and this example, use the "right-hand
-         * rule" convention to define rotations. That is, positive
-         * rotations are clockwise around the axis of rotation when
-         * viewed from the origin (looking from negative axis to
-         * positive axis).
-         *
-         * Neurological convention views the brain from the back of
-         * the head (left side of the brain is on the left side of the
-         * screen).
-         *
-         * Radiological convention views the brain from the front of
-         * the head (right side of the brain is on the left side of
-         * the screen).
-         *
-         *       Neurological  Screen Screen        Looking    Positive
-         * Axis  Radiological  Left   Right Up Down From       Rotation
-         *  P       N/A         +Y     -Y   +Z  -Z  Left         CW
-         *  C        N          -X     +X   +Z  -Z  Posterior    CW
-         *  C        R          +X     -Y   +Z  -Z  Anterior     CCW
-         *  A        N          -X     +X   +Z  -Z  Superior     CCW
-         *  A        R          +X     -X   +Z  -Z  Inferior     CW
-         *
-         * Other references:
-         * - https://danceswithcode.net/engineeringnotes/quaternions/quaternions.html
-         * - https://danceswithcode.net/engineeringnotes/rotations_in_3d/rotations_in_3d_part1.html
-         */
-        
-        const QQuaternion rotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                           rotationAngleCCW));
-        
-        if (rotateTransformFlag) {
-            const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
-                                                                                       -rotationAngleCCW));
             
-            /*
-             * Pre-multiplying seems to result in slice remaining
-             * static (not rotating)
-             */
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    m_mprThreeAxialInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                * m_mprThreeAxialInverseRotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    m_mprThreeCoronalInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                  * m_mprThreeCoronalInverseRotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    m_mprThreeParasagittalInverseRotationQuaternion = (oppositeRotationQuaternion
-                                                                       * m_mprThreeParasagittalInverseRotationQuaternion);
-                    break;
+            if (rotateTransformFlag) {
+                const QQuaternion oppositeRotationQuaternion(QQuaternion::fromAxisAndAngle(rotationVector[0], rotationVector[1], rotationVector[2],
+                                                                                           -rotationAngleCCW));
+                
+                /*
+                 * Pre-multiplying seems to result in slice remaining
+                 * static (not rotating)
+                 */
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        m_mprThreeAxialInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                    * m_mprThreeAxialInverseRotationQuaternion);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        m_mprThreeCoronalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                      * m_mprThreeCoronalInverseRotationQuaternion);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        m_mprThreeParasagittalInverseRotationQuaternion = (oppositeRotationQuaternion
+                                                                           * m_mprThreeParasagittalInverseRotationQuaternion);
+                        break;
+                }
             }
-        }
-        else if (rotateSliceFlag) {
-            /*
-             * Pre-multiplying seems to result in slice remaining
-             * static (not rotating)
-             */
-            switch (sliceViewPlane) {
-                case VolumeSliceViewPlaneEnum::ALL:
-                    break;
-                case VolumeSliceViewPlaneEnum::AXIAL:
-                    m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
-                                                                * rotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::CORONAL:
-                    m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
-                                                                  * rotationQuaternion);
-                    break;
-                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                    m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
-                                                                       * rotationQuaternion);
-                    break;
+            else if (rotateSliceFlag) {
+                /*
+                 * Pre-multiplying seems to result in slice remaining
+                 * static (not rotating)
+                 */
+                switch (sliceViewPlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        m_mprThreeAxialInverseRotationQuaternion = (m_mprThreeAxialInverseRotationQuaternion
+                                                                    * rotationQuaternion);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        m_mprThreeCoronalInverseRotationQuaternion = (m_mprThreeCoronalInverseRotationQuaternion
+                                                                      * rotationQuaternion);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        m_mprThreeParasagittalInverseRotationQuaternion = (m_mprThreeParasagittalInverseRotationQuaternion
+                                                                           * rotationQuaternion);
+                        break;
+                }
             }
         }
     }
@@ -5992,6 +6028,8 @@ BrowserTabContent::getTransformationsInModelTransform(ModelTransform& modelTrans
     };
     modelTransform.setMprThreeRotationAngles(mprThreeRotationAngles);
     
+    modelTransform.setMprThreeSingleSliceRotationAngle(m_mprThreeSingleSliceVolumeRotationAngle);
+    
     const Matrix4x4 flatRotationMatrix = getFlatRotationMatrix();
     float fm[4][4];
     flatRotationMatrix.getMatrix(fm);
@@ -6083,6 +6121,8 @@ BrowserTabContent::setTransformationsFromModelTransform(const ModelTransform& mo
             break;
     }
 
+    setMprThreeSingleSliceVolumeRotationAngle(modelTransform.getMprThreeSingleSliceRotationAngle());
+    
     float fm[4][4];
     modelTransform.getFlatRotation(fm);
     Matrix4x4 flatRotationMatrix;
@@ -8617,6 +8657,8 @@ BrowserTabContent::setBrainModelYokingGroup(const YokingGroupEnum::Enum brainMod
                 m_mprThreeCoronalInverseRotationQuaternion = btc->m_mprThreeCoronalInverseRotationQuaternion;
                 m_mprThreeParasagittalInverseRotationQuaternion = btc->m_mprThreeParasagittalInverseRotationQuaternion;
 
+                m_mprThreeSingleSliceVolumeRotationAngle = btc->m_mprThreeSingleSliceVolumeRotationAngle;
+                
                 /**
                  * lighting enabled NOT yoked 
                  * m_lightingEnabled = btc->m_lightingEnabled;
@@ -8775,6 +8817,7 @@ BrowserTabContent::updateBrainModelYokedBrowserTabs()
                 btc->m_mprThreeCoronalInverseRotationQuaternion = m_mprThreeCoronalInverseRotationQuaternion;
                 btc->m_mprThreeParasagittalInverseRotationQuaternion = m_mprThreeParasagittalInverseRotationQuaternion;
 
+                btc->m_mprThreeSingleSliceVolumeRotationAngle = m_mprThreeSingleSliceVolumeRotationAngle;
                 /*
                  * DO NOT YOKE MEDIA TRANSFORMATION (but might have its own yoking in the future 
                  * *btc->m_mediaViewingTransformation = *m_mediaViewingTransformation;

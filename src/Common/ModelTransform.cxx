@@ -92,6 +92,8 @@ ModelTransform::setToIdentity()
     this->mprThreeRotationAngles[1] = 0.0;
     this->mprThreeRotationAngles[2] = 0.0;
     
+    this->mprThreeSingleSliceRotationAngle = 0.0;
+    
     this->rightCortexFlatMapOffsetXY[0] = 0.0;
     this->rightCortexFlatMapOffsetXY[1] = 0.0;
     this->rightCortexFlatMapZoomFactor  = 1.0;
@@ -265,6 +267,15 @@ ModelTransform::getMprThreeRotationAngles(float mprThreeRotationAngles[3]) const
 }
 
 /**
+ * @return The MPR three single slice rotation angle
+ */
+float
+ModelTransform::getMprThreeSingleSliceRotationAngle() const
+{
+    return this->mprThreeSingleSliceRotationAngle;
+}
+
+/**
  * Get the flat rotation matrix.
  * @param flatRotation
  *   Flat rotation matrix.
@@ -418,6 +429,17 @@ ModelTransform::setMprThreeRotationAngles(const float mprThreeRotationAngles[3])
 }
 
 /**
+ * Set the MPR Three single slice rotation angle
+ * @param angle
+ *   New angle
+ */
+void
+ModelTransform::setMprThreeSingleSliceRotationAngle(const float angle)
+{
+    this->mprThreeSingleSliceRotationAngle = angle;
+}
+
+/**
  * Set the flat rotation
  * @param flatRotation
  *    New value for flat rotation
@@ -533,6 +555,10 @@ ModelTransform::getAsPrettyString(Matrix4x4Interface& matrixForCalculations,
                         + AString::fromNumbers(this->mprThreeRotationAngles, 3));
     s.appendWithNewLine(" ");
         
+    s.appendWithNewLine("MPR Three Single Slice Rotation Angle: "
+                        + AString::number(this->mprThreeSingleSliceRotationAngle));
+    s.appendWithNewLine(" ");
+
     matrixForCalculations.setMatrix(this->flatRotation);
     matrixForCalculations.getRotation(rotXYZ[0], rotXYZ[1], rotXYZ[2]);
     
@@ -602,14 +628,17 @@ ModelTransform::getAsString() const
         s += (s_separatorInPreferences + AString::number(this->mprThreeRotationAngles[i]));
     }
     
-    /* 44 + 16 = 60 */
+    /* 44 + 1 = 45 */
+    s += (s_separatorInPreferences + AString::number(this->mprThreeSingleSliceRotationAngle));
+    
+    /* 45 + 16 = 61 */
     for (int32_t i = 0; i < 4; i++) {
         for (int32_t j = 0; j < 4; j++) {
             s += (s_separatorInPreferences + AString::number(this->flatRotation[i][j]));
         }
     }
 
-    /* 60 + 3 = 63 */
+    /* 61 + 3 = 64 */
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[0]));
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapOffsetXY[1]));
     s += (s_separatorInPreferences + AString::number(this->rightCortexFlatMapZoomFactor));
@@ -631,6 +660,7 @@ ModelTransform::setFromString(const AString& s)
     bool hasObliqueRotation = false;
     bool hasMprAngles = false;
     bool hasMprThreeAngles = false;
+    bool hasMprThreeSingleSliceAngle = false;
     bool hasFlatRotation = false;
     bool hasRightFlatMapOffset = false;
     bool hasRightFlatMapZoomFactor = false;
@@ -646,7 +676,17 @@ ModelTransform::setFromString(const AString& s)
 #endif
         const int numElements = sl.count();
         
-        if (numElements == 63) {
+        if (numElements == 64) {
+            hasComment = true;
+            hasObliqueRotation = true;
+            hasMprAngles = true;
+            hasMprThreeAngles = true;
+            hasMprThreeSingleSliceAngle;
+            hasFlatRotation = true;
+            hasRightFlatMapOffset = true;
+            hasRightFlatMapZoomFactor = true;
+        }
+        else if (numElements == 63) {
             hasComment = true;
             hasObliqueRotation = true;
             hasMprAngles = true;
@@ -772,6 +812,10 @@ ModelTransform::setFromString(const AString& s)
         }
     }
 
+    if (hasMprThreeSingleSliceAngle) {
+        this->mprThreeSingleSliceRotationAngle = sl.at(ctr++).toFloat();
+    }
+    
     if (hasFlatRotation) {
         for (int32_t i = 0; i < 4; i++) {
             for (int32_t j = 0; j < 4; j++) {
@@ -841,6 +885,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
     this->mprThreeRotationAngles[1] = modelTransform.mprThreeRotationAngles[1];
     this->mprThreeRotationAngles[2] = modelTransform.mprThreeRotationAngles[2];
     
+    this->mprThreeSingleSliceRotationAngle = modelTransform.mprThreeSingleSliceRotationAngle;
+    
     this->scaling = modelTransform.scaling;
     
     this->rightCortexFlatMapOffsetXY[0] = modelTransform.rightCortexFlatMapOffsetXY[0];
@@ -866,6 +912,8 @@ ModelTransform::copyHelper(const ModelTransform& modelTransform)
  *    The MPR two rotation angles
  * @param mprThreeRotationAngles
  *    The MPR three rotation angles
+ * @param mprThreeSingleSliceRotationAngle
+ *    The MPR three single slice rotation angle
  * @param floatRotationMatrixArray
  *    The flat rotation matrix
  * @param zoom
@@ -885,6 +933,7 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
                                                 const float obliqueRotationMatrix[4][4],
                                                 const float mprTwoRotationAngles[3],
                                                 const float mprThreeRotationAngles[3],
+                                                const float mprThreeSingleSliceRotationAngle,
                                                 const float floatRotationMatrixArray[4][4],
                                                 const float zoom,
                                                 const float rightCortexFlatMapOffsetX,
@@ -900,6 +949,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
     setMprTwoRotationAngles(mprTwoRotationAngles);
     
     setMprThreeRotationAngles(mprThreeRotationAngles);
+    
+    setMprThreeSingleSliceRotationAngle(mprThreeSingleSliceRotationAngle);
     
     this->setFlatRotation(floatRotationMatrixArray);
     
@@ -926,6 +977,8 @@ ModelTransform::setPanningRotationMatrixAndZoom(const float panX,
  *    The MPR two rotation angles
  * @param mprThreeRotationAngles
  *    The MPR three rotation angles
+ * @param mprThreeSingleSliceRotationAngle
+ *    The MPR three single slice rotation angle
  * @param floatRotationMatrixArray
  *    The flat rotation matrix
  * @param zoom
@@ -945,6 +998,7 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
                                                 float obliqueRotationMatrix[4][4],
                                                 float mprTwoRotationAngles[3],
                                                 float mprThreeRotationAngles[3],
+                                                float& mprThreeSingleSliceRotationAngle,
                                                 float floatRotationMatrixArray[4][4],
                                                 float& zoom,
                                                 float& rightCortexFlatMapOffsetX,
@@ -962,6 +1016,8 @@ ModelTransform::getPanningRotationMatrixAndZoom(float& panX,
     getMprTwoRotationAngles(mprTwoRotationAngles);
     
     getMprThreeRotationAngles(mprThreeRotationAngles);
+    
+    mprThreeSingleSliceRotationAngle = getMprThreeSingleSliceRotationAngle();
     
     getFlatRotation(floatRotationMatrixArray);
     

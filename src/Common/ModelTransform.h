@@ -52,6 +52,8 @@ namespace caret {
         
         void getMprThreeRotationAngles(float mprRotationAngles[3]) const;
         
+        float getMprThreeSingleSliceRotationAngle() const;
+        
         void getFlatRotation(float flatRotation[4][4]) const;
         
         void getRightCortexFlatMapOffset(float& rightCortexFlatMapOffsetX,
@@ -81,6 +83,8 @@ namespace caret {
         
         void setMprThreeRotationAngles(const float mprRotationAngles[3]);
         
+        void setMprThreeSingleSliceRotationAngle(const float angle);
+        
         void setFlatRotation(const float flatRotation[4][4]);
         
         void setRightCortexFlatMapOffset(const float rightCortexFlatMapOffsetX,
@@ -97,6 +101,7 @@ namespace caret {
                                              const float obliqueRotationMatrix[4][4],
                                              const float mprTwoRotationAngles[3],
                                              const float mprThreeRotationAngles[3],
+                                             const float mprThreeSingleSliceRotationAngle,
                                              const float flatRotationMatrix[4][4],
                                              const float zoom,
                                              const float rightCortexFlatMapOffsetX,
@@ -110,6 +115,7 @@ namespace caret {
                                              float obliqueRotationMatrix[4][4],
                                              float mprTwoRotationAngles[3],
                                              float mprThreeRotationAngles[3],
+                                             float& mprThreeSingleSliceRotationAngle,
                                              float flatRotationMatrix[4][4],
                                              float& zoom,
                                              float& rightCortexFlatMapOffsetX,
@@ -148,6 +154,8 @@ namespace caret {
         float mprTwoRotationAngles[3];
         
         float mprThreeRotationAngles[3];
+        
+        float mprThreeSingleSliceRotationAngle;
         
         float flatRotation[4][4];
         

@@ -113,6 +113,7 @@ namespace caret {
                                             double& mprThreeRotX,
                                             double& mprThreeRotY,
                                             double& mprThreeRotZ,
+                                            double& mprThreeSingleSliceRot,
                                             double& flatRotate,
                                             double& zoom,
                                             double& rightFlatX,
@@ -134,6 +135,7 @@ namespace caret {
                                             const double mprThreeRotX,
                                             const double mprThreeRotY,
                                             const double mprThreeRotZ,
+                                            const double mprThreeSingleSliceRot,
                                             const double flatRotate,
                                             const double zoom,
                                             const double rightFlatX,
@@ -196,6 +198,8 @@ namespace caret {
         QDoubleSpinBox* m_yMprThreeRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_zMprThreeRotateDoubleSpinBox;
+        
+        QDoubleSpinBox* m_mprThreeSingleSliceRotateDoubleSpinBox;
         
         QDoubleSpinBox* m_flatRotationDoubleSpinBox;
         

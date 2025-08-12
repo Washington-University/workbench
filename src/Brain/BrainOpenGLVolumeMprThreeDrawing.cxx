@@ -1626,7 +1626,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                       boundingBox.getMaximumDifferenceOfXYZ(),
                                                       VolumeSliceViewPlaneEnum::AXIAL,
                                                       m_orientationMode,
-                                                      m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::AXIAL));
+                                                      m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::AXIAL),
+                                                      m_browserTabContent->getMprThreeSingleSliceVolumeRotationAngle());
     m_axialSliceNormalVector = axialMprSliceView.getVirtualPlane().getNormalVector();
     
     const VolumeMprVirtualSliceView coronalMprSliceView(underlayVolume,
@@ -1636,7 +1637,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                         boundingBox.getMaximumDifferenceOfXYZ(),
                                                         VolumeSliceViewPlaneEnum::CORONAL,
                                                         m_orientationMode,
-                                                        m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::CORONAL));
+                                                        m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::CORONAL),
+                                                        m_browserTabContent->getMprThreeSingleSliceVolumeRotationAngle());
     m_coronalSliceNormalVector = coronalMprSliceView.getVirtualPlane().getNormalVector();
     
     const VolumeMprVirtualSliceView paraMprSliceView(underlayVolume,
@@ -1646,7 +1648,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                                      boundingBox.getMaximumDifferenceOfXYZ(),
                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL,
                                                      m_orientationMode,
-                                                     m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::PARASAGITTAL));
+                                                     m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(VolumeSliceViewPlaneEnum::PARASAGITTAL),
+                                                     m_browserTabContent->getMprThreeSingleSliceVolumeRotationAngle());
     m_parasagittalSliceNormalVector = paraMprSliceView.getVirtualPlane().getNormalVector();
 
     const Matrix4x4 sliceRotationMatrix(m_browserTabContent->getMprThreeRotationMatrixForSlicePlane(sliceViewPlane));
@@ -1661,7 +1664,8 @@ BrainOpenGLVolumeMprThreeDrawing::createSliceInfo(const VolumeMappableInterface*
                                            boundingBox.getMaximumDifferenceOfXYZ(),
                                            sliceViewPlane,
                                            m_orientationMode,
-                                           sliceRotationMatrix);
+                                           sliceRotationMatrix,
+                                           m_browserTabContent->getMprThreeSingleSliceVolumeRotationAngle());
 
     Vector3D rotationVector;
     mprSliceView.getVirtualPlane().getNormalVector(rotationVector);

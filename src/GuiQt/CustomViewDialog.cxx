@@ -333,7 +333,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
 {
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
     double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
-    double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
+    double mprThreeRotX, mprThreeRotY, mprThreeRotZ, mprThreeSingleSliceRot;
     double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
@@ -350,6 +350,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                    mprThreeRotX,
                                    mprThreeRotY,
                                    mprThreeRotZ,
+                                   mprThreeSingleSliceRot,
                                    flatRotate,
                                    zoom,
                                    rightFlatX,
@@ -382,6 +383,7 @@ CustomViewDialog::moveTransformValuesToModelTransform(ModelTransform& modelTrans
                                                    obliqueRotationMatrixArray,
                                                    mprTwoRotationAngles,
                                                    mprThreeRotationAngles,
+                                                   mprThreeSingleSliceRot,
                                                    flatRotationMatrixArray,
                                                    zoom,
                                                    rightFlatX,
@@ -405,7 +407,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
         float panX, panY, panZ, rotationMatrixArray[4][4],
         mprTwoRotationAngles[3], mprThreeRotationAngles[3],
               obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
-        rightFlatX, rightFlatY, rightFlatZoom;
+        rightFlatX, rightFlatY, rightFlatZoom, mprThreeSingleSliceRot;
 
         modelTransform.getPanningRotationMatrixAndZoom(panX,
                                                        panY,
@@ -414,6 +416,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
                                                        obliqueRotationMatrixArray,
                                                        mprTwoRotationAngles,
                                                        mprThreeRotationAngles,
+                                                       mprThreeSingleSliceRot,
                                                        flatRotationMatrixArray,
                                                        zoom,
                                                        rightFlatX,
@@ -454,6 +457,7 @@ CustomViewDialog::copyToTransformPushButtonClicked()
                                        mprThreeRotX,
                                        mprThreeRotY,
                                        mprThreeRotZ,
+                                       mprThreeSingleSliceRot,
                                        flatRotZ, zoom,
                                        rightFlatX, rightFlatY, rightFlatZoom);
         
@@ -705,6 +709,21 @@ CustomViewDialog::createTransformsWidget()
                      this, SLOT(mprThreeRotationValueChanged()));
     
     /*
+     * MPR Three Single Sliced Rotation
+     */
+    QLabel* mprThreeSingleSliceRotateLabel = new QLabel("MPR Single Slice Volume Rotate:");
+    m_mprThreeSingleSliceRotateDoubleSpinBox = new QDoubleSpinBox;
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setWrapping(true);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setMinimum(rotationMinimum);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setMaximum(rotationMaximum);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setSingleStep(rotateStep);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setDecimals(2);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setFixedWidth(spinBoxWidth);
+    m_mprThreeSingleSliceRotateDoubleSpinBox->setKeyboardTracking(false);
+    QObject::connect(m_mprThreeSingleSliceRotateDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(transformValueChanged()));
+
+    /*
      * Flat rotation
      */
     QLabel* flatRotateLabel = new QLabel("Flat Rotation");
@@ -781,6 +800,7 @@ CustomViewDialog::createTransformsWidget()
     m_transformWidgetGroup->add(m_xMprThreeRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_yMprThreeRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_zMprThreeRotateDoubleSpinBox);
+    m_transformWidgetGroup->add(m_mprThreeSingleSliceRotateDoubleSpinBox);
     m_transformWidgetGroup->add(m_flatRotationDoubleSpinBox);
     m_transformWidgetGroup->add(m_zoomDoubleSpinBox);
     m_transformWidgetGroup->add(m_xRightFlatMapSpinBox);
@@ -894,6 +914,14 @@ CustomViewDialog::createTransformsWidget()
     gridLayout->addWidget(m_zMprThreeRotateDoubleSpinBox,
                           row,
                           COLUMN_Z);
+    row++;
+    
+    gridLayout->addWidget(mprThreeSingleSliceRotateLabel,
+                          row,
+                          COLUMN_LABEL);
+    gridLayout->addWidget(m_mprThreeSingleSliceRotateDoubleSpinBox,
+                          row,
+                          COLUMN_X);
     row++;
     
     gridLayout->addWidget(flatRotateLabel,
@@ -1052,7 +1080,7 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
 {
     double panX, panY, panZ, rotX, rotY, rotZ, obRotX, obRotY, obRotZ;
     double mprTwoRotX, mprTwoRotY, mprTwoRotZ;
-    double mprThreeRotX, mprThreeRotY, mprThreeRotZ;
+    double mprThreeRotX, mprThreeRotY, mprThreeRotZ, mprThreeSingleSliceRot;
     double flatRotate, zoom, rightFlatX, rightFlatY, rightFlatZoom;
     getTransformationControlValues(panX,
                                    panY,
@@ -1069,6 +1097,7 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
                                    mprThreeRotX,
                                    mprThreeRotY,
                                    mprThreeRotZ,
+                                   mprThreeSingleSliceRot,
                                    flatRotate,
                                    zoom,
                                    rightFlatX,
@@ -1104,6 +1133,7 @@ CustomViewDialog::updateViewInBrowserTabContent(const BrowserTabContent::MprThre
                                                                rotationMatrixArray, obliqueRotationMatrixArray,
                                                                mprTwoRotationAngles,
                                                                mprThreeRotationAngles,
+                                                               mprThreeSingleSliceRot,
                                                                flatRotationMatrixArray, zoom,
                                                                rightFlatX, rightFlatY, rightFlatZoom);
                 btc->setTransformationsFromModelTransform(modelTransform,
@@ -1181,7 +1211,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                 
                 float panX, panY, panZ, rotationMatrixArray[4][4],
                 mprTwoRotationAngles[3],
-                mprThreeRotationAngles[3],
+                mprThreeRotationAngles[3], mprThreeSingleSliceRot,
                 obliqueRotationMatrixArray[4][4], flatRotationMatrixArray[4][4], zoom,
                 rightFlatX, rightFlatY, rightFlatZoom;
                 modelTransform.getPanningRotationMatrixAndZoom(panX,
@@ -1191,6 +1221,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                                obliqueRotationMatrixArray,
                                                                mprTwoRotationAngles,
                                                                mprThreeRotationAngles,
+                                                               mprThreeSingleSliceRot,
                                                                flatRotationMatrixArray,
                                                                zoom,
                                                                rightFlatX,
@@ -1231,6 +1262,7 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
                                                mprThreeRotX,
                                                mprThreeRotY,
                                                mprThreeRotZ,
+                                               mprThreeSingleSliceRot,
                                                flatRotZ, zoom,
                                                rightFlatX, rightFlatY, rightFlatZoom);
                 
@@ -1291,6 +1323,8 @@ CustomViewDialog::updateContent(const int32_t browserWindowIndexIn)
  *    MPR Three rotation Y
  * @param mprThreeRotZ
  *    MPR Three rotation Z
+ * @param mprThreeSingleSliceRot
+ *    MPR Three Single Slice Rotation
  * @param flatRotation
  *    Flat rotation
  * @param zoom
@@ -1318,6 +1352,7 @@ CustomViewDialog::getTransformationControlValues(double& panX,
                                                  double& mprThreeRotX,
                                                  double& mprThreeRotY,
                                                  double& mprThreeRotZ,
+                                                 double& mprThreeSingleSliceRot,
                                                  double& flatRotation,
                                                  double& zoom,
                                                  double& rightFlatX,
@@ -1352,6 +1387,9 @@ CustomViewDialog::getTransformationControlValues(double& panX,
         mprThreeRotY = -mprThreeRotY;
         mprThreeRotZ = -mprThreeRotZ;
     }
+    
+    mprThreeSingleSliceRot = m_mprThreeSingleSliceRotateDoubleSpinBox->value();
+    
     
     flatRotation = m_flatRotationDoubleSpinBox->value();
     
@@ -1393,6 +1431,8 @@ CustomViewDialog::getTransformationControlValues(double& panX,
  *    MPR Three Rotation Y
  * @param mprThreeRotZ
  *    MPR Three Rotation Z
+ * @param mprThreeSingleSliceRot
+ *    MPR Three Single Slice Rotation
  * @param flatRotation
  *    Flat rotation
  * @param zoom
@@ -1420,6 +1460,7 @@ CustomViewDialog::setTransformationControlValues(const double panX,
                                                  const double mprThreeRotX,
                                                  const double mprThreeRotY,
                                                  const double mprThreeRotZ,
+                                                 const double mprThreeSingleSliceRot,
                                                  const double flatRotation,
                                                  const double zoom,
                                                  const double rightFlatX,
@@ -1460,6 +1501,8 @@ CustomViewDialog::setTransformationControlValues(const double panX,
         updateSpinBoxValue(m_yMprThreeRotateDoubleSpinBox, mprThreeRotY);
         updateSpinBoxValue(m_zMprThreeRotateDoubleSpinBox, mprThreeRotZ);
     }
+    
+    updateSpinBoxValue(m_mprThreeSingleSliceRotateDoubleSpinBox, mprThreeSingleSliceRot);
     
     updateSpinBoxValue(m_flatRotationDoubleSpinBox, flatRotation);
     

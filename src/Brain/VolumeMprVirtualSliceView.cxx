@@ -99,6 +99,8 @@ VolumeMprVirtualSliceView::VolumeMprVirtualSliceView()
  *    Orientation (neurological or radiological)
  * @param sliceRotationMatrix
  *    The current rotation matrix for the slice view (threeDimRotationMatrix with possible inverse rotation for slice view))
+ * @param singleSliceRotationAngle
+ *    Rotation angle for single slice volume
  */
 VolumeMprVirtualSliceView::VolumeMprVirtualSliceView(const VolumeMappableInterface* underlayVolume,
                                                      const ViewType viewType,
@@ -107,7 +109,8 @@ VolumeMprVirtualSliceView::VolumeMprVirtualSliceView(const VolumeMappableInterfa
                                                      const float sliceWidthHeight,
                                                      const VolumeSliceViewPlaneEnum::Enum sliceViewPlane,
                                                      const VolumeMprOrientationModeEnum::Enum& mprOrientationMode,
-                                                     const Matrix4x4& sliceRotationMatrix)
+                                                     const Matrix4x4& sliceRotationMatrix,
+                                                     const float singleSliceRotationAngle)
 : CaretObject(),
 m_viewType(viewType),
 m_volumeCenterXYZ(volumeCenterXYZ),
@@ -115,7 +118,8 @@ m_selectedSlicesXYZ(selectedSlicesXYZ),
 m_sliceWidthHeight(sliceWidthHeight),
 m_sliceViewPlane(sliceViewPlane),
 m_mprOrientationMode(mprOrientationMode),
-m_sliceRotationMatrix(sliceRotationMatrix)
+m_sliceRotationMatrix(sliceRotationMatrix),
+m_singleSliceRotationAngle(singleSliceRotationAngle)
 {
     m_transformationMatrix.identity();
     m_cameraXYZ.set(0.0, 0.0, 1.0);
@@ -206,6 +210,7 @@ VolumeMprVirtualSliceView::initializeModeAllViewSlices()
             m_sliceRotationMatrix.multiplyPoint3(vUp);
             break;
     }
+    
     /*
      * Set transformation matrix
      */
@@ -698,6 +703,21 @@ VolumeMprVirtualSliceView::initializeModeVolumeSingleSliceFixedCamera(const Volu
                 break;
         }
     }
+    
+    /*
+     * Set transformation matrix
+     */
+    m_transformationMatrix.identity();
+    const Vector3D transXYZ(m_selectedSlicesXYZ);
+    m_transformationMatrix.translate(-transXYZ);
+    m_transformationMatrix.rotate(m_singleSliceRotationAngle,
+                                  virtualSlicePlaneVector[0],
+                                  virtualSlicePlaneVector[1],
+                                  virtualSlicePlaneVector[2]);
+//    m_transformationMatrix.postmultiply(m_sliceRotationMatrix);
+    m_transformationMatrix.translate(transXYZ);
+    
+
 }
 
 /**

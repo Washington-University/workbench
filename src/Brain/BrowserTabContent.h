@@ -366,11 +366,15 @@ namespace caret {
         
         Vector3D getMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
         
+        float getMprThreeSingleSliceVolumeRotationAngle() const;
+        
         void setMprThreeRotationVectorForSlicePlane(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const Vector3D& rotationVector);
 
         Matrix4x4 getMprRotationMatrix4x4ForSlicePlane(const ModelTypeEnum::Enum modelType,
                                                        const VolumeSliceViewPlaneEnum::Enum slicePlane) const;
+        
+        void setMprThreeSingleSliceVolumeRotationAngle(const float angle);
         
         void getRightCortexFlatMapOffset(float& offsetX,
                                          float& offsetY) const;
@@ -990,6 +994,8 @@ namespace caret {
         Vector3D m_mprThreeCoronalRotationVector;
         Vector3D m_mprThreeParasagittalRotationVector;
 
+        float m_mprThreeSingleSliceVolumeRotationAngle = 0.0;
+        
         /** aspect ratio */
         float m_aspectRatio;
         
