@@ -109,6 +109,79 @@ YokingGroupEnum::initialize()
                                        "YOKING_GROUP_H",
                                        "Group H"));
     
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_I,
+                                       "YOKING_GROUP_I",
+                                       "Group I"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_J,
+                                       "YOKING_GROUP_J",
+                                       "Group J"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_K,
+                                       "YOKING_GROUP_K",
+                                       "Group K"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_L,
+                                       "YOKING_GROUP_L",
+                                       "Group L"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_M,
+                                       "YOKING_GROUP_M",
+                                       "Group M"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_N,
+                                       "YOKING_GROUP_N",
+                                       "Group N"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_O,
+                                       "YOKING_GROUP_O",
+                                       "Group O"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_P,
+                                       "YOKING_GROUP_P",
+                                       "Group P"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_Q,
+                                       "YOKING_GROUP_Q",
+                                       "Group Q"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_R,
+                                       "YOKING_GROUP_R",
+                                       "Group R"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_S,
+                                       "YOKING_GROUP_S",
+                                       "Group S"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_T,
+                                       "YOKING_GROUP_T",
+                                       "Group T"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_U,
+                                       "YOKING_GROUP_U",
+                                       "Group U"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_V,
+                                       "YOKING_GROUP_V",
+                                       "Group V"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_W,
+                                       "YOKING_GROUP_W",
+                                       "Group W"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_X,
+                                       "YOKING_GROUP_X",
+                                       "Group X"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_Y,
+                                       "YOKING_GROUP_Y",
+                                       "Group Y"));
+    
+    enumData.push_back(YokingGroupEnum(YOKING_GROUP_Z,
+                                       "YOKING_GROUP_Z",
+                                       "Group Z"));
+    
+    CaretAssert(enumData.size() == 27);  /* OFF + A to Z */
 }
 
 /**

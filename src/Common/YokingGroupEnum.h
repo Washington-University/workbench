@@ -52,7 +52,43 @@ public:
         /** Group G */
         YOKING_GROUP_G,
         /** Group H */
-        YOKING_GROUP_H
+        YOKING_GROUP_H,
+        /** Group I */
+        YOKING_GROUP_I,
+        /** Group J */
+        YOKING_GROUP_J,
+        /** Group K */
+        YOKING_GROUP_K,
+        /** Group L */
+        YOKING_GROUP_L,
+        /** Group  M*/
+        YOKING_GROUP_M,
+        /** Group N */
+        YOKING_GROUP_N,
+        /** Group O */
+        YOKING_GROUP_O,
+        /** Group P */
+        YOKING_GROUP_P,
+        /** Group Q */
+        YOKING_GROUP_Q,
+        /** Group R */
+        YOKING_GROUP_R,
+        /** Group S */
+        YOKING_GROUP_S,
+        /** Group T */
+        YOKING_GROUP_T,
+        /** Group U */
+        YOKING_GROUP_U,
+        /** Group V */
+        YOKING_GROUP_V,
+        /** Group W */
+        YOKING_GROUP_W,
+        /** Group X */
+        YOKING_GROUP_X,
+        /** Group Y */
+        YOKING_GROUP_Y,
+        /** Group Z */
+        YOKING_GROUP_Z
     };
 
 
