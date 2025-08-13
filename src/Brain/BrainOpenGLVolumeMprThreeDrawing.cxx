@@ -2157,9 +2157,11 @@ BrainOpenGLVolumeMprThreeDrawing::drawCrosshairs(const VolumeMappableInterface* 
     glPushMatrix();
     glLoadIdentity();
     
-    drawAxisLabels(mprSliceView,
-                   sliceViewPlane,
-                   viewport);
+    if ( ! m_underlayIsSingleSliceVolumeFlag) {
+        drawAxisLabels(mprSliceView,
+                       sliceViewPlane,
+                       viewport);
+    }
     
     glPopMatrix();
     

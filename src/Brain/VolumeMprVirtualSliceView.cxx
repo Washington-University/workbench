@@ -558,6 +558,9 @@ VolumeMprVirtualSliceView::initializeModeVolumeSingleSliceFixedCamera(const Volu
     
     m_cameraUpVector = (topLeftXYZ - bottomLeftXYZ).normal();
     planeRightVector = (bottomRightXYZ - bottomLeftXYZ).normal();
+    if (m_radiologicalOrientationFlag) {
+        planeRightVector = -planeRightVector;
+    }
     planeUpVector    = (topLeftXYZ - bottomLeftXYZ).normal();
     Vector3D virtualSlicePlaneVector(planeRightVector.cross(planeUpVector));
 
@@ -714,10 +717,7 @@ VolumeMprVirtualSliceView::initializeModeVolumeSingleSliceFixedCamera(const Volu
                                   virtualSlicePlaneVector[0],
                                   virtualSlicePlaneVector[1],
                                   virtualSlicePlaneVector[2]);
-//    m_transformationMatrix.postmultiply(m_sliceRotationMatrix);
     m_transformationMatrix.translate(transXYZ);
-    
-
 }
 
 /**
