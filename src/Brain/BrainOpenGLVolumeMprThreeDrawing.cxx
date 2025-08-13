@@ -1770,6 +1770,29 @@ BrainOpenGLVolumeMprThreeDrawing::addCrosshairSection(GraphicsPrimitiveV3fC4ub* 
         primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
         primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
     }
+    else if (m_underlayIsSingleSliceVolumeFlag) {
+        /*
+         * Note: There are TWO sections:
+         * (1) First section is dragged to select slice indices for
+         * other slice plane views.
+         * (2) Second section is used to rotate only the current axis.
+         */
+        const Vector3D totalLength(endXYZ - startXYZ);
+        const Vector3D sliceStartXYZ(startXYZ);
+        const Vector3D sliceEndXYZ(startXYZ + (totalLength * 0.40));
+        const Vector3D rotateSliceStartXYZ(startXYZ + (totalLength * 0.45));
+        const Vector3D rotateSliceEndXYZ(endXYZ);
+        
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        sliceSelectionIndices.push_back(sliceSelectionAxisID);
+        primitiveSliceSelectionCrosshair->addVertex(sliceStartXYZ, rgba.data());
+        primitiveSliceSelectionCrosshair->addVertex(sliceEndXYZ, rgba.data());
+        
+        rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
+        rotateSliceSelectionIndices.push_back(rotationSliceAxisID);
+        primitiveRotateSliceCrosshair->addVertex(rotateSliceStartXYZ, rgba.data());
+        primitiveRotateSliceCrosshair->addVertex(rotateSliceEndXYZ, rgba.data());
+    }
     else {
         /*
          * Note: There are three sections:
@@ -2012,18 +2035,20 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPla
                                            primitiveDepth);
         }
         
-        primitiveIndex = -1;
-        primitiveDepth = 0.0;
-        GraphicsEngineDataOpenGL::drawWithSelection(rotateTransformPrimitive.get(),
-                                                    this->m_fixedPipelineDrawing->mouseX,
-                                                    this->m_fixedPipelineDrawing->mouseY,
-                                                    primitiveIndex,
-                                                    primitiveDepth);
-        if ((primitiveIndex >= 0)
-            && (primitiveIndex < static_cast<int32_t>(rotateTransformSelectionIndices.size()))) {
-            crosshairID->setIdentification(m_brain,
-                                           rotateTransformSelectionIndices[primitiveIndex],
-                                           primitiveDepth);
+        if ( ! m_underlayIsSingleSliceVolumeFlag) {
+            primitiveIndex = -1;
+            primitiveDepth = 0.0;
+            GraphicsEngineDataOpenGL::drawWithSelection(rotateTransformPrimitive.get(),
+                                                        this->m_fixedPipelineDrawing->mouseX,
+                                                        this->m_fixedPipelineDrawing->mouseY,
+                                                        primitiveIndex,
+                                                        primitiveDepth);
+            if ((primitiveIndex >= 0)
+                && (primitiveIndex < static_cast<int32_t>(rotateTransformSelectionIndices.size()))) {
+                crosshairID->setIdentification(m_brain,
+                                               rotateTransformSelectionIndices[primitiveIndex],
+                                               primitiveDepth);
+            }
         }
     }
     else {
@@ -2034,7 +2059,9 @@ BrainOpenGLVolumeMprThreeDrawing::drawPanningCrosshairs(const VolumeSliceViewPla
         
         GraphicsEngineDataOpenGL::draw(sliceSelectionPrimitive.get());
         GraphicsEngineDataOpenGL::draw(rotateSlicePrimitive.get());
-        GraphicsEngineDataOpenGL::draw(rotateTransformPrimitive.get());
+        if ( ! m_underlayIsSingleSliceVolumeFlag) {
+            GraphicsEngineDataOpenGL::draw(rotateTransformPrimitive.get());
+        }
 
         m_fixedPipelineDrawing->disableLineAntiAliasing();
         
