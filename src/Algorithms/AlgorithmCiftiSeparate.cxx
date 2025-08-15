@@ -433,7 +433,6 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                VolumeFile* roiOut, const bool& cropVol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
@@ -528,13 +527,13 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     }
+    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for errors/warnings in commands that use this algorithm
 }
 
 AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const CiftiFile* ciftiIn, const int& myDir, VolumeFile* volOut, int64_t offsetOut[3],
                                                VolumeFile* roiOut, const bool& cropVol, VolumeFile* labelOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
@@ -647,6 +646,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     }
+    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for errors/warnings in commands that use this algorithm
 }
 
 void AlgorithmCiftiSeparate::getCroppedVolSpace(const CiftiFile* ciftiIn, const int& myDir, const StructureEnum::Enum& myStruct, int64_t dimsOut[3],

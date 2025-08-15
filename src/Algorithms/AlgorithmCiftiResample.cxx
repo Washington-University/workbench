@@ -619,6 +619,7 @@ namespace
                 myCache.inputVol.grabNew(new VolumeFile(inDims, sform));
                 myCache.inputVol->setValueAllVoxels(0.0f);
             }
+            myCache.inputVol->setFileName("data extracted from " + myCiftiIn->getFileName()); //fake file name for spline warnings, etc
             myCache.tempVol2.grabNew(new VolumeFile(inDims, sform));//make the dilation roi, to figure out edge voxels and in case we do dilation
             myCache.tempVol2->setValueAllVoxels(0.0f);
             for (int64_t j = 0; j < (int64_t)myCache.inVolMap.size(); ++j)
@@ -829,6 +830,7 @@ namespace
             myCache.volPadding.doPadding(myCache.inputVol, myCache.tempVol2);
             AlgorithmVolumeDilate(NULL, myCache.tempVol2, voldilatemm, volDilateMethod, myCache.tempVol3, myCache.volDilateRoi, NULL, -1, volDilateExponent, volLegacyCutoff);
             toResample = myCache.tempVol3;
+            toResample->setFileName(myCache.inputVol->getFileName()); //dilate resets filename, so set it again
         }
         if (doEdgeAdjust)
         {
@@ -1166,10 +1168,12 @@ void AlgorithmCiftiResample::processVolume(const CiftiFile* myCiftiIn, const int
         invertROI.setFrame(scratchframe.data());
         VolumePaddingHelper mypadding = VolumePaddingHelper::padMM(&origData, voldilatemm);
         mypadding.doPadding(&origData, &origPad);
+        AString fakeInputName = origData.getFileName();
         origData.clear();//free data copies we no longer need
         mypadding.doPadding(&invertROI, &invertROIPad, 1.0f);//pad with ones since this is an inverted ROI
         AlgorithmVolumeDilate(NULL, &origPad, voldilatemm, volDilateMethod, &origDilate, &invertROIPad, NULL, -1, volDilateExponent, volLegacyCutoff);
-        origPad.clear();//ditto
+        origDilate.setFileName(fakeInputName); //dilate resets filename, copy the fake filename for warnings, etc
+        origPad.clear();
         origProcess = &origDilate;
         if (doEdgeAdjust)
         {//we need to use the dilated ROI
