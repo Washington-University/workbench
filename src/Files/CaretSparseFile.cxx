@@ -230,6 +230,7 @@ CaretSparseFileWriter::CaretSparseFileWriter(const AString& fileName, const Cift
         ByteSwapping::swapBytes(tempdims, 2);
     }
     m_file.write(tempdims, 2 * sizeof(int64_t));
+    //write dummy placeholder bytes for currently-unknown length array
     m_lengthArray.resize(m_dims[1], 0);//initialize the memory so that valgrind won't complain
     m_file.write(m_lengthArray.data(), m_dims[1] * sizeof(uint64_t));//write it to get the file to the correct length
     m_nextRowIndex = 0;

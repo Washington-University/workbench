@@ -476,7 +476,7 @@ pair<bool, AString> AlgorithmCiftiResample::checkForErrors(const CiftiFile* myCi
         {
             if (newSphere == NULL) return make_pair(true, AString("missing " + structName + " new sphere"));
             if (curSphere->getNumberOfNodes() != inModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " current sphere doesn't match input cifti"));
-            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " new sphere doesn't match input cifti"));
+            if (newSphere->getNumberOfNodes() != outModels.getSurfaceNumberOfNodes(surfList[i])) return make_pair(true, AString(structName + " new sphere doesn't match template cifti"));
             switch (mySurfMethod)
             {
                 case SurfaceResamplingMethodEnum::ADAP_BARY_AREA:

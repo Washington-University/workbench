@@ -202,6 +202,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, MetricFile* metricOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    metricOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= myXML.getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
@@ -293,6 +294,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                const StructureEnum::Enum& myStruct, LabelFile* labelOut, MetricFile* roiOut) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    labelOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= myXML.getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
@@ -431,6 +433,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                VolumeFile* roiOut, const bool& cropVol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
@@ -531,6 +534,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
                                                VolumeFile* roiOut, const bool& cropVol, VolumeFile* labelOut): AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
+    volOut->setFileName("data extracted from " + ciftiIn->getFileName()); //fake file name for error messages in commands that use this algorithm
     const CiftiXML& myXML = ciftiIn->getCiftiXML();
     if (myXML.getNumberOfDimensions() != 2) throw AlgorithmException("cifti separate only supported on 2D cifti");
     if (myDir >= ciftiIn->getCiftiXML().getNumberOfDimensions() || myDir < 0) throw AlgorithmException("direction invalid for input cifti");
