@@ -37,6 +37,8 @@ namespace caret {
     class AnnotationSampleMetaData : public CaretObject {
         
     public:
+        static bool isTestHemisphereNumericConstraintFlag();
+        
         static int32_t getFirstLeftHemisphereAllenSlabNumber();
         
         static int32_t getFirstRightHemisphereAllenSlabNumber();
@@ -431,6 +433,8 @@ namespace caret {
         static int32_t s_numberOfBorders;
         
         static int32_t s_numberOfFoci;
+        
+        static bool s_testHemisphereNumericConstraintFlag;
     };
     
 #ifdef __ANNOTATION_SAMPLE_META_DATA_DECLARE__
@@ -535,7 +539,9 @@ namespace caret {
     int32_t AnnotationSampleMetaData::s_numberOfBorders = 2;
     
     int32_t AnnotationSampleMetaData::s_numberOfFoci = 2;
-    
+
+    bool AnnotationSampleMetaData::s_testHemisphereNumericConstraintFlag = false;
+
 #endif // __ANNOTATION_SAMPLE_META_DATA_DECLARE__
 
 } // namespace

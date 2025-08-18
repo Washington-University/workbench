@@ -259,7 +259,9 @@ AnnotationSamplesMetaDataDialog::createDialog()
     tabWidget->addTab(createPrimaryTabWidget(), "Primary");
     tabWidget->addTab(createBorderFociTabWidget(), "Border / Foci");
     tabWidget->addTab(createSpecimenPortalTabWidget(), "Specimen Portal");
-    tabWidget->addTab(createAdvancedTabWidget(), "Advanced");
+    const int32_t advTabIndex(tabWidget->addTab(createAdvancedTabWidget(), "Advanced"));
+    tabWidget->setTabEnabled(advTabIndex,
+                             AnnotationSampleMetaData::isTestHemisphereNumericConstraintFlag());
     
     setSizePolicy(tabWidget->sizePolicy().horizontalPolicy(),
                   QSizePolicy::Fixed);
@@ -1145,11 +1147,6 @@ AnnotationSamplesMetaDataDialog::okButtonClicked()
             }
             break;
     }
-    
-    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    
-    WuQDialogModal::okButtonClicked();
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());

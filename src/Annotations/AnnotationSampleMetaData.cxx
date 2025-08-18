@@ -43,6 +43,16 @@ using namespace caret;
  */
 
 /**
+ * @return True if allen slab number numeric value should be tested against
+ * the hemisphere numeric constraintes
+ */
+bool
+AnnotationSampleMetaData::isTestHemisphereNumericConstraintFlag()
+{
+    return s_testHemisphereNumericConstraintFlag;
+}
+
+/**
  * @return The first left hemisphere allen slab number
  */
 int32_t 
@@ -180,47 +190,48 @@ AnnotationSampleMetaData::validateMetaData(AString& errorMessageOut) const
         }
     }
     
-    if (validHemFlag
-        && validAllenSlabNumberFlag) {
-        AString hemMsg;
-        switch (hemisphere) {
-            case HemisphereEnum::BOTH:
-                if ((allenSlabNumber < s_firstLeftHemisphereAllenSlabNumber)
-                    || (allenSlabNumber > s_lastRightHemisphereAllenSlabNumber)) {
-                    hemMsg = ("Allen Slab Number should be between (inclusively) "
-                              + AString::number(s_firstLeftHemisphereAllenSlabNumber)
-                              + " and "
-                              + AString::number(s_lastRightHemisphereAllenSlabNumber)
-                              + " for BOTH hemispheres.");
-                }
-                break;
-            case HemisphereEnum::LEFT:
-                if ((allenSlabNumber < s_firstLeftHemisphereAllenSlabNumber)
-                    || (allenSlabNumber >= s_firstRightHemisphereAllenSlabNumber)) {
-                    hemMsg = ("Allen Slab Number should be between (inclusively) "
-                              + AString::number(s_firstLeftHemisphereAllenSlabNumber)
-                              + " and "
-                              + AString::number(s_firstRightHemisphereAllenSlabNumber)
-                              + " for LEFT hemispheres.");
-                }
-                break;
-            case HemisphereEnum::RIGHT:
-                if ((allenSlabNumber < s_firstRightHemisphereAllenSlabNumber)
-                    || (allenSlabNumber > s_lastRightHemisphereAllenSlabNumber)) {
-                    hemMsg = ("Allen Slab Number should be between (inclusively) "
-                              + AString::number(s_firstRightHemisphereAllenSlabNumber)
-                              + " and "
-                              + AString::number(s_lastRightHemisphereAllenSlabNumber)
-                              + " for RIGHT hemispheres.");
-                }
-                break;
-        }
-        
-        if ( ! hemMsg.isEmpty()) {
-            errorMessageOut.appendWithNewLine(hemMsg);
+    if (isTestHemisphereNumericConstraintFlag()) {
+        if (validHemFlag
+            && validAllenSlabNumberFlag) {
+            AString hemMsg;
+            switch (hemisphere) {
+                case HemisphereEnum::BOTH:
+                    if ((allenSlabNumber < s_firstLeftHemisphereAllenSlabNumber)
+                        || (allenSlabNumber > s_lastRightHemisphereAllenSlabNumber)) {
+                        hemMsg = ("Allen Slab Number should be between (inclusively) "
+                                  + AString::number(s_firstLeftHemisphereAllenSlabNumber)
+                                  + " and "
+                                  + AString::number(s_lastRightHemisphereAllenSlabNumber)
+                                  + " for BOTH hemispheres.");
+                    }
+                    break;
+                case HemisphereEnum::LEFT:
+                    if ((allenSlabNumber < s_firstLeftHemisphereAllenSlabNumber)
+                        || (allenSlabNumber >= s_firstRightHemisphereAllenSlabNumber)) {
+                        hemMsg = ("Allen Slab Number should be between (inclusively) "
+                                  + AString::number(s_firstLeftHemisphereAllenSlabNumber)
+                                  + " and "
+                                  + AString::number(s_firstRightHemisphereAllenSlabNumber)
+                                  + " for LEFT hemispheres.");
+                    }
+                    break;
+                case HemisphereEnum::RIGHT:
+                    if ((allenSlabNumber < s_firstRightHemisphereAllenSlabNumber)
+                        || (allenSlabNumber > s_lastRightHemisphereAllenSlabNumber)) {
+                        hemMsg = ("Allen Slab Number should be between (inclusively) "
+                                  + AString::number(s_firstRightHemisphereAllenSlabNumber)
+                                  + " and "
+                                  + AString::number(s_lastRightHemisphereAllenSlabNumber)
+                                  + " for RIGHT hemispheres.");
+                    }
+                    break;
+            }
+            
+            if ( ! hemMsg.isEmpty()) {
+                errorMessageOut.appendWithNewLine(hemMsg);
+            }
         }
     }
-    
     
     if ( ! errorMessageOut.isEmpty()) {
         return false;
