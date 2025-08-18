@@ -27,6 +27,7 @@
 #include <QFile>
 #include <QImage>
 #include <QProcess>
+#include <QStandardPaths>
 
 #include <QtConcurrent/QtConcurrent>
 
@@ -675,6 +676,12 @@ MovieRecorder::findFFmpegProgram(AString& programNameOut,
             programNameOut = ff;
             return true;
         }
+    }
+    AString systemPath = QStandardPaths::findExecutable("ffmpeg"); //on windows, automatically tries .exe, .bat, etc
+    if (FileInformation(systemPath).exists())
+    {
+        programNameOut = systemPath;
+        return true;
     }
     
     AString msg("Unable to find the program \"ffmpeg\".  Tried paths:");
