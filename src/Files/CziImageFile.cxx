@@ -2189,7 +2189,7 @@ CziImageFile::getPixelRGBA(const int32_t tabIndex,
             try {
                 bitmapData = m_scalingTileAccessor->Get(pixelType, pixelRect, &coordinate, 1.0f, &options);
             }
-            catch (const std::logic_error logicError) {
+            catch (const std::logic_error& logicError) {
                 const AString msg("When reading data from singleChannelTileAccessor: "
                                   + QString(logicError.what()));
                 CaretLogSevere(msg);
