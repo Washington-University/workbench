@@ -67,12 +67,18 @@
              * as described at https://www.khronos.org/registry/OpenGL/ABI/
              */
             #define GL_GLEXT_PROTOTYPES
-            //we need glext functions, so we can't resolve the QT6 glext version warnings by telling gl not to include glext
         #endif
     #endif
 
     #include <GL/gl.h>
     #include <GL/glu.h>
+    //we need glext functions where we don't use QOpenGLWidget, so we can't resolve the QT6 glext redefinition warnings by telling system gl not to include glext
+    //so, let's disable QT6's copy of glext instead, as if it hadn't used a different ifdef guard than the system copy
+    #ifdef CARET_OS_LINUX
+        #ifdef __gl_glext_h_
+            #define __glext_h_
+        #endif
+    #endif
 #endif
 
 #endif  //__CARET_OPEN_GL_INCLUDE_H__
