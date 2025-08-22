@@ -67,6 +67,9 @@
              * as described at https://www.khronos.org/registry/OpenGL/ABI/
              */
             #define GL_GLEXT_PROTOTYPES
+            //fix conflict with qt6 qopenglext.h by preventing system gl.h from including glext.h
+            //including QOpenGLWidget first would also work, because it also defines this
+            #define GL_GLEXT_LEGACY
         #endif
     #endif
 
