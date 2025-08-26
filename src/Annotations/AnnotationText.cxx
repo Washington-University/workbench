@@ -651,12 +651,10 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
         {
             /*
              * Kludge for when text is drawn on very small surfaces.
-             * Allows font to continue shrinking
+             * Allows font to continue shrinking.
+             * Note: default value is 1 and does no scaling.
              */
-            float fontScale(1.0);
-            if (isSmallSurfaceTextScaling()) {
-                fontScale = 10.0;
-            }
+            const float fontScale(getSmallSurfaceTextScaling());
             
             /*
              * May need pixel to points conversion if not 72 DPI
@@ -1154,7 +1152,7 @@ AnnotationText::setUnderlineStyleEnabled(const bool enabled)
  * @return Set transient scaling for use when drawing on a small surface
  */
 float
-AnnotationText::isSmallSurfaceTextScaling() const
+AnnotationText::getSmallSurfaceTextScaling() const
 {
     return m_smallSurfaceTextScaling;
 }

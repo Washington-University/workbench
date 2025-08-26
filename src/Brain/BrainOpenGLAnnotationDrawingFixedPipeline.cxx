@@ -4178,11 +4178,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
      * for the text to be much smaller but the text gets scaled backup when drawing
      * and allows the text to become smaller as desired.  It is a KLUDGE.
      */
+    bool resetTextScalingFlag(false);
     glPushMatrix();
     if (dpa->isTextSizeSmallSurfaceCorrectionsEnabled()) {
         if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
             glScalef(0.1, 0.1, 0.1);
             text->setSmallSurfaceTextScaling(10.0);  /* Must be inverse of glScalef() */
+            resetTextScalingFlag = true;
         }
     }
     
@@ -4278,7 +4280,10 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
     /*
      * Reset scaling
      */
-    text->setSmallSurfaceTextScaling(0.0);
+    if (resetTextScalingFlag) {
+        /* 1.0 turns off scaling */
+        text->setSmallSurfaceTextScaling(1.0);
+    }
 
     return textDrawnFlag;
 }

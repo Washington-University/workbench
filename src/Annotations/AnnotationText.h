@@ -154,7 +154,7 @@ namespace caret {
                                            float outlineRgbaOut[4],
                                            float textRgbaOut[4]) const;
         
-        float isSmallSurfaceTextScaling() const;
+        float getSmallSurfaceTextScaling() const;
         
         void setSmallSurfaceTextScaling(const float smallSurfaceTextScaling);
         
