@@ -8,7 +8,13 @@ CMAKE_MINIMUM_REQUIRED (VERSION 3.5...4.0)
 #
 PROJECT(Workbench)
 
-SET(WB_VERSION "2.1.0")
+#
+# Note that macOS app store requires
+# a newer version number for every upload,
+# event uploads that are rejected.
+#
+SET(WB_VERSION "2.1.5")
+
 #
 # Set to true for verbose output when debugging this file
 #

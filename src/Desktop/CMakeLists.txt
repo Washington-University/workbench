@@ -66,6 +66,7 @@ IF (APPLE)
    ADD_EXECUTABLE(${EXE_NAME}
       MACOSX_BUNDLE
       desktop.cxx
+      ${APP_ICON_MACOSX}
       ${IMAGE_RCS_SRCS}
    )
 
@@ -259,13 +260,21 @@ ENDIF (APPLE)
 IF (APPLE)
     SET (MACOSX_BUNDLE_INFO_STRING wb_view Copyright 2024 )
     SET (MACOSX_BUNDLE_ICON_FILE workbench.icns )
-    SET (MACOSX_BUNDLE_GUI_IDENTIFIER edu.washu.connectomeworkbench )
-    SET (MACOSX_BUNDLE_LONG_VERSION_STRING wb_view)
+    ##SET (MACOSX_BUNDLE_GUI_IDENTIFIER wb_view )
+    ## Underscore is not valid in MACOSX_BUNDLE_GUI_IDENTIFIER
+    SET (MACOSX_BUNDLE_GUI_IDENTIFIER "edu.washu.connectomeworkbench" )
+#    SET (MACOSX_BUNDLE_LONG_VERSION_STRING wb_view)
     SET (MACOSX_BUNDLE_BUNDLE_NAME wb_view)
-    SET (MACOSX_BUNDLE_BUNDLE_DISPLAY_NAME Connectome Workbench )
+    SET (MACOSX_BUNDLE_DISPLAY_NAME "Connectome Workbench")
     SET (MACOSX_BUNDLE_SHORT_VERSION_STRING ${WB_VERSION})
-    SET (MACOSX_BUNDLE_BUNDLE_VERSION ${WB_VERSION})
+    SET (MACOSX_BUNDLE_BUNDLE_VERSION ${WB_VERSION})  # from XCode plist file
     SET (MACOSX_BUNDLE_COPYRIGHT  2024 )
+
+    # And this part tells CMake where to find and install the file itself
+    # https://doc.qt.io/archives/qt-5.15/appicon.html
+    SET(APP_ICON_MACOSX ${CMAKE_CURRENT_SOURCE_DIR}/icons/mac/workbench.icns)
+    SET_SOURCE_FILES_PROPERTIES(${APP_ICON_MACOSX} PROPERTIES
+           MACOSX_PACKAGE_LOCATION "Resources")
 
     ADD_CUSTOM_COMMAND(
         TARGET ${EXE_NAME}
@@ -274,5 +283,6 @@ IF (APPLE)
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/spec_file.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/data_file.icns
+	COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../mac_plist/wb_view.entitlements
     )
 ENDIF (APPLE)
