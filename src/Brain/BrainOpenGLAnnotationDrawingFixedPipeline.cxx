@@ -4172,6 +4172,20 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
         return false;
     }
     
+    /*
+     * When the surface is very small, like a marmoset, the font will quickly become
+     * its minimum size and cannot be made smaller.  This will scale the drawing space
+     * for the text to be much smaller but the text gets scaled backup when drawing
+     * and allows the text to become smaller as desired.  It is a KLUDGE.
+     */
+    glPushMatrix();
+    if (dpa->isTextSizeSmallSurfaceCorrectionsEnabled()) {
+        if (text->getCoordinateSpace() == AnnotationCoordinateSpaceEnum::SURFACE) {
+            glScalef(0.1, 0.1, 0.1);
+            text->setSmallSurfaceTextScaling(10.0);  /* Must be inverse of glScalef() */
+        }
+    }
+    
     double bottomLeft[3];
     double bottomRight[3];
     double topRight[3];
@@ -4259,6 +4273,13 @@ BrainOpenGLAnnotationDrawingFixedPipeline::drawTextSurfaceTangentOffset(Annotati
         glPopAttrib();
     }
     
+    glPopMatrix();
+    
+    /*
+     * Reset scaling
+     */
+    text->setSmallSurfaceTextScaling(0.0);
+
     return textDrawnFlag;
 }
 

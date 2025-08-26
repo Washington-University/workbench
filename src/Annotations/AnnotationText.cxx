@@ -650,9 +650,18 @@ AnnotationText::getFontSizeForDrawing(const int32_t drawingViewportWidth,
         case AnnotationTextFontSizeTypeEnum::PERCENTAGE_OF_VIEWPORT_HEIGHT:
         {
             /*
+             * Kludge for when text is drawn on very small surfaces.
+             * Allows font to continue shrinking
+             */
+            float fontScale(1.0);
+            if (isSmallSurfaceTextScaling()) {
+                fontScale = 10.0;
+            }
+            
+            /*
              * May need pixel to points conversion if not 72 DPI
              */
-            const float pixelSize = drawingViewportHeight * (m_fontPercentViewportSize / 100.0);
+            const float pixelSize = drawingViewportHeight * (m_fontPercentViewportSize * fontScale / 100.0);
             sizeForDrawing = pixelSize;
             if (sizeForDrawing < minimumPixelSizeForPercentageText) {
                 sizeForDrawing = minimumPixelSizeForPercentageText;
@@ -1139,6 +1148,26 @@ AnnotationText::setUnderlineStyleEnabled(const bool enabled)
         m_underlineEnabled = enabled;
         setModified();
     }
+}
+
+/**
+ * @return Set transient scaling for use when drawing on a small surface
+ */
+float
+AnnotationText::isSmallSurfaceTextScaling() const
+{
+    return m_smallSurfaceTextScaling;
+}
+
+/**
+ * Set transient scaling for use when drawing on a small surface
+ * @param smallSurfaceTextScaling
+ *    New value
+ */
+void
+AnnotationText::setSmallSurfaceTextScaling(const float smallSurfaceTextScaling)
+{
+    m_smallSurfaceTextScaling = smallSurfaceTextScaling;
 }
 
 /**

@@ -60,6 +60,9 @@ m_parentBrain(parentBrain)
     m_sceneAssistant->add("m_displayTextAnnotations",
                           &m_displayTextAnnotations);
     
+    m_sceneAssistant->add("m_textSizeSmallSurfaceCorrectionsEnabled",
+                          &m_textSizeSmallSurfaceCorrectionsEnabled);
+    
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup);
     m_sceneAssistant->addArray("m_displayWindowAnnotationsInSingleTabViews",
@@ -154,6 +157,7 @@ DisplayPropertiesAnnotation::resetPrivate()
 {
     m_displayAnnotations = true;
     m_displayTextAnnotations = true;
+    m_textSizeSmallSurfaceCorrectionsEnabled = false;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS; i++) {
         m_displayWindowAnnotationsInSingleTabViews[i] = true;
@@ -222,6 +226,27 @@ void
 DisplayPropertiesAnnotation::setDisplayTextAnnotations(const bool status)
 {
     m_displayTextAnnotations = status;
+}
+
+/**
+ * @return Status for text correction small surfaces
+ */
+bool
+DisplayPropertiesAnnotation::isTextSizeSmallSurfaceCorrectionsEnabled() const
+{
+    return m_textSizeSmallSurfaceCorrectionsEnabled;
+}
+
+/**
+ * Set the status for text correction on small surfaces
+ *
+ * @param status
+ *     New  status.
+ */
+void
+DisplayPropertiesAnnotation::setTextSizeSmallSurfaceCorrectionsEnabled(const bool status)
+{
+    m_textSizeSmallSurfaceCorrectionsEnabled = status;
 }
 
 /**

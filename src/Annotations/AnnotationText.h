@@ -154,7 +154,10 @@ namespace caret {
                                            float outlineRgbaOut[4],
                                            float textRgbaOut[4]) const;
         
-
+        float isSmallSurfaceTextScaling() const;
+        
+        void setSmallSurfaceTextScaling(const float smallSurfaceTextScaling);
+        
         static void setUserDefaultHorizontalAlignment(const AnnotationTextAlignHorizontalEnum::Enum alignment);
         
         static void setUserDefaultVerticalAlignment(const AnnotationTextAlignVerticalEnum::Enum alignment);
@@ -255,6 +258,9 @@ namespace caret {
         CaretColorEnum::Enum m_colorTextBackground;
         
         float m_customColorTextBackground[4];
+        
+        /** Transient when drawing, not saved to annotation file */
+        float m_smallSurfaceTextScaling = 1.0;
         
         bool m_boldEnabled;
         

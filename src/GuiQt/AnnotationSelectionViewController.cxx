@@ -122,12 +122,30 @@ m_browserWindowIndex(browserWindowIndex)
     macroManager->addMacroSupportToObject(m_displayWindowAnnotationInSingleTabViewsCheckBox,
                                           "Enable display window annotations in single tab view");
     
+    const QString smallTT(WuQtUtilities::createWordWrappedToolTipText("When surfaces are very small (e.g. Marmoset),"
+                                                                      "the minimum size of a text annotation in "
+                                                                      "surface space may be too large as the size "
+                                                                      "of the drawn text is a function of the surface "
+                                                                      "size.  Enabling this item allows text annotations "
+                                                                      "to achieve a smaller size.  If enabled "
+                                                                      "with previously created annotations, it may result in "
+                                                                      "many of them shrinking in size.  Using Edit Menu -> "
+                                                                      "Select All and then adjusting the Text Size "
+                                                                      "will simplify bringing all of them back to a "
+                                                                      "reasonable size."));
+    m_smallSurfaceTextSizeCorrectionCheckBox = new QCheckBox("Text size improvement on small surfaces");
+    m_smallSurfaceTextSizeCorrectionCheckBox->setToolTip(smallTT);
+    QObject::connect(m_smallSurfaceTextSizeCorrectionCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(checkBoxToggled()));
+    
+
     m_sceneAssistant = new SceneClassAssistant();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(m_displayAnnotationsCheckBox);
     layout->addWidget(m_displayTextAnnotationsCheckBox);
     layout->addWidget(m_displayWindowAnnotationInSingleTabViewsCheckBox);
+    layout->addWidget(m_smallSurfaceTextSizeCorrectionCheckBox);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     layout->addLayout(groupSelectionLayout);
     layout->addWidget(createSelectionWidget(objectNamePrefix), 100);
@@ -212,6 +230,7 @@ AnnotationSelectionViewController::updateAnnotationSelections()
     m_displayAnnotationsCheckBox->setChecked(dpa->isDisplayAnnotations());
     m_displayTextAnnotationsCheckBox->setChecked(dpa->isDisplayTextAnnotations());
     m_displayWindowAnnotationInSingleTabViewsCheckBox->setChecked(dpa->isDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex));
+    m_smallSurfaceTextSizeCorrectionCheckBox->setChecked(dpa->isTextSizeSmallSurfaceCorrectionsEnabled());
     
     Brain* brain = GuiManager::get()->getBrain();
     std::vector<AnnotationFile*> annotationFiles;
@@ -270,6 +289,7 @@ AnnotationSelectionViewController::checkBoxToggled()
     dpa->setDisplayTextAnnotations(m_displayTextAnnotationsCheckBox->isChecked());
     dpa->setDisplayWindowAnnotationsInSingleTabViews(m_browserWindowIndex,
                                      m_displayWindowAnnotationInSingleTabViewsCheckBox->isChecked());
+    dpa->setTextSizeSmallSurfaceCorrectionsEnabled(m_smallSurfaceTextSizeCorrectionCheckBox->isChecked());
     
     updateOtherAnnotationViewControllers();
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());

@@ -51,6 +51,10 @@ namespace caret {
         
         void setDisplayTextAnnotations(const bool status);
         
+        bool isTextSizeSmallSurfaceCorrectionsEnabled() const;
+        
+        void setTextSizeSmallSurfaceCorrectionsEnabled(const bool status);
+        
         DisplayGroupEnum::Enum getDisplayGroupForTab(const int32_t browserTabIndex) const;
         
         void setDisplayGroupForTab(const int32_t browserTabIndex,
@@ -90,6 +94,8 @@ namespace caret {
         bool m_displayAnnotations;
         
         bool m_displayTextAnnotations;
+        
+        bool m_textSizeSmallSurfaceCorrectionsEnabled = false;
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
