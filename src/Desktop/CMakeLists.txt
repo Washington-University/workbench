@@ -267,7 +267,7 @@ IF (APPLE)
     SET (MACOSX_BUNDLE_BUNDLE_NAME wb_view)
     SET (MACOSX_BUNDLE_DISPLAY_NAME "Connectome Workbench")
     SET (MACOSX_BUNDLE_SHORT_VERSION_STRING ${WB_VERSION})
-    SET (MACOSX_BUNDLE_BUNDLE_VERSION ${WB_VERSION})  # from XCode plist file
+    SET (MACOSX_BUNDLE_BUNDLE_VERSION 3)  # must increment for each upload to app store
     SET (MACOSX_BUNDLE_COPYRIGHT  2024 )
 
     # And this part tells CMake where to find and install the file itself
