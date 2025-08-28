@@ -67,7 +67,15 @@ namespace caret {
         
         void updateDefaultSurfaceColorWidget();
         
-        QCheckBox* m_displayNormalVectorsCheckBox;
+        QCheckBox* m_displayFrontNormalVectorsCheckBox;
+        
+        QCheckBox* m_displayBackNormalVectorsCheckBox;
+        
+        QCheckBox* m_displayTriangleFrontNormalVectorsCheckBox;
+        
+        QCheckBox* m_displayTriangleBackNormalVectorsCheckBox;
+        
+        QDoubleSpinBox* m_normalVectorLengthSpinBox;
         
         QCheckBox* m_backfaceCullingCheckBox;
         

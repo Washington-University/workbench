@@ -1626,9 +1626,11 @@ WuQMacroManager::releaseWidgetFromMacroWidgetAction(QWidget* widget,
                                                     QWidget* widget3,
                                                     QWidget* widget4,
                                                     QWidget* widget5,
-                                                    QWidget* widget6)
+                                                    QWidget* widget6,
+                                                    QWidget* widget7,
+                                                    QWidget* widget8)
 {
-    std::vector<QWidget*> allWidgets { widget, widget2, widget3, widget4, widget5, widget6 };
+    std::vector<QWidget*> allWidgets { widget, widget2, widget3, widget4, widget5, widget6, widget7, widget8 };
     for (auto widget :  allWidgets) {
         if (widget != NULL) {
             for (auto mwa : m_macroWidgetActions) {
@@ -1650,9 +1652,11 @@ WuQMacroManager::updateValueInWidgetFromMacroWidgetAction(QWidget* widget,
                                                           QWidget* widget3,
                                                           QWidget* widget4,
                                                           QWidget* widget5,
-                                                          QWidget* widget6)
+                                                          QWidget* widget6,
+                                                          QWidget* widget7,
+                                                          QWidget* widget8)
 {
-    std::vector<QWidget*> allWidgets { widget, widget2, widget3, widget4, widget5, widget6 };
+    std::vector<QWidget*> allWidgets { widget, widget2, widget3, widget4, widget5, widget6, widget7, widget8 };
     for (auto widget :  allWidgets) {
         if (widget != NULL) {
             for (auto mwa : m_macroWidgetActions) {

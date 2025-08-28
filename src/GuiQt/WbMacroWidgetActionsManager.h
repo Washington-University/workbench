@@ -55,7 +55,15 @@ namespace caret {
         
         WuQMacroWidgetAction* getSurfacePropertiesVertexDiameterWidgetAction();
         
-        WuQMacroWidgetAction* getSurfacePropertiesDisplayNormalVectorsWidgetAction();
+        WuQMacroWidgetAction* getSurfacePropertiesDisplayFrontNormalVectorsWidgetAction();
+        
+        WuQMacroWidgetAction* getSurfacePropertiesDisplayBackNormalVectorsWidgetAction();
+        
+        WuQMacroWidgetAction* getSurfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction();
+        
+        WuQMacroWidgetAction* getSurfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction();
+        
+        WuQMacroWidgetAction* getSurfacePropertiesNormalVectorLengthWidgetAction();
         
         WuQMacroWidgetAction* getSurfacePropertiesSurfaceDrawingTypeWidgetAction();
         
@@ -70,7 +78,15 @@ namespace caret {
         
         WuQMacroWidgetAction* m_surfacePropertiesVertexDiameterWidgetAction = NULL;
         
-        WuQMacroWidgetAction* m_surfacePropertiesDisplayNormalVectorsWidgetAction = NULL;
+        WuQMacroWidgetAction* m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction = NULL;
+        
+        WuQMacroWidgetAction* m_surfacePropertiesDisplayBackNormalVectorsWidgetAction = NULL;
+        
+        WuQMacroWidgetAction* m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction = NULL;
+        
+        WuQMacroWidgetAction* m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction = NULL;
+        
+        WuQMacroWidgetAction* m_surfacePropertiesNormalVectorLengthWidgetAction = NULL;
         
         WuQMacroWidgetAction* m_surfacePropertiesSurfaceDrawingTypeWidgetAction = NULL;
         

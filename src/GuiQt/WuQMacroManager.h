@@ -200,14 +200,18 @@ namespace caret {
                                                 QWidget* widget3 = NULL,
                                                 QWidget* widget4 = NULL,
                                                 QWidget* widget5 = NULL,
-                                                QWidget* widget6 = NULL);
+                                                QWidget* widget6 = NULL,
+                                                QWidget* widget7 = NULL,
+                                                QWidget* widget8 = NULL);
         
         void updateValueInWidgetFromMacroWidgetAction(QWidget* widget,
                                                       QWidget* widget2 = NULL,
                                                       QWidget* widget3 = NULL,
                                                       QWidget* widget4 = NULL,
                                                       QWidget* widget5 = NULL,
-                                                      QWidget* widget6 = NULL);
+                                                      QWidget* widget6 = NULL,
+                                                      QWidget* widget7 = NULL,
+                                                      QWidget* widget8 = NULL);
         
         // ADD_NEW_METHODS_HERE
         

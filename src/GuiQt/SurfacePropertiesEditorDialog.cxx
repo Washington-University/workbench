@@ -113,16 +113,61 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     }
     m_nodeSizeSpinBox->setSuffix("mm");
     
-    QWidget* displayNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayNormalVectorsName());
-    if (displayNormalsWidget != NULL) {
-        m_displayNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayNormalsWidget);
-        CaretAssert(m_displayNormalVectorsCheckBox);
+    QWidget* displayFrontNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayFrontNormalVectorsName());
+    if (displayFrontNormalsWidget != NULL) {
+        m_displayFrontNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayFrontNormalsWidget);
+        CaretAssert(m_displayFrontNormalVectorsCheckBox);
     }
-    if (m_displayNormalVectorsCheckBox == NULL) {
-        m_displayNormalVectorsCheckBox = new QCheckBox();
-        m_displayNormalVectorsCheckBox->setEnabled(false);
+    if (m_displayFrontNormalVectorsCheckBox == NULL) {
+        m_displayFrontNormalVectorsCheckBox = new QCheckBox();
+        m_displayFrontNormalVectorsCheckBox->setEnabled(false);
     }
-    m_displayNormalVectorsCheckBox->setText("Display Normal Vectors");
+    m_displayFrontNormalVectorsCheckBox->setText("Display Front Normal Vectors in Red");
+    
+    QWidget* displayBackNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayBackNormalVectorsName());
+    if (displayBackNormalsWidget != NULL) {
+        m_displayBackNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayBackNormalsWidget);
+        CaretAssert(m_displayBackNormalVectorsCheckBox);
+    }
+    if (m_displayBackNormalVectorsCheckBox == NULL) {
+        m_displayBackNormalVectorsCheckBox = new QCheckBox();
+        m_displayBackNormalVectorsCheckBox->setEnabled(false);
+    }
+    m_displayBackNormalVectorsCheckBox->setText("Display Back Normal Vectors in Blue");
+    
+    QWidget* displayTriangleFrontNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayTriangleFrontNormalVectorsName());
+    if (displayTriangleFrontNormalsWidget != NULL) {
+        m_displayTriangleFrontNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayTriangleFrontNormalsWidget);
+        CaretAssert(m_displayTriangleFrontNormalVectorsCheckBox);
+    }
+    if (m_displayTriangleFrontNormalVectorsCheckBox == NULL) {
+        m_displayTriangleFrontNormalVectorsCheckBox = new QCheckBox();
+        m_displayTriangleFrontNormalVectorsCheckBox->setEnabled(false);
+    }
+    m_displayTriangleFrontNormalVectorsCheckBox->setText("Display Triangle Front Normal Vectors in Green");
+    
+    QWidget* displayTriangleBackNormalsWidget = mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesDisplayTriangleBackNormalVectorsName());
+    if (displayTriangleBackNormalsWidget != NULL) {
+        m_displayTriangleBackNormalVectorsCheckBox = qobject_cast<QCheckBox*>(displayTriangleBackNormalsWidget);
+        CaretAssert(m_displayTriangleBackNormalVectorsCheckBox);
+    }
+    if (m_displayTriangleBackNormalVectorsCheckBox == NULL) {
+        m_displayTriangleBackNormalVectorsCheckBox = new QCheckBox();
+        m_displayTriangleBackNormalVectorsCheckBox->setEnabled(false);
+    }
+    m_displayTriangleBackNormalVectorsCheckBox->setText("Display Triangle Back Normal Vectors in Cyan");
+    
+    QLabel* normalVectorLengthLabel(new QLabel("Normal Vector Length(% of height): "));
+    QWidget* normalVectorMacroWidget(mm->getWidgetForMacroWidgetActionByName(WbMacroWidgetActionNames::getSurfacePropertiesNormalVectorLengthName()));
+    if (normalVectorMacroWidget != NULL) {
+        m_normalVectorLengthSpinBox = qobject_cast<QDoubleSpinBox*>(normalVectorMacroWidget);
+        CaretAssert(m_normalVectorLengthSpinBox);
+    }
+    if (m_normalVectorLengthSpinBox == NULL) {
+        m_normalVectorLengthSpinBox = new QDoubleSpinBox();
+        m_normalVectorLengthSpinBox->setEnabled(false);
+    }
+    m_normalVectorLengthSpinBox->setSuffix("%");
     
     QLabel* opacityLabel = new QLabel("Opacity: ");
     
@@ -160,7 +205,16 @@ SurfacePropertiesEditorDialog::SurfacePropertiesEditorDialog(QWidget* parent)
     int row = gridLayout->rowCount();
     gridLayout->addWidget(m_backfaceCullingCheckBox, row, 0, 1, 3);
     row++;
-    gridLayout->addWidget(m_displayNormalVectorsCheckBox, row, 0, 1, 4);
+    gridLayout->addWidget(m_displayFrontNormalVectorsCheckBox, row, 0, 1, 4);
+    row++;
+    gridLayout->addWidget(m_displayBackNormalVectorsCheckBox, row, 0, 1, 4);
+    row++;
+    gridLayout->addWidget(m_displayTriangleFrontNormalVectorsCheckBox, row, 0, 1, 4);
+    row++;
+    gridLayout->addWidget(m_displayTriangleBackNormalVectorsCheckBox, row, 0, 1, 4);
+    row++;
+    gridLayout->addWidget(normalVectorLengthLabel, row, 0);
+    gridLayout->addWidget(m_normalVectorLengthSpinBox, row, 1, 1, 3);
     row++;
     gridLayout->addWidget(surfaceDrawingTypeLabel, row, 0);
     gridLayout->addWidget(m_surfaceDrawingTypeComboBox, row, 1, 1, 3);
@@ -206,7 +260,10 @@ SurfacePropertiesEditorDialog::~SurfacePropertiesEditorDialog()
                                                                     m_linkSizeSpinBox,
                                                                     m_nodeSizeSpinBox,
                                                                     m_opacitySpinBox,
-                                                                    m_displayNormalVectorsCheckBox);
+                                                                    m_displayFrontNormalVectorsCheckBox,
+                                                                    m_displayBackNormalVectorsCheckBox,
+                                                                    m_displayTriangleFrontNormalVectorsCheckBox,
+                                                                    m_displayTriangleBackNormalVectorsCheckBox);
 }
 
 /**
@@ -223,13 +280,15 @@ SurfacePropertiesEditorDialog::updateDialog()
                                                                           m_linkSizeSpinBox,
                                                                           m_nodeSizeSpinBox,
                                                                           m_opacitySpinBox,
-                                                                          m_displayNormalVectorsCheckBox);
+                                                                          m_displayFrontNormalVectorsCheckBox,
+                                                                          m_displayBackNormalVectorsCheckBox,
+                                                                          m_displayTriangleFrontNormalVectorsCheckBox,
+                                                                          m_displayTriangleBackNormalVectorsCheckBox);
     
     m_updateInProgress = false;
     
     DisplayPropertiesSurface* dps = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
     m_backfaceCullingCheckBox->setChecked(dps->isBackfaceCullingEnabled());
-
 }
 
 /**

@@ -282,7 +282,13 @@ namespace caret {
         
         void drawSurfaceFoci(Surface* surface);
         
-        void drawSurfaceNormalVectors(const Surface* surface);
+        void drawSurfaceNormalVectors(const Surface* surface,
+                                      const float normalVectorLength,
+                                      const bool frontFlag);
+        
+        void drawSurfaceTriangleNormalVectors(const Surface* surface,
+                                              const float normalVectorLength,
+                                              const bool frontFlag);
         
         void drawSurfaceFiberOrientations(const StructureEnum::Enum structure);
         

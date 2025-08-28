@@ -62,9 +62,25 @@ namespace caret {
         
         void setLinkSize(const float linkSize);
         
-        bool isDisplayNormalVectors() const;
+        bool isDisplayFrontNormalVectors() const;
         
-        void setDisplayNormalVectors(const bool displayNormalVectors);
+        void setDisplayFrontNormalVectors(const bool displayNormalVectors);
+        
+        bool isDisplayBackNormalVectors() const;
+        
+        void setDisplayBackNormalVectors(const bool displayNormalVectors);
+        
+        bool isDisplayTriangleFrontNormalVectors() const;
+        
+        void setDisplayTriangleFrontNormalVectors(const bool displayNormalVectors);
+        
+        bool isDisplayTriangleBackNormalVectors() const;
+        
+        void setDisplayTriangleBackNormalVectors(const bool displayNormalVectors);
+        
+        float getNormalVectorLength() const;
+        
+        void setNormalVectorLength(const float length);
         
         float getOpacity() const;
         
@@ -89,7 +105,15 @@ namespace caret {
         
         float m_linkSize;
         
-        bool m_displayNormalVectors;
+        bool m_displayFrontNormalVectors = false;
+        
+        bool m_displayBackNormalVectors = false;
+        
+        bool m_displayTriangleFrontNormalVectors = false;
+        
+        bool m_displayTriangleBackNormalVectors = false;
+        
+        float m_normalVectorLength = 10.0;
         
         SurfaceDrawingTypeEnum::Enum m_surfaceDrawingType;
         

@@ -39,7 +39,15 @@ namespace caret {
         
         static QString getSurfacePropertiesVertexDiameterName() { return "SurfaceProperties:vertexDiameter"; }
         
-        static QString getSurfacePropertiesDisplayNormalVectorsName() { return "SurfaceProperties:displayNormalVectors"; }
+        static QString getSurfacePropertiesDisplayFrontNormalVectorsName() { return "SurfaceProperties:displayNormalVectors"; }
+        
+        static QString getSurfacePropertiesDisplayBackNormalVectorsName() { return "SurfaceProperties:displayBackNormalVectors"; }
+        
+        static QString getSurfacePropertiesDisplayTriangleFrontNormalVectorsName() { return "SurfaceProperties:displayTriangleFrontNormalVectors"; }
+        
+        static QString getSurfacePropertiesDisplayTriangleBackNormalVectorsName() { return "SurfaceProperties:displayTriangleBackNormalVectors"; }
+        
+        static QString getSurfacePropertiesNormalVectorLengthName() { return "SurfaceProperties:normalVectorLength"; }
         
         static QString getSurfacePropertiesDrawingTypeName() { return "SurfaceProperties:drawingType"; }
         

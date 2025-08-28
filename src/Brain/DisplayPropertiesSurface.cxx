@@ -43,7 +43,11 @@ using namespace caret;
 DisplayPropertiesSurface::DisplayPropertiesSurface()
 : DisplayProperties()
 {
-    m_displayNormalVectors = false;
+    m_displayFrontNormalVectors = false;
+    m_displayBackNormalVectors = false;
+    m_displayTriangleFrontNormalVectors = false;
+    m_displayTriangleBackNormalVectors = false;
+    m_normalVectorLength = 10.0;
     m_linkSize = 2.0;
     m_nodeSize = 2.0;
     m_surfaceDrawingType = SurfaceDrawingTypeEnum::DRAW_AS_TRIANGLES;
@@ -51,8 +55,16 @@ DisplayPropertiesSurface::DisplayPropertiesSurface()
     m_backfaceCullingEnabled = false;
     resetDefaultColorRGB();
     
-    m_sceneAssistant->add("m_displayNormalVectors",
-                          &m_displayNormalVectors);
+    m_sceneAssistant->add("m_displayNormalVectors", /* use old name for scenes so old scenes work */
+                          &m_displayFrontNormalVectors);
+    m_sceneAssistant->add("m_displayBackNormalVectors",
+                          &m_displayBackNormalVectors);
+    m_sceneAssistant->add("m_displayTriangleFrontNormalVectors",
+                          &m_displayTriangleFrontNormalVectors);
+    m_sceneAssistant->add("m_displayTriangleBackNormalVectors",
+                          &m_displayTriangleBackNormalVectors);
+    m_sceneAssistant->add("m_normalVectorLength",
+                          &m_normalVectorLength);
     m_sceneAssistant->add("m_linkSize",
                           &m_linkSize);
     m_sceneAssistant->add("m_nodeSize",
@@ -238,25 +250,109 @@ DisplayPropertiesSurface::setLinkSize(const float linkSize)
 }
 
 /**
- * @return Display normal vectors.
+ * @return Display front normal vectors.
  */
 bool
-DisplayPropertiesSurface::isDisplayNormalVectors() const
+DisplayPropertiesSurface::isDisplayFrontNormalVectors() const
 {
-    return m_displayNormalVectors;
+    return m_displayFrontNormalVectors;
 }
 
 /**
- * Set display normal vectors.
+ * Set display front normal vectors.
+ *
+ * @param displayFrontNormalVectors
+ *   New value for display normal vectors.
+ */
+void
+DisplayPropertiesSurface::setDisplayFrontNormalVectors(const bool displayNormalVectors)
+{
+    m_displayFrontNormalVectors = displayNormalVectors;
+}
+
+/**
+ * @return Display back normal vectors.
+ */
+bool
+DisplayPropertiesSurface::isDisplayBackNormalVectors() const
+{
+    return m_displayBackNormalVectors;
+}
+
+/**
+ * Set display back normal vectors.
  *
  * @param displayNormalVectors
  *   New value for display normal vectors.
  */
 void
-DisplayPropertiesSurface::setDisplayNormalVectors(const bool displayNormalVectors)
+DisplayPropertiesSurface::setDisplayBackNormalVectors(const bool displayNormalVectors)
 {
-    m_displayNormalVectors = displayNormalVectors;
+    m_displayBackNormalVectors = displayNormalVectors;
 }
+
+/**
+ * @return Display triangle front normal vectors
+ */
+bool
+DisplayPropertiesSurface::isDisplayTriangleFrontNormalVectors() const
+{
+    return m_displayTriangleFrontNormalVectors;
+}
+
+/**
+ * Set display triangle front normal vectors.
+ *
+ * @param displayNormalVectors
+ *   New value for display normal vectors.
+ */
+void
+DisplayPropertiesSurface::setDisplayTriangleFrontNormalVectors(const bool displayNormalVectors)
+{
+    m_displayTriangleFrontNormalVectors = displayNormalVectors;
+}
+
+/**
+ * @return Display triangle back normal vectors
+ */
+bool
+DisplayPropertiesSurface::isDisplayTriangleBackNormalVectors() const
+{
+    return m_displayTriangleBackNormalVectors;
+}
+
+/**
+ * Set display triangles back normal vectors.
+ *
+ * @param displayNormalVectors
+ *   New value for display normal vectors.
+ */
+void
+DisplayPropertiesSurface::setDisplayTriangleBackNormalVectors(const bool displayNormalVectors)
+{
+    m_displayTriangleBackNormalVectors = displayNormalVectors;
+}
+
+/**
+ * @return Length for drawing normal vectors
+ */
+float
+DisplayPropertiesSurface::getNormalVectorLength() const
+{
+    return m_normalVectorLength;
+}
+
+/**
+ * Set length for drawing normal vectors
+ * @param length
+ *    New length
+ */
+void
+DisplayPropertiesSurface::setNormalVectorLength(const float length)
+{
+    m_normalVectorLength = length;
+}
+
 
 /**
  * @return The overall surface opacity.

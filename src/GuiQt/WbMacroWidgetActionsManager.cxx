@@ -77,8 +77,16 @@ WbMacroWidgetActionsManager::getMacroWidgetActions()
         
         m_macroWidgetActions.push_back(getSurfacePropertiesVertexDiameterWidgetAction());
         
-        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayNormalVectorsWidgetAction());
+        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayFrontNormalVectorsWidgetAction());
 
+        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayBackNormalVectorsWidgetAction());
+        
+        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction());
+        
+        m_macroWidgetActions.push_back(getSurfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction());
+        
+        m_macroWidgetActions.push_back(getSurfacePropertiesNormalVectorLengthWidgetAction());
+        
         m_macroWidgetActions.push_back(getSurfacePropertiesSurfaceDrawingTypeWidgetAction());
     }
     
@@ -180,29 +188,146 @@ WbMacroWidgetActionsManager::getSurfacePropertiesVertexDiameterWidgetAction()
  * @return Get (and in needed create) the surface properties display normal vectors widget action
  */
 WuQMacroWidgetAction*
-WbMacroWidgetActionsManager::getSurfacePropertiesDisplayNormalVectorsWidgetAction()
+WbMacroWidgetActionsManager::getSurfacePropertiesDisplayFrontNormalVectorsWidgetAction()
 {
-    if (m_surfacePropertiesDisplayNormalVectorsWidgetAction == NULL) {
-        m_surfacePropertiesDisplayNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
-                                                                WbMacroWidgetActionNames::getSurfacePropertiesDisplayNormalVectorsName(),
-                                                                "Display normal vectors on a surface",
+    if (m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction == NULL) {
+        m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
+                                                                WbMacroWidgetActionNames::getSurfacePropertiesDisplayFrontNormalVectorsName(),
+                                                                "Display front normal vectors on a surface",
                                                                 this);
         
         DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
         
-        QObject::connect(m_surfacePropertiesDisplayNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
+        QObject::connect(m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
                          this, [=](QVariant& value) {
-                             value = dsp->isDisplayNormalVectors();
+                             value = dsp->isDisplayFrontNormalVectors();
                          });
         
-        QObject::connect(m_surfacePropertiesDisplayNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
+        QObject::connect(m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
                          this, [=](const QVariant& value) {
-                             dsp->setDisplayNormalVectors(value.toBool());
+                             dsp->setDisplayFrontNormalVectors(value.toBool());
                              GuiManager::updateGraphicsAllWindows();
                          });
     }
     
-    return m_surfacePropertiesDisplayNormalVectorsWidgetAction;
+    return m_surfacePropertiesDisplayFrontNormalVectorsWidgetAction;
+}
+
+/**
+ * @return Get (and in needed create) the surface properties display back normal vectors widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesDisplayBackNormalVectorsWidgetAction()
+{
+    if (m_surfacePropertiesDisplayBackNormalVectorsWidgetAction == NULL) {
+        m_surfacePropertiesDisplayBackNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
+                                                                                            WbMacroWidgetActionNames::getSurfacePropertiesDisplayBackNormalVectorsName(),
+                                                                                            "Display back normal vectors on a surface",
+                                                                                            this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesDisplayBackNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+            value = dsp->isDisplayBackNormalVectors();
+        });
+        
+        QObject::connect(m_surfacePropertiesDisplayBackNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+            dsp->setDisplayBackNormalVectors(value.toBool());
+            GuiManager::updateGraphicsAllWindows();
+        });
+    }
+    
+    return m_surfacePropertiesDisplayBackNormalVectorsWidgetAction;
+}
+
+/**
+ * @return Get (and in needed create) the surface properties display triangle frontnormal vectors widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction()
+{
+    if (m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction == NULL) {
+        m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
+                                                                                           WbMacroWidgetActionNames::getSurfacePropertiesDisplayTriangleFrontNormalVectorsName(),
+                                                                                           "Display triangle front normal vectors on a surface",
+                                                                                           this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+            value = dsp->isDisplayTriangleFrontNormalVectors();
+        });
+        
+        QObject::connect(m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+            dsp->setDisplayTriangleFrontNormalVectors(value.toBool());
+            GuiManager::updateGraphicsAllWindows();
+        });
+    }
+    
+    return m_surfacePropertiesDisplayTriangleFrontNormalVectorsWidgetAction;
+}
+
+/**
+ * @return Get (and in needed create) the surface properties display triangle back normal vectors widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction()
+{
+    if (m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction == NULL) {
+        m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::CHECK_BOX_BOOLEAN,
+                                                                                                    WbMacroWidgetActionNames::getSurfacePropertiesDisplayTriangleBackNormalVectorsName(),
+                                                                                                    "Display triangle back normal vectors on a surface",
+                                                                                                    this);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+            value = dsp->isDisplayTriangleBackNormalVectors();
+        });
+        
+        QObject::connect(m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+            dsp->setDisplayTriangleBackNormalVectors(value.toBool());
+            GuiManager::updateGraphicsAllWindows();
+        });
+    }
+    
+    return m_surfacePropertiesDisplayTriangleBackNormalVectorsWidgetAction;
+}
+
+/**
+ * @return The normal vector length widget action
+ */
+WuQMacroWidgetAction*
+WbMacroWidgetActionsManager::getSurfacePropertiesNormalVectorLengthWidgetAction()
+{
+    if (m_surfacePropertiesNormalVectorLengthWidgetAction == NULL) {
+        m_surfacePropertiesNormalVectorLengthWidgetAction = new WuQMacroWidgetAction(WuQMacroWidgetAction::WidgetType::SPIN_BOX_FLOAT,
+                                                                               WbMacroWidgetActionNames::getSurfacePropertiesNormalVectorLengthName(),
+                                                                               "Set the normal vector length (mm)",
+                                                                               this);
+        m_surfacePropertiesNormalVectorLengthWidgetAction->setDoubleSpinBoxMinMaxStepDecimals(0.0, std::numeric_limits<float>::max(), 0.1, 1);
+        
+        DisplayPropertiesSurface* dsp = GuiManager::get()->getBrain()->getDisplayPropertiesSurface();
+        
+        QObject::connect(m_surfacePropertiesNormalVectorLengthWidgetAction, &WuQMacroWidgetAction::getModelValue,
+                         this, [=](QVariant& value) {
+            value = dsp->getNormalVectorLength();
+        });
+        
+        QObject::connect(m_surfacePropertiesNormalVectorLengthWidgetAction, &WuQMacroWidgetAction::setModelValue,
+                         this, [=](const QVariant& value) {
+            dsp->setNormalVectorLength(value.toFloat());
+            GuiManager::updateGraphicsAllWindows();
+        });
+    }
+    
+    return m_surfacePropertiesNormalVectorLengthWidgetAction;
 }
 
 /**

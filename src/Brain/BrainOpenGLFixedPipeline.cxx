@@ -3018,8 +3018,25 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             
             this->disableClippingPlanes();
             
-            if (dps->isDisplayNormalVectors()) {
-                drawSurfaceNormalVectors(surface);
+            if (dps->isDisplayFrontNormalVectors()) {
+                drawSurfaceNormalVectors(surface,
+                                         dps->getNormalVectorLength(),
+                                         true);
+            }
+            if (dps->isDisplayBackNormalVectors()) {
+                drawSurfaceNormalVectors(surface,
+                                         dps->getNormalVectorLength(),
+                                         false);
+            }
+            if (dps->isDisplayTriangleFrontNormalVectors()) {
+                drawSurfaceTriangleNormalVectors(surface,
+                                                 dps->getNormalVectorLength(),
+                                                 true);
+            }
+            if (dps->isDisplayTriangleBackNormalVectors()) {
+                drawSurfaceTriangleNormalVectors(surface,
+                                                 dps->getNormalVectorLength(),
+                                                 false);
             }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface,
@@ -3088,8 +3105,25 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
 
             this->disableClippingPlanes();
             
-            if (dps->isDisplayNormalVectors()) {
-                drawSurfaceNormalVectors(surface);
+            if (dps->isDisplayFrontNormalVectors()) {
+                drawSurfaceNormalVectors(surface,
+                                         dps->getNormalVectorLength(),
+                                         true);
+            }
+            if (dps->isDisplayBackNormalVectors()) {
+                drawSurfaceNormalVectors(surface,
+                                         dps->getNormalVectorLength(),
+                                         false);
+            }
+            if (dps->isDisplayTriangleFrontNormalVectors()) {
+                drawSurfaceTriangleNormalVectors(surface,
+                                                 dps->getNormalVectorLength(),
+                                                 true);
+            }
+            if (dps->isDisplayTriangleBackNormalVectors()) {
+                drawSurfaceTriangleNormalVectors(surface,
+                                                 dps->getNormalVectorLength(),
+                                                 false);
             }
             this->drawSurfaceBorders(surface);
             this->drawSurfaceFoci(surface);
@@ -3694,17 +3728,54 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
  * Draw a surface's normal vectors.
  * @param surface
  *     Surface on which normal vectors are drawn.
+ * @param normalVectorLength
+ *     Length for drawing normal vector
+ * @param frontFlag
+ *    If true, drawn front normals, else draw back normals
  */
 void
-BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface,
+                                                   const float normalVectorLength,
+                                                   const bool frontFlag)
 {
-    disableLighting();
+    CaretAssert(surface);
     
+    /*
+     * Get height of surface
+     */
+    BoundingBox bb;
+    surface->getBounds(bb);
+    float surfaceHeight(bb.getDifferenceZ());
+    if (surfaceHeight <= 1.0) {
+        surfaceHeight = bb.getDifferenceY();
+    }
+    if (surfaceHeight <= 1.0) {
+        surfaceHeight = 1.0;
+    }
+    
+    disableLighting();
+    glPushAttrib(GL_DEPTH_BUFFER_BIT
+                 | GL_POLYGON_BIT);
+    glEnable(GL_DEPTH_TEST);
+    
+    if ( ! frontFlag) {
+        glPolygonOffset(-1.0, -1.0);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+    }
+    
+    float length(surfaceHeight * (normalVectorLength / 100.0));
+    if ( ! frontFlag) {
+        length = -length;
+    }
     const StructureEnum::Enum structure = surface->getStructure();
-    const float length = 10.0;    
     CaretPointer<TopologyHelper> topoHelper = surface->getTopologyHelper();
     setLineWidth(1.0);
-    glColor3f(1.0, 0.0, 0.0);
+    if (frontFlag) {
+        glColor3f(1.0, 0.0, 0.0);
+    }
+    else {
+        glColor3f(0.0, 0.0, 1.0);
+    }
     
     const int32_t numNodes = surface->getNumberOfNodes();
     glBegin(GL_LINES);
@@ -3719,18 +3790,105 @@ BrainOpenGLFixedPipeline::drawSurfaceNormalVectors(const Surface* surface)
             }
             
             const float* normal = surface->getNormalVector(i);
-            float vector[3] = {
-                xyz[0] + length * normal[0],
-                xyz[1] + length * normal[1],
-                xyz[2] + length * normal[2]
+            
+            float startXYZ[3] = { xyz[0], xyz[1], xyz[2] };
+            if ( ! frontFlag) {
+                startXYZ[0] += -0.1 * normal[0];
+                startXYZ[1] += -0.1 * normal[1];
+                startXYZ[2] += -0.1 * normal[2];
+            }
+            float endXYZ[3] = {
+                startXYZ[0] + length * normal[0],
+                startXYZ[1] + length * normal[1],
+                startXYZ[2] + length * normal[2]
             };
             
-            glVertex3fv(xyz);
-            glVertex3fv(vector);
+            glVertex3fv(startXYZ);
+            glVertex3fv(endXYZ);
         }
     }
     glEnd();
     
+    glPopAttrib();
+    enableLighting();
+}
+
+/**
+ * Draw surface triangle normal vectors
+ * @param surface
+ *     Surface on which normal vectors are drawn.
+ * @param normalVectorLength
+ *     Length for drawing normal vector
+ * @param frontFlag
+ *    If true, drawn front normals, else draw back normals
+ */
+void
+BrainOpenGLFixedPipeline::drawSurfaceTriangleNormalVectors(const Surface* surface,
+                                                           const float normalVectorLength,
+                                                           const bool frontFlag)
+{
+    CaretAssert(surface);
+    
+    /*
+     * Get height of surface
+     */
+    BoundingBox bb;
+    surface->getBounds(bb);
+    float surfaceHeight(bb.getDifferenceZ());
+    if (surfaceHeight <= 1.0) {
+        surfaceHeight = bb.getDifferenceY();
+    }
+    if (surfaceHeight <= 1.0) {
+        surfaceHeight = 1.0;
+    }
+
+    disableLighting();
+    glPushAttrib(GL_DEPTH_BUFFER_BIT
+                 | GL_POLYGON_BIT);
+    glEnable(GL_DEPTH_TEST);
+    
+    if ( ! frontFlag) {
+        glPolygonOffset(-1.0, -1.0);
+        glEnable(GL_POLYGON_OFFSET_LINE);
+    }
+    setLineWidth(1.0);
+    
+    float length(surfaceHeight * (normalVectorLength / 100.0));
+//    if ( ! frontFlag) {
+//        length = -length;
+//    }
+    const int32_t numTriangles(surface->getNumberOfTriangles());
+    
+    glBegin(GL_LINES);
+    for (int32_t i = 0; i < numTriangles; i++) {
+        const int32_t* tn = surface->getTriangle(i);
+        int32_t n1 = tn[0];
+        int32_t n2 = tn[1];
+        int32_t n3 = tn[2];
+        const float* p1 = surface->getCoordinate(n1);
+        const float* p2 = surface->getCoordinate(n2);
+        const float* p3 = surface->getCoordinate(n3);
+        const Vector3D startXYZ((p1[0] + p2[0] + p3[0]) / 3.0,
+                                (p1[1] + p2[1] + p3[1]) / 3.0,
+                                (p1[2] + p2[2] + p3[2]) / 3.0);
+        Vector3D normalVector;
+        surface->getTriangleNormalVector(i, normalVector);
+        if (frontFlag) {
+            const Vector3D endXYZ(startXYZ + normalVector * length);
+            glColor3f(0.0, 1.0, 0.0);
+            glVertex3fv(startXYZ);
+            glVertex3fv(endXYZ);
+        }
+        else {
+            glColor3f(0.0, 1.0, 1.0);
+            const Vector3D backEndXYZ(startXYZ - normalVector * length);
+            glVertex3fv(startXYZ);
+            glVertex3fv(backEndXYZ);
+        }
+    }
+    glEnd();
+    
+    glPopAttrib();
     enableLighting();
 }
 
