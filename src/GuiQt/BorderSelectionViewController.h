@@ -71,6 +71,8 @@ namespace caret {
         
         void processAttributesChanges();
         
+        void aboveOffsetValueChanged(double value);
+        
     private:
         BorderSelectionViewController(const BorderSelectionViewController&);
 
@@ -115,10 +117,13 @@ namespace caret {
         WuQTabWidget* m_tabWidget;
         
         static std::set<BorderSelectionViewController*> allBorderSelectionViewControllers;
+        
+        static bool s_aboveWarningFirstTimeFlag;
     };
     
 #ifdef __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
     std::set<BorderSelectionViewController*> BorderSelectionViewController::allBorderSelectionViewControllers;
+    bool BorderSelectionViewController::s_aboveWarningFirstTimeFlag = true;
 #endif // __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace

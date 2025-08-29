@@ -50,6 +50,7 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQTabWidget.h"
 #include "WuQtUtilities.h"
 
@@ -291,8 +292,8 @@ BorderSelectionViewController::createAttributesWidget()
     m_aboveSurfaceOffsetSpinBox->setDecimals(1);
     m_aboveSurfaceOffsetSpinBox->setToolTip(WuQtUtilities::createWordWrappedToolTipText("Moves surface away from borders (in depth) so that borders are above surface.  "
                                                                                         "Use with caution."));
-    QObject::connect(m_aboveSurfaceOffsetSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(processAttributesChanges()));
+    QObject::connect(m_aboveSurfaceOffsetSpinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged),
+                     this, &BorderSelectionViewController::aboveOffsetValueChanged);
     m_aboveSurfaceOffsetSpinBox->setObjectName(m_objectNamePrefix
                                                    + ":AboveSurfaceOffset");
     macroManager->addMacroSupportToObject(m_aboveSurfaceOffsetSpinBox,
@@ -337,6 +338,39 @@ BorderSelectionViewController::createAttributesWidget()
         
     return widget;
 }
+
+/**
+ * Called when the above offset value is changed
+ * @param value
+ *    New value
+ */
+void
+BorderSelectionViewController::aboveOffsetValueChanged(double value)
+{
+    if (s_aboveWarningFirstTimeFlag) {
+        s_aboveWarningFirstTimeFlag = false;
+        
+        const AString warningMessage =
+R"(Unless this value remains small (preferably less than one),
+it may cause issues with 3D surface rendering. These issues will
+become more noticeable in highly curved areas, especially when
+the surface is rotated or zoomed out. As the value increases,
+the graphics system may struggle to determine which parts of
+the surface are 'in front'.)";
+        
+        WuQMessageBoxTwo::warningOk(m_aboveSurfaceOffsetSpinBox,
+                                    "Warning",
+                                    warningMessage);
+    }
+    
+    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    dpb->setAboveSurfaceOffset(value);
+    
+    EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+    
+    updateOtherBorderViewControllers();
+}
+
 
 /**
  * Called when a widget on the attributes page has 
@@ -388,7 +422,6 @@ BorderSelectionViewController::processAttributesChanges()
     dpb->setUnstretchedLinesLength(displayGroup,
                                    browserTabIndex,
                                    m_unstretchedLinesLengthSpinBox->value());
-    dpb->setAboveSurfaceOffset(m_aboveSurfaceOffsetSpinBox->value());
     
     EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
     
