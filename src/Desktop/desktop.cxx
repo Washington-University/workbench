@@ -62,6 +62,8 @@
 #include "ProgramParameters.h"
 #include "QtPluginsPathSetup.h"
 #include "RecentFilesDialog.h"
+#include "RecentFileItem.h"
+#include "RecentFileItemsContainer.h"
 #include "RecentFilesSystemAccessModeEnum.h"
 #include "SceneDialog.h"
 #include "SessionManager.h"
@@ -345,11 +347,25 @@ main(int argc, char* argv[])
             switch (result) {
                 case RecentFilesDialog::ResultModeEnum::CANCEL:
                     break;
+                case RecentFilesDialog::ResultModeEnum::LOAD_EXAMPLE_SCENE_IN_SCENE_FILE:
+                    if (sceneIndex >= 0) {
+                        myState.sceneFileNameNoDialog = dataFileName;
+                    }
+                    else {
+                        myState.sceneFileName     = dataFileName;
+                    }
+                    myState.sceneNameOrNumber = AString::number(sceneIndex);
+                    break;
                 case RecentFilesDialog::ResultModeEnum::LOAD_FILES_IN_SPEC_FILE:
                     myState.specFileNameLoadAll = dataFileName;
                     break;
                 case RecentFilesDialog::ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE:
-                    myState.sceneFileName     = dataFileName;
+                    if (sceneIndex >= 0) {
+                        myState.sceneFileNameNoDialog = dataFileName;
+                    }
+                    else {
+                        myState.sceneFileName     = dataFileName;
+                    }
                     myState.sceneNameOrNumber = AString::number(sceneIndex);
                     break;
                 case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
@@ -469,16 +485,19 @@ main(int argc, char* argv[])
         
         if ( ! myState.specFileNameLoadAll.isEmpty()) {
             myWindow->loadFilesFromCommandLine({ myState.specFileNameLoadAll },
-                                               BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
+                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
         }
         else if ( ! myState.specFileNameLoadWithDialog.isEmpty()) {
             myWindow->loadFilesFromCommandLine({ myState.specFileNameLoadWithDialog },
-                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE);
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
+                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
         }
         
         if (! myState.fileList.empty()) {
             myWindow->loadFilesFromCommandLine(myState.fileList,
-                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);
+                                               BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
+                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
         }
         
         if ( ! myState.sceneFileName.isEmpty()) {
@@ -488,21 +507,35 @@ main(int argc, char* argv[])
         }
         
         if ( ! myState.sceneFileNameNoDialog.isEmpty()) {
-            myWindow->loadSceneFromCommandLine(myState.sceneFileNameNoDialog,
-                                               myState.sceneNameOrNumber,
-                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
+            myWindow->loadRecentScene(myState.sceneFileNameNoDialog,
+                                      myState.sceneNameOrNumber);
+//            myWindow->loadSceneFromCommandLine(myState.sceneFileNameNoDialog,
+//                                               myState.sceneNameOrNumber,
+//                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
         }
         
         if (myState.sceneMostRecentFlag) {
             std::vector<RecentSceneInfoContainer> recentSceneInfo;
             CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-            preferences->getMostRecentScenes(recentSceneInfo);
-
-            if ( ! recentSceneInfo.empty()) {
-                CaretAssertVectorIndex(recentSceneInfo, 0);
-                const RecentSceneInfoContainer& rsic(recentSceneInfo[0]);
-                myWindow->loadRecentScene(rsic.getSceneFileName(),
-                                          rsic.getSceneName());
+            std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+            AString errorMessage;
+            if (preferences->readRecentScenes(container.get(),
+                                              errorMessage)) {
+                if ( ! container->isEmpty()) {
+                    std::vector<RecentFileItem*> sceneItems(container->getAllItems());
+                    if ( ! sceneItems.empty()) {
+                        CaretAssertVectorIndex(sceneItems, 0);
+                        myWindow->loadRecentScene(sceneItems[0]->getPathAndFileName(),
+                                                  sceneItems[0]->getSceneName());
+                    }
+                }
+            }
+            else {
+                app.processEvents();
+                WuQMessageBox::errorOk(myWindow,
+                                       errorMessage);
+                app.processEvents();
+                
             }
         }
         

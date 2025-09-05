@@ -6971,14 +6971,18 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     const AString specFileName = sf->getFileName();
     if (DataFile::isFileOnNetwork(specFileName)) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToRecentFilesAndOrDirectories(specFileName);
+        const AString emptySceneName;
+        prefs->addToRecentFilesAndOrDirectories(specFileName,
+                                                emptySceneName);
     }
     else {
         FileInformation specFileInfo(specFileName);
         if (specFileInfo.exists()
             && specFileInfo.isAbsolute()) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToRecentFilesAndOrDirectories(specFileName);
+            const AString emptySceneName;
+            prefs->addToRecentFilesAndOrDirectories(specFileName,
+                                                    emptySceneName);
         }
     }
     
@@ -8638,7 +8642,9 @@ Brain::writeDataFile(CaretDataFile* caretDataFile)
              * Add to recent scene/spec files
              */
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
+            const AString emptySceneName;
+            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName(),
+                                                    emptySceneName);
         }
             break;
         case DataFileTypeEnum::SPECIFICATION:

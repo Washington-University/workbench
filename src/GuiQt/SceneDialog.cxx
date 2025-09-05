@@ -2984,9 +2984,8 @@ SceneDialog::displayScenePrivateWithErrorMessage(SceneFile* sceneFile,
          */
         if ( ! sceneFile->isModified()) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-            prefs->addToRecentFilesAndOrDirectories(sceneFile->getFileName());
-            prefs->addToMostRecentScenes(sceneFile->getFileName(),
-                                         scene->getName());
+            prefs->addToRecentFilesAndOrDirectories(sceneFile->getFileName(),
+                                                    scene->getName());
         }
     }
     else {

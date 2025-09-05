@@ -144,6 +144,14 @@ m_runMode(runMode)
     m_recentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentDirectories(preferences,
                                                                                                  RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
 
+    m_recentScenesItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentScenes(preferences,
+                                                                                         RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+    
+    m_exampleDataSetsItemsContainer.reset(RecentFileItemsContainer::newInstanceExampleDataSets());
+    std::vector<std::pair<AString, AString>> sceneFileAndSceneNames;
+    SessionManager::get()->getExampleSceneFilesAndSceneNames(sceneFileAndSceneNames);
+    m_exampleDataSetsItemsContainer->addSceneFileAndSceneNamesToExamplesContainer(sceneFileAndSceneNames);
+    
     /*
      * Favorites is updated when it is selected
      */
@@ -156,6 +164,12 @@ m_runMode(runMode)
     RecentFileItemsContainerModeEnum::Enum selectedMode = RecentFileItemsContainerModeEnum::RECENT_FILES;
     if ( ! m_recentFilesItemsContainer->isEmpty()) {
         selectedMode = RecentFileItemsContainerModeEnum::RECENT_FILES;
+    }
+    else if ( ! m_exampleDataSetsItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS;
+    }
+    else if ( ! m_recentScenesItemsContainer->isEmpty()) {
+        selectedMode = RecentFileItemsContainerModeEnum::RECENT_SCENES;
     }
     else if ( ! m_recentDirectoryItemsContainer->isEmpty()) {
         selectedMode = RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES;
@@ -419,6 +433,9 @@ RecentFilesDialog::createFileTypesButtonWidget()
             case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
                 toolTipText = ("Choose from Scene and Spec Files in the current directory");
                 break;
+            case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+                toolTipText = ("Choose from example data sets");
+                break;
             case RecentFileItemsContainerModeEnum::FAVORITES:
                 toolTipText = ("Choose from Favorites: favorites are created by clicking "
                                "the Favorite Icon (star) in the Favorite column for an item");
@@ -431,6 +448,9 @@ RecentFilesDialog::createFileTypesButtonWidget()
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_FILES:
                 toolTipText = ("Choose from Scene and Spec files recently opened by the user");
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+                toolTipText = ("Choose from recently displayed scenes");
                 break;
         }
         WuQtUtilities::setWordWrappedToolTip(action, toolTipText);
@@ -609,6 +629,12 @@ RecentFilesDialog::updateFilesTableContent()
             filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
             filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
             break;
+        case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+            itemsContainer = m_exampleDataSetsItemsContainer.get();
+            filter.setListDirectories(m_listDirectoriesCheckBox->isChecked());
+            filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
+            filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
+            break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
             updateFavoritesContainer();
             itemsContainer = m_favoriteItemsContainer.get();
@@ -627,6 +653,10 @@ RecentFilesDialog::updateFilesTableContent()
             itemsContainer = m_recentFilesItemsContainer.get();
             filter.setListSceneFiles(m_listSceneFilesCheckBox->isChecked());
             filter.setListSpecFiles(m_listSpecFilesCheckBox->isChecked());
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            itemsContainer = m_recentScenesItemsContainer.get();
+            filter.setListSceneFiles(true); /* always show scenes */
             break;
     }
     
@@ -743,8 +773,14 @@ RecentFilesDialog::openButtonClicked()
             case RecentFileItemTypeEnum::DIRECTORY:
                 m_resultMode = ResultModeEnum::OPEN_DIRECTORY;
                 break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                m_resultMode = ResultModeEnum::LOAD_EXAMPLE_SCENE_IN_SCENE_FILE;
+                break;
             case RecentFileItemTypeEnum::SCENE_FILE:
                 m_resultMode = ResultModeEnum::OPEN_FILE;
+                break;
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+                m_resultMode = ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE;
                 break;
             case RecentFileItemTypeEnum::SPEC_FILE:
                 m_resultMode = ResultModeEnum::OPEN_FILE;
@@ -777,15 +813,24 @@ RecentFilesDialog::openOtherButtonClicked()
 void
 RecentFilesDialog::tableWidgetItemClicked(RecentFileItem* item)
 {
-    m_openPushButton->setEnabled(item != NULL);
-    
     bool loadValidFlag(false);
+    bool openValidFlag(false);
     if (item != NULL) {
+        openValidFlag = true;
+        
         switch (item->getFileItemType()) {
             case RecentFileItemTypeEnum::DIRECTORY:
                 break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                loadValidFlag = true;
+                openValidFlag = false;
+                break;
             case RecentFileItemTypeEnum::SCENE_FILE:
                 loadValidFlag = true;
+                break;
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+                loadValidFlag = true;
+                openValidFlag = false;
                 break;
             case RecentFileItemTypeEnum::SPEC_FILE:
                 loadValidFlag = true;
@@ -794,6 +839,7 @@ RecentFilesDialog::tableWidgetItemClicked(RecentFileItem* item)
     }
     
     m_loadPushButton->setEnabled(loadValidFlag);
+    m_openPushButton->setEnabled(openValidFlag);
 }
 
 /**
@@ -822,26 +868,29 @@ RecentFilesDialog::testButtonClicked()
 
 /**
  * Load the given scene or spec file
+ * @param resultMode
+ * The result mode
  * @param pathAndFileName
  * Path and file name of file
  * @param sceneIndex
  * Index of scene if scene file
  */
 void
-RecentFilesDialog::loadSceneOrSpecFile(const AString& pathAndFileName,
+RecentFilesDialog::loadSceneOrSpecFile(const ResultModeEnum resultMode,
+                                       const AString& pathAndFileName,
                                        const int32_t sceneIndex)
 {
+    m_resultMode = resultMode;
+    
     bool validFlag;
     const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromFileExtension(pathAndFileName, &validFlag);
     switch (dataFileType) {
         case DataFileTypeEnum::SCENE:
-            m_resultMode = ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE;
             m_resultFilePathAndName = pathAndFileName;
             m_resultSceneIndex      = sceneIndex + 1; /* command line indices start at 1 */
             accept();
             break;
         case DataFileTypeEnum::SPECIFICATION:
-            m_resultMode = ResultModeEnum::LOAD_FILES_IN_SPEC_FILE;
             m_resultFilePathAndName = pathAndFileName;
             accept();
             break;
@@ -910,9 +959,73 @@ RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
                                                                                      password);
                                 }
                             }
-                            loadSceneOrSpecFile(item->getPathAndFileName(), i);
+                            loadSceneOrSpecFile(ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE,
+                                                item->getPathAndFileName(), i);
                         }
                     }
+                }
+            }
+            catch (const DataFileException& dfe) {
+                CaretLogWarning(dfe.whatString());
+            }
+        }
+            break;
+        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+        {
+            /**
+             * List scenes and allow user to load a scene bypassing the scene dialog
+             */
+            SceneFile sceneFile;
+            try {
+                sceneFile.readFile(item->getPathAndFileName());
+                const Scene* scene(sceneFile.getSceneWithName(item->getSceneName()));
+                const int32_t sceneIndex(sceneFile.getSceneIndexFromNumberOrName(item->getSceneName()));
+                if ((scene != NULL)
+                    && (sceneIndex >= 0)) {
+                    if (scene->hasFilesWithRemotePaths()) {
+                        const QString msg("This scene contains files that are on the network.  "
+                                          "If accessing the files requires a username and "
+                                          "password, enter it here.  Otherwise, remove any "
+                                          "text from the username and password fields.");
+                        
+                        AString username;
+                        AString password;
+                        if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_loadPushButton,
+                                                                                   "Username and Password",
+                                                                                   msg,
+                                                                                   username,
+                                                                                   password)) {
+                            CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                             password);
+                        }
+                    }
+                    
+                    ResultModeEnum resultMode(ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE);
+                    switch (item->getFileItemType()) {
+                        case RecentFileItemTypeEnum::DIRECTORY:
+                            break;
+                        case RecentFileItemTypeEnum::SCENE_FILE:
+                            break;
+                        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                            resultMode = ResultModeEnum::LOAD_EXAMPLE_SCENE_IN_SCENE_FILE;
+                            break;
+                        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+                            resultMode = ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE;
+                            break;
+                        case RecentFileItemTypeEnum::SPEC_FILE:
+                            break;
+                    }
+                    loadSceneOrSpecFile(resultMode,
+                                        item->getPathAndFileName(),
+                                        sceneIndex);
+                }
+                else {
+                    const AString msg("Scene \""
+                                      + item->getSceneName()
+                                      + "\" not found in scene file "
+                                      + sceneFile.getFileName());
+                    WuQMessageBox::critical(this, "ERROR", msg);
                 }
             }
             catch (const DataFileException& dfe) {
@@ -930,11 +1043,13 @@ RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
                 QAction* action = menu.addAction("Load all files from spec file");
                 QAction* selectedAction = menu.exec(globalPosition);
                 if (action == selectedAction) {
-                    loadSceneOrSpecFile(item->getPathAndFileName(), 0);
+                    loadSceneOrSpecFile(ResultModeEnum::LOAD_FILES_IN_SPEC_FILE,
+                                        item->getPathAndFileName(), 0);
                 }
             }
             else {
-                loadSceneOrSpecFile(item->getPathAndFileName(), 0);
+                loadSceneOrSpecFile(ResultModeEnum::LOAD_FILES_IN_SPEC_FILE,
+                                    item->getPathAndFileName(), 0);
             }
         }
             break;

@@ -110,12 +110,20 @@ RecentFileItemTypeEnum::initialize()
                                     "DIRECTORY", 
                                     "Directory"));
     
+    enumData.push_back(RecentFileItemTypeEnum(EXAMPLE_SCENE,
+                                              "EXAMPLE_SCENE",
+                                              "Example Scene"));
+
     enumData.push_back(RecentFileItemTypeEnum(SCENE_FILE,
-                                    "SCENE_FILE", 
+                                    "SCENE_FILE",
                                     "Scene File"));
     
+    enumData.push_back(RecentFileItemTypeEnum(SCENE_IN_SCENE_FILE,
+                                              "SCENE_IN_SCENE_FILE",
+                                              "Scene In Scene File"));
+
     enumData.push_back(RecentFileItemTypeEnum(SPEC_FILE,
-                                    "SPEC_FILE", 
+                                    "SPEC_FILE",
                                     "Spec File"));
     
 }

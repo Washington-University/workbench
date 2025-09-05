@@ -36,7 +36,8 @@ namespace caret {
         
     public:
         RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
-                       const AString& pathAndFileName);
+                       const AString& pathAndFileName,
+                       const AString& sceneName = "");
         
         virtual ~RecentFileItem();
         
@@ -74,6 +75,8 @@ namespace caret {
         
         void setComment(const AString& text);
         
+        AString getSceneName() const;
+        
         bool isFavorite() const;
         
         void setFavorite(const bool status);
@@ -84,9 +87,17 @@ namespace caret {
         
         void setForget(const bool status);
 
+        bool supportsFavorite() const;
+        
+        bool supportsForget() const;
+        
+        bool supportsShare() const;
+        
         // ADD_NEW_METHODS_HERE
 
         virtual AString toString() const;
+        
+        QVariant toQVariant() const;
         
     private:
         void copyHelperRecentFileItem(const RecentFileItem& obj);
@@ -98,6 +109,8 @@ namespace caret {
         QDateTime m_lastModifiedDateTime;
         
         AString m_pathAndFileName;
+        
+        AString m_sceneName;
         
         AString m_fileName;
         

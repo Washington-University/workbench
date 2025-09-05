@@ -37,14 +37,18 @@ public:
     enum Enum {
         /** Scene and Spec files in current directory */
         DIRECTORY_SCENE_AND_SPEC_FILES,
+        /** Example data sets */
+        EXAMPLE_DATA_SETS,
         /** Favorites */
         FAVORITES,
         /** Other usage not specific to any type of content */
         OTHER,
         /** Recent directories containing recently opened or saved files */
         RECENT_DIRECTORIES,
-        /** Recently opened Scene or Spec fiels*/
-        RECENT_FILES
+        /** Recently opened Scene or Spec files */
+        RECENT_FILES,
+        /** Recent Scene */
+        RECENT_SCENES
     };
 
 

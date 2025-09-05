@@ -31,8 +31,6 @@
 
 using namespace caret;
 
-//#define _MATCH_WITH_Q_REG_EXP_
-    
 /**
  * \class caret::RecentFileItemsFilter 
  * \brief Filters recent file items
@@ -123,7 +121,17 @@ RecentFileItemsFilter::testItemPassesFilter(const RecentFileItem* recentFileItem
                 return false;
             }
             break;
+        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+            if ( ! m_listSceneFiles) {
+                return false;
+            }
+            break;
         case RecentFileItemTypeEnum::SCENE_FILE:
+            if ( ! m_listSceneFiles) {
+                return false;
+            }
+            break;
+        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
             if ( ! m_listSceneFiles) {
                 return false;
             }

@@ -260,7 +260,9 @@ ZipSceneFileDialog::okButtonClicked()
         if (successFlag) {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             CaretAssert(prefs);
-            prefs->addToRecentFilesAndOrDirectories(m_sceneFile->getFileName());
+            const AString emptySceneName;
+            prefs->addToRecentFilesAndOrDirectories(m_sceneFile->getFileName(),
+                                                    emptySceneName);
         }
         else {
             if (errorMessage.isEmpty()) {

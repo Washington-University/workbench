@@ -39,6 +39,7 @@
 #include "DataFileException.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "SystemUtilities.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCreateDialog.h"

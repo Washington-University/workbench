@@ -42,7 +42,6 @@
 #include "VolumeSliceViewAllPlanesLayoutEnum.h"
 
 class QSettings;
-//class QStringList;
 
 namespace caret {
 
@@ -56,6 +55,8 @@ namespace caret {
     class CaretPreferences : public CaretObject {
         
     public:
+        static AString getExampleSceneFileNamePrefix();
+        
         CaretPreferences();
         
         virtual ~CaretPreferences();
@@ -74,7 +75,8 @@ namespace caret {
         
         void setBackgroundAndForegroundColorsSceneOverrideMode(const CaretPreferenceValueSceneOverrideModeEnum::Enum colorsMode);
                 
-        void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName);
+        void addToRecentFilesAndOrDirectories(const AString& directoryOrFileName,
+                                              const AString& sceneName);
         
         bool readRecentSceneAndSpecFiles(RecentFileItemsContainer* container,
                                          AString& errorMessageOut);
@@ -87,6 +89,12 @@ namespace caret {
         
         bool writeRecentDirectories(RecentFileItemsContainer* container,
                                     AString& errorMessageOut);
+        
+        bool readRecentScenes(RecentFileItemsContainer* container,
+                              AString& errorMessageOut);
+        
+        bool writeRecentScenes(RecentFileItemsContainer* container,
+                               AString& errorMessageOut);
         
         void getRecentDirectoriesForOpenFileDialogHistory(const bool favoritesFirstFlag,
                                                           std::vector<AString>& directoriesOut);
@@ -103,6 +111,12 @@ namespace caret {
         
         void clearRecentDirectories(const bool removeFavoritesFlag);
 
+        int32_t getRecentMaximumNumberOfScenes() const;
+        
+        void setRecentMaximumNumberOfScenes(const int32_t maximumNumberOfScenes);
+        
+        void clearRecentScenes(const bool removeFavoritesFlag);
+        
         RecentFilesSystemAccessModeEnum::Enum getRecentFilesSystemAccessMode() const;
 
         void setRecentFilesSystemAccessMode(const RecentFilesSystemAccessModeEnum::Enum filesSystemAccessMode);
@@ -346,15 +360,6 @@ namespace caret {
                                      const AString& paletteXML,
                                      AString& errorMessageOut);
 
-        void getMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut);
-        
-        void addToMostRecentScenes(const AString& sceneFileName,
-                                   const AString& sceneName);
-        
-        bool isMostRecentScenesEnabled() const;
-        
-        void setMostRecentScenesEnabled(const bool status);
-        
         float getVolumeSurfaceOutlineSeparation() const;
         
         void setVolumeSurfaceOutlineSeparation(const float separation);
@@ -372,9 +377,14 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void getObsoleteMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut);
+        
         void addToRecentSceneAndSpecFiles(const AString& filename);
         
         void addToRecentDirectories(const AString& directoryOrFileName);
+        
+        void addToRecentScenes(const AString& filename,
+                               const AString& sceneName);
         
         bool getBoolean(const AString& name,
                         const bool defaultValue = false);
@@ -477,6 +487,8 @@ namespace caret {
         
         std::unique_ptr<CaretPreferenceDataValue> m_recentMaximumNumberOfDirectoriesPreferences;
 
+        std::unique_ptr<CaretPreferenceDataValue> m_recentMaximumNumberOfScenesPreferences;
+        
         std::unique_ptr<CaretPreferenceDataValue> m_recentFilesSystemAccessMode;
         
         std::unique_ptr<CaretPreferenceDataValue> m_graphicsFramePerSecondEnabled;
@@ -490,8 +502,6 @@ namespace caret {
         std::unique_ptr<CaretPreferenceDataValue> m_crossAtViewportCenterEnabled;
         
         std::unique_ptr<CaretPreferenceDataValueList> m_mostRecentScenesList;
-        
-        std::unique_ptr<CaretPreferenceDataValue> m_mostRecentScenesEnabled;
         
         std::unique_ptr<CaretPreferenceDataValue> m_volumeSurfaceOutlineSeparation;
 
@@ -571,6 +581,7 @@ namespace caret {
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_SPLASH_SCREEN;
         static const AString NAME_RECENT_DIRECTORIES;
+        static const AString NAME_RECENT_SCENES;
         static const AString NAME_RECENT_EXCLUSION_PATHS;
         static const AString NAME_RECENT_SCENE_AND_SPEC_FILES;
         static const AString NAME_REMOTE_FILE_USER_NAME;
@@ -635,6 +646,7 @@ namespace caret {
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
     const AString CaretPreferences::NAME_RECENT_DIRECTORIES = "recentDirectories";
+    const AString CaretPreferences::NAME_RECENT_SCENES = "recentScenes";
     const AString CaretPreferences::NAME_RECENT_EXCLUSION_PATHS = "recentExclusionPaths";
     const AString CaretPreferences::NAME_RECENT_SCENE_AND_SPEC_FILES = "recentSceneAndSpecFiles";
     const AString CaretPreferences::NAME_REMOTE_FILE_USER_NAME = "remoteFileUserName";

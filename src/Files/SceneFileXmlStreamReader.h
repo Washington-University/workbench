@@ -26,6 +26,7 @@
 #include <memory>
 #include <set>
 
+#include "FunctionResult.h"
 #include "SceneFileXmlStreamBase.h"
 
 class QXmlStreamReader;
@@ -49,6 +50,8 @@ namespace caret {
         void readFile(const AString& filename,
                       SceneFile* sceneFile);
 
+        static FunctionResultValue<std::map<int32_t, SceneInfo*>> readSceneInfoOnly(const AString& filename);
+        
         // ADD_NEW_METHODS_HERE
 
     private:
@@ -66,8 +69,11 @@ namespace caret {
         
         std::map<int32_t, SceneInfo*> m_sceneInfoMap;
         
+        bool m_readSceneInfoOnlyFlag = false;
+        
         // ADD_NEW_MEMBERS_HERE
 
+        friend SceneFile;
     };
     
 #ifdef __SCENE_FILE_XML_STREAM_READER_DECLARE__

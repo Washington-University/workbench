@@ -120,6 +120,43 @@ SceneFileXmlStreamReader::readFile(const AString& filename,
 }
 
 /**
+ * Read only the SceneInfo from the scene file.
+ * @return A function result containing a map with scene index and scene info.
+ * Caller is responsible for deleting the SceneInfo instances.
+ * @param filename
+ *    Name of scene file.
+ */
+FunctionResultValue<std::map<int32_t, SceneInfo*>>
+SceneFileXmlStreamReader::readSceneInfoOnly(const AString& filename)
+{
+    try {
+        SceneFile sceneFile;
+        
+        if (filename.isEmpty()) {
+            throw DataFileException("Scene file name is empty");
+        }
+        
+        SceneFileXmlStreamReader streamReader;
+        streamReader.m_readSceneInfoOnlyFlag = true;
+        
+        streamReader.readFile(filename, &sceneFile);
+        
+        return FunctionResultValue<std::map<int32_t, SceneInfo*>>(streamReader.m_sceneInfoMap,
+                                                                  "",
+                                                                  true);
+    }
+    catch (const DataFileException& dfe) {
+        std::map<int32_t, SceneInfo*> emptySceneInfo;
+        return FunctionResultValue<std::map<int32_t, SceneInfo*>>(emptySceneInfo,
+                                                                  dfe.whatString(),
+                                                                  false);
+    }
+}
+
+
+
+
+/**
  * Read the file's content
  *
  * @param xmlReader
@@ -174,6 +211,9 @@ SceneFileXmlStreamReader::readFileContent(QXmlStreamReader& xmlReader,
                 else if (xmlReader.name() == ELEMENT_SCENE_FILE_INFO_DIRECTORY) {
                     readSceneInfoDirectory(xmlReader,
                                            sceneFile);
+                    if (m_readSceneInfoOnlyFlag) {
+                        return;
+                    }
                 }
                 else if (xmlReader.name() == SceneXmlStreamReader::ELEMENT_SCENE) {
                     const QXmlStreamAttributes attributes = xmlReader.attributes();

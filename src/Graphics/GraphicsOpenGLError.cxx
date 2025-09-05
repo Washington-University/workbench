@@ -24,6 +24,7 @@
 #undef __GRAPHICS_OPEN_G_L_ERROR_DECLARE__
 
 #include "CaretAssert.h"
+#include "SystemUtilities.h"
 using namespace caret;
 
 

@@ -47,6 +47,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "SystemUtilities.h"
 #include "WuQMacro.h"
 #include "WuQMacroCommand.h"
 #include "WuQMacroCommandParameter.h"

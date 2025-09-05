@@ -81,6 +81,9 @@ RecentFileItemsContainer::~RecentFileItemsContainer()
                 case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
                     /* Nothing to write */
                     break;
+                case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+                    /* Nothing to write */
+                    break;
                 case RecentFileItemsContainerModeEnum::FAVORITES:
                     /* Nothing to write */
                     break;
@@ -107,6 +110,16 @@ RecentFileItemsContainer::~RecentFileItemsContainer()
                     }
                 }
                     break;
+                case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+                {
+                    CaretAssert(m_caretPreferences);
+                    AString errorMessage;
+                    if ( ! m_caretPreferences->writeRecentScenes(this, errorMessage)) {
+                        CaretLogSevere("Failed to write recent scenes to preferences: "
+                                       + errorMessage);
+                    }
+                }
+                    break;
             }
         }
     }
@@ -123,6 +136,18 @@ RecentFileItemsContainer::newInstance()
     RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::OTHER,
                                                                        WriteIfModifiedType::WRITE_NO);
     return container;
+}
+
+/**
+ * @return a new insrtance containing example data sets
+ */
+RecentFileItemsContainer* 
+RecentFileItemsContainer::newInstanceExampleDataSets()
+{
+    RecentFileItemsContainer* containerOut = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS,
+                                                                          WriteIfModifiedType::WRITE_NO);
+    
+    return containerOut;
 }
 
 /**
@@ -211,6 +236,31 @@ RecentFileItemsContainer::newInstanceRecentDirectories(CaretPreferences* prefere
 }
 
 /**
+ * @return A new instance containing recent scenes from Preferences
+ * @param preferences
+ *    The caret preferences
+ */
+RecentFileItemsContainer*
+RecentFileItemsContainer::newInstanceRecentScenes(CaretPreferences* preferences,
+                                                  const WriteIfModifiedType writeIfModifiedType)
+{
+    RecentFileItemsContainer* container = new RecentFileItemsContainer(RecentFileItemsContainerModeEnum::RECENT_SCENES,
+                                                                       writeIfModifiedType);
+    CaretAssert(container);
+    container->m_caretPreferences = preferences;
+    
+    AString errorMessage;
+    const bool flag = preferences->readRecentScenes(container,
+                                                    errorMessage);
+    if ( ! flag) {
+        CaretLogSevere("Reading recent scenes from preferences: "
+                       + errorMessage);
+    }
+    return container;
+}
+
+
+/**
  * Update a favorites with items from other containers
  * @param otherContainers
  *   Items that are favorites from other containers are shared with this container
@@ -269,6 +319,24 @@ RecentFileItemsContainerModeEnum::Enum
 RecentFileItemsContainer::getMode() const
 {
     return m_mode;
+}
+
+/**
+ * Add the scenes in the given scene file as recent items to this container for example data sets
+ * @param exampleSceneFileAndSceneNamesOut
+ *    Pairs with a scene file and scene name
+ */
+void
+RecentFileItemsContainer::addSceneFileAndSceneNamesToExamplesContainer(const std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNames)
+{
+    CaretAssert(m_mode == RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS);
+    
+    for (const auto& sceneFileAndSceneName : exampleSceneFileAndSceneNames) {
+        RecentFileItem* rfi(new RecentFileItem(RecentFileItemTypeEnum::EXAMPLE_SCENE,
+                                               sceneFileAndSceneName.first,
+                                               sceneFileAndSceneName.second));
+        addItem(rfi);
+    }
 }
 
 /**
@@ -355,21 +423,29 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
             CaretAssert(0);
             return;
             break;
+        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+            dataFileType = DataFileTypeEnum::UNKNOWN;
+            break;
         case RecentFileItemTypeEnum::SCENE_FILE:
             dataFileType = DataFileTypeEnum::SCENE;
+            break;
+        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+            dataFileType = DataFileTypeEnum::UNKNOWN;
             break;
         case RecentFileItemTypeEnum::SPEC_FILE:
             dataFileType = DataFileTypeEnum::SPECIFICATION;
             break;
     }
     
-    std::vector<AString> fileNames = DataFileTypeEnum::getFilesInDirectory(dataFileType,
-                                                                           directoryPath);
-    
-    for (auto name : fileNames) {
-        RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
-                                                      name);
-        addItem(fileItem);
+    if (dataFileType == DataFileTypeEnum::UNKNOWN) {
+        std::vector<AString> fileNames = DataFileTypeEnum::getFilesInDirectory(dataFileType,
+                                                                               directoryPath);
+        
+        for (auto name : fileNames) {
+            RecentFileItem* fileItem = new RecentFileItem(recentFileItemType,
+                                                          name);
+            addItem(fileItem);
+        }
     }
 }
 
@@ -437,6 +513,99 @@ RecentFileItemsContainer::getAllItems() const
     
     return itemsOut;
 }
+
+/**
+ * @return True if this items supports favorite
+ */
+bool
+RecentFileItemsContainer::supportsFavorite() const
+{
+    bool supportsFlag(true);
+    
+    switch (m_mode) {
+        case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::FAVORITES:
+            break;
+        case RecentFileItemsContainerModeEnum::OTHER:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_FILES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            break;
+    }
+
+    return supportsFlag;
+}
+
+/**
+ * @return True if this items supports forget
+ */
+bool
+RecentFileItemsContainer::supportsForget() const
+{
+    bool supportsFlag(true);
+    
+    switch (m_mode) {
+        case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::FAVORITES:
+            break;
+        case RecentFileItemsContainerModeEnum::OTHER:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_FILES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            break;
+    }
+
+    return supportsFlag;
+}
+
+/**
+ * @return True if this items supports share
+ */
+bool
+RecentFileItemsContainer::supportsShare() const
+{
+    bool supportsFlag(true);
+    
+    switch (m_mode) {
+        case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+            break;
+        case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::FAVORITES:
+            break;
+        case RecentFileItemsContainerModeEnum::OTHER:
+            supportsFlag = false;
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_FILES:
+            break;
+        case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            break;
+    }
+
+    return supportsFlag;
+}
+
 
 /**
  * Get a description of this object's content.
@@ -643,6 +812,7 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
     bool endElementFoundFlag(false);
 
     AString pathAndFileName;
+    AString sceneName;
     AString comment;
     AString fileTypeString;
     AString dateAndTimeString;
@@ -666,6 +836,9 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
             }
             else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME) {
                 pathAndFileName = reader.readElementText().trimmed();
+            }
+            else if (reader.name() == XML_TAG_RECENT_FILE_ITEM_SCENE_NAME) {
+                sceneName = reader.readElementText().trimmed();
             }
             else {
                 reader.raiseError("Unrecognized child element of "
@@ -703,7 +876,8 @@ RecentFileItemsContainer::readFromXMLVersionOneRecentFileItem(QXmlStreamReader& 
     }
     
     RecentFileItem* item = new RecentFileItem(fileType,
-                                              pathAndFileName);
+                                              pathAndFileName,
+                                              sceneName);
     item->setComment(comment);
     item->setFavorite(favoriteString.toBool());
     item->setLastAccessByWorkbenchDateTimeFromString(dateAndTimeString);
@@ -745,6 +919,8 @@ RecentFileItemsContainer::writeToXML(AString& xml,
                                     RecentFileItemTypeEnum::toName(rfi->getFileItemType()));
             writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME,
                                     rfi->getPathAndFileName());
+            writer.writeTextElement(XML_TAG_RECENT_FILE_ITEM_SCENE_NAME,
+                                    rfi->getSceneName());
             writer.writeEndElement();
         }
     }
@@ -815,9 +991,7 @@ RecentFileItemsContainer::testXmlReadingAndWriting()
 bool
 RecentFileItemsContainer::ItemCompare::operator() (const RecentFileItem* lhs, const RecentFileItem* rhs) const
 {
-    CaretAssert(lhs);
-    CaretAssert(rhs);
-    return (lhs->getPathAndFileName() < rhs->getPathAndFileName());
+    return RecentFileItemsContainer::CompareItems(lhs, rhs);
 }
 /**
  * Comparison operation used by the SET containing the RecentFileItems.
@@ -832,5 +1006,45 @@ bool
 RecentFileItemsContainer::ItemCompareSharedPtr::operator() (const std::shared_ptr<RecentFileItem>& lhs,
                                                             const std::shared_ptr<RecentFileItem>& rhs) const
 {
+    return RecentFileItemsContainer::CompareItems(lhs.get(), rhs.get());
+}
+
+/**
+ * Comparison operation used by the SET containing the RecentFileItems.
+ * @param lhs
+ *  First item for comparison.
+ * @param lhs
+ *  Second item for comparison.
+ * @return
+ *     True if "lhs" is less than "rhs"
+ */
+bool
+RecentFileItemsContainer::CompareItems(const RecentFileItem* lhs, const RecentFileItem* rhs)
+{
+    CaretAssert(lhs);
+    CaretAssert(rhs);
+    
+    bool compareSceneNameFlag(false);
+    switch (lhs->getFileItemType()) {
+        case RecentFileItemTypeEnum::DIRECTORY:
+            break;
+        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+            compareSceneNameFlag = true;
+            break;
+        case RecentFileItemTypeEnum::SCENE_FILE:
+            break;
+        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+            compareSceneNameFlag = true;
+            break;
+        case RecentFileItemTypeEnum::SPEC_FILE:
+            break;
+    }
+    
+    if (compareSceneNameFlag) {
+        if (lhs->getPathAndFileName() == rhs->getPathAndFileName()) {
+            return (lhs->getSceneName() < rhs->getSceneName());
+        }
+    }
     return (lhs->getPathAndFileName() < rhs->getPathAndFileName());
 }
+

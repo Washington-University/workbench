@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "FileInformation.h"
+#include "SystemUtilities.h"
 using namespace caret;
 
 

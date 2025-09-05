@@ -53,6 +53,7 @@ namespace caret {
         
         enum class ResultModeEnum {
             CANCEL,
+            LOAD_EXAMPLE_SCENE_IN_SCENE_FILE,
             LOAD_FILES_IN_SPEC_FILE,
             LOAD_SCENE_FROM_SCENE_FILE,
             OPEN_DIRECTORY,
@@ -141,7 +142,8 @@ namespace caret {
         
         void updateFavoritesContainer();
         
-        void loadSceneOrSpecFile(const AString& pathAndFileName,
+        void loadSceneOrSpecFile(const ResultModeEnum resultMode,
+                                 const AString& pathAndFileName,
                                  const int32_t sceneIndex);
         
         const RunMode m_runMode;
@@ -172,9 +174,13 @@ namespace caret {
         
         std::unique_ptr<RecentFileItemsContainer> m_currentDirectoryItemsContainer;
         
+        std::unique_ptr<RecentFileItemsContainer> m_exampleDataSetsItemsContainer;
+        
         std::unique_ptr<RecentFileItemsContainer> m_recentFilesItemsContainer;
         
         std::unique_ptr<RecentFileItemsContainer> m_recentDirectoryItemsContainer;
+        
+        std::unique_ptr<RecentFileItemsContainer> m_recentScenesItemsContainer;
         
         std::unique_ptr<RecentFileItemsContainer> m_favoriteItemsContainer;
         

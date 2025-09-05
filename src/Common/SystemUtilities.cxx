@@ -36,6 +36,11 @@
 #include <QUuid>
 #include <QtCore>
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+#include <QtEnvironmentVariables>
+#endif
+#include <QtGlobal>
+
 #include "CaretOMP.h"
 
 #ifndef _WIN32
@@ -44,10 +49,12 @@
 #include "Windows.h"
 #endif
 
+
 #include "CaretAssert.h"
 #include "CaretCommandLine.h"
 #include "CaretLogger.h"
 #include "InfoItem.h"
+#include "SystemBacktrace.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -133,33 +140,6 @@ void SystemUtilities::getBackTrace(SystemBacktrace& backTraceOut)
         }
     }
 #endif // CARET_OS_WINDOWS
-}
-
-SystemBacktrace::SystemBacktrace()
-{
-#ifndef CARET_OS_WINDOWS
-    m_numFrames = 0;
-#endif
-}
-
-/**
- * @return String containing the backtrace symbols.
- */
-AString SystemBacktrace::toSymbolString() const
-{
-    std::stringstream str;
-#ifdef CARET_OS_WINDOWS
-#else  // CARET_OS_WINDOWS
-    if ( ! m_callstack.empty()) {
-        char** symbols = backtrace_symbols(&m_callstack[0], m_numFrames);
-        for (int i = 0; i < m_numFrames; ++i)
-        {
-            str << symbols[i] << std::endl;
-        }
-        free(symbols);
-    }
-#endif // CARET_OS_WINDOWS
-    return AString::fromStdString(str.str());
 }
 
 /**
@@ -767,3 +747,29 @@ SystemUtilities::getSystemInfo()
     return dataOut;
 }
 
+/**
+ * @returns FunctionResult with value of variable.  If variable does not exist or its values is empy
+ * an error is returned.
+ */
+FunctionResultString
+SystemUtilities::getEnvironmentVariable(const AString& name)
+{
+    AString value;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    if (qEnvironmentVariableIsSet(name.toLatin1())) {
+        value = qEnvironmentVariable(name.toLatin1());
+    }
+#else
+    const QByteArray byteArray = qgetenv(name.toLatin1());
+    if ( ! byteArray.isNull()) {
+        value = QString::fromLocal8Bit(byteArray);
+    }
+#endif
+    
+    if ( ! value.isEmpty()) {
+        return FunctionResultString(value, "", true);
+    }
+    else {
+        return FunctionResultString("", ("Environment variable " + name + " is not set or empty"), false);
+    }
+}

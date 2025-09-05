@@ -158,6 +158,12 @@ CaretPreferences::CaretPreferences()
                                                                                CaretPreferenceDataValue::SavedInScene::SAVE_NO,
                                                                                maximumFilesDirectories));
     
+    m_recentMaximumNumberOfScenesPreferences.reset(new CaretPreferenceDataValue(this->qSettings,
+                                                                                "recentMaximumNumberOfScenesPreferences",
+                                                                                CaretPreferenceDataValue::DataType::INTEGER,
+                                                                                CaretPreferenceDataValue::SavedInScene::SAVE_NO,
+                                                                                maximumFilesDirectories));
+                                                   
     m_recentFilesSystemAccessMode.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                      "recentFilesSystemAccessMode",
                                                                      CaretPreferenceDataValue::DataType::STRING,
@@ -174,12 +180,6 @@ CaretPreferences::CaretPreferences()
                                                                   "m_mostRecentScenesList",
                                                                   CaretPreferenceDataValueList::DataType::QVARIANT,
                                                                   5)); /* maximum number of elements */
-    
-    m_mostRecentScenesEnabled.reset(new CaretPreferenceDataValue(this->qSettings,
-                                                                 "m_mostRecentScenesEnabled",
-                                                                 CaretPreferenceDataValue::DataType::BOOLEAN,
-                                                                 CaretPreferenceDataValue::SavedInScene::SAVE_NO,
-                                                                 false));
     
     m_volumeMontageCoordinateDisplayType.reset(new CaretPreferenceDataValue(this->qSettings,
                                                                             "m_volumeMontageCoordinateDisplayType",
@@ -2624,14 +2624,30 @@ CaretPreferences::writeRecentSceneAndSpecFiles(RecentFileItemsContainer* contain
 }
 
 /**
+ * @return All workbench example scene file names MUST
+ * begin with this text.  It is a kludge that prevents the example files
+ * and scenes from being added to recently loaded directories,
+ * files, and scenes.
+ */
+AString
+CaretPreferences::getExampleSceneFileNamePrefix()
+{
+    return "WorkbenchExampleData";
+}
+
+
+/**
  * If the file is a scene or spec file (detected by extension) add it to recent scene/spec files.
  * Always add the directory containing the file to the recent directories.
  *
  * @param filename
- *  Name of file.
+ *   Name of file.
+ * @param sceneName
+ *   Name of scene if loading a scene
  */
 void
-CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFileName)
+CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFileName,
+                                                   const AString& sceneName)
 {
     /*
      * Only update recents directories if GUI application (wb_view)
@@ -2641,7 +2657,8 @@ CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFil
     }
     
     if ((getRecentMaximumNumberOfSceneAndSpecFiles() <= 0)
-        && (getRecentMaximumNumberOfDirectories() <= 0)) {
+        && (getRecentMaximumNumberOfDirectories() <= 0)
+        && (getRecentMaximumNumberOfScenes() <= 0)) {
         return;
     }
     
@@ -2658,6 +2675,20 @@ CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFil
         if (validFlag) {
             switch (dataFileType) {
                 case DataFileTypeEnum::SCENE:
+                    /*
+                     * DO NOT add if the scene file name starts with the prefix
+                     * required for Workbench Example Data Files
+                     */
+                    if (fileInfo.getFileName().startsWith(CaretPreferences::getExampleSceneFileNamePrefix())) {
+                        return;
+                    }
+                    
+                    if ( ! sceneName.isEmpty()) {
+                        addToRecentScenes(directoryOrFileName,
+                                          sceneName);
+                        addToRecentSceneAndSpecFiles(directoryOrFileName);
+                    }
+                    break;
                 case DataFileTypeEnum::SPECIFICATION:
                     addToRecentSceneAndSpecFiles(directoryOrFileName);
                     break;
@@ -2825,6 +2856,128 @@ CaretPreferences::writeRecentFileItemsContainer(const AString& preferenceName,
 }
 
 /**
+ * Read the recent scendes from preferences and add them to the given container.
+ *
+ *  @param container
+ *   Recent directories are added to this container
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::readRecentScenes(RecentFileItemsContainer* container,
+                                   AString& errorMessageOut)
+{
+    const bool successFlag = readRecentFileItemsContainer(NAME_RECENT_SCENES,
+                                                          container,
+                                                          errorMessageOut);
+    if (successFlag) {
+        container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfScenes());
+    }
+    
+    if (container->isEmpty()) {
+        /*
+         * Try to read obsolete recent scenes
+         * and then write to recent scenes container
+         */
+        std::vector<RecentSceneInfoContainer> recentSceneInfo;
+        getObsoleteMostRecentScenes(recentSceneInfo);
+        
+        for (RecentSceneInfoContainer& rsi : recentSceneInfo) {
+            RecentFileItem* rfi(new RecentFileItem(RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE,
+                                                   rsi.getSceneFileName(),
+                                                   rsi.getSceneName()));
+            container->addItem(rfi);
+        }
+        container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfScenes());
+        
+        if ( ! container->isEmpty()) {
+            writeRecentScenes(container,
+                              errorMessageOut);
+        }
+    }
+
+    return successFlag;
+}
+
+/**
+ * Write the recent scenes to preferences from the given container.
+ *
+ *  @param container
+ *   Recent scenes written to preferences
+ *  @param errorMessageOut
+ *   Container error information if false returned
+ *  @return True if successful, false if error.
+ */
+bool
+CaretPreferences::writeRecentScenes(RecentFileItemsContainer* container,
+                                    AString& errorMessageOut)
+{
+    container->removeItemsExceedingMaximumNumber(getRecentMaximumNumberOfScenes());
+    
+    return writeRecentFileItemsContainer(NAME_RECENT_SCENES,
+                                         container,
+                                         errorMessageOut);
+}
+
+/**
+ * @return Maximum number of recent scenes for open recent files dialog
+ */
+int32_t
+CaretPreferences::getRecentMaximumNumberOfScenes() const
+{
+    return m_recentMaximumNumberOfScenesPreferences->getValue().toInt();
+}
+
+/**
+ * Set maximum number of recent scenes for open recent files dialog
+ * @param maximumNumberOfScenes
+ *    New maximum number of scenes
+ */
+void CaretPreferences::setRecentMaximumNumberOfScenes(const int32_t maximumNumberOfScenes)
+{
+    m_recentMaximumNumberOfScenesPreferences->setValue(maximumNumberOfScenes);
+}
+
+/**
+ * Clear the recent scenes
+ * @param removeFavoritesFlag
+ *    If true remove any favorites, else keep them.
+ */
+void
+CaretPreferences::clearRecentScenes(const bool removeFavoritesFlag)
+{
+    const AString errorPrefix("Error updating recent scenes ");
+    
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    AString errorMessage;
+    bool successFlag(readRecentScenes(container.get(),
+                                      errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    if (removeFavoritesFlag) {
+        container->removeAllItemsIncludingFavorites();
+    }
+    else {
+        container->removeAllItemsExcludingFavorites();
+    }
+    
+    successFlag = writeRecentScenes(container.get(),
+                                    errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
+    }
+}
+
+/**
  * Read the recent directories from preferences and add them to the given container.
  *
  *  @param container
@@ -2941,6 +3094,59 @@ CaretPreferences::addToRecentDirectories(const AString& directoryOrFileName)
     
     successFlag = writeRecentDirectories(container.get(),
                                          errorMessage);
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during writing: "
+                       + errorMessage);
+        return;
+    }
+}
+
+/**
+ * Add a scene and filename to recent scenes
+ */
+void
+CaretPreferences::addToRecentScenes(const AString& filename,
+                                    const AString& sceneName)
+{
+    /*
+     * Only update recents directories if GUI application (wb_view)
+     */
+    if (ApplicationInformation().getApplicationType() != ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+        return;
+    }
+    
+    if (getRecentMaximumNumberOfScenes() <= 0) {
+        return;
+    }
+    
+    if (isInRecentFilesExclusionPaths(filename)) {
+        return;
+    }
+        
+    const AString errorPrefix("Error updating recent scenes ");
+
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
+    CaretAssert(container);
+    
+    AString errorMessage;
+    bool successFlag(readRecentScenes(container.get(),
+                                      errorMessage));
+    if ( ! successFlag) {
+        CaretLogSevere(errorPrefix
+                       + " during reading: "
+                       + errorMessage);
+        return;
+    }
+    
+    RecentFileItem* newItem = new RecentFileItem(RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE,
+                                                 filename,
+                                                 sceneName);
+    newItem->setLastAccessByWorkbenchDateTimeToCurrentDateTime();
+    container->addItem(newItem);
+    
+    successFlag = writeRecentScenes(container.get(),
+                                    errorMessage);
     if ( ! successFlag) {
         CaretLogSevere(errorPrefix
                        + " during writing: "
@@ -3506,7 +3712,7 @@ CaretPreferences::paletteUserCustomRename(const AString& paletteName,
 }
 
 /**
- * Get the info about the most recently loaded scenes
+ * OBSOLETE Get the info about the most recently loaded scenes
  * @param sceneFileNameOut
  *    Name of scene file
  * @param sceneNameOut
@@ -3515,7 +3721,7 @@ CaretPreferences::paletteUserCustomRename(const AString& paletteName,
  *    True if the scene file name and scene name are valid, else false.
  */
 void
-CaretPreferences::getMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut)
+CaretPreferences::getObsoleteMostRecentScenes(std::vector<RecentSceneInfoContainer>& recentSceneInfoOut)
 {
     recentSceneInfoOut.clear();
     
@@ -3529,57 +3735,3 @@ CaretPreferences::getMostRecentScenes(std::vector<RecentSceneInfoContainer>& rec
         }
     }
 }
-
-/**
- * @return True if most recent scenes is enabled
- */
-bool
-CaretPreferences::isMostRecentScenesEnabled() const
-{
-    return m_mostRecentScenesEnabled->getValue().toBool();
-}
-
-/**
- * Set most recent scenes enabled
- * @param status
- *    New enabled status
- */
-void
-CaretPreferences::setMostRecentScenesEnabled(const bool status)
-{
-    m_mostRecentScenesEnabled->setValue(status);
-}
-
-/**
- * Set the most recent scene and the file containing the scene
- * @param sceneFileName
- *    Name of scene file
- * @param sceneName
- *    Name of scene
- */
-void
-CaretPreferences::addToMostRecentScenes(const AString& sceneFileName,
-                                        const AString& sceneName)
-{
-    RecentSceneInfoContainer newElement(sceneFileName,
-                                        sceneName);
-    
-    /*
-     * Remove any pre-existing items with the same scene file and scene name
-     * NOTE: Start at end since we may remove multiple
-     * items and the list will shrink.
-     */
-    std::vector<RecentSceneInfoContainer> recentSceneInfo;
-    getMostRecentScenes(recentSceneInfo);
-    const int32_t numElements(recentSceneInfo.size());
-    for (int32_t i (numElements - 1); i >= 0; --i) {
-        if (newElement == recentSceneInfo[i]) {
-            if (m_mostRecentScenesList->removeAt(i)) {
-                /* removed a duplicate */
-            }
-        }
-    }
-
-    m_mostRecentScenesList->pushFront(newElement.toQVariant());
-}
-

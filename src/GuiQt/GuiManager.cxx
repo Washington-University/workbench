@@ -4025,6 +4025,7 @@ GuiManager::processOpenDataFileEvent(EventOperatingSystemRequestOpenDataFile* op
                                filenamesVector,
                                dataFileTypeVectorNotUsed,
                                BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG,
+                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES,
                                "",
                                "");
             }

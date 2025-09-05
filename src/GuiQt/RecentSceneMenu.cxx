@@ -27,6 +27,8 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "FileInformation.h"
+#include "RecentFileItemsContainer.h"
+#include "RecentFileItem.h"
 #include "SessionManager.h"
 
 using namespace caret;
@@ -118,18 +120,24 @@ RecentSceneMenu::menuAboutToShow()
     
     std::vector<RecentSceneInfoContainer> recentSceneInfo;
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-    preferences->getMostRecentScenes(recentSceneInfo);
-    for (auto& rsi : recentSceneInfo) {
-        QAction* action(addAction(rsi.getSceneName()));
-        action->setData(rsi.toQVariant());
-        
-        if (addToolTips) {
-            FileInformation fileInfo(rsi.getSceneFileName());
-            action->setToolTip("Loaded from " + fileInfo.getFileName());
+    std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstanceRecentScenes(preferences,
+                                                                RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
+    if ( ! container->isEmpty()) {
+        std::vector<RecentFileItem*> sceneItems(container->getAllItems());
+        RecentFileItemsContainer::sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
+                                       sceneItems);
+        for (RecentFileItem* rfi : sceneItems) {
+            AString notFoundMessage;
+            if (rfi->isNotFound()) {
+                notFoundMessage += (" (File not found)");
+            }
+            QAction* action(addAction(rfi->getSceneName()
+                                      + notFoundMessage));
+            action->setData(rfi->toQVariant());
+            
+            if (addToolTips) {
+                action->setToolTip("Loaded from " + rfi->getFileName());
+            }
         }
-    }
-    
-    if (addToolTips) {
-        setToolTipsVisible(true);
     }
 }

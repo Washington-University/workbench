@@ -29,6 +29,7 @@
 #include "DataFile.h"
 #include "FileInformation.h"
 #include "Scene.h"
+#include "SystemUtilities.h"
 
 using namespace caret;
 

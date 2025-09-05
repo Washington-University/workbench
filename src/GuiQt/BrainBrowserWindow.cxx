@@ -3607,12 +3607,6 @@ BrainBrowserWindow::processOmeZarrDirectoryOpen()
     filenameFilterList.append(filterName);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::Directory);
-//    if ( ! s_previousOpenFileDirectory.isEmpty()) {
-//        FileInformation fileInfo(s_previousOpenFileDirectory);
-//        if (fileInfo.exists()) {
-//            fd.setDirectory(s_previousOpenFileDirectory);
-//        }
-//    }
     
     if (fd.exec() == CaretFileDialog::Accepted) {
         QStringList selectedFiles = fd.selectedFiles();
@@ -3632,19 +3626,11 @@ BrainBrowserWindow::processOmeZarrDirectoryOpen()
                       filenamesVector,
                       dataFileTypesDummyNotUsed,
                       LOAD_SPEC_FILE_WITH_DIALOG,
+                      BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO,
                       "",
                       "");
-            
-//            for (auto name : filenamesVector) {
-//                CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-//                prefs->addToRecentFilesAndOrDirectories(name);
-//            }
         }
-//        s_previousOpenFileNameFilter = fd.selectedNameFilter();
-//        s_previousOpenFileDirectory  = fd.directory().absolutePath();
-//        s_previousOpenFileGeometry   = fd.saveGeometry();
     }
-
 }
 
 /**
@@ -3745,13 +3731,16 @@ BrainBrowserWindow::openDataFiles(const QStringList& selectedFiles)
               filenamesVector,
               dataFileTypesDummyNotUsed,
               LOAD_SPEC_FILE_WITH_DIALOG,
+              BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES,
               "",
               "");
     
     std::vector<AString> sceneFileNames;
     for (auto name : filenamesVector) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToRecentFilesAndOrDirectories(name);
+        const AString emptySceneName;
+        prefs->addToRecentFilesAndOrDirectories(name,
+                                                emptySceneName);
         
         bool validFlag(false);
         const DataFileTypeEnum::Enum dataFileType(DataFileTypeEnum::fromName(name,
@@ -3820,14 +3809,20 @@ BrainBrowserWindow::processOpenRecent()
     switch (result) {
         case RecentFilesDialog::ResultModeEnum::CANCEL:
             break;
+        case RecentFilesDialog::ResultModeEnum::LOAD_EXAMPLE_SCENE_IN_SCENE_FILE:
+            loadSceneFromCommandLine(directoryOrFileName,
+                                     AString::number(sceneIndex),
+                                     BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
+            break;
         case RecentFilesDialog::ResultModeEnum::LOAD_FILES_IN_SPEC_FILE:
             loadFilesFromCommandLine({ directoryOrFileName },
-                                     BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+                                     BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
+                                     BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
             break;
         case RecentFilesDialog::ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE:
             loadSceneFromCommandLine(directoryOrFileName,
                                      AString::number(sceneIndex),
-                                     BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES);
+                                     BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
             break;
         case RecentFilesDialog::ResultModeEnum::OPEN_DIRECTORY:
             s_previousOpenFileDirectory = directoryOrFileName;
@@ -3849,6 +3844,7 @@ BrainBrowserWindow::processOpenRecent()
                           filenames,
                           dataFileTypesDummyNotUsed,
                           LOAD_SPEC_FILE_WITH_DIALOG,
+                          BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES,
                           "",
                           "");
             }
@@ -3885,6 +3881,7 @@ BrainBrowserWindow::loadFilesFromNetwork(QWidget* parentForDialogs,
                                        filenames,
                                        dataFileTypes,
                                        BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE,
+                                       BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_YES,
                                        username,
                                        password);
     return successFlag;
@@ -3913,7 +3910,8 @@ BrainBrowserWindow::processDataFileOpenQuickly()
  */
 void 
 BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames,
-                                             const LoadSpecFileMode loadSpecFileMode)
+                                             const LoadSpecFileMode loadSpecFileMode,
+                                             const LoadSceneFromCommandLineDialogMode sceneDialogMode)
 {
     std::vector<DataFileTypeEnum::Enum> dataFileTypesDummyNotUsed;
     
@@ -3941,12 +3939,15 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
               filenames,
               dataFileTypesDummyNotUsed,
               loadSpecFileMode,
+              sceneDialogMode,
               userName,
               password);
     
     for (auto name : filenames) {
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToRecentFilesAndOrDirectories(name);
+        const AString emptySceneName;
+        prefs->addToRecentFilesAndOrDirectories(name,
+                                                emptySceneName);
     }
 
 }
@@ -3993,7 +3994,7 @@ BrainBrowserWindow::loadRecentScene(const AString& sceneFileName,
         return;
     }
     
-    Scene* scene = sceneFile->getSceneWithName(sceneName);
+    Scene* scene = sceneFile->getSceneWithNameOrNumber(sceneName);
     if (scene == NULL) {
         WuQMessageBox::errorOk(this,
                                ("Scene \""
@@ -4039,7 +4040,8 @@ BrainBrowserWindow::loadSceneFromCommandLine(const AString& sceneFileName,
     filenames.push_back(sceneFileName);
     
     loadFilesFromCommandLine(filenames,
-                             LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE);
+                             LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
+                             sceneDialogMode);
     
     bool haveSceneFileError = true;
     bool haveSceneError = true;
@@ -4123,6 +4125,8 @@ BrainBrowserWindow::loadDirectoryFromCommandLine(const AString& directoryName)
  *    filename, the type is inferred from the filename's extension.
  * @param loadSpecFileMode
  *    Specifies handling of SpecFiles
+ * @param sceneDialogMode
+ *    Specifies handling of Scene Files
  * @param username
  *    Username for network file reading
  * @param password
@@ -4134,6 +4138,7 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                               const std::vector<AString>& filenames,
                               const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                               const LoadSpecFileMode loadSpecFileMode,
+                              const LoadSceneFromCommandLineDialogMode sceneDialogMode,
                               const AString& username,
                               const AString& password)
 {
@@ -4261,7 +4266,9 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
                 specFileName = fileInfo.getAbsoluteFilePath();
             }
             if (fileInfo.exists()) {
-                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(specFileName);
+                const AString emptySceneName;
+                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(specFileName,
+                                                                                               emptySceneName);
             }
             specFile.readFile(specFileName);
             
@@ -4454,7 +4461,13 @@ BrainBrowserWindow::loadFiles(QWidget* parentForDialogs,
     }
     
     if (sceneFileWasLoaded) {
-        GuiManager::get()->processShowSceneDialog(this);
+        switch (sceneDialogMode) {
+            case LoadSceneFromCommandLineDialogMode::SHOW_NO:
+                break;
+            case LoadSceneFromCommandLineDialogMode::SHOW_YES:
+                GuiManager::get()->processShowSceneDialog(this);
+                break;
+        }
     }
     
     showDataFileReadWarningsDialog();

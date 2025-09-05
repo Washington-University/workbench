@@ -192,6 +192,7 @@ SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StringTableModel.h
 StructureEnum.h
+SystemBacktrace.h
 SystemUtilities.h
 TileTabsBrowserTabGeometry.h
 TileTabsLayoutBackgroundTypeEnum.h
@@ -371,6 +372,7 @@ TileTabsGridRowColumnElement.cxx
 TileTabsGridRowColumnStretchTypeEnum.cxx
 ToolBarWidthModeEnum.cxx
 TriStateSelectionStatusEnum.cxx
+SystemBacktrace.cxx
 UnitsConversion.cxx
 Vector3D.cxx
 VectorOperation.cxx

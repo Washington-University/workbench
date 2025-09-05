@@ -111,12 +111,13 @@ namespace caret {
         enum class LoadSceneFromCommandLineDialogMode {
             /** After loading scene, show the scene dialog */
             SHOW_YES,
-            /** After loading scene, close the scene dialog */
+            /** Do now show scene dialog while loading scene */
             SHOW_NO
         };
         
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
-                                      const LoadSpecFileMode loadSpecFileMode);
+                                      const LoadSpecFileMode loadSpecFileMode,
+                                      const LoadSceneFromCommandLineDialogMode sceneDialogMode);
         
         void loadRecentScene(const AString& sceneFileName,
                              const AString& sceneName);
@@ -315,6 +316,7 @@ namespace caret {
                        const std::vector<AString>& filenames,
                        const std::vector<DataFileTypeEnum::Enum> dataFileTypes,
                        const LoadSpecFileMode loadSpecFileMode,
+                       const LoadSceneFromCommandLineDialogMode sceneDialogMode,
                        const AString& username,
                        const AString& password);
         

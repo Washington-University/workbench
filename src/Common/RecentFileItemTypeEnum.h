@@ -37,8 +37,12 @@ public:
     enum Enum {
         /** Directory */
         DIRECTORY,
+        /** Example Scene  in a scene file*/
+        EXAMPLE_SCENE,
         /** Scene File */
         SCENE_FILE,
+        /** Scene in a scene file */
+        SCENE_IN_SCENE_FILE,
         /** Spec File */
         SPEC_FILE
     };

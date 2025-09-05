@@ -25,6 +25,7 @@
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
 
+#include <QDir>
 #include <QImageReader>
 #include <QNetworkProxyFactory>
 
@@ -77,8 +78,11 @@
 #include "SceneAttributes.h"
 #include "SceneClass.h"
 #include "SceneClassArray.h"
+#include "SceneFile.h"
+#include "SceneInfo.h"
 #include "ScenePrimitiveArray.h"
 #include "SpacerTabContent.h"
+#include "SystemUtilities.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 
 
@@ -1453,6 +1457,93 @@ const MovieRecorder*
 SessionManager::getMovieRecorder() const
 {
     return m_movieRecorder.get();
+}
+
+/**
+ * Get the names of example scene file and scene names
+ * @param exampleSceneFileAndSceneNamesOut
+ *    Output containing pairs with a scene file and scene name
+ */
+void
+SessionManager::getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNamesOut) const
+{
+    if ( ! m_exampleFileAndSceneNamesReadFlag) {
+        m_exampleFileAndSceneNamesReadFlag = true;
+        
+        /*
+         * Directory containing examples
+         */
+        AString workbenchExampleDirectory;
+        
+        const AString envVarName("WORKBENCH_EXAMPLE_FILES_DIRECTORY");
+        FunctionResultString envVarResult(SystemUtilities::getEnvironmentVariable(envVarName));
+        if (envVarResult.isOk()) {
+            workbenchExampleDirectory = envVarResult.getValue();
+        }
+        else {
+        
+        
+            /*
+             * Directory containing the executable
+             */
+            QDir appDir(QCoreApplication::applicationDirPath());
+
+            if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+#ifdef CARET_OS_MACOSX
+                /*
+                 * GUI apps on macOS are in a bundle
+                 *   wb_view.app/Contents/MacOS/wb_view
+                 */
+                if (appDir.cdUp()) {
+                    if (appDir.cd("Resources")) {
+                        if (appDir.cd("WorkbenchExamples")) {
+                            workbenchExampleDirectory = appDir.absolutePath();
+                        }
+                    }
+                }
+#endif
+            }
+        }
+        
+        if (QDir(workbenchExampleDirectory).exists()) {
+            std::vector<AString> sceneFileNames;
+            sceneFileNames.push_back(workbenchExampleDirectory
+                                     + "/"
+                                     + "WorkbenchExampleDataOne.scene");
+            
+            for (const auto& name : sceneFileNames) {
+                auto result(SceneFile::readSceneInfoOnly(name));
+                if (result.isOk()) {
+                    std::map<int32_t, SceneInfo*> allSceneInfo(result.getValue());
+                    for (auto& sceneInfo : allSceneInfo) {
+                        m_exampleSceneFileAndSceneNames.emplace_back(name,
+                                                                     sceneInfo.second->getName());
+                        delete sceneInfo.second;
+                        sceneInfo.second = NULL;
+                    }
+                }
+            }
+        }
+        
+        if (m_exampleSceneFileAndSceneNames.empty()) {
+            CaretLogWarning("Unable to find Workbench Example Data Files.  Looking in \""
+                            + workbenchExampleDirectory
+                            + "\".  Path can be overriden using environment variable "
+                            + envVarName);
+        }
+        for (const auto& fileAndScene : m_exampleSceneFileAndSceneNames) {
+            FileInformation fileInfo(fileAndScene.first);
+            if ( ! fileInfo.getFileName().startsWith(CaretPreferences::getExampleSceneFileNamePrefix())) {
+                const AString msg("Name Example Scene File must begin with \""
+                                  + CaretPreferences::getExampleSceneFileNamePrefix()
+                                  + "\" but is named "
+                                  + fileAndScene.first);
+                CaretAssertMessage(0, msg);
+            }
+        }
+    }
+    
+    exampleSceneFileAndSceneNamesOut = m_exampleSceneFileAndSceneNames;
 }
 
 /**

@@ -45,12 +45,16 @@ using namespace caret;
  *  Type of file
  * @param pathAndFileName
  *  Path and name of a file
+ * @param sceneName
+ *  Name of scene must be empty if fileItemType is NOT SCENE_IN_SCENE_FILE
  */
 RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
-                               const AString& pathAndFileName)
+                               const AString& pathAndFileName,
+                               const AString& sceneName)
 : CaretObjectTracksModification(),
 m_fileItemType(fileItemType),
-m_pathAndFileName(pathAndFileName)
+m_pathAndFileName(pathAndFileName),
+m_sceneName(sceneName)
 {
     bool useFileSystemFlag(false);
     EventRecentFilesSystemAccessMode modeEvent;
@@ -70,7 +74,9 @@ m_pathAndFileName(pathAndFileName)
             case RecentFileItemTypeEnum::DIRECTORY:
                 m_pathName = m_pathAndFileName; /* directory !!! */
                 break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
             case RecentFileItemTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
             case RecentFileItemTypeEnum::SPEC_FILE:
                 m_pathName = fileInfo.getAbsolutePath();
                 break;
@@ -86,7 +92,9 @@ m_pathAndFileName(pathAndFileName)
             case RecentFileItemTypeEnum::DIRECTORY:
                 m_pathName = m_pathAndFileName; /* directory !!! */
                 break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
             case RecentFileItemTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
             case RecentFileItemTypeEnum::SPEC_FILE:
             {
                 const int lastSlash = m_pathAndFileName.lastIndexOf('/');
@@ -95,6 +103,18 @@ m_pathAndFileName(pathAndFileName)
                     m_pathName = m_pathAndFileName.left(lastSlash);
                 }
             }
+                break;
+        }
+        
+        switch (m_fileItemType) {
+            case RecentFileItemTypeEnum::DIRECTORY:
+            case RecentFileItemTypeEnum::SCENE_FILE:
+            case RecentFileItemTypeEnum::SPEC_FILE:
+                CaretAssertMessage(m_sceneName.isEmpty(), 
+                                   "Scene name MUST be empty if fileItemType is NOT SCENE_IN_SCENE_FILE");
+                break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
                 break;
         }
         
@@ -159,6 +179,7 @@ RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
     m_pathAndFileName    = obj.m_pathAndFileName;
     m_pathName           = obj.m_pathName;
     m_fileName           = obj.m_fileName;
+    m_sceneName          = obj.m_sceneName;
     m_comment            = obj.m_comment;
     m_forgetFlag         = obj.m_forgetFlag;
     m_favoriteFlag       = obj.m_favoriteFlag;
@@ -180,7 +201,15 @@ RecentFileItem::operator<(const RecentFileItem& obj) const
         return false;
     }
 
-    return (m_pathAndFileName < obj.m_pathAndFileName);
+    if (m_sceneName.isEmpty()
+        && obj.m_sceneName.isEmpty()) {
+        return (m_pathAndFileName < obj.m_pathAndFileName);
+    }
+
+    if (m_sceneName == obj.m_sceneName) {
+        return (m_pathAndFileName < obj.m_pathAndFileName);
+    }
+    return (m_sceneName < obj.m_sceneName);
 }
 
 /**
@@ -197,7 +226,8 @@ RecentFileItem::operator==(const RecentFileItem& obj) const
         return true;
     }
     
-    return (m_pathAndFileName == obj.m_pathAndFileName);
+    return ((m_pathAndFileName == obj.m_pathAndFileName)
+            && (m_sceneName == obj.m_sceneName));
 }
 
 /**
@@ -339,6 +369,15 @@ RecentFileItem::setComment(const AString& text)
 }
 
 /**
+ * @return name of scene (valid only if recent file type is NOT SCENE_IN_SCENE_FILE
+ */
+AString
+RecentFileItem::getSceneName() const
+{
+    return m_sceneName;
+}
+
+/**
  * @return True if this is a favorite
  */
 bool
@@ -397,5 +436,19 @@ AString
 RecentFileItem::toString() const
 {
     return "RecentFileItem";
+}
+
+/*
+ * @return A QVariant that is a QStringList with the first
+ * element being the scene file path and name and the second
+ * element being the scene name
+ */
+QVariant
+RecentFileItem::toQVariant() const
+{
+    QStringList sl;
+    sl.push_back(getPathAndFileName());
+    sl.push_back(getSceneName());
+    return QVariant(sl);
 }
 

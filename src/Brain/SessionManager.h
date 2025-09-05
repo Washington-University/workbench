@@ -25,6 +25,7 @@
 #include <deque>
 #include <map>
 #include <memory>
+#include <utility>
 
 #include "ApplicationTypeEnum.h"
 #include "BrainConstants.h"
@@ -91,6 +92,8 @@ namespace caret {
         MovieRecorder* getMovieRecorder();
         
         const MovieRecorder* getMovieRecorder() const;
+        
+        void getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNamesOut) const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -195,6 +198,10 @@ namespace caret {
         std::unique_ptr<MovieRecorder> m_movieRecorder;
         
         std::vector<std::unique_ptr<ChartTwoCartesianAxis>> m_chartingAxisDisplayGroups;
+        
+        mutable std::vector<std::pair<AString, AString>> m_exampleSceneFileAndSceneNames;
+        
+        mutable bool m_exampleFileAndSceneNamesReadFlag = false;
         
         bool m_sceneRestoredWithChartOldFlag = false;
         

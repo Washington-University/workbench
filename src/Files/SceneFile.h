@@ -21,20 +21,25 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 #include <memory>
 #include <set>
 
 #include "CaretDataFile.h"
+#include "FunctionResult.h"
 #include "SceneDataFileInfo.h"
 #include "SceneFileBasePathTypeEnum.h"
 
 namespace caret {
 
     class Scene;
+    class SceneInfo;
     
     class SceneFile : public CaretDataFile {
         
     public:
+        static FunctionResultValue<std::map<int32_t, SceneInfo*>> readSceneInfoOnly(const AString& filename);
+        
         SceneFile();
         
         virtual ~SceneFile();
@@ -101,6 +106,8 @@ namespace caret {
         Scene* getSceneAtIndex(const int32_t indx) const;
         
         Scene* getSceneWithName(const AString& sceneName);
+        
+        Scene* getSceneWithNameOrNumber(const AString& sceneNameOrNumber);
         
         Scene* getSceneWithSceneID(const AString& sceneID);
         

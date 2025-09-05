@@ -505,7 +505,9 @@ MovieRecordingDialog::createMoviePrivate(QWidget* parent,
     const bool successFlag = movieRecorder->createMovie(filename,
                                                         errorMessage);
     if (successFlag) {
-        SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(filename);
+        const AString emptySceneName;
+        SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(filename,
+                                                                                       emptySceneName);
     }
     else {
         WuQMessageBox::errorOk(parent,

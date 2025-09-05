@@ -25,6 +25,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "SystemUtilities.h"
 
 using namespace caret;
 using namespace std;

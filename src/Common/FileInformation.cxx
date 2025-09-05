@@ -29,6 +29,7 @@
 #include "CaretLogger.h"
 #include "DataFile.h"
 #include "DataFileTypeEnum.h"
+#include "SystemUtilities.h"
 
 #include <cstdio>
 

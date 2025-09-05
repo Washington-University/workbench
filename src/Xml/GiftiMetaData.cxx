@@ -29,6 +29,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 #include "HtmlTableBuilder.h"
+#include "SystemUtilities.h"
 #include "XmlWriter.h"
 
 using namespace caret;

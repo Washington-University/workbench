@@ -38,6 +38,7 @@
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "RecentFileItem.h"
 #include "RecentFileItemsContainer.h"
 #include "RecentFileItemsFilter.h"
@@ -411,6 +412,36 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
         }
     }
     
+    /*
+     * For recent scenes, hide all columns but name
+     */
+    if (m_recentFileItemsContainer != NULL) {
+        bool hideColumnsFlag(false);
+        switch (m_recentFileItemsContainer->getMode()) {
+            case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+                break;
+            case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+                hideColumnsFlag = true;
+                break;
+            case RecentFileItemsContainerModeEnum::FAVORITES:
+                break;
+            case RecentFileItemsContainerModeEnum::OTHER:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_FILES:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+                break;
+        }
+        
+        setColumnHidden(COLUMN_DATE_TIME, hideColumnsFlag);
+        setColumnHidden(COLUMN_MODIFIED,  hideColumnsFlag);
+        setColumnHidden(COLUMN_FAVORITE,  hideColumnsFlag);
+        setColumnHidden(COLUMN_SHARE,     hideColumnsFlag);
+        setColumnHidden(COLUMN_FORGET,    hideColumnsFlag);
+    }
+    
     update();
     tableCellClicked(selectedRowIndex, COLUMN_NAME);
     resizeRowsToContents();
@@ -462,6 +493,8 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
         case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
             hidePathsFlag = true;
             break;
+        case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+            break;
         case RecentFileItemsContainerModeEnum::FAVORITES:
             enableFavoriteFlag = true;
             break;
@@ -475,12 +508,21 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
             enableFavoriteFlag = true;
             enableForgetFlag   = true;
             break;
+        case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+            enableFavoriteFlag = true;
+            enableForgetFlag   = true;
+            hidePathsFlag      = true;
+            break;
     }
     
     switch (recentItem->getFileItemType()) {
         case RecentFileItemTypeEnum::DIRECTORY:
             break;
+        case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+            break;
         case RecentFileItemTypeEnum::SCENE_FILE:
+            break;
+        case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
             break;
         case RecentFileItemTypeEnum::SPEC_FILE:
             break;
@@ -503,23 +545,32 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 if (recentItem->isNotFound()) {
                     notFoundText = ("&nbsp;(<font color=\"red\" size=\"+1\">not found</font>)");
                 }
-                
+                                
                 CaretAssert(widget);
                 QLabel* label = qobject_cast<QLabel*>(widget);
                 CaretAssert(label);
                 AString text("<html>&nbsp;<b><font size=\"+1\"%1>%2</font></b>%3<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%4</html>");
-                QString pathName(recentItem->getPathName());
+                AString firstRowText(recentItem->getFileName());
+                QString secondRowText(recentItem->getPathName());
                 switch (recentItem->getFileItemType()) {
                     case RecentFileItemTypeEnum::DIRECTORY:
+                        break;
+                    case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                        firstRowText  = recentItem->getSceneName() + "  ";
+                        secondRowText = "Show a description of the scene";
                         break;
                     case RecentFileItemTypeEnum::SCENE_FILE:
                     case RecentFileItemTypeEnum::SPEC_FILE:
                         if ( ! m_recentFileItemsFilter.isShowFilePaths()) {
-                            pathName = "";
+                            secondRowText = "";
                         }
                         else if (hidePathsFlag) {
-                            pathName = "";
+                            secondRowText = "";
                         }
+                        break;
+                    case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
+                        firstRowText  = recentItem->getSceneName() + "  ";
+                        secondRowText = recentItem->getPathAndFileName();
                         break;
                 }
                 
@@ -531,11 +582,11 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                      */
                     colorText = QString(" color=\"%1\"").arg(m_labelHighlightTextColor.name());
                     
-                    if ( ! pathName.isEmpty()) {
-                        pathName = QString("<font color=\"%1\">%2</font>").arg(m_labelHighlightTextColor.name()).arg(pathName);
+                    if ( ! secondRowText.isEmpty()) {
+                        secondRowText = QString("<font color=\"%1\">%2</font>").arg(m_labelHighlightTextColor.name()).arg(secondRowText);
                     }
                 }
-                label->setText(text.arg(colorText).arg(recentItem->getFileName()).arg(notFoundText).arg(pathName));
+                label->setText(text.arg(colorText).arg(firstRowText).arg(notFoundText).arg(secondRowText));
             }
                 break;
             case COLUMN_DATE_TIME:
@@ -553,7 +604,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                 CaretAssert(label);
                 
                 label->setText("");
-                if (enableFavoriteFlag) {
+                if (m_recentFileItemsContainer->supportsFavorite()) {
                     if (recentItem->isFavorite()) {
                         if (m_favoriteFilledIcon) {
                             label->setPixmap(m_favoriteFilledIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
@@ -590,7 +641,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                  * Note: Same icon is used for forget on/off but may change
                  */
                 label->setText("");
-                if (enableForgetFlag) {
+                if (m_recentFileItemsContainer->supportsForget()) {
                     if (recentItem->isForget()) {
                         if (m_forgetOnIcon) {
                             label->setPixmap(m_forgetOnIcon->pixmap(s_pixmapSizeXY, s_pixmapSizeXY));
@@ -902,7 +953,7 @@ RecentFilesTableWidget::showShareMenuForRow(const int32_t rowIndex)
     CaretAssertVectorIndex(m_recentItems, rowIndex);
     
     QMenu menu(this);
-    QAction* copyToClipboardAction =  menu.addAction("Copy Pathname to Clipboard");
+    QAction* copyToClipboardAction = menu.addAction("Copy Pathname to Clipboard");
     QAction* shareViaEmailAction   = menu.addAction("Email Pathname...");
     
     const AString pathName(m_recentItems[rowIndex]->getPathAndFileName());
@@ -919,17 +970,23 @@ RecentFilesTableWidget::showShareMenuForRow(const int32_t rowIndex)
             case RecentFileItemTypeEnum::DIRECTORY:
                 subject = "Directory";
                 break;
+            case RecentFileItemTypeEnum::EXAMPLE_SCENE:
+                break;
             case RecentFileItemTypeEnum::SCENE_FILE:
                 subject = "Scene File";
+                break;
+            case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
                 break;
             case RecentFileItemTypeEnum::SPEC_FILE:
                 subject = "Spec File";
                 break;
         }
-        const QString mailArg("mailto:?&subject=" + subject
-                              + "&body=" + pathName);
-        QDesktopServices::openUrl(QUrl(mailArg,
-                                       QUrl::TolerantMode));
+        if ( ! subject.isEmpty()) {
+            const QString mailArg("mailto:?&subject=" + subject
+                                  + "&body=" + pathName);
+            QDesktopServices::openUrl(QUrl(mailArg,
+                                           QUrl::TolerantMode));
+        }
     }
 }
 

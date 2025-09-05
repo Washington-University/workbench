@@ -1931,7 +1931,9 @@ SpecFileManagementDialog::okButtonClickedManageAndSaveFiles()
 
                         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
                         CaretAssert(prefs);
-                        prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
+                        const AString emptySceneName;
+                        prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName(),
+                                                                emptySceneName);
                     }
                     catch (const DataFileException& e) {
                         errorMessages.appendWithNewLine(e.whatString());
@@ -2013,7 +2015,9 @@ SpecFileManagementDialog::writeSpecFile(const bool writeOnlyIfModified)
     try {
         m_specFile->writeFile(m_specFile->getFileName());
         CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->addToRecentFilesAndOrDirectories(m_specFile->getFileName());
+        const AString emptySceneName;
+        prefs->addToRecentFilesAndOrDirectories(m_specFile->getFileName(),
+                                                emptySceneName);
     }
     catch (const DataFileException& e) {
         errorMessage = e.whatString();
@@ -2178,7 +2182,9 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         else {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             CaretAssert(prefs);
-            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName());
+            const AString emptySceneName;
+            prefs->addToRecentFilesAndOrDirectories(caretDataFile->getFileName(),
+                                                    emptySceneName);
         }
     }
     else {
@@ -2218,7 +2224,9 @@ SpecFileManagementDialog::fileReloadOrOpenFileActionSelected(int rowIndex)
         else {
             CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
             CaretAssert(prefs);
-            prefs->addToRecentFilesAndOrDirectories(specFileDataFile->getFileName());
+            const AString emptySceneName;
+            prefs->addToRecentFilesAndOrDirectories(specFileDataFile->getFileName(),
+                                                    emptySceneName);
         }
         
         EventBrowserWindowCreateTabs createTabsEvent(EventBrowserWindowCreateTabs::MODE_LOADED_DATA_FILE);

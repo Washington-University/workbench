@@ -27,23 +27,13 @@
 
 #include <AString.h>
 
+#include "FunctionResult.h"
+
 namespace caret {
 
-class SystemBacktrace
-{
-#ifdef CARET_OS_WINDOWS
-#else // CARET_OS_WINDOWS
-    std::vector<void*> m_callstack;
-    int m_numFrames;
-#endif // CARET_OS_WINDOWS
-public:
-    SystemBacktrace();
-    AString toSymbolString() const;
-    friend class SystemUtilities;
-};
 
     class InfoItem;
-    
+    class SystemBacktrace;
 /**
  * Methods to help out with files and directories.
  */
@@ -107,6 +97,8 @@ public:
     static AString getLocalHostName();
     
     static std::vector<std::unique_ptr<InfoItem>> getSystemInfo();
+    
+    static FunctionResultString getEnvironmentVariable(const AString& name);
 };
 
 } // namespace

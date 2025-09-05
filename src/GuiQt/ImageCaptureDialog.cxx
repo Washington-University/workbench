@@ -1205,7 +1205,9 @@ ImageCaptureDialog::applyButtonClicked()
             
             try {
                 imageFile.writeFile(imageFileName);
-                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(imageFileName);
+                const AString emptySceneName;
+                SessionManager::get()->getCaretPreferences()->addToRecentFilesAndOrDirectories(imageFileName,
+                                                                                               emptySceneName);
             }
             catch (const DataFileException& /*e*/) {
                 QString msg("Unable to save: " + imageFileName);

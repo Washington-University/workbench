@@ -117,6 +117,17 @@ RecentFileItemsContainerModeEnum::initialize()
                                            "Favorites",
                                            "Favorites"));
     
+    enumData.push_back(RecentFileItemsContainerModeEnum(EXAMPLE_DATA_SETS,
+                                                        "EXAMPLE_DATA_SETS",
+                                                        "Example Data",
+                                                        "Example\nData"));
+    
+
+    enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_SCENES,
+                                                        "RECENT_SCENES",
+                                                        "Recent Scenes",
+                                                        "Recent\nScenes"));
+    
     enumData.push_back(RecentFileItemsContainerModeEnum(RECENT_FILES,
                                            "RECENT_FILES",
                                            "Recent Files",

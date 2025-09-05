@@ -43,6 +43,7 @@
 #include "libCZI.h"
 #include "ImageFile.h"
 #include "InfoItem.h"
+#include "SystemUtilities.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 

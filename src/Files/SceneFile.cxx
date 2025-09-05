@@ -275,6 +275,32 @@ SceneFile::getSceneWithName(const AString& sceneName)
 }
 
 /**
+ * Get the scene with the given name or number.  Name takes precedence
+ * over number.  Number ranges 0 to N.
+ * @param sceneNameOrNumber
+ *    Name of scene.
+ * @return
+ *    Scene with given name/number or NULL if no scene found
+ */
+Scene*
+SceneFile::getSceneWithNameOrNumber(const AString& sceneNameOrNumber)
+{
+    Scene* scene = getSceneWithName(sceneNameOrNumber);
+    if (scene == NULL) {
+        bool isValidNumber = false;
+        int sceneNumber = sceneNameOrNumber.toInt(&isValidNumber);
+        if (isValidNumber) {
+            sceneNumber--;  /* convert to index (numbers start at one) */
+            if ((sceneNumber >= 0)
+                && (sceneNumber < getNumberOfScenes())) {
+                scene = getSceneAtIndex(sceneNumber);
+            }
+        }
+    }
+    return scene;
+}
+
+/**
  * Get the scene with the given scene ID.
  * @param sceneID
  *    ID of scene.
@@ -650,6 +676,19 @@ void
 SceneFile::setFileName(const AString& filename)
 {
     CaretDataFile::setFileName(filename);
+}
+
+/**
+ * Read only the SceneInfo from the scene file.
+ * @return A function result containing a map with scene index and scene info.
+ * Caller is responsible for deleting the SceneInfo instances.
+ * @param filename
+ *    Name of scene file.
+ */
+FunctionResultValue<std::map<int32_t, SceneInfo*>> 
+SceneFile::readSceneInfoOnly(const AString& filename)
+{
+    return SceneFileXmlStreamReader::readSceneInfoOnly(filename);
 }
 
 /**

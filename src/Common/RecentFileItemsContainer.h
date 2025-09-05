@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <set>
+#include <utility>
 
 #include "CaretObjectTracksModification.h"
 #include "RecentFileItemSortingKeyEnum.h"
@@ -53,6 +54,8 @@ namespace caret {
         };
         
         static RecentFileItemsContainer* newInstance();
+
+        static RecentFileItemsContainer* newInstanceExampleDataSets();
         
         static RecentFileItemsContainer* newInstanceFavorites(std::vector<RecentFileItemsContainer*>& otherContainers);
         
@@ -60,6 +63,9 @@ namespace caret {
         
         static RecentFileItemsContainer* newInstanceRecentSceneAndSpecFiles(CaretPreferences* preferences,
                                                                             const WriteIfModifiedType writeIfModifiedType);
+        
+        static RecentFileItemsContainer* newInstanceRecentScenes(CaretPreferences* preferences,
+                                                                 const WriteIfModifiedType writeIfModifiedType);
         
         static RecentFileItemsContainer* newInstanceRecentDirectories(CaretPreferences* preferences,
                                                                       const WriteIfModifiedType writeIfModifiedType);
@@ -74,6 +80,10 @@ namespace caret {
         
         bool isEmpty() const;
         
+        void addSceneFileAndSceneNamesToExamplesContainer(const std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNames);
+        
+        std::vector<RecentFileItem*> getAllItems() const;
+        
         std::vector<RecentFileItem*> getItems(const RecentFileItemsFilter& itemsFilter) const;
                 
         void addItem(RecentFileItem* recentFile);
@@ -86,6 +96,12 @@ namespace caret {
         
         RecentFileItemsContainerModeEnum::Enum getMode() const;
         
+        bool supportsFavorite() const;
+        
+        bool supportsForget() const;
+        
+        bool supportsShare() const;
+
         virtual bool isModified() const;
         
         virtual void clearModified();
@@ -120,8 +136,6 @@ namespace caret {
         
         void readFromXMLVersionOneRecentFileItem(QXmlStreamReader& reader);
         
-        std::vector<RecentFileItem*> getAllItems() const;
-
         RecentFileItemsContainerModeEnum::Enum m_mode;
         
         CaretPreferences* m_caretPreferences = NULL;
@@ -139,6 +153,8 @@ namespace caret {
         struct ItemCompareSharedPtr {
             bool operator() (const std::shared_ptr<RecentFileItem>& lhs, const std::shared_ptr<RecentFileItem>& rhs) const;
         };
+        
+        static bool CompareItems(const RecentFileItem* lhs, const RecentFileItem* rhs);
         
         /**
          * Set containing RecentFileItem's.  Note use of comparison operator so that
@@ -161,6 +177,7 @@ namespace caret {
         static const AString XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE;
         static const AString XML_TAG_RECENT_FILE_ITEM_FAVORITE;
         static const AString XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME;
+        static const AString XML_TAG_RECENT_FILE_ITEM_SCENE_NAME;
 
     };
     
@@ -172,6 +189,7 @@ namespace caret {
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_FILE_ITEM_TYPE = "FileItemType";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_FAVORITE = "Favorite";
     const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_PATH_AND_FILE_NAME = "PathAndFileName";
+    const AString RecentFileItemsContainer::XML_TAG_RECENT_FILE_ITEM_SCENE_NAME = "SceneName";
 #endif // __RECENT_FILE_ITEMS_CONTAINER_DECLARE__
 
 } // namespace
