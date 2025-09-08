@@ -37,7 +37,8 @@ namespace caret {
     public:
         RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                        const AString& pathAndFileName,
-                       const AString& sceneName = "");
+                       const AString& sceneName = "",
+                       const AString& sceneDescription = "");
         
         virtual ~RecentFileItem();
         
@@ -77,6 +78,8 @@ namespace caret {
         
         AString getSceneName() const;
         
+        AString getSceneDescription() const;
+        
         bool isFavorite() const;
         
         void setFavorite(const bool status);
@@ -111,6 +114,8 @@ namespace caret {
         AString m_pathAndFileName;
         
         AString m_sceneName;
+        
+        AString m_sceneDescription;
         
         AString m_fileName;
         

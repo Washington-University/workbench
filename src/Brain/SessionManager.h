@@ -31,6 +31,7 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
+#include "ExampleSceneInfo.h"
 #include "SceneableInterface.h"
 #include "SpacerTabIndex.h"
 
@@ -93,7 +94,7 @@ namespace caret {
         
         const MovieRecorder* getMovieRecorder() const;
         
-        void getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNamesOut) const;
+        void getExampleSceneFilesAndSceneNames(std::vector<ExampleSceneInfo>& exampleSceneInfoOut) const;
         
         virtual SceneClass* saveToScene(const SceneAttributes* sceneAttributes,
                                         const AString& instanceName);
@@ -199,9 +200,9 @@ namespace caret {
         
         std::vector<std::unique_ptr<ChartTwoCartesianAxis>> m_chartingAxisDisplayGroups;
         
-        mutable std::vector<std::pair<AString, AString>> m_exampleSceneFileAndSceneNames;
+        mutable std::vector<ExampleSceneInfo> m_cachedExampleSceneInfo;
         
-        mutable bool m_exampleFileAndSceneNamesReadFlag = false;
+        mutable bool m_cachedExampleSceneInfoReadFlag = false;
         
         bool m_sceneRestoredWithChartOldFlag = false;
         

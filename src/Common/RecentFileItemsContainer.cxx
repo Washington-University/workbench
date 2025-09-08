@@ -327,14 +327,15 @@ RecentFileItemsContainer::getMode() const
  *    Pairs with a scene file and scene name
  */
 void
-RecentFileItemsContainer::addSceneFileAndSceneNamesToExamplesContainer(const std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNames)
+RecentFileItemsContainer::addSceneFileAndSceneNamesToExamplesContainer(const std::vector<ExampleSceneInfo>& exampleSceneInfo)
 {
     CaretAssert(m_mode == RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS);
     
-    for (const auto& sceneFileAndSceneName : exampleSceneFileAndSceneNames) {
+    for (const auto& info : exampleSceneInfo) {
         RecentFileItem* rfi(new RecentFileItem(RecentFileItemTypeEnum::EXAMPLE_SCENE,
-                                               sceneFileAndSceneName.first,
-                                               sceneFileAndSceneName.second));
+                                               info.getFilename(),
+                                               info.getName(),
+                                               info.getDescription()));
         addItem(rfi);
     }
 }

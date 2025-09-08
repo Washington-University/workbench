@@ -28,6 +28,7 @@
 #include <utility>
 
 #include "CaretObjectTracksModification.h"
+#include "ExampleSceneInfo.h"
 #include "RecentFileItemSortingKeyEnum.h"
 #include "RecentFileItemTypeEnum.h"
 #include "RecentFileItemsContainerModeEnum.h"
@@ -80,7 +81,7 @@ namespace caret {
         
         bool isEmpty() const;
         
-        void addSceneFileAndSceneNamesToExamplesContainer(const std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNames);
+        void addSceneFileAndSceneNamesToExamplesContainer(const std::vector<ExampleSceneInfo>& exampleSceneInfo);
         
         std::vector<RecentFileItem*> getAllItems() const;
         

@@ -136,6 +136,7 @@ EventResetView.h
 EventSurfaceNodesGetNearXYZ.h
 EventTileTabsGridConfigurationModification.h
 EventTypeEnum.h
+ExampleSceneInfo.h
 FastStatistics.h
 FileAdapter.h
 FileInformation.h
@@ -311,6 +312,7 @@ EventResetView.cxx
 EventSurfaceNodesGetNearXYZ.cxx
 EventTileTabsGridConfigurationModification.cxx
 EventTypeEnum.cxx
+ExampleSceneInfo.cxx
 FastStatistics.cxx
 FileAdapter.cxx
 FileInformation.cxx

@@ -344,12 +344,35 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     
     m_recentFileItemsFilter = itemsFilter;
     
+    RecentFileItemsContainerModeEnum::Enum currentMode(RecentFileItemsContainerModeEnum::OTHER);
+    bool showingExampleDataSetsFlag(false);
     m_recentFileItemsContainer = recentFileItemsContainer;
     if (m_recentFileItemsContainer != NULL) {
         m_recentItems = m_recentFileItemsContainer->getItems(itemsFilter);
         sortRecentItems();
+        
+        currentMode = m_recentFileItemsContainer->getMode();
+        switch (currentMode) {
+            case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
+                break;
+            case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
+                /* only one column displayed so apply stretch to it */
+                showingExampleDataSetsFlag = true;
+                break;
+            case RecentFileItemsContainerModeEnum::FAVORITES:
+                break;
+            case RecentFileItemsContainerModeEnum::OTHER:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_FILES:
+                break;
+            case RecentFileItemsContainerModeEnum::RECENT_SCENES:
+                break;
+        }
     }
 
+    
     const int32_t numberOfRecentItems = static_cast<int32_t>(m_recentItems.size());
     
     updateTableDimensions(numberOfRecentItems);
@@ -359,9 +382,10 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
     int32_t selectedRowIndex = updateAllRows(previousSelectedItem);
     
     /*
-     * First time files inserted?
+     * Mode changed ?  Resize columns
      */
-    if (m_lastNumberRecentItems == 0) {
+    if (currentMode != m_previousMode) {
+        m_previousMode = currentMode;
         if (numberOfRecentItems > 0) {
             QStringList columnNames;
             for (int32_t i = 0; i < COLUMN_COUNT; i++) {
@@ -382,6 +406,9 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
                 const COLUMNS column = static_cast<COLUMNS>(i);
                 switch (column) {
                     case COLUMN_NAME:
+                        if (showingExampleDataSetsFlag) {
+                            mode = QHeaderView::Stretch;
+                        }
                         break;
                     case COLUMN_DATE_TIME:
                         break;
@@ -394,7 +421,12 @@ RecentFilesTableWidget::updateContent(RecentFileItemsContainer* recentFileItemsC
                     case COLUMN_FORGET:
                         break;
                     case COLUMN_EMPTY_STRETCH:
-                        mode = QHeaderView::Stretch;
+                        if (showingExampleDataSetsFlag) {
+                            mode = QHeaderView::ResizeToContents;
+                        }
+                        else {
+                            mode = QHeaderView::Stretch;
+                        }
                         break;
                     case COLUMN_COUNT:
                         break;
@@ -557,7 +589,7 @@ RecentFilesTableWidget::updateRow(const int32_t rowIndex)
                         break;
                     case RecentFileItemTypeEnum::EXAMPLE_SCENE:
                         firstRowText  = recentItem->getSceneName() + "  ";
-                        secondRowText = "Show a description of the scene";
+                        secondRowText = recentItem->getSceneDescription().left(120);
                         break;
                     case RecentFileItemTypeEnum::SCENE_FILE:
                     case RecentFileItemTypeEnum::SPEC_FILE:

@@ -148,9 +148,9 @@ m_runMode(runMode)
                                                                                          RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
     
     m_exampleDataSetsItemsContainer.reset(RecentFileItemsContainer::newInstanceExampleDataSets());
-    std::vector<std::pair<AString, AString>> sceneFileAndSceneNames;
-    SessionManager::get()->getExampleSceneFilesAndSceneNames(sceneFileAndSceneNames);
-    m_exampleDataSetsItemsContainer->addSceneFileAndSceneNamesToExamplesContainer(sceneFileAndSceneNames);
+    std::vector<ExampleSceneInfo> exampleSceneInfo;
+    SessionManager::get()->getExampleSceneFilesAndSceneNames(exampleSceneInfo);
+    m_exampleDataSetsItemsContainer->addSceneFileAndSceneNamesToExamplesContainer(exampleSceneInfo);
     
     /*
      * Favorites is updated when it is selected

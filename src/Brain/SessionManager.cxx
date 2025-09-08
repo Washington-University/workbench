@@ -1465,10 +1465,10 @@ SessionManager::getMovieRecorder() const
  *    Output containing pairs with a scene file and scene name
  */
 void
-SessionManager::getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString, AString>>& exampleSceneFileAndSceneNamesOut) const
+SessionManager::getExampleSceneFilesAndSceneNames(std::vector<ExampleSceneInfo>& exampleSceneInfoOut) const
 {
-    if ( ! m_exampleFileAndSceneNamesReadFlag) {
-        m_exampleFileAndSceneNamesReadFlag = true;
+    if ( ! m_cachedExampleSceneInfoReadFlag) {
+        m_cachedExampleSceneInfoReadFlag = true;
         
         /*
          * Directory containing examples
@@ -1511,13 +1511,14 @@ SessionManager::getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString,
                                      + "/"
                                      + "WorkbenchExampleDataOne.scene");
             
-            for (const auto& name : sceneFileNames) {
-                auto result(SceneFile::readSceneInfoOnly(name));
+            for (const auto& filename : sceneFileNames) {
+                auto result(SceneFile::readSceneInfoOnly(filename));
                 if (result.isOk()) {
                     std::map<int32_t, SceneInfo*> allSceneInfo(result.getValue());
                     for (auto& sceneInfo : allSceneInfo) {
-                        m_exampleSceneFileAndSceneNames.emplace_back(name,
-                                                                     sceneInfo.second->getName());
+                        m_cachedExampleSceneInfo.emplace_back(filename,
+                                                        sceneInfo.second->getName(),
+                                                        sceneInfo.second->getDescription());
                         delete sceneInfo.second;
                         sceneInfo.second = NULL;
                     }
@@ -1525,25 +1526,27 @@ SessionManager::getExampleSceneFilesAndSceneNames(std::vector<std::pair<AString,
             }
         }
         
-        if (m_exampleSceneFileAndSceneNames.empty()) {
+        if (m_cachedExampleSceneInfo.empty()) {
             CaretLogWarning("Unable to find Workbench Example Data Files.  Looking in \""
                             + workbenchExampleDirectory
                             + "\".  Path can be overriden using environment variable "
                             + envVarName);
         }
-        for (const auto& fileAndScene : m_exampleSceneFileAndSceneNames) {
-            FileInformation fileInfo(fileAndScene.first);
+        for (const auto& fileAndScene : m_cachedExampleSceneInfo) {
+            FileInformation fileInfo(fileAndScene.getFilename());
             if ( ! fileInfo.getFileName().startsWith(CaretPreferences::getExampleSceneFileNamePrefix())) {
                 const AString msg("Name Example Scene File must begin with \""
                                   + CaretPreferences::getExampleSceneFileNamePrefix()
                                   + "\" but is named "
-                                  + fileAndScene.first);
+                                  + fileAndScene.getFilename()
+                                  + ".  Requiring this name prevents the scenes and files "
+                                  "from being added to recently loaded scenes/files.");
                 CaretAssertMessage(0, msg);
             }
         }
     }
     
-    exampleSceneFileAndSceneNamesOut = m_exampleSceneFileAndSceneNames;
+    exampleSceneInfoOut = m_cachedExampleSceneInfo;
 }
 
 /**

@@ -47,14 +47,18 @@ using namespace caret;
  *  Path and name of a file
  * @param sceneName
  *  Name of scene must be empty if fileItemType is NOT SCENE_IN_SCENE_FILE
+ * @param sceneDescription
+ *  Description of scene must be empty if fileItemType is NOT SCENE_IN_SCENE_FILE
  */
 RecentFileItem::RecentFileItem(const RecentFileItemTypeEnum::Enum fileItemType,
                                const AString& pathAndFileName,
-                               const AString& sceneName)
+                               const AString& sceneName,
+                               const AString& sceneDescription)
 : CaretObjectTracksModification(),
 m_fileItemType(fileItemType),
 m_pathAndFileName(pathAndFileName),
-m_sceneName(sceneName)
+m_sceneName(sceneName),
+m_sceneDescription(sceneDescription)
 {
     bool useFileSystemFlag(false);
     EventRecentFilesSystemAccessMode modeEvent;
@@ -111,7 +115,9 @@ m_sceneName(sceneName)
             case RecentFileItemTypeEnum::SCENE_FILE:
             case RecentFileItemTypeEnum::SPEC_FILE:
                 CaretAssertMessage(m_sceneName.isEmpty(), 
-                                   "Scene name MUST be empty if fileItemType is NOT SCENE_IN_SCENE_FILE");
+                                   "Scene name MUST be empty if fileItemType is not a scene type");
+                CaretAssertMessage(m_sceneDescription.isEmpty(),
+                                   "Scene description MUST be empty if fileItemType is not a scene type");
                 break;
             case RecentFileItemTypeEnum::EXAMPLE_SCENE:
             case RecentFileItemTypeEnum::SCENE_IN_SCENE_FILE:
@@ -180,6 +186,7 @@ RecentFileItem::copyHelperRecentFileItem(const RecentFileItem& obj)
     m_pathName           = obj.m_pathName;
     m_fileName           = obj.m_fileName;
     m_sceneName          = obj.m_sceneName;
+    m_sceneDescription   = obj.m_sceneDescription;
     m_comment            = obj.m_comment;
     m_forgetFlag         = obj.m_forgetFlag;
     m_favoriteFlag       = obj.m_favoriteFlag;
@@ -369,12 +376,21 @@ RecentFileItem::setComment(const AString& text)
 }
 
 /**
- * @return name of scene (valid only if recent file type is NOT SCENE_IN_SCENE_FILE
+ * @return name of scene (valid only if recent file type is SCENE_IN_SCENE_FILE or EXAMPLE_SCENE
  */
 AString
 RecentFileItem::getSceneName() const
 {
     return m_sceneName;
+}
+
+/**
+ * @return Description of scene (valid only if recent file type is SCENE_IN_SCENE_FILE or EXAMPLE_SCENE
+ */
+AString
+RecentFileItem::getSceneDescription() const
+{
+    return m_sceneDescription;
 }
 
 /**

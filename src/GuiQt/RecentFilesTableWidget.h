@@ -26,6 +26,7 @@
 #include <QTableWidget>
 
 #include "AString.h"
+#include "RecentFileItemsContainerModeEnum.h"
 #include "RecentFileItemSortingKeyEnum.h"
 #include "RecentFileItemsFilter.h"
 
@@ -139,6 +140,8 @@ namespace caret {
         RecentFileItemSortingKeyEnum::Enum m_sortingKey = RecentFileItemSortingKeyEnum::DATE_NEWEST;
 
         QColor m_labelHighlightTextColor;
+        
+        RecentFileItemsContainerModeEnum::Enum m_previousMode = RecentFileItemsContainerModeEnum::OTHER;
         
         static const int32_t s_pixmapSizeXY;
         
