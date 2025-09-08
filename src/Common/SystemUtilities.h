@@ -94,6 +94,8 @@ public:
 
     static AString getWorkbenchHome();
     
+    static AString getExecutableName();
+    
     static AString getLocalHostName();
     
     static std::vector<std::unique_ptr<InfoItem>> getSystemInfo();

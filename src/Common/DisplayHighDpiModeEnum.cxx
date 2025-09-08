@@ -416,7 +416,7 @@ DisplayHighDpiModeEnum::getToolTip()
     AString s("<html><body>"
               + modesList
               + "<p>"
-              "wb_view may not display correctly on some High DPI (retina) displays.&nbsp;&nbsp;"
+              "The application may not display correctly on some High DPI (retina) displays.&nbsp;&nbsp;"
               "On these displays, the models (surfaces, volumes, etc.) may appear only in the bottom "
               "left quadrant of the window.&nbsp;&nbsp;Enabling High DPI fixes this problem.&nbsp;&nbsp;In <i>Auto</i> mode, "
               "the operating system and version of Qt are examined and will enable the High DPI correction "

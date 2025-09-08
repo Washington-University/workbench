@@ -149,7 +149,7 @@ PreferencesImageWidget::PreferencesImageWidget(QWidget* parent)
 
     QLabel* noteLabel = new QLabel("Note: Image Magnification/Minification Filters are NOT saved in the user's preferences.  "
                                    "Therefore, any desired changes to these selections must be made each time "
-                                   "wb_view is started.");
+                                   "the application is started.");
     noteLabel->setWordWrap(true);
     
     /*

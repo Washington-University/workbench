@@ -121,7 +121,7 @@ PreferencesDevelopOptionsWidget::PreferencesDevelopOptionsWidget(QWidget* parent
     
     QLabel* notesLabel = new QLabel("Note: These developer options are NOT saved in the user's preferences.  "
                                     "Therefore, any desired changes to these selections must be made each time "
-                                    "wb_view is started.");
+                                    "the application is started.");
     notesLabel->setWordWrap(true);
 
     QVBoxLayout* layout = new QVBoxLayout(this);

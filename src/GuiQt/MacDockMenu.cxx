@@ -35,6 +35,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SpecFile.h"
+#include "SystemUtilities.h"
 
 using namespace caret;
 
@@ -97,7 +98,8 @@ MacDockMenu::menuAboutToShow()
      */
     clear();
     
-    QAction* startNewWbViewAction = addAction("Start New wb_view");
+    const AString exeName(SystemUtilities::getExecutableName());
+    QAction* startNewWbViewAction = addAction("Start New " + exeName);
     QObject::connect(startNewWbViewAction, &QAction::triggered,
                      this, &MacDockMenu::startNewWbViewMenuItemTriggered);
     

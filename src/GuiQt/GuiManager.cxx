@@ -2338,7 +2338,7 @@ GuiManager::showHideHelpDialog(const bool status,
 
 #ifndef WORKBENCH_HAVE_HELP_HTML
     const QString msg("Help not available.\n"
-                      "wb_view was configured without inclusion of Help Information.");
+                      "The application was configured without inclusion of Help Information.");
     WuQMessageBox::errorOk(helpDialogParentWindow, msg);
     return;
 #endif

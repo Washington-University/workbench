@@ -656,6 +656,17 @@ SystemUtilities::getWorkbenchHome()
 }
 
 /**
+ * @return The name of the executable without any path.
+ * Note: on macOS this DOES NOT include the ".app" suffix
+ */
+AString
+SystemUtilities::getExecutableName()
+{
+    return QCoreApplication::applicationName();
+}
+
+
+/**
  * @return The fully qualifed domain name for the local host.
  *
  *         If failure, an empty string is returned and a message

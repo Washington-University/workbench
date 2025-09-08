@@ -350,7 +350,7 @@ WorkbenchInstallationAssistant::findBinDirectoryMacos(const QDir& appDirPath) co
     QDir dir(appDirPath);
     moveUp(dir); /* Moves to 'Contents' directory */
     moveUp(dir); /* Moves to 'wb_view.app' directory */
-    if (dir.dirName() == "wb_view.app") {
+    if (dir.dirName().endsWith(".app")) {
         /*
          * Could be DMG
          */
@@ -549,6 +549,9 @@ WorkbenchInstallationAssistant::binDirectoryContainsScripts(const AString& binDi
     QDir dir(binDirectoryName);
     CaretAssert(dir.exists());
     
+    /*
+     * These are script names, not the name of the executables
+     */
     if (dir.exists("wb_view")
         && dir.exists("wb_command")) {
         return FunctionResult::ok();
