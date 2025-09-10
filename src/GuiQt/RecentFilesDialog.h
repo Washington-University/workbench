@@ -184,6 +184,13 @@ namespace caret {
         
         std::unique_ptr<RecentFileItemsContainer> m_favoriteItemsContainer;
         
+        QAction* m_modeDirectorySceneSpecFilesAction = NULL;
+        QAction* m_modeExampleDataSetsAction = NULL;
+        QAction* m_modeFavoritesAction = NULL;
+        QAction* m_modeRecentDirectoriesAction = NULL;
+        QAction* m_modeRecentFilesAction = NULL;
+        QAction* m_modeRecentScenesAction = NULL;
+
         // ADD_NEW_MEMBERS_HERE
 
     };

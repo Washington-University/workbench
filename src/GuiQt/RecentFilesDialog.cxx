@@ -131,26 +131,31 @@ m_runMode(runMode)
     dialogLayout->addWidget(m_recentFilesTableWidget, 1, 1, 2, 1);
     dialogLayout->addWidget(dialogButtonWidget, 3, 1);
 
-    m_openPushButton->setAutoDefault(true);
-    m_openPushButton->setDefault(true);
+    m_loadPushButton->setAutoDefault(true);
+    m_loadPushButton->setDefault(true);
     
     Brain* brain = GuiManager::get()->getBrain();
     m_currentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceSceneAndSpecFilesInDirectory(brain->getCurrentDirectory()));
+    m_modeDirectorySceneSpecFilesAction->setEnabled( ! m_currentDirectoryItemsContainer->isEmpty());
     
     CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
     m_recentFilesItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentSceneAndSpecFiles(preferences,
                                                                                                    RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+    m_modeRecentFilesAction->setEnabled( ! m_recentFilesItemsContainer->isEmpty());
     
     m_recentDirectoryItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentDirectories(preferences,
                                                                                                  RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+    m_modeRecentDirectoriesAction->setEnabled( ! m_recentDirectoryItemsContainer->isEmpty());
 
     m_recentScenesItemsContainer.reset(RecentFileItemsContainer::newInstanceRecentScenes(preferences,
                                                                                          RecentFileItemsContainer::WriteIfModifiedType::WRITE_YES));
+    m_modeRecentScenesAction->setEnabled( ! m_recentScenesItemsContainer->isEmpty());
     
     m_exampleDataSetsItemsContainer.reset(RecentFileItemsContainer::newInstanceExampleDataSets());
     std::vector<ExampleSceneInfo> exampleSceneInfo;
     SessionManager::get()->getExampleSceneFilesAndSceneNames(exampleSceneInfo);
     m_exampleDataSetsItemsContainer->addSceneFileAndSceneNamesToExamplesContainer(exampleSceneInfo);
+    m_modeExampleDataSetsAction->setEnabled( ! m_exampleDataSetsItemsContainer->isEmpty());
     
     /*
      * Favorites is updated when it is selected
@@ -181,6 +186,7 @@ m_runMode(runMode)
         selectedMode = RecentFileItemsContainerModeEnum::FAVORITES;
     }
     
+    updateFavoritesContainer();
     QAction* selectedAction = getActionForMode(selectedMode);
     selectedAction->trigger();
     
@@ -432,25 +438,31 @@ RecentFilesDialog::createFileTypesButtonWidget()
         switch (m) {
             case RecentFileItemsContainerModeEnum::DIRECTORY_SCENE_AND_SPEC_FILES:
                 toolTipText = ("Choose from Scene and Spec Files in the current directory");
+                m_modeDirectorySceneSpecFilesAction = action;
                 break;
             case RecentFileItemsContainerModeEnum::EXAMPLE_DATA_SETS:
                 toolTipText = ("Choose from example data sets");
+                m_modeExampleDataSetsAction = action;
                 break;
             case RecentFileItemsContainerModeEnum::FAVORITES:
                 toolTipText = ("Choose from Favorites: favorites are created by clicking "
                                "the Favorite Icon (star) in the Favorite column for an item");
+                m_modeFavoritesAction = action;
                 break;
             case RecentFileItemsContainerModeEnum::OTHER:
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_DIRECTORIES:
                 toolTipText = ("Choose from directories that have been visitied by "
                                "the user for opening or saving files");
+                m_modeRecentDirectoriesAction = action;
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_FILES:
                 toolTipText = ("Choose from Scene and Spec files recently opened by the user");
+                m_modeRecentFilesAction = action;
                 break;
             case RecentFileItemsContainerModeEnum::RECENT_SCENES:
                 toolTipText = ("Choose from recently displayed scenes");
+                m_modeRecentScenesAction = action;
                 break;
         }
         WuQtUtilities::setWordWrappedToolTip(action, toolTipText);
@@ -459,8 +471,21 @@ RecentFilesDialog::createFileTypesButtonWidget()
         tb->setDefaultAction(action);
         tb->setStyleSheet("font : 14px"); /* larger characters */
         toolButtons.push_back(tb);
+        
+        /*
+         * Disable action as it will get updated later if its corresponding
+         * container is valid
+         */
+        action->setEnabled(false);
     }
-    
+        
+    CaretAssert(m_modeDirectorySceneSpecFilesAction);
+    CaretAssert(m_modeExampleDataSetsAction);
+    CaretAssert(m_modeFavoritesAction);
+    CaretAssert(m_modeRecentDirectoriesAction);
+    CaretAssert(m_modeRecentFilesAction);
+    CaretAssert(m_modeRecentScenesAction);
+
     std::vector<QWidget*> toolButtonWidgets(toolButtons.begin(),
                                             toolButtons.end());
     WuQtUtilities::matchWidgetSizes(toolButtonWidgets);
@@ -674,9 +699,11 @@ RecentFilesDialog::updateFavoritesContainer()
 {
     std::vector<RecentFileItemsContainer*> containers {
         m_recentFilesItemsContainer.get(),
-        m_recentDirectoryItemsContainer.get()
+        m_recentDirectoryItemsContainer.get(),
+        m_recentScenesItemsContainer.get()
     };
     m_favoriteItemsContainer.reset(RecentFileItemsContainer::newInstanceFavorites(containers));
+    m_modeFavoritesAction->setEnabled( ! m_favoriteItemsContainer->isEmpty());
 }
 
 /**
