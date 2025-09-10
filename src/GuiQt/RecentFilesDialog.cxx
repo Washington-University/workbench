@@ -954,41 +954,58 @@ RecentFilesDialog::loadSceneOrSpecFileFromItem(RecentFileItem* item,
                 sceneFile.readFile(item->getPathAndFileName());
                 const int32_t numScenes = sceneFile.getNumberOfScenes();
                 if (numScenes > 0) {
-                    std::vector<QAction*> actions;
-                    QMenu menu(this);
-                    for (int32_t i = 0; i < numScenes; i++) {
-                        actions.push_back(menu.addAction("Load "
-                                                         + AString::number(i + 1)
-                                                         + " "
-                                                         + sceneFile.getSceneAtIndex(i)->getName()));
+                    const Scene* sceneToLoad(NULL);
+                    int32_t sceneToLoadIndex(-1);
+                    
+                    if (numScenes == 1) {
+                        sceneToLoad = sceneFile.getSceneAtIndex(0);
+                        sceneToLoadIndex = 0;
+                    }
+                    else {
+                        std::vector<QAction*> actions;
+                        QMenu menu(this);
+                        for (int32_t i = 0; i < numScenes; i++) {
+                            actions.push_back(menu.addAction("Load "
+                                                             + AString::number(i + 1)
+                                                             + " "
+                                                             + sceneFile.getSceneAtIndex(i)->getName()));
+                        }
+                        
+                        QAction* selectedAction = menu.exec(globalPosition);
+                        for (int32_t i = 0; i < numScenes; i++) {
+                            CaretAssertVectorIndex(actions, i);
+                            if (selectedAction == actions[i]) {
+                                const Scene* scene = sceneFile.getSceneAtIndex(i);
+                                CaretAssert(scene);
+                                sceneToLoad = scene;
+                                sceneToLoadIndex = i;
+                                break;
+                            }
+                        }
                     }
                     
-                    QAction* selectedAction = menu.exec(globalPosition);
-                    for (int32_t i = 0; i < numScenes; i++) {
-                        CaretAssertVectorIndex(actions, i);
-                        if (selectedAction == actions[i]) {
-                            const Scene* scene = sceneFile.getSceneAtIndex(i);
-                            CaretAssert(scene);
-                            if (scene->hasFilesWithRemotePaths()) {
-                                const QString msg("This scene contains files that are on the network.  "
-                                                  "If accessing the files requires a username and "
-                                                  "password, enter it here.  Otherwise, remove any "
-                                                  "text from the username and password fields.");
-                                
-                                AString username;
-                                AString password;
-                                if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_loadPushButton,
-                                                                                           "Username and Password",
-                                                                                           msg,
-                                                                                           username,
-                                                                                           password)) {
-                                    CaretDataFile::setFileReadingUsernameAndPassword(username,
-                                                                                     password);
-                                }
+                    if ((sceneToLoad != NULL)
+                        && (sceneToLoadIndex >= 0)) {
+                        if (sceneToLoad->hasFilesWithRemotePaths()) {
+                            const QString msg("This scene contains files that are on the network.  "
+                                              "If accessing the files requires a username and "
+                                              "password, enter it here.  Otherwise, remove any "
+                                              "text from the username and password fields.");
+                            
+                            AString username;
+                            AString password;
+                            if (UsernamePasswordWidget::getUserNameAndPasswordInDialog(m_loadPushButton,
+                                                                                       "Username and Password",
+                                                                                       msg,
+                                                                                       username,
+                                                                                       password)) {
+                                CaretDataFile::setFileReadingUsernameAndPassword(username,
+                                                                                 password);
                             }
-                            loadSceneOrSpecFile(ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE,
-                                                item->getPathAndFileName(), i);
                         }
+                        loadSceneOrSpecFile(ResultModeEnum::LOAD_SCENE_FROM_SCENE_FILE,
+                                            item->getPathAndFileName(),
+                                            sceneToLoadIndex);
                     }
                 }
             }
