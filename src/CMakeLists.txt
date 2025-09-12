@@ -13,7 +13,7 @@ PROJECT(Workbench)
 # a newer version number for every upload,
 # event uploads that are rejected.
 #
-SET(WB_VERSION "2.1.0")
+SET(WB_VERSION "2.1.6")
 
 #
 # Set to true for verbose output when debugging this file

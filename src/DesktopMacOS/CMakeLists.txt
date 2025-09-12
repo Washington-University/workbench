@@ -267,7 +267,7 @@ IF (APPLE)
     SET (MACOSX_BUNDLE_BUNDLE_NAME ConnectomeWorkbench)
     SET (MACOSX_BUNDLE_DISPLAY_NAME "Connectome Workbench")
     SET (MACOSX_BUNDLE_SHORT_VERSION_STRING ${WB_VERSION})
-    SET (MACOSX_BUNDLE_BUNDLE_VERSION 3)  # must increment for each upload to app store
+    SET (MACOSX_BUNDLE_BUNDLE_VERSION 4)  # must increment for each upload to app store
     SET (MACOSX_BUNDLE_COPYRIGHT  2024 )
 
     # And this part tells CMake where to find and install the file itself
@@ -283,6 +283,7 @@ IF (APPLE)
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/spec_file.icns
         COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/data_file.icns
-	COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../mac_plist/ConnectomeWorkbench.entitlements
+	COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../mac_plist/ConnectomeWorkbench.default.entitlements
+	COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../mac_plist/ConnectomeWorkbench.inherit.default.entitlements
     )
 ENDIF (APPLE)
