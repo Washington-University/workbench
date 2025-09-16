@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <QDateTime>
+#include <QVariant>
 
 #include <memory>
 
