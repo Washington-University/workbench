@@ -24,7 +24,11 @@
 #undef __SYSTEM_BACKTRACE_DECLARE__
 
 #include <sstream>
+
+#ifndef CARET_OS_WINDOWS
 #include <execinfo.h>
+#endif
+
 #include "CaretAssert.h"
 using namespace caret;
 
