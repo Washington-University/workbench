@@ -762,7 +762,7 @@ void VolumeFile::parseExtensions()
                     QByteArray myByteArray(myHeader.m_extensions[whichExt]->m_bytes.data(), myHeader.m_extensions[whichExt]->m_bytes.size());
                     AString myString(myByteArray);
                     int64_t firstnull = myString.indexOf(QChar('\0')); //qt6 gets annoyed by nulls being sent to xml parsers
-                    if (firstnull > 0)
+                    if (firstnull >= 0)
                     {
                         m_caretVolExt.readFromXmlString(myString.left(firstnull)); //technically left() handles -1 the way we want, but whatever
                     } else {
