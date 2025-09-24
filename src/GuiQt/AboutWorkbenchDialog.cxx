@@ -47,6 +47,10 @@
 #include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+#include "ZarrHelper.h"
+#endif
+
 using namespace caret;
 
 
@@ -205,6 +209,13 @@ AboutWorkbenchDialog::displayMoreInformation()
                               + AString::number(cziMajorVersion)
                               + "."
                               + AString::number(cziMinorVersion));
+    
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+    std::vector<AString> zarrInfoStrings(ZarrHelper::getVersionInfoStrings());
+    for (const auto& s : zarrInfoStrings) {
+        informationData.push_back(s);
+    }
+#endif
     
     QString styleName("Undefined");
     QStyle* appStyle = QApplication::style();

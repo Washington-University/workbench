@@ -49,6 +49,8 @@ namespace caret {
 
         ZarrHelper& operator=(const ZarrHelper&) = delete;
         
+        static std::vector<AString> getVersionInfoStrings();
+        
         static FunctionResultValue<ZarrV2ArrayJsonFile*> readZarrV2ArrayJsonFile(const ZarrDriverTypeEnum::Enum driverType,
                                                                                  const AString& zarrPath,
                                                                                  const AString& relativePath);

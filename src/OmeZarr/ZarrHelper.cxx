@@ -28,6 +28,12 @@
 #include "ZarrV2ArrayJsonFile.h"
 #include "ZarrV2GroupJsonFile.h"
 
+#include <blosc.h>
+#include <nlohmann/json.hpp>
+#include <xtensor/core/xtensor_config.hpp>
+#include <xtl/xtl_config.hpp>
+#include <z5/metadata.hxx>
+
 using namespace caret;
     
 /**
@@ -51,6 +57,40 @@ ZarrHelper::ZarrHelper()
 ZarrHelper::~ZarrHelper()
 {
 }
+
+/**
+ * @return Version info about ZARR and its dependent libraries
+ */
+std::vector<AString>
+ZarrHelper::getVersionInfoStrings()
+{
+    std::vector<AString> txt;
+    
+    txt.push_back("BLOSC Version: "
+                  + AString(blosc_get_version_string()));
+    
+    txt.push_back("nlohman json version: "
+                  + AString(std::to_string(NLOHMANN_JSON_VERSION_MAJOR) + "." +
+                            std::to_string(NLOHMANN_JSON_VERSION_MINOR) + "." +
+                            std::to_string(NLOHMANN_JSON_VERSION_PATCH)));
+    
+    txt.push_back("xtensor version: "
+                  + AString(std::to_string(XTENSOR_VERSION_MAJOR) + "." +
+                            std::to_string(XTENSOR_VERSION_MINOR) + "." +
+                            std::to_string(XTENSOR_VERSION_PATCH)));
+    
+    txt.push_back("xtl version: "
+                  + AString(std::to_string(XTL_VERSION_MAJOR) + "." +
+                            std::to_string(XTL_VERSION_MINOR) + "." +
+                            std::to_string(XTL_VERSION_PATCH)));
+    
+    z5::DatasetMetadata z5metaData;
+    txt.push_back("Z5 Version: "
+                  + AString(z5metaData.n5Format()));
+    
+    return txt;
+}
+
 
 /**
  * Read the Zarr V2 .zarray file
