@@ -221,7 +221,12 @@ IF (${CMAKE_VERSION} VERSION_LESS "3.1")
         ENDIF (${GCC_STD11})
     ENDIF (CMAKE_COMPILER_IS_GNUCC)
 ELSE (${CMAKE_VERSION} VERSION_LESS "3.1")
-    SET(CMAKE_CXX_STANDARD 11)
+    IF (${WORKBENCH_USE_Z5})
+        # XTensor library requires C++20
+        SET(CMAKE_CXX_STANDARD 20)
+    ELSE()
+        SET(CMAKE_CXX_STANDARD 17)
+    ENDIF()
     SET(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 ENDIF (${CMAKE_VERSION} VERSION_LESS "3.1")
 
@@ -257,12 +262,6 @@ IF (WORKBENCH_USE_QT6)
     IF (WORKBENCH_USE_QT5)
         MESSAGE(SEND_ERROR "Both QT5 and QT6 are selected.  Choose only one of them.")
     ENDIF (WORKBENCH_USE_QT5)
-    
-    #
-    # Qt 6 requires C++17 compiler
-    #
-    SET(CMAKE_CXX_STANDARD 17)
-    SET(CMAKE_CXX_STANDARD_REQUIRED ON)
     
     #
     # Packages for Qt 6
