@@ -984,13 +984,17 @@ struct functor_traits<std::binder1st<T> >
 { enum { Cost = functor_traits<T>::Cost, PacketAccess = false }; };
 #endif
     
+/* JWH: std::unary_negate removed in c++20
 template<typename T>
 struct functor_traits<std::unary_negate<T> >
 { enum { Cost = 1 + functor_traits<T>::Cost, PacketAccess = false }; };
+*/
 
+/* JWH: std::binary_negate removed in c++20
 template<typename T>
 struct functor_traits<std::binary_negate<T> >
 { enum { Cost = 1 + functor_traits<T>::Cost, PacketAccess = false }; };
+*/
 
 #ifdef EIGEN_STDEXT_SUPPORT
 
