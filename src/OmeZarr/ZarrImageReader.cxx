@@ -49,7 +49,7 @@
 #include <string>
 #include <thread>
 
-#include "xtensor/xarray.hpp"
+//#include "xtensor/xarray.hpp"
 
 // factory functions to create files, groups and datasets
 #include "z5/factory.hxx"

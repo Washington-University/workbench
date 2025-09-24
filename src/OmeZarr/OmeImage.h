@@ -25,7 +25,7 @@
 #include <cstdint>
 #include <memory>
 
-#include <xtensor/xarray.hpp>
+#include <xtensor.hpp>
 
 #include "CaretObject.h"
 #include "FunctionResult.h"

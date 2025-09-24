@@ -27,7 +27,7 @@
 #include <memory>
 #include <vector>
 
-#include <xtensor/xarray.hpp>
+#include <xtensor.hpp>
 
 #include "CaretObject.h"
 #include "FunctionResult.h"
