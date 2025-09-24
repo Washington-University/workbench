@@ -1635,6 +1635,10 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processOmeZarrDirectoryOpen()));
+#if defined(WORKBENCH_HAVE_OME_ZARR_Z5)
+#else
+    m_openOmeZarrDirectoryAction->setEnabled(false);
+#endif
     
     m_openFileAction =
     WuQtUtilities::createAction("Open File...", 
