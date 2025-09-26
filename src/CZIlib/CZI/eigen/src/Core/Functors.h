@@ -973,6 +973,7 @@ struct functor_traits<std::not_equal_to<T> >
      * Added 26 July to fix compilation on Mac
      * Copied from: http://eigen.tuxfamily.org/dox-3.2/Functors_8h_source.html
      */
+/* JWH std::binder2nd and std::binder1st removed in c++17
 #if(__cplusplus < 201103L)
     // std::binder* are deprecated since c++11 and will be removed in c++17
 template<typename T>
@@ -983,6 +984,7 @@ template<typename T>
 struct functor_traits<std::binder1st<T> >
 { enum { Cost = functor_traits<T>::Cost, PacketAccess = false }; };
 #endif
+*/
     
 /* JWH: std::unary_negate removed in c++20
 template<typename T>
