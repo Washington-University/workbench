@@ -1,0 +1,175 @@
+
+#
+# Individual builds can be turned on/off
+#
+set(BUILD_BLOSC ON)
+set(BUILD_JSON ON)
+set(BUILD_XTL ON)
+set(BUILD_XTENSOR ON)
+set(BUILD_Z5 ON)
+
+# 
+# Directories
+# Note: When run in cmake -P script mode, CMake sets the variables 
+# CMAKE_BINARY_DIR, CMAKE_SOURCE_DIR, CMAKE_CURRENT_BINARY_DIR 
+# and CMAKE_CURRENT_SOURCE_DIR to the current working directory.
+#
+set(TOP_DIR ${CMAKE_SOURCE_DIR})
+
+set(SOURCE_RELATIVE_DIR source)
+set(SOURCE_ABSOLUTE_DIR ${TOP_DIR}/${SOURCE_RELATIVE_DIR}) 
+
+set(BUILD_RELATIVE_DIR build)
+set(BUILD_ABSOLUTE_DIR ${TOP_DIR}/${BUILD_RELATIVE_DIR})
+
+set(INSTALL_RELATIVE_DIR install)
+set(INSTALL_ABSOLUTE_DIR ${TOP_DIR}/${INSTALL_RELATIVE_DIR})
+
+message("source dir: ${SOURCE_ABSOLUTE_DIR}")
+message("build dir: ${BUILD_ABSOLUTE_DIR}")
+message("install dir: ${INSTALL_ABSOLUTE_DIR}")
+
+
+#
+# Create build and install directies
+# If it already exists, no action is taken, nor is an error message displayed
+#
+file(MAKE_DIRECTORY ${BUILD_RELATIVE_DIR})
+file(MAKE_DIRECTORY ${INSTALL_RELATIVE_DIR})
+
+#
+# json
+#
+if(BUILD_JSON)
+    message("Building JSON ****************************************") 
+    file(REMOVE_RECURSE ${BUILD_RELATIVE_DIR}/json)
+    execute_process(COMMAND ${CMAKE_COMMAND}
+                    -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DJSON_BuildTests=OFF
+                    -B "${BUILD_ABSOLUTE_DIR}/json"
+                    -S "${SOURCE_ABSOLUTE_DIR}/json"
+                    COMMAND_ERROR_IS_FATAL ANY)
+
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/json")
+
+    execute_process(COMMAND ${CMAKE_COMMAND}  --install .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/json")
+    message("FINISHED JSON building...")
+endif()
+
+#
+# XTL
+#
+if(BUILD_XTL)
+    message("Building XTL ****************************************") 
+    file(REMOVE_RECURSE ${BUILD_RELATIVE_DIR}/xtl)
+    execute_process(COMMAND ${CMAKE_COMMAND}
+                    -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_ABSOLUTE_DIR}
+                    -B "${BUILD_ABSOLUTE_DIR}/xtl"
+                    -S "${SOURCE_ABSOLUTE_DIR}/xtl"
+                    COMMAND_ERROR_IS_FATAL ANY)
+
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/xtl")
+
+    execute_process(COMMAND ${CMAKE_COMMAND}  --install .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/xtl")
+    message("FINISHED XTL building...")
+endif()
+
+#
+# XTensor
+#
+if(BUILD_XTENSOR)
+    message("Building Xtensor ****************************************") 
+    file(REMOVE_RECURSE ${BUILD_RELATIVE_DIR}/xtensor)
+    execute_process(COMMAND ${CMAKE_COMMAND}
+                    -DCMAKE_PREFIX_PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DXTENSOR_ENABLE_ASSERT=ON
+                    -DXTENSOR_DISABLE_EXCEPTIONS=ON
+                    -B "${BUILD_ABSOLUTE_DIR}/xtensor"
+                    -S "${SOURCE_ABSOLUTE_DIR}/xtensor"
+                    COMMAND_ERROR_IS_FATAL ANY)
+
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/xtensor")
+
+    execute_process(COMMAND ${CMAKE_COMMAND}  --install .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/xtensor")
+endif()
+
+#
+# BLOSC
+#
+if(BUILD_BLOSC)
+    set(MAC_ARCH "")
+    set(MAC_TARGET "")
+    if (APPLE)
+        #
+        # Does not work when configuring BLOSC: -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+        # Seems to get chopped off at semicolon
+        #
+        set(MAC_ARCH "-DCMAKE_C_FLAGS=-arch x86_64 -arch arm64")
+        set(MAC_TARGET "-DCMAKE_OSX_DEPLOYMENT_TARGET=12.0")
+    endif()
+    message("Building BLOSC ****************************************") 
+    file(REMOVE_RECURSE ${BUILD_RELATIVE_DIR}/c-blosc)
+    execute_process(COMMAND ${CMAKE_COMMAND}
+                    ${MAC_ARCH}
+                    ${MAC_TARGET}
+                    -DCMAKE_VERBOSE_MAKEFILE=TRUE
+                    -DCMAKE_PREFIX_PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DCMAKE_BUILD_TYPE=Release
+                    -DCMAKE_CXX_STANDARD=20
+                    -DCMAKE_CXX_STANDARD_REQUIRED=TRUE
+                    -DBUILD_STATIC=ON
+                    -DBUILD_SHARED=OFF
+                    -DBUILD_TESTS=OFF
+                    -DBUILD_BENCHMARKS=OFF
+                    -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_ABSOLUTE_DIR}
+                    -B "${BUILD_ABSOLUTE_DIR}/c-blosc"
+                    -S "${SOURCE_ABSOLUTE_DIR}/c-blosc"
+                    COMMAND_ERROR_IS_FATAL ANY)
+
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/c-blosc")
+
+    execute_process(COMMAND ${CMAKE_COMMAND}  --install .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/c-blosc")
+endif()
+
+#
+# Z5
+#
+if(BUILD_Z5)
+    message("Building Z5 ****************************************") 
+    file(REMOVE_RECURSE ${BUILD_RELATIVE_DIR}/z5)
+    execute_process(COMMAND ${CMAKE_COMMAND}
+                    -DCMAKE_PREFIX_PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DCMAKE_INSTALL_PREFIX:PATH=${INSTALL_ABSOLUTE_DIR}
+                    -DBUILD_Z5PY=OFF
+                    -DWITH_BLOSC=ON
+                    -B "${BUILD_ABSOLUTE_DIR}/z5"
+                    -S "${SOURCE_ABSOLUTE_DIR}/z5"
+                    COMMAND_ERROR_IS_FATAL ANY)
+
+# windows add --config Release
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/z5")
+
+    execute_process(COMMAND ${CMAKE_COMMAND}  --install .
+                    COMMAND_ERROR_IS_FATAL ANY
+                    WORKING_DIRECTORY "${BUILD_ABSOLUTE_DIR}/z5")
+endif()
+

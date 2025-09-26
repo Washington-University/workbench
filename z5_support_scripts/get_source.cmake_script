@@ -1,0 +1,101 @@
+
+#
+# programs
+#
+set(GIT_COMMAND git)
+if(WIN32)
+    set(GIT_COMMAND git.exe)
+endif()
+
+#
+# Version of some libraries
+# Versions of XTL compatible with XTensor are in the xtenstor README.md file
+# Info about xtensor versions: 
+#    https://xtensor.readthedocs.io/en/latest/changelog.html
+#
+
+set(BLOSC_TAG          "")
+set(NLOHMAN_JSON_TAG   "")
+set(XTENSOR_SOURCE_TAG "")
+set(XTL_SOURCE_TAG     "")
+set(Z5_SOURCE_TAG      "")
+
+#
+# These items allow cloning specific versions of the software
+# The versions below are known to be compatible with Connectome Workbench
+# and each other.
+#
+#set(BLOSC_TAG          "--branch 1.21.6") # 1.21.7.dev
+#set(NLOHMAN_JSON_TAG   "--branch 3.12.0")
+#set(XTENSOR_SOURCE_TAG "--branch 0.27.1")
+#set(XTL_SOURCE_TAG     "--branch 0.8.0")
+#set(Z5_SOURCE_TAG      "--branch 2.0.0")
+
+# 
+# Directories
+# Note: When run in cmake -P script mode, CMake sets the variables 
+# CMAKE_BINARY_DIR, CMAKE_SOURCE_DIR, CMAKE_CURRENT_BINARY_DIR 
+# and CMAKE_CURRENT_SOURCE_DIR to the current working directory.
+#
+set(TOP_DIR ${CMAKE_SOURCE_DIR})
+set(SOURCE_RELATIVE_DIR source)
+set(SOURCE_ABSOLUTE_DIR ${TOP_DIR}/${SOURCE_RELATIVE_DIR}) 
+
+message("source dir: ${SOURCE_ABSOLUTE_DIR}")
+
+
+#
+# Create source directory 
+# If it already exists, no action is taken, nor is an error message displayed
+#
+file(MAKE_DIRECTORY ${SOURCE_RELATIVE_DIR})
+
+#
+# For all, remove the previously cloned directly and then clone
+#
+
+#
+# nlohmann_json
+#
+file(REMOVE_RECURSE ${SOURCE_RELATIVE_DIR}/json)
+execute_process(COMMAND 
+                ${GIT_COMMAND} clone ${NLOHMAN_JSON_TAG}
+                https://github.com/nlohmann/json.git
+                WORKING_DIRECTORY ${SOURCE_ABSOLUTE_DIR})
+
+#
+# xtl
+#
+file(REMOVE_RECURSE ${SOURCE_RELATIVE_DIR}/xtl)
+execute_process(COMMAND 
+                ${GIT_COMMAND} clone ${XTL_SOURCE_TAG}
+                https://github.com/xtensor-stack/xtl.git
+                WORKING_DIRECTORY ${SOURCE_ABSOLUTE_DIR})
+
+#
+# xtensor
+#
+file(REMOVE_RECURSE ${SOURCE_RELATIVE_DIR}/xtensor)
+execute_process(COMMAND 
+                ${GIT_COMMAND} clone ${XTENSOR_SOURCE_TAG}
+                https://github.com/xtensor-stack/xtensor.git
+                WORKING_DIRECTORY ${SOURCE_ABSOLUTE_DIR})
+
+#
+# blosc
+#
+file(REMOVE_RECURSE ${SOURCE_RELATIVE_DIR}/c-blosc)
+execute_process(COMMAND 
+                ${GIT_COMMAND} clone ${BLOSC_TAG}
+                https://github.com/Blosc/c-blosc.git
+                WORKING_DIRECTORY ${SOURCE_ABSOLUTE_DIR})
+
+#
+# z5
+#
+file(REMOVE_RECURSE ${SOURCE_RELATIVE_DIR}/z5)
+execute_process(COMMAND 
+                ${GIT_COMMAND} clone ${Z5_SOURCE_TAG}
+                https://github.com/constantinpape/z5.git
+                WORKING_DIRECTORY ${SOURCE_ABSOLUTE_DIR})
+
