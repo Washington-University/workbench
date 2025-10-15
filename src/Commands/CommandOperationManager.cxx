@@ -127,6 +127,7 @@
 #include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeLabelModifyKeys.h"
 #include "AlgorithmVolumeLabelProbability.h"
+#include "AlgorithmVolumeLabelResample.h"
 #include "AlgorithmVolumeLabelToROI.h"
 #include "AlgorithmVolumeLabelToSurfaceMapping.h"
 #include "AlgorithmVolumeParcelResampling.h"
@@ -399,6 +400,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelModifyKeys()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelProbability()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelResample()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToROI()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeLabelToSurfaceMapping()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));

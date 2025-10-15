@@ -180,6 +180,8 @@ namespace caret {
         VolumeFile();
         VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1,
                    SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
+        VolumeFile(const VolumeSpace& volSpaceIn, const int64_t numFrames = 1, const int64_t numComponents = 1,
+                   SubvolumeAttributes::VolumeType whatType = SubvolumeAttributes::ANATOMY, const AbstractHeader* templateHeader = NULL);
         ~VolumeFile();
         
         virtual void clear();

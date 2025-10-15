@@ -127,6 +127,7 @@ AlgorithmVolumeFindClusters.h
 AlgorithmVolumeGradient.h
 AlgorithmVolumeLabelModifyKeys.h
 AlgorithmVolumeLabelProbability.h
+AlgorithmVolumeLabelResample.h
 AlgorithmVolumeLabelToROI.h
 AlgorithmVolumeLabelToSurfaceMapping.h
 AlgorithmVolumeParcelResampling.h
@@ -249,6 +250,7 @@ AlgorithmVolumeFindClusters.cxx
 AlgorithmVolumeGradient.cxx
 AlgorithmVolumeLabelModifyKeys.cxx
 AlgorithmVolumeLabelProbability.cxx
+AlgorithmVolumeLabelResample.cxx
 AlgorithmVolumeLabelToROI.cxx
 AlgorithmVolumeLabelToSurfaceMapping.cxx
 AlgorithmVolumeParcelResampling.cxx

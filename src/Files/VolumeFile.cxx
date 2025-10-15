@@ -151,6 +151,35 @@ GroupAndNameHierarchyUserInterface()
     setType(whatType);
 }
 
+VolumeFile::VolumeFile(const VolumeSpace& volSpaceIn, const int64_t numFrames, const int64_t numComponents,
+                       SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
+: VolumeBase(),
+CaretMappableDataFile(DataFileTypeEnum::VOLUME),
+ChartableLineSeriesBrainordinateInterface(),
+GroupAndNameHierarchyUserInterface()
+{
+    CaretAssert(numFrames > 0);
+    const int64_t* dimsPtr = volSpaceIn.getDims();
+    vector<int64_t> dims(dimsPtr, dimsPtr + 3);
+    if (numFrames > 1)
+    {
+        dims.push_back(numFrames);
+    }
+    VolumeBase::reinitialize(dims, volSpaceIn.getSform(), numComponents);
+    m_forceUpdateOfGroupAndNameHierarchy = true;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_chartingEnabledForTab[i] = false;
+    }
+    if (templateHeader != NULL) m_header.grabNew(templateHeader->clone());
+    m_writingDoScale = false;
+    m_writingDType = NIFTI_TYPE_FLOAT32;
+    m_minScalingVal = -1.0;//unused, but make them consistent
+    m_maxScalingVal = 1.0;
+    m_graphicsPrimitiveManager.reset(new VolumeGraphicsPrimitiveManager(this, this));
+    validateMembers();
+    setType(whatType);
+}
+
 void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents,
                               SubvolumeAttributes::VolumeType whatType, const AbstractHeader* templateHeader)
 {
@@ -173,8 +202,7 @@ void VolumeFile::reinitialize(const VolumeSpace& volSpaceIn, const int64_t numFr
         dims.push_back(numFrames);
     }
     reinitialize(dims, volSpaceIn.getSform(), numComponents, whatType, templateHeader);
-    m_graphicsPrimitiveManager->clear();
-
+    //m_graphicsPrimitiveManager->clear(); TSC: this already happens in the above reinitialize() call
 }
 
 void VolumeFile::reinitialize(const VolumeFile* headerTemplate, const int64_t numFrames, const int64_t numComponents)

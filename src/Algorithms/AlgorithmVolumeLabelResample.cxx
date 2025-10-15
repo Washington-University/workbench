@@ -1,6 +1,6 @@
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2020  Washington University School of Medicine
+ *  Copyright (C) 2025  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,30 +18,36 @@
  */
 /*LICENSE_END*/
 
-#include "AlgorithmVolumeResample.h"
+#include "AlgorithmVolumeLabelResample.h"
 #include "AlgorithmException.h"
+
+#include "AlgorithmVolumeResample.h"
+#include "AlgorithmVolumeSmoothing.h"
 
 #include "AffineFile.h"
 #include "AffineSeriesFile.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
 #include "NiftiIO.h"
 #include "WarpfieldFile.h"
+
+#include <limits>
 
 using namespace caret;
 using namespace std;
 
-AString AlgorithmVolumeResample::getCommandSwitch()
+AString AlgorithmVolumeLabelResample::getCommandSwitch()
 {
-    return "-volume-resample";
+    return "-volume-label-resample";
 }
 
-AString AlgorithmVolumeResample::getShortDescription()
+AString AlgorithmVolumeLabelResample::getShortDescription()
 {
-    return "TRANSFORM AND RESAMPLE A VOLUME FILE";
+    return "TRANSFORM AND RESAMPLE A LABEL VOLUME FILE";
 }
 
-OperationParameters* AlgorithmVolumeResample::getParameters()
+OperationParameters* AlgorithmVolumeLabelResample::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     
@@ -49,12 +55,11 @@ OperationParameters* AlgorithmVolumeResample::getParameters()
 
     ret->addStringParameter(2, "volume-space", "a volume file in the volume space you want for the output");
 
-    ret->addStringParameter(3, "method", "the resampling method");
+    ret->addVolumeOutputParameter(3, "volume-out", "the output volume");
 
-    ret->addVolumeOutputParameter(4, "volume-out", "the output volume");
-
-    OptionalParameter* backgroundOpt = ret->createOptionalParameter(8, "-background", "use a specified value for locations outside the FoV of the input image or warpfield(s)");
-    backgroundOpt->addDoubleParameter(1, "value", "the value to use (default 0)");
+    OptionalParameter* smoothOpt = ret->createOptionalParameter(8, "-smooth-edges", "apply smoothing to the ROIs between resampling and indexmax operations, increases boundary smoothness at the cost of fidelity");
+    smoothOpt->addDoubleParameter(1, "kernel-size", "smoothing amount to use, gaussian sigma in mm");
+    smoothOpt->createOptionalParameter(2, "-fwhm", "use specified kernel size as full width at half maximum, rather than sigma");
 
     ParameterComponent* affineOpt = ret->createRepeatableParameter(5, "-affine", "add an affine transform");
     affineOpt->addStringParameter(1, "affine", "the affine file to use");
@@ -72,50 +77,39 @@ OperationParameters* AlgorithmVolumeResample::getParameters()
     warpOpt->addStringParameter(1, "warpfield", "the warpfield file");
     OptionalParameter* fnirtOpt = warpOpt->createOptionalParameter(2, "-fnirt", "MUST be used if using a fnirt warpfield");
     fnirtOpt->addStringParameter(1, "source-volume", "the source volume used when generating the warpfield");
-
+    
     ret->setHelpText(
-        AString("Resample a volume file with an arbitrary list of transformations.  ") +
+        AString("Resample a label volume file with an arbitrary list of transformations.  ") +
         "You may specify -affine, -warp, and -affine-series multiple times each, and they will be used in the order specified.  "
         "For instance, for rigid motion correction followed by nonlinear atlas registration, specify -affine-series first, then -warp.  "
-        "The recommended methods are CUBIC (cubic spline) for most data, and ENCLOSING_VOXEL for label data.  "
-        "The parameter <method> must be one of:\n\n"
-        "CUBIC\nENCLOSING_VOXEL\nTRILINEAR"
     );
     return ret;
 }
 
-void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmVolumeLabelResample::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     VolumeFile* inVol = myParams->getVolume(1);
     vector<int64_t> voldims = inVol->getDimensions();
     AString refSpaceName = myParams->getString(2);
-    AString methodStr = myParams->getString(3);
-    VolumeFile* outVol = myParams->getOutputVolume(4);
+    VolumeFile* outVol = myParams->getOutputVolume(3);
     auto& affInstances = myParams->getRepeatableParameterInstances(5);
     auto& affSeriesInstances = myParams->getRepeatableParameterInstances(6);
     auto& warpInstances = myParams->getRepeatableParameterInstances(7);
-    float backgroundVal = 0.0f;//the help info says zero, don't use the VolumeFile constant
-    OptionalParameter* backgroundOpt = myParams->getOptionalParameter(8);
-    if (backgroundOpt->m_present)
+    float smoothVal = 0.0f;
+    OptionalParameter* smoothOpt = myParams->getOptionalParameter(8);
+    if (smoothOpt->m_present)
     {
-        backgroundVal = backgroundOpt->getDouble(1);
+        smoothVal = float(smoothOpt->getDouble(1));
+        if (smoothOpt->getOptionalParameter(2)->m_present)
+        {
+            smoothVal = smoothVal / (2.0f * sqrt(2.0f * log(2.0f)));
+        }
     }
     VolumeSpace refSpace;
     {
         NiftiIO myIO;
         myIO.openRead(refSpaceName);
         refSpace = myIO.getHeader().getVolumeSpace();
-    }
-    VolumeFile::InterpType myMethod = VolumeFile::CUBIC;
-    if (methodStr == "CUBIC")
-    {
-        myMethod = VolumeFile::CUBIC;
-    } else if (methodStr == "TRILINEAR") {
-        myMethod = VolumeFile::TRILINEAR;
-    } else if (methodStr == "ENCLOSING_VOXEL") {
-        myMethod = VolumeFile::ENCLOSING_VOXEL;
-    } else {
-        throw AlgorithmException("unrecognized interpolation method '" + methodStr + "'");
     }
     XfmStack myStack;
     auto xfmOrder = myParams->getRepeatableOrder();//helper for some ugly code to resolve relative order of repeatable options
@@ -172,80 +166,98 @@ void AlgorithmVolumeResample::useParameters(OperationParameters* myParams, Progr
                 throw AlgorithmException("internal error, tell the developers what you just tried to do");
         }
     }
-    AlgorithmVolumeResample(myProgObj, inVol, myStack, refSpace, myMethod, outVol, backgroundVal);
+    AlgorithmVolumeLabelResample(myProgObj, inVol, myStack, refSpace, outVol, smoothVal);
 }
 
-AlgorithmVolumeResample::AlgorithmVolumeResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                                 const VolumeFile::InterpType& myMethod, VolumeFile* outVol, const float backgroundVal) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeLabelResample::AlgorithmVolumeLabelResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
+                                                           VolumeFile* outVol, const float smoothVal) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    vector<int64_t> outDims = inVol->getOriginalDimensions();
+    if (!(smoothVal >= 0.0f) || MathFunctions::isInf(smoothVal)) throw AlgorithmException("smoothing kernel size must be numeric and not negative");
+    const vector<int64_t> inDims = inVol->getDimensions();
     const int64_t* refDims = refSpace.getDims();
-    if (outDims.size() < 3) throw AlgorithmException("input must have 3 spatial dimensions");
-    outDims[0] = refDims[0];
-    outDims[1] = refDims[1];
-    outDims[2] = refDims[2];
-    int64_t numMaps = inVol->getNumberOfMaps(), numComponents = inVol->getNumberOfComponents();
-    outVol->reinitialize(outDims, refSpace.getSform(), numComponents, inVol->getType(), inVol->m_header);
-    vector<float> scratchFrame(outDims[0] * outDims[1] * outDims[2], 0.0f);
-    if (inVol->isMappedWithLabelTable())
+    if (inVol->getType() != SubvolumeAttributes::LABEL) throw AlgorithmException("input to volume label resample must be a label volume, see -volume-label-import");
+    if (inVol->getOriginalDimensions().size() < 3) throw AlgorithmException("input must have 3 spatial dimensions");
+    if (inVol->getNumberOfComponents() > 1) throw AlgorithmException("input must not use a multi-component datatype");
+    int32_t numMaps = inVol->getNumberOfMaps();
+    outVol->reinitialize(refSpace, numMaps, 1, SubvolumeAttributes::LABEL, inVol->m_header);
+    VolumeFile tempInFrame(inVol->getVolumeSpace()), tempOutFrame(refSpace), tempSmoothFrame; //for extracting ROIs, resampling, and smoothing
+    if (smoothVal > 0.0f) tempSmoothFrame.reinitialize(refSpace);
+    const int64_t outFrameVoxels = refDims[0] * refDims[1] * refDims[2];
+    const int64_t inFrameVoxels = inDims[0] * inDims[1] * inDims[2];
+    vector<float> inScratchFrame(inFrameVoxels), outScratchFrame(outFrameVoxels), outBestValue(outFrameVoxels);
+    for (int32_t frame = 0; frame < numMaps; ++frame)
     {
-        if (myMethod != VolumeFile::ENCLOSING_VOXEL)
+        const GiftiLabelTable* thisTable = inVol->getMapLabelTable(frame);
+        const int64_t unlabeledKey = thisTable->getUnassignedLabelKey();
+        const float* thisFrame = inVol->getFrame(frame);
+        for (int64_t i = 0; i < inFrameVoxels; ++i)
         {
-            CaretLogWarning("using interpolation type other than ENCLOSING_VOXEL on label volume " + inVol->getFileName());
-        }
-        for (int64_t i = 0; i < numMaps; ++i)
-        {
-            *(outVol->getMapLabelTable(i)) = *(inVol->getMapLabelTable(i));
-        }
-    }
-    for (int64_t i = 0; i < numMaps; ++i)
-    {
-        outVol->setMapName(i, inVol->getMapName(i));
-    }
-    for (int64_t c = 0; c < numComponents; ++c)
-    {
-        for (int64_t b = 0; b < numMaps; ++b)
-        {
-            if (myMethod == VolumeFile::CUBIC)
+            const int32_t thisVoxKey = int(thisFrame[i] + 0.5f);
+            if (thisVoxKey == unlabeledKey || thisTable->getLabel(thisVoxKey) == NULL) //merge voxels that don't match a label into the unlabeled key
             {
-                inVol->validateSpline(b, c);//because deconvolve is parallel, but won't execute parallel if we are already in a parallel section
+                inScratchFrame[i] = 1.0f;
+            } else {
+                inScratchFrame[i] = 0.0f;
             }
-#pragma omp CARET_PARFOR schedule(guided, 10)
-            for (int64_t k = 0; k < outDims[2]; ++k)
+        }
+        tempInFrame.setFrame(inScratchFrame.data());
+        AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, unlabeledKey);
+        VolumeFile* toUse = &tempOutFrame;
+        if (smoothVal > 0.0f)
+        {
+            AlgorithmVolumeSmoothing(NULL, &tempOutFrame, smoothVal, &tempSmoothFrame);
+            toUse = &tempSmoothFrame;
+        }
+        const float* toUseFrame = toUse->getFrame();
+        for (int64_t i = 0; i < outFrameVoxels; ++i)
+        {
+            outScratchFrame[i] = unlabeledKey; //this is the first "label", so it wins regardless, don't bother with a pretend conditional
+            outBestValue[i] = toUseFrame[i]; //also lets us skip a -inf initialization each loop
+        }
+        //now the normal labels
+        auto labelKeys = thisTable->getKeys();
+        for (auto key : labelKeys)
+        {
+            for (int64_t i = 0; i < inFrameVoxels; ++i)
             {
-                for (int64_t j = 0; j < outDims[1]; ++j)
+                const int32_t thisVoxKey = int(thisFrame[i] + 0.5f);
+                if (thisVoxKey == key)
                 {
-                    for (int64_t i = 0; i < outDims[0]; ++i)
-                    {
-                        Vector3D outCoord;
-                        outVol->indexToSpace(i, j, k, outCoord);//start with the coords of the output voxel
-                        bool validCoord = false;
-                        Vector3D inCoord = myStack.xfmPoint(outCoord, b, &validCoord);//put it through the inverse transforms that are in reverse order
-                        if (validCoord)
-                        {
-                            scratchFrame[outVol->getIndex(i, j, k)] = inVol->interpolateValue(inCoord, myMethod, NULL, b, c, backgroundVal);
-                        } else {
-                            scratchFrame[outVol->getIndex(i, j, k)] = backgroundVal;
-                        }
-                    }
+                    inScratchFrame[i] = 1.0f;
+                } else {
+                    inScratchFrame[i] = 0.0f;
                 }
             }
-            outVol->setFrame(scratchFrame.data(), b, c);
-            if (myMethod == VolumeFile::CUBIC)
+            tempInFrame.setFrame(inScratchFrame.data());
+            AlgorithmVolumeResample(NULL, &tempInFrame, myStack, refSpace, VolumeFile::TRILINEAR, &tempOutFrame, unlabeledKey);
+            VolumeFile* toUse = &tempOutFrame;
+            if (smoothVal > 0.0f)
             {
-                inVol->freeSpline(b, c);//release memory we no longer need, if we allocated it
+                AlgorithmVolumeSmoothing(NULL, &tempOutFrame, smoothVal, &tempSmoothFrame);
+                toUse = &tempSmoothFrame;
+            }
+            const float* toUseFrame = toUse->getFrame();
+            for (int64_t i = 0; i < outFrameVoxels; ++i)
+            {
+                if (toUseFrame[i] > outBestValue[i])
+                {
+                    outScratchFrame[i] = key;
+                    outBestValue[i] = toUseFrame[i];
+                }
             }
         }
+        outVol->setFrame(outScratchFrame.data(), frame);
+        *(outVol->getMapLabelTable(frame)) = *thisTable;
     }
 }
 
-float AlgorithmVolumeResample::getAlgorithmInternalWeight()
+float AlgorithmVolumeLabelResample::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
 }
 
-float AlgorithmVolumeResample::getSubAlgorithmWeight()
+float AlgorithmVolumeLabelResample::getSubAlgorithmWeight()
 {
     //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;

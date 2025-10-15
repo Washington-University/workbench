@@ -1,9 +1,9 @@
-#ifndef __ALGORITHM_VOLUME_RESAMPLE_H__
-#define __ALGORITHM_VOLUME_RESAMPLE_H__
+#ifndef __ALGORITHM_VOLUME_LABEL_RESAMPLE_H__
+#define __ALGORITHM_VOLUME_LABEL_RESAMPLE_H__
 
 /*LICENSE_START*/
 /*
- *  Copyright (C) 2020  Washington University School of Medicine
+ *  Copyright (C) 2025  Washington University School of Medicine
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,32 +22,27 @@
 /*LICENSE_END*/
 
 #include "AbstractAlgorithm.h"
-#include "CaretPointer.h"
-#include "FloatMatrix.h"
-#include "Vector3D.h"
-#include "VolumeFile.h"
 #include "XfmStack.h"
 
 namespace caret {
-
-    class AlgorithmVolumeResample : public AbstractAlgorithm
+    
+    class AlgorithmVolumeLabelResample : public AbstractAlgorithm
     {
-        AlgorithmVolumeResample();
+        AlgorithmVolumeLabelResample();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
-                                const VolumeFile::InterpType& myMethod, VolumeFile* outVol, float backgroundVal = 0.0f);
+        AlgorithmVolumeLabelResample(ProgressObject* myProgObj, const VolumeFile* inVol, const XfmStack& myStack, const VolumeSpace refSpace,
+                                     VolumeFile* outVol, const float smoothVal = 0.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmVolumeResample> AutoAlgorithmVolumeResample;
-
+    typedef TemplateAutoOperation<AlgorithmVolumeLabelResample> AutoAlgorithmVolumeLabelResample;
 
 }
 
-#endif //__ALGORITHM_VOLUME_RESAMPLE_H__
+#endif //__ALGORITHM_VOLUME_LABEL_RESAMPLE_H__

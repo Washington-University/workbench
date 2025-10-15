@@ -239,6 +239,7 @@ VolumeVerticesEdgesFaces.h
 VoxelInterpolationTypeEnum.h
 VtkFileExporter.h
 WarpfieldFile.h
+XfmStack.h
 XmlStreamReaderHelper.h
 XmlStreamWriterHelper.h
 
@@ -435,6 +436,7 @@ VolumeVerticesEdgesFaces.cxx
 VoxelInterpolationTypeEnum.cxx
 VtkFileExporter.cxx
 WarpfieldFile.cxx
+XfmStack.cxx
 XmlStreamReaderHelper.cxx
 XmlStreamWriterHelper.cxx
 )
