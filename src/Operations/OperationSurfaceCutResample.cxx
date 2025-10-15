@@ -39,16 +39,16 @@ AString OperationSurfaceCutResample::getShortDescription()
 OperationParameters* OperationSurfaceCutResample::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addSurfaceParameter(1, "surface-in", "the surface file to resample");
+    ret->addSurfaceParameter(1, "surface-in", "the surface file to resample, with cuts");
     
-    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the input surface is currently on");
+    ret->addSurfaceParameter(2, "current-sphere", "a sphere surface with the mesh that the input surface is currently on (no cuts)");
     
-    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that is in register with <current-sphere> and has the desired output mesh");
+    ret->addSurfaceParameter(3, "new-sphere", "a sphere surface that is in register with <current-sphere> and has the desired output mesh (no cuts)");
     
     ret->addSurfaceOutputParameter(4, "surface-out", "the output surface file");
     
     ret->setHelpText(
-        AString("Resamples a surface file, given two spherical surfaces that are in register.  ") +
+        AString("Resamples a cut surface file, given two spherical surfaces that are in register.  ") +
         "Barycentric resampling is used, because it is usually better for resampling surfaces, and because it is needed to figure out the new topology anyway."
     );
     return ret;

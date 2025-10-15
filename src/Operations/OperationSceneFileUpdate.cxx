@@ -125,7 +125,7 @@ OperationSceneFileUpdate::getParameters()
     const QString removeMissingFilesSwitch("-remove-missing-files");
     ret->createOptionalParameter(PARAM_KEY_OPTION_REMOVE_MISSING_FILES,
                                  removeMissingFilesSwitch,
-                                 "Remove missing files from SpecFile");
+                                 "Remove missing data files from scene file");
     
     const QString errorSwitch("-error");
     ret->createOptionalParameter(PARAM_KEY_OPTION_ERROR,
