@@ -509,33 +509,28 @@ main(int argc, char* argv[])
         if ( ! myState.sceneFileNameNoDialog.isEmpty()) {
             myWindow->loadRecentScene(myState.sceneFileNameNoDialog,
                                       myState.sceneNameOrNumber);
-//            myWindow->loadSceneFromCommandLine(myState.sceneFileNameNoDialog,
-//                                               myState.sceneNameOrNumber,
-//                                               BrainBrowserWindow::LoadSceneFromCommandLineDialogMode::SHOW_NO);
         }
         
         if (myState.sceneMostRecentFlag) {
             std::vector<RecentSceneInfoContainer> recentSceneInfo;
             CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
-            std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstance());
-            AString errorMessage;
-            if (preferences->readRecentScenes(container.get(),
-                                              errorMessage)) {
-                if ( ! container->isEmpty()) {
-                    std::vector<RecentFileItem*> sceneItems(container->getAllItems());
-                    if ( ! sceneItems.empty()) {
-                        CaretAssertVectorIndex(sceneItems, 0);
-                        myWindow->loadRecentScene(sceneItems[0]->getPathAndFileName(),
-                                                  sceneItems[0]->getSceneName());
-                    }
+            std::unique_ptr<RecentFileItemsContainer> container(RecentFileItemsContainer::newInstanceRecentScenes(preferences,
+                                                                                                                  RecentFileItemsContainer::WriteIfModifiedType::WRITE_NO));
+            if ( ! container->isEmpty()) {
+                std::vector<RecentFileItem*> sceneItems(container->getAllItems());
+                RecentFileItemsContainer::sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
+                                               sceneItems);
+                if ( ! sceneItems.empty()) {
+                    CaretAssertVectorIndex(sceneItems, 0);
+                    myWindow->loadRecentScene(sceneItems[0]->getPathAndFileName(),
+                                              sceneItems[0]->getSceneName());
                 }
             }
             else {
                 app.processEvents();
                 WuQMessageBox::errorOk(myWindow,
-                                       errorMessage);
+                                       "There are no recent scenes");
                 app.processEvents();
-                
             }
         }
         
