@@ -166,6 +166,8 @@ public:
         EVENT_DATA_FILE_RELOAD,
         /** Reload (replace) a data file with its saved version in the brain*/
         EVENT_DATA_FILE_RELOAD_ALL,
+        /** Event used by/with DisplayPropertiesLabels */
+        EVENT_DISPLAY_PROPERTIES_LABELS,
         /** Drawing viewport content event, add new while drawing */
         EVENT_DRAWING_VIEWPORT_CONTENT_ADD,
         /** Drawing viewport content event, clear before drawing*/

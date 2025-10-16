@@ -21,6 +21,8 @@
 
 #define __DISPLAY_PROPERTIES_LABELS_DECLARE__
 #include "DisplayPropertiesLabels.h"
+#include "EventDisplayPropertiesLabels.h"
+#include "EventManager.h"
 #include "SceneClassAssistant.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
@@ -43,7 +45,10 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
 {
     m_displayGroup.fill(DisplayGroupEnum::getDefaultValue());
     m_labelViewMode.fill(LabelViewModeEnum::LIST);
-
+    m_showUnusedLabelsInHierarchiesFlag = false;
+    
+    m_sceneAssistant->add("m_showUnusedLabelsInHierarchiesFlag",
+                          &m_showUnusedLabelsInHierarchiesFlag);
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<DisplayGroupEnum,DisplayGroupEnum::Enum>("m_displayGroup",
                                                                                                 m_displayGroup.data());
     m_sceneAssistant->addTabIndexedEnumeratedTypeArray<LabelViewModeEnum, LabelViewModeEnum::Enum>("m_labelViewMode",
@@ -155,6 +160,32 @@ DisplayPropertiesLabels::setLabelViewModeForTab(const int32_t browserTabIndex,
 }
 
 /**
+ * @return True if unused labels should be shown in label hierarchies
+ */
+bool
+DisplayPropertiesLabels::isShowUnusedLabelsInHierarchies() const
+{
+    return m_showUnusedLabelsInHierarchiesFlag;
+}
+
+/**
+ * Set unused labels should be shown in label hierarchies
+ * @param status
+ *    New status
+ */
+void
+DisplayPropertiesLabels::setShowUnusedLabelsInHierarchies(const bool status)
+{
+    if (status != m_showUnusedLabelsInHierarchiesFlag) {
+        m_showUnusedLabelsInHierarchiesFlag = status;
+        
+        EventDisplayPropertiesLabels eventDPL(EventDisplayPropertiesLabels::Mode::SEND_SHOW_UNUSED_LABELS_CHANGED);
+        eventDPL.setDisplayPropertiesLabels(this);
+        EventManager::get()->sendEvent(eventDPL.getPointer());
+    }
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -219,6 +250,13 @@ DisplayPropertiesLabels::restoreFromScene(const SceneAttributes* sceneAttributes
             break;
     }
     
+    /*
+     * Need to toggle status which will cause an event to go out to the listeners of the
+     * change in the show unused labels status
+     */
+    const bool showUnusedLabelsStatus = m_showUnusedLabelsInHierarchiesFlag;
+    m_showUnusedLabelsInHierarchiesFlag = ! m_showUnusedLabelsInHierarchiesFlag;
+    setShowUnusedLabelsInHierarchies(showUnusedLabelsStatus);
 }
 
 

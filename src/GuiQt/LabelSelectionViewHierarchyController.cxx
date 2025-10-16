@@ -41,6 +41,7 @@
 #include "CaretHierarchy.h"
 #include "CaretLogger.h"
 #include "CaretMappableDataFileAndMapSelectorObject.h"
+#include "CaretPreferences.h"
 #include "Cluster.h"
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
@@ -51,8 +52,10 @@
 #include "GuiManager.h"
 #include "LabelSelectionItem.h"
 #include "LabelSelectionItemModel.h"
+#include "LabelSelectionItemModelProxyFilter.h"
 #include "SceneClass.h"
 #include "SceneStringArray.h"
+#include "SessionManager.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
 
@@ -88,6 +91,9 @@ m_objectNamePrefix(parentObjectName
 {
     m_browserWindowIndex = browserWindowIndex;
     
+    
+    m_proxyFilter = new LabelSelectionItemModelProxyFilter(this);
+
     std::vector<DataFileTypeEnum::Enum> dataFileTypes {
         DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
         DataFileTypeEnum::LABEL,
@@ -153,6 +159,14 @@ m_objectNamePrefix(parentObjectName
     QToolButton* allOffToolButton(new QToolButton());
     allOffToolButton->setDefaultAction(m_allOffAction);
 
+    QAction* moreAction(new QAction("More"));
+    QObject::connect(moreAction, &QAction::triggered,
+                     this, &LabelSelectionViewHierarchyController::moreActionTriggered);
+    moreAction->setToolTip("Show additional option(s)");
+                     
+    m_moreToolButton = new QToolButton();
+    m_moreToolButton->setDefaultAction(moreAction);
+                     
     m_infoAction = new QAction("Info");
     m_infoAction->setToolTip("Show information about selected label");
     m_infoAction->setEnabled(false);
@@ -193,6 +207,7 @@ m_objectNamePrefix(parentObjectName
     buttonsLayout->addWidget(expandAllToolButton);
     buttonsLayout->addSpacing(4);
     buttonsLayout->addWidget(m_infoToolButton);
+    buttonsLayout->addWidget(m_moreToolButton);
     buttonsLayout->addSpacing(4);
     buttonsLayout->addWidget(findToolButton);
     buttonsLayout->addWidget(nextToolButton);
@@ -259,16 +274,24 @@ LabelSelectionViewHierarchyController::treeItemDoubleClicked(const QModelIndex& 
 LabelSelectionItem*
 LabelSelectionViewHierarchyController::getLabelSelectionItemAtModelIndex(const QModelIndex& modelIndex)
 {
+    /*
+     * The input model index is a model index in the proxy filter.
+     * We need to to remap to a model index in the label selection model
+     * to get the actual label item.
+     */
     if (modelIndex.isValid()) {
-        auto model(modelIndex.model());
-        if (model != NULL) {
-            const QAbstractItemModel* model(modelIndex.model());
-            if (model != NULL) {
-                if (model == m_labelHierarchyModel) {
-                    QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(modelIndex));
-                    if (standardItem != NULL) {
-                        LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(standardItem));
-                        return labelItem;
+        const QAbstractItemModel* constModel(modelIndex.model());
+        if (constModel != NULL) {
+            const LabelSelectionItemModelProxyFilter* proxyFilter(dynamic_cast<const LabelSelectionItemModelProxyFilter*>(constModel));
+            if (proxyFilter != NULL) {
+                const QModelIndex sourceModelIndex(proxyFilter->mapToSource(modelIndex));
+                if (sourceModelIndex.isValid()) {
+                    if (m_labelHierarchyModel != NULL) {
+                        QStandardItem* standardItem(m_labelHierarchyModel->itemFromIndex(sourceModelIndex));
+                        if (standardItem != NULL) {
+                            LabelSelectionItem* lsi(dynamic_cast<LabelSelectionItem*>(standardItem));
+                            return lsi;
+                        }
                     }
                 }
             }
@@ -291,9 +314,9 @@ LabelSelectionViewHierarchyController::treeItemClicked(const QModelIndex& modelI
         labelItem->setAllChildrenChecked(checkState == Qt::Checked);
         
         m_infoAction->setEnabled(true);
+
+        processSelectionChanges();
     }
-    
-    processSelectionChanges();
 }
 
 /**
@@ -468,7 +491,8 @@ LabelSelectionViewHierarchyController::updateLabelViewController()
                         if (selectionModel->isValid()) {
                             const LabelSelectionItemModel* oldHierarchyModel(m_labelHierarchyModel);
                             m_labelHierarchyModel = selectionModel;
-                            m_treeView->setModel(m_labelHierarchyModel);
+                            m_proxyFilter->setSourceModel(m_labelHierarchyModel);
+                            m_treeView->setModel(m_proxyFilter);
                             m_treeView->setEnabled(true);
                             if (m_labelHierarchyModel != oldHierarchyModel) {
                                 /*
@@ -627,20 +651,40 @@ LabelSelectionViewHierarchyController::allOffActionTriggered()
 void
 LabelSelectionViewHierarchyController::infoActionTriggered()
 {
-    const QModelIndex selectedIndex(m_treeView->currentIndex());
-    if (selectedIndex.isValid()) {
-        if (m_labelHierarchyModel != NULL) {
-            QStandardItem* item(m_labelHierarchyModel->itemFromIndex(selectedIndex));
-            if (item != NULL) {
-                const LabelSelectionItem* labelItem(dynamic_cast<LabelSelectionItem*>(item));
-                if (labelItem != NULL) {
-                    const bool infoButtonFlag(true);
-                    showSelectedItemMenu(labelItem,
-                                         mapToGlobal(m_infoToolButton->pos()),
-                                         infoButtonFlag);
-                }
-            }
-        }
+    const LabelSelectionItem* labelItem(getLabelSelectionItemAtModelIndex(m_treeView->currentIndex()));
+    if (labelItem != NULL) {
+        const bool infoButtonFlag(true);
+        showSelectedItemMenu(labelItem,
+                             mapToGlobal(m_infoToolButton->pos()),
+                             infoButtonFlag);
+    }
+    else {
+        WuQMessageBoxTwo::information(this,
+                                      "Information",
+                                      "Select and item to get information about it");
+    }
+}
+
+/**
+ * Called when more action triggered
+ */
+void
+LabelSelectionViewHierarchyController::moreActionTriggered()
+{
+    DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
+
+    QMenu menu;
+    QAction* unusedLabelsAction = menu.addAction("Show unused labels");
+    unusedLabelsAction->setCheckable(true);
+    unusedLabelsAction->setChecked(dsl->isShowUnusedLabelsInHierarchies());
+    
+    QAction* selectedAction = menu.exec(m_moreToolButton->mapToGlobal(QPoint(0, 0)));
+    if (selectedAction == unusedLabelsAction) {
+        dsl->setShowUnusedLabelsInHierarchies(unusedLabelsAction->isChecked());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+    else if (selectedAction != NULL) {
+        CaretAssertMessage(0, "Has new menu item been added to More menu");
     }
 }
 
@@ -691,11 +735,14 @@ LabelSelectionViewHierarchyController::scrollTreeViewToFindItem()
         }
         CaretAssertVectorIndex(m_findItems, m_findItemsCurrentIndex);
         const QStandardItem* item(m_findItems[m_findItemsCurrentIndex]);
-        const QModelIndex modelIndex(m_labelHierarchyModel->indexFromItem(item));
-        if (modelIndex.isValid()) {
-            m_treeView->setCurrentIndex(modelIndex);
-            m_treeView->scrollTo(modelIndex,
-                                 QTreeView::PositionAtCenter);
+        const QModelIndex sourceModelIndex(m_labelHierarchyModel->indexFromItem(item));
+        if (sourceModelIndex.isValid()) {
+            const QModelIndex modelIndex(m_proxyFilter->mapFromSource(sourceModelIndex));
+            if (modelIndex.isValid()) {
+                m_treeView->setCurrentIndex(modelIndex);
+                m_treeView->scrollTo(modelIndex,
+                                     QTreeView::PositionAtCenter);
+            }
         }
         
         /*
@@ -706,7 +753,6 @@ LabelSelectionViewHierarchyController::scrollTreeViewToFindItem()
     
     m_nextAction->setEnabled(numFindItems > 1);
 }
-
 
 /**
  * Called when next button is clicked
@@ -742,6 +788,24 @@ LabelSelectionViewHierarchyController::getSelectedFileAndMapIndex()
 }
 
 /**
+ * @return Get the label selection model from the abstract model
+ * @param abstractItemModel
+ *    The abstract item mode.
+ */
+LabelSelectionItemModel*
+LabelSelectionViewHierarchyController::getLabelSelectionModel(QAbstractItemModel* abstractItemModel) const
+{
+    if (abstractItemModel != NULL) {
+        LabelSelectionItemModelProxyFilter* model(dynamic_cast<LabelSelectionItemModelProxyFilter*>(abstractItemModel));
+        if (model != NULL) {
+            LabelSelectionItemModel* labelModel(dynamic_cast<LabelSelectionItemModel*>(model->sourceModel()));
+            return labelModel;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -765,18 +829,29 @@ LabelSelectionViewHierarchyController::saveToScene(const SceneAttributes* /*scen
     SceneClass* sceneClass = new SceneClass(instanceName,
                                             "LabelSelectionViewHierarchyController",
                                             1);
- 
+    
     if (m_labelHierarchyModel != NULL) {
         std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
         std::vector<AString> expandedNames;
         for (const LabelSelectionItem* lsi : items) {
-            if (m_treeView->isExpanded(lsi->index())) {
-                expandedNames.push_back(lsi->getPrimaryName());
+            const QModelIndex sourceModelIndex(lsi->index());
+            if (sourceModelIndex.isValid()) {
+                QModelIndex modelIndex(m_proxyFilter->mapFromSource(sourceModelIndex));
+                if (modelIndex.isValid()) {
+                    if (m_treeView->isExpanded(modelIndex)) {
+                        expandedNames.push_back(lsi->getPrimaryName());
+                    }
+                }
             }
         }
         
         /* Always add, even if empty that occurs when all items are collapsed */
-        sceneClass->addStringArray("expandedNames", &expandedNames[0], expandedNames.size());
+        if (expandedNames.empty()) {
+            sceneClass->addStringArray("expandedNames", NULL, 0);
+        }
+        else {
+            sceneClass->addStringArray("expandedNames", &expandedNames[0], expandedNames.size());
+        }
     }
     return sceneClass;
 }
@@ -819,7 +894,13 @@ LabelSelectionViewHierarchyController::restoreFromScene(const SceneAttributes* /
         const std::vector<LabelSelectionItem*> items(m_labelHierarchyModel->getAllDescendants());
         for (LabelSelectionItem* lsi : items) {
             if (expandedNames.find(lsi->getPrimaryName()) != expandedNames.end()) {
-                m_treeView->expand(lsi->index());
+                const QModelIndex sourceModelIndex(lsi->index());
+                if (sourceModelIndex.isValid()) {
+                    const QModelIndex modelIndex(m_proxyFilter->mapFromSource(sourceModelIndex));
+                    if (modelIndex.isValid()) {
+                        m_treeView->expand(modelIndex);
+                    }
+                }
             }
         }
     }

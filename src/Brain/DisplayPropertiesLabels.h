@@ -60,6 +60,11 @@ namespace caret {
         void setLabelViewModeForTab(const int32_t browserTabIndex,
                                     const LabelViewModeEnum::Enum labelViewMode);
         
+        bool isShowUnusedLabelsInHierarchies() const;
+        
+        void setShowUnusedLabelsInHierarchies(const bool status);
+        
+
     private:
         DisplayPropertiesLabels(const DisplayPropertiesLabels&);
 
@@ -77,6 +82,7 @@ namespace caret {
         
         std::array<LabelViewModeEnum::Enum, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_labelViewMode;
 
+        bool m_showUnusedLabelsInHierarchiesFlag = false;
     };
     
 #ifdef __DISPLAY_PROPERTIES_LABELS_DECLARE__

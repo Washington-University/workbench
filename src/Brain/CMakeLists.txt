@@ -24,6 +24,26 @@ if(Qt5_FOUND)
 endif()
 
 #
+# With AUTOMOC, do not need to specify files
+# that contain Q_OBJECT macro for Qt to process with 'moc'
+# (meta-object compiler).
+#
+IF(WORKBENCH_USE_CMAKE_AUTOMOC)
+    SET(CMAKE_AUTOMOC ON)
+ELSE()
+    SET(MOC_INPUT_HEADER_FILES
+        LabelSelectionItemModelProxyFilter.h
+    )
+
+    IF(Qt6_FOUND)
+        QT6_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+    IF(Qt5_FOUND)
+        QT5_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
+    ENDIF()
+ENDIF()
+
+#
 # Create the brain library
 #
 ADD_LIBRARY(Brain
@@ -119,6 +139,7 @@ EventDataFileDelete.h
 EventDataFileRead.h
 EventDataFileReload.h
 EventDataFileReloadAll.h
+EventDisplayPropertiesLabels.h
 EventDrawingViewportContentAdd.h
 EventDrawingViewportContentClear.h
 EventDrawingViewportContentGet.h
@@ -166,6 +187,7 @@ IdentifiedItemUniversal.h
 IdentifiedItemUniversalTypeEnum.h
 IdentifiedItemVoxel.h
 ImageDepthPositionEnum.h
+LabelSelectionItemModelProxyFilter.h
 MediaOverlay.h
 MediaOverlaySet.h
 MediaOverlaySetArray.h
@@ -269,6 +291,8 @@ WholeBrainSurfaceSettings.h
 WholeBrainVoxelDrawingMode.h
 WindowTabAspectRatios.h
 
+${MOC_SOURCE_FILES}
+
 AnnotationArrangerExecutor.cxx
 AnnotationArrangerInputs.cxx
 AnnotationClipboard.cxx
@@ -358,6 +382,7 @@ EventDataFileDelete.cxx
 EventDataFileRead.cxx
 EventDataFileReload.cxx
 EventDataFileReloadAll.cxx
+EventDisplayPropertiesLabels.cxx
 EventDrawingViewportContentAdd.cxx
 EventDrawingViewportContentClear.cxx
 EventDrawingViewportContentGet.cxx
@@ -404,6 +429,7 @@ IdentifiedItemUniversal.cxx
 IdentifiedItemUniversalTypeEnum.cxx
 IdentifiedItemVoxel.cxx
 ImageDepthPositionEnum.cxx
+LabelSelectionItemModelProxyFilter.cxx
 MediaOverlay.cxx
 MediaOverlaySet.cxx
 MediaOverlaySetArray.cxx

@@ -335,6 +335,10 @@ EventTypeEnum::initialize()
                                      "EVENT_DATA_FILE_RELOAD_ALL",
                                      "Reopen all data files (replace it with saved version) in the Brain"));
     
+    enumData.push_back(EventTypeEnum(EVENT_DISPLAY_PROPERTIES_LABELS,
+                                     "EVENT_DISPLAY_PROPERTIES_LABELS",
+                                     "Get DisplayPropertiesLabels or get notified of a change"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DRAWING_VIEWPORT_CONTENT_ADD,
                                      "EVENT_DRAWING_VIEWPORT_CONTENT_ADD",
                                      "Event to add viewport while drawing"));

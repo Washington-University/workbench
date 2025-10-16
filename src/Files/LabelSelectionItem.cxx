@@ -53,7 +53,6 @@ LabelSelectionItem::LabelSelectionItem(const CaretHierarchy::Item* hierarchyItem
 m_itemType((giftiLabel != NULL)
            ? ItemType::ITEM_LABEL
            : ItemType::ITEM_HIERARCHY),
-//m_ontologyID(hierarchyItem->id),
 m_labelIndex((giftiLabel != NULL)
              ? giftiLabel->getKey()
              : -1)

@@ -453,6 +453,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_DATA_FILE_READ:
         case EventTypeEnum::EVENT_DATA_FILE_RELOAD:
         case EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL:
+        case EventTypeEnum::EVENT_DISPLAY_PROPERTIES_LABELS:
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_ADD:
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_CLEAR:
         case EventTypeEnum::EVENT_DRAWING_VIEWPORT_CONTENT_GET:

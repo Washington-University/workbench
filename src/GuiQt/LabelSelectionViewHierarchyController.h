@@ -29,6 +29,7 @@
 
 #include "SceneableInterface.h"
 
+class QAbstractItemModel;
 class QComboBox;
 class QLineEdit;
 class QModelIndex;
@@ -43,6 +44,7 @@ namespace caret {
     class CaretMappableDataFileAndMapSelectorObject;
     class LabelSelectionItem;
     class LabelSelectionItemModel;
+    class LabelSelectionItemModelProxyFilter;
     
     class LabelSelectionViewHierarchyController : public QWidget, public SceneableInterface {
         
@@ -86,6 +88,8 @@ namespace caret {
         
         void infoActionTriggered();
         
+        void moreActionTriggered();
+        
         void findActionTriggered();
         
         void nextActionTriggered();
@@ -110,6 +114,10 @@ namespace caret {
         
         void showNameComboBoxActivated(const AString& text);
         
+        LabelSelectionItemModel* getLabelSelectionModel(QAbstractItemModel* abstractItemModel) const;
+        
+        std::vector<LabelSelectionItem*> getAllItemsInModelTreeView() const;
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
@@ -130,6 +138,10 @@ namespace caret {
         
         QAction* m_infoAction;
         
+        QMenu* m_infoMenu;
+        
+        QToolButton* m_moreToolButton;
+        
         QAction* m_findAction;
         
         QAction* m_nextAction;
@@ -145,6 +157,9 @@ namespace caret {
         QList<QStandardItem*> m_findItems;
         
         int32_t m_findItemsCurrentIndex = 0;
+        
+        LabelSelectionItemModelProxyFilter* m_proxyFilter = NULL;
+        
     };
     
 #ifdef __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER_DECLARE__

@@ -88,6 +88,7 @@
 #include "EventDataFileReload.h"
 #include "EventDataFileReloadAll.h"
 #include "EventCaretDataFilesGet.h"
+#include "EventDisplayPropertiesLabels.h"
 #include "EventFocusFileGetColor.h"
 #include "EventGetDisplayedDataFiles.h"
 #include "EventHistologySlicesFilesGet.h"
@@ -269,6 +270,8 @@ Brain::Brain(CaretPreferences* caretPreferences)
                                           EventTypeEnum::EVENT_DATA_FILE_RELOAD_ALL);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_DISPLAY_PROPERTIES_LABELS);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_GET_DISPLAYED_DATA_FILES);
     EventManager::get()->addEventListener(this,
@@ -7768,6 +7771,19 @@ Brain::receiveEvent(Event* event)
         }
         
         dataFilesEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_DISPLAY_PROPERTIES_LABELS) {
+        EventDisplayPropertiesLabels* dplEvent(dynamic_cast<EventDisplayPropertiesLabels*>(event));
+        CaretAssert(event);
+        
+        switch (dplEvent->getMode()) {
+            case EventDisplayPropertiesLabels::Mode::GET:
+                dplEvent->setDisplayPropertiesLabels(m_displayPropertiesLabels);
+                dplEvent->setEventProcessed();
+                break;
+            case EventDisplayPropertiesLabels::Mode::SEND_SHOW_UNUSED_LABELS_CHANGED:
+                break;
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_FOCUS_FILE_GET_COLOR) {
         EventFocusFileGetColor* focusEvent(dynamic_cast<EventFocusFileGetColor*>(event));
