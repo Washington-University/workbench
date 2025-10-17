@@ -500,6 +500,7 @@ GapsAndMarginsDialog.h
 GestureEvent.h
 GiftiLabelTableEditor.h
 GiftiLabelTableSelectionComboBox.h
+GlobalShortcutEnum.h
 GroupAndNameHierarchyTreeWidgetItem.h
 GroupAndNameHierarchyViewController.h
 GuiManager.h
@@ -856,6 +857,7 @@ GapsAndMarginsDialog.cxx
 GestureEvent.cxx
 GiftiLabelTableEditor.cxx
 GiftiLabelTableSelectionComboBox.cxx
+GlobalShortcutEnum.cxx
 GroupAndNameHierarchyTreeWidgetItem.cxx
 GroupAndNameHierarchyViewController.cxx
 GuiManager.cxx

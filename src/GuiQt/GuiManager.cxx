@@ -31,6 +31,7 @@
 #include <QPen>
 #include <QPushButton>
 #include <QScreen>
+#include <QShortcut>
 #include <QToolTip>
 
 #define __GUI_MANAGER_DEFINE__
@@ -2637,6 +2638,88 @@ GuiManager::identifyBrainordinateDialogWasClosed()
 }
 
 /**
+ * Add global shorcuts to a non-modal window (duplicate shortcuts in BrainBrowwerWindow).
+ * This is here because I could not get the shortcuts to work on child windows and setting
+ * the shortcut context to ApplicationContext only worked if one window was open.  If
+ * more than one window was open, got an error printed by Qt in terminal
+ * @param widget
+ *    Widget receiving shortcuts
+ */
+void
+GuiManager::addGlobalShortcuts(QWidget* widget)
+{
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::Key_N);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::NEW_WINDOW); });
+    }
+
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::Key_O);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::OPEN_FILE); });
+    }
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::Key_L);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::OPEN_LOCATION); });
+    }
+    
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::META | Qt::Key_O);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::OPEN_QUICKLY); });
+    }
+    
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::SHIFT | Qt::Key_O);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::OPEN_RECENT); });
+    }
+    
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::Key_S);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::SAVE); });
+    }
+    
+    {
+        QShortcut* shortcut(new QShortcut(widget));
+        shortcut->setKey(Qt::CTRL | Qt::Key_Q);
+        shortcut->setContext(Qt::WindowShortcut);
+        QObject::connect(shortcut, &QShortcut::activated,
+                         [=]() { processGlobalShortcut(GlobalShortcutEnum::Enum::QUIT); });
+    }
+    
+}
+
+/**
+ * Process a global shortcut
+ * @param shortcutCode
+ *    The shortcut code
+ */
+void
+GuiManager::processGlobalShortcut(const GlobalShortcutEnum::Enum shortcutCode)
+{
+    BrainBrowserWindow* bbw(getActiveBrowserWindow());
+    if (bbw != NULL) {
+        bbw->processGlobalShortcut(shortcutCode);
+    }
+}
+
+/**
  * Add a non-modal dialog so that it may be reparented.
  *
  * @param dialog
@@ -2646,6 +2729,7 @@ void
 GuiManager::addNonModalDialog(QWidget* dialog)
 {
     CaretAssert(dialog);
+    addGlobalShortcuts(dialog);
     this->nonModalDialogs.insert(dialog);
 }
 
@@ -2660,6 +2744,7 @@ void
 GuiManager::addParentLessNonModalDialog(QWidget* dialog)
 {
     CaretAssert(dialog);
+    addGlobalShortcuts(dialog);
     m_parentlessNonModalDialogs.insert(dialog);
 }
 

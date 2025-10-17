@@ -1569,6 +1569,40 @@ BrainBrowserWindow::processShowVolumePropertiesDialog()
 }
 
 /**
+ * Process a global shortcut.  These shortcuts were added to non-modal windows by GuiManager.
+ * @param shortcutCode
+ *    The shortcut code
+ */
+void
+BrainBrowserWindow::processGlobalShortcut(const GlobalShortcutEnum::Enum shortcutCode)
+{
+    switch (shortcutCode) {
+        case GlobalShortcutEnum::NEW_WINDOW:
+            processNewWindow();
+            break;
+        case GlobalShortcutEnum::OPEN_FILE:
+            processDataFileOpen();
+            break;
+        case GlobalShortcutEnum::OPEN_LOCATION:
+            processDataFileLocationOpen();
+            break;
+        case GlobalShortcutEnum::OPEN_QUICKLY:
+            processDataFileOpenQuickly();
+            break;
+        case GlobalShortcutEnum::OPEN_RECENT:
+            processOpenRecent();
+            break;
+        case GlobalShortcutEnum::QUIT:
+            processExitProgram();
+            break;
+        case GlobalShortcutEnum::SAVE:
+            processManageSaveLoadedFiles();
+            break;
+    }
+}
+
+
+/**
  * Create actions for this window.
  * NOTE: This is called AFTER the toolbar is created.
  */
@@ -1647,7 +1681,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileOpen()));
-    m_openFileAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_openFileQuicklyAction =
     WuQtUtilities::createAction("Open File Quickly...",
@@ -1656,7 +1689,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileOpenQuickly()));
-    m_openFileQuicklyAction->setShortcutContext(Qt::ApplicationShortcut);
 
     m_openLocationAction =
     WuQtUtilities::createAction("Open Location...", 
@@ -1665,7 +1697,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileLocationOpen()));
-    m_openLocationAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_openRecentAction =
     WuQtUtilities::createAction("Open Recent...",
@@ -1682,7 +1713,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
-    m_manageFilesAction->setShortcutContext(Qt::ApplicationShortcut);
     
     m_closeSpecFileAction =
     WuQtUtilities::createAction("Close All Files",

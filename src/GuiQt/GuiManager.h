@@ -32,6 +32,7 @@
 
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "GlobalShortcutEnum.h"
 #include "SceneableInterface.h"
 
 class QAction;
@@ -266,6 +267,10 @@ namespace caret {
         void showHideHelpDialog(const bool status,
                                 const BrainBrowserWindow* parentBrainBrowserWindow);
         
+        void addGlobalShortcuts(QWidget* widget);
+        
+        void processGlobalShortcut(const GlobalShortcutEnum::Enum shortcutCode);
+
         void addNonModalDialog(QWidget* dialog);
         
         void updateNonModalDialogs();

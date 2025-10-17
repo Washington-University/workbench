@@ -55,7 +55,7 @@ CaretObject::CaretObject(const CaretObject& co)
  */
 CaretObject::~CaretObject()
 {
-#ifndef NDEBUG
+#ifdef CARET_OBJECT_MEMORY_LEAK_TRACKER
     /*
      * Erase returns the number of objects deleted.
      * If zero, then the object has already been deleted.
@@ -84,7 +84,7 @@ CaretObject::operator=(const CaretObject& co)
 void
 CaretObject::initializeMembersCaretObject()
 {
-#ifndef NDEBUG
+#ifdef CARET_OBJECT_MEMORY_LEAK_TRACKER
     SystemBacktrace myBacktrace;
     SystemUtilities::getBackTrace(myBacktrace);
 #pragma omp critical
@@ -126,7 +126,8 @@ CaretObject::className() const
     return name;    
 }
 
-#ifdef NDEBUG
+#ifndef CARET_OBJECT_MEMORY_LEAK_TRACKER
+
     /** 
      * Do not print objects not deleted if NOT debug
      */

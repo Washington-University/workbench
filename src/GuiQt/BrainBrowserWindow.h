@@ -31,6 +31,7 @@
 #include "AString.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "GlobalShortcutEnum.h"
 #include "SceneableInterface.h"
 #include "TileTabsLayoutConfigurationTypeEnum.h"
 
@@ -183,7 +184,9 @@ namespace caret {
         void closeEvent(QCloseEvent* event) override;
         void keyPressEvent(QKeyEvent* event) override;
         
-    private slots:        
+        void processGlobalShortcut(const GlobalShortcutEnum::Enum shortcutCode);
+
+    private slots:
         void processAboutWorkbench();
         void processInformationDialog();
         void processNewWindow();
