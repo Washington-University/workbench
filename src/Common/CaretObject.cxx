@@ -20,7 +20,6 @@
 
 #include <iostream>
 #include <typeinfo>
-#include <utility>
 
 #define __CARET_OBJECT_DECLARE_H__
 #include "CaretObject.h"
@@ -55,7 +54,7 @@ CaretObject::CaretObject(const CaretObject& co)
  */
 CaretObject::~CaretObject()
 {
-#ifdef CARET_OBJECT_MEMORY_LEAK_TRACKER
+#ifndef NDEBUG
     /*
      * Erase returns the number of objects deleted.
      * If zero, then the object has already been deleted.
@@ -84,7 +83,7 @@ CaretObject::operator=(const CaretObject& co)
 void
 CaretObject::initializeMembersCaretObject()
 {
-#ifdef CARET_OBJECT_MEMORY_LEAK_TRACKER
+#ifndef NDEBUG
     SystemBacktrace myBacktrace;
     SystemUtilities::getBackTrace(myBacktrace);
 #pragma omp critical
@@ -126,8 +125,7 @@ CaretObject::className() const
     return name;    
 }
 
-#ifndef CARET_OBJECT_MEMORY_LEAK_TRACKER
-
+#ifdef NDEBUG
     /** 
      * Do not print objects not deleted if NOT debug
      */
