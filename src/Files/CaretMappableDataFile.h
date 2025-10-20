@@ -466,6 +466,10 @@ namespace caret {
         
         void setApplyPaletteColorMappingToAllMaps(const bool selected);
         
+        bool isPreColorAllMaps() const;
+        
+        void setPreColorAllMaps(const bool status);
+        
         /**
          * @return The units for the 'interval' between two consecutive maps.
          */
@@ -576,6 +580,8 @@ namespace caret {
         
         void helpGetSupportedLineSeriesChartDataTypes(std::vector<ChartOneDataTypeEnum::Enum>& chartDataTypesOut) const;
         
+        virtual void preColorAllMaps();
+        
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
         
@@ -612,6 +618,12 @@ namespace caret {
          * This value is saved to scenes but NOT to the data file.
          */
         bool m_applyToAllMapsSelected = false;
+        
+        /**
+         * Pre-color all maps after file is read
+         * Is saved to scene but not the file
+         */
+        bool m_preColorAllMaps = false;
     };
 
 #ifdef __CARET_MAPPABLE_DATA_FILE_DECLARE__

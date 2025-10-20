@@ -234,6 +234,9 @@ namespace caret {
 
         // ADD_NEW_METHODS_HERE
 
+    protected:
+        virtual void preColorAllMaps() override;
+        
     private:
         AString getMapNameFromMapInfo(const int32_t mapIndex) const;
         

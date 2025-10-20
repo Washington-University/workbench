@@ -25,6 +25,7 @@
 
 #include <limits>
 
+#include "ApplicationInformation.h"
 #include "CaretLogger.h"
 #include "ChartDataCartesian.h"
 #include "ChartableTwoFileDelegate.h"
@@ -33,6 +34,7 @@
 #include "CiftiXML.h"
 #include "DataFileColorModulateSelector.h"
 #include "DataFileContentInformation.h"
+#include "EventProgressUpdate.h"
 #include "EventManager.h"
 #include "FastStatistics.h"
 #include "FileInformation.h"
@@ -381,6 +383,9 @@ CaretMappableDataFile::saveFileDataToScene(const SceneAttributes* sceneAttribute
             sceneClass->addClass(chartDelegateScene);
         }
     }
+    
+    sceneClass->addBoolean("m_preColorAllMaps",
+                           m_preColorAllMaps);
     
     if (isMappedWithPalette()) {
         /*
@@ -806,6 +811,13 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
         
         updateAfterFileDataChanges();
         
+        m_preColorAllMaps = false;
+        const ScenePrimitive* preColorAllMapsPrimitive = sceneClass->getPrimitive("m_preColorAllMaps");
+        if (preColorAllMapsPrimitive != NULL) {
+            m_preColorAllMaps = preColorAllMapsPrimitive->booleanValue();
+        }
+        
+
         /*
          * Must restore after call to updateAfterFileDataChanges() to since
          * that method initializes 'm_applyToAllMapsSelected'.
@@ -901,6 +913,29 @@ CaretMappableDataFile::restoreFileDataFromScene(const SceneAttributes* sceneAttr
             }
         }
     }
+    
+    if (isPreColorAllMaps()) {
+        if (ApplicationInformation::getApplicationType() == ApplicationTypeEnum::APPLICATION_TYPE_GRAPHICAL_USER_INTERFACE) {
+            const QString msg = ("Pre-coloring all maps in file "
+                                 + getFileNameNoPath());
+            EventProgressUpdate progressEvent(-1,
+                                              -1,
+                                              -1,
+                                              msg);
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+
+            preColorAllMaps();
+        }
+    }
+}
+
+/**
+ * Pre-color all maps to save time when user is sequencing through the maps in the GUI
+ */
+void
+CaretMappableDataFile::preColorAllMaps()
+{
+    updateScalarColoringForAllMaps();
 }
 
 /**
@@ -1748,6 +1783,29 @@ void
 CaretMappableDataFile::setApplyPaletteColorMappingToAllMaps(const bool selected)
 {
     m_applyToAllMapsSelected = selected;
+}
+
+/**
+ * @return True if all maps should be pre-colored
+ */
+bool
+CaretMappableDataFile::isPreColorAllMaps() const
+{
+    return m_preColorAllMaps;
+}
+
+/**
+ * Set all maps should be pre-colored
+ */
+void
+CaretMappableDataFile::setPreColorAllMaps(const bool status)
+{
+    /*
+     * Note: Does not affect file modified status
+     */
+    if (m_preColorAllMaps != status) {
+        m_preColorAllMaps = status;
+    }
 }
 
 /**

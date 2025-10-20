@@ -53,6 +53,7 @@
 #include "NiftiIO.h"
 #include "Palette.h"
 #include "SceneClass.h"
+#include "TabDrawingInfo.h"
 #include "VolumeDynamicConnectivityFile.h"
 #include "VolumeFile.h"
 #include "VolumeFileEditorDelegate.h"
@@ -2561,6 +2562,27 @@ VolumeFile::restoreFileDataFromScene(const SceneAttributes* sceneAttributes,
         VolumeDynamicConnectivityFile* denseDynamicFile = getVolumeDynamicConnectivityFile();
         denseDynamicFile->restoreFromScene(sceneAttributes,
                                            dynamicFileSceneClass);
+    }
+}
+
+/**
+ * Pre-color all maps to save time when user is sequencing through the maps in the GUI
+ */
+void
+VolumeFile::preColorAllMaps()
+{
+    updateScalarColoringForAllMaps();
+    
+    const int32_t numMaps(getNumberOfMaps());
+    for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
+        const int32_t tabIndex(-1);
+        const TabDrawingInfo tabDrawingInfo(this, //dynamic_cast<CaretMappableDataFile*>(volumeFile),
+                                            mapIndex,
+                                            DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                            LabelViewModeEnum::HIERARCHY,
+                                            tabIndex);
+        getVolumeDrawingTrianglesPrimitive(mapIndex,
+                                           tabDrawingInfo);
     }
 }
 

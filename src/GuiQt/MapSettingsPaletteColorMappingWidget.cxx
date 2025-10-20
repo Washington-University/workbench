@@ -69,6 +69,7 @@
 #include "WuQDoubleSpinBox.h"
 #include "WuQFactory.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQtUtilities.h"
 #include "WuQwtPlot.h"
 
@@ -129,6 +130,12 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     QWidget* thresholdWidget = this->createThresholdSection();
     thresholdWidget->setMaximumWidth(paletteWidget->sizeHint().width() + 50);
     
+    m_preColorAllMapsCheckBox = new QCheckBox("Pre-Color All Maps");
+    m_preColorAllMapsCheckBox->setToolTip("Maps will be colored when this\n"
+                                          "file is loaded by a scene");
+    QObject::connect(m_preColorAllMapsCheckBox, &QCheckBox::clicked,
+                     this, &MapSettingsPaletteColorMappingWidget::preColorAllMapsClicked);
+    
     QWidget* leftWidget = new QWidget();
     QVBoxLayout* leftLayout = new QVBoxLayout(leftWidget);
     this->setLayoutSpacingAndMargins(leftLayout);
@@ -138,6 +145,7 @@ MapSettingsPaletteColorMappingWidget::MapSettingsPaletteColorMappingWidget(QWidg
     QVBoxLayout* dataLayout = new QVBoxLayout();
     dataLayout->addWidget(normalizationWidget);
     dataLayout->addWidget(m_paletteOptionsWidget);
+    dataLayout->addWidget(m_preColorAllMapsCheckBox);
     
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
@@ -2004,6 +2012,8 @@ MapSettingsPaletteColorMappingWidget::updateEditorInternal(CaretMappableDataFile
     
     this->updateNormalizationControlSection();
     
+    m_preColorAllMapsCheckBox->setChecked(this->caretMappableDataFile->isPreColorAllMaps());
+    
     this->paletteWidgetGroup->blockAllSignals(false);
 }
 
@@ -2739,6 +2749,30 @@ MapSettingsPaletteColorMappingWidget::normalizationModeComboBoxActivated(int)
                         this->updateNormalizationControlSection();
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Called when pre-color all maps checkbox is toggled
+ * @param checked
+ *    New checked status
+ */
+void
+MapSettingsPaletteColorMappingWidget::preColorAllMapsClicked(bool checked)
+{
+    if (this->caretMappableDataFile != NULL) {
+        this->caretMappableDataFile->setPreColorAllMaps(checked);
+        
+        if (checked) {
+            if (WuQMessageBoxTwo::question(this,
+                                           "Color Maps",
+                                           "Color all maps now?\n"
+                                           "(Note: Maps will be colored when scene is loaded)") == WuQMessageBoxTwo::StandardButton::Yes) {
+                CursorDisplayScoped cursor;
+                cursor.showWaitCursor();
+                this->caretMappableDataFile->updateScalarColoringForAllMaps();
             }
         }
     }

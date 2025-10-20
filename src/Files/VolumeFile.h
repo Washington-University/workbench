@@ -155,6 +155,8 @@ namespace caret {
     protected:
         VolumeFile(const DataFileTypeEnum::Enum dataFileType);
         
+        virtual void preColorAllMaps() override;
+        
         virtual void saveFileDataToScene(const SceneAttributes* sceneAttributes,
                                          SceneClass* sceneClass);
         

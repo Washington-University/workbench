@@ -970,6 +970,21 @@ MetaVolumeFile::getDataSliceArrayForMap(const int32_t mapIndex) const
     return dataSliceArray;
 }
 
+/**
+ * Pre-color all maps to save time when user is sequencing through the maps in the GUI
+ */
+void
+MetaVolumeFile::preColorAllMaps()
+{
+    const int32_t numFiles(getNumberOfVolumeFiles());
+    for (int32_t iVolume = 0; iVolume < numFiles; iVolume++) {
+        VolumeFile* vf(getVolumeFile(iVolume));
+        if (vf != NULL) {
+            vf->preColorAllMaps();
+        }
+    }
+}
+
 
 /* ==============================================================================================*/
 

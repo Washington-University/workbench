@@ -105,6 +105,8 @@ namespace caret {
         
         void normalizationModeComboBoxActivated(int);
         
+        void preColorAllMapsClicked(bool checked);
+        
     private:
         void updateEditorInternal(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
@@ -228,6 +230,8 @@ namespace caret {
         WuQWidgetObjectGroup* thresholdWidgetGroup;
         
         MapSettingsColorBarPaletteOptionsWidget* m_paletteOptionsWidget;
+        
+        QCheckBox* m_preColorAllMapsCheckBox;
         
     };
     
