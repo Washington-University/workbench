@@ -23,6 +23,8 @@
 #include "BrainBrowserWindowToolBarTabPopUpMenu.h"
 #undef __BRAIN_BROWSER_WINDOW_TOOL_BAR_TAB_POP_UP_MENU_DECLARE__
 
+#include <QInputDialog>
+
 #include "AnnotationBrowserTab.h"
 #include "AnnotationManager.h"
 #include "Brain.h"
@@ -124,6 +126,7 @@ m_tabIndexUnderMouse(tabIndexUnderMouse)
     addItem(MenuItem::MOVE_TAB_TO_END);
     addSeparator();
     addItem(MenuItem::DELETE_TAB);
+    addItem(MenuItem::RENAME_TAB);
     
     QObject::connect(this, &QMenu::triggered,
                      this, &BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected);
@@ -205,6 +208,9 @@ BrainBrowserWindowToolBarTabPopUpMenu::addItem(const MenuItem menuItem,
         case MenuItem::DELETE_TAB:
             text = "Delete " + thisTabName;
             break;
+        case MenuItem::RENAME_TAB:
+            text = "Rename " + thisTabName + "...";
+            break;
     }
     
     if ( ! overrideMenuItemText.isEmpty()) {
@@ -239,6 +245,7 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
         int32_t deleteIndex      = -1;
         int32_t duplicateToIndex = -1;
         int32_t moveToIndex      = -1;
+        int32_t renameIndex      = -1;
         
         switch (menuItem) {
             case MenuItem::NONE:
@@ -306,6 +313,9 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
             case MenuItem::DELETE_TAB:
                 deleteIndex = m_tabIndexUnderMouse;
                 break;
+            case MenuItem::RENAME_TAB:
+                renameIndex = m_tabIndexUnderMouse;
+                break;
         }
         
         if (createNewIndex >= 0) {
@@ -313,6 +323,23 @@ BrainBrowserWindowToolBarTabPopUpMenu::menuItemSelected(QAction* action)
         }
         else if (deleteIndex >= 0) {
             m_toolBar->tabCloseSelected(deleteIndex);
+        }
+        else if (renameIndex >= 0) {
+            BrowserTabContent* tabContent = m_toolBar->getTabContentFromTab(renameIndex);
+
+            AString currentName = tabContent->getUserTabName();
+            bool ok = false;
+            AString newName = QInputDialog::getText(this,
+                                                    "Set Tab Name",
+                                                    "New Name (empty to reset)",
+                                                    QLineEdit::Normal,
+                                                    currentName,
+                                                    &ok);
+            if (ok) {
+                tabContent->setUserTabName(newName);
+                m_toolBar->updateTabName(renameIndex);
+            }
+
         }
         else if (duplicateToIndex >= 0) {
             BrowserTabContent* tabContent = m_toolBar->getTabContentFromTab(m_tabIndexUnderMouse);
@@ -437,6 +464,9 @@ BrainBrowserWindowToolBarTabPopUpMenu::isEnabled(const MenuItem menuItem) const
             }
             break;
         case MenuItem::DELETE_TAB:
+            enabledFlag = true;
+            break;
+        case MenuItem::RENAME_TAB:
             enabledFlag = true;
             break;
     }

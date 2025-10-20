@@ -63,7 +63,8 @@ namespace caret {
             MOVE_TAB_BEFORE,
             MOVE_TAB_AFTER,
             MOVE_TAB_TO_END,
-            DELETE_TAB
+            DELETE_TAB,
+            RENAME_TAB
         };
         
         BrainBrowserWindowToolBarTabPopUpMenu(const BrainBrowserWindowToolBarTabPopUpMenu&);
