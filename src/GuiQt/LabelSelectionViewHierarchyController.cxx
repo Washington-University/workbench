@@ -367,7 +367,6 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     const bool volumeCrossHairIconValid =
     WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
                             volumeCrossHairIcon);
-    std::cout << "Icon valid: " << (int)volumeCrossHairIconValid << std::endl;
 
     /*
      * My clusters
