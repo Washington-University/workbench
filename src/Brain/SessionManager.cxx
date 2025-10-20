@@ -1527,7 +1527,7 @@ SessionManager::getExampleSceneFilesAndSceneNames(std::vector<ExampleSceneInfo>&
         }
         
         if (m_cachedExampleSceneInfo.empty()) {
-            CaretLogWarning("Unable to find Workbench Example Data Files.  Looking in \""
+            CaretLogFine("Unable to find Workbench Example Data Files.  Looking in \""
                             + workbenchExampleDirectory
                             + "\".  Path can be overriden using environment variable "
                             + envVarName);
