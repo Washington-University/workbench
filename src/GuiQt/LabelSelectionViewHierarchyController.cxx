@@ -58,6 +58,7 @@
 #include "SessionManager.h"
 #include "WuQMacroManager.h"
 #include "WuQMessageBoxTwo.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -360,6 +361,15 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     menu.addSeparator();
 
     /*
+     * Crosshair/pointer icon
+     */
+    QIcon volumeCrossHairIcon;
+    const bool volumeCrossHairIconValid =
+    WuQtUtilities::loadIcon(":/ToolBar/volume-crosshair-pointer.png",
+                            volumeCrossHairIcon);
+    std::cout << "Icon valid: " << (int)volumeCrossHairIconValid << std::endl;
+
+    /*
      * My clusters
      */
     std::vector<QAction*> clusterActions;
@@ -369,6 +379,10 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
         const std::vector<const LabelSelectionItem::COG*> cogs(allCogSet->getCOGs());
         for (const LabelSelectionItem::COG* c : cogs) {
             QAction* a(menu.addAction(c->getTitle()));
+            if (volumeCrossHairIconValid) {
+                a->setIcon(volumeCrossHairIcon);
+                a->setIconVisibleInMenu(true);
+            }
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
         }
@@ -382,6 +396,10 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
         const std::vector<const LabelSelectionItem::COG*> cogs(cogSet->getCOGs());
         for (const LabelSelectionItem::COG* c : cogs) {
             QAction* a(menu.addAction(c->getTitle()));
+            if (volumeCrossHairIconValid) {
+                a->setIcon(volumeCrossHairIcon);
+                a->setIconVisibleInMenu(true);
+            }
             clusterActions.push_back(a);
             clusterXYZs.push_back(c->getXYZ());
         }
