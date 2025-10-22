@@ -32,6 +32,7 @@
 class QAbstractItemModel;
 class QComboBox;
 class QLineEdit;
+class QMenu;
 class QModelIndex;
 class QStandardItem;
 class QStandardItemModel;
