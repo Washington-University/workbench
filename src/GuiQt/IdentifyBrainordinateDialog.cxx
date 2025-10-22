@@ -276,7 +276,7 @@ IdentifyBrainordinateDialog::IdentifyBrainordinateDialog(QWidget* parent)
     m_ciftiFileRowRadioButton = new QRadioButton("CIFTI File Row");
     m_ciftiFileParcelRadioButton = new QRadioButton("CIFTI File Parcel");
     m_imagePixelRadioButton = new QRadioButton("Image Pixel");
-    m_labelRadioButton = new QRadioButton("Label");
+    m_labelRadioButton = new QRadioButton("Label (selected label will flash)");
     m_stereotaxicRadioButton = new QRadioButton("Stereotaxic");
     m_surfaceVertexRadioButton = new QRadioButton("Surface Vertex");
     
