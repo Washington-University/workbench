@@ -20,6 +20,8 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QApplication>
+#include <QClipboard>
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QGridLayout>
@@ -373,13 +375,16 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     
     const int32_t browserTabIndex(getBrowserTabIndex());
     CaretAssert(browserTabIndex);
-    if (browserTabIndex <= 0) {
+    if (browserTabIndex < 0) {
         return;
     }
     
     QMenu menu(this);
     
     QAction* infoAction(menu.addAction("Info..."));
+
+    QAction* copyNameToClipboardAction(menu.addAction("Copy name to clipboard"));
+    
     menu.addSeparator();
 
     /*
@@ -434,6 +439,11 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                 WuQMessageBoxTwo::information(this, 
                                               "Info",
                                               labelItem->getTextForInfoDisplay());
+            }
+            else if (selectedAction == copyNameToClipboardAction) {
+                const AString name(labelItem->text().trimmed());
+                QApplication::clipboard()->setText(name,
+                                                   QClipboard::Clipboard);
             }
             else {
                 for (int32_t i = 0; i < static_cast<int32_t>(clusterActions.size()); i++) {
@@ -704,7 +714,7 @@ LabelSelectionViewHierarchyController::infoActionTriggered()
     else {
         WuQMessageBoxTwo::information(this,
                                       "Information",
-                                      "Select and item to get information about it");
+                                      "Select an item to get information about it");
     }
 }
 
