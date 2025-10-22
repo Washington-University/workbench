@@ -297,11 +297,13 @@ CaretMappableDataFileLabelSelectionDelegate::restoreFromScene(const SceneAttribu
                 bool validFlag(false);
                 const DisplayGroupEnum::Enum displayGroup(DisplayGroupEnum::fromIntegerCode(dgIndex,
                                                                                             &validFlag));
-                const int32_t invalidTabIndex(-1);
-                LabelSelectionItemModel* model(getSelectionModelForMapAndTab(displayGroup,
-                                                                             invalidTabIndex));
-                if (model != NULL) {
-                    model->restoreFromScene(sceneAttributes, dgSceneMap->classValue(dgIndex));
+                if (displayGroup != DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+                    const int32_t invalidTabIndex(-1);
+                    LabelSelectionItemModel* model(getSelectionModelForMapAndTab(displayGroup,
+                                                                                 invalidTabIndex));
+                    if (model != NULL) {
+                        model->restoreFromScene(sceneAttributes, dgSceneMap->classValue(dgIndex));
+                    }
                 }
             }
         }

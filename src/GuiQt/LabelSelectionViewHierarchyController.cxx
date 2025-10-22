@@ -35,6 +35,7 @@
 #undef __LABEL_SELECTION_VIEW_HIERARCHY_CONTROLLER_DECLARE__
 
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -105,9 +106,7 @@ m_objectNamePrefix(parentObjectName
     
     QLabel* fileLabel(new QLabel("File"));
     QLabel* mapLabel(new QLabel("Map"));
-    m_labelFileAndMapSelector = new CaretMappableDataFileAndMapSelectorObject(dataFileTypes,
-                                                                              volumeTypes,
-                                                                              CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
+    m_labelFileAndMapSelector = new CaretMappableDataFileAndMapSelectorObject(CaretMappableDataFileAndMapSelectorObject::OPTION_SHOW_MAP_INDEX_SPIN_BOX,
                                                                               this);
     QObject::connect(m_labelFileAndMapSelector, &CaretMappableDataFileAndMapSelectorObject::selectionWasPerformed,
                      this, &LabelSelectionViewHierarchyController::processFileSelectionChanged);
@@ -258,6 +257,23 @@ LabelSelectionViewHierarchyController::~LabelSelectionViewHierarchyController()
 }
 
 /**
+ * @return The browser tab index
+ */
+int32_t
+LabelSelectionViewHierarchyController::getBrowserTabIndex() const
+{
+    int32_t tabIndex(-1);
+    BrainBrowserWindow* bbw(GuiManager::get()->getBrowserWindowByWindowIndex(m_browserWindowIndex));
+    CaretAssert(bbw);
+    const BrowserTabContent* btc(bbw->getBrowserTabContent());
+    if (btc != NULL) {
+        tabIndex = btc->getTabNumber();
+    }
+    return tabIndex;
+}
+
+
+/**
  * Called when tree item is
  * @param modelIndex
  *     Model index that is
@@ -355,6 +371,12 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
     CaretAssert(labelItem);
     const QString name(labelItem->text());
     
+    const int32_t browserTabIndex(getBrowserTabIndex());
+    CaretAssert(browserTabIndex);
+    if (browserTabIndex <= 0) {
+        return;
+    }
+    
     QMenu menu(this);
     
     QAction* infoAction(menu.addAction("Info..."));
@@ -418,7 +440,7 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                     if (selectedAction == clusterActions[i]) {
                         CaretAssertVectorIndex(clusterXYZs, i);
                         const Vector3D cogXYZ(clusterXYZs[i]);
-                        EventIdentificationHighlightLocation highlightLocation(m_browserTabIndex,
+                        EventIdentificationHighlightLocation highlightLocation(browserTabIndex,
                                                                                cogXYZ,
                                                                                cogXYZ,
                                                                                EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
@@ -478,79 +500,83 @@ LabelSelectionViewHierarchyController::processFileSelectionChanged()
 void
 LabelSelectionViewHierarchyController::updateLabelViewController()
 {
+    const int32_t browserTabIndex(getBrowserTabIndex());
+    if (browserTabIndex < 0) {
+        setDisabled(true);
+        return;
+    }
+    setEnabled(true);
+
+    DisplayPropertiesLabels* dpl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
+    CaretAssert(dpl);
+    const DisplayGroupEnum::Enum displayGroup(dpl->getDisplayGroupForTab(browserTabIndex));
+
+    m_labelFileAndMapSelector->updateFileAndMapSelector(dpl->getFileSelectionModel(displayGroup,
+                                                                                   browserTabIndex));
     bool enableTreeViewFlag(false);
     bool enableWidgetFlag(false);
     
     m_showNameComboBox->clear();
     
-    BrowserTabContent* browserTabContent =
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
-    m_browserTabIndex = -1;
-    if (browserTabContent != NULL) {
-        m_browserTabIndex = browserTabContent->getTabNumber();
-        
-        std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
-        CaretMappableDataFile* mapFile(fileAndMapIndex.first);
-        
-        if (mapFile != NULL) {
-            if (mapFile->isMappedWithLabelTable()) {
-                const int32_t mapIndex(fileAndMapIndex.second);
-                if ((mapIndex >= 0)
-                    && (mapIndex < mapFile->getNumberOfMaps())) {
-                    enableWidgetFlag = true;
-                    
-                    const DisplayPropertiesLabels* dsl(GuiManager::get()->getBrain()->getDisplayPropertiesLabels());
-                    CaretAssert(dsl);
-                    LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
-                                                                                                            dsl->getDisplayGroupForTab(m_browserTabIndex),
-                                                                                                            m_browserTabIndex));
-                    if (selectionModel != NULL) {
-                        if (selectionModel->isValid()) {
-                            const LabelSelectionItemModel* oldHierarchyModel(m_labelHierarchyModel);
-                            m_labelHierarchyModel = selectionModel;
-                            m_proxyFilter->setSourceModel(m_labelHierarchyModel);
-                            m_treeView->setModel(m_proxyFilter);
-                            m_treeView->setEnabled(true);
-                            if (m_labelHierarchyModel != oldHierarchyModel) {
-                                /*
-                                 * If model has changed and NO top level items are expanded,
-                                 * expand all items
-                                 */
-                                bool topLevelItemExpandedFlag(false);
-                                const std::vector<LabelSelectionItem*> topLevelItems(m_labelHierarchyModel->getTopLevelItems());
-                                for (const LabelSelectionItem* item : topLevelItems) {
-                                    if (m_treeView->isExpanded(item->index())) {
-                                        topLevelItemExpandedFlag = true;
-                                        break;
-                                    }
-                                }
-                                if ( ! topLevelItemExpandedFlag) {
-                                    m_treeView->expandAll();
+    std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+    CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+    
+    if (mapFile != NULL) {
+        if (mapFile->isMappedWithLabelTable()) {
+            const int32_t mapIndex(fileAndMapIndex.second);
+            if ((mapIndex >= 0)
+                && (mapIndex < mapFile->getNumberOfMaps())) {
+                enableWidgetFlag = true;
+                
+                LabelSelectionItemModel* selectionModel(mapFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                                                        displayGroup,
+                                                                                                        browserTabIndex));
+                if (selectionModel != NULL) {
+                    if (selectionModel->isValid()) {
+                        const LabelSelectionItemModel* oldHierarchyModel(m_labelHierarchyModel);
+                        m_labelHierarchyModel = selectionModel;
+                        m_proxyFilter->setSourceModel(m_labelHierarchyModel);
+                        m_treeView->setModel(m_proxyFilter);
+                        m_treeView->setEnabled(true);
+                        if (m_labelHierarchyModel != oldHierarchyModel) {
+                            /*
+                             * If model has changed and NO top level items are expanded,
+                             * expand all items
+                             */
+                            bool topLevelItemExpandedFlag(false);
+                            const std::vector<LabelSelectionItem*> topLevelItems(m_labelHierarchyModel->getTopLevelItems());
+                            for (const LabelSelectionItem* item : topLevelItems) {
+                                if (m_treeView->isExpanded(item->index())) {
+                                    topLevelItemExpandedFlag = true;
+                                    break;
                                 }
                             }
-                            m_treeView->adjustSize();
-                            
-                            m_findItems.clear();
-                            m_findItemsCurrentIndex = 0;
-                            findTextLineEditTextChanged(m_findTextLineEdit->text());
-                            
-                            const AString selectedName(m_labelHierarchyModel->getSelectedAlternativeName());
-                            int32_t showNameIndex(0);
-                            const std::vector<AString> altNamesList(m_labelHierarchyModel->getAllAlternativeNames());
-                            const int32_t numNames(altNamesList.size());
-                            for (int32_t i = 0; i < numNames; i++) {
-                                CaretAssertVectorIndex(altNamesList, i);
-                                m_showNameComboBox->addItem(altNamesList[i]);
-                                if (selectedName == altNamesList[i]) {
-                                    showNameIndex = i;
-                                }
+                            if ( ! topLevelItemExpandedFlag) {
+                                m_treeView->expandAll();
                             }
-                            if ((showNameIndex >= 0) &&
-                                (showNameIndex < numNames)) {
-                                m_showNameComboBox->setCurrentIndex(showNameIndex);
-                            }
-                            enableTreeViewFlag = true;
                         }
+                        m_treeView->adjustSize();
+                        
+                        m_findItems.clear();
+                        m_findItemsCurrentIndex = 0;
+                        findTextLineEditTextChanged(m_findTextLineEdit->text());
+                        
+                        const AString selectedName(m_labelHierarchyModel->getSelectedAlternativeName());
+                        int32_t showNameIndex(0);
+                        const std::vector<AString> altNamesList(m_labelHierarchyModel->getAllAlternativeNames());
+                        const int32_t numNames(altNamesList.size());
+                        for (int32_t i = 0; i < numNames; i++) {
+                            CaretAssertVectorIndex(altNamesList, i);
+                            m_showNameComboBox->addItem(altNamesList[i]);
+                            if (selectedName == altNamesList[i]) {
+                                showNameIndex = i;
+                            }
+                        }
+                        if ((showNameIndex >= 0) &&
+                            (showNameIndex < numNames)) {
+                            m_showNameComboBox->setCurrentIndex(showNameIndex);
+                        }
+                        enableTreeViewFlag = true;
                     }
                 }
             }
@@ -792,14 +818,15 @@ LabelSelectionViewHierarchyController::findTextLineEditTextChanged(const QString
 std::pair<CaretMappableDataFile*, int32_t>
 LabelSelectionViewHierarchyController::getSelectedFileAndMapIndex()
 {
+    CaretMappableDataFile* mapFile(NULL);
+    int32_t mapIndex(-1);
+
     CaretAssert(m_labelFileAndMapSelector);
     CaretMappableDataFileAndMapSelectionModel* model = m_labelFileAndMapSelector->getModel();
-    CaretAssert(model);
-    QSignalBlocker blocker(m_labelFileAndMapSelector);
-    m_labelFileAndMapSelector->updateFileAndMapSelector(model);
-    
-    CaretMappableDataFile* mapFile  = model->getSelectedFile();
-    const int32_t          mapIndex = model->getSelectedMapIndex();
+    if (model != NULL) {
+        mapFile  = model->getSelectedFile();
+        mapIndex = model->getSelectedMapIndex();
+    }
 
     return std::make_pair(mapFile, mapIndex);
 }

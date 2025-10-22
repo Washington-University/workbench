@@ -21,12 +21,15 @@
 
 #define __DISPLAY_PROPERTIES_LABELS_DECLARE__
 #include "DisplayPropertiesLabels.h"
+#undef __DISPLAY_PROPERTIES_LABELS_DECLARE__
+
+#include "CaretMappableDataFileAndMapSelectionModel.h"
 #include "EventDisplayPropertiesLabels.h"
 #include "EventManager.h"
 #include "SceneClassAssistant.h"
 #include "SceneAttributes.h"
 #include "SceneClass.h"
-#undef __DISPLAY_PROPERTIES_LABELS_DECLARE__
+#include "SceneClassArray.h"
 
 using namespace caret;
 
@@ -46,6 +49,22 @@ DisplayPropertiesLabels::DisplayPropertiesLabels()
     m_displayGroup.fill(DisplayGroupEnum::getDefaultValue());
     m_labelViewMode.fill(LabelViewModeEnum::LIST);
     m_showUnusedLabelsInHierarchiesFlag = false;
+    
+    std::vector<DataFileTypeEnum::Enum> dataFileTypes {
+        DataFileTypeEnum::CONNECTIVITY_DENSE_LABEL,
+        DataFileTypeEnum::LABEL,
+        DataFileTypeEnum::VOLUME
+    };
+    std::vector<SubvolumeAttributes::VolumeType> volumeTypes { SubvolumeAttributes::LABEL };
+
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        m_fileSelectionModelForBrowserTabs[i].reset(new CaretMappableDataFileAndMapSelectionModel(dataFileTypes,
+                                                                                                  volumeTypes));
+    }
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        m_fileSelectionModelsForDisplayGroups[i].reset(new CaretMappableDataFileAndMapSelectionModel(dataFileTypes,
+                                                                                                     volumeTypes));
+    }
     
     m_sceneAssistant->add("m_showUnusedLabelsInHierarchiesFlag",
                           &m_showUnusedLabelsInHierarchiesFlag);
@@ -73,12 +92,17 @@ DisplayPropertiesLabels::~DisplayPropertiesLabels()
  */
 void
 DisplayPropertiesLabels::copyDisplayProperties(const int32_t sourceTabIndex,
-                                             const int32_t targetTabIndex)
+                                               const int32_t targetTabIndex)
 {
     const DisplayGroupEnum::Enum displayGroup = this->getDisplayGroupForTab(sourceTabIndex);
     this->setDisplayGroupForTab(targetTabIndex, displayGroup);
     this->setLabelViewModeForTab(targetTabIndex, 
                                  this->getLabelViewModeForTab(sourceTabIndex));
+    
+    CaretMappableDataFileAndMapSelectionModel* sourceModel(getFileSelectionModel(DisplayGroupEnum::DISPLAY_GROUP_TAB, sourceTabIndex));
+    CaretMappableDataFileAndMapSelectionModel* targetModel(getFileSelectionModel(DisplayGroupEnum::DISPLAY_GROUP_TAB, targetTabIndex));
+    targetModel->setSelectedFile(sourceModel->getSelectedFile());
+    targetModel->setSelectedMapIndex(sourceModel->getSelectedMapIndex());
 }
 
 /**
@@ -186,6 +210,43 @@ DisplayPropertiesLabels::setShowUnusedLabelsInHierarchies(const bool status)
 }
 
 /**
+ * @return The file selection model for the given display group / tab index
+ * @param displayGroup
+ *    The display group
+ * @param tabIndex
+ *    Index of the tab
+ */
+CaretMappableDataFileAndMapSelectionModel*
+DisplayPropertiesLabels::getFileSelectionModel(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex)
+{
+    if (displayGroup == DisplayGroupEnum::DISPLAY_GROUP_TAB) {
+        CaretAssertVectorIndex(m_fileSelectionModelForBrowserTabs, tabIndex);
+        return m_fileSelectionModelForBrowserTabs[tabIndex].get();
+    }
+    
+    const int32_t displayGroupIndex(DisplayGroupEnum::toIntegerCode(displayGroup));
+    return m_fileSelectionModelsForDisplayGroups[displayGroupIndex].get();
+}
+
+/**
+ * @return The file selection model for the given display group / tab index
+ * @param displayGroup
+ *    The display group
+ * @param tabIndex
+ *    Index of the tab
+ */
+const CaretMappableDataFileAndMapSelectionModel*
+DisplayPropertiesLabels::getFileSelectionModel(const DisplayGroupEnum::Enum displayGroup,
+                                               const int32_t tabIndex) const
+{
+    DisplayPropertiesLabels* nonConstThis(const_cast<DisplayPropertiesLabels*>(this));
+    CaretAssert(nonConstThis);
+    return nonConstThis->getFileSelectionModel(displayGroup,
+                                               tabIndex);
+}
+
+/**
  * Create a scene for an instance of a class.
  *
  * @param sceneAttributes
@@ -209,6 +270,32 @@ DisplayPropertiesLabels::saveToScene(const SceneAttributes* sceneAttributes,
     
     m_sceneAssistant->saveMembers(sceneAttributes,
                                   sceneClass);
+    
+    {
+        std::vector<SceneClass*> tabFileModelClasses;
+        for (auto& fs : m_fileSelectionModelForBrowserTabs) {
+            AString name("m_fileSelectionModelForBrowserTabs"
+                         + AString::number(tabFileModelClasses.size()));
+            tabFileModelClasses.push_back(fs->saveToScene(sceneAttributes,
+                                                          name));
+        }
+        SceneClassArray* tabModels = new SceneClassArray("tabFileModelClasses",
+                                                         tabFileModelClasses);
+        sceneClass->addChild(tabModels);
+    }
+
+    {
+        std::vector<SceneClass*> displayGroupFileModelClasses;
+        for (auto& fs : m_fileSelectionModelsForDisplayGroups) {
+            AString name("m_fileSelectionModelsForDisplayGroups"
+                         + AString::number(displayGroupFileModelClasses.size()));
+            displayGroupFileModelClasses.push_back(fs->saveToScene(sceneAttributes,
+                                                                   name));
+        }
+        SceneClassArray* displayGroupModels = new SceneClassArray("displayGroupFileModelClasses",
+                                                                  displayGroupFileModelClasses);
+        sceneClass->addChild(displayGroupModels);
+    }
     
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
@@ -243,6 +330,26 @@ DisplayPropertiesLabels::restoreFromScene(const SceneAttributes* sceneAttributes
     m_sceneAssistant->restoreMembers(sceneAttributes,
                                      sceneClass);
     
+    const SceneClassArray* displayGroupModels = sceneClass->getClassArray("displayGroupFileModelClasses");
+    if (displayGroupModels != NULL) {
+        const int32_t numItems = displayGroupModels->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numItems; i++) {
+            CaretAssertArrayIndex(m_fileSelectionModelsForDisplayGroups, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
+            m_fileSelectionModelsForDisplayGroups[i]->restoreFromScene(sceneAttributes,
+                                                                       displayGroupModels->getClassAtIndex(i));
+        }
+    }
+    
+    const SceneClassArray* fileModels = sceneClass->getClassArray("tabFileModelClasses");
+    if (fileModels != NULL) {
+        const int32_t numItems = fileModels->getNumberOfArrayElements();
+        for (int32_t i = 0; i < numItems; i++) {
+            CaretAssertArrayIndex(m_fileSelectionModelForBrowserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, i);
+            m_fileSelectionModelForBrowserTabs[i]->restoreFromScene(sceneAttributes,
+                                                                    fileModels->getClassAtIndex(i));
+        }
+    }
+
     switch (sceneAttributes->getSceneType()) {
         case SceneTypeEnum::SCENE_TYPE_FULL:
             break;

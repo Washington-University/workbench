@@ -118,11 +118,11 @@ namespace caret {
         
         std::vector<LabelSelectionItem*> getAllItemsInModelTreeView() const;
         
+        int32_t getBrowserTabIndex() const;
+        
         const QString m_objectNamePrefix;
         
         int32_t m_browserWindowIndex = -1;
-        
-        int32_t m_browserTabIndex = -1;
         
         QTreeView* m_treeView;
         

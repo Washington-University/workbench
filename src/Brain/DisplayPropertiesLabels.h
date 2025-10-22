@@ -22,6 +22,7 @@
 /*LICENSE_END*/
 
 #include <array>
+#include <memory>
 
 #include "BrainConstants.h"
 #include "DisplayGroupEnum.h"
@@ -29,6 +30,7 @@
 #include "LabelViewModeEnum.h"
 
 namespace caret {
+    class CaretMappableDataFileAndMapSelectionModel;
 
     class DisplayPropertiesLabels : public DisplayProperties {
         
@@ -64,7 +66,12 @@ namespace caret {
         
         void setShowUnusedLabelsInHierarchies(const bool status);
         
+        CaretMappableDataFileAndMapSelectionModel* getFileSelectionModel(const DisplayGroupEnum::Enum displayGroup,
+                                                                         const int32_t tabIndex);
 
+        const CaretMappableDataFileAndMapSelectionModel* getFileSelectionModel(const DisplayGroupEnum::Enum displayGroup,
+                                                                               const int32_t tabIndex) const;
+        
     private:
         DisplayPropertiesLabels(const DisplayPropertiesLabels&);
 
@@ -82,6 +89,10 @@ namespace caret {
         
         std::array<LabelViewModeEnum::Enum, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_labelViewMode;
 
+        std::array<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS> m_fileSelectionModelForBrowserTabs;
+        
+        std::array<std::unique_ptr<CaretMappableDataFileAndMapSelectionModel>, DisplayGroupEnum::NUMBER_OF_GROUPS> m_fileSelectionModelsForDisplayGroups;
+        
         bool m_showUnusedLabelsInHierarchiesFlag = false;
     };
     
