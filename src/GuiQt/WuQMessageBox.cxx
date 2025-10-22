@@ -40,7 +40,7 @@ using namespace caret;
 WuQMessageBox::WuQMessageBox(QWidget* parent)
 : QMessageBox(parent)
 {
-    
+    setTextInteractionFlags(Qt::TextSelectableByMouse);
 }
 
 /**
@@ -83,6 +83,7 @@ WuQMessageBox::saveDiscardCancel(QWidget* parent,
     msgBox.addButton(QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
     msgBox.setEscapeButton(QMessageBox::Cancel);
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
     
     QMessageBox::StandardButton buttonPressed = 
         static_cast<QMessageBox::StandardButton>(msgBox.exec());
@@ -130,6 +131,7 @@ WuQMessageBox::warningCloseCancel(QWidget* parent,
     msgBox.addButton(QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Close);
     msgBox.setEscapeButton(QMessageBox::Cancel);
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     QMessageBox::StandardButton buttonPressed =
     static_cast<QMessageBox::StandardButton>(msgBox.exec());
@@ -191,7 +193,8 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
             break;
     }
     msgBox.setEscapeButton(QMessageBox::Cancel);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     QMessageBox::StandardButton buttonPressed =
     static_cast<QMessageBox::StandardButton>(msgBox.exec());
     
@@ -250,7 +253,8 @@ WuQMessageBox::warningYesNo(QWidget* parent,
             break;
     }
     msgBox.setEscapeButton(QMessageBox::No);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     QMessageBox::StandardButton buttonPressed =
     static_cast<QMessageBox::StandardButton>(msgBox.exec());
     
@@ -290,7 +294,8 @@ WuQMessageBox::warningOk(QWidget* parent,
     msgBox.addButton(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Ok);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     msgBox.exec();
 }
 
@@ -332,7 +337,8 @@ WuQMessageBox::warningOkWithDoNotShowAgain(QWidget* parent,
     msgBox.addButton(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Ok);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     QCheckBox* checkBox = addDoNotShowAgainCheckBox(msgBox);
     
     msgBox.exec();
@@ -542,7 +548,8 @@ WuQMessageBox::warningYesNoWithDoNotShowAgain(QWidget* parent,
     msgBox.addButton(QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     msgBox.setEscapeButton(QMessageBox::No);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     QCheckBox* checkBox = addDoNotShowAgainCheckBox(msgBox);
     
     const QMessageBox::StandardButton buttonClicked =
@@ -607,7 +614,8 @@ WuQMessageBox::informationTwoButtons(QWidget* parent,
     msgBox.addButton(QMessageBox::YesToAll);
     msgBox.addButton(QMessageBox::Yes);
     msgBox.setDefaultButton(QMessageBox::Yes);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     WuQMessageBox::updateButtonText(msgBox,
                                     QMessageBox::YesToAll,
                                     buttonOneText);
@@ -680,7 +688,8 @@ WuQMessageBox::warningYesToAllYesNo(QWidget* parent,
     msgBox.addButton(QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::Yes);
     msgBox.setEscapeButton(QMessageBox::No);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     WuQMessageBox::updateButtonText(msgBox,
                                     QMessageBox::YesToAll,
                                     yesToAllButtonText);
@@ -747,7 +756,8 @@ WuQMessageBox::warningAcceptReject(QWidget* parent,
     msgBox.addButton(QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Cancel);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     updateButtonText(msgBox, QMessageBox::Ok, acceptButtonText);
     updateButtonText(msgBox, QMessageBox::Cancel, rejectButtonText);
     
@@ -851,7 +861,8 @@ WuQMessageBox::warningYesNoCancel(QWidget* parent,
     msgBox.addButton(QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Yes);
     msgBox.setEscapeButton(QMessageBox::No);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     QMessageBox::StandardButton buttonPressed =
     static_cast<QMessageBox::StandardButton>(msgBox.exec());
     
@@ -895,7 +906,8 @@ WuQMessageBox::informationOk(QWidget* parent,
     msgBox.addButton(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Ok);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     msgBox.exec();
 }
 
@@ -919,7 +931,8 @@ WuQMessageBox::errorOk(QWidget* parent,
     msgBox.addButton(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Ok);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     msgBox.exec();
 }
 
@@ -947,7 +960,8 @@ WuQMessageBox::errorDetailedTextOk(QWidget* parent,
     msgBox.addButton(QMessageBox::Ok);
     msgBox.setDefaultButton(QMessageBox::Ok);
     msgBox.setEscapeButton(QMessageBox::Ok);
-    
+    msgBox.setTextInteractionFlags(Qt::TextSelectableByMouse);
+
     /*
      * Expaned the details region by clicking the "Show Details" button.
      * From: https://stackoverflow.com/questions/36083551/qmessagebox-show-details/36084125#36084125

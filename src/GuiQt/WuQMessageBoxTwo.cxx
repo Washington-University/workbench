@@ -347,6 +347,8 @@ WuQMessageBoxTwo::WuQMessageBoxTwo(const IconType icon,
     m_textLabel = new QLabel(text);
     m_textLabel->setWordWrap(true);
     m_textLabel->setMinimumWidth(400);
+    m_textLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    
     const QSize textLabelSize(m_textLabel->sizeHint());
     const int32_t textHeight(textLabelSize.height());
     const int32_t textWidth(textLabelSize.width());
