@@ -19,9 +19,14 @@
  */
 /*LICENSE_END*/
 
+#include <map>
+
+#include <QAction>
+#include <QCheckBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QSpinBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 #define __VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER_DECLARE__
@@ -31,10 +36,13 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
+#include "EventBrowserTabGetAll.h"
+#include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "VolumeSurfaceOutlineSetModel.h"
 #include "VolumeSurfaceOutlineViewController.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQFactory.h"
 #include "WuQMacroManager.h"
 #include "WuQtUtilities.h"
@@ -132,9 +140,18 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     WuQMacroManager::instance()->addMacroSupportToObject(this->outlineCountSpinBox,
                                                          "Set number of displayed volume/surface outlines for " + descriptivePrefix);
     
+    QAction* copyOutlinesAction(new QAction());
+    copyOutlinesAction->setIconText("Copy outlines to other tabs...");
+    QObject::connect(copyOutlinesAction, &QAction::triggered,
+                     this, &VolumeSurfaceOutlineSetViewController::copyOutlinesActionTriggered);
+    QToolButton* copyOutlinesToolButton(new QToolButton());
+    copyOutlinesToolButton->setDefaultAction(copyOutlinesAction);
+    
     QHBoxLayout* overlayCountLayout = new QHBoxLayout();
     overlayCountLayout->addWidget(outlineCountLabel);
     overlayCountLayout->addWidget(this->outlineCountSpinBox);
+    overlayCountLayout->addSpacing(25);
+    overlayCountLayout->addWidget(copyOutlinesToolButton);
     overlayCountLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
@@ -174,14 +191,25 @@ VolumeSurfaceOutlineSetViewController::outlineCountSpinBoxValueChanged(int value
 }
 
 /**
+ * @return Browser tab content in the window containing this widget
+ */
+BrowserTabContent*
+VolumeSurfaceOutlineSetViewController::getBrowserTabContent()
+{
+    const bool allowInvalidBrowserWindowIndex(true);
+    return GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex,
+                                                                   allowInvalidBrowserWindowIndex);
+
+}
+
+/**
  * @return The outline set in this view controller.
  */
 VolumeSurfaceOutlineSetModel* 
 VolumeSurfaceOutlineSetViewController::getOutlineSet()
 {
     VolumeSurfaceOutlineSetModel* outlineSet = NULL;
-    BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
+    BrowserTabContent* browserTabContent = getBrowserTabContent();
     if (browserTabContent != NULL) {
         outlineSet = browserTabContent->getVolumeSurfaceOutlineSet();
     }
@@ -246,3 +274,53 @@ VolumeSurfaceOutlineSetViewController::receiveEvent(Event* event)
         }
     }
 }
+
+/**
+ * Called to display dialog to copy outlines to other tabs
+ */
+void
+VolumeSurfaceOutlineSetViewController::copyOutlinesActionTriggered()
+{
+    BrowserTabContent* thisTabContent = getBrowserTabContent();
+    if (thisTabContent == NULL) {
+        return;
+    }
+    
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    
+    std::vector<BrowserTabContent*> allTabs(allTabsEvent.getAllBrowserTabs());
+    const int32_t numTabs(allTabs.size());
+    if (numTabs <= 1) {
+        return;
+    }
+    
+    std::map<int32_t, QCheckBox*> checkboxes;
+    WuQDataEntryDialog ded("Copy Volume/Surface Outlines",
+                           this);
+    const bool wrapTheTextFlag(true);
+    ded.setTextAtTop(("Copy the Volume/Surface outline settings "
+                      "from this tab to the selected tabs"),
+                     wrapTheTextFlag);
+    for (const BrowserTabContent* tab : allTabs) {
+        CaretAssert(tab);
+        const int32_t tabIndex(tab->getTabNumber());
+        checkboxes[tabIndex] = ded.addCheckBox(tab->getTabName());
+        checkboxes[tabIndex]->setEnabled(tab != thisTabContent);
+    }
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        for (BrowserTabContent* tab : allTabs) {
+            CaretAssert(tab);
+            const int32_t tabIndex(tab->getTabNumber());
+            const QCheckBox* checkbox(checkboxes[tabIndex]);
+            CaretAssert(checkbox);
+            if (checkbox->isChecked()) {
+                tab->getVolumeSurfaceOutlineSet()->copyVolumeSurfaceOutlineSetModel(thisTabContent->getVolumeSurfaceOutlineSet());
+            }
+        }
+        
+        EventManager::get()->sendEvent(EventGraphicsPaintSoonAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
+}
+

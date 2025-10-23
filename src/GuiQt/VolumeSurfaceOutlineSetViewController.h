@@ -26,6 +26,7 @@
 #include <vector>
 #include <QWidget>
 
+#include "BrowserTabContent.h"
 #include "EventListenerInterface.h"
 
 class QSpinBox;
@@ -53,11 +54,15 @@ namespace caret {
     private slots:
         void outlineCountSpinBoxValueChanged(int);
         
+        void copyOutlinesActionTriggered();
+        
     private:
         VolumeSurfaceOutlineSetViewController(const VolumeSurfaceOutlineSetViewController&);
 
         VolumeSurfaceOutlineSetViewController& operator=(const VolumeSurfaceOutlineSetViewController&);
  
+        BrowserTabContent* getBrowserTabContent();
+        
         VolumeSurfaceOutlineSetModel* getOutlineSet();
         
         void updateViewController();
