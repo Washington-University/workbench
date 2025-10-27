@@ -85,10 +85,11 @@
 #include "UsernamePasswordWidget.h"
 #include "WuQImageLabel.h"
 #include "WuQMessageBox.h"
+#include "WuQMessageBoxTwo.h"
 #include "WuQTextEditorDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
-
+#include "ZipSpecFileDialog.h"
 
 using namespace caret;
 
@@ -2279,8 +2280,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
                 copyFilePathToClipboardAction = menu.addAction(copyPathText);
             }
         }
-        QAction* editMetaDataAction = menu.addAction("Edit Metadata...");;
+        QAction* editMetaDataAction = menu.addAction("Edit Metadata...");
         QAction* setFileNameAction = menu.addAction("Set File Name...");
+        QAction* zipSpecFileAction = menu.addAction("Zip Spec File...");
         
         QAction* selectedAction = menu.exec(QCursor::pos());
         if (selectedAction == NULL) {
@@ -2305,6 +2307,9 @@ SpecFileManagementDialog::fileOptionsActionSelected(int rowIndex)
         else if (selectedAction == copyFilePathToClipboardAction) {
             QApplication::clipboard()->setText(m_specFile->getFileName().trimmed(),
                                                QClipboard::Clipboard);
+        }
+        else if (zipSpecFileAction != NULL) {
+            zipSpecFile();
         }
         else if (selectedAction != NULL) {
             CaretAssertMessage(0,
@@ -2946,6 +2951,40 @@ SpecFileManagementDialog::toolBarSelectFilesActionTriggered(QAction* action)
         }
     }
 }
+
+/**
+ * Zip the spec file
+ */
+void
+SpecFileManagementDialog::zipSpecFile()
+{
+    Brain* brain(GuiManager::get()->getBrain());
+    CaretAssert(brain);
+    
+    std::vector<DataFileTypeEnum::Enum> excludeTheseDataTypes;
+    std::vector<CaretDataFile*> modifiedDataFiles;
+    brain->getAllModifiedFiles(excludeTheseDataTypes,
+                               modifiedDataFiles);
+    
+    if ( ! modifiedDataFiles.empty()) {
+        const WuQMessageBoxTwo::StandardButton button =
+        WuQMessageBoxTwo::question(this,
+                                   "Warning",
+                                   "There are modified files, continue?");
+        if (button == WuQMessageBoxTwo::StandardButton::No) {
+            return;
+        }
+    }
+
+    const SpecFile* specFile(brain->getSpecFile());
+    const AString specFileName((specFile != NULL)
+                               ? specFile->getFileName()
+                               : "");
+    ZipSpecFileDialog zipSpecDialog(specFileName,
+                                    this);
+    zipSpecDialog.exec();
+}
+
 
 /* ======================================================================= */
 /**

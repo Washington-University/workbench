@@ -327,6 +327,7 @@ ELSE()
         WuQWidget.h
         WuQWidgetObjectGroup.h
         ZipSceneFileDialog.h
+	ZipSpecFileDialog.h
     )
 
     IF(Qt6_FOUND)
@@ -698,6 +699,7 @@ WuQWidgetDisabler.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
 ZipSceneFileDialog.h
+ZipSpecFileDialog.h
 
 AboutWorkbenchDialog.cxx
 AnnotationBackgroundTypeWidget.cxx
@@ -1051,6 +1053,7 @@ WuQWidgetDisabler.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx
 ZipSceneFileDialog.cxx
+ZipSpecFileDialog.cxx
 )
 
 #

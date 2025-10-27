@@ -227,6 +227,8 @@ namespace caret {
         void copyFilePathToClipboard(const SpecFileDataFile* specFileDataFile,
                                      const CaretDataFile* caretDataFile);
         
+        void zipSpecFile();
+        
         // ADD_NEW_MEMBERS_HERE
         
         const Mode m_dialogMode;
