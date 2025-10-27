@@ -28,10 +28,24 @@ namespace caret {
     class OperationZipSpecFile : public AbstractOperation
     {
     public:
+        enum ProgressMode {
+            PROGRESS_COMMAND_LINE,
+            PROGRESS_GUI_EVENT
+        };
+        
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
+        
+        static void createZipFile(ProgressObject* myProgObj,
+                                  const AString& inputSpecFileName,
+                                  const AString& specFileName,
+                                  const AString& outputSubDirectory,
+                                  const AString& zipFileName,
+                                  const AString& myBaseDirIn,
+                                  const ProgressMode progressMode,
+                                  const bool skipMissing);
         
     private:
         static void addChildDataFiles(const AString& dataFileName,

@@ -18,8 +18,11 @@
  */
 /*LICENSE_END*/
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DataFile.h"
+#include "EventManager.h"
+#include "EventProgressUpdate.h"
 #include "FileInformation.h"
 #include "HistologySlicesFile.h"
 #include "MetaVolumeFile.h"
@@ -72,6 +75,10 @@ OperationParameters* OperationZipSpecFile::getParameters()
     return ret;
 }
 
+
+
+
+
 void OperationZipSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -87,11 +94,32 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         FileInformation specFileInfo(specFileName);
         myBaseDir = QDir::cleanPath(specFileInfo.getAbsolutePath());
     }
+    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
+    
+    createZipFile(myProgObj,
+                  myParams->getString(1),
+                  specFileName,
+                  outputSubDirectory,
+                  zipFileName,
+                  myBaseDir,
+                  PROGRESS_COMMAND_LINE,
+                  skipMissing);
+}
+
+void OperationZipSpecFile::createZipFile(ProgressObject* myProgObj,
+                                         const AString& inputSpecFileName,
+                                         const AString& specFileName,
+                                         const AString& outputSubDirectory,
+                                         const AString& zipFileName,
+                                         const AString& myBaseDirIn,
+                                         const ProgressMode progressMode,
+                                         const bool skipMissing)
+{
+    AString myBaseDir(myBaseDirIn);
     if (!myBaseDir.endsWith('/'))//root is a special case, if we didn't handle it differently it would end up looking for "//somefile"
     {//this is actually because the path function strips the final "/" from the path, but not when it is just "/"
         myBaseDir += "/";//so, add the trailing slash to the path
     }
-    bool skipMissing = myParams->getOptionalParameter(5)->m_present;
 
     if (outputSubDirectory.isEmpty()) {
         throw OperationException("extract-dir must contain characters");
@@ -126,7 +154,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     allDataFileNames.push_back(specFileName);
     
     CaretLogFine("Spec Info:"
-                 "\n   myParams->getString(1): " + myParams->getString(1)
+                 "\n   myParams->getString(1): " + inputSpecFileName
                  + "\n   specFile.getFileName(): " + specFile.getFileName()
                  + "\n   specFileName: " + specFileName
                  + "\n   specPath: " + specPath);
@@ -137,8 +165,9 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
     std::set<AString> allChildDataFileNames;
     AString missingDataFileNames;
     AString outsideBaseDirFiles;
-    int32_t numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
-    for (int32_t i = 0; i < numberOfDataFiles; i++) {
+    /* Files in vector may change so need to check size every iteration */
+    for (int32_t i = 0; i < static_cast<int32_t>(allDataFileNames.size()); i++) {
+        CaretAssertVectorIndex(allDataFileNames, i);
         AString dataFileName = allDataFileNames[i];
         if (DataFile::isFileOnNetwork(dataFileName))
         {
@@ -156,6 +185,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         AString absName = QDir::cleanPath(dataFileInfo.getAbsoluteFilePath());
         if (!absName.startsWith(myBaseDir))
         {
+            CaretAssertVectorIndex(allDataFileNames, i);
             CaretLogFine("Outside Path: "
                          "\n   myBaseDir: " + myBaseDir
                          + "\n   allDataFileNames[i]: " + allDataFileNames[i]
@@ -167,6 +197,7 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         if (dataFileInfo.exists() == false) {
             missingDataFileNames += absName + "\n";
         }
+        CaretAssertVectorIndex(allDataFileNames, i);
         allDataFileNames[i] = absName;//so we don't have to do this again
         
         std::vector<AString> childDataFileNames;
@@ -196,9 +227,17 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         allDataFileNames.insert(allDataFileNames.end(),
                                 allChildDataFileNames.begin(),
                                 allChildDataFileNames.end());
-        numberOfDataFiles = static_cast<int32_t>(allDataFileNames.size());
     }
     
+    switch (progressMode) {
+        case PROGRESS_COMMAND_LINE:
+            break;
+        case PROGRESS_GUI_EVENT:
+            EventProgressUpdate progressEvent(0, allDataFileNames.size(), 0, "Creating ZIP File");
+            EventManager::get()->sendEvent(progressEvent.getPointer());
+            break;
+    }
+
     /*
      * Create the ZIP file
      */
@@ -216,7 +255,8 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
      */
     AString errorMessage;
     static const char *myUnits[9] = {" B    ", " KB", " MB", " GB", " TB", " PB", " EB", " ZB", " YB"};
-    for (int32_t i = 0; i < numberOfDataFiles; i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(allDataFileNames.size()); i++) {
+        CaretAssertVectorIndex(allDataFileNames, i);
         AString dataFileName = allDataFileNames[i];
         AString unzippedDataFileName = outputSubDirectory + "/" + dataFileName.mid(myBaseDir.size());//we know the string matches to the length of myBaseDir, and is cleaned, so we can just chop the right number of characters off
         QFile dataFileIn(dataFileName);
@@ -248,6 +288,24 @@ void OperationZipSpecFile::useParameters(OperationParameters* myParams, Progress
         cout << myUnits[unit] << "     \t" << unzippedDataFileName;
         cout.flush();//don't endl until it finishes
         
+        switch (progressMode) {
+            case PROGRESS_COMMAND_LINE:
+                break;
+            case PROGRESS_GUI_EVENT:
+            {
+                EventProgressUpdate progressEvent(0, allDataFileNames.size(), 0, "Creating ZIP File");
+                progressEvent.setProgress(i,
+                                          ("Adding "
+                                           + (QString::number(i) + " of " + QString::number(static_cast<int32_t>(allDataFileNames.size())) + " (")
+                                           + ((unit > 0) ? AString::number(fileSize, 'f', 2) : AString::number(fileSize))
+                                           + myUnits[unit]
+                                           + ") "
+                                           + FileInformation(unzippedDataFileName).getFileName()));
+                EventManager::get()->sendEvent(progressEvent.getPointer());
+            }
+                break;
+        }
+
         QuaZipNewInfo zipNewInfo(unzippedDataFileName,
                                  dataFileName);
         zipNewInfo.externalAttr |= (6 << 22L) | (6 << 19L) | (4 << 16L);//make permissions 664
