@@ -2575,7 +2575,7 @@ VolumeFile::preColorAllMaps()
     
     const int32_t numMaps(getNumberOfMaps());
     for (int32_t mapIndex = 0; mapIndex < numMaps; mapIndex++) {
-        const int32_t tabIndex(-1);
+        const int32_t tabIndex(0);
         const TabDrawingInfo tabDrawingInfo(this, //dynamic_cast<CaretMappableDataFile*>(volumeFile),
                                             mapIndex,
                                             DisplayGroupEnum::DISPLAY_GROUP_TAB,
