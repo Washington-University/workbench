@@ -705,6 +705,35 @@ OverlaySet::getSelectedMapIndicesForFile(const CaretMappableDataFile* caretMappa
 }
 
 /**
+ * Get displayed label mapped files in this overlay and the map indices
+ * @param mapFileOut
+ *   Output with label mappable files
+ * @param mapIndicesOut
+ *   Output with map indices
+ */
+void
+OverlaySet::getLabelMappedFilesAndMapIndices(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                                             std::vector<int32_t>& mapIndicesOut) const
+{
+    mapFilesOut.clear();
+    mapIndicesOut.clear();
+    
+    for (int32_t i = 0; i < getNumberOfDisplayedOverlays(); i++) {
+        Overlay* overlay(const_cast<Overlay*>(getOverlay(i)));
+        CaretMappableDataFile* mapFile(NULL);
+        int32_t mapIndex(0);
+        overlay->getSelectionData(mapFile, mapIndex);
+        if (mapFile != NULL) {
+            if (mapFile->isMappedWithLabelTable()) {
+                mapFilesOut.push_back(mapFile);
+                mapIndicesOut.push_back(mapIndex);
+            }
+        }
+    }
+}
+
+
+/**
  * Reset the yoking status of all overlays to off.
  */
 void

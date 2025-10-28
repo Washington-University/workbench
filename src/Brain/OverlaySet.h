@@ -94,6 +94,9 @@ namespace caret {
                                      std::vector<LabelFile*>& labelFilesOut,
                                      std::vector<int32_t>& labelMapIndicesOut);
         
+        void getLabelMappedFilesAndMapIndices(std::vector<CaretMappableDataFile*>& mapFilesOut,
+                                              std::vector<int32_t>& mapIndicesOut) const;
+        
         bool hasObliqueOnlyVolumeSelected() const;
         
         void resetOverlayYokingToOff();
