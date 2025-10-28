@@ -684,6 +684,13 @@ RecentFileItemsContainer::removeItemsExceedingMaximumNumber(const int32_t maximu
     sort(RecentFileItemSortingKeyEnum::DATE_NEWEST,
          allItems);
     
+    static const bool testFlag(false);
+    if (testFlag) {
+        std::cout << "Container: " << RecentFileItemsContainerModeEnum::toName(m_mode) << std::endl;
+        std::cout << "Before Sorting-----------------" << std::endl;
+        std::cout << toString() << std::endl;
+    }
+    
     /*
      * Keep all favorites
      */
@@ -695,6 +702,11 @@ RecentFileItemsContainer::removeItemsExceedingMaximumNumber(const int32_t maximu
             --numItemsToKeep;
             itemsToKeep.push_back(new RecentFileItem(*allItems[i]));
         }
+    }
+    
+    if (testFlag) {
+        std::cout << std::endl << "After Sorting-----------------" << std::endl;
+        std::cout << toString() << std::endl << std::endl;
     }
     
     /*

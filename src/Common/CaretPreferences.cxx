@@ -2686,8 +2686,8 @@ CaretPreferences::addToRecentFilesAndOrDirectories(const AString& directoryOrFil
                     if ( ! sceneName.isEmpty()) {
                         addToRecentScenes(directoryOrFileName,
                                           sceneName);
-                        addToRecentSceneAndSpecFiles(directoryOrFileName);
                     }
+                    addToRecentSceneAndSpecFiles(directoryOrFileName);
                     break;
                 case DataFileTypeEnum::SPECIFICATION:
                     addToRecentSceneAndSpecFiles(directoryOrFileName);
