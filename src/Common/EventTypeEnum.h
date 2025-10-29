@@ -214,6 +214,8 @@ public:
         EVENT_HISTOLOGY_SLICES_FILES_GET,
         /** Highlight location when an identification occurs */
         EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
+        /** Highlight sterotaxic locations that may be different in each tab */
+        EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS,
         /** Perform an identification operation */
         EVENT_IDENTIFICATION_REQUEST,
         /** Remove all identification symbols */

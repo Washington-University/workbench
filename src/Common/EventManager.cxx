@@ -477,6 +477,7 @@ EventManager::sendSimpleEvent(const EventTypeEnum::Enum eventType)
         case EventTypeEnum::EVENT_HELP_VIEWER_DISPLAY:
         case EventTypeEnum::EVENT_HISTOLOGY_SLICES_FILES_GET:
         case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION:
+        case EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS:
         case EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL:
         case EventTypeEnum::EVENT_IDENTIFICATION_REQUEST:
         case EventTypeEnum::EVENT_IMAGE_CAPTURE:

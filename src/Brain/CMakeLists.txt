@@ -145,6 +145,7 @@ EventDrawingViewportContentClear.h
 EventDrawingViewportContentGet.h
 EventGetBrainOpenGLTextRenderer.h
 EventIdentificationHighlightLocation.h
+EventIdentificationHighlightStereotaxicLocationsInTabs.h
 EventImageCapture.h
 EventModelAdd.h
 EventModelDelete.h
@@ -388,6 +389,7 @@ EventDrawingViewportContentClear.cxx
 EventDrawingViewportContentGet.cxx
 EventGetBrainOpenGLTextRenderer.cxx
 EventIdentificationHighlightLocation.cxx
+EventIdentificationHighlightStereotaxicLocationsInTabs.cxx
 EventImageCapture.cxx
 EventModelAdd.cxx
 EventModelDelete.cxx

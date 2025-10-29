@@ -68,6 +68,7 @@
 #include "EventCaretMappableDataFilesAndMapsInDisplayedOverlays.h"
 #include "EventCaretMappableDataFileMapsViewedInOverlays.h"
 #include "EventIdentificationHighlightLocation.h"
+#include "EventIdentificationHighlightStereotaxicLocationsInTabs.h"
 #include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventResetView.h"
@@ -81,6 +82,8 @@
 #include "IdentificationManager.h"
 #include "ImageFile.h"
 #include "LabelFile.h"
+#include "LabelSelectionItem.h"
+#include "LabelSelectionItemModel.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "MediaFile.h"
@@ -333,6 +336,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
                                           EventTypeEnum::EVENT_ANNOTATION_BARS_GET);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
+    EventManager::get()->addEventListener(this,
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS);
     EventManager::get()->addEventListener(this,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS);
     
@@ -1975,6 +1980,11 @@ BrowserTabContent::receiveEvent(Event* event)
         
         idLocationEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS) {
+        EventIdentificationHighlightStereotaxicLocationsInTabs* highlightEvent(dynamic_cast<EventIdentificationHighlightStereotaxicLocationsInTabs*>(event));
+        CaretAssert(highlightEvent);
+        processHighlightStereotaxicEvent(highlightEvent);
+    }
     else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILE_MAPS_VIEWED_IN_OVERLAYS) {
         EventCaretMappableDataFileMapsViewedInOverlays* mapOverlayEvent  =
         dynamic_cast<EventCaretMappableDataFileMapsViewedInOverlays*>(event);
@@ -2214,6 +2224,145 @@ BrowserTabContent::getAnnotationColorBars(std::vector<AnnotationColorBar*>& colo
                                 
                                 info.m_colorBar->setTabIndex(m_tabNumber);
                                 colorBarsOut.push_back(info.m_colorBar);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Process a highlight stereotaxic location event
+ * @param highlightEvent
+ *    The event
+ */
+void
+BrowserTabContent::processHighlightStereotaxicEvent(EventIdentificationHighlightStereotaxicLocationsInTabs* highlightEvent)
+{
+    
+    /*
+     * Check model to see if id/crosshairs is OK
+     */
+    bool modelOkFlag(false);
+    if (isVolumeSlicesDisplayed()
+        || isWholeBrainDisplayed()) {
+        if (isIdentificationUpdatesVolumeSlices()) {
+            modelOkFlag = true;
+        }
+    }
+    else if (isSurfaceModelValid()
+             || isSurfaceMontageModelValid()) {
+        /* Not now, will need tab specific surface identification   modelOkFlag = true; */
+    }
+    if ( ! modelOkFlag) {
+        return;
+    }
+    
+    bool labelsInTabFlag = true;
+    switch(highlightEvent->getMode()) {
+        case EventIdentificationHighlightStereotaxicLocationsInTabs::Mode::LABELS_IN_TABS:
+            labelsInTabFlag = true;
+            break;
+    }
+    
+    if (labelsInTabFlag) {
+        std::vector<CaretMappableDataFile*> labelMappedFiles;
+        std::vector<int32_t> labelMappedIndices;
+        getOverlaySet()->getLabelMappedFilesAndMapIndices(labelMappedFiles,
+                                                          labelMappedIndices);
+        
+        const int32_t numItemsToSearch(highlightEvent->getNumberOfLabels());
+        
+        /*
+         * Search for two iterations (one for matching label hierarchies and second for
+         * for non-matching label hierarchies).
+         */
+        for (int32_t iSearch = 0; iSearch < 2; iSearch++) {
+            /*
+             * Loop through label names to search for.
+             * First one is label selected by user.  Second is the parent.
+             * Third is parent of the parent, etc in the hierarchy.
+             */
+            for (int32_t iterSearchName = 0; iterSearchName < numItemsToSearch; iterSearchName++) {
+                /*
+                 * Label name to search for
+                 */
+                const AString labelSearchName(highlightEvent->getLabelName(iterSearchName));
+                
+                /*
+                 * Loop through label files from the overlays of this tab
+                 */
+                const int32_t numLabelFiles(labelMappedFiles.size());
+                for (int32_t iFiles = 0; iFiles < numLabelFiles; iFiles++) {
+                    CaretAssertVectorIndex(labelMappedFiles, iFiles);
+                    CaretAssertVectorIndex(labelMappedIndices, iFiles);
+                    const CaretMappableDataFile* labelFile(labelMappedFiles[iFiles]);
+                    const int32_t mapIndex(labelMappedIndices[iFiles]);
+                    CaretAssert(labelFile);
+                    const GiftiMetaData* metadata(labelFile->getMapMetaData(mapIndex));
+                    CaretAssert(metadata);
+                    const AString& labelHierarchyText(metadata->get("CaretHierarchy"));
+                    
+                    /*
+                     * First iteration, test hierarchies MATCH
+                     * Second iteration, test hierarchies DO NOT MATCH
+                     */
+                    bool doItFlag(false);
+                    switch (iSearch) {
+                        case 0:
+                            doItFlag = (labelHierarchyText == highlightEvent->getLabelHierarchyText());
+                            break;
+                        case 1:
+                            doItFlag = (labelHierarchyText != highlightEvent->getLabelHierarchyText());
+                            break;
+                    }
+                    if (doItFlag) {
+                        /*
+                         * Label selection hierarchy from label file and map index in an overlay
+                         */
+                        const int32_t tabIndex(0);
+                        const LabelSelectionItemModel* labelSelectionItemModel =
+                        labelFile->getLabelSelectionHierarchyForMapAndTab(mapIndex,
+                                                                          DisplayGroupEnum::DISPLAY_GROUP_TAB,
+                                                                          tabIndex);
+                        CaretAssert(labelSelectionItemModel);
+                        
+                        /*
+                         * Look for the desired label name in the overlay's label hierarchy.
+                         * Should only be one but if more than one, process it.
+                         */
+                        std::vector<LabelSelectionItem*> matchingItems(labelSelectionItemModel->getItemsWithName(labelSearchName));
+                        
+                        for (LabelSelectionItem* item : matchingItems) {
+                            const LabelSelectionItem::CogSet* cogSet(item->getMyAndChildrenCentersOfGravity());
+                            if (cogSet != NULL) {
+                                const LabelSelectionItem::COG* allCOG(cogSet->getAllCOG());
+                                if (allCOG != NULL) {
+                                    /*
+                                     * Move volume slices in this tab to the given stereotaxic coordinate
+                                     */
+                                    const Vector3D xyz(allCOG->getXYZ());
+                                    selectVolumeSlicesAtCoordinate(xyz);
+                                    
+                                    /*
+                                     * Text that gets displayed in the identification window
+                                     */
+                                    const AString idInfo("Tab "
+                                                         + getTabName()
+                                                         + " crosshairs moved to "
+                                                         + xyz.toString()
+                                                         + " for "
+                                                         + item->getPrimaryName());
+                                    highlightEvent->addIdentificationText(idInfo);
+                                    highlightEvent->setEventProcessed();
+                                    
+                                    /*
+                                     * Once a match is found, we're done!
+                                     */
+                                    return;
+                                }
                             }
                         }
                     }

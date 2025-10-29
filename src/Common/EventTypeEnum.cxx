@@ -415,6 +415,10 @@ EventTypeEnum::initialize()
                                      "EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION",
                                      "Highlight the location when identification takes place"));
     
+    enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS,
+                                     "EVENT_IDENTIFICATION_HIGHLIGHT_STEREOTAXIC_LOCATIONS_IN_TABS",
+                                     "Highlight sterotaxic locations that may be different in each tab"));
+
     enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_REQUEST,
                                      "EVENT_IDENTIFICATION_REQUEST",
                                      "Request an identification operation"));

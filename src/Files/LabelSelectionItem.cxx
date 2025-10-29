@@ -223,6 +223,30 @@ LabelSelectionItem::type() const
 }
 
 /**
+ * @return The ancestors of this item (parent, parent of parent, etc.)
+ */
+std::vector<LabelSelectionItem*>
+LabelSelectionItem::getAncestors() const
+{
+    std::vector<LabelSelectionItem*> ancestors;
+    
+    LabelSelectionItem* item(const_cast<LabelSelectionItem*>(this));
+    while (item != NULL) {
+        QStandardItem* standardItem(item->parent());
+        item = NULL;
+        if (standardItem != NULL) {
+            item = dynamic_cast<LabelSelectionItem*>(standardItem);
+        }
+        if (item != NULL) {
+            ancestors.push_back(item);
+        }
+    }
+    
+    return ancestors;
+}
+
+
+/**
  * @return The alternative names map
  */
 std::vector<std::pair<AString, AString>>

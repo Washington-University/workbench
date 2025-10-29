@@ -114,6 +114,8 @@ namespace caret {
                 return cogsOut;
             }
             
+            const COG* getAllCOG() const { return m_allCOG.get(); }
+            
             void merge(const CogSet* cogSet) {
                 if (cogSet->m_allCOG != NULL) {
                     if (m_allCOG != NULL) {
@@ -198,6 +200,8 @@ namespace caret {
         AString getTextForInfoDisplay() const;
         
         int32_t getLabelIndex() const;
+        
+        std::vector<LabelSelectionItem*> getAncestors() const;
         
         void setAllChildrenChecked(const bool checked);
 

@@ -73,6 +73,8 @@ namespace caret {
         
         std::vector<LabelSelectionItem*> getTopLevelItems();
         
+        std::vector<LabelSelectionItem*> getItemsWithName(const AString& name) const;
+        
         AString toFormattedString(const AString& indentation) const;
         
         void synchronizeSelectionsWithLabelTable(const bool copyToLabelTableFlag);

@@ -437,6 +437,24 @@ LabelSelectionItemModel::getAllDescendants() const
 }
 
 /**
+ * @return All items that match the given name
+ */
+std::vector<LabelSelectionItem*>
+LabelSelectionItemModel::getItemsWithName(const AString& name) const
+{
+    std::vector<LabelSelectionItem*> itemsOut;
+    
+    std::vector<LabelSelectionItem*> allItems(getAllDescendants());
+    for (LabelSelectionItem* item : allItems) {
+        if (item->text() == name) {
+            itemsOut.push_back(item);
+        }
+    }
+    
+    return itemsOut;
+}
+
+/**
  * @return A formatted string showing the hierarchy
  * @param indentation
  *    Indentation for the string

@@ -32,6 +32,7 @@
 #include "ChartTwoAxisOrientationTypeEnum.h"
 #include "ChartTwoAxisScaleRangeModeEnum.h"
 #include "ClippingPlanePanningModeEnum.h"
+#include "EventIdentificationHighlightStereotaxicLocationsInTabs.h"
 #include "EventListenerInterface.h"
 #include "FunctionResult.h"
 #include "HistologyCoordinate.h"
@@ -863,6 +864,8 @@ namespace caret {
                                        const Vector3D& mouseXY,
                                        const Vector3D& previousMouseXY) const;
 
+        void processHighlightStereotaxicEvent(EventIdentificationHighlightStereotaxicLocationsInTabs* highlightEvent);
+        
         /** Number of this tab */
         int32_t m_tabNumber;
         

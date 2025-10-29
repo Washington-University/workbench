@@ -49,8 +49,10 @@
 #include "DisplayPropertiesLabels.h"
 #include "EventGraphicsPaintSoonAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
+#include "EventIdentificationHighlightStereotaxicLocationsInTabs.h"
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUpdateInformationWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "LabelSelectionItem.h"
@@ -371,10 +373,9 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                                                             const bool /*infoButtonFlag*/)
 {
     CaretAssert(labelItem);
-    const QString name(labelItem->text());
+    const QString labelName(labelItem->text());
     
     const int32_t browserTabIndex(getBrowserTabIndex());
-    CaretAssert(browserTabIndex);
     if (browserTabIndex < 0) {
         return;
     }
@@ -446,15 +447,83 @@ LabelSelectionViewHierarchyController::showSelectedItemMenu(const LabelSelection
                                                    QClipboard::Clipboard);
             }
             else {
+                /*
+                 * User selected a label cluster
+                 */
+                const bool labelIdFlag(true);
                 for (int32_t i = 0; i < static_cast<int32_t>(clusterActions.size()); i++) {
                     if (selectedAction == clusterActions[i]) {
                         CaretAssertVectorIndex(clusterXYZs, i);
                         const Vector3D cogXYZ(clusterXYZs[i]);
-                        EventIdentificationHighlightLocation highlightLocation(browserTabIndex,
-                                                                               cogXYZ,
-                                                                               cogXYZ,
-                                                                               EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
-                        EventManager::get()->sendEvent(highlightLocation.getPointer());
+                        if (labelIdFlag) {
+                            /*
+                             * Get the label file and map and its hierarchy text
+                             */
+                            std::pair<CaretMappableDataFile*, int32_t> fileAndMapIndex(getSelectedFileAndMapIndex());
+                            CaretMappableDataFile* mapFile(fileAndMapIndex.first);
+                            CaretAssert(mapFile);
+                            const int32_t mapIndex(fileAndMapIndex.second);
+                            CaretAssert((mapIndex >= 0)
+                                        && (mapIndex < mapFile->getNumberOfMaps()));
+                            const GiftiMetaData* metadata(mapFile->getMapMetaData(mapIndex));
+                            CaretAssert(metadata);
+                            const AString caretHierarchyText(metadata->get("CaretHierarchy"));
+                            
+                            if (caretHierarchyText.isEmpty()) {
+                                WuQMessageBoxTwo::critical(this, "Error",
+                                                           ("CaretHierarchy not found in metadata for map"
+                                                            + AString::number(mapIndex)));
+                            }
+
+                            /*
+                             * label selected by the user
+                             */
+                            EventIdentificationHighlightStereotaxicLocationsInTabs highlightEvent(caretHierarchyText);
+                            CaretAssertVectorIndex(clusterActions, i);
+                            highlightEvent.addLabelAndStereotaxicXYZ(labelName,
+                                                                     cogXYZ);
+                            
+                            /*
+                             * Also include the parent labels
+                             */
+                            std::vector<LabelSelectionItem*> parentItems(labelItem->getAncestors());
+                            for (LabelSelectionItem* pi : parentItems) {
+                                const LabelSelectionItem::CogSet* cogSet(pi->getMyAndChildrenCentersOfGravity());
+                                if (cogSet != NULL) {
+                                    const LabelSelectionItem::COG* cog(cogSet->getAllCOG());
+                                    if (cog != NULL) {
+                                        const Vector3D xyz(cog->getXYZ());
+                                        highlightEvent.addLabelAndStereotaxicXYZ(pi->text(),
+                                                                                 xyz);
+                                    }
+                                }
+                            }
+                            EventManager::get()->sendEvent(highlightEvent.getPointer());
+                            
+                            /*
+                             * Browser tabs that receive the event will add
+                             * identification text to the event
+                             */
+                            const AString resultsText(highlightEvent.getIdentificationText());
+                            if (highlightEvent.getEventProcessCount() > 0) {
+                                if ( ! resultsText.isEmpty()) {
+                                    EventUpdateInformationWindows infoEvent(resultsText);
+                                    EventManager::get()->sendEvent(infoEvent.getPointer());
+                                }
+                            }
+                            else {
+                                WuQMessageBoxTwo::warning(this,
+                                                          "Warning",
+                                                          "No matching labels were found in tabs");
+                            }
+                        }
+                        else {
+                            EventIdentificationHighlightLocation highlightLocation(browserTabIndex,
+                                                                                   cogXYZ,
+                                                                                   cogXYZ,
+                                                                                   EventIdentificationHighlightLocation::LOAD_FIBER_ORIENTATION_SAMPLES_MODE_NO);
+                            EventManager::get()->sendEvent(highlightLocation.getPointer());
+                        }
                         break;
                     }
                 }
