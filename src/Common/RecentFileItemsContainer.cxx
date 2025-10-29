@@ -438,7 +438,7 @@ RecentFileItemsContainer::addFilesInDirectoryToRecentItems(const RecentFileItemT
             break;
     }
     
-    if (dataFileType == DataFileTypeEnum::UNKNOWN) {
+    if (dataFileType != DataFileTypeEnum::UNKNOWN) {
         std::vector<AString> fileNames = DataFileTypeEnum::getFilesInDirectory(dataFileType,
                                                                                directoryPath);
         
